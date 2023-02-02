@@ -1,0 +1,39 @@
+.button {
+  font: inherit;
+  border: 1px solid white;
+  background: #186090; /*rgb(231 156 0);*/
+  color: white;
+  padding: 0.3rem 7rem;
+  cursor: pointer;
+  font-size: 1.15rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26);
+}
+
+
+
+.button:hover,
+.button:active {
+  /*background: #741188;
+  border-color: #741188;*/
+  background: #3595D2;/*rgb(248, 167, 0);*/
+  box-shadow: 0 5px 3px rgb(0 0 0 / 26%);
+  font-weight: bold;
+}
+
+.button:focus {
+  outline: none;
+  background:  #3595D2;/*rgb(248, 167, 0);*/
+  box-shadow: 0 5px 3px rgb(0 0 0 / 26%);
+  font-weight: bold;
+}
+
+button:disabled,
+button:focus:disabled,
+button:hover:disabled,
+button:active:disabled {
+  background: #ccc;
+  border-color: #ccc;
+  color: #666666;
+  cursor: not-allowed;
+}
