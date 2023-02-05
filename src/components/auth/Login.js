@@ -1,18 +1,20 @@
 import React, { useState, useContext } from 'react';
 
 import LoginCard from '../ui/LoginCard/LoginCard';
-import classes from './Login.module.css';
+import classes from './login.module.css';
 import Button from '../ui/Button/Button';
 import useHttp from '../hooks/useHttp';
 import urlAPI from '../api/apiSeguridad';
 import AuthContext from '../../store/authContext';
 import { useNavigate  } from 'react-router-dom';
 import logo from '../../media/UATRE_Logo.jpg';
+import Form from 'react-bootstrap/Form';
 
 const Login = () => {
-  const authContext = useContext(AuthContext)
-  const { isLoading, error, sendRequest: sendLoginRequest} = useHttp()
-  //const [userLoggedIn, setUserLoggedIn] = useState(null)
+	{console.log('Login')};
+  	const authContext = useContext(AuthContext)
+  	const { isLoading, error, sendRequest: sendLoginRequest} = useHttp()
+  	//const [userLoggedIn, setUserLoggedIn] = useState(null)
 
   const [enteredCUIT, setEnteredCUIT] = useState('');
   const [cuitIsValid, setCUITIsValid] = useState();
@@ -55,7 +57,7 @@ const Login = () => {
 	  body: {
 		"CUIT": enteredCUIT,
 		"Password": enteredPassword,
-		"Rol": "Empleador"
+		"Rol": null
 	  }
 	},processLogIn);
   }
@@ -68,55 +70,49 @@ const Login = () => {
   };
 
   return (
-	<LoginCard className={classes.login}>
-	  <form onSubmit={submitHandler}>
-		<div
-		  className={`${classes.control} ${
-			cuitIsValid === false ? classes.invalid : ''
-		  }`}
-		>
-		  <img src={logo} width="200" height="200" />
-		  <label htmlFor="email">CUIT</label>
-		  <input
-			type="cuit"
-			id="cuit"
-			value={enteredCUIT}
-			onChange={cuitChangeHandler}
-			onBlur={validateCUITHandler}
-		  />
-		</div>
-		<div
-		  className={`${classes.control} ${
-			passwordIsValid === false ? classes.invalid : ''
-		  }`}
-		>
-		  <label htmlFor="password">Clave</label>
-		  <input
-			type="password"
-			id="password"
-			value={enteredPassword}
-			onChange={passwordChangeHandler}
-			onBlur={validatePasswordHandler}
-		  />
-		</div>
-		<div className={classes.actions}>
-		  {!isLoading ?
-		  <div>
-            <Button type="submit" className={classes.btn}>
-                Ingresar
-            </Button>
-            <p/>
-            <Button className={classes.btn2}>
-                Registrar
-            </Button>
-		  </div>
-		  :
-			<p>Cargando...</p>
-		  }
-		</div>
-		<div>{error !== null ? <p>Error: {error}</p> : null}</div>
-	  </form>
-	</LoginCard>
+	<div className={classes.container}>
+		<LoginCard className={classes.login}>
+		<img src={logo} width="200" height="200" />
+		<Form onSubmit={submitHandler}>
+
+			<Form.Group className="mb-3" controlId="formCUIT">
+        		<Form.Label>CUIT/CUIL</Form.Label>
+	
+        		<Form.Control type="text" placeholder="CUIT/CUIL"
+					id="cuit"
+					value={enteredCUIT}
+					onChange={cuitChangeHandler}
+					onBlur={validateCUITHandler}/>
+			</Form.Group>
+
+			<Form.Group className="mb-3" controlId="formClave">
+				<Form.Label>Clave</Form.Label>
+				<Form.Control type="password" placeholder="Clave"
+				id="password"
+				value={enteredPassword}
+				onChange={passwordChangeHandler}
+				onBlur={validatePasswordHandler} />
+			</Form.Group>
+
+			<div className={classes.actions}>
+				{!isLoading ?
+				<div>
+					<Button type="submit" className="botonAzul">
+						Ingresar
+					</Button>
+					<p/>
+					<Button className="botonBlanco">
+						Registrar
+					</Button>
+				</div>
+				:
+					<p>Cargando...</p>
+				}
+			</div>
+			<div>{error !== null ? <p>Error: {error}</p> : null}</div>
+		</Form>
+		</LoginCard>
+	</div>
   );
 };
 

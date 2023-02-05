@@ -1,8 +1,8 @@
-.button {
+.boton {
   font: inherit;
   border: 1px solid white;
   background: #186090; /*rgb(231 156 0);*/
-  color: white;
+  
   padding: 0.3rem 7rem;
   cursor: pointer;
   font-size: 1.15rem;
@@ -10,20 +10,53 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26);
 }
 
+.botonAzul {
+  @extend .boton;
+  color: #FFF !important;
+  background: #186090 !important;
+  //border: 1px solid #186090 !important;
+}
 
+.botonAzul:hover,
+.botonAzul:active {
+  color: white !important;
+  background: #186090 !important;
+}
+
+.botonBlanco {
+  @extend .boton;
+  color: #186090 !important;
+  background: white !important;
+  border: 1px solid #186090 !important;
+}
+
+.botonBlanco:hover,
+.botonBlanco:active {
+  color: white !important;
+  background: #186090 !important;
+}
+
+/* .custom-btn {
+  background: #fff;
+  color: red;
+  border: 2px solid red;
+  border-radius: 3px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+} */
 
 .button:hover,
 .button:active {
   /*background: #741188;
   border-color: #741188;*/
-  background: #3595D2;/*rgb(248, 167, 0);*/
+  background: #3595d2; /*rgb(248, 167, 0);*/
   box-shadow: 0 5px 3px rgb(0 0 0 / 26%);
   font-weight: bold;
 }
 
 .button:focus {
   outline: none;
-  background:  #3595D2;/*rgb(248, 167, 0);*/
+  background: #3595d2; /*rgb(248, 167, 0);*/
   box-shadow: 0 5px 3px rgb(0 0 0 / 26%);
   font-weight: bold;
 }
