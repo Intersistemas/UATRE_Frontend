@@ -4,7 +4,7 @@ import Login from './components/auth/login';
 import SideBar from './components/sidebar/sidebar'
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
-import Home from './components/pages/home'
+import Inicio from './components/pages/inicio'
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -18,13 +18,13 @@ const App = () => {
     <div className="App">
        <SideBar>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/inicio" element={<Inicio />} />
         </Routes>
       </SideBar>
         

@@ -1,15 +1,19 @@
 import React from 'react';
 import Button1 from 'react-bootstrap/Button';
 import classes from './Button.module.css';
-import './Button.module.css';
+
 
 
 const Button = (props) => {
+  console.log('props.width',props);
+
   return (
     <Button1
       type={props.type || 'button'}
-      // className={`${classes.button} ${props.className}`}
-      className={`classes.${this.props.className.replace(/["]+/g, ' ')}`}
+
+      className={`${classes[`${props.className}`]} ${classes.boton}`}
+      style={{width: props.width != null ? `${props.width}%`:"100%"}}
+
       onClick={props.onClick}
       disabled={props.disabled}
     >
