@@ -4,7 +4,8 @@ import Login from './components/auth/login';
 import SideBar from './components/sidebar/sidebar'
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
-import Inicio from './components/pages/inicio'
+import Inicio from './components/pages/inicio/Inicio';
+import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -20,7 +21,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/inicio" element={<Inicio />} />
-          <Route path="/inicio" element={<Inicio />} />
+          <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
           <Route path="/inicio" element={<Inicio />} />
           <Route path="/inicio" element={<Inicio />} />
           <Route path="/inicio" element={<Inicio />} />

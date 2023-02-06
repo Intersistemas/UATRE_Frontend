@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react';
 import getStoredToken from '../../store/getSoredToken';
 
 const useHttp = () => {   
-
-
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
 
@@ -12,19 +10,33 @@ const useHttp = () => {
         setError(null)
         const storedTokenData = getStoredToken()
         console.log("useHttp - storedTokenData", storedTokenData)
+        let url = ''
 
+        switch (configRequest.baseURL) {
+            case 'AFIP':
+                url = 'http://SVR-TEST:8801/api'
+                break;
+        
+            case 'Afiliaciones':
+                url = 'http://intersistemas.net:8200/api'
+                break;
+
+            default:
+                break;
+        }
+        
         //Agrego Token
         let headers = {...configRequest.headers}
-        if(headers.Authorization === "")
-        {
-            headers = {...headers,
-                Authorization: "Bearer " + storedTokenData.token
-            }
-        }
+        // if(headers.Authorization === "")
+        // {
+        //     headers = {...headers,
+        //         Authorization: "Bearer " + storedTokenData.token
+        //     }
+        // }
         
         try {
             const response = await fetch(
-                configRequest.url,
+                url + configRequest.endpoint,
                 {
                     method: configRequest.method ? configRequest.method : 'GET',
                     headers: headers,

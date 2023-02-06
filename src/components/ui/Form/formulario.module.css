@@ -1,0 +1,60 @@
+
+.boton {
+  font: inherit !important;
+  border: 1px solid var(--color1) !important;
+  //padding: 0.3rem 7rem !important;
+  width: var(--width100); 
+  cursor: pointer !important;
+  font-size: 1rem !important;
+  border-radius: 5px !important;
+  box-shadow: 0 3px 2px rgb(24 96 144 / 50%) !important;
+  color: var(--blanco) !important;
+  background: var(--color1) !important;
+  font-weight: bold !important;
+}
+
+.w50{
+  width: 50% !important; 
+}
+
+.w25{
+  width: 25% !important; 
+}
+
+.w10{
+  width: 10% !important; 
+}
+
+.boton:hover,
+.boton:active {
+    color: var(--blanco) !important;
+    background: var(--color2) !important;
+}
+.boton:focus {
+  border: 1px solid var(--color4) !important;
+  box-shadow: 0 0 0 0.25rem var(--color4) !important;
+}
+
+.boton:disabled,
+.boton:focus:disabled,
+.boton:hover:disabled,
+.boton:active:disabled {
+  background: var(--gris2)!important;
+  border-color: #ccc!important;
+  color: var(--gris1)!important;
+  cursor: not-allowed!important;
+}
+
+
+.botonBlanco {
+  color: var(--color1) !important;
+  background: transparent !important; /*Transparente*/
+}
+
+.botonBlanco:hover,
+.botonBlanco:active {
+
+  color: white !important;
+  background: var(--color2) !important;
+}
+

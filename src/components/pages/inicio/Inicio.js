@@ -1,14 +1,18 @@
 import React, {useState, useEffect} from 'react';
-import useHttp from '../hooks/useHttp';
-import urlAPI from '../api/apiSeguridad';
-import AuthContext from '../../store/authContext';
-import Table from '../ui/Table/Table';
+import useHttp from '../../hooks/useHttp';
+import urlAPI from '../../api/apiSeguridad';
+import AuthContext from '../../../store/authContext';
+import Table from '../../ui/Table/Table';
 import { Container } from "react-bootstrap";
-import Button from '../ui/Button/Button';
-import classes from './inicio.module.css'
+import Button from '../../ui/Button/Button';
+import classes from './Inicio.module.css'
+import { useNavigate, NavLink  } from 'react-router-dom';
 
 
 const Home = () => {
+
+  const navigate = useNavigate();
+
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
   const [data, setData] = useState([]);
 
@@ -56,9 +60,6 @@ const products = [
     domicilio: 'Lopez y Planes 2500'
   }
 
-
-
-
 ];
 const columns = [
   {
@@ -84,13 +85,14 @@ const columns = [
           Inicio
       
           <Table
-            products={ products}
+            products={ products}                                                                    
             columns={ columns}
            />
 
-          <Button  width={25} >Afiliaciones</Button>
+              <Button  width={25} onClick={() => navigate("/afiliaciones2")}>Afiliaciones</Button>
+          
           <p/>
-          <Button  width={25} >SIARU</Button>
+          <Button  width={25}  onClick={() => navigate('/siaru')}>SIARU</Button>
 
     </div>
   )
