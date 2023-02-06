@@ -2,8 +2,10 @@ import React, {useState, useEffect} from 'react';
 import useHttp from '../hooks/useHttp';
 import urlAPI from '../api/apiSeguridad';
 import AuthContext from '../../store/authContext';
-import BootstrapTable from 'react-bootstrap-table-next';
-import { Container,Button } from "react-bootstrap";
+import Table from '../ui/Table/Table';
+import { Container } from "react-bootstrap";
+import Button from '../ui/Button/Button';
+import classes from './inicio.module.css'
 
 
 const Home = () => {
@@ -40,7 +42,21 @@ const products = [
     razonsocial: 'Agricola Colosal',
     localidad: 'Buenos Aires',
     domicilio: 'Lopez y Planes 2500'
+  },
+  {
+    cuit: '30-34.523.64-9',
+    razonsocial: 'Agricola Colosal2',
+    localidad: 'Buenos Aires',
+    domicilio: 'Lopez y Planes 2500'
+  },
+   {
+    cuit: '30-52.234.321-9',
+    razonsocial: 'Agricola Colosal3',
+    localidad: 'Buenos Aires',
+    domicilio: 'Lopez y Planes 2500'
   }
+
+
 
 
 ];
@@ -50,7 +66,8 @@ const columns = [
     text: 'CUIT'
   }, {
     dataField: 'razonsocial',
-    text: 'Razón Social'
+    text: 'Razón Social',
+    sort: true
   }, {
     dataField: 'localidad',
     text: 'Localidad'
@@ -61,19 +78,19 @@ const columns = [
 
 
   return (
+
+    
     <div>
-      Inicio
+          Inicio
       
-          <BootstrapTable keyField='id'
-           data={ products }
-           columns={ columns }
-           striped
-            hover
-            condensed
+          <Table
+            products={ products}
+            columns={ columns}
            />
 
-          <Button>Afiliaciones</Button>
-          <Button>SIARU</Button>
+          <Button  width={25} >Afiliaciones</Button>
+          <p/>
+          <Button  width={25} >SIARU</Button>
 
     </div>
   )
