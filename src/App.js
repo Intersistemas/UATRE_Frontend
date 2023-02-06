@@ -1,11 +1,11 @@
-import logo from './logo.svg';
 import './App.css';
+import AfiliadosHandler from './components/Afiliados/AfiliadosHandler';
 import Login from './components/auth/Login';
 
 const App = () => {
   return (
     <div className="App">
-       <Login/>
+       <AfiliadosHandler />
     </div>
   );
 }
