@@ -63,6 +63,10 @@
 
 .container{
   background-image: url(../../media/campo_trigo1.jpg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
   container-type: inline-size;
   -webkit-font-smoothing: antialiased;
 
@@ -70,4 +74,5 @@
   height: 100vh;
   display: flex;
   justify-content: center;
+  
 }

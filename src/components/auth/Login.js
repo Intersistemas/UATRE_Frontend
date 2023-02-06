@@ -76,7 +76,7 @@ const Login = () => {
 		<Form onSubmit={submitHandler}>
 
 			<Form.Group className="mb-3" controlId="formCUIT">
-        		<Form.Label>CUIT/CUIL</Form.Label>
+        		<Form.Label><strong>CUIT/CUIL</strong></Form.Label>
 	
         		<Form.Control type="text" placeholder="CUIT/CUIL"
 					id="cuit"
@@ -86,7 +86,7 @@ const Login = () => {
 			</Form.Group>
 
 			<Form.Group className="mb-3" controlId="formClave">
-				<Form.Label>Clave</Form.Label>
+				<Form.Label><strong>Clave</strong></Form.Label>
 				<Form.Control type="password" placeholder="Clave"
 				id="password"
 				value={enteredPassword}
