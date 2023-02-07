@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import './App.css';
-import Login from './components/auth/login';
+import Login from './components/auth/Login';
 import SideBar from './components/sidebar/sidebar'
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
