@@ -8,7 +8,7 @@ import {
     FaCommentAlt,
     FaShoppingBag,
     FaThList
-}from "react-icons/fa";
+} from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { NavLink } from 'react-router-dom';
 import AuthContext from '../../store/authContext';

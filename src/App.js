@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import './App.css';
-import Login from './components/auth/login';
+import Login from './components/auth/Login';
 import SideBar from './components/sidebar/sidebar'
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
@@ -17,27 +17,7 @@ const App = () => {
   
   return (
     <div className="App">
-       <SideBar>
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/inicio" element={<Inicio />} />
-        </Routes>
-      </SideBar>
-        
-       <Routes>
-            {
-                !isLoggedIn 
-                && (<Route path="/*" element={<Login/>} />)
-            }
-
-            {/* <Route path='*' element={<Navigate to='/login' replace />} /> */}
-
-        </Routes>   
+      <AfiliadosHandler />
     </div>
   );
 }

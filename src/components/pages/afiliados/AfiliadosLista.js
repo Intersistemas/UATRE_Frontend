@@ -3,12 +3,14 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css';
 import BootstrapTable from "react-bootstrap-table-next";
 import paginationFactory from "react-bootstrap-table2-paginator";
+import overlayFactory from "react-bootstrap-table2-overlay";
 import styles from './AfiliadosLista.module.css'
+import Button from "../../ui/Button/Button";
 
 const AfiliadosLista = (props) => {    
     const afiliados = { data: props.afiliados.data, totalRegs: props.afiliados.count, page: props.afiliados.index, sizePerPage: props.afiliados.size }
     
-    console.log('afiliados', afiliados)
+    //console.log('afiliados', afiliados)
     const columns = [
         {
           dataField: "id",
@@ -53,35 +55,39 @@ const AfiliadosLista = (props) => {
         alwaysShowAllBtns: true,
         //hideSizePerPage: true,
         onPageChange: function (page, sizePerPage) {
-          console.log('page', page);
-          console.log('sizePerPage', sizePerPage);
+          //console.log('page', page);
+          //console.log('sizePerPage', sizePerPage);
           props.onPageChange(page, sizePerPage)
         },
         onSizePerPageChange: function (page, sizePerPage) {
-          console.log('page', page);
-          console.log('sizePerPage', sizePerPage);
+          //console.log('page', page);
+          //console.log('sizePerPage', sizePerPage);
           props.onSizePerPageChange(sizePerPage, page)
         }
       });
 
     return (
-        <div className={styles.div}> 
-        <button onClick={props.onClickAfiliadoAgregar}>Nuevo Afiliado</button>       
+      <div className={styles.div}>
+        <Button width={20} onClick={props.onClickAfiliadoAgregar}>Nuevo Afiliado</Button>
         <BootstrapTable
-            bootstrap4
-            remote
-            keyField="id"
-            data={afiliados.data}
-            columns={columns}
-            pagination={pagination}
-            onTableChange={ handleTableChange }
-            //loading={props.loading}
-            striped
-            hover
-            condensed
+          bootstrap4
+          remote
+          keyField="id"
+          loading={props.loading}
+          data={afiliados.data}
+          columns={columns}
+          pagination={pagination}
+          onTableChange={handleTableChange}
+          overlay={overlayFactory({
+            spinner: true,            
+          })}
+          //loading={props.loading}
+          striped
+          hover
+          condensed
         />
-        </div>
-    )
+      </div>
+    );
 }
 
 export default AfiliadosLista;

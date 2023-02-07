@@ -9,7 +9,7 @@ const useHttp = () => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
-        console.log("useHttp - storedTokenData", storedTokenData)
+        //console.log("useHttp - storedTokenData", storedTokenData)
         let url = ''
 
         switch (configRequest.baseURL) {
@@ -18,7 +18,8 @@ const useHttp = () => {
                 break;
         
             case 'Afiliaciones':
-                url = 'http://intersistemas.net:8200/api'
+                //url = 'http://intersistemas.net:8200/api'
+                url = "http://localhost:5165/api";
                 break;
 
             default:
