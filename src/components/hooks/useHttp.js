@@ -21,18 +21,22 @@ const useHttp = () => {
                 url = 'http://intersistemas.net:8200/api'
                 break;
 
+            case 'Seguridad':
+                url = 'http://intersistemas.net:8800/api'
+                break;
+                
             default:
                 break;
         }
         
         //Agrego Token
         let headers = {...configRequest.headers}
-        // if(headers.Authorization === "")
-        // {
-        //     headers = {...headers,
-        //         Authorization: "Bearer " + storedTokenData.token
-        //     }
-        // }
+         if(headers.Authorization === true)
+         {
+             headers = {...headers,
+                 Authorization: "Bearer " + storedTokenData.token
+             }
+         }
         
         try {
             const response = await fetch(
