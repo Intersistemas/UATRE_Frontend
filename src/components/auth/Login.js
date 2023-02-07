@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import LoginCard from '../ui/LoginCard/LoginCard';
-import classes from './login.module.css';
+import classes from './Login.module.css';
 import Button from '../ui/Button/Button';
 import useHttp from '../hooks/useHttp';
 import AuthContext from '../../store/authContext';
