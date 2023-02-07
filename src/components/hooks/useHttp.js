@@ -18,8 +18,8 @@ const useHttp = () => {
                 break;
         
             case 'Afiliaciones':
-                //url = 'http://intersistemas.net:8200/api'
-                url = "http://localhost:5165/api";
+                url = 'http://intersistemas.net:8200/api'
+                //url = "http://localhost:5165/api";
                 break;
 
             default:
@@ -28,12 +28,12 @@ const useHttp = () => {
         
         //Agrego Token
         let headers = {...configRequest.headers}
-        // if(headers.Authorization === "")
-        // {
-        //     headers = {...headers,
-        //         Authorization: "Bearer " + storedTokenData.token
-        //     }
-        // }
+        if(headers.Authorization === true)
+        {
+            headers = {...headers,
+                Authorization: "Bearer " + storedTokenData.token
+            }
+        }
         
         try {
             const response = await fetch(
