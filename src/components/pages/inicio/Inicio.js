@@ -9,29 +9,31 @@ import classes from './Inicio.module.css'
 import { useNavigate, NavLink  } from 'react-router-dom';
 
 
-const Home = () => {
+const Inicio = (props) => {
+  const empresas = {props};
 
+  console.log('empresas: ,',empresas)
   const navigate = useNavigate();
 
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
   const [data, setData] = useState([]);
 
-  const [empresas, setEmpresas] = useState();
+  //const [empresas, setEmpresas] = useState();
 
-  useEffect(() => {     
-    const processEmpresas = async (empresasObj) => {   
-      console.log('empresasObj:',empresasObj)
-      setEmpresas(empresasObj);   
+//   useEffect(() => {     
+//     const processEmpresas = async (empresasObj) => {   
+//       console.log('empresasObj:',empresasObj)
+//       setEmpresas(empresasObj);   
                
-    };
+//     };
 
-    getEmpresas({
-        url: urlAPI +'PermisosUsuario',
-        headers: {
-            Authorization: "",
-        }  
-    },processEmpresas);
-},[getEmpresas]);
+//     getEmpresas({
+//         url: urlAPI +'PermisosUsuario',
+//         headers: {
+//             Authorization: "",
+//         }  
+//     },processEmpresas);
+// },[getEmpresas]);
 
 
 const products = [
@@ -88,8 +90,8 @@ const columns = [
             products={ products}                                                                    
             columns={ columns}
            />
-
-              <Button  width={25} onClick={() => navigate("/afiliaciones2")}>Afiliaciones</Button>
+           
+           <Button  width={25} onClick={() => navigate("/afiliaciones")}>Afiliaciones</Button>
           
           <p/>
           <Button  width={25}  onClick={() => navigate('/siaru')}>SIARU</Button>
@@ -98,4 +100,4 @@ const columns = [
   )
 };
 
-export default Home;
+export default Inicio;
