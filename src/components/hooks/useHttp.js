@@ -21,10 +21,15 @@ const useHttp = () => {
                 url = 'http://intersistemas.net:8200/api'
                 break;
 
+						case 'SIARU':
+								// url = 'http://intersistemas.net:8201/api'
+								url = 'http://svr-test:8201/api'
+								break;
+								
             case 'Seguridad':
                 url = 'http://intersistemas.net:8800/api'
                 break;
-                
+	
             default:
                 break;
         }
