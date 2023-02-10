@@ -15,7 +15,7 @@ const Button = (props) => {
       style={{width: props.width != null ? `${props.width}%`:"100%"}}
 
       onClick={props.onClick}
-      disabled={props.disabled}
+      disabled={props.disabled || false}
     >
       {props.children}
     </Button1>

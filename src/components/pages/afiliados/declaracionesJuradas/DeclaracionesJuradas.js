@@ -1,19 +1,92 @@
+import { useEffect, useState } from "react";
 import BootstrapTable from "react-bootstrap-table-next";
+import overlayFactory from "react-bootstrap-table2-overlay";
+import FormatearFecha from "../../../helpers/FormatearFecha";
+import useHttp from "../../../hooks/useHttp";
 import styles from "./DeclaracionesJuradas.module.css";
 
 const DeclaracionesJuradas = (props) => {
-  const { ddJJUatreList } = props;
-  const columns = [    
-    {
-      dataField: "periodo",
-      text: "Periodo",
-      sort: true,
-    },
-    {
-      dataField: "cuit",
-      text: "CUIT",
-    },
-  ];
+  const { isLoading, error, sendRequest: request } = useHttp();
+  const [ddJJUatreList, setDDJJUatreList] = useState([]);
+  const { cuil, infoCompleta } = props.cuil === null ? 0 : props;
+
+  useEffect(() => {
+    if (cuil > 0) {
+      const processDDJJUatre = async (ddJJUatreObj) => {
+        setDDJJUatreList(ddJJUatreObj);
+      };
+
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${cuil}`,
+          method: "GET",
+        },
+        processDDJJUatre
+      );
+    }
+  }, [request, cuil]);
+
+  let columns = null
+  if (infoCompleta) {
+    columns = [
+      {
+        dataField: "periodo",
+        text: "Periodo",
+        sort: true,
+      },
+      {
+        dataField: "cuit",
+        text: "CUIT",
+      },
+      {
+        dataField: "empresaNombre",
+        text: "Empresa",
+      },
+      {
+        dataField: "banco",
+        text: "Banco",
+      },
+      {
+        dataField: "remuneracionImponible",
+        text: "Rem Imponible",
+      },
+      {
+        dataField: "rectificativa",
+        text: "Rectificativa",
+      },
+      {
+        dataField: "presentacionFecha",
+        text: "Fecha Presentacion",
+        formatter: FormatearFecha,
+      },
+      {
+        dataField: "procesoFecha",
+        text: "Fecha Proceso",
+        formatter: FormatearFecha,
+      },
+    ];
+  } else {
+    columns = [
+      {
+        dataField: "periodo",
+        text: "Periodo",
+        sort: true,
+      },
+      {
+        dataField: "cuit",
+        text: "CUIT",
+      },
+      {
+        dataField: "empresaNombre",
+        text: "Empresa",
+      },
+      {
+        dataField: "remuneracionImponible",
+        text: "Rem Imponible",
+      },
+    ];
+  }
 
   const selectRow = {
     mode: "radio",
@@ -39,9 +112,12 @@ const DeclaracionesJuradas = (props) => {
             columns={columns}
             selectRow={selectRow}
             rowEvents={rowEvents}
+            loading={isLoading}
             striped
             hover
             condensed
+            noDataIndication={<h4>No hay DDJJ</h4>}
+            overlay={ overlayFactory({ spinner: true })}
           />
         </div>
       </div>
