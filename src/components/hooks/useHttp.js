@@ -18,7 +18,7 @@ const useHttp = () => {
             break;
 
           case "Afiliaciones":
-           /url = 'http://intersistemas.net:8200/api'
+            url = 'http://intersistemas.net:8200/api';
             break;
 
           case "SIARU":
