@@ -4,11 +4,18 @@ import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
 
 const AfiliadosHandler = () => {
-    const [afiliadosRespuesta, setAfiliadosRespuesta] = useState([])    
+    const estadosSolicitud = [
+      { id: 1, value: 0, label: "Todos" },
+      { id: 2, value: 1, label: "Pendiente" },
+      { id: 3, value: 2, label: "Activo" },
+    ];
+
+    const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: []})    
     const [page, setPage] = useState(1)
     const [sizePerPage, setSizePerPage] = useState(50)
     const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false)
     const [refresh, setRefresh] = useState(false)
+    const [estadoSolicitud, setEstadoSolcitud] = useState(0)
     const { isLoading, error, sendRequest: request} = useHttp()
 
     useEffect(() => { 
@@ -19,12 +26,17 @@ const AfiliadosHandler = () => {
                 setRefresh(false);             
         };
 
+        let endpoint = `/Afiliado?PageIndex=${page}&PageSize=${sizePerPage}`
+        if(estadoSolicitud)
+        {
+            endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`
+        }
         request({ 
             baseURL: 'Afiliaciones',
-            endpoint: `/Afiliado?PageIndex=${page}&PageSize=${sizePerPage}`,
+            endpoint: endpoint,
             method: 'GET',                              
         },processAfiliados);
-    }, [request, page, sizePerPage, refresh])    
+    }, [request, page, sizePerPage, refresh, estadoSolicitud])         
 
     // const handleDarDeBajaAfiliado = (afiliado) => {
 
@@ -56,6 +68,11 @@ const AfiliadosHandler = () => {
         setAfiliadosRespuesta([])      
     }
 
+    const handleFilterChange = (filters) => {
+        //console.log("value", filters.estadoSolicitud.filterVal);
+        setEstadoSolcitud(parseInt(filters.estadoSolicitud.filterVal) ?? 0)
+    }
+
     if(isLoading) {
         return <h1>Loading...</h1>
     }
@@ -72,12 +89,15 @@ const AfiliadosHandler = () => {
                     />}
                 <AfiliadosLista 
                     afiliados={afiliadosRespuesta}    
-                    loading={isLoading}             
+                    loading={isLoading}         
+                    estadosSolicitud={estadosSolicitud}  
+                    estadoSolicitudActual={estadoSolicitud}  
                     // onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
                     // onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
                     onPageChange={handlePageChange}
                     onSizePerPageChange={handleSizePerPageChange}
                     onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+                    onFilterChange={handleFilterChange}
                 />
             </Fragment>
         )

@@ -13,17 +13,21 @@ const useHttp = () => {
         let url = ''
 
         switch (configRequest.baseURL) {
-            case 'AFIP':
-                url = 'http://SVR-TEST:8801/api'
-                break;
-        
-            case 'Afiliaciones':
-                url = 'http://intersistemas.net:8200/api'
-                //url = "http://localhost:5165/api";
-                break;
+          case "AFIP":
+            url = "http://SVR-TEST:8801/api";
+            break;
 
-            default:
-                break;
+          case "Afiliaciones":
+            url = 'http://intersistemas.net:8200/api'
+            //url = "http://localhost:5165/api";
+            break;
+
+          case "SIARU":
+            url = "http://SVR-TEST:8201/api";
+            break;
+
+          default:
+            break;
         }
         
         //Agrego Token
