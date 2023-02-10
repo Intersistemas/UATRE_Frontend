@@ -26,7 +26,7 @@ const Sidebar = ({children}) => {
     const toggle = () => setIsOpen (!isOpen);
     const menuItem=[
         {
-            path:"/",
+            path:"/inicio",
             name:"Inicio",
             icon:<FaTh/>
         }

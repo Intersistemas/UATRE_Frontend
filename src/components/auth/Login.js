@@ -4,7 +4,6 @@ import LoginCard from '../ui/LoginCard/LoginCard';
 import classes from './Login.module.css';
 import Button from '../ui/Button/Button';
 import useHttp from '../hooks/useHttp';
-import urlAPI from '../api/apiSeguridad';
 import AuthContext from '../../store/authContext';
 import { useNavigate  } from 'react-router-dom';
 import logo from '../../media/UATRE_Logo.jpg';
@@ -47,8 +46,10 @@ const Login = () => {
   }
 
   const sendLoginHandler = async() => {
+
 	sendLoginRequest({
-	  url: urlAPI + "Usuario/login",
+	  baseURL: 'Seguridad',
+	  endpoint: "/Usuario/login",
 	  method: "POST",
 	  headers: {
 		"Content-Type": "application/json",

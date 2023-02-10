@@ -5,6 +5,7 @@ import SideBar from './components/sidebar/sidebar'
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
 import Inicio from './components/pages/inicio/Inicio';
+import InicioHandler from './components/pages/inicio/InicioHandler';
 import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 
 const App = () => {
@@ -17,7 +18,27 @@ const App = () => {
   
   return (
     <div className="App">
-      <AfiliadosHandler />
+       <SideBar>
+        <Routes>
+          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
+          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/inicio" element={<InicioHandler />} />
+        </Routes>
+      </SideBar>
+        
+       <Routes>
+            {
+                !isLoggedIn 
+                && (<Route path="/*" element={<Login/>} />)
+            }
+
+            {/* <Route path='*' element={<Navigate to='/login' replace />} /> */}
+
+        </Routes>   
     </div>
   );
 }
