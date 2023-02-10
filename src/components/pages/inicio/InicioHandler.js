@@ -1,16 +1,31 @@
 import React, {useState, useEffect} from 'react';
-import useHttp from '../../hooks/useHttp';
-import urlAPI from '../../api/apiSeguridad';
+import useHttp from "../../hooks/useHttp";
 import AuthContext from '../../../store/authContext';
-import Table from '../../ui/Table/Table';
-import { Container } from "react-bootstrap";
-import Button from '../../ui/Button/Button';
-import classes from './Inicio.module.css'
-import { useNavigate, NavLink  } from 'react-router-dom';
-import Inicio from './Inicio'
+import Inicio from './Inicio';
 
 
-const inicioHandler = () => {
+
+const InicioHandler = () => {
+
+  const { isLoading, error, sendRequest: request} = useHttp();
+  const [empresasRespuesta, setempresasRespuesta] = useState(null);
+
+  useEffect(() => { 
+    const processEmpresas = async (empresasObj) => {
+        console.log('empresasObj', empresasObj)
+        setempresasRespuesta(empresasObj);              
+    };
+
+    request({ 
+        baseURL: 'Seguridad',
+        endpoint: "/PermisosUsuario",
+        headers: {
+          Authorization: true,
+        },  
+        method: 'GET',               
+    },processEmpresas);
+}, [request])
+
   /*
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
   const [data, setData] = useState([]);
@@ -36,10 +51,11 @@ const inicioHandler = () => {
   return (
 
     <div>
-          <Inicio/>
+          <Inicio empresas={empresasRespuesta} />
 
     </div>
   )
+
 };
 
-export default inicioHandler;
+export default InicioHandler;
