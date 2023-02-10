@@ -5,7 +5,7 @@ import classes from './Button.module.css';
 
 
 const Button = (props) => {
-  console.log('props.width',props);
+  //console.log('props.width',props);
 
   return (
     <Button1
