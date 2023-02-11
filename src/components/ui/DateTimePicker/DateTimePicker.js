@@ -58,7 +58,6 @@ const DateTimePicker = (props) => {
 			Picker = DTPicker;
 			break;
 	}
-	console.log("pViews", pViews, "value", value);
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"es-mx"}>
 			<Picker

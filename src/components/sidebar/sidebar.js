@@ -17,7 +17,6 @@ import "./sidebar.css"
 
 const Sidebar = ({children}) => {
     const authContext = useContext(AuthContext)
-    console.log('authContext-SideBar',authContext)
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
    // const logoutHandler = authContext.logout; //se usuario si quieren agregar una X para salir al navVar
@@ -33,7 +32,6 @@ const Sidebar = ({children}) => {
     ]
     return (
         <>     
-        {console.log('SideBar')}
         {isLoggedIn && (
         <div className="container">
            <div style={{width: isOpen ? "200px" : "50px"}} className="sidebar">

@@ -9,7 +9,6 @@ const useHttp = () => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
-        console.log("useHttp - storedTokenData", storedTokenData)
         let url = ''
 
         switch (configRequest.baseURL) {
@@ -55,7 +54,6 @@ const useHttp = () => {
             
             if(!response.ok)
             {
-                console.log('error: ',response.status);
                 let errorMessage = 'Error ' + response.status + '-' + response.statusText;                
                 const errorResponse = await response.json();
                 if(errorResponse.statusCode && errorResponse.mensaje)
