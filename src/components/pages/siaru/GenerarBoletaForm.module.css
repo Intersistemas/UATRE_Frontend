@@ -4,3 +4,11 @@
 	text-align: center;
 	text-decoration: underline !important;
 }
+
+.subtitulo {
+	text-align: left;
+}
+
+.subtitulo > span {
+	font-weight: bold;
+}
