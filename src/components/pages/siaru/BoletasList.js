@@ -1,42 +1,11 @@
 import React from "react";
 import BootstrapTable from "react-bootstrap-table-next";
 import paginationFactory from "react-bootstrap-table2-paginator";
-import styles from "./EstablecimientosList.module.css";
+import styles from "./BoletasList.module.css";
 
-const EstablecimientosList = (props) => {
+const BoletasList = (props) => {
 	const config = { ...props.config };
-	const data = [...config.data].map((e) => {
-		const r = { ...e };
-
-		if (r.domicilioCalle == null) r.domicilioCalle = "";
-		if (r.domicilioNumero == null) r.domicilioNumero = 0;
-		if (r.domicilioPiso == null) r.domicilioPiso = "";
-		if (r.domicilioDpto == null) r.domicilioDpto = "";
-		if (r.domicilioSector == null) r.domicilioSector = "";
-		if (r.domicilioTorre == null) r.domicilioTorre = "";
-		if (r.domicilioManzana == null) r.domicilioManzana = "";
-
-		r.domicilio = "";
-
-		if (e.domicilioCalle !== 0) {
-			if (r.domicilio) r.domicilio = `${r.domicilio} `;
-			r.domicilio = `${r.domicilio} Calle ${e.domicilioCalle}`;
-		}
-		if (e.domicilioNumero !== 0) {
-			if (r.domicilio) r.domicilio = `${r.domicilio} `;
-			r.domicilio = `${r.domicilio} Nro ${e.domicilioNumero}`;
-		}
-		if (e.domicilioPiso !== "") {
-			if (r.domicilio) r.domicilio = `${r.domicilio} `;
-			r.domicilio = `${r.domicilio} Piso ${e.domicilioPiso}`;
-		}
-		if (e.domicilioDpto !== "") {
-			if (r.domicilio) r.domicilio = `${r.domicilio} `;
-			r.domicilio = `${r.domicilio} Dpto ${e.domicilioDpto}`;
-		}
-
-		return r;
-	});
+	const data = [...config.data];
 	const pagination = { ...config.pagination };
 	const onSelect = config.onSelect ?? ((ix) => {});
 	const onPaginationChange =
@@ -44,13 +13,13 @@ const EstablecimientosList = (props) => {
 
 	const columns = [
 		{
-			dataField: "nroSucursal",
-			text: "Nro. Sucursal",
+			dataField: "periodo",
+			text: "Periodo",
 			sort: true,
 		},
 		{
-			dataField: "nombre",
-			text: "Nombre",
+			dataField: "fecha",
+			text: "Fecha",
 			sort: true,
 		},
 		{
@@ -58,8 +27,12 @@ const EstablecimientosList = (props) => {
 			text: "Cant. trabajadores",
 		},
 		{
-			dataField: "domicilio",
-			text: "Domicilio",
+			dataField: "totalRemuneraciones",
+			text: "Total remuneraciones",
+		},
+		{
+			dataField: "codigoBarra",
+			text: "Codigo de barras",
 		},
 	];
 
@@ -107,4 +80,4 @@ const EstablecimientosList = (props) => {
 	);
 };
 
-export default EstablecimientosList;
+export default BoletasList;

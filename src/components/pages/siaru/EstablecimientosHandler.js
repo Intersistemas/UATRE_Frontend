@@ -1,56 +1,97 @@
 import React, { useEffect, useState } from "react";
 import useHttp from "../../hooks/useHttp";
+import Button from "../../ui/Button/Button";
+import Modal from "../../ui/Modal/Modal";
+import BoletasHandler from "./BoletasHandler";
+import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
+import GenerarBoletaForm from "./GenerarBoletaForm";
 
 const EstablecimientosHandler = (props) => {
-	let config = props.config;
-	let empresasId = config.empresasId;
+	const config = props.config;
+	const empresa = config.empresa;
+	const empresaId = empresa ? empresa.id : 0;
 	const [establecimientos, setEstablecimientos] = useState(null);
+	const [pagination, setPagination] = useState({
+		index: 1,
+		size: 10,
+		count: 0,
+		pages: 0,
+	});
 	const [establecimiento, setEstablecimiento] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
+	const [boletaForm, setBoletaForm] = useState(null);
 
 	useEffect(() => {
-		const processEstablecimientos = async (establecimientosArr) => {
-			setEstablecimientos(establecimientosArr);
-		};
-
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresasId}`,
+				endpoint: `/EmpresasEstablecimientos/Paginado?EmpresasId=${empresaId}&Page=${pagination.index},${pagination.size}`,
 				method: "GET",
 			},
-			processEstablecimientos
+			async (response) => {
+				setEstablecimientos(response.data);
+				setPagination({
+					index: response.index,
+					size: response.size,
+					count: response.count,
+					pages: response.pages,
+				});
+				setEstablecimiento(null);
+			}
 		);
-	}, [request]);
+	}, [request, empresaId, pagination.index, pagination.size]);
 
 	if (isLoading) return <h1>Cargando...</h1>;
 	if (error) return <h1>{error}</h1>;
 	if (establecimientos == null) return <></>;
 
-	const handleEstablecimientosSelect = (ix) => {
-		console.log(
-			"handleEstablecimientosSelect",
-			ix,
-			"establecimiento",
-			establecimientos[ix]
-		);
+	const handleEstablecimientosSelect = (ix) =>
 		setEstablecimiento(establecimientos[ix]);
-	};
+	
+	const handleGenerarBoletaConfirma = (datos) => {
+		console.log("datos", datos);
+		setBoletaForm(null);
+	}
 
-	const establecimientoHF = establecimiento == null ? (<></>) : (
-		<h1>Id: {establecimiento.id}</h1>
-	);
+	const handleGenerarBoletaClick = () =>
+		setBoletaForm(
+			<GenerarBoletaForm
+				config={{
+					empresa: empresa,
+					establecimiento: establecimiento,
+					onCancela: () => setBoletaForm(null),
+					onConfirma: handleGenerarBoletaConfirma
+				}}
+			/>
+		);
+	
+	let establecimientoHF = null;
+	if (establecimiento != null) {
+		establecimientoHF = (
+			<>
+				<Button onClick={handleGenerarBoletaClick}>Generar boleta</Button>
+				<EstablecimientoDetails config={{ data: establecimiento }} />
+				<BoletasHandler config={{ establecimiento: establecimiento }} />
+			</>
+		);
+	}
+
+	const handlePaginationChange = (pageIndex, pageSize) =>
+		setPagination({ ...pagination, index: pageIndex, size: pageSize });
 
 	return (
 		<>
+			<h2>Establecimientos</h2>
 			<EstablecimientosList
 				config={{
 					data: establecimientos,
 					onSelect: handleEstablecimientosSelect,
+					onPaginationChange: handlePaginationChange,
 				}}
 			/>
-			{establecimientoHF/* ToDo: Mostrar datos del establecimiento seleccionado */}
+			{boletaForm}
+			{establecimientoHF}
 		</>
 	);
 };

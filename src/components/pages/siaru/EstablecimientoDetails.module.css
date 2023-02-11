@@ -1,0 +1,7 @@
+.details {
+	text-align: left;
+}
+
+.details > div > span {
+	font-weight: bold;
+}

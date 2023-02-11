@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import useHttp from "../../hooks/useHttp";
+import EmpresaDetails from "./EmpresaDetails";
 import EstablecimientosHandler from "./EstablecimientosHandler";
 
 const SiaruHandler = (props) => {
-	let config = props.config;
+	const config = props.config;
 	// let cuit = config.cuit;
-	let cuit = 22222;
+	const cuit = 22222;
 	const [empresa, setEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
 
@@ -14,7 +15,7 @@ const SiaruHandler = (props) => {
 			setEmpresa(empresaObj);
 		};
 
-		request (
+		request(
 			{
 				baseURL: "SIARU",
 				endpoint: `/Empresas/${cuit}`,
@@ -30,8 +31,10 @@ const SiaruHandler = (props) => {
 
 	return (
 		<>
-			{/* ToDo: Mostrar datos de la empresa */}
-			<EstablecimientosHandler config={{ empresasId: empresa.id }} />
+			<h1>Sistema de Aportes Rurales</h1>
+			<h2>Empresa</h2>
+			<EmpresaDetails config={{ data: empresa }} />
+			<EstablecimientosHandler config={{ empresa: empresa }} />
 		</>
 	);
 };

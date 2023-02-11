@@ -1,0 +1,26 @@
+.renglon {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.renglon > div {
+	margin: 5px;
+}
+
+.renglon > div:first-child {
+	margin-left: 0px;
+}
+
+.renglon > div:last-child {
+	margin-right: 0px;
+}
+
+.derecha {
+	justify-content: right;
+}
+
+.centro {
+	justify-content: center;
+}
