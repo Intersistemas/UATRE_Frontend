@@ -2,8 +2,15 @@ import React, {useState, useEffect} from 'react';
 import useHttp from "../../hooks/useHttp";
 import AuthContext from '../../../store/authContext';
 import Inicio from './Inicio';
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from '../../../redux/actions';
+
 
 const InicioHandler = () => {
+
+  
+  const dispatch = useDispatch();
+  dispatch(handleModuloSeleccionar(""));
 
   const { isLoading, error, sendRequest: request} = useHttp();
   const [empresasRespuesta, setempresasRespuesta] = useState(null);

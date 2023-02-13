@@ -8,15 +8,18 @@ import Button from '../../ui/Button/Button';
 import classes from './Inicio.module.css'
 import { useNavigate, NavLink  } from 'react-router-dom';
 import { isAccordionItemSelected } from 'react-bootstrap/esm/AccordionContext';
+import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+
 
 
 const Inicio = (props) => {
   const empresas = props.empresas;
 
-  console.log('empresas: ',empresas)
+  //console.log('empresas: ',empresas)
   const navigate = useNavigate();
 
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
+  const [empresasSelected, setEmpresasSelected] = useState();
 
   
   //const [empresas, setEmpresas] = useState();
@@ -140,22 +143,27 @@ const columns = [
     text: 'Domicilio'
   }];
 
+  const handleSeleccionEmpresa = (row) => {
+    console.log('row_inicio: ', row);
+    setEmpresasSelected(row);
+  };
 
   return (
 
     
     <div>
-          <h1>Inicio</h1>
+          <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
           <Table
-            products={products}                                                                    
+            data={products}                                                                    
             columns={columns}
+            onSelected = {handleSeleccionEmpresa}
            />
            
-           <Button  width={100} onClick={() => navigate("/afiliaciones")}>Afiliaciones</Button>
+           <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
           
           <p/>
-          <Button  width={100}  onClick={() => navigate('/siaru')}>Sistema de Aportes Rurales {/*selected.nombre*/}</Button>
+          <Button  width={100}  onClick={() => navigate('/siaru')}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
 
     </div>
   )

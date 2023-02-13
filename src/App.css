@@ -53,10 +53,20 @@
   height: 100vh;
   display: flex;
   justify-content: center;
+
+  max-width: 100%;
   
 }
 
 .container:before {
 
   opacity: 0.6;
+  max-width: 100%;
+}
+
+.titulo{
+  //background: -webkit-linear-gradient(90deg, #186090, #18609000 90%);
+  color: white;
+  padding: 4% 0% 2% 0%;
+  text-shadow: 3px 3px 3px #186090;
 }

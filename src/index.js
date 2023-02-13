@@ -18,7 +18,9 @@ root.render(
   <AuthContextProvider>
     <Provider store={store}>
       <BrowserRouter>
+     
         <App />
+
       </BrowserRouter>
     </Provider>
   </AuthContextProvider>

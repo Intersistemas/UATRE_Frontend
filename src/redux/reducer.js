@@ -3,6 +3,8 @@ import { MODULO_SELECCIONAR, AFILIADO_SELECCIONAR } from "./actionTypes";
 const initialState = {
   modulo: "",
   afiliado: {},
+  
+
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {

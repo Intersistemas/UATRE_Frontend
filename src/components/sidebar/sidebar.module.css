@@ -7,6 +7,7 @@
   display:flex;
   padding-left: 0 !important; 
   margin-left: 0 !important;
+  max-width: 100% !important;
 
 }
 main{
@@ -32,15 +33,16 @@ main{
 }
 .bars{
   display: flex;
-  font-size: 25px;
+  font-size: 30px;
   margin-left: 50px;
 }
 .link{
   font-weight: bold;
   display: flex;
+  align-items: baseline;
   color: #fff;
-  padding: 10px 15px;
-  gap: 15px;
+  padding: 5px 10px;
+  gap: 10px;
   transition: all 0.5s;
 }
 .link:hover{
@@ -52,15 +54,25 @@ main{
   background: var(--color2);
   color: #FFF;
 }
-.icon, .link_text{
-  font-size: 20px;
-
+.link_text{
+  font-size: 19px;
   
 }
 
-.sidebar-opciones{
+.icon{
+  font-size: 22px;
+}
+
+.sidebar_opciones{
   display: flex;
   flex-direction: column;
   height: 100%;
   justify-content: space-between;
+}
+
+.actionButtons{
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  background-color: cornflowerblue;
 }
