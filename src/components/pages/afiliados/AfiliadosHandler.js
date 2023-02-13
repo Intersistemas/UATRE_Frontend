@@ -2,8 +2,11 @@ import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
 import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from '../../../redux/actions';
 
 const AfiliadosHandler = () => {
+
   const estadosSolicitud = [
     { id: 1, value: 0, label: "Todos" },
     { id: 2, value: 1, label: "Pendiente" },

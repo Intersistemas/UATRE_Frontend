@@ -37,3 +37,36 @@
     transform: rotate(360deg);
   }
 }
+
+
+.container{
+
+  background-image: url(./media/campo_trigo1.jpg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  container-type: inline-size;
+  -webkit-font-smoothing: antialiased;
+
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+
+  max-width: 100%;
+  
+}
+
+.container:before {
+
+  opacity: 0.6;
+  max-width: 100%;
+}
+
+.titulo{
+  //background: -webkit-linear-gradient(90deg, #186090, #18609000 90%);
+  color: white;
+  padding: 4% 0% 2% 0%;
+  text-shadow: 3px 3px 3px #186090;
+}
