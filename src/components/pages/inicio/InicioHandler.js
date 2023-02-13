@@ -3,8 +3,6 @@ import useHttp from "../../hooks/useHttp";
 import AuthContext from '../../../store/authContext';
 import Inicio from './Inicio';
 
-
-
 const InicioHandler = () => {
 
   const { isLoading, error, sendRequest: request} = useHttp();
@@ -12,7 +10,7 @@ const InicioHandler = () => {
 
   useEffect(() => { 
     const processEmpresas = async (empresasObj) => {
-        console.log('empresasObj', empresasObj)
+        //console.log('empresasObj', empresasObj)
         setempresasRespuesta(empresasObj);              
     };
 
