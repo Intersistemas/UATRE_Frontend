@@ -13,10 +13,15 @@ import filterFactory, {
 } from "react-bootstrap-table2-filter";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import { useDispatch } from "react-redux";
-import { handleAfiliadoSeleccionar } from '../../../redux/actions';
+import { handleAfiliadoSeleccionar } from "../../../redux/actions";
+import { useState } from "react";
+import { Tab, Tabs } from "@mui/material";
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 
 const AfiliadosLista = (props) => {
   const dispatch = useDispatch();
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
 
   const afiliados = {
     data: props.afiliados.data,
@@ -25,7 +30,7 @@ const AfiliadosLista = (props) => {
     sizePerPage: props.afiliados.size,
   };
 
-  //console.log('afiliados', afiliados)
+  //#region columns
   const columns = [
     {
       dataField: "cuil",
@@ -108,17 +113,21 @@ const AfiliadosLista = (props) => {
       },
     },
   ];
+  //#endregion
 
+  //#region eventos de la lista
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    style: { backgroundColor: "#c8e6c9" },
   };
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
       console.log(`row: ${row}`);
       //handleSelectList(row);
+      setAfiliadoSeleccionado(row);
       dispatch(handleAfiliadoSeleccionar(row));
     },
   };
@@ -127,7 +136,8 @@ const AfiliadosLista = (props) => {
     type,
     { page, sizePerPage, filters, sortField, sortOrder, cellEdit }
   ) => {
-    console.log(filters);
+    //console.log(filters);
+    setAfiliadoSeleccionado(null);
     const currentIndex = (page - 1) * sizePerPage;
     props.onFilterChange(filters);
   };
@@ -135,13 +145,14 @@ const AfiliadosLista = (props) => {
   const pagination = paginationFactory({
     page: afiliados.page,
     sizePerPage: afiliados.sizePerPage,
+    paginationShowsTotal: false,
     totalSize: afiliados.totalRegs,
     lastPageText: ">>",
     firstPageText: "<<",
     nextPageText: ">",
     prePageText: "<",
-    showTotal: true,
-    alwaysShowAllBtns: true,
+    //showTotal: true,
+    //alwaysShowAllBtns: true,
     hideSizePerPage: true,
     onPageChange: function (page, sizePerPage) {
       //console.log('page', page);
@@ -158,29 +169,72 @@ const AfiliadosLista = (props) => {
   const indication = () => {
     <h4>No hay informacion a mostrar</h4>;
   };
+  //#endregion
+
+  const handleChangeTab = (event, newValue) => {
+    setSelectedTab(newValue);
+  };
+
+  const handleSeleccionDDJJ = (ddjj) => {};
 
   return (
     <div className={styles.div}>
       <Button width={20} onClick={props.onClickAfiliadoAgregar}>
         Agregar Afiliado
       </Button>
-      <BootstrapTable
-        bootstrap4
-        remote
-        keyField="id"
-        loading={props.loading}
-        data={afiliados.data}
-        columns={columns}
-        pagination={pagination}
-        onTableChange={handleTableChange}
-        filter={filterFactory()}
-        striped
-        hover
-        condensed
-        noDataIndication={indication}
-        selectRow={selectRow}
-        rowEvents={rowEvents}
-      />
+      <Button
+        width={20}
+        onClick={props.onClickAfiliadoAgregar}
+        disabled={
+          afiliadoSeleccionado?.estadoSolicitud === "Pendiente" ? false : true
+        }
+      >
+        Resolver Solicitud
+      </Button>
+      <Tabs
+        value={selectedTab}
+        onChange={handleChangeTab}
+        aria-label="basic tabs example"
+      >
+        <Tab label="Afiliados" />
+        <Tab
+          label={`DDJJ UATRE ${
+            afiliadoSeleccionado?.estadoSolicitud === "Activo"
+              ? afiliadoSeleccionado?.nombre
+              : ""
+          }`}
+          style={{ width: "800px" }}
+          disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+        />
+      </Tabs>
+
+      {selectedTab === 0 && (
+        <BootstrapTable
+          bootstrap4
+          remote
+          keyField="id"
+          loading={props.loading}
+          data={afiliados.data}
+          columns={columns}
+          pagination={pagination}
+          onTableChange={handleTableChange}
+          filter={filterFactory()}
+          striped
+          hover
+          condensed
+          noDataIndication={indication}
+          selectRow={selectRow}
+          rowEvents={rowEvents}
+        />
+      )}
+
+      {selectedTab === 1 && (
+        <DeclaracionesJuradas
+          cuil={afiliadoSeleccionado.cuil}
+          infoCompleta={true}
+          onSeleccionRegistro={handleSeleccionDDJJ}
+        />
+      )}
     </div>
   );
 };

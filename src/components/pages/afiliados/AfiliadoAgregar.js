@@ -1,71 +1,17 @@
-//import * as React from "react";
 import React, { useEffect, useReducer, useRef, useState } from "react";
 import Button from "../../ui/Button/Button";
-import Input from "../../ui/Input/Input";
+//import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
-import SelectInput from "../../ui/Select/SelectInput";
-import FormatearFecha from "../../helpers/FormatearFecha";
+//import SelectInput from "../../ui/Select/SelectInput";
+//import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import { Tab, Tabs } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
-
-//#region datosAFIPDefecto
-const datosAFIPDefecto = {
-  cuil: 0,
-  secuencia: 0,
-  nroAfiliado: 0,
-  nombre: "",
-  puestoId: 0,
-  fechaIngreso: "",
-  fechaEgreso: "",
-  nacionalidadId: 0,
-  nombreAnexo: "",
-  cuit: 0,
-  seccionalId: 0,
-  sexoId: 0,
-  dni: 0,
-  actividadId: 0,
-  estadoSolicitudId: 1,
-  afipcuil: 0,
-  afipFechaNacimiento: "Z",
-  afipNombre: "",
-  afipApellido: "",
-  afipRazonSocial: "",
-  afipTipoDocumento: "",
-  afipNumeroDocumento: 0,
-  afipTipoPersona: "",
-  afipTipoClave: "",
-  afipEstadoClave: "",
-  afipClaveInactivaAsociada: 0,
-  afipFechaFallecimiento: "Z",
-  afipFormaJuridica: "",
-  afipActividadPrincipal: "",
-  afipIdActividadPrincipal: 0,
-  afipPeriodoActividadPrincipal: 0,
-  afipFechaContratoSocial: "",
-  afipMesCierre: 0,
-  afipDomicilioDireccion: "",
-  afipDomicilioCalle: "",
-  afipDomicilioNumero: 0,
-  afipDomicilioPiso: "",
-  afipDomicilioDepto: "",
-  afipDomicilioSector: "",
-  afipDomicilioTorre: "",
-  afipDomicilioManzana: "",
-  afipDomicilioLocalidad: "",
-  afipDomicilioProvincia: "",
-  afipDomicilioIdProvincia: 0,
-  afipDomicilioCodigoPostal: 0,
-  afipDomicilioTipo: "",
-  afipDomicilioEstado: "",
-  afipDomicilioDatoAdicional: "",
-  afipDomicilioTipoDatoAdicional: "",
-};
-//#endregion
+import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -89,13 +35,14 @@ const AfiliadoAgregar = (props) => {
   const [nombre, setNombre] = useState(null);
   const [tipoDocumento, setTipoDocumento] = useState("");
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
-  const [numeroDocumento, setNumeroDocumento] = useState('');
-  const [domicilio, setDomicilio] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [fechaNacimiento, setFechaNacimiento] = useState('');
+  const [numeroDocumento, setNumeroDocumento] = useState("");
+  const [domicilio, setDomicilio] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
+  const [fechaNacimientoAFIP, setFechaNacimientoAFIP] = useState("");
   const [padronRespuesta, setPadronRespuesta] = useState(null);
-  const [domicilioRealAFIP, setDomicilioRealAFIP] = useState("");
+  const [domicilioRealAFIP, setDomicilioRealAFIP] = useState(null);
   const [nombreAFIP, setNombreAFIP] = useState("");
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [cuitEmpresa, setCUITEmpresa] = useState(null);
@@ -103,7 +50,6 @@ const AfiliadoAgregar = (props) => {
   const [correoEmpresa, setCorreoEmpresa] = useState(null);
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
-  const [ddJJUatreList, setDDJJUatreList] = useState([]);
 
   //#region manejo de validaciones
   const [cuilIsValid, setCUILIsValid] = useState(false);
@@ -126,6 +72,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     const identifier = setTimeout(() => {
       console.log("checking...", cuilState.isValid);
+      setAfiliadoExiste(false)
       setFormularioValidado(cuilState.isValid);
       setCUILIsValid(cuilState.isValid);
     }, 400);
@@ -135,6 +82,41 @@ const AfiliadoAgregar = (props) => {
       console.log("cleanup");
     };
   }, [cuilState.isValid]);
+  //#endregion
+
+  //#region manejo si el afiliado existe
+  const [afiliadoExiste, setAfiliadoExiste] = useState(false);
+  useEffect(() => {
+    if (cuilIsValid && cuil) {
+      const processGetAfiliado = async (afiliadoObj) => {        
+        console.log("afiliadoObj", afiliadoObj);
+        setAfiliadoExiste(true);
+        setNombre(afiliadoObj.nombre)
+        setNacionalidad(afiliadoObj.nacionalidadId)
+        setFechaNacimiento(afiliadoObj.fechaNacimiento)
+        setEstadoCivil(afiliadoObj.estadoCivilId)
+        setSexo(afiliadoObj.sexoId)
+        setProvincia(afiliadoObj.provinciaId)
+        setSeccional(afiliadoObj.seccionalId)
+        setTipoDocumento(afiliadoObj.tipoDocumentoId)
+        setNumeroDocumento(afiliadoObj.documento)
+        setTelefono(afiliadoObj.telefono)
+        setCorreo(afiliadoObj.correo)
+        setActividad(afiliadoObj.actividadId)
+        setPuesto(afiliadoObj.puestoId)
+        alert("El afiliado ya existe!")
+      };
+
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado/GetAfiliado?CUIL=${cuil}`,
+          method: "GET",
+        },
+        processGetAfiliado
+      );
+    }
+  }, [request, cuilIsValid, cuil]);
   //#endregion
 
   //#region Tablas para crear afiliado
@@ -285,23 +267,6 @@ const AfiliadoAgregar = (props) => {
   }, [request]);
 
   useEffect(() => {
-    if (padronRespuesta) {
-      const processDDJJUatre = async (ddJJUatreObj) => {
-        setDDJJUatreList(ddJJUatreObj);
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${padronRespuesta?.idPersonaField}`,
-          method: "GET",
-        },
-        processDDJJUatre
-      );
-    }
-  }, [request, padronRespuesta]);
-
-  useEffect(() => {
     const processProvincias = async (provinciasObj) => {
       const provinciasSelect = provinciasObj
         .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
@@ -336,6 +301,9 @@ const AfiliadoAgregar = (props) => {
       setFechaNacimiento(
         moment(padronObj.fechaNacimientoField).format("yyyy-MM-DD")
       );
+      setFechaNacimientoAFIP(
+        moment(padronObj.fechaNacimientoField).format("yyyy-MM-DD")
+      );
 
       //tipo doc
       const tipoDoc = tiposDocumentos.filter(
@@ -346,7 +314,7 @@ const AfiliadoAgregar = (props) => {
       const domicilioReal = padronObj.domicilioField.find(
         (domicilio) => domicilio.tipoDomicilioField === "LEGAL/REAL"
       );
-      setDomicilioRealAFIP(domicilioReal.direccionField);
+      setDomicilioRealAFIP(domicilioReal);
       setNombreAFIP(
         `${padronObj.apellidoField} ${padronObj.nombreField ?? ""}`
       );
@@ -360,7 +328,7 @@ const AfiliadoAgregar = (props) => {
         (provincia) =>
           provincia.idProvinciaAFIP === domicilioReal.idProvinciaField
       );
-       console.log(provincia);
+      console.log(provincia);
       setProvincia(provincia.value);
     };
 
@@ -403,31 +371,35 @@ const AfiliadoAgregar = (props) => {
 
   const afiliadoAgregarHandler = (event) => {
     event.preventDefault();
+    //console.log("domicilioRealAFIP", domicilioRealAFIP);
     const nuevoAfiliado = {
-      cuil: cuil,
+      cuil: +cuil,
       secuencia: 0,
       nroAfiliado: 0,
       nombre: `${padronRespuesta?.apellidoField} ${padronRespuesta?.nombreField}`,
-      puestoId: puesto,
+      puestoId: +puesto,
       fechaIngreso: null,
       fechaEgreso: null,
-      nacionalidadId: nacionalidad,
-      empresaId: padronEmpresaRespuesta.id,
+      nacionalidadId: +nacionalidad,
+      empresaId: +padronEmpresaRespuesta.id,
       seccionalId: seccional,
-      sexoId: sexo,
-      tipoDocumentoId: tipoDocumento,
-      documento: numeroDocumento,
-      actividadId: actividad,
+      sexoId: +sexo,
+      tipoDocumentoId: +tipoDocumento,
+      documento: +numeroDocumento,
+      actividadId: +actividad,
       estadoSolicitudId: 1,
-      estadoCivilId: estadoCivil,
-      provinciaId: provincia,
-      afipcuil: cuil,
+      estadoCivilId: +estadoCivil,
+      provinciaId: +provincia,
+      telefono: telefono,
+      correo: correo,
+      direccionReal: domicilio,
+      afipcuil: +cuil,
       afipFechaNacimiento:
         padronRespuesta?.fechaNacimientoFieldSpecified === true
           ? padronRespuesta?.fechaNacimientoField
           : null,
-      afipNombre: padronRespuesta?.apellidoField,
-      afipApellido: padronRespuesta?.nombreField,
+      afipNombre: padronRespuesta?.nombreField ?? null,
+      afipApellido: padronRespuesta?.apellidoField ?? null,
       afipRazonSocial: "",
       afipTipoDocumento: padronRespuesta?.tipoDocumentoField,
       afipNumeroDocumento: padronRespuesta?.numeroDocumentoField,
@@ -442,38 +414,35 @@ const AfiliadoAgregar = (props) => {
       afipFormaJuridica: padronRespuesta?.formaJuridicaField,
       afipActividadPrincipal:
         padronRespuesta?.descripcionActividadPrincipalField,
-      afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipalField,
+      afipIdActividadPrincipal:
+        padronRespuesta?.idActividadPrincipalFieldSpecified === true
+          ? padronRespuesta?.idActividadPrincipal
+          : null,
       afipPeriodoActividadPrincipal: 0,
       afipFechaContratoSocial:
         padronRespuesta?.fechaContratoSocialFieldSpecified === true
           ? padronRespuesta?.fechaContratoSocialField
           : null,
-      afipMesCierre: padronRespuesta?.mesCierreField,
-      afipDomicilioDireccion:
-        padronRespuesta?.domicilioRealAFIP?.direccionField,
+      afipMesCierre:
+        padronRespuesta?.mesCierreFieldSpecified === false
+          ? null
+          : padronRespuesta?.mesCierreField,
+      afipDomicilioDireccion: domicilioRealAFIP?.direccionField,
       afipDomicilioCalle: domicilioRealAFIP?.calleField,
       afipDomicilioNumero: domicilioRealAFIP?.numeroField,
       afipDomicilioPiso: domicilioRealAFIP?.pisoField,
-      afipDomicilioDepto:
-        domicilioRealAFIP?.oficinaDptoLocalField,
+      afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocalField,
       afipDomicilioSector: domicilioRealAFIP?.sectorField,
       afipDomicilioTorre: domicilioRealAFIP?.torreField,
       afipDomicilioManzana: domicilioRealAFIP?.manzanaField,
-      afipDomicilioLocalidad:
-        domicilioRealAFIP?.localidadField,
-      afipDomicilioProvincia:
-        domicilioRealAFIP?.descripcionProvinciaField,
-      afipDomicilioIdProvincia:
-        domicilioRealAFIP?.idProvinciaField,
-      afipDomicilioCodigoPostal:
-        domicilioRealAFIP?.codigoPostalField,
+      afipDomicilioLocalidad: domicilioRealAFIP?.localidadField,
+      afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvinciaField,
+      afipDomicilioIdProvincia: domicilioRealAFIP?.idProvinciaField,
+      afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostalField,
       afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilioField,
-      afipDomicilioEstado:
-        domicilioRealAFIP?.estadoDomicilioField,
-      afipDomicilioDatoAdicional:
-        domicilioRealAFIP?.datoAdicionalField,
-      afipDomicilioTipoDatoAdicional:
-        domicilioRealAFIP?.tipoDatoAdicionalField,
+      afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilioField,
+      afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicionalField,
+      afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicionalField,
     };
 
     console.log("POST", nuevoAfiliado);
@@ -600,6 +569,7 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -630,9 +600,12 @@ const AfiliadoAgregar = (props) => {
             <Button
               width={20}
               heigth={80}
-              disabled={
-                padronRespuesta?.idPersonaField || !cuilIsValid ? true : false
-              }
+              disabled={habilitarBotonValidarCUIL(
+                { cuilIsValid: cuilIsValid,
+                  afiliadoExiste: afiliadoExiste,
+                  padronRespuesta: padronRespuesta ?? null
+                }
+              )}
               onClick={validarAfiliadoCUILHandler}
             >
               Validar CUIL
@@ -667,7 +640,6 @@ const AfiliadoAgregar = (props) => {
                 value={fechaNacimiento}
                 label="Fecha de Nacimiento"
                 type="date"
-                //width={101}
                 onChange={handleInputChange}
                 disabled={!padronRespuesta?.idPersonaField ? true : false}
               />
@@ -815,7 +787,8 @@ const AfiliadoAgregar = (props) => {
             <div className={classes.input}>
               <InputMaterial
                 id="fechaNacimientoAFIP"
-                value={fechaNacimiento ?? ""}
+                type="date"
+                value={fechaNacimientoAFIP}
                 label="Fecha de Nacimiento"
                 disabled={true}
                 width={100}
@@ -866,8 +839,8 @@ const AfiliadoAgregar = (props) => {
             <div className={classes.input}>
               <InputMaterial
                 id="domicilioAFIP"
-                value={domicilioRealAFIP ?? ""}
-                label="Documento"
+                value={domicilioRealAFIP?.direccionField ?? ""}
+                label="Domicilio"
                 disabled={true}
                 width={100}
               />
@@ -987,7 +960,7 @@ const AfiliadoAgregar = (props) => {
 
       {selectedTab === 2 && (
         <DeclaracionesJuradas
-          ddJJUatreList={ddJJUatreList}
+          cuil={cuil}
           onSeleccionRegistro={handleSeleccionDDJJ}
         />
       )}
@@ -998,6 +971,7 @@ const AfiliadoAgregar = (props) => {
             className={classes.button}
             width={100}
             onClick={afiliadoAgregarHandler}
+            disabled={!afiliadoExiste && padronRespuesta?.idPersonaField > 0 ? false : true}
           >
             Agregar
           </Button>
