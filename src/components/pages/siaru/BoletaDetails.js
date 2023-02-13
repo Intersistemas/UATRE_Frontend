@@ -14,7 +14,7 @@ const BoletaDetails = (props) => {
 				<span>Fecha:</span> {data.fecha}
 			</div>
 			<div>
-				<span>Cant. trabajadores:</span> {data.cantTrabajadores}
+				<span>Cant. trabajadores:</span> {data.cantidadTrabajadores}
 			</div>
 			<div>
 				<span>Total remuneraciones:</span> {data.totalRemuneraciones}

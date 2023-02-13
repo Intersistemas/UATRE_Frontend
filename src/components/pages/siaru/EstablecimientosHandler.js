@@ -48,11 +48,28 @@ const EstablecimientosHandler = (props) => {
 
 	const handleEstablecimientosSelect = (ix) =>
 		setEstablecimiento(establecimientos[ix]);
-	
+
 	const handleGenerarBoletaConfirma = (datos) => {
 		console.log("datos", datos);
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/EmpresasEstablecimientos/Paginado?EmpresasId=${empresaId}&Page=${pagination.index},${pagination.size}`,
+				method: "GET",
+			},
+			async (response) => {
+				setEstablecimientos(response.data);
+				setPagination({
+					index: response.index,
+					size: response.size,
+					count: response.count,
+					pages: response.pages,
+				});
+				setEstablecimiento(null);
+			}
+		);
 		setBoletaForm(null);
-	}
+	};
 
 	const handleGenerarBoletaClick = () =>
 		setBoletaForm(
@@ -61,11 +78,11 @@ const EstablecimientosHandler = (props) => {
 					empresa: empresa,
 					establecimiento: establecimiento,
 					onCancela: () => setBoletaForm(null),
-					onConfirma: handleGenerarBoletaConfirma
+					onConfirma: handleGenerarBoletaConfirma,
 				}}
 			/>
 		);
-	
+
 	let establecimientoHF = null;
 	if (establecimiento != null) {
 		establecimientoHF = (

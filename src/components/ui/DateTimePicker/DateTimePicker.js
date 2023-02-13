@@ -9,16 +9,31 @@ import { TextField } from "@mui/material";
 const DateTimePicker = (props) => {
 	const {
 		type = "fechahora",
-		views,
 		value = "",
-		renderInput = (p) => {
-			p.size = "small";
-			p.style = { ...p.style, width: "100%" };
-			p.error = p.required && (p.InputProps.value ?? "") === "";
-			return <TextField {...p} />;
-		},
+		views,
+		error = "",
+		required,
+		renderInput = null,
 		...resto
 	} = props;
+
+	const configRenderInput = (p) => {
+		const r = {...p};
+		r.size = "small";
+		r.style = { ...r.style, width: "100%" };
+		r.error = error;
+		r.required = required;
+		return r
+	}
+
+	let myRenderInput = renderInput
+	if (myRenderInput == null) {
+		myRenderInput = (p) => {
+			p = configRenderInput(p);
+			return <TextField {...p} />;
+		};
+	}
+
 	let pViews, Picker;
 	switch (`${type}`.toLowerCase()) {
 		case "datetime":
@@ -63,7 +78,7 @@ const DateTimePicker = (props) => {
 			<Picker
 				views={pViews}
 				value={dayjs(value)}
-				renderInput={renderInput}
+				renderInput={myRenderInput}
 				{...resto}
 			/>
 		</LocalizationProvider>

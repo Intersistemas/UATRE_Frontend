@@ -21,6 +21,8 @@ const Select = (props) => {
 		<FormControl
 			size="small"
 			style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+			error={props.error}
+			required={props.required}
 		>
 			<InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
 			<MuiSelect

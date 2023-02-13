@@ -54,7 +54,7 @@ const EstablecimientosList = (props) => {
 			sort: true,
 		},
 		{
-			cantTrabajadores: "cantTrabajadores",
+			dataField: "cantTrabajadores",
 			text: "Cant. trabajadores",
 		},
 		{

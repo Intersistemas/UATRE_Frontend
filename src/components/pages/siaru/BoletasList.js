@@ -23,16 +23,12 @@ const BoletasList = (props) => {
 			sort: true,
 		},
 		{
-			cantTrabajadores: "cantTrabajadores",
+			dataField: "cantidadTrabajadores",
 			text: "Cant. trabajadores",
 		},
 		{
 			dataField: "totalRemuneraciones",
 			text: "Total remuneraciones",
-		},
-		{
-			dataField: "codigoBarra",
-			text: "Codigo de barras",
 		},
 	];
 

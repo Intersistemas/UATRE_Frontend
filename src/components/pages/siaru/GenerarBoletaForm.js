@@ -10,6 +10,8 @@ import Select from "../../ui/Select/Select";
 import DateTimePicker from "../../ui/DateTimePicker/DateTimePicker";
 import TextField from "@mui/material/TextField";
 import dayjs from "dayjs";
+import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 const GenerarBoletaForm = (props) => {
 	const config = { ...props.config };
@@ -18,49 +20,64 @@ const GenerarBoletaForm = (props) => {
 	const onCancela = config.onCancela ?? (() => {});
 	const onConfirma = config.onConfirma ?? ((data) => {});
 	const [tiposPagos, setTiposPagos] = useState([]);
+	const tiposLiquidaciones = [
+		{ id: 1, codigo: 0, descripcion: "Periodo" },
+		{ id: 2, codigo: 1, descripcion: "Acta" },
+	];
 	const { isLoading, error, sendRequest: request } = useHttp();
 	const [params, setParams] = useState({
 		interesesDiariosPosteriorFechaPago: 0,
 	});
 	const joinParams = (nParams) => setParams({ ...params, ...nParams });
-	const [data, setData] = useState({
-		empresasEstablecimientosId: establecimiento.id,
-		periodo: 0,
-		fecha: dayjs().format("YYYY-MM-DD"),
-		cantidadTrabajadores: 0,
-		totalRemuneraciones: 0,
-		fechaPagoEstimada: null,
-		interesImporte: 0,
-		interesPorcentaje: 0,
-		interesNeto: 0,
-		codigoBarra: "",
-		conveniosId: 0,
-		tipoLiquidacion: null,
-	});
-	const joinData = (nData) => {
-		let newData = { ...data, ...nData };
-		// calculos
-		newData.interesPorcentaje =
-			tiposPagos.find((r) => r.id === newData.tipoLiquidacion)?.porcentaje ?? 0;
-		newData.interesImporte =
-			newData.totalRemuneraciones * newData.interesPorcentaje;
-		if (newData.periodo > 0 && newData.fechaPagoEstimada != null) {
-			let fpeDjs = dayjs(newData.fechaPagoEstimada);
-			let dias = fpeDjs.diff(
-				Formato.Mascara(newData.periodo, "####-##-15"),
-				"day"
-			);
+
+	const calcularData = (nData) => {
+		let r = { ...nData };
+		const tipoPago = tiposPagos.find((r) => r.id === r.tiposPagosId);
+		//calculo intereses
+		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
+		r.interesImporte = r.totalRemuneraciones * r.interesPorcentaje;
+		if (r.periodo > 0 && r.fechaPagoEstimada != null) {
+			let fpeDjs = dayjs(r.fechaPagoEstimada);
+			let dias = fpeDjs.diff(Formato.Mascara(r.periodo, "####-##-15"), "day");
 			if (dias > 0) {
-				newData.interesNeto =
-					newData.totalRemuneraciones *
+				r.interesNeto =
+					r.totalRemuneraciones *
 					params.interesesDiariosPosteriorFechaPago *
 					dias;
-				console.log("newData.interesNeto", newData.interesNeto);
-				newData.interesNeto += newData.interesImporte;
+				console.log("r.interesNeto", r.interesNeto);
+				r.interesNeto += r.interesImporte;
 			}
 		}
-		setData(newData);
+		return r;
 	};
+
+	const [data, setData] = useState(
+		calcularData({
+			empresasEstablecimientosId: establecimiento.id,
+			periodo: 0,
+			fecha: dayjs().format("YYYY-MM-DD"),
+			cantidadTrabajadores: establecimiento.cantTrabajadores,
+			totalRemuneraciones: 0,
+			fechaPagoEstimada: null,
+			interesImporte: 0,
+			interesPorcentaje: 0,
+			interesNeto: 0,
+			conveniosId: 80,
+			tiposPagosId: 0,
+			tipoLiquidacion: null,
+		})
+	);
+
+	const joinData = (nData) => setData(calcularData({ ...data, ...nData }));
+
+	const [err, setErr] = useState({
+		tipoLiquidacion: "",
+		tiposPagosId: "",
+		periodo: "",
+		cantidadTrabajadores: "",
+		totalRemuneraciones: "",
+		fechaPagoEstimada: "",
+	});
 
 	useEffect(() => {
 		request(
@@ -71,7 +88,9 @@ const GenerarBoletaForm = (props) => {
 			},
 			async (response) =>
 				joinParams({
-					interesesDiariosPosteriorFechaPago: Formato.Decimal(response?.valor ?? 0),
+					interesesDiariosPosteriorFechaPago: Formato.Decimal(
+						response?.valor ?? 0
+					),
 				})
 		);
 		request(
@@ -86,12 +105,84 @@ const GenerarBoletaForm = (props) => {
 
 	const handleConfirma = () => {
 		//validaciones
-		onConfirma(data);
+		let tieneErr = false;
+		const newErr = { ...err };
+
+		if (data.tipoLiquidacion == null) {
+			tieneErr = true;
+			newErr.tipoLiquidacion = "Dato requerido";
+		} else newErr.tipoLiquidacion = "";
+
+		if (data.tiposPagosId === 0) {
+			tieneErr = true;
+			newErr.tiposPagosId = "Dato requerido";
+		} else newErr.tiposPagosId = "";
+
+		if (data.periodo === 0) {
+			tieneErr = true;
+			newErr.periodo = "Dato requerido";
+		} else newErr.periodo = "";
+
+		if (data.cantidadTrabajadores === 0) {
+			tieneErr = true;
+			newErr.cantidadTrabajadores = "Dato requerido";
+		} else newErr.cantidadTrabajadores = "";
+
+		if (data.totalRemuneraciones === 0) {
+			tieneErr = true;
+			newErr.totalRemuneraciones = "Dato requerido";
+		} else newErr.totalRemuneraciones = "";
+
+		if (data.fechaPagoEstimada == null) {
+			tieneErr = true;
+			newErr.fechaPagoEstimada = "Dato requerido";
+		} else newErr.fechaPagoEstimada = "";
+
+		if (tieneErr) {
+			setErr(newErr);
+			return;
+		}
+
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/Siaru_BoletasDeposito`,
+				method: "POST",
+				body: data,
+				headers: { "Content-Type": "application/json" },
+			},
+			async (response) => onConfirma(response)
+		);
 	};
 
-	const handleTipoLiquidacionChange = (tipoPagoId) => {
-		joinData({ tipoLiquidacion: tipoPagoId });
-	};
+	if (isLoading)
+		return (
+			<Modal onClose={onCancela}>
+				<div>Cargando</div>
+			</Modal>
+		);
+
+	let errorMsg;
+	if (error) {
+		errorMsg = (
+			<Collapse in={true} style={{width: "100%"}}>
+				<Alert
+					severity="error"
+					action={
+						<IconButton aria-label="close" color="inherit" size="small">
+							<CloseIcon fontSize="inherit" />
+						</IconButton>
+					}
+					sx={{ mb: 2 }}
+				>
+					<AlertTitle>
+						<strong>Error</strong>
+					</AlertTitle>
+					{error}
+				</Alert>
+			</Collapse>
+		);
+	}
 
 	let periodo = "";
 	if (data.periodo > 100) periodo = Formato.Mascara(data.periodo, "####-##-01");
@@ -115,33 +206,61 @@ const GenerarBoletaForm = (props) => {
 				<Celda width={50}>
 					<Select
 						name="tipoLiquidacion"
+						label="Tipo de liquidacion"
+						required
+						error={err.tipoLiquidacion}
+						value={
+							tiposLiquidaciones.find((r) => r.codigo === data.tipoLiquidacion)
+								?.id
+						}
+						options={tiposLiquidaciones.map((r) => ({
+							label: r.descripcion,
+							value: r.id,
+						}))}
+						onChange={(v) =>
+							joinData({
+								tipoLiquidacion: tiposLiquidaciones.find((r) => r.id === v)
+									?.codigo,
+							})
+						}
+					/>
+				</Celda>
+				<Celda width={50}>
+					<Select
+						name="tiposPagosId"
 						label="Tipo de pago"
-						value={data.tipoLiquidacion}
+						required
+						error={err.tiposPagosId}
+						value={data.tiposPagosId}
 						options={tiposPagos.map((r) => ({
 							label: r.descripcion,
 							value: r.id,
 						}))}
-						onChange={handleTipoLiquidacionChange}
+						onChange={(v) => joinData({ tiposPagosId: v })}
 					/>
 				</Celda>
+			</Renglon>
+			<Renglon>
 				<Celda width={50}>
 					<DateTimePicker
 						type="month"
 						label="Periodo"
+						required
+						error={err.periodo}
 						value={periodo}
 						onChange={(f) =>
 							joinData({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
 						}
 					/>
 				</Celda>
-			</Renglon>
-			<Renglon>
 				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
 						label="Cant. trabajadores"
+						required
+						error={err.cantidadTrabajadores}
 						InputLabelProps={{
 							shrink: true,
 						}}
@@ -153,12 +272,16 @@ const GenerarBoletaForm = (props) => {
 						}
 					/>
 				</Celda>
+			</Renglon>
+			<Renglon>
 				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
 						label="Total remuneraciones"
+						required
+						error={err.totalRemuneraciones}
 						InputLabelProps={{ shrink: true }}
 						value={data.totalRemuneraciones}
 						onChange={(e) =>
@@ -168,13 +291,13 @@ const GenerarBoletaForm = (props) => {
 						}
 					/>
 				</Celda>
-			</Renglon>
-			<Renglon>
 				<Celda width={50}>
 					<DateTimePicker
 						type="date"
 						label="Fecha pago estimada"
 						value={data.fechaPagoEstimada}
+						required
+						error={err.fechaPagoEstimada}
 						onChange={(f) =>
 							joinData({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
 						}
@@ -191,6 +314,7 @@ const GenerarBoletaForm = (props) => {
 					<Button onClick={handleConfirma}>Generar</Button>
 				</Celda>
 			</Renglon>
+			<Renglon>{errorMsg}</Renglon>
 		</Modal>
 	);
 };
