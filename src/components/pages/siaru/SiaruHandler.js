@@ -8,8 +8,7 @@ import {useLocation} from 'react-router-dom';
 
 const SiaruHandler = (props) => {
 	const location = useLocation();
-	// const cuit = parseFloat(location.state.cuit ?? 0);
-	const cuit = 22222;
+	const cuit = parseFloat(location.state.cuit ?? 0);
 	if (cuit == 0) redirect("/");
 	const [empresa, setEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
