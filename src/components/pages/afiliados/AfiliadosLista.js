@@ -17,6 +17,7 @@ import { handleAfiliadoSeleccionar } from "../../../redux/actions";
 import { useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import Table from "../../ui/Table/Table";
 
 const AfiliadosLista = (props) => {
   const dispatch = useDispatch();
@@ -93,7 +94,7 @@ const AfiliadosLista = (props) => {
         comparator: Comparator.EQ,
         options: props.estadosSolicitud,
         defaultValue: props.estadoSolicitudActual,
-        className: "my-custom-text-filter",
+        className: styles.filter,//"my-custom-text-filter",
         placeholder: "Seleccion Estado...",
         withoutEmptyOption: true,
       }),
@@ -116,21 +117,24 @@ const AfiliadosLista = (props) => {
   //#endregion
 
   //#region eventos de la lista
-  const selectRow = {
-    mode: "radio",
-    clickToSelect: true,
-    hideSelectColumn: true,
-    style: { backgroundColor: "#c8e6c9" },
-  };
 
-  const rowEvents = {
+
+  /*const rowEvents = {
     onClick: (e, row, rowIndex) => {
       console.log(`row: ${row}`);
       //handleSelectList(row);
       setAfiliadoSeleccionado(row);
       dispatch(handleAfiliadoSeleccionar(row));
     },
+  };*/
+
+  const rowEvents  = (row) => {
+      console.log(`row: ${row}`);
+      setAfiliadoSeleccionado(row);
+      dispatch(handleAfiliadoSeleccionar(row));
   };
+
+  
 
   const handleTableChange = (
     type,
@@ -177,6 +181,20 @@ const AfiliadosLista = (props) => {
 
   const handleSeleccionDDJJ = (ddjj) => {};
 
+  const props2 = {
+      remote: true,
+      keyField: "id",
+      loading: props.loading,
+      data: afiliados.data,
+      columns: columns,
+      pagination: pagination,
+      onTableChange: handleTableChange,
+      filter: filterFactory(),
+      noDataIndication: indication,
+      onSelected: rowEvents,
+  }
+
+
   return (
     <div className={styles.div}>
       <Button width={20} onClick={props.onClickAfiliadoAgregar}>
@@ -196,8 +214,9 @@ const AfiliadosLista = (props) => {
         onChange={handleChangeTab}
         aria-label="basic tabs example"
       >
-        <Tab label="Afiliados" />
-        <Tab
+        <Tab  className={styles.tab} label="Afiliados" />
+       
+        <Tab className={styles.tab}
           label={`DDJJ UATRE ${
             afiliadoSeleccionado?.estadoSolicitud === "Activo"
               ? afiliadoSeleccionado?.nombre
@@ -209,23 +228,25 @@ const AfiliadosLista = (props) => {
       </Tabs>
 
       {selectedTab === 0 && (
-        <BootstrapTable
-          bootstrap4
-          remote
-          keyField="id"
-          loading={props.loading}
-          data={afiliados.data}
-          columns={columns}
-          pagination={pagination}
-          onTableChange={handleTableChange}
-          filter={filterFactory()}
-          striped
-          hover
-          condensed
-          noDataIndication={indication}
-          selectRow={selectRow}
-          rowEvents={rowEvents}
-        />
+      <Table {...props2} />
+      //   <BootstrapTable
+      //     bootstrap4
+      //     remote
+      //     keyField="id"
+      //     loading={props.loading}
+      //     data={afiliados.data}
+      //     columns={columns}
+      //     pagination={pagination}
+      //     onTableChange={handleTableChange}
+      //     filter={filterFactory()}
+      //     striped
+      //     hover
+      //     condensed
+      //     noDataIndication={indication}
+      //     selectRow={selectRow}
+      //     rowEvents={rowEvents}
+      // />
+
       )}
 
       {selectedTab === 1 && (
@@ -233,7 +254,7 @@ const AfiliadosLista = (props) => {
           cuil={afiliadoSeleccionado.cuil}
           infoCompleta={true}
           onSeleccionRegistro={handleSeleccionDDJJ}
-        />
+        />        
       )}
     </div>
   );

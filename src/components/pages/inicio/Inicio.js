@@ -9,11 +9,12 @@ import classes from './Inicio.module.css'
 import { useNavigate, NavLink  } from 'react-router-dom';
 import { isAccordionItemSelected } from 'react-bootstrap/esm/AccordionContext';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
-
+import { FaSignature } from 'react-icons/fa';
+import  AfiliadosHandler from '../afiliados/AfiliadosHandler';
 
 
 const Inicio = (props) => {
-  const empresas = props.empresas;
+  const empresas2 = props.empresas;
 
   //console.log('empresas: ',empresas)
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const Inicio = (props) => {
 // },[getEmpresas]);
 
 
-const products = [
+const empresas = [
   {
     cuit: '30-36.654.346-9',
     razonsocial: 'Grupo Agrario Rio Negro',
@@ -148,6 +149,19 @@ const columns = [
     setEmpresasSelected(row);
   };
 
+  let props2 = {
+    keyField: "cuit",
+    data: empresas,                                                                    
+    columns: columns,
+    onSelected: handleSeleccionEmpresa
+  }
+
+
+  const siaru = () =>{
+    //<AfiliadosHandler/>
+    navigate("/siaru")
+  }
+  
   return (
 
     
@@ -155,9 +169,7 @@ const columns = [
           <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
           <Table
-            data={products}                                                                    
-            columns={columns}
-            onSelected = {handleSeleccionEmpresa}
+                {...props2}
            />
            
            <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
