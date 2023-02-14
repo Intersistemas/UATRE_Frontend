@@ -20,6 +20,9 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
+  const dispatch = useDispatch();
+  dispatch(handleModuloSeleccionar("Afiliados"));
+
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
       //console.log('afiliadosObj', afiliadosObj)
@@ -76,7 +79,7 @@ const AfiliadosHandler = () => {
   };
 
   if (isLoading) {
-    return <h1>Loading...</h1>;
+    return <h1>Cargando...</h1>;
   }
   if (error) {
     return <h1>{error}</h1>;

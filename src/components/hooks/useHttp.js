@@ -14,7 +14,7 @@ const useHttp = () => {
 
         switch (configRequest.baseURL) {
           case "AFIP":
-            url = "http://SVR-TEST:8801/api";
+            url = "http://intersistemas.net:8801/api";
             break;
 
           case "Afiliaciones":

@@ -6,53 +6,52 @@ import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 
 
 const Table = (props) => {
-  console.log('props.width',props);
-
- /* --color3: #82C3ED;
-  --color4: rgb(13 110 253 / 50%); /*focus*/
 
   const selectRow = {
     mode: 'radio',
     clickToSelect: true,
     hideSelectColumn: true,
     style: {
-       backgroundColor: 'rgb(194 194 194 / 80%)',//'#ffffff',//'#82C3ED70', 
-       color: '#555555',//'#186090',
+       backgroundColor: 'rgb(194 194 194 / 80%)',
+       color: 'black',
        fontWeight: 'bold',
   }
 };
 
 const rowEvents = {
   onClick: (e, row, rowIndex) => {
-    console.log('row ',row);
     props.onSelected(row);
   },
 };
 
-const headerStyle = {
-  color: 'white',
-  backgroundColor: 'rgb(85 85 85 / 90%)',
-};
 
 const rowStyle = { 
-  /*backgroundColor: '#82C3ED15', */
   backgroundColor: '#ffffffcc',
   border: '1.5px solid #3595D2', 
   color: '#727272',
-
 };
 
 
   return (
     <div>
-            <BootstrapTable keyField='cuit'
+            <BootstrapTable
+            hover
+            bootstrap4
+            condensed  
+            remote = {props.remote}
+            keyField= {props.keyField}
             data={ props.data }
             columns={ props.columns }          
+            headerClasses= {classes.headerClass}
+            loading = {props.loading}
+            pagination = {props.pagination}
+            onTableChange= {props.onTableChange}
+            filter = {props.filter}
+            noDataIndication= {props.noDataIndication}
+            rowEvents = {rowEvents}
+
             selectRow={selectRow}
             rowStyle = {rowStyle}
-            headerClasses= {classes.headerClass}
-            rowEvents = {rowEvents}
-            
             />
     </div>
 

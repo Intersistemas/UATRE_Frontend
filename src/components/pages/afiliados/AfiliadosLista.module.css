@@ -1,10 +1,27 @@
 .div {
     align-items: center;
-    background-color: transparent;
+    /*background-color: transparent;*/
     width: 95%;
     display: block;
     flex-direction: row;
     padding: 0;
     right: 0;
     margin-left: 2.5%;
+}
+
+.tab{
+    color: #FFF !important;
+    background-color: #186090 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    /*border-color: #ccc!important;*/
+    border: 2px solid #ccc!important;
+}
+
+.tabs{
+    color: '#FFFFFF'!important;
+    background-color: #186090;
+}
+
+.filter{
+
 }
