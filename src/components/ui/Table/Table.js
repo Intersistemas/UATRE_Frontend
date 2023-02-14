@@ -14,16 +14,29 @@ const Table = (props) => {
   const selectRow = {
     mode: 'radio',
     clickToSelect: true,
+    hideSelectColumn: true,
     style: {
-       backgroundColor: '#82C3ED70', 
-       color: '#186090',
+       backgroundColor: 'rgb(194 194 194 / 80%)',//'#ffffff',//'#82C3ED70', 
+       color: '#555555',//'#186090',
        fontWeight: 'bold',
   }
+};
 
+const rowEvents = {
+  onClick: (e, row, rowIndex) => {
+    console.log('row ',row);
+    props.onSelected(row);
+  },
+};
+
+const headerStyle = {
+  color: 'white',
+  backgroundColor: 'rgb(85 85 85 / 90%)',
 };
 
 const rowStyle = { 
-  backgroundColor: '#82C3ED15', 
+  /*backgroundColor: '#82C3ED15', */
+  backgroundColor: '#ffffffcc',
   border: '1.5px solid #3595D2', 
   color: '#727272',
 
@@ -33,10 +46,13 @@ const rowStyle = {
   return (
     <div>
             <BootstrapTable keyField='cuit'
-            data={ props.products }
+            data={ props.data }
             columns={ props.columns }          
             selectRow={selectRow}
-            rowStyle ={rowStyle}
+            rowStyle = {rowStyle}
+            headerClasses= {classes.headerClass}
+            rowEvents = {rowEvents}
+            
             />
     </div>
 

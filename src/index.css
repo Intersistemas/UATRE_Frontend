@@ -11,8 +11,9 @@
 
   /*ESACALA DE GRISES*/
   --gris1: #555555;
-  --gris2: #C2C2C2;
   --gris3: #727272;
+  --gris2: #C2C2C2;
+
 
   --blanco: #FFF;
 }
@@ -22,15 +23,15 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+    background-image: url(./media/campo_trigo1.jpg);
+   
 }
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
-@mixin make-container($gutter: $container-padding-x) {
 
-  padding-left: 0 !important;
-  margin-left: 0 !important;
-}
+
