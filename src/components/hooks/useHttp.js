@@ -9,7 +9,6 @@ const useHttp = () => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
-        //console.log("useHttp - storedTokenData", storedTokenData)
         let url = ''
 
         switch (configRequest.baseURL) {
@@ -22,15 +21,15 @@ const useHttp = () => {
             break;
 
           case "SIARU":
-            url = "http://SVR-TEST:8201/api";
+            url = 'http://intersistemas.net:8201/api';
             break;
             
           case 'Seguridad':
                 url = 'http://intersistemas.net:8800/api'
                 break;
-
-          default:
-            break;
+	
+            default:
+                break;
         }
         
         //Agrego Token
@@ -54,7 +53,6 @@ const useHttp = () => {
             
             if(!response.ok)
             {
-                console.log('error: ',response.status);
                 let errorMessage = 'Error ' + response.status + '-' + response.statusText;                
                 const errorResponse = await response.json();
                 if(errorResponse.statusCode && errorResponse.mensaje)

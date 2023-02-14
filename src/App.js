@@ -7,6 +7,7 @@ import AuthContext from './store/authContext';
 import Inicio from './components/pages/inicio/Inicio';
 import InicioHandler from './components/pages/inicio/InicioHandler';
 import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
+import SiaruHandler from './components/pages/siaru/SiaruHandler';
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -28,6 +29,7 @@ const App = () => {
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
+						<Route path="/siaru" element={<SiaruHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />
