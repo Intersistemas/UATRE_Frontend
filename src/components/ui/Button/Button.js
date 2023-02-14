@@ -2,8 +2,6 @@ import React from 'react';
 import Button1 from 'react-bootstrap/Button';
 import classes from './Button.module.css';
 
-
-
 const Button = (props) => {
   return (
     <Button1
@@ -13,7 +11,7 @@ const Button = (props) => {
       style={{width: props.width != null ? `${props.width}%`:"100%"}}
 
       onClick={props.onClick}
-      disabled={props.disabled}
+      disabled={props.disabled || false}
     >
       {props.children}
     </Button1>

@@ -12,20 +12,19 @@ const useHttp = () => {
         let url = ''
 
         switch (configRequest.baseURL) {
-            case 'AFIP':
-                url = 'http://SVR-TEST:8801/api'
-                break;
-        
-            case 'Afiliaciones':
-                url = 'http://intersistemas.net:8200/api'
-                break;
+          case "AFIP":
+            url = "http://SVR-TEST:8801/api";
+            break;
 
-						case 'SIARU':
-								// url = 'http://intersistemas.net:8201/api'
-								url = 'http://svr-test:8201/api'
-								break;
-								
-            case 'Seguridad':
+          case "Afiliaciones":
+            url = 'http://intersistemas.net:8200/api';
+            break;
+
+          case "SIARU":
+            url = "http://SVR-TEST:8201/api";
+            break;
+            
+          case 'Seguridad':
                 url = 'http://intersistemas.net:8800/api'
                 break;
 	
@@ -35,12 +34,12 @@ const useHttp = () => {
         
         //Agrego Token
         let headers = {...configRequest.headers}
-         if(headers.Authorization === true)
-         {
-             headers = {...headers,
-                 Authorization: "Bearer " + storedTokenData.token
-             }
-         }
+        if(headers.Authorization === true)
+        {
+            headers = {...headers,
+                Authorization: "Bearer " + storedTokenData.token
+            }
+        }
         
         try {
             const response = await fetch(

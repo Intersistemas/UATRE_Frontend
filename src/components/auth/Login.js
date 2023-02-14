@@ -6,7 +6,7 @@ import Button from '../ui/Button/Button';
 import useHttp from '../hooks/useHttp';
 import AuthContext from '../../store/authContext';
 import { useNavigate  } from 'react-router-dom';
-import logo from '../../media/UATRE_Logo.jpg';
+import logo from '../../media/Logo1.png';
 import Form from 'react-bootstrap/Form';
 
 const Login = () => {
@@ -20,7 +20,7 @@ const Login = () => {
   const [enteredPassword, setEnteredPassword] = useState('');
   const [passwordIsValid, setPasswordIsValid] = useState();
 
-  const history = useNavigate ();
+  const navigate = useNavigate ();
 
   const cuitChangeHandler = (event) => {
 	setEnteredCUIT(event.target.value);
@@ -41,8 +41,8 @@ const Login = () => {
   const processLogIn = async (userObject) => {
 	  console.log('userObject1', userObject)
 	  await authContext.login(userObject.token.tokenId, userObject.token.validTo.toString(), userObject.rol, userObject.usuario)
-	  console.log('logged')
-	  history.replace("/")
+	  console.log('logged');
+	  navigate("/inicio");
   }
 
   const sendLoginHandler = async() => {
@@ -77,7 +77,7 @@ const Login = () => {
 		<Form onSubmit={submitHandler}>
 
 			<Form.Group className="mb-3" controlId="formCUIT">
-        		<Form.Label><strong>CUIT/CUIL</strong></Form.Label>
+        		<Form.Label style={{color: '#555555'}} ><strong>CUIT/CUIL</strong></Form.Label>
 	
         		<Form.Control type="text" placeholder="CUIT/CUIL"
 					id="cuit"
@@ -87,7 +87,7 @@ const Login = () => {
 			</Form.Group>
 
 			<Form.Group className="mb-3" controlId="formClave">
-				<Form.Label><strong>Clave</strong></Form.Label>
+				<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
 				<Form.Control type="password" placeholder="Clave"
 				id="password"
 				value={enteredPassword}

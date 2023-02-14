@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import './App.css';
 import Login from './components/auth/Login';
 import SideBar from './components/sidebar/sidebar'
@@ -12,36 +12,34 @@ import SiaruHandler from './components/pages/siaru/SiaruHandler';
 const App = () => {
   const authContext = useContext(AuthContext); 
   const isLoggedIn = authContext.isLoggedIn;
-  const usuario = authContext.usuario;
 
-  console.log('app.js- -Logeado?',isLoggedIn)
-  console.log('usuario: ',usuario);
-  
   return (
+
     <div className="App">
-       <SideBar>
+     
         <Routes>
-          <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
-          <Route path="/siaru" element={<SiaruHandler/>} />
-          <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/inicio" element={<InicioHandler />} />
+              {
+                  !isLoggedIn 
+                  && (<Route path="/*" element={<Login/>} />)
+              }
+        </Routes> 
+
+        <SideBar>
+        <Routes>
+            <Route path="/inicio" element={<InicioHandler/>} />
+            <Route path="/inicio" element={<InicioHandler/>} />
+            <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
+						<Route path="/siaru" element={<SiaruHandler/>} />
+            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/inicio" element={<InicioHandler />} />
         </Routes>
-      </SideBar>
-        
-       <Routes>
-            {
-                !isLoggedIn 
-                && (<Route path="/*" element={<Login/>} />)
-            }
 
-            {/* <Route path='*' element={<Navigate to='/login' replace />} /> */}
+        </SideBar>
 
-        </Routes>   
     </div>
+
   );
 }
 

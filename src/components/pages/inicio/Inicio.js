@@ -7,17 +7,21 @@ import { Container } from "react-bootstrap";
 import Button from '../../ui/Button/Button';
 import classes from './Inicio.module.css'
 import { useNavigate, NavLink  } from 'react-router-dom';
+import { isAccordionItemSelected } from 'react-bootstrap/esm/AccordionContext';
+import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+
 
 
 const Inicio = (props) => {
-  const empresas = {props};
+  const empresas = props.empresas;
 
-  console.log('empresas: ,',empresas)
+  //console.log('empresas: ',empresas)
   const navigate = useNavigate();
 
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
-  const [data, setData] = useState([]);
+  const [empresasSelected, setEmpresasSelected] = useState();
 
+  
   //const [empresas, setEmpresas] = useState();
 
 //   useEffect(() => {     
@@ -57,12 +61,72 @@ const products = [
   },
    {
     cuit: '30-52.234.321-9',
-    razonsocial: 'Agricola Colosal3',
-    localidad: 'Buenos Aires',
-    domicilio: 'Lopez y Planes 2500'
+    razonsocial: 'Estancia los Hmnos',
+    localidad: 'Corrientes',
+    domicilio: 'Juan B Justo 1230'
   }
-
 ];
+
+
+const columns2 = 
+[
+  {
+    dataField: 'id',
+    text: 'id',
+    hide: true
+  },
+  {
+    dataField: 'cuitEmpresa',
+    text: 'CUIT'
+  },
+  {
+    dataField: 'razonSocial',
+    text: 'Razón Social'
+  }, 
+  {
+    dataField: 'email',
+    text: 'Email'
+  }, 
+  {
+    dataField: 'telefono',
+    text: 'Telefono'
+  }, 
+  {
+    dataField: 'domicilio',
+    text: 'Localidad'
+  }
+];
+
+const columns3 = [
+  {
+    dataField: 'cuitEmpresa',
+    text: 'CUIT'
+  }, 
+  {
+    dataField: 'domicilio',
+    text: 'Domicilio'
+  }, 
+  {
+    dataField: 'email',
+    text: 'Email'
+  }, 
+  {
+    dataField: 'id',
+    text: 'id',
+    hide: true
+  },
+  {
+    dataField: 'razonSocial',
+    text: 'Razón Social'
+  },
+
+  {
+    dataField: 'telefono',
+    text: 'Telefono'
+  }
+];
+
+
 const columns = [
   {
     dataField: 'cuit',
@@ -79,22 +143,27 @@ const columns = [
     text: 'Domicilio'
   }];
 
+  const handleSeleccionEmpresa = (row) => {
+    console.log('row_inicio: ', row);
+    setEmpresasSelected(row);
+  };
 
   return (
 
     
     <div>
-          Inicio
+          <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
           <Table
-            products={ products}                                                                    
-            columns={ columns}
+            data={products}                                                                    
+            columns={columns}
+            onSelected = {handleSeleccionEmpresa}
            />
            
-           <Button  width={25} onClick={() => navigate("/afiliaciones")}>Afiliaciones</Button>
+           <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
           
           <p/>
-          <Button  width={25}  onClick={() => navigate('/siaru')}>SIARU</Button>
+          <Button  width={100}  onClick={() => navigate('/siaru')}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
 
     </div>
   )
