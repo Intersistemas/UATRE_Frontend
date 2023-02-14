@@ -31,7 +31,7 @@ const App = () => {
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
 						<Route path="/siaru" element={<SiaruHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
-            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler />} />
         </Routes>
