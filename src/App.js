@@ -29,7 +29,7 @@ const App = () => {
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
-            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler />} />
         </Routes>
