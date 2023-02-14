@@ -5,8 +5,9 @@ import BoletasList from "./BoletasList";
 
 const BoletasHandler = (props) => {
 	const config = props.config;
+	const empresa = config.empresa;
 	const establecimiento = config.establecimiento;
-	const establecimientoId = establecimiento ? establecimiento.id : 0;
+	const establecimientoId = establecimiento?.id ?? 0;
 	const [boletas, setBoletas] = useState(null);
 	const [pagination, setPagination] = useState({
 		index: 1,
@@ -45,7 +46,15 @@ const BoletasHandler = (props) => {
 
 	let boletaHF = null;
 	if (boleta != null) {
-		boletaHF = <BoletaDetails config={{ data: boleta }} />;
+		boletaHF = (
+			<BoletaDetails
+				config={{
+					empresa: empresa,
+					establecimiento: establecimiento,
+					data: boleta,
+				}}
+			/>
+		);
 	}
 
 	const handlePaginationChange = (pageIndex, pageSize) =>

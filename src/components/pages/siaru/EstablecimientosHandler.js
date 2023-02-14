@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import useHttp from "../../hooks/useHttp";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
+import BoletaPDF from "./BoletaPDF";
 import BoletasHandler from "./BoletasHandler";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import GenerarBoletaForm from "./GenerarBoletaForm";
+import { PDFViewer } from "@react-pdf/renderer";
 
 const EstablecimientosHandler = (props) => {
 	const config = props.config;
@@ -21,6 +23,7 @@ const EstablecimientosHandler = (props) => {
 	const [establecimiento, setEstablecimiento] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
 	const [boletaForm, setBoletaForm] = useState(null);
+	const [boletaPDF, setBoletaPDF] = useState(null);
 
 	useEffect(() => {
 		request(
@@ -51,6 +54,19 @@ const EstablecimientosHandler = (props) => {
 
 	const handleGenerarBoletaConfirma = (datos) => {
 		console.log("datos", datos);
+		setBoletaPDF(
+			<Modal onClose={() => setBoletaPDF(null)}>
+				<PDFViewer style={{ width: "100%", height: "100%" }}>
+					<BoletaPDF
+						config={{
+							empresa: empresa,
+							establecimiento: establecimiento,
+							data: datos,
+						}}
+					/>
+				</PDFViewer>
+			</Modal>
+		);
 		request(
 			{
 				baseURL: "SIARU",
@@ -89,7 +105,9 @@ const EstablecimientosHandler = (props) => {
 			<>
 				<Button onClick={handleGenerarBoletaClick}>Generar boleta</Button>
 				<EstablecimientoDetails config={{ data: establecimiento }} />
-				<BoletasHandler config={{ establecimiento: establecimiento }} />
+				<BoletasHandler
+					config={{ empresa: empresa, establecimiento: establecimiento }}
+				/>
 			</>
 		);
 	}
@@ -108,6 +126,7 @@ const EstablecimientosHandler = (props) => {
 				}}
 			/>
 			{boletaForm}
+			{boletaPDF}
 			{establecimientoHF}
 		</>
 	);
