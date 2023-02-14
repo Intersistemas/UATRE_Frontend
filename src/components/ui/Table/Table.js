@@ -50,6 +50,7 @@ const rowStyle = {
             noDataIndication= {props.noDataIndication}
             rowEvents = {rowEvents}
 
+            overlay = {props.overlay}
             selectRow={selectRow}
             rowStyle = {rowStyle}
             />
