@@ -11,12 +11,12 @@ import { isAccordionItemSelected } from 'react-bootstrap/esm/AccordionContext';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import { FaSignature } from 'react-icons/fa';
 import  AfiliadosHandler from '../afiliados/AfiliadosHandler';
+import Formato from '../../helpers/Formato';
 
 
 const Inicio = (props) => {
   const empresas2 = props.empresas;
 
-  //console.log('empresas: ',empresas)
   const navigate = useNavigate();
 
   const { isLoading, error, sendRequest: getEmpresas} = useHttp();
@@ -43,28 +43,28 @@ const Inicio = (props) => {
 
 const empresas = [
   {
-    cuit: '30-36.654.346-9',
-    razonsocial: 'Grupo Agrario Rio Negro',
+    cuit: 34618764356,
+    razonsocial: 'HUAYRA SCA',
     localidad: 'Rio Negro',
-    domicilio: 'Ruta 25 Km 9'
+    domicilio: 'AVELEYRA 338'
   },
   {
-    cuit: '30-21.424.321-9',
-    razonsocial: 'Agricola Colosal',
+    cuit: 34617797587,
+    razonsocial: 'LUISITO SA',
     localidad: 'Buenos Aires',
-    domicilio: 'Lopez y Planes 2500'
+    domicilio: 'JUJUY 766'
   },
   {
-    cuit: '30-34.523.64-9',
-    razonsocial: 'Agricola Colosal2',
+    cuit: 34610675923,
+    razonsocial: 'TAPE S.A.',
     localidad: 'Buenos Aires',
-    domicilio: 'Lopez y Planes 2500'
+    domicilio: 'RODRIGUEZ PEÑA 616'
   },
    {
-    cuit: '30-52.234.321-9',
-    razonsocial: 'Estancia los Hmnos',
+    cuit: 34560268019,
+    razonsocial: 'ASOC COOP DE LA EEA MZA-I',
     localidad: 'Corrientes',
-    domicilio: 'Juan B Justo 1230'
+    domicilio: 'SAN MARTIN 3853'
   }
 ];
 
@@ -131,7 +131,8 @@ const columns3 = [
 const columns = [
   {
     dataField: 'cuit',
-    text: 'CUIT'
+    text: 'CUIT',
+		formatter: Formato.Cuit,
   }, {
     dataField: 'razonsocial',
     text: 'Razón Social',
@@ -175,7 +176,7 @@ const columns = [
            <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
           
           <p/>
-          <Button  width={100}  onClick={() => siaru()}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
+          <Button  width={100}  onClick={() => navigate('/siaru', {state: {cuit: empresasSelected?.cuit}})}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
 
     </div>
   )

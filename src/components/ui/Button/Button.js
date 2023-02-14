@@ -3,7 +3,6 @@ import Button1 from 'react-bootstrap/Button';
 import classes from './Button.module.css';
 
 const Button = (props) => {
-  //console.log('props.width',props);
   return (
     <Button1
       type={props.type || 'button'}
