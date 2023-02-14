@@ -532,6 +532,10 @@ const AfiliadoAgregar = (props) => {
         setNumeroDocumento(value);
         break;
 
+      case "domicilio":
+        setDomicilio(value);
+        break;
+
       case "telefono":
         setTelefono(value);
         break;
@@ -694,7 +698,8 @@ const AfiliadoAgregar = (props) => {
                 id="domicilio"
                 value={domicilio}
                 label="Domicilio"
-                disabled={!padronRespuesta?.idPersonaField ? true : false}
+                //disabled={!padronRespuesta?.idPersonaField ? true : false}
+                disabled={false}
                 //width={100}
                 onChange={handleInputChange}
               />

@@ -181,7 +181,7 @@ const AfiliadosLista = (props) => {
 
   const handleSeleccionDDJJ = (ddjj) => {};
 
-  const props2 = {
+  const tableProps = {
       remote: true,
       keyField: "id",
       loading: props.loading,
@@ -217,18 +217,21 @@ const AfiliadosLista = (props) => {
         <Tab  className={styles.tab} label="Afiliados" />
        
         <Tab className={styles.tab}
-          label={`DDJJ UATRE ${
+          /*label={`DDJJ UATRE ${
             afiliadoSeleccionado?.estadoSolicitud === "Activo"
               ? afiliadoSeleccionado?.nombre
               : ""
-          }`}
+          }`}*/
+          label= {`DDJJ UATRE ${afiliadoSeleccionado?.nombre}`}
           style={{ width: "800px" }}
-          disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+          //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+          disabled={afiliadoSeleccionado?.cuil ? false : true}
         />
       </Tabs>
 
       {selectedTab === 0 && (
-      <Table {...props2} />
+      <Table {...tableProps} />
+      
       //   <BootstrapTable
       //     bootstrap4
       //     remote
