@@ -53,7 +53,7 @@ const BoletasHandler = (props) => {
 	const handleImprimir = () => {
 		setBoletaPDF(
 			<Modal onClose={() => setBoletaPDF(null)}>
-				<PDFViewer style={{ width: "100%" }}>
+				<PDFViewer style={{ width: "100%", height: "100%"}}>
 					<BoletaPDF
 						config={{
 							empresa: empresa,

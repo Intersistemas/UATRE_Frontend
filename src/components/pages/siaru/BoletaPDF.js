@@ -5,17 +5,21 @@ import styles from "./BoletaPDF.module.css";
 const BoletaPDF = (props) => {
 	const {config, ...rest} = props;
 	const data = config.data;
-	const empresa = config.empresa;
-	const establecimiento = config.establecimiento;
+	const empresa = config.empresa ?? {
+		razonSocial: ""
+	};
+	const establecimiento = config.establecimiento ?? {
+		nombre: ""
+	};
 
 	return (
 			<Document className={styles.document}>
 				<Page className={styles.page} size="A4">
 					<View className={styles.section}>
-						<Text>{empresa?.razonSocial ?? ""}</Text>
+						<Text>{empresa.razonSocial}</Text>
 					</View>
 					<View className={styles.section}>
-						<Text>{establecimiento?.nombre ?? ""}</Text>
+						<Text>{establecimiento.nombre}</Text>
 					</View>
 				</Page>
 			</Document>

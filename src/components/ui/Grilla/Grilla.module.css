@@ -24,3 +24,9 @@
 .centro {
 	justify-content: center;
 }
+
+.abajo {
+	position: absolute;
+	bottom: 1%;
+	width: calc(100% - 40px);
+}

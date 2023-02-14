@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { redirect } from "react-router-dom";
 import useHttp from "../../hooks/useHttp";
 import EmpresaDetails from "./EmpresaDetails";
 import EstablecimientosHandler from "./EstablecimientosHandler";
 import styles from "./SiaruHandler.module.css";
+import {useLocation} from 'react-router-dom';
 
 const SiaruHandler = (props) => {
-	const config = props.config;
-	// let cuit = config.cuit;
+	const location = useLocation();
+	// const cuit = parseFloat(location.state.cuit ?? 0);
 	const cuit = 22222;
+	if (cuit == 0) redirect("/");
 	const [empresa, setEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
 

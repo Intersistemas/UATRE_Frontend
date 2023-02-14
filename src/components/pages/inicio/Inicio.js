@@ -163,7 +163,7 @@ const columns = [
            <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
           
           <p/>
-          <Button  width={100}  onClick={() => navigate('/siaru')}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
+          <Button  width={100}  onClick={() => navigate('/siaru', {state: {cuit: empresasSelected?.cuit}})}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
 
     </div>
   )

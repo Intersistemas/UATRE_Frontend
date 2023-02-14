@@ -33,14 +33,6 @@ const GenerarBoletaForm = (props) => {
 		let r = { ...nData };
 		const tipoPago = tiposPagos.find((tp) => tp.id === r.tiposPagosId);
 		//calculo intereses
-		console.log(
-			"tiposPagos",
-			tiposPagos,
-			"tipoPago",
-			tipoPago,
-			"r.tiposPagosId",
-			r.tiposPagosId
-		);
 		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
 		r.interesImporte = r.totalRemuneraciones * (r.interesPorcentaje / 100);
 		r.interesImporte =
@@ -53,7 +45,6 @@ const GenerarBoletaForm = (props) => {
 					r.totalRemuneraciones *
 					(params.interesesDiariosPosteriorFechaPago / 100) *
 					dias;
-				console.log("r.interesNeto", r.interesNeto);
 				r.interesNeto += r.interesImporte;
 				r.interesNeto =
 					Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
@@ -370,19 +361,17 @@ const GenerarBoletaForm = (props) => {
 					/>
 				</Celda>
 			</Renglon>
-			<div className={styles.botones}>
-				<Renglon derecha>
-					<Celda width={70}>{errorMsg}</Celda>
-					<Celda width={15}>
-						<Button className="botonBlanco" onClick={() => onCancela()}>
-							Cerrar
-						</Button>
-					</Celda>
-					<Celda width={15}>
-						<Button onClick={handleConfirma}>Generar</Button>
-					</Celda>
-				</Renglon>
-			</div>
+			<Renglon abajo>
+				<Celda width={70}>{errorMsg}</Celda>
+				<Celda width={15}>
+					<Button className="botonBlanco" onClick={() => onCancela()}>
+						Cerrar
+					</Button>
+				</Celda>
+				<Celda width={15}>
+					<Button onClick={handleConfirma}>Generar</Button>
+				</Celda>
+			</Renglon>
 		</Modal>
 	);
 };
