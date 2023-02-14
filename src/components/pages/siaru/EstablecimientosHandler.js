@@ -8,6 +8,7 @@ import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import GenerarBoletaForm from "./GenerarBoletaForm";
 import { PDFViewer } from "@react-pdf/renderer";
+import styles from "./EstablecimientosHandler.module.css";
 
 const EstablecimientosHandler = (props) => {
 	const config = props.config;
@@ -117,7 +118,7 @@ const EstablecimientosHandler = (props) => {
 
 	return (
 		<>
-			<h2>Establecimientos</h2>
+			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>Establecimientos</h2>
 			<EstablecimientosList
 				config={{
 					data: establecimientos,

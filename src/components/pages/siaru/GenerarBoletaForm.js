@@ -4,8 +4,7 @@ import Formato from "../../helpers/Formato";
 import useHttp from "../../hooks/useHttp";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
-import Renglon from "../../ui/Grilla/Renglon";
-import Celda from "../../ui/Grilla/Celda";
+import { Renglon, Celda } from "../../ui/Grilla/Grilla";
 import Select from "../../ui/Select/Select";
 import DateTimePicker from "../../ui/DateTimePicker/DateTimePicker";
 import TextField from "@mui/material/TextField";
@@ -32,20 +31,32 @@ const GenerarBoletaForm = (props) => {
 
 	const calcularData = (nData) => {
 		let r = { ...nData };
-		const tipoPago = tiposPagos.find((r) => r.id === r.tiposPagosId);
+		const tipoPago = tiposPagos.find((tp) => tp.id === r.tiposPagosId);
 		//calculo intereses
+		console.log(
+			"tiposPagos",
+			tiposPagos,
+			"tipoPago",
+			tipoPago,
+			"r.tiposPagosId",
+			r.tiposPagosId
+		);
 		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
-		r.interesImporte = r.totalRemuneraciones * r.interesPorcentaje;
+		r.interesImporte = r.totalRemuneraciones * (r.interesPorcentaje / 100);
+		r.interesImporte =
+			Math.round((r.interesImporte + Number.EPSILON) * 100) / 100;
 		if (r.periodo > 0 && r.fechaPagoEstimada != null) {
 			let fpeDjs = dayjs(r.fechaPagoEstimada);
 			let dias = fpeDjs.diff(Formato.Mascara(r.periodo, "####-##-15"), "day");
 			if (dias > 0) {
 				r.interesNeto =
 					r.totalRemuneraciones *
-					params.interesesDiariosPosteriorFechaPago *
+					(params.interesesDiariosPosteriorFechaPago / 100) *
 					dias;
 				console.log("r.interesNeto", r.interesNeto);
 				r.interesNeto += r.interesImporte;
+				r.interesNeto =
+					Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
 			}
 		}
 		return r;
@@ -165,7 +176,7 @@ const GenerarBoletaForm = (props) => {
 	let errorMsg;
 	if (error) {
 		errorMsg = (
-			<Collapse in={true} style={{width: "100%"}}>
+			<Collapse in={true} style={{ width: "100%" }}>
 				<Alert
 					severity="error"
 					action={
@@ -187,14 +198,22 @@ const GenerarBoletaForm = (props) => {
 	let periodo = "";
 	if (data.periodo > 100) periodo = Formato.Mascara(data.periodo, "####-##-01");
 
+	const otrosDatos = {
+		importeNeto: 0,
+	};
+	otrosDatos.importeNeto =
+		data.totalRemuneraciones + data.interesImporte + data.interesNeto;
+	otrosDatos.importeNeto =
+		Math.round((otrosDatos.importeNeto + Number.EPSILON) * 100) / 100;
+
 	return (
 		<Modal onClose={onCancela}>
 			<Renglon centro>
-				<div className={styles.titulo}>Generando boleta</div>
+				<h3>Generando boleta</h3>
 			</Renglon>
 			<Renglon>
 				<div className={styles.subtitulo}>
-					<span>Eempresa</span> {empresa.razonSocial}
+					<span>Empresa</span> {empresa.razonSocial}
 				</div>
 			</Renglon>
 			<Renglon>
@@ -241,19 +260,35 @@ const GenerarBoletaForm = (props) => {
 				</Celda>
 			</Renglon>
 			<Renglon>
-				<Celda width={50}>
+				<Celda width={25}>
 					<DateTimePicker
 						type="month"
 						label="Periodo"
-						required
-						error={err.periodo}
 						value={periodo}
+						disableFuture
+						required
+						minDate="1994-01-01"
+						maxDate={dayjs().format("YYYY-MM-DD")}
+						error={err.periodo}
 						onChange={(f) =>
 							joinData({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
 						}
 					/>
 				</Celda>
-				<Celda width={50}>
+				<Celda width={25}>
+					<DateTimePicker
+						type="date"
+						label="Fecha pago estimada"
+						value={data.fechaPagoEstimada}
+						minDate={dayjs().format("YYYY-MM-DD")}
+						required
+						error={err.fechaPagoEstimada}
+						onChange={(f) =>
+							joinData({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
+						}
+					/>
+				</Celda>
+				<Celda width={25}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
@@ -272,9 +307,7 @@ const GenerarBoletaForm = (props) => {
 						}
 					/>
 				</Celda>
-			</Renglon>
-			<Renglon>
-				<Celda width={50}>
+				<Celda width={25}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
@@ -291,30 +324,65 @@ const GenerarBoletaForm = (props) => {
 						}
 					/>
 				</Celda>
-				<Celda width={50}>
-					<DateTimePicker
-						type="date"
-						label="Fecha pago estimada"
-						value={data.fechaPagoEstimada}
-						required
-						error={err.fechaPagoEstimada}
-						onChange={(f) =>
-							joinData({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
-						}
+			</Renglon>
+			<Renglon>
+				<h3>Intereses</h3>
+			</Renglon>
+			<Renglon>
+				<Celda width={25}>
+					<TextField
+						size="small"
+						style={{ width: "100%" }}
+						type="number"
+						label="Porcentaje"
+						InputLabelProps={{ shrink: true }}
+						value={data.interesPorcentaje}
+					/>
+				</Celda>
+				<Celda width={25}>
+					<TextField
+						size="small"
+						style={{ width: "100%" }}
+						type="number"
+						label="Importe"
+						InputLabelProps={{ shrink: true }}
+						value={data.interesImporte}
+					/>
+				</Celda>
+				<Celda width={25}>
+					<TextField
+						size="small"
+						style={{ width: "100%" }}
+						type="number"
+						label="Neto"
+						InputLabelProps={{ shrink: true }}
+						value={data.interesNeto}
+					/>
+				</Celda>
+				<Celda width={25}>
+					<TextField
+						size="small"
+						style={{ width: "100%" }}
+						type="number"
+						label="Importe neto"
+						InputLabelProps={{ shrink: true }}
+						value={otrosDatos.importeNeto}
 					/>
 				</Celda>
 			</Renglon>
-			<Renglon derecha>
-				<Celda width={15}>
-					<Button className="botonBlanco" onClick={() => onCancela()}>
-						Cerrar
-					</Button>
-				</Celda>
-				<Celda width={15}>
-					<Button onClick={handleConfirma}>Generar</Button>
-				</Celda>
-			</Renglon>
-			<Renglon>{errorMsg}</Renglon>
+			<div className={styles.botones}>
+				<Renglon derecha>
+					<Celda width={70}>{errorMsg}</Celda>
+					<Celda width={15}>
+						<Button className="botonBlanco" onClick={() => onCancela()}>
+							Cerrar
+						</Button>
+					</Celda>
+					<Celda width={15}>
+						<Button onClick={handleConfirma}>Generar</Button>
+					</Celda>
+				</Renglon>
+			</div>
 		</Modal>
 	);
 };

@@ -6,6 +6,7 @@ import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
 import BoletaPDF from "./BoletaPDF";
 import { PDFViewer } from "@react-pdf/renderer";
+import styles from "./BoletasHandler.module.css";
 
 const BoletasHandler = (props) => {
 	const config = props.config;
@@ -81,7 +82,7 @@ const BoletasHandler = (props) => {
 
 	return (
 		<>
-			<h2>
+			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>
 				Boletas del establecimiento Nro. {establecimiento.nroSucursal} -{" "}
 				{establecimiento.nombre}
 			</h2>

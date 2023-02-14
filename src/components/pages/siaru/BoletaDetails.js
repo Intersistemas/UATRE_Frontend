@@ -1,28 +1,27 @@
 import React, { useState } from "react";
 import styles from "./BoletaDetails.module.css";
+import {Renglon, Celda} from "../../ui/Grilla/Grilla";
+import Formato from "../../helpers/Formato";
 
 const BoletaDetails = (props) => {
 	const config = props.config;
 	const data = config.data;
 
 	return (
-		<div className={styles.details}>
-			<div>
+		<Renglon className={styles.details}>
+			<Celda width={25}>
 				<span>Periodo:</span> {data.periodo}
-			</div>
-			<div>
-				<span>Fecha:</span> {data.fecha}
-			</div>
-			<div>
+			</Celda>
+			<Celda width={25}>
+				<span>Fecha:</span> {Formato.Fecha(data.fecha)}
+			</Celda>
+			<Celda width={25}>
 				<span>Cant. trabajadores:</span> {data.cantidadTrabajadores}
-			</div>
-			<div>
+			</Celda>
+			<Celda width={25}>
 				<span>Total remuneraciones:</span> {data.totalRemuneraciones}
-			</div>
-			<div>
-				<span>Codigo de barras:</span> {data.codigoBarra}
-			</div>
-		</div>
+			</Celda>
+		</Renglon>
 	);
 };
 

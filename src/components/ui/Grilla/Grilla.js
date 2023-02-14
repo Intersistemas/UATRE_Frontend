@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "./Renglon.module.css";
+import styles from "./Grilla.module.css";
 
-const Renglon = (props) => {
+export const Renglon = (props) => {
 	let { children, className = "", centro, derecha, ...resto } = props;
 	if (className !== "") className = ` ${className}`;
 	className = `${styles.renglon}${className}`;
@@ -14,4 +14,12 @@ const Renglon = (props) => {
 	);
 };
 
-export default Renglon;
+export const Celda = (props) => {
+	let { children, width = 100, style = {}, ...resto } = props;
+	style = { ...style, width: `${width}%` };
+	return (
+		<div {...resto} style={style}>
+			{children}
+		</div>
+	);
+};

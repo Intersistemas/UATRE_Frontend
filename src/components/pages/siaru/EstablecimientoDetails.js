@@ -1,9 +1,10 @@
 import React from "react";
 import styles from "./EstablecimientoDetails.module.css";
+import { Renglon, Celda } from "../../ui/Grilla/Grilla";
 
 const EstablecimientoDetails = (props) => {
 	const config = props.config;
-	const data = {...config.data};
+	const data = { ...config.data };
 
 	if (data.domicilioCalle == null) data.domicilioCalle = "";
 	if (data.domicilioNumero == null) data.domicilioNumero = 0;
@@ -23,7 +24,7 @@ const EstablecimientoDetails = (props) => {
 		if (domicilio) domicilio = `${domicilio} `;
 		domicilio = `${domicilio} Nro ${data.domicilioNumero}`;
 	}
-	if (data.domicilioPiso !=="") {
+	if (data.domicilioPiso !== "") {
 		if (domicilio) domicilio = `${domicilio} `;
 		domicilio = `${domicilio} Piso ${data.domicilioPiso}`;
 	}
@@ -33,14 +34,30 @@ const EstablecimientoDetails = (props) => {
 	}
 
 	return (
-		<div className={styles.details}>
-			<div><span>Nro. sucursal:</span> {data.nroSucursal}</div>
-			<div><span>Nombre:</span> {data.nombre}</div>
-			<div><span>Cant. trabajadores:</span> {data.cantTrabajadores}</div>
-			<div><span>Teléfono:</span> {data.telefono}</div>
-			<div><span>E-mail:</span> {data.email}</div>
-			<div><span>Domicilio:</span> {domicilio}</div>
-		</div>
+		<>
+			<Renglon className={styles.details}>
+				<Celda width={25}>
+					<span>Nro. sucursal:</span> {data.nroSucursal}
+				</Celda>
+				<Celda width={25}>
+					<span>Nombre:</span> {data.nombre}
+				</Celda>
+				<Celda width={25}>
+					<span>Cant. trabajadores:</span> {data.cantTrabajadores}
+				</Celda>
+			</Renglon>
+			<Renglon className={styles.details}>
+				<Celda width={25}>
+					<span>Domicilio:</span> {domicilio}
+				</Celda>
+				<Celda width={25}>
+					<span>Teléfono:</span> {data.telefono}
+				</Celda>
+				<Celda width={25}>
+					<span>E-mail:</span> {data.email}
+				</Celda>
+			</Renglon>
+		</>
 	);
 };
 

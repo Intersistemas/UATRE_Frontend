@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import useHttp from "../../hooks/useHttp";
 import EmpresaDetails from "./EmpresaDetails";
 import EstablecimientosHandler from "./EstablecimientosHandler";
+import styles from "./SiaruHandler.module.css";
 
 const SiaruHandler = (props) => {
 	const config = props.config;
-	// let cuit = config.cusit;
+	// let cuit = config.cuit;
 	const cuit = 22222;
 	const [empresa, setEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
@@ -31,8 +32,8 @@ const SiaruHandler = (props) => {
 
 	return (
 		<>
-			<h1>Sistema de Aportes Rurales</h1>
-			<h2>Empresa</h2>
+			<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
+			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>Empresa</h2>
 			<EmpresaDetails config={{ data: empresa }} />
 			<EstablecimientosHandler config={{ empresa: empresa }} />
 		</>
