@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import useHttp from "../../hooks/useHttp";
 import BoletaDetails from "./BoletaDetails";
 import BoletasList from "./BoletasList";
+import Button from "../../ui/Button/Button";
+import Modal from "../../ui/Modal/Modal";
+import BoletaPDF from "./BoletaPDF";
+import { PDFViewer } from "@react-pdf/renderer";
 
 const BoletasHandler = (props) => {
 	const config = props.config;
@@ -9,6 +13,7 @@ const BoletasHandler = (props) => {
 	const establecimiento = config.establecimiento;
 	const establecimientoId = establecimiento?.id ?? 0;
 	const [boletas, setBoletas] = useState(null);
+	const [boletaPDF, setBoletaPDF] = useState(null);
 	const [pagination, setPagination] = useState({
 		index: 1,
 		size: 10,
@@ -44,16 +49,30 @@ const BoletasHandler = (props) => {
 
 	const handleBoletasSelect = (ix) => setBoleta(boletas[ix]);
 
+	const handleImprimir = () => {
+		setBoletaPDF(
+			<Modal onClose={() => setBoletaPDF(null)}>
+				<PDFViewer style={{ width: "100%" }}>
+					<BoletaPDF
+						config={{
+							empresa: empresa,
+							establecimiento: establecimiento,
+							data: boleta,
+						}}
+					/>
+				</PDFViewer>
+			</Modal>
+		);
+	};
+
 	let boletaHF = null;
 	if (boleta != null) {
 		boletaHF = (
-			<BoletaDetails
-				config={{
-					empresa: empresa,
-					establecimiento: establecimiento,
-					data: boleta,
-				}}
-			/>
+			<>
+				<Button onClick={handleImprimir}>Imprimir</Button>
+				<BoletaDetails config={{ data: boleta }} />
+				{boletaPDF}
+			</>
 		);
 	}
 

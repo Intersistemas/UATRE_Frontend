@@ -5,7 +5,7 @@ import EstablecimientosHandler from "./EstablecimientosHandler";
 
 const SiaruHandler = (props) => {
 	const config = props.config;
-	// let cuit = config.cuit;
+	// let cuit = config.cusit;
 	const cuit = 22222;
 	const [empresa, setEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
