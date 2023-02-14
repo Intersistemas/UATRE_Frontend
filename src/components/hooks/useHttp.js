@@ -21,7 +21,7 @@ const useHttp = () => {
             break;
 
           case "SIARU":
-            url = "http://SVR-TEST:8201/api";
+            url = 'http://intersistemas.net:8201/api';
             break;
             
           case 'Seguridad':

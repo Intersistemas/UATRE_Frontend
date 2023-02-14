@@ -50,8 +50,8 @@ const EstablecimientosHandler = (props) => {
 	if (error) return <h1>{error}</h1>;
 	if (establecimientos == null) return <></>;
 
-	const handleEstablecimientosSelect = (ix) =>
-		setEstablecimiento(establecimientos[ix]);
+	const handleEstablecimientosSelect = (establecimiento) =>
+		setEstablecimiento(establecimiento);
 
 	const handleGenerarBoletaConfirma = (datos) => {
 		console.log("datos", datos);
@@ -122,6 +122,7 @@ const EstablecimientosHandler = (props) => {
 			<EstablecimientosList
 				config={{
 					data: establecimientos,
+					loading: isLoading,
 					onSelect: handleEstablecimientosSelect,
 					onPaginationChange: handlePaginationChange,
 				}}

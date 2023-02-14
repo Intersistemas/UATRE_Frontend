@@ -48,7 +48,7 @@ const BoletasHandler = (props) => {
 	if (error) return <h1>{error}</h1>;
 	if (boletas == null) return <></>;
 
-	const handleBoletasSelect = (ix) => setBoleta(boletas[ix]);
+	const handleBoletasSelect = (boleta) => setBoleta(boleta);
 
 	const handleImprimir = () => {
 		setBoletaPDF(
@@ -89,6 +89,7 @@ const BoletasHandler = (props) => {
 			<BoletasList
 				config={{
 					data: boletas,
+					loading: isLoading,
 					onSelect: handleBoletasSelect,
 					onPaginationChange: handlePaginationChange,
 				}}
