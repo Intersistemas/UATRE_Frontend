@@ -64,7 +64,7 @@ const EstablecimientosHandler = (props) => {
 
 	return (
 		<>
-			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>Establecimientos</h2>
+			<h2 className="subtitulo">Establecimientos</h2>
 			<EstablecimientosList
 				config={{
 					data: establecimientos,

@@ -14,7 +14,7 @@ const AfiliadosHandler = () => {
   ];
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
-  const [sizePerPage, setSizePerPage] = useState(20);
+  const [sizePerPage, setSizePerPage] = useState(10);
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -50,11 +50,16 @@ const AfiliadosHandler = () => {
 
   // const handleResolverEstadoSolicitud = (afiliado) => {
 
+  
+  const handleResolverEstadoSolicitud = () => {
+    alert("Funcionalidad en desarrollo");
+  };
   // }
 
   const handleClickAfiliadoAgregar = () => {
     setAfiliadoAgregarShow(true);
   };
+
 
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
@@ -97,7 +102,7 @@ const AfiliadosHandler = () => {
           estadosSolicitud={estadosSolicitud}
           estadoSolicitudActual={estadoSolicitud}
           // onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
-          // onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+          onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
           onPageChange={handlePageChange}
           onSizePerPageChange={handleSizePerPageChange}
           onClickAfiliadoAgregar={handleClickAfiliadoAgregar}

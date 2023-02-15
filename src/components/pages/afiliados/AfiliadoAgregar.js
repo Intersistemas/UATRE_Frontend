@@ -294,6 +294,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
+    
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
       setPadronRespuesta(padronObj);
@@ -338,7 +339,8 @@ const AfiliadoAgregar = (props) => {
         endpoint: `/Padron/ConsultaPadronTodosLosDatos?pCUIT=${cuil}`,
         method: "GET",
       },
-      processConsultaPadron
+      error.includes("JSON") ?  processConsultaPadron : alert("CUIL inválido!")
+
     );
   };
 
@@ -363,6 +365,8 @@ const AfiliadoAgregar = (props) => {
         method: "GET",
       },
       processConsultaPadron
+      
+      //error.includes("applyData") ?  processConsultaPadron : alert("CUIT inválido!")
     );
   };
   //#endregion
@@ -532,6 +536,10 @@ const AfiliadoAgregar = (props) => {
         setNumeroDocumento(value);
         break;
 
+      case "domicilio":
+        setDomicilio(value);
+        break;
+
       case "telefono":
         setTelefono(value);
         break;
@@ -592,7 +600,7 @@ const AfiliadoAgregar = (props) => {
                 id="cuil"
                 value={cuil}
                 label="CUIL"
-                disabled={padronRespuesta?.idPersonaField ? true : false}
+                /**disabled={padronRespuesta?.idPersonaField ? true : false}*/
                 width={98}
                 onChange={handleInputChange}
               />
@@ -600,12 +608,12 @@ const AfiliadoAgregar = (props) => {
             <Button
               width={20}
               heigth={80}
-              disabled={habilitarBotonValidarCUIL(
+              /*disabled={habilitarBotonValidarCUIL(
                 { cuilIsValid: cuilIsValid,
                   afiliadoExiste: afiliadoExiste,
                   padronRespuesta: padronRespuesta ?? null
                 }
-              )}
+              )}*/
               onClick={validarAfiliadoCUILHandler}
             >
               Validar CUIL
@@ -694,7 +702,8 @@ const AfiliadoAgregar = (props) => {
                 id="domicilio"
                 value={domicilio}
                 label="Domicilio"
-                disabled={!padronRespuesta?.idPersonaField ? true : false}
+                //disabled={!padronRespuesta?.idPersonaField ? true : false}
+                disabled={false}
                 //width={100}
                 onChange={handleInputChange}
               />
@@ -857,7 +866,7 @@ const AfiliadoAgregar = (props) => {
                 id="cuit"
                 value={cuitEmpresa}
                 label="CUIT"
-                disabled={padronEmpresaRespuesta?.id ? true : false}
+                /*disabled={padronEmpresaRespuesta?.id ? true : false}*/
                 width={98}
                 onChange={handleInputChange}
               />
@@ -865,7 +874,7 @@ const AfiliadoAgregar = (props) => {
             <Button
               width={20}
               heigth={80}
-              disabled={padronEmpresaRespuesta?.id ? true : false}
+              /*disabled={padronEmpresaRespuesta?.id ? true : false}*/
               onClick={validarEmpresaCUITHandler}
             >
               Validar CUIT

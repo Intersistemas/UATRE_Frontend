@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Table from "../../ui/Table/Table";
 import Formato from "../../helpers/Formato";

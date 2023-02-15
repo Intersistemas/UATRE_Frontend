@@ -58,3 +58,8 @@
   background: var(--color2) !important;
 }
 
+.botonBorder{
+  border-radius: 10px !important;
+  border: 3px solid #ccc !important;
+}
+

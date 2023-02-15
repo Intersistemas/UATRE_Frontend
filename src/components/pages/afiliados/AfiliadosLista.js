@@ -181,7 +181,7 @@ const AfiliadosLista = (props) => {
 
   const handleSeleccionDDJJ = (ddjj) => {};
 
-  const props2 = {
+  const tableProps = {
       remote: true,
       keyField: "id",
       loading: props.loading,
@@ -194,21 +194,27 @@ const AfiliadosLista = (props) => {
       onSelected: rowEvents,
   }
 
+  const enDesarrollo = () => {
+    alert("asd");
+  } 
 
   return (
     <div className={styles.div}>
-      <Button width={20} onClick={props.onClickAfiliadoAgregar}>
+      <div className="detalles_card">
+      <Button className="botonBorder" width={20} onClick={props.onClickAfiliadoAgregar}>
         Agregar Afiliado
       </Button>
       <Button
+      className="botonBorder"
         width={20}
-        onClick={props.onClickAfiliadoAgregar}
+        onClick={props.onResolverEstadoSolicitud}
         disabled={
           afiliadoSeleccionado?.estadoSolicitud === "Pendiente" ? false : true
         }
       >
         Resolver Solicitud
       </Button>
+      </div>
       <Tabs
         value={selectedTab}
         onChange={handleChangeTab}
@@ -217,18 +223,22 @@ const AfiliadosLista = (props) => {
         <Tab  className={styles.tab} label="Afiliados" />
        
         <Tab className={styles.tab}
-          label={`DDJJ UATRE ${
+          /*label={`DDJJ UATRE ${
             afiliadoSeleccionado?.estadoSolicitud === "Activo"
               ? afiliadoSeleccionado?.nombre
               : ""
-          }`}
+          }`}*/
+          
+          label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
           style={{ width: "800px" }}
-          disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+          //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+          disabled={afiliadoSeleccionado?.cuil ? false : true}
         />
       </Tabs>
 
       {selectedTab === 0 && (
-      <Table {...props2} />
+      <Table {...tableProps} />
+      
       //   <BootstrapTable
       //     bootstrap4
       //     remote

@@ -8,6 +8,9 @@ import AuthContext from '../../store/authContext';
 import { useNavigate  } from 'react-router-dom';
 import logo from '../../media/Logo1.png';
 import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
+import ocultarClaveImg from '../../media/OcultarPswIcono.svg';
+import verClaveImg from '../../media/VerPswIcono.svg';
 
 const Login = () => {
 	{console.log('Login')};
@@ -70,6 +73,8 @@ const Login = () => {
 	  console.log('submitHandler');
   };
 
+  const [verClave, setVerClave] = useState(false);
+
   return (
 	<div className={classes.container}>
 		<LoginCard className={classes.login}>
@@ -86,14 +91,26 @@ const Login = () => {
 					onBlur={validateCUITHandler}/>
 			</Form.Group>
 
-			<Form.Group className="mb-3" controlId="formClave">
+			
+				
 				<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
-				<Form.Control type="password" placeholder="Clave"
+			<InputGroup className="mb-3">	
+				<Form.Control type= {verClave ? "text" : "password"} placeholder="Clave"
 				id="password"
 				value={enteredPassword}
 				onChange={passwordChangeHandler}
-				onBlur={validatePasswordHandler} />
-			</Form.Group>
+				onBlur={validatePasswordHandler} 
+				/>
+				
+				<InputGroup.Text>
+				<img width={20} height={20}
+					title={verClave ? "Ocultar clave" : "Ver Clave"}
+					src={verClave ? ocultarClaveImg : verClaveImg}
+					onClick={() => setVerClave(prevState => !prevState)}
+					/>
+				</InputGroup.Text>
+
+			</InputGroup>
 
 			<div className={classes.actions}>
 				{!isLoading ?
