@@ -25,52 +25,24 @@ const GenerarBoletaForm = (props) => {
 	];
 	const { isLoading, error, sendRequest: request } = useHttp();
 	const [params, setParams] = useState({
-		interesesDiariosPosteriorFechaPago: 0,
+		interesesDiariosPosteriorVencimiento: 0,
 	});
 	const joinParams = (nParams) => setParams({ ...params, ...nParams });
 
-	const calcularData = (nData) => {
-		let r = { ...nData };
-		const tipoPago = tiposPagos.find((tp) => tp.id === r.tiposPagosId);
-		//calculo intereses
-		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
-		r.interesImporte = r.totalRemuneraciones * (r.interesPorcentaje / 100);
-		r.interesImporte =
-			Math.round((r.interesImporte + Number.EPSILON) * 100) / 100;
-		if (r.periodo > 0 && r.fechaPagoEstimada != null) {
-			let fpeDjs = dayjs(r.fechaPagoEstimada);
-			let dias = fpeDjs.diff(Formato.Mascara(r.periodo, "####-##-15"), "day");
-			if (dias > 0) {
-				r.interesNeto =
-					r.totalRemuneraciones *
-					(params.interesesDiariosPosteriorFechaPago / 100) *
-					dias;
-				r.interesNeto += r.interesImporte;
-				r.interesNeto =
-					Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
-			}
-		}
-		return r;
-	};
-
-	const [data, setData] = useState(
-		calcularData({
-			empresasEstablecimientosId: establecimiento.id,
-			periodo: 0,
-			fecha: dayjs().format("YYYY-MM-DD"),
-			cantidadTrabajadores: establecimiento.cantTrabajadores,
-			totalRemuneraciones: 0,
-			fechaPagoEstimada: null,
-			interesImporte: 0,
-			interesPorcentaje: 0,
-			interesNeto: 0,
-			conveniosId: 80,
-			tiposPagosId: 0,
-			tipoLiquidacion: null,
-		})
-	);
-
-	const joinData = (nData) => setData(calcularData({ ...data, ...nData }));
+	const [data, setData] = useState({
+		empresasEstablecimientosId: establecimiento.id,
+		periodo: 0,
+		fecha: dayjs().format("YYYY-MM-DD"),
+		cantidadTrabajadores: establecimiento.cantTrabajadores,
+		totalRemuneraciones: 0,
+		fechaPagoEstimada: null,
+		interesImporte: 0,
+		interesPorcentaje: 0,
+		interesNeto: 0,
+		conveniosId: 80,
+		tiposPagosId: 0,
+		tipoLiquidacion: null,
+	});
 
 	const [err, setErr] = useState({
 		tipoLiquidacion: "",
@@ -85,12 +57,12 @@ const GenerarBoletaForm = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Parametros?Nombre=InteresesDiariosPosteriorFechaPago`,
+				endpoint: `/Parametros?Nombre=InteresesDiariosPosteriorVencimiento`,
 				method: "GET",
 			},
 			async (response) =>
 				joinParams({
-					interesesDiariosPosteriorFechaPago: Formato.Decimal(
+						interesesDiariosPosteriorVencimiento: Formato.Decimal(
 						response?.valor ?? 0
 					),
 				})
@@ -104,6 +76,57 @@ const GenerarBoletaForm = (props) => {
 			async (response) => setTiposPagos(response)
 		);
 	}, [request]);
+
+	const calcularOtros = (nData) => {
+		const r = {
+			periodo: "",
+			vencimientoFecha: null,
+			vencimientoDias: 0,
+			importeTotal: 0,
+		};
+
+		if (nData.periodo > 100) {
+			r.periodo = Formato.Mascara(nData.periodo, "####-##-01");
+			r.vencimientoFecha = dayjs(Formato.Mascara(nData.periodo, "####-##-15"))
+				.add(1, "month")
+				.format("YYYY-MM-DD");
+
+			if (nData.fechaPagoEstimada != null) {
+				let d = dayjs(nData.fechaPagoEstimada).diff(r.vencimientoFecha, "days");
+				if (d > 0) r.vencimientoDias = d;
+			}
+		}
+
+		r.importeTotal = nData.interesImporte + nData.interesNeto;
+		r.importeTotal = Math.round((r.importeTotal + Number.EPSILON) * 100) / 100;
+
+		return r;
+	};
+
+	const otros = calcularOtros(data);
+
+	const calcularData = (nData) => {
+		const r = { ...nData };
+		const tipoPago = tiposPagos.find((tp) => tp.id === r.tiposPagosId);
+		//calculo intereses
+		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
+		r.interesNeto = r.totalRemuneraciones * (r.interesPorcentaje / 100);
+		r.interesNeto =
+			Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
+		const o = calcularOtros(r);
+		console.log("o", o, "params", params);
+		if (o.vencimientoDias) {
+			r.interesImporte =
+				r.totalRemuneraciones *
+				(params.interesesDiariosPosteriorVencimiento / 100) *
+				o.vencimientoDias;
+			r.interesImporte =
+				Math.round((r.interesImporte + Number.EPSILON) * 100) / 100;
+		}
+		return r;
+	};
+
+	const joinData = (nData) => setData(calcularData({ ...data, ...nData }));
 
 	const handleConfirma = () => {
 		//validaciones
@@ -186,17 +209,6 @@ const GenerarBoletaForm = (props) => {
 		);
 	}
 
-	let periodo = "";
-	if (data.periodo > 100) periodo = Formato.Mascara(data.periodo, "####-##-01");
-
-	const otrosDatos = {
-		importeNeto: 0,
-	};
-	otrosDatos.importeNeto =
-		data.totalRemuneraciones + data.interesImporte + data.interesNeto;
-	otrosDatos.importeNeto =
-		Math.round((otrosDatos.importeNeto + Number.EPSILON) * 100) / 100;
-
 	return (
 		<Modal onClose={onCancela}>
 			<Renglon centro>
@@ -255,7 +267,7 @@ const GenerarBoletaForm = (props) => {
 					<DateTimePicker
 						type="month"
 						label="Periodo"
-						value={periodo}
+						value={otros.periodo}
 						disableFuture
 						required
 						minDate="1994-01-01"
@@ -264,6 +276,14 @@ const GenerarBoletaForm = (props) => {
 						onChange={(f) =>
 							joinData({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
 						}
+					/>
+				</Celda>
+				<Celda width={25}>
+					<DateTimePicker
+						type="date"
+						label="Fecha de vencimiento"
+						disabled
+						value={otros.vencimientoFecha}
 					/>
 				</Celda>
 				<Celda width={25}>
@@ -298,6 +318,8 @@ const GenerarBoletaForm = (props) => {
 						}
 					/>
 				</Celda>
+			</Renglon>
+			<Renglon>
 				<Celda width={25}>
 					<TextField
 						size="small"
@@ -317,47 +339,56 @@ const GenerarBoletaForm = (props) => {
 				</Celda>
 			</Renglon>
 			<Renglon>
-				<h3>Intereses</h3>
+				<h3>Subtotales</h3>
 			</Renglon>
 			<Renglon>
-				<Celda width={25}>
+				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
 						label="Porcentaje"
 						InputLabelProps={{ shrink: true }}
+						disabled
 						value={data.interesPorcentaje}
 					/>
 				</Celda>
-				<Celda width={25}>
+				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
-						label="Importe"
+						label="Aporte"
 						InputLabelProps={{ shrink: true }}
-						value={data.interesImporte}
-					/>
-				</Celda>
-				<Celda width={25}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Neto"
-						InputLabelProps={{ shrink: true }}
+						disabled
 						value={data.interesNeto}
 					/>
 				</Celda>
-				<Celda width={25}>
+			</Renglon>
+			<Renglon>
+				<h3>Intereses</h3>
+			</Renglon>
+			<Renglon>
+				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
-						label="Importe neto"
+						label="Importe interes"
 						InputLabelProps={{ shrink: true }}
-						value={otrosDatos.importeNeto}
+						disabled
+						value={data.interesImporte}
+					/>
+				</Celda>
+				<Celda width={50}>
+					<TextField
+						size="small"
+						style={{ width: "100%" }}
+						type="number"
+						label="total a pagar"
+						InputLabelProps={{ shrink: true }}
+						disabled
+						value={otros.importeTotal}
 					/>
 				</Celda>
 			</Renglon>

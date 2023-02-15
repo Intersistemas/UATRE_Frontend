@@ -4,9 +4,11 @@ import BoletaDetails from "./BoletaDetails";
 import BoletasList from "./BoletasList";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
+import { Renglon, Celda } from "../../ui/Grilla/Grilla";
 import BoletaPDF from "./BoletaPDF";
 import { PDFViewer } from "@react-pdf/renderer";
 import styles from "./BoletasHandler.module.css";
+import GenerarBoletaForm from "./GenerarBoletaForm";
 
 const BoletasHandler = (props) => {
 	const config = props.config;
@@ -14,6 +16,7 @@ const BoletasHandler = (props) => {
 	const establecimiento = config.establecimiento;
 	const establecimientoId = establecimiento?.id ?? 0;
 	const [boletas, setBoletas] = useState(null);
+	const [boletaForm, setBoletaForm] = useState(null);
 	const [boletaPDF, setBoletaPDF] = useState(null);
 	const [pagination, setPagination] = useState({
 		index: 1,
@@ -50,29 +53,72 @@ const BoletasHandler = (props) => {
 
 	const handleBoletasSelect = (boleta) => setBoleta(boleta);
 
-	const handleImprimir = () => {
+	const handleImprimir = (data) => {
 		setBoletaPDF(
 			<Modal onClose={() => setBoletaPDF(null)}>
-				<PDFViewer style={{ width: "100%", height: "100%"}}>
-					<BoletaPDF
-						config={{
-							empresa: empresa,
-							establecimiento: establecimiento,
-							data: boleta,
-						}}
-					/>
-				</PDFViewer>
+				<Renglon style={{ height: "calc(100% - 6%)" }}>
+					<PDFViewer style={{ width: "100%", height: "100%" }}>
+						<BoletaPDF
+							config={{
+								empresa: empresa,
+								establecimiento: establecimiento,
+								data: data,
+							}}
+						/>
+					</PDFViewer>
+				</Renglon>
+				<Renglon abajo>
+					<Celda width={85}> </Celda>
+					<Celda width={15}>
+						<Button className="botonBlanco" onClick={() => setBoletaPDF(null)}>
+							Cerrar
+						</Button>
+					</Celda>
+				</Renglon>
 			</Modal>
 		);
 	};
+
+	const handleGenerarBoletaConfirma = (datos) => {
+		setBoletaForm(null);
+		handleImprimir(datos);
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/Siaru_BoletasDeposito/Paginado?EmpresasEstablecimientosId=${establecimientoId}&Page=${pagination.index},${pagination.size}`,
+				method: "GET",
+			},
+			async (response) => {
+				setBoletas(response.data);
+				setPagination({
+					index: response.index,
+					size: response.size,
+					count: response.count,
+					pages: response.pages,
+				});
+				setBoleta(datos);
+			}
+		);
+	};
+
+	const handleGenerarBoletaClick = () =>
+		setBoletaForm(
+			<GenerarBoletaForm
+				config={{
+					empresa: empresa,
+					establecimiento: establecimiento,
+					onCancela: () => setBoletaForm(null),
+					onConfirma: handleGenerarBoletaConfirma,
+				}}
+			/>
+		);
 
 	let boletaHF = null;
 	if (boleta != null) {
 		boletaHF = (
 			<>
-				<Button onClick={handleImprimir}>Imprimir</Button>
+				<Button onClick={() => handleImprimir(boleta)}>Imprimir boleta numero {boleta.id}</Button>
 				<BoletaDetails config={{ data: boleta }} />
-				{boletaPDF}
 			</>
 		);
 	}
@@ -82,6 +128,9 @@ const BoletasHandler = (props) => {
 
 	return (
 		<>
+			<Button onClick={handleGenerarBoletaClick}>Generar boleta para establecimiento {establecimiento.nombre}</Button>
+			{boletaForm}
+			{boletaPDF}
 			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>
 				Boletas del establecimiento Nro. {establecimiento.nroSucursal} -{" "}
 				{establecimiento.nombre}

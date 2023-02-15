@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Table from "../../ui/Table/Table";
 import Formato from "../../helpers/Formato";
@@ -10,8 +10,34 @@ const BoletasList = (props) => {
 	const onSelect = config.onSelect ?? ((boleta) => {});
 	const onPaginationChange =
 		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
+	const tiposPagos = [
+		{ id: 1, descripcion: "Sindical" },
+		{ id: 2, descripcion: "Solidario" },
+		{ id: 3, descripcion: "Sepelio" },
+	];
+	const tiposLiquidaciones = [
+		{ id: 1, codigo: 0, descripcion: "Periodo" },
+		{ id: 2, codigo: 1, descripcion: "Acta" },
+	];
 
 	const columns = [
+		{
+			dataField: "id",
+			text: "Numero",
+			sort: true,
+		},
+		{
+			dataField: "tipoLiquidacion",
+			text: "Tipo liquidacion",
+			sort: true,
+			formatter: v => tiposLiquidaciones.find(r => r.codigo === v)?.descripcion
+		},
+		{
+			dataField: "tiposPagosId",
+			text: "Tipo de pago",
+			sort: true,
+			formatter: v => tiposPagos.find(r => r.id === v)?.descripcion
+		},
 		{
 			dataField: "periodo",
 			text: "Periodo",
