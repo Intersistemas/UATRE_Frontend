@@ -34,4 +34,7 @@ code {
 }
 
 
-
+#overlay-root,
+body:has(#overlay-root:not(:empty)) > .MuiPopover-root > .MuiPaper-root {
+	zoom: 75%;
+}
