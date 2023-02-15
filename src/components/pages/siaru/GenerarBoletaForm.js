@@ -216,7 +216,7 @@ const GenerarBoletaForm = (props) => {
 			</Renglon>
 			<Renglon>
 				<div className={styles.subtitulo}>
-					<span>Empresa</span> {empresa.razonSocial}
+					<span>Empresa</span> {Formato.Cuit(empresa.cuit)} {empresa.razonSocial}
 				</div>
 			</Renglon>
 			<Renglon>

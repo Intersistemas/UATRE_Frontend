@@ -51,7 +51,7 @@ const BoletaPDF = (props) => {
 		<Document className={styles.document}>
 			<Page className={styles.page} size="A4">
 				<View className={styles.section}>
-					<Text>Empresa {empresa.razonSocial}</Text>
+					<Text>Empresa {Formato.Cuit(empresa.cuit)} {empresa.razonSocial}</Text>
 					<Text> </Text>
 					<Text>Establecimiento {establecimiento.nombre}</Text>
 					<Text> </Text>
