@@ -73,6 +73,7 @@ const EstablecimientosList = (props) => {
 			nextPageText: ">",
 			prePageText: "<",
 			hideSizePerPage: true,
+    	paginationShowsTotal: false,
 			onPageChange: onPaginationChange,
 			onSizePerPageChange: onPaginationChange,
 		});
