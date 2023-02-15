@@ -380,12 +380,17 @@ const GenerarBoletaForm = (props) => {
 						value={data.interesImporte}
 					/>
 				</Celda>
+				</Renglon>
+			<Renglon>
+				<h3>Total a pagar</h3>
+			</Renglon>
+			<Renglon>
 				<Celda width={50}>
 					<TextField
 						size="small"
 						style={{ width: "100%" }}
 						type="number"
-						label="total a pagar"
+						label="importe"
 						InputLabelProps={{ shrink: true }}
 						disabled
 						value={otros.importeTotal}

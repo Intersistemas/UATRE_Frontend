@@ -52,9 +52,9 @@ const BoletaPDF = (props) => {
 			<Page className={styles.page} size="A4">
 				<View className={styles.section}>
 					<Text>Empresa {empresa.razonSocial}</Text>
-					<Text>{" "}</Text>
+					<Text> </Text>
 					<Text>Establecimiento {establecimiento.nombre}</Text>
-					<Text>{" "}</Text>
+					<Text> </Text>
 				</View>
 				<View className={styles.section}>
 					<Text>Tipo de liquidacion: {tipoLiquidacion.descripcion}</Text>
@@ -65,24 +65,28 @@ const BoletaPDF = (props) => {
 						Fecha estimada de pago: {Formato.Fecha(data.fechaPagoEstimada)}
 					</Text>
 					<Text>
-						Cantidad de trabajadores: {Formato.Entero(data.cantidadTrabajadores)}
+						Cantidad de trabajadores:{" "}
+						{Formato.Entero(data.cantidadTrabajadores)}
 					</Text>
 					<Text>
 						Total remuneraciones: {Formato.Decimal(data.totalRemuneraciones)}
 					</Text>
-					<Text>{" "}</Text>
+					<Text> </Text>
 				</View>
 				<View className={styles.section}>
 					<Text>Subtotales</Text>
-					<Text>{" "}</Text>
+					<Text> </Text>
 					<Text>Procentaje: {Formato.Decimal(data.interesPorcentaje)}</Text>
 					<Text>Aporte: {Formato.Decimal(data.interesNeto)}</Text>
-					<Text>{" "}</Text>
+					<Text> </Text>
 				</View>
 				<View className={styles.section}>
-					<Text>Subtotales</Text>
-					<Text>{" "}</Text>
+					<Text>Intereses</Text>
+					<Text> </Text>
 					<Text>Importe intereses: {Formato.Decimal(data.interesImporte)}</Text>
+				</View>
+				<View className={styles.section}>
+					<Text> </Text>
 					<Text>Total a pagar: {Formato.Decimal(otros.importeNeto)}</Text>
 				</View>
 			</Page>
