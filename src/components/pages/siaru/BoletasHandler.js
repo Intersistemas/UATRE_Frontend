@@ -82,7 +82,7 @@ const BoletasHandler = (props) => {
 
 	return (
 		<>
-			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>
+			<h2 className="subtitulo">
 				Boletas del establecimiento Nro. {establecimiento.nroSucursal} -{" "}
 				{establecimiento.nombre}
 			</h2>

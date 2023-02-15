@@ -71,6 +71,20 @@
   text-shadow: 3px 3px 2px #186090;
 }
 
+.subtitulo {
+	  width: fit-content;
+    background-color: rgb(255 255 255 / 90%);
+    margin: 0%;
+	  text-align: left;
+    color: #186090;
+    margin-top: 3%;
+
+}
+
+.detalles_card{
+
+  text-align: right;
+}
 
 .filter-label span{
   display: none;

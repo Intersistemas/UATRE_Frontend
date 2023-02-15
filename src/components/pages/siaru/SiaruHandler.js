@@ -35,7 +35,7 @@ const SiaruHandler = (props) => {
 	return (
 		<>
 			<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>Empresa</h2>
+			<h2 className="subtitulo">Empresa</h2>
 			<EmpresaDetails config={{ data: empresa }} />
 			<EstablecimientosHandler config={{ empresa: empresa }} />
 		</>

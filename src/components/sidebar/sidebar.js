@@ -39,7 +39,7 @@ const Sidebar = ({children}) => {
     const CUIT = authContext.usuario;
     const[botones ,setBotones] = useState([]);
 
-    const[isOpen ,setIsOpen] = useState(false);
+    const[isOpen ,setIsOpen] = useState(true);
     const toggle = () => setIsOpen (!isOpen);
     const menuItem=[
         {
@@ -63,12 +63,12 @@ const Sidebar = ({children}) => {
                             //icono:<FaTh/>
                         },
                         {
-                            nombre:"Modif. Afiliado",
+                            nombre:"Modificar Afiliado",
                             accion:"Modificar",
                             //icono:<FaRegChartBar/>
                         },
                         {
-                            nombre:"Resol. Solicitud",
+                            nombre:"Resolver Solicitud",
                             accion:"Autorizar",
                             //icono:<FaTh/>
                         }

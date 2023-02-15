@@ -41,7 +41,7 @@ const DeclaracionesJuradas = (props) => {
         text: "CUIT",
       },
       {
-        dataField: "empresaNombre",
+        dataField: "empresa",
         text: "Empresa",
       },
       {
@@ -50,7 +50,7 @@ const DeclaracionesJuradas = (props) => {
       },
       {
         dataField: "remuneracionImponible",
-        text: "Rem Imponible",
+        text: "Remuneracion Imponible",
       },
       {
         dataField: "rectificativa",
@@ -84,7 +84,7 @@ const DeclaracionesJuradas = (props) => {
       },
       {
         dataField: "remuneracionImponible",
-        text: "Rem Imponible",
+        text: "Remuneracion Imponible",
       },
     ];
   }
@@ -109,7 +109,7 @@ const DeclaracionesJuradas = (props) => {
     selectRow: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
-    noDataIndication: <h4>No hay DDJJ</h4>,
+    noDataIndication: <h4>No hay Declaraciones Juradas del Afiliado</h4>,
     overlay: overlayFactory({ spinner: true })
   }
 
