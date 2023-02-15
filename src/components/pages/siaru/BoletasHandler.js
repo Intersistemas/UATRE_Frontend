@@ -117,8 +117,8 @@ const BoletasHandler = (props) => {
 	if (boleta != null) {
 		boletaHF = (
 			<>
-				<Button onClick={() => handleImprimir(boleta)}>Imprimir boleta numero {boleta.id}</Button>
 				<BoletaDetails config={{ data: boleta }} />
+				<Button onClick={() => handleImprimir(boleta)}>Imprimir boleta numero {boleta.id}</Button>
 			</>
 		);
 	}
@@ -131,7 +131,7 @@ const BoletasHandler = (props) => {
 			<Button onClick={handleGenerarBoletaClick}>Generar boleta para establecimiento {establecimiento.nombre}</Button>
 			{boletaForm}
 			{boletaPDF}
-			<h2 className={`${styles.titulo} ${styles.subtitulo}`}>
+			<h2 className="subtitulo">
 				Boletas del establecimiento Nro. {establecimiento.nroSucursal} -{" "}
 				{establecimiento.nombre}
 			</h2>

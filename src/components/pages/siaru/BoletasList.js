@@ -71,6 +71,7 @@ const BoletasList = (props) => {
 			nextPageText: ">",
 			prePageText: "<",
 			hideSizePerPage: true,
+    	paginationShowsTotal: false,
 			onPageChange: onPaginationChange,
 			onSizePerPageChange: onPaginationChange,
 		});
