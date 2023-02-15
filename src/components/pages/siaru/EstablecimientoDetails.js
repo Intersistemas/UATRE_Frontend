@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./EstablecimientoDetails.module.css";
-import { Renglon, Celda } from "../../ui/Grilla/Grilla";
+import Grilla, { Renglon, Celda } from "../../ui/Grilla/Grilla";
 
 const EstablecimientoDetails = (props) => {
 	const config = props.config;
@@ -34,20 +34,20 @@ const EstablecimientoDetails = (props) => {
 	}
 
 	return (
-		<>
+		<Grilla>
 			<Renglon className={styles.details}>
-				<Celda width={25}>
-					<span>Nro. sucursal:</span> {data.nroSucursal}
+				<Celda expandir>
+					<span>Nombre:</span> {data.nombre}
 				</Celda>
 				<Celda width={25}>
-					<span>Nombre:</span> {data.nombre}
+					<span>Nro. sucursal:</span> {data.nroSucursal}
 				</Celda>
 				<Celda width={25}>
 					<span>Cant. trabajadores:</span> {data.cantTrabajadores}
 				</Celda>
 			</Renglon>
 			<Renglon className={styles.details}>
-				<Celda width={25}>
+				<Celda expandir>
 					<span>Domicilio:</span> {domicilio}
 				</Celda>
 				<Celda width={25}>
@@ -57,7 +57,7 @@ const EstablecimientoDetails = (props) => {
 					<span>E-mail:</span> {data.email}
 				</Celda>
 			</Renglon>
-		</>
+		</Grilla>
 	);
 };
 

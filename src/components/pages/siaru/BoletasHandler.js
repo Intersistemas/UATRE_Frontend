@@ -4,7 +4,7 @@ import BoletaDetails from "./BoletaDetails";
 import BoletasList from "./BoletasList";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
-import { Renglon, Celda } from "../../ui/Grilla/Grilla";
+import { Grilla, Renglon, Celda } from "../../ui/Grilla/Grilla";
 import BoletaPDF from "./BoletaPDF";
 import { PDFViewer } from "@react-pdf/renderer";
 import styles from "./BoletasHandler.module.css";
@@ -56,25 +56,32 @@ const BoletasHandler = (props) => {
 	const handleImprimir = (data) => {
 		setBoletaPDF(
 			<Modal onClose={() => setBoletaPDF(null)}>
-				<Renglon style={{ height: "calc(100% - 6%)" }}>
-					<PDFViewer style={{ width: "100%", height: "100%" }}>
-						<BoletaPDF
-							config={{
-								empresa: empresa,
-								establecimiento: establecimiento,
-								data: data,
-							}}
-						/>
-					</PDFViewer>
-				</Renglon>
-				<Renglon abajo>
-					<Celda width={85}> </Celda>
-					<Celda width={15}>
-						<Button className="botonBlanco" onClick={() => setBoletaPDF(null)}>
-							Cerrar
-						</Button>
-					</Celda>
-				</Renglon>
+				<Grilla expandir>
+					<Renglon expandir>
+						<Celda expandir style={{height: "100%"}}>
+							<PDFViewer style={{ width: "100%", height: "100%" }}>
+								<BoletaPDF
+									config={{
+										empresa: empresa,
+										establecimiento: establecimiento,
+										data: data,
+									}}
+								/>
+							</PDFViewer>
+						</Celda>
+					</Renglon>
+					<Renglon>
+						<Celda expandir />
+						<Celda width={15}>
+							<Button
+								className="botonBlanco"
+								onClick={() => setBoletaPDF(null)}
+							>
+								Cerrar
+							</Button>
+						</Celda>
+					</Renglon>
+				</Grilla>
 			</Modal>
 		);
 	};

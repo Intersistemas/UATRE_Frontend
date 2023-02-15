@@ -4,7 +4,7 @@ import Formato from "../../helpers/Formato";
 import useHttp from "../../hooks/useHttp";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
-import { Renglon, Celda } from "../../ui/Grilla/Grilla";
+import { Renglon, Celda, Grilla } from "../../ui/Grilla/Grilla";
 import Select from "../../ui/Select/Select";
 import DateTimePicker from "../../ui/DateTimePicker/DateTimePicker";
 import TextField from "@mui/material/TextField";
@@ -62,7 +62,7 @@ const GenerarBoletaForm = (props) => {
 			},
 			async (response) =>
 				joinParams({
-						interesesDiariosPosteriorVencimiento: Formato.Decimal(
+					interesesDiariosPosteriorVencimiento: Formato.Decimal(
 						response?.valor ?? 0
 					),
 				})
@@ -111,8 +111,7 @@ const GenerarBoletaForm = (props) => {
 		//calculo intereses
 		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
 		r.interesNeto = r.totalRemuneraciones * (r.interesPorcentaje / 100);
-		r.interesNeto =
-			Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
+		r.interesNeto = Math.round((r.interesNeto + Number.EPSILON) * 100) / 100;
 		const o = calcularOtros(r);
 		console.log("o", o, "params", params);
 		if (o.vencimientoDias) {
@@ -211,203 +210,207 @@ const GenerarBoletaForm = (props) => {
 
 	return (
 		<Modal onClose={onCancela}>
-			<Renglon centro>
-				<h3>Generando boleta</h3>
-			</Renglon>
-			<Renglon>
-				<div className={styles.subtitulo}>
-					<span>Empresa</span> {Formato.Cuit(empresa.cuit)} {empresa.razonSocial}
-				</div>
-			</Renglon>
-			<Renglon>
-				<div className={styles.subtitulo}>
-					<span>Establecimiento</span> {establecimiento.nombre}
-				</div>
-			</Renglon>
-			<Renglon>
-				<Celda width={50}>
-					<Select
-						name="tipoLiquidacion"
-						label="Tipo de liquidacion"
-						required
-						error={err.tipoLiquidacion}
-						value={
-							tiposLiquidaciones.find((r) => r.codigo === data.tipoLiquidacion)
-								?.id
-						}
-						options={tiposLiquidaciones.map((r) => ({
-							label: r.descripcion,
-							value: r.id,
-						}))}
-						onChange={(v) =>
-							joinData({
-								tipoLiquidacion: tiposLiquidaciones.find((r) => r.id === v)
-									?.codigo,
-							})
-						}
-					/>
-				</Celda>
-				<Celda width={50}>
-					<Select
-						name="tiposPagosId"
-						label="Tipo de pago"
-						required
-						error={err.tiposPagosId}
-						value={data.tiposPagosId}
-						options={tiposPagos.map((r) => ({
-							label: r.descripcion,
-							value: r.id,
-						}))}
-						onChange={(v) => joinData({ tiposPagosId: v })}
-					/>
-				</Celda>
-			</Renglon>
-			<Renglon>
-				<Celda width={25}>
-					<DateTimePicker
-						type="month"
-						label="Periodo"
-						value={otros.periodo}
-						disableFuture
-						required
-						minDate="1994-01-01"
-						maxDate={dayjs().format("YYYY-MM-DD")}
-						error={err.periodo}
-						onChange={(f) =>
-							joinData({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
-						}
-					/>
-				</Celda>
-				<Celda width={25}>
-					<DateTimePicker
-						type="date"
-						label="Fecha de vencimiento"
-						disabled
-						value={otros.vencimientoFecha}
-					/>
-				</Celda>
-				<Celda width={25}>
-					<DateTimePicker
-						type="date"
-						label="Fecha pago estimada"
-						value={data.fechaPagoEstimada}
-						minDate={dayjs().format("YYYY-MM-DD")}
-						required
-						error={err.fechaPagoEstimada}
-						onChange={(f) =>
-							joinData({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
-						}
-					/>
-				</Celda>
-				<Celda width={25}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Cant. trabajadores"
-						required
-						error={err.cantidadTrabajadores}
-						InputLabelProps={{
-							shrink: true,
-						}}
-						value={data.cantidadTrabajadores}
-						onChange={(e) =>
-							joinData({
-								cantidadTrabajadores: Formato.Entero(e.target.value),
-							})
-						}
-					/>
-				</Celda>
-			</Renglon>
-			<Renglon>
-				<Celda width={25}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Total remuneraciones"
-						required
-						error={err.totalRemuneraciones}
-						InputLabelProps={{ shrink: true }}
-						value={data.totalRemuneraciones}
-						onChange={(e) =>
-							joinData({
-								totalRemuneraciones: Formato.Decimal(e.target.value),
-							})
-						}
-					/>
-				</Celda>
-			</Renglon>
-			<Renglon>
-				<h3>Subtotales</h3>
-			</Renglon>
-			<Renglon>
-				<Celda width={50}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Porcentaje"
-						InputLabelProps={{ shrink: true }}
-						disabled
-						value={data.interesPorcentaje}
-					/>
-				</Celda>
-				<Celda width={50}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Aporte"
-						InputLabelProps={{ shrink: true }}
-						disabled
-						value={data.interesNeto}
-					/>
-				</Celda>
-			</Renglon>
-			<Renglon>
-				<h3>Intereses</h3>
-			</Renglon>
-			<Renglon>
-				<Celda width={50}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="Importe interes"
-						InputLabelProps={{ shrink: true }}
-						disabled
-						value={data.interesImporte}
-					/>
-				</Celda>
+			<Grilla expandir>
+				<Renglon centro>
+					<h3>Generando boleta</h3>
 				</Renglon>
-			<Renglon>
-				<h3>Total a pagar</h3>
-			</Renglon>
-			<Renglon>
-				<Celda width={50}>
-					<TextField
-						size="small"
-						style={{ width: "100%" }}
-						type="number"
-						label="importe"
-						InputLabelProps={{ shrink: true }}
-						disabled
-						value={otros.importeTotal}
-					/>
-				</Celda>
-			</Renglon>
-			<Renglon abajo>
-				<Celda width={70}>{errorMsg}</Celda>
-				<Celda width={15}>
-					<Button className="botonBlanco" onClick={() => onCancela()}>
-						Cerrar
-					</Button>
-				</Celda>
-				<Celda width={15}>
-					<Button onClick={handleConfirma}>Generar</Button>
-				</Celda>
-			</Renglon>
+				<Renglon>
+					<div className={styles.subtitulo}>
+						<span>Empresa</span> {Formato.Cuit(empresa.cuit)}{" "}
+						{empresa.razonSocial}
+					</div>
+				</Renglon>
+				<Renglon>
+					<div className={styles.subtitulo}>
+						<span>Establecimiento</span> {establecimiento.nombre}
+					</div>
+				</Renglon>
+				<Renglon>
+					<Celda width={50}>
+						<Select
+							name="tipoLiquidacion"
+							label="Tipo de liquidacion"
+							required
+							error={err.tipoLiquidacion}
+							value={
+								tiposLiquidaciones.find(
+									(r) => r.codigo === data.tipoLiquidacion
+								)?.id
+							}
+							options={tiposLiquidaciones.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(v) =>
+								joinData({
+									tipoLiquidacion: tiposLiquidaciones.find((r) => r.id === v)
+										?.codigo,
+								})
+							}
+						/>
+					</Celda>
+					<Celda width={50}>
+						<Select
+							name="tiposPagosId"
+							label="Tipo de pago"
+							required
+							error={err.tiposPagosId}
+							value={data.tiposPagosId}
+							options={tiposPagos.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(v) => joinData({ tiposPagosId: v })}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon>
+					<Celda width={25}>
+						<DateTimePicker
+							type="month"
+							label="Periodo"
+							value={otros.periodo}
+							disableFuture
+							required
+							minDate="1994-01-01"
+							maxDate={dayjs().format("YYYY-MM-DD")}
+							error={err.periodo}
+							onChange={(f) =>
+								joinData({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
+							}
+						/>
+					</Celda>
+					<Celda width={25}>
+						<DateTimePicker
+							type="date"
+							label="Fecha de vencimiento"
+							disabled
+							value={otros.vencimientoFecha}
+						/>
+					</Celda>
+					<Celda width={25}>
+						<DateTimePicker
+							type="date"
+							label="Fecha pago estimada"
+							value={data.fechaPagoEstimada}
+							minDate={dayjs().format("YYYY-MM-DD")}
+							required
+							error={err.fechaPagoEstimada}
+							onChange={(f) =>
+								joinData({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
+							}
+						/>
+					</Celda>
+					<Celda width={25}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="Cant. trabajadores"
+							required
+							error={err.cantidadTrabajadores}
+							InputLabelProps={{
+								shrink: true,
+							}}
+							value={data.cantidadTrabajadores}
+							onChange={(e) =>
+								joinData({
+									cantidadTrabajadores: Formato.Entero(e.target.value),
+								})
+							}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon>
+					<Celda width={25}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="Total remuneraciones"
+							required
+							error={err.totalRemuneraciones}
+							InputLabelProps={{ shrink: true }}
+							value={data.totalRemuneraciones}
+							onChange={(e) =>
+								joinData({
+									totalRemuneraciones: Formato.Decimal(e.target.value),
+								})
+							}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon>
+					<h3>Subtotales</h3>
+				</Renglon>
+				<Renglon>
+					<Celda width={50}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="Porcentaje"
+							InputLabelProps={{ shrink: true }}
+							disabled
+							value={data.interesPorcentaje}
+						/>
+					</Celda>
+					<Celda width={50}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="Aporte"
+							InputLabelProps={{ shrink: true }}
+							disabled
+							value={data.interesNeto}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon>
+					<h3>Intereses</h3>
+				</Renglon>
+				<Renglon>
+					<Celda width={50}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="Importe interes"
+							InputLabelProps={{ shrink: true }}
+							disabled
+							value={data.interesImporte}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon>
+					<h3>Total a pagar</h3>
+				</Renglon>
+				<Renglon>
+					<Celda width={50}>
+						<TextField
+							size="small"
+							style={{ width: "100%" }}
+							type="number"
+							label="importe"
+							InputLabelProps={{ shrink: true }}
+							disabled
+							value={otros.importeTotal}
+						/>
+					</Celda>
+				</Renglon>
+				<Renglon expandir abajo>
+					<Celda expandir>{errorMsg}</Celda>
+					<Celda width={15}>
+						<Button className="botonBlanco" onClick={() => onCancela()}>
+							Cerrar
+						</Button>
+					</Celda>
+					<Celda width={15}>
+						<Button onClick={handleConfirma}>Generar</Button>
+					</Celda>
+				</Renglon>
+			</Grilla>{" "}
 		</Modal>
 	);
 };
