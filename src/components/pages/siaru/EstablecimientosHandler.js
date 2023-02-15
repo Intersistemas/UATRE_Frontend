@@ -13,7 +13,7 @@ const EstablecimientosHandler = (props) => {
 	const [establecimientos, setEstablecimientos] = useState(null);
 	const [pagination, setPagination] = useState({
 		index: 1,
-		size: 10,
+		size: 2,
 		count: 0,
 		pages: 0,
 	});
@@ -68,6 +68,7 @@ const EstablecimientosHandler = (props) => {
 			<EstablecimientosList
 				config={{
 					data: establecimientos,
+					pagination: pagination,
 					loading: isLoading,
 					onSelect: handleEstablecimientosSelect,
 					onPaginationChange: handlePaginationChange,

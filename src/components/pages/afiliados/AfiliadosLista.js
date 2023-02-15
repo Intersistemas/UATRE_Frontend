@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
+import Formato from "../../helpers/Formato";
 
 const AfiliadosLista = (props) => {
   const dispatch = useDispatch();
@@ -229,7 +230,7 @@ const AfiliadosLista = (props) => {
               : ""
           }`}*/
           
-          label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
+          label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
           style={{ width: "800px" }}
           //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
           disabled={afiliadoSeleccionado?.cuil ? false : true}

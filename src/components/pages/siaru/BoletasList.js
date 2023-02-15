@@ -76,7 +76,8 @@ const BoletasList = (props) => {
 			onSizePerPageChange: onPaginationChange,
 		});
 	}
-
+	console.log("pagination", pagination)
+	console.log("bootstrapPagination", bootstrapPagination)
 	return (
 		<Table
 			remote
