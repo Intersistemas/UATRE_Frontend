@@ -1,6 +1,7 @@
 import React from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Table from "../../ui/Table/Table";
+import Formato from "../../helpers/Formato";
 
 const BoletasList = (props) => {
 	const config = { ...props.config };
@@ -15,11 +16,13 @@ const BoletasList = (props) => {
 			dataField: "periodo",
 			text: "Periodo",
 			sort: true,
+			formatter: Formato.Periodo,
 		},
 		{
 			dataField: "fecha",
 			text: "Fecha",
 			sort: true,
+			formatter: Formato.Fecha,
 		},
 		{
 			dataField: "cantidadTrabajadores",

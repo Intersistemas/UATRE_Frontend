@@ -194,21 +194,27 @@ const AfiliadosLista = (props) => {
       onSelected: rowEvents,
   }
 
+  const enDesarrollo = () => {
+    alert("asd");
+  } 
 
   return (
     <div className={styles.div}>
-      <Button width={20} onClick={props.onClickAfiliadoAgregar}>
+      <div className="detalles_card">
+      <Button className="botonBorder" width={20} onClick={props.onClickAfiliadoAgregar}>
         Agregar Afiliado
       </Button>
       <Button
+      className="botonBorder"
         width={20}
-        onClick={props.onClickAfiliadoAgregar}
+        onClick={props.onResolverEstadoSolicitud}
         disabled={
           afiliadoSeleccionado?.estadoSolicitud === "Pendiente" ? false : true
         }
       >
         Resolver Solicitud
       </Button>
+      </div>
       <Tabs
         value={selectedTab}
         onChange={handleChangeTab}
@@ -222,7 +228,8 @@ const AfiliadosLista = (props) => {
               ? afiliadoSeleccionado?.nombre
               : ""
           }`}*/
-          label= {`DDJJ UATRE ${afiliadoSeleccionado?.nombre}`}
+          
+          label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
           style={{ width: "800px" }}
           //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
           disabled={afiliadoSeleccionado?.cuil ? false : true}
