@@ -16,10 +16,11 @@ export const Renglon = (props) => {
 };
 
 export const Celda = (props) => {
-	let { children, width = 100, style = {}, ...resto } = props;
+	let { className, children, width = 100, style = {}, ...resto } = props;
+	className = `${styles.celda} ${className}`
 	style = { ...style, width: `${width}%` };
 	return (
-		<div {...resto} style={style}>
+		<div className={className} style={style} {...resto}>
 			{children}
 		</div>
 	);

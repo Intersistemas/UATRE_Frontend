@@ -5,16 +5,8 @@
 	align-items: center;
 }
 
-.renglon > div {
-	margin: 5px;
-}
-
-.renglon > div:first-child {
-	margin-left: 0px;
-}
-
-.renglon > div:last-child {
-	margin-right: 0px;
+.celda {
+	padding: 5px;
 }
 
 .derecha {
