@@ -79,7 +79,7 @@ const DeclaracionesJuradas = (props) => {
         text: "CUIT",
       },
       {
-        dataField: "empresaNombre",
+        dataField: "empresa",
         text: "Empresa",
       },
       {
