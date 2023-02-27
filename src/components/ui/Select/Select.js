@@ -29,7 +29,7 @@ const Select = (props) => {
 				labelId={props.label + "-label"}
 				name={props.name}
 				label={props.label}
-				value={(props.value ?? 0) === 0 ? "" : props.value}
+				value={props.value == null ? "" : props.value}
 				defaultValue={props.defaultValue}
 				onChange={handleChange}
 				MenuProps={MenuProps}
