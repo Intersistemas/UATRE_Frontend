@@ -1,4 +1,4 @@
-import { MenuItem, Select as MuiSelect, InputLabel, FormControl } from "@mui/material";
+import { MenuItem, Select as MuiSelect, InputLabel, FormControl, FormHelperText } from "@mui/material";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -16,6 +16,11 @@ const Select = (props) => {
 		//console.log(event)
 		props.onChange(event.target.value, event.target.name);
 	};
+
+	let helperText;
+	if (props.error) {
+		helperText = <FormHelperText>{props.error}</FormHelperText>;
+	}
 
 	return (
 		<FormControl
@@ -45,6 +50,7 @@ const Select = (props) => {
 					</MenuItem>
 				))}
 			</MuiSelect>
+			{helperText}
 		</FormControl>
 	);
 };
