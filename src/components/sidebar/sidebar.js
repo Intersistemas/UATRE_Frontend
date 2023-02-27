@@ -16,7 +16,7 @@ import { handleModuloEjecutarAccion } from '../../redux/actions';
 
 const Sidebar = ({children}) => {
 
-    const { modulo } = useSelector(state => state)
+    const  moduloActual = useSelector(state => state.modulo)
     
     const dispatch = useDispatch();  //Ver acciones a pasar
     const authContext = useContext(AuthContext)
@@ -36,20 +36,21 @@ const Sidebar = ({children}) => {
     ]
 
     useEffect(() => {
-                console.log('sidebar - useEffect:',modulo);
+                console.log('sidebar - useEffect:',moduloActual);
 
                 let array = [];
 
-                if (modulo.nombre === "Afiliados") {
-                    array = modulo.acciones;
+                if (moduloActual.nombre === "Afiliados") {
+                    array = moduloActual.acciones;
                 };
 
-                if (modulo.nombre === "Pagos") {
-                    array = modulo.acciones;
+                if (moduloActual.nombre === "Pagos") {
+                    array = moduloActual.acciones;
                 };
                 setBotones(array);
-    },[modulo])
+    },[moduloActual])
 
+    //Despacho/actualizo el estado global de acciones, el componente que creo las acciones capturará el estado y sabrá qué hacer
     const despacharAcciones = (accion)=>{
         dispatch(handleModuloEjecutarAccion(accion));
     }
