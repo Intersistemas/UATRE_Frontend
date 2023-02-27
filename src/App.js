@@ -8,6 +8,7 @@ import Inicio from './components/pages/inicio/Inicio';
 import InicioHandler from './components/pages/inicio/InicioHandler';
 import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
+import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
 						<Route path="/siaru" element={<SiaruHandler/>} />
+						<Route path="/siaru/establecimientos" element={<EstablecimientosHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />
