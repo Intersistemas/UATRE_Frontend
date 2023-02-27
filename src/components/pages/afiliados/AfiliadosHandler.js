@@ -22,7 +22,8 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
-  const moduloEnviar = {
+  //#region despachar Informar Modulo
+  const moduloInfo = {
     nombre: "Afiliados",
     acciones: [
       {
@@ -33,16 +34,19 @@ const AfiliadosHandler = () => {
       },
       {
         nombre: "Resolver Solicitud",
+      },
+      {
+        nombre: "Imprimir Solicitud",
       }
     ]
   }
- 
+
   const dispatch = useDispatch();
-  dispatch(handleModuloSeleccionar(moduloEnviar)); 
+  //dispatch(handleModuloSeleccionar("Afiliaciones",acciones)); //intentaba pasar dos parametros a la funcion 
+  dispatch(handleModuloSeleccionar(moduloInfo)); 
+//#endregion
 
   useEffect(() => {
-
-    console.log('AfiliadosHandler - useEffect_1:');
     const processAfiliados = async (afiliadosObj) => {
         //console.log('afiliadosObj', afiliadosObj)
         setAfiliadosRespuesta(afiliadosObj);
@@ -67,12 +71,26 @@ const AfiliadosHandler = () => {
 
   const  moduloAccion  = useSelector(state => state.moduloAccion)
 
+  //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
     
-      if (moduloAccion === 'Agregar Afiliado'){
+    //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
+    switch (moduloAccion){
+      case "Agregar Afiliado":
         setAfiliadoAgregarShow(true);
-        dispatch(handleModuloEjecutarAccion(''));
-      }
+        break;
+      case "Modificar Afiliado":
+        alert('Funcionalidad de Modificar En desarrollo ');
+        break;
+      case "Resolver Solicitud":
+        alert('Funcionalidad de Modificar En desarrollo ');
+        break;
+      case "Imprimir Solicitud":
+        alert('Funcionalidad de Imprimir En desarrollo ');
+        break;
+      default: break;
+    }
+      dispatch(handleModuloEjecutarAccion(''));//Dejo el estado de ejecutar Accion LIMPIO!
 
   },[moduloAccion])
 
@@ -96,8 +114,6 @@ const AfiliadosHandler = () => {
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
     if (refresh === true) setRefresh(true);
-
-    //dispatch(handleAfiliadoFicha(null));
   };
 
   const handlePageChange = (page, sizePerPage) => {
@@ -130,12 +146,13 @@ const AfiliadosHandler = () => {
         {afiliadoAgregarShow && (
           <AfiliadoAgregar onClose={onCloseAfiliadoAgregarHandler}/>
         )}
+        
         <AfiliadosLista
           afiliados={afiliadosRespuesta}
           loading={isLoading}
           estadosSolicitud={estadosSolicitud}
           estadoSolicitudActual={estadoSolicitud}
-          // onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
+          //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
           onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
           onPageChange={handlePageChange}
           onSizePerPageChange={handleSizePerPageChange}

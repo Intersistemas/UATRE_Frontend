@@ -1,7 +1,6 @@
 import { MODULO_SELECCIONAR, AFILIADO_SELECCIONAR,MODULO_EJECUTARACCION } from "./actionTypes";
 
 const initialState = {
-  //modulo: "",
   modulo: {},
   moduloAccion: '',
   afiliado: {}
