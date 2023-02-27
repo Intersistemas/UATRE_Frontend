@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-const GenerarBoletaForm = (props) => {
+const Form = (props) => {
 	const config = { ...props.config };
 	const action = config.action ? `${config.action}` : "C"; //ABMC
 	const [data, setData] = useState({ ...config.data });
@@ -273,4 +273,4 @@ const GenerarBoletaForm = (props) => {
 	);
 };
 
-export default GenerarBoletaForm;
+export default Form;

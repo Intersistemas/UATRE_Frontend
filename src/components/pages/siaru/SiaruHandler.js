@@ -72,75 +72,10 @@ const SiaruHandler = (props) => {
 		);
 	};
 
-	let botones = [
-		<Button
-			onClick={() =>
-				setFormEmpresa(
-					<EmpresaForm
-						config={{
-							action: "A",
-							data: {},
-							onCancela: () => setFormEmpresa(null),
-							onConfirma: (data) => setFormEmpresa(null),
-						}}
-					/>
-				)
-			}
-		>
-			Agrega Empresa
-		</Button>,
-	];
+	let botones = [];
 	if (empresa) {
 		botones = [
 			...botones,
-			<Button
-				onClick={() =>
-					setFormEmpresa(
-						<EmpresaForm
-							config={{
-								action: "M",
-								data: empresa,
-								onCancela: () => setFormEmpresa(null),
-								onConfirma: (data) => setFormEmpresa(null),
-							}}
-						/>
-					)
-				}
-			>
-				Modifica Empresa
-			</Button>,
-			<Button
-				onClick={() =>
-					setFormEmpresa(
-						<EmpresaForm
-							config={{
-								action: "B",
-								data: empresa,
-								onCancela: () => setFormEmpresa(null),
-								onConfirma: (data) => setFormEmpresa(null),
-							}}
-						/>
-					)
-				}
-			>
-				Baja Empresa
-			</Button>,
-			<Button
-				onClick={() =>
-					setFormEmpresa(
-						<EmpresaForm
-							config={{
-								action: "C",
-								data: empresa,
-								onCancela: () => setFormEmpresa(null),
-								onConfirma: (data) => setFormEmpresa(null),
-							}}
-						/>
-					)
-				}
-			>
-				Consulta Empresa
-			</Button>,
 			<Button
 				onClick={() =>
 					navigate("/siaru/establecimientos", {
