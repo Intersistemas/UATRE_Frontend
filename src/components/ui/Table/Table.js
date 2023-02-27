@@ -2,8 +2,10 @@ import React from 'react';
 import classes from './Table.module.css';
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
+import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit';
+import 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css';
 
-
+const { SearchBar } = Search;
 
 const Table = (props) => {
 
@@ -31,29 +33,76 @@ const rowStyle = {
   color: '#727272',
 };
 
+let MyGrid = <ToolkitProvider
+    keyField= {props.keyField}
+    data={ props.data }
+    columns={ props.columns }          
+    search
+    >
+
+{
+    props => (
+      <div>
+        <div style = {{display: 'flex', justifyContent: 'center'}}>
+          <h3>Buscar:</h3>
+          <SearchBar 
+            srText = ""
+            placeholder = "..."
+            { ...props.searchProps } 
+          />
+        </div>
+        <hr />
+        <BootstrapTable
+         hover
+         bootstrap4
+         condensed  //NO FUNCIONA CON ToolkitProvider
+         remote = {props.remote}
+         keyField= {props.keyField}
+         data={ props.data }
+         columns={ props.columns }          
+         headerClasses= {classes.headerClass}
+         loading = {props.loading}
+         pagination = {props.pagination}
+         onTableChange= {props.onTableChange}
+         filter = {props.filter}
+         noDataIndication= {props.noDataIndication}
+         rowEvents = {rowEvents}
+
+         overlay = {props.overlay}
+         selectRow={selectRow}
+         rowStyle = {rowStyle} 
+          { ...props.baseProps }
+        />
+      </div>
+    )
+  }
+</ToolkitProvider>
+
 
   return (
     <div>
-            <BootstrapTable
-            hover
-            bootstrap4
-            condensed  
-            remote = {props.remote}
-            keyField= {props.keyField}
-            data={ props.data }
-            columns={ props.columns }          
-            headerClasses= {classes.headerClass}
-            loading = {props.loading}
-            pagination = {props.pagination}
-            onTableChange= {props.onTableChange}
-            filter = {props.filter}
-            noDataIndication= {props.noDataIndication}
-            rowEvents = {rowEvents}
 
-            overlay = {props.overlay}
-            selectRow={selectRow}
-            rowStyle = {rowStyle}
-            />
+        {MyGrid}
+        {/*<BootstrapTable
+          hover
+          bootstrap4
+          condensed  
+          remote = {props.remote}
+          keyField= {props.keyField}
+          data={ props.data }
+          columns={ props.columns }          
+          headerClasses= {classes.headerClass}
+          loading = {props.loading}
+          pagination = {props.pagination}
+          onTableChange= {props.onTableChange}
+          filter = {props.filter}
+          noDataIndication= {props.noDataIndication}
+          rowEvents = {rowEvents}
+
+          overlay = {props.overlay}
+          selectRow={selectRow}
+          rowStyle = {rowStyle}
+      />*/}
     </div>
 
   );

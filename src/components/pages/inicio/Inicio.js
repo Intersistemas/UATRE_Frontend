@@ -164,20 +164,20 @@ const columns = [
   }
   
   return (
-
-    
     <div>
           <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
+          {/*
           <Table
                 {...props2}
-           />
+          />*/}
            
-           <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
-          
+          <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
           <p/>
-          <Button  width={100}  onClick={() => navigate('/siaru', {state: {cuit: empresasSelected?.cuit}})}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
-
+          
+          <Button  width={100}  onClick={() => navigate('/siaru')}>Sistema de Aportes Rurales {/*de *{empresasSelected?.razonsocial}**/}</Button>
+          <p/>
+          <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Administración de Datos</Button>
     </div>
   )
 };

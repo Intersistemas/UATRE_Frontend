@@ -1,36 +1,22 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useSelector } from 'react-redux'
-
 import {
-    FaTh,
-    FaBars,
-    FaUserAlt,
-    FaRegChartBar,
-    FaCommentAlt,
-    FaShoppingBag,
-    FaThList,
-    FaRegUser,
-    FaChevronRight
+    FaTh,FaBars,FaRegUser, FaChevronRight
 }from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { NavLink } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
-import { Routes, Route, Navigate } from "react-router-dom";
-import Inicio from '../../components/pages/inicio/Inicio';
-import InicioHandler from '../../components/pages/inicio/InicioHandler';
-import  AfiliadosHandler from '../../components/pages/afiliados/AfiliadosHandler';
 import { useDispatch } from "react-redux";
 import store from '../../redux/store';
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
+import { handleModuloEjecutarAccion } from '../../redux/actions';
 
 
 const Sidebar = ({children}) => {
 
     const { modulo } = useSelector(state => state)
-
-    console.log('modulo-REDUX',modulo)
     
     const dispatch = useDispatch();  //Ver acciones a pasar
     const authContext = useContext(AuthContext)
@@ -49,90 +35,24 @@ const Sidebar = ({children}) => {
         }
     ]
 
-
     useEffect(() => {
-        console.log('modulo en useEffect:',modulo);
+                console.log('sidebar - useEffect:',modulo);
 
                 let array = [];
 
-                if (modulo == "Afiliados") {
-                    array = [
-                        {
-                            nombre:"Agregar Afiliado",
-                            accion:"Agregar",
-                            //icono:<FaTh/>
-                        },
-                        {
-                            nombre:"Modificar Afiliado",
-                            accion:"Modificar",
-                            //icono:<FaRegChartBar/>
-                        },
-                        {
-                            nombre:"Resolver Solicitud",
-                            accion:"Autorizar",
-                            //icono:<FaTh/>
-                        }
-                    ]
+                if (modulo.nombre === "Afiliados") {
+                    array = modulo.acciones;
                 };
 
-                if (modulo == "Pagos") {
-                    array = [
-                        {
-                            nombre:"Agregar Afiliado",
-                            accion:"Agregar",
-                            //icono:<FaTh/>
-                        },
-                        {
-                            nombre:"Modif. Afiliado",
-                            accion:"Modificar",
-                            //icono:<FaRegChartBar/>
-                        },
-                        {
-                            nombre:"Aut. Solicitud",
-                            accion:"Autorizar",
-                            //icono:<FaTh/>
-                        }
-                    ]
+                if (modulo.nombre === "Pagos") {
+                    array = modulo.acciones;
                 };
-
-
-
                 setBotones(array);
-            
-        
     },[modulo])
 
-
-    const setActionButtons = (modulo) =>{
-        let array = [];
-        if (modulo == "Afiliados") {
-            array = [
-                {
-                    nombre:"Agregar Afiliado",
-                    accion:"Agregar",
-                    icono: "FaTh"
-                },
-                {
-                    nombre:"Modificar Afiliado",
-                    accion:"Modificar",
-                    icono: "FaRegChartBar"
-                },
-                {
-                    nombre:"Autorizar Solicitud",
-                    accion:"Autorizar",
-                    icono: "FaTh"
-                }
-            ]
-        } ;
-        return array;
+    const despacharAcciones = (accion)=>{
+        dispatch(handleModuloEjecutarAccion(accion));
     }
-
-    
-    const accionButton = () =>{
-        console.log('accion del boton');
-    }
-
-    console.log('**botones',botones)
 
     return (
         <>     
@@ -166,8 +86,8 @@ const Sidebar = ({children}) => {
                             
                             <div className={clases.actionButtons}>
                                 <FaChevronRight/>
-                                <Button key={index} onClick={accionButton}> 
-                                    {(isOpen && <div onClick={accionButton} >{item.nombre}</div>)}
+                                <Button key={index} onClick={ () => despacharAcciones(item.nombre)}> 
+                                    {(isOpen && <div onClick={ () => despacharAcciones(item.nombre)}>{item.nombre}</div>)}
                                 </Button>
                             </div>
                             ))

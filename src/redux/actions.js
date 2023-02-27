@@ -1,6 +1,7 @@
 import { 
     MODULO_SELECCIONAR,
     AFILIADO_SELECCIONAR, 
+    MODULO_EJECUTARACCION
 } from './actionTypes'
 
 export const handleModuloSeleccionar = (payload) => ({
@@ -13,3 +14,7 @@ export const handleAfiliadoSeleccionar = (payload) => ({
   payload,
 });
 
+export const handleModuloEjecutarAccion = (payload) => ({
+  type: MODULO_EJECUTARACCION,
+  payload,
+});
