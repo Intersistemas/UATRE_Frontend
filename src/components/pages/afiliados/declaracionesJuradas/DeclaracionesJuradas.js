@@ -45,10 +45,6 @@ const DeclaracionesJuradas = (props) => {
         text: "Empresa",
       },
       {
-        dataField: "banco",
-        text: "Banco",
-      },
-      {
         dataField: "remuneracionImponible",
         text: "Remuneracion Imponible",
       },

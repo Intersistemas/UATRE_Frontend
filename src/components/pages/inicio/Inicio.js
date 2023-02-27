@@ -180,7 +180,7 @@ const columns = [
 				navigate("/siaru", { state: { cuit: empresasSelected?.cuit } })
 			}
 		>
-			Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*
+			Sistema de Aportes Rurales
 		</Button>
 	);
 	const tblEmpresas = (<Table {...props2} />);
@@ -205,15 +205,24 @@ const columns = [
 			break;
 	}
   
-	return (
-		<div>
-			<h1 className="titulo">Sistema Integral de UATRE</h1>
-			{perEmpresas}
-			{perAfiliaciones}
-			<p />
-			{perSiaru}
-		</div>
-	);
+
+  return (
+    <div>
+          <h1 className='titulo'>Sistema Integral de UATRE</h1>
+      
+          {/*
+          <Table
+                {...props2}
+          />*/}
+           
+          	{perAfiliaciones}
+            <p />
+            {perSiaru}
+          <p/>
+          <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Administración de Datos</Button>
+    </div>
+  )
+
 };
 
 export default Inicio;

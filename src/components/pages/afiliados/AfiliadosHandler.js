@@ -2,8 +2,10 @@ import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
 import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from '../../../redux/actions';
+import { handleModuloEjecutarAccion } from '../../../redux/actions';
+
 
 const AfiliadosHandler = () => {
 
@@ -20,20 +22,38 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
+  const moduloEnviar = {
+    nombre: "Afiliados",
+    acciones: [
+      {
+        nombre: "Agregar Afiliado",
+      },
+      {
+        nombre: "Modificar Afiliado",
+      },
+      {
+        nombre: "Resolver Solicitud",
+      }
+    ]
+  }
+ 
   const dispatch = useDispatch();
-  dispatch(handleModuloSeleccionar("Afiliados"));
+  dispatch(handleModuloSeleccionar(moduloEnviar)); 
 
   useEffect(() => {
+
+    console.log('AfiliadosHandler - useEffect_1:');
     const processAfiliados = async (afiliadosObj) => {
-      //console.log('afiliadosObj', afiliadosObj)
-      setAfiliadosRespuesta(afiliadosObj);
-      if (refresh) setRefresh(false);
+        //console.log('afiliadosObj', afiliadosObj)
+        setAfiliadosRespuesta(afiliadosObj);
+        if (refresh) setRefresh(false);
     };
 
     let endpoint = `/Afiliado?PageIndex=${page}&PageSize=${sizePerPage}`;
     if (estadoSolicitud) {
-      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
+    
     request(
       {
         baseURL: "Afiliaciones",
@@ -43,6 +63,18 @@ const AfiliadosHandler = () => {
       processAfiliados
     );
   }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
+
+
+  const  moduloAccion  = useSelector(state => state.moduloAccion)
+
+  useEffect(() => {
+    
+      if (moduloAccion === 'Agregar Afiliado'){
+        setAfiliadoAgregarShow(true);
+        dispatch(handleModuloEjecutarAccion(''));
+      }
+
+  },[moduloAccion])
 
   // const handleDarDeBajaAfiliado = (afiliado) => {
 
@@ -64,6 +96,8 @@ const AfiliadosHandler = () => {
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
     if (refresh === true) setRefresh(true);
+
+    //dispatch(handleAfiliadoFicha(null));
   };
 
   const handlePageChange = (page, sizePerPage) => {
@@ -94,7 +128,7 @@ const AfiliadosHandler = () => {
     return (
       <Fragment>
         {afiliadoAgregarShow && (
-          <AfiliadoAgregar onClose={onCloseAfiliadoAgregarHandler} />
+          <AfiliadoAgregar onClose={onCloseAfiliadoAgregarHandler}/>
         )}
         <AfiliadosLista
           afiliados={afiliadosRespuesta}

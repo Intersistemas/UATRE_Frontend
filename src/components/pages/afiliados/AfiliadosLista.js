@@ -1,7 +1,6 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-import BootstrapTable from "react-bootstrap-table-next";
 import paginationFactory from "react-bootstrap-table2-paginator";
 //import overlayFactory from "react-bootstrap-table2-overlay";
 import styles from "./AfiliadosLista.module.css";
@@ -84,21 +83,22 @@ const AfiliadosLista = (props) => {
         return { width: "8%", textAlign: "center" };
       },
     },
-    {
+   { //ME GENERA ERROR CON EL SEARCH TAB
       dataField: "estadoSolicitud",
-      Text: "Estado",
+      text: "Estado",
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
         return { width: "10%", textAlign: "center" };
       },
-      filter: selectFilter({
+      
+      /*filter: selectFilter({
         comparator: Comparator.EQ,
         options: props.estadosSolicitud,
         defaultValue: props.estadoSolicitudActual,
         className: styles.filter,//"my-custom-text-filter",
         placeholder: "Seleccion Estado...",
         withoutEmptyOption: true,
-      }),
+      }),*/
     },
     {
       dataField: "empresa",
