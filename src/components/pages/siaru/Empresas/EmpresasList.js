@@ -1,7 +1,7 @@
 import React from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
-import Formato from "../../helpers/Formato";
-import Table from "../../ui/Table/Table";
+import Formato from "../../../helpers/Formato";
+import Table from "../../../ui/Table/Table";
 import styles from "./EmpresasList.module.css";
 
 const EmpresasList = (props) => {

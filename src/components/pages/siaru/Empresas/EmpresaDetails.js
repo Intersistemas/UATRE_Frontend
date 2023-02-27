@@ -1,6 +1,6 @@
 import React from "react";
-import Formato from "../../helpers/Formato";
-import Grid from "../../ui/Grid/Grid";
+import Formato from "../../../helpers/Formato";
+import Grid from "../../../ui/Grid/Grid";
 import styles from "./EmpresaDetails.module.css";
 
 const EmpresaDetails = (props) => {
@@ -62,7 +62,7 @@ const EmpresaDetails = (props) => {
 							Dpto:
 						</Grid>
 						<Grid block basis="calc(100% - 235px)" className={styles.data}>
-							{data.domicilioPiso ?? ""}
+							{data.domicilioDpto ?? ""}
 						</Grid>
 					</Grid>
 					<Grid full="width">
