@@ -39,7 +39,7 @@ const EmpresaDetails = (props) => {
 						<Grid block basis="055px" className={styles.label}>
 							Calle:
 						</Grid>
-						<Grid block basis="calc(100% - 286px)" className={styles.data}>
+						<Grid block basis="calc(100% - 055px)" className={styles.data}>
 							{data.domicilioCalle ?? ""}
 						</Grid>
 					</Grid>

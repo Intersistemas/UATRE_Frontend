@@ -107,7 +107,7 @@ const SiaruHandler = (props) => {
 			<Grid full="width">
 				<h2 className="subtitulo">Empresas</h2>
 			</Grid>
-			<Grid full="width" grow>
+			<Grid full="width" grow gap="5px">
 				<Grid width="50%">
 					<EmpresasList
 						config={{
@@ -116,7 +116,7 @@ const SiaruHandler = (props) => {
 						}}
 					/>
 				</Grid>
-				<Grid block width="50%" style={{ paddingLeft: "5px" }}>
+				<Grid block width="50%">
 					<EmpresaDetails config={{ data: empresa }} />
 				</Grid>
 			</Grid>
