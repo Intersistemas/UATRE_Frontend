@@ -82,9 +82,9 @@ const Login = () => {
 		<Form onSubmit={submitHandler}>
 
 			<Form.Group className="mb-3" controlId="formCUIT">
-        		<Form.Label style={{color: '#555555'}} ><strong>CUIT/CUIL</strong></Form.Label>
+        		<Form.Label style={{color: '#555555'}} ><strong>Usuario</strong></Form.Label>
 	
-        		<Form.Control type="text" placeholder="CUIT/CUIL"
+        		<Form.Control type="text" placeholder="Cuit/Cuil/Email"
 					id="cuit"
 					value={enteredCUIT}
 					onChange={cuitChangeHandler}

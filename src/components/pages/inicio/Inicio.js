@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useContext} from 'react';
 import useHttp from '../../hooks/useHttp';
 import urlAPI from '../../api/apiSeguridad';
 import AuthContext from '../../../store/authContext';
@@ -162,24 +162,67 @@ const columns = [
     //<AfiliadosHandler/>
     navigate("/siaru")
   }
-  
-  return (
 
-    
+	const authContext = useContext(AuthContext);
+	// const logoutHandler = authContext.logout;
+	// const isLoggedIn = authContext.isLoggedIn;
+	const CUIT = authContext.usuario;
+
+	const btnAfiliaciones = (
+		<Button width={100} onClick={() => navigate("/afiliaciones")}>
+			Afiliaciones
+		</Button>
+	);
+	const btnSiaru = (
+		<Button
+			width={100}
+			onClick={() =>
+				navigate("/siaru", { state: { cuit: empresasSelected?.cuit } })
+			}
+		>
+			Sistema de Aportes Rurales
+		</Button>
+	);
+	const tblEmpresas = (<Table {...props2} />);
+
+	console.log("CUIT", CUIT);
+
+	let perAfiliaciones = null;
+	let perSiaru = null;
+	let perEmpresas = null;
+	switch (`${CUIT}`) {
+		case "27000000006":
+			perAfiliaciones = btnAfiliaciones;
+			break;
+		case "27000000007":
+			perSiaru = btnSiaru;
+			perEmpresas = tblEmpresas;
+			break;
+		default:
+			perAfiliaciones = btnAfiliaciones;
+			perSiaru = btnSiaru;
+			perEmpresas = tblEmpresas;
+			break;
+	}
+  
+
+  return (
     <div>
           <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
+          {/*
           <Table
                 {...props2}
-           />
+          />*/}
            
-           <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Afiliaciones</Button>
-          
+          	{perAfiliaciones}
+            <p />
+            {perSiaru}
           <p/>
-          <Button  width={100}  onClick={() => navigate('/siaru', {state: {cuit: empresasSelected?.cuit}})}>Sistema de Aportes Rurales de *{empresasSelected?.razonsocial}*</Button>
-
+          <Button  width={100} onClick={() => (navigate("/afiliaciones"))}>Administración de Datos</Button>
     </div>
   )
+
 };
 
 export default Inicio;
