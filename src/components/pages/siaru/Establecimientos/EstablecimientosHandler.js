@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from "react";
 import useHttp from "../../../hooks/useHttp";
-import Button from "../../../ui/Button/Button";
+import Grid from "../../../ui/Grid/Grid";
+import Formato from "../../../helpers/Formato";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import Form from "./EstablecimientoForm";
 import styles from "./EstablecimientosHandler.module.css";
 import { redirect, useLocation } from "react-router-dom";
-import Grid from "../../../ui/Grid/Grid";
+import { useDispatch, useSelector } from "react-redux";
+import {
+	handleModuloEjecutarAccion,
+	handleModuloSeleccionar,
+} from "../../../../redux/actions";
 
 const EstablecimientosHandler = (props) => {
 	const location = useLocation();
 	const empresa = location.state?.empresa;
-	if (empresa?.id == null) {
-		redirect("/");
-	}
+	if (empresa?.id == null) redirect("/");
 
 	const empresaId = empresa ? empresa.id : 0;
-	const [establecimientos, setEstablecimientos] = useState(null);
+	const [establecimientos, setEstablecimientos] = useState([]);
 	const [pagination, setPagination] = useState({
 		index: 1,
 		size: 2,
@@ -26,6 +29,7 @@ const EstablecimientosHandler = (props) => {
 	const [establecimiento, setEstablecimiento] = useState(null);
 	const [form, setForm] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
+	const dispatch = useDispatch();
 
 	const recargarEstablecimientos = (despliega = null) => {
 		request(
@@ -45,99 +49,84 @@ const EstablecimientosHandler = (props) => {
 				setEstablecimiento(despliega);
 			}
 		);
-	}
+	};
 
+	//#region despachar Informar Modulo
+	const moduloInfo = {
+		nombre: "SIARU",
+		acciones: [{ nombre: "Establecimiento Agregar" }],
+	};
+	if (establecimiento) {
+		moduloInfo.acciones = [
+			...moduloInfo.acciones,
+			{
+				nombre: `Establecimiento ${Formato.Entero(
+					establecimiento.nroSucursal
+				)} Consultar`,
+			},
+			{
+				nombre: `Establecimiento ${Formato.Entero(
+					establecimiento.nroSucursal
+				)} Modificar`,
+			},
+			{
+				nombre: `Establecimiento ${Formato.Entero(
+					establecimiento.nroSucursal
+				)} Bajar`,
+			},
+		];
+	}
+	dispatch(handleModuloSeleccionar(moduloInfo));
+	//#endregion
+
+	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		recargarEstablecimientos();
-	}, [empresaId, pagination.index, pagination.size]);
+
+		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
+		const configForm = {
+			data: establecimiento,
+			onCancela: () => setForm(null),
+			onConfirma: (data) => {
+				recargarEstablecimientos(data);
+				setForm(null);
+			},
+		};
+		switch (moduloAccion) {
+			case `Establecimiento Agregar`:
+				configForm.data = { empresasId: empresaId };
+				configForm.action = "A";
+				setForm(<Form config={configForm} />);
+				break;
+			case `Establecimiento ${Formato.Entero(
+				establecimiento?.nroSucursal
+			)} Consultar`:
+				configForm.action = "C";
+				configForm.onConfirma = (data) => configForm.onCancela();
+				setForm(<Form config={configForm} />);
+				break;
+			case `Establecimiento ${Formato.Entero(
+				establecimiento?.nroSucursal
+			)} Modificar`:
+				configForm.action = "M";
+				setForm(<Form config={configForm} />);
+				break;
+			case `Establecimiento ${Formato.Entero(
+				establecimiento?.nroSucursal
+			)} Bajar`:
+				configForm.action = "B";
+				setForm(<Form config={configForm} />);
+				break;
+			default:
+				break;
+		}
+		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	}, [empresaId, pagination.index, pagination.size, moduloAccion]);
 
 	if (isLoading) return <h1>Cargando...</h1>;
 	if (error) return <h1>{error}</h1>;
-	if (establecimientos == null) return <></>;
-
-	let botones = [
-		<Button
-			onClick={() =>
-				setForm(
-					<Form
-						config={{
-							action: "A",
-							data: { empresasId: empresa.id },
-							onCancela: () => setForm(null),
-							onConfirma: (data) => {
-								recargarEstablecimientos(data);
-								setForm(null);
-							},
-						}}
-					/>
-				)
-			}
-		>
-			Agrega Establecimiento
-		</Button>,
-	];
-	if (establecimiento) {
-		botones = [
-			...botones,
-			<Button
-				onClick={() =>
-					setForm(
-						<Form
-							config={{
-								action: "M",
-								data: establecimiento,
-								onCancela: () => setForm(null),
-								onConfirma: (data) => {
-									recargarEstablecimientos(data);
-									setForm(null);
-								},
-							}}
-						/>
-					)
-				}
-			>
-				Modifica Establecimiento
-			</Button>,
-			<Button
-				onClick={() =>
-					setForm(
-						<Form
-							config={{
-								action: "B",
-								data: establecimiento,
-								onCancela: () => setForm(null),
-								onConfirma: (data) => {
-									recargarEstablecimientos(data);
-									setForm(null);
-								},
-							}}
-						/>
-					)
-				}
-			>
-				Baja Establecimiento
-			</Button>,
-			<Button
-				onClick={() =>
-					setForm(
-						<Form
-							config={{
-								action: "C",
-								data: establecimiento,
-								onCancela: () => setForm(null),
-								onConfirma: (data) => {
-									recargarEstablecimientos(data);
-									setForm(null);
-								},
-							}}
-						/>
-					)
-				}
-			>
-				Consulta Establecimiento
-			</Button>,
-		];
-	}
+	
+	console.log("establecimientos", establecimientos)
 
 	return (
 		<Grid col full>
@@ -147,9 +136,10 @@ const EstablecimientosHandler = (props) => {
 			<Grid full="width">
 				<h2 className="subtitulo">Establecimientos</h2>
 			</Grid>
-			<Grid full="width" gap="10px" style={{ padding: "5px" }}>
-				{botones.map((boton, ix) => <Grid key={ix}>{boton}</Grid>)}
-				{form}
+			<Grid full="width">
+				<h3 className="subtitulo">
+					Empresa {Formato.Cuit(empresa.cuit)} {empresa.razonSocial ?? ""}
+				</h3>
 			</Grid>
 			<Grid full="width" grow>
 				<Grid width="50%">
@@ -163,6 +153,7 @@ const EstablecimientosHandler = (props) => {
 				<Grid block width="50%" style={{ paddingLeft: "5px" }}>
 					<EstablecimientoDetails config={{ data: establecimiento }} />
 				</Grid>
+				{form}
 			</Grid>
 		</Grid>
 	);

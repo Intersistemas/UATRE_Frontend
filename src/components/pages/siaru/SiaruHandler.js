@@ -1,20 +1,54 @@
 import React, { useState, useEffect } from "react";
 import useHttp from "../../hooks/useHttp";
-import Button from "../../ui/Button/Button";
 import Grid from "../../ui/Grid/Grid";
+import Formato from "../../helpers/Formato";
 import EmpresaDetails from "./Empresas/EmpresaDetails";
 import EmpresasList from "./Empresas/EmpresasList";
-import EmpresaForm from "./Empresas/EmpresaForm";
 import styles from "./SiaruHandler.module.css";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+	handleModuloEjecutarAccion,
+	handleModuloSeleccionar,
+} from "../../../redux/actions";
 
 const SiaruHandler = (props) => {
 	const [empresas, setEmpresas] = useState([]);
 	const [empresa, setEmpresa] = useState(null);
-	const [formEmpresa, setFormEmpresa] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
+	const fetchEmpresa = (cuit) => {
+		if ((cuit ?? 0) == 0) {
+			setEmpresa(null);
+			return;
+		}
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/Empresas/${cuit}`,
+				method: "GET",
+			},
+			async (response) => setEmpresa(response)
+		);
+	};
+
+	//#region despachar Informar Modulo
+	const moduloInfo = {
+		nombre: "SIARU",
+		acciones: [],
+	};
+	if (empresa) {
+		moduloInfo.acciones = [
+			...moduloInfo.acciones,
+			{ nombre: `Establecimientos ${Formato.Cuit(empresa.cuit)}` },
+		];
+	}
+	dispatch(handleModuloSeleccionar(moduloInfo));
+	//#endregion
+
+	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		// request(
 		// 	{
@@ -50,43 +84,20 @@ const SiaruHandler = (props) => {
 				domicilio: "SAN MARTIN 3853",
 			},
 		]);
-		// }, [request]);
-	}, []);
+
+		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
+		switch (moduloAccion) {
+			case `Establecimientos ${Formato.Cuit(empresa?.cuit)}`:
+				navigate("/siaru/establecimientos", { state: { empresa: empresa } });
+				break;
+			default:
+				break;
+		}
+		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	}, [moduloAccion, empresa]);
 
 	// if (isLoading) return <h1>Cargando...</h1>;
 	// if (error) return <h1>{error}</h1>;
-	// if (empresa == null) return <></>;
-
-	const fetchEmpresa = (cuit) => {
-		if ((cuit ?? 0) == 0) {
-			setEmpresa(null);
-			return;
-		}
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Empresas/${cuit}`,
-				method: "GET",
-			},
-			async (response) => setEmpresa(response)
-		);
-	};
-
-	let botones = [];
-	if (empresa) {
-		botones = [
-			...botones,
-			<Button
-				onClick={() =>
-					navigate("/siaru/establecimientos", {
-						state: { empresa: empresa },
-					})
-				}
-			>
-				Establecimientos
-			</Button>,
-		];
-	}
 
 	return (
 		<Grid col full>
@@ -95,10 +106,6 @@ const SiaruHandler = (props) => {
 			</Grid>
 			<Grid full="width">
 				<h2 className="subtitulo">Empresas</h2>
-			</Grid>
-			<Grid full="width" gap="10px" style={{ padding: "5px" }}>
-				{botones.map((boton, ix) => <Grid key={ix}>{boton}</Grid>)}
-				{formEmpresa}
 			</Grid>
 			<Grid full="width" grow>
 				<Grid width="50%">

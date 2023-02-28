@@ -44,6 +44,10 @@ const Sidebar = ({children}) => {
                     array = moduloActual.acciones;
                 };
 
+                if (moduloActual.nombre === "SIARU") {
+                    array = moduloActual.acciones;
+                };
+
                 if (moduloActual.nombre === "Pagos") {
                     array = moduloActual.acciones;
                 };
