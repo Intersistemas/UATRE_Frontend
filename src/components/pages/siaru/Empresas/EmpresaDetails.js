@@ -14,7 +14,7 @@ const EmpresaDetails = (props) => {
 					Datos de la empresa
 				</Grid>
 			</Grid>
-			<Grid full="width">
+			<Grid full="width" gap="5px">
 				<Grid block basis="051px" className={styles.label}>
 					CUIT:
 				</Grid>
@@ -35,7 +35,7 @@ const EmpresaDetails = (props) => {
 							Domicilio administrativo
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Calle:
 						</Grid>
@@ -43,7 +43,7 @@ const EmpresaDetails = (props) => {
 							{data.domicilioCalle ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Nro:
 						</Grid>
@@ -51,7 +51,7 @@ const EmpresaDetails = (props) => {
 							{data.domicilioNumero ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Piso:
 						</Grid>
@@ -65,7 +65,7 @@ const EmpresaDetails = (props) => {
 							{data.domicilioDpto ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="095px" className={styles.label}>
 							Provincia:
 						</Grid>
@@ -73,7 +73,7 @@ const EmpresaDetails = (props) => {
 							{data.domicilioProvincia ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="095px" className={styles.label}>
 							Localidad:
 						</Grid>

@@ -35,6 +35,9 @@ const SiaruHandler = (props) => {
 	};
 
 	//#region despachar Informar Modulo
+	const descEmpresa = empresa
+		? `${Formato.Cuit(empresa.cuit)} - ${empresa.razonSocial}`
+		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
@@ -42,7 +45,8 @@ const SiaruHandler = (props) => {
 	if (empresa) {
 		moduloInfo.acciones = [
 			...moduloInfo.acciones,
-			{ nombre: `Establecimientos ${Formato.Cuit(empresa.cuit)}` },
+			{ nombre: `Establecimientos de ${descEmpresa}` },
+			{ nombre: `Liquidaciones de ${descEmpresa}` },
 		];
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
@@ -87,8 +91,11 @@ const SiaruHandler = (props) => {
 
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
-			case `Establecimientos ${Formato.Cuit(empresa?.cuit)}`:
+			case `Establecimientos de ${descEmpresa}`:
 				navigate("/siaru/establecimientos", { state: { empresa: empresa } });
+				break;
+			case `Liquidaciones de ${descEmpresa}`:
+				alert("Proximamente");
 				break;
 			default:
 				break;
@@ -116,7 +123,7 @@ const SiaruHandler = (props) => {
 						}}
 					/>
 				</Grid>
-				<Grid block width="50%">
+				<Grid block width="50%" style={{ paddingTop: "75px" }}>
 					<EmpresaDetails config={{ data: empresa }} />
 				</Grid>
 			</Grid>

@@ -14,7 +14,7 @@ const EstablecimientoDetails = (props) => {
 					Datos del Establecimiento
 				</Grid>
 			</Grid>
-			<Grid full="width">
+			<Grid full="width" gap="5px">
 				<Grid block basis="110px" className={styles.label}>
 					Nro. Sucursal:
 				</Grid>
@@ -35,7 +35,7 @@ const EstablecimientoDetails = (props) => {
 							Domicilio
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Calle:
 						</Grid>
@@ -43,7 +43,7 @@ const EstablecimientoDetails = (props) => {
 							{data.domicilioCalle ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Nro:
 						</Grid>
@@ -51,7 +51,7 @@ const EstablecimientoDetails = (props) => {
 							{data.domicilioNumero ? data.domicilioNumero : ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="055px" className={styles.label}>
 							Piso:
 						</Grid>
@@ -65,7 +65,7 @@ const EstablecimientoDetails = (props) => {
 							{data.domicilioDpto ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="095px" className={styles.label}>
 							Provincia:
 						</Grid>
@@ -73,7 +73,7 @@ const EstablecimientoDetails = (props) => {
 							{data.domicilioProvincia ?? ""}
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" gap="5px">
 						<Grid block basis="095px" className={styles.label}>
 							Localidad:
 						</Grid>

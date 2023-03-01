@@ -6,7 +6,7 @@ import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import Form from "./EstablecimientoForm";
 import styles from "./EstablecimientosHandler.module.css";
-import { redirect, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
@@ -16,7 +16,7 @@ import {
 const EstablecimientosHandler = (props) => {
 	const location = useLocation();
 	const empresa = location.state?.empresa;
-	if (empresa?.id == null) redirect("/");
+	if (empresa?.id == null) navigate("/");
 
 	const empresaId = empresa ? empresa.id : 0;
 	const [establecimientos, setEstablecimientos] = useState([]);
@@ -30,6 +30,7 @@ const EstablecimientosHandler = (props) => {
 	const [form, setForm] = useState(null);
 	const { isLoading, error, sendRequest: request } = useHttp();
 	const dispatch = useDispatch();
+	const navigate = useNavigate();
 
 	const recargarEstablecimientos = (despliega = null) => {
 		request(
@@ -52,27 +53,22 @@ const EstablecimientosHandler = (props) => {
 	};
 
 	//#region despachar Informar Modulo
+	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: "Establecimiento Agregar" }],
+		acciones: [{ nombre: `Empresas` }, { nombre: `Agregar Establecimiento` }],
 	};
 	if (establecimiento) {
 		moduloInfo.acciones = [
 			...moduloInfo.acciones,
 			{
-				nombre: `Establecimiento ${Formato.Entero(
-					establecimiento.nroSucursal
-				)} Consultar`,
+				nombre: `Consultar Establecimiento ${estabDesc}`,
 			},
 			{
-				nombre: `Establecimiento ${Formato.Entero(
-					establecimiento.nroSucursal
-				)} Modificar`,
+				nombre: `Modificar Establecimiento ${estabDesc}`,
 			},
 			{
-				nombre: `Establecimiento ${Formato.Entero(
-					establecimiento.nroSucursal
-				)} Bajar`,
+				nombre: `Dar de baja Establecimiento ${estabDesc}`,
 			},
 		];
 	}
@@ -81,7 +77,7 @@ const EstablecimientosHandler = (props) => {
 
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		recargarEstablecimientos();
+		recargarEstablecimientos(establecimiento);
 
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
@@ -93,27 +89,24 @@ const EstablecimientosHandler = (props) => {
 			},
 		};
 		switch (moduloAccion) {
-			case `Establecimiento Agregar`:
+			case `Empresas`:
+				navigate("/siaru");
+				break;
+			case `Agregar Establecimiento`:
 				configForm.data = { empresasId: empresaId };
 				configForm.action = "A";
 				setForm(<Form config={configForm} />);
 				break;
-			case `Establecimiento ${Formato.Entero(
-				establecimiento?.nroSucursal
-			)} Consultar`:
+			case `Consultar Establecimiento ${estabDesc}`:
 				configForm.action = "C";
 				configForm.onConfirma = (data) => configForm.onCancela();
 				setForm(<Form config={configForm} />);
 				break;
-			case `Establecimiento ${Formato.Entero(
-				establecimiento?.nroSucursal
-			)} Modificar`:
+			case `Modificar Establecimiento ${estabDesc}`:
 				configForm.action = "M";
 				setForm(<Form config={configForm} />);
 				break;
-			case `Establecimiento ${Formato.Entero(
-				establecimiento?.nroSucursal
-			)} Bajar`:
+			case `Dar de baja Establecimiento ${estabDesc}`:
 				configForm.action = "B";
 				setForm(<Form config={configForm} />);
 				break;
@@ -125,8 +118,6 @@ const EstablecimientosHandler = (props) => {
 
 	if (isLoading) return <h1>Cargando...</h1>;
 	if (error) return <h1>{error}</h1>;
-	
-	console.log("establecimientos", establecimientos)
 
 	return (
 		<Grid col full>
@@ -134,14 +125,12 @@ const EstablecimientosHandler = (props) => {
 				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
 			</Grid>
 			<Grid full="width">
-				<h2 className="subtitulo">Establecimientos</h2>
+				<h2 className="subtitulo">
+					Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
+					{empresa.razonSocial ?? ""}
+				</h2>
 			</Grid>
-			<Grid full="width">
-				<h3 className="subtitulo">
-					Empresa {Formato.Cuit(empresa.cuit)} {empresa.razonSocial ?? ""}
-				</h3>
-			</Grid>
-			<Grid full="width" grow>
+			<Grid full="width" grow gap="5px">
 				<Grid width="50%">
 					<EstablecimientosList
 						config={{
@@ -150,7 +139,7 @@ const EstablecimientosHandler = (props) => {
 						}}
 					/>
 				</Grid>
-				<Grid block width="50%" style={{ paddingLeft: "5px" }}>
+				<Grid block width="50%" style={{ paddingTop: "75px" }}>
 					<EstablecimientoDetails config={{ data: establecimiento }} />
 				</Grid>
 				{form}
