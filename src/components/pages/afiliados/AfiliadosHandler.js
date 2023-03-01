@@ -117,6 +117,7 @@ const AfiliadosHandler = () => {
   };
 
   const handlePageChange = (page, sizePerPage) => {
+    console.log('llega con la data',page,sizePerPage)
     setPage(page);
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
