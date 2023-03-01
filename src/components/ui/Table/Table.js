@@ -35,29 +35,23 @@ const rowEvents = {
   },
 };
 
-/*const pagination = paginationFactory({
-  page: afiliados.page,
-  sizePerPage: afiliados.sizePerPage,
-  paginationShowsTotal: false,
-  totalSize: afiliados.totalRegs,
-  lastPageText: ">>",
-  firstPageText: "<<",
-  nextPageText: ">",
-  prePageText: "<",
-  hideSizePerPage: true,
-  onPageChange: function (page, sizePerPage) {
-    props.onPageChange(page, sizePerPage);
-  },
-  onSizePerPageChange: function (page, sizePerPage) {
-    props.onSizePerPageChange(sizePerPage, page);
-  },
-});*/
+const pagination = props.pagination
 
 const rowStyle = { 
   backgroundColor: '#ffffffcc',
   border: '1.5px solid #3595D2', 
   color: '#727272',
 };
+
+const rowStyle2 = (row, cell) => {
+  const rowStyle = { 
+    backgroundColor: '#ffffffcc',
+    border: '1.5px solid #3595D2', 
+    color: '#000',//color: '#727272',
+  };
+  return rowStyle;
+};
+
 
 let MyGrid = <ToolkitProvider
     keyField= {props.keyField}
@@ -68,35 +62,34 @@ let MyGrid = <ToolkitProvider
         props => (
           <div>
             <div style = {{display: 'flex', justifyContent: 'center'}}>
-              <h3>Buscar:</h3>
+              <h3>Buscar :</h3>
               <SearchBar 
                 srText = ""
-                placeholder = "..."
+                placeholder = "Ingrese datos a buscar"
                 { ...props.searchProps } 
               />
             </div>
             <hr />
+            <div className={classes.tabla}>
             <BootstrapTable
+            
             hover
             bootstrap4
             condensed  //NO FUNCIONA CON ToolkitProvider
-            remote = {props.remote}
-            keyField= {props.keyField}
-            data={ props.data }
-            columns={ props.columns }          
+            remote = {props.remote}      
             headerClasses= {classes.headerClass}
             loading = {props.loading}
-            pagination = {props.pagination}
+            //pagination={pagination}
             onTableChange= {props.onTableChange}
             filter = {props.filter}
             noDataIndication= {props.noDataIndication}
             rowEvents = {rowEvents}
-
             overlay = {props.overlay}
             selectRow={selectRow}
-            rowStyle = {rowStyle} 
+            rowStyle = {(props.rowStyle ? props.rowStyle : rowStyle2)}
               { ...props.baseProps }
             />
+            </div>
           </div>
         )
       }

@@ -72,10 +72,13 @@ const Sidebar = ({children}) => {
                         </h1>
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
+                        </div> 
+
+                         <div>
+                            <div className={clases.icon}><FaRegUser/></div>
+                            {(isOpen && <div className={clases.link_text}>{CUIT}</div>)}
                         </div>
-                        
                     </div>
-                    
                         {
                         menuItem.map((item, index)=>(
                             <NavLink to={item.path} key={index} className={clases.link} activeclassName={clases.active}>
@@ -103,11 +106,6 @@ const Sidebar = ({children}) => {
                             <div onClick={logoutHandler} className={clases.icon}><BsFillXCircleFill/></div>
                             {(isOpen && <div onClick={logoutHandler} className={clases.link_text}>Cerrar Sesión</div>)}
                         </NavLink>
-                    </div>
-
-                    <div>
-                        <div className={clases.icon}><FaRegUser/></div>
-                        {(isOpen && <div className={clases.link_text}>{CUIT}</div>)}
                     </div>
                 </div>
            </div>
