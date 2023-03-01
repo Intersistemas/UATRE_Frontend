@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./Grilla.module.css";
 
+// No utilizar. Candidato a ser eliminado.
 export const Grilla = (props) => {
 	let {
 		className = "",
