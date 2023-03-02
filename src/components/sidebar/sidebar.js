@@ -19,10 +19,12 @@ const Sidebar = ({children}) => {
     const  moduloActual = useSelector(state => state.modulo)
     
     const dispatch = useDispatch();  //Ver acciones a pasar
+
     const authContext = useContext(AuthContext)
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
-    const CUIT = authContext.usuario;
+    const Usuario = authContext.usuario;
+
     const[botones ,setBotones] = useState([]);
 
     const[isOpen ,setIsOpen] = useState(true);
@@ -36,8 +38,6 @@ const Sidebar = ({children}) => {
     ]
 
     useEffect(() => {
-                console.log('sidebar - useEffect:',moduloActual);
-
                 let array = [];
 
                 if (moduloActual.nombre === "Afiliados") {
@@ -68,7 +68,7 @@ const Sidebar = ({children}) => {
                     <div className={clases.top_section}>
                         <h1 style={{display: isOpen ? "block" : "none"}} className={clases.logo}>
                             <img src={logo} width="70" height="70" onClick={toggle}/>
-                            <text> UATRE</text>
+                            <a> UATRE</a>
                         </h1>
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
@@ -76,8 +76,8 @@ const Sidebar = ({children}) => {
 
                          <div>
                             <div className={clases.icon}><FaRegUser/></div>
-                            {(isOpen && <div className={clases.link_text}>{CUIT}</div>)}
                         </div>
+                            {(isOpen && <div className={clases.link_text}>{Usuario.cuit}<br/>{Usuario.nombre}</div>)}
                     </div>
                         {
                         menuItem.map((item, index)=>(
