@@ -1,7 +1,8 @@
 const getStoredToken = () => {
     const storedToken = localStorage.getItem('token');
     const storedExpirationTime = localStorage.getItem('expirationTime');
-    const usuario = localStorage.getItem('usuario');
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const usuario = localStorage.getItem('usuario');
 
     return {
         token: storedToken,

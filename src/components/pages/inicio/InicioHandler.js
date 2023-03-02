@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect,useContext} from 'react';
 import useHttp from "../../hooks/useHttp";
 import AuthContext from '../../../store/authContext';
 import Inicio from './Inicio';
@@ -14,6 +14,15 @@ const InicioHandler = () => {
 
   const { isLoading, error, sendRequest: request} = useHttp();
   const [empresasRespuesta, setempresasRespuesta] = useState(null);
+  const [usuario, setUsuario] = useState({});
+
+  const authContext = useContext(AuthContext);
+  
+  useEffect(() => {
+
+    setUsuario(authContext.usuario);
+  
+  },[]);
 
   useEffect(() => { 
     const processEmpresas = async (empresasObj) => {
@@ -56,7 +65,7 @@ const InicioHandler = () => {
   return (
 
     <div>
-          <Inicio empresas={empresasRespuesta} />
+          <Inicio usuario={usuario} empresas={empresasRespuesta} />
 
     </div>
   )

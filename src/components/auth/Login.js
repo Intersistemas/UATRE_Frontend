@@ -43,8 +43,9 @@ const Login = () => {
 
   const processLogIn = async (userObject) => {
 	  console.log('userObject1', userObject)
-	  await authContext.login(userObject.token.tokenId, userObject.token.validTo.toString(), userObject.rol, userObject.usuario)
+	  await authContext.login(userObject.token.tokenId, userObject.token.validTo.toString(), userObject.rol, userObject)
 	  console.log('logged');
+	  //pasar al authcontext el usuario
 	  navigate("/inicio");
   }
 
@@ -52,14 +53,14 @@ const Login = () => {
 
 	sendLoginRequest({
 	  baseURL: 'Seguridad',
-	  endpoint: "/Usuario/login",
+	  endpoint: "/Usuario/loginEmailCuit",
 	  method: "POST",
 	  headers: {
 		"Content-Type": "application/json",
 		"Accept": "*/*"
 	  },
 	  body: {
-		"CUIT": enteredCUIT,
+		"Usuario": enteredCUIT,
 		"Password": enteredPassword,
 		"Rol": null
 	  }

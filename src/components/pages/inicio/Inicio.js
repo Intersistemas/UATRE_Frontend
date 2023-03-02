@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 import useHttp from '../../hooks/useHttp';
 import urlAPI from '../../api/apiSeguridad';
 import AuthContext from '../../../store/authContext';
@@ -15,31 +15,11 @@ import Formato from '../../helpers/Formato';
 
 
 const Inicio = (props) => {
-  const empresas2 = props.empresas;
 
   const navigate = useNavigate();
 
-  const { isLoading, error, sendRequest: getEmpresas} = useHttp();
   const [empresasSelected, setEmpresasSelected] = useState();
-
-  
-  //const [empresas, setEmpresas] = useState();
-
-//   useEffect(() => {     
-//     const processEmpresas = async (empresasObj) => {   
-//       console.log('empresasObj:',empresasObj)
-//       setEmpresas(empresasObj);   
-               
-//     };
-
-//     getEmpresas({
-//         url: urlAPI +'PermisosUsuario',
-//         headers: {
-//             Authorization: "",
-//         }  
-//     },processEmpresas);
-// },[getEmpresas]);
-
+  const usuario = props.usuario
 
 const empresas = [
   {
@@ -65,65 +45,6 @@ const empresas = [
     razonsocial: 'ASOC COOP DE LA EEA MZA-I',
     localidad: 'Corrientes',
     domicilio: 'SAN MARTIN 3853'
-  }
-];
-
-
-const columns2 = 
-[
-  {
-    dataField: 'id',
-    text: 'id',
-    hide: true
-  },
-  {
-    dataField: 'cuitEmpresa',
-    text: 'CUIT'
-  },
-  {
-    dataField: 'razonSocial',
-    text: 'Razón Social'
-  }, 
-  {
-    dataField: 'email',
-    text: 'Email'
-  }, 
-  {
-    dataField: 'telefono',
-    text: 'Telefono'
-  }, 
-  {
-    dataField: 'domicilio',
-    text: 'Localidad'
-  }
-];
-
-const columns3 = [
-  {
-    dataField: 'cuitEmpresa',
-    text: 'CUIT'
-  }, 
-  {
-    dataField: 'domicilio',
-    text: 'Domicilio'
-  }, 
-  {
-    dataField: 'email',
-    text: 'Email'
-  }, 
-  {
-    dataField: 'id',
-    text: 'id',
-    hide: true
-  },
-  {
-    dataField: 'razonSocial',
-    text: 'Razón Social'
-  },
-
-  {
-    dataField: 'telefono',
-    text: 'Telefono'
   }
 ];
 
@@ -163,10 +84,6 @@ const columns = [
     navigate("/siaru")
   }
 
-	const authContext = useContext(AuthContext);
-	// const logoutHandler = authContext.logout;
-	// const isLoggedIn = authContext.isLoggedIn;
-	const CUIT = authContext.usuario;
 
 	const btnAfiliaciones = (
 		<Button width={100} onClick={() => navigate("/afiliaciones")}>
@@ -185,12 +102,10 @@ const columns = [
 	);
 	const tblEmpresas = (<Table {...props2} />);
 
-	console.log("CUIT", CUIT);
-
 	let perAfiliaciones = null;
 	let perSiaru = null;
 	let perEmpresas = null;
-	switch (`${CUIT}`) {
+	switch (`${usuario.cuit}`) {
 		case "27000000006":
 			perAfiliaciones = btnAfiliaciones;
 			break;
