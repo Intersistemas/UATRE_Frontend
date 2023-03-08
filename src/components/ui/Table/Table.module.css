@@ -3,3 +3,10 @@
     color: white;
     background-color: rgb(85 85 85 / 90%);
 }
+
+td, th {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+

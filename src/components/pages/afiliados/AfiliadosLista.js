@@ -31,54 +31,61 @@ const AfiliadosLista = (props) => {
     sizePerPage: props.afiliados.size,
   };
 
-  //#region columns
+
   const columns = [
     {
       dataField: "cuil",
       text: "CUIL",
+      sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
     },
     {
       dataField: "nroAfiliado",
       text: "Afiliado",
+      sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "5%", textAlign: "center" };
+        return { width: "6%", textAlign: "center" };
       },
     },
     {
       dataField: "fechaIngreso",
       text: "Fecha Ingreso",
+      sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
     },
     {
       dataField: "nombre",
       text: "Nombre",
+      sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "15%", textAlign: "center" };
+        return { width: "auto", textAlign: "center" };
       },
     },
     {
       dataField: "actividad",
       text: "Actividad",
+      sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "15%", textAlign: "center" };
+        return { width: "10%", textAlign: "center" };
       },
     },
     {
       dataField: "seccional",
       text: "Seccional",
+      sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "15%", textAlign: "center" };
+        return { width: "10%", textAlign: "center" };
       },
     },
     {
       dataField: "puesto",
       text: "Puesto",
+      sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
@@ -86,11 +93,41 @@ const AfiliadosLista = (props) => {
    { //ME GENERA ERROR CON EL SEARCH TAB
       dataField: "estadoSolicitud",
       text: "Estado",
+      sort: true,
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "7%", textAlign: "center" };
       },
-      
+      formatter: (cell) => {
+        switch (cell){
+          case "Pendiente": 
+            return (<div
+              style={{backgroundColor: '#ffff64cc' }}
+            >{cell}</div>)
+            break;
+          case "Baja": 
+            return (<div
+              style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
+              >{cell}</div>)
+            break;
+          case "Observado":
+            return (<div
+              style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
+              >{cell}</div>)
+            break;
+          case "Rechazado":
+            return (<div
+              style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
+              >{cell}</div>)
+            break;
+          case "Activo":
+              return (<div
+                >{cell}</div>)
+              break;  
+          default:  
+            break;
+        }        
+      },
       /*filter: selectFilter({
         comparator: Comparator.EQ,
         options: props.estadosSolicitud,
@@ -103,6 +140,7 @@ const AfiliadosLista = (props) => {
     {
       dataField: "empresa",
       text: "Empresa",
+      sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "15%", textAlign: "center" };
       },
@@ -110,6 +148,7 @@ const AfiliadosLista = (props) => {
     {
       dataField: "documento",
       text: "Documento",
+      sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
@@ -135,7 +174,6 @@ const AfiliadosLista = (props) => {
       dispatch(handleAfiliadoSeleccionar(row));
   };
 
-  
 
   const handleTableChange = (
     type,
@@ -160,8 +198,8 @@ const AfiliadosLista = (props) => {
     //alwaysShowAllBtns: true,
     hideSizePerPage: true,
     onPageChange: function (page, sizePerPage) {
-      //console.log('page', page);
-      //console.log('sizePerPage', sizePerPage);
+      //console.log('page1', page);
+      //console.log('sizePerPage1', sizePerPage);
       props.onPageChange(page, sizePerPage);
     },
     onSizePerPageChange: function (page, sizePerPage) {
@@ -202,7 +240,7 @@ const AfiliadosLista = (props) => {
   return (
     <div className={styles.div}>
       <div className="detalles_card">
-      <Button className="botonBorder" width={20} onClick={props.onClickAfiliadoAgregar}>
+      {/*<Button className="botonBorder" width={20} onClick={props.onClickAfiliadoAgregar}>
         Agregar Afiliado
       </Button>
       <Button
@@ -214,7 +252,7 @@ const AfiliadosLista = (props) => {
         }
       >
         Resolver Solicitud
-      </Button>
+      </Button>*/}
       </div>
       <Tabs
         value={selectedTab}
