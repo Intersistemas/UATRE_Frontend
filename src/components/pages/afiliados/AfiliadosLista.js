@@ -172,6 +172,7 @@ const AfiliadosLista = (props) => {
       console.log(`row: ${row}`);
       setAfiliadoSeleccionado(row);
       dispatch(handleAfiliadoSeleccionar(row));
+      
   };
 
 
