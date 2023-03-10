@@ -1,8 +1,8 @@
 export function Mascara(numero, patron) {
 	let r = "";
-	if (numero == null || numero == 0) return r;
+	if (!numero) return r;
 	let s = `${numero}`;
-	if (patron == null || patron == "") return s;
+	if (!patron) return s;
 	let p = `${patron}`;
 	if (s.length > (p.match(/#/g) || []).length) return patron;
 	for (let px = p.length - 1, sx = s.length - 1; px > -1; px--) {
@@ -17,7 +17,7 @@ export function Mascara(numero, patron) {
 }
 
 export function Moneda(numero) {
-	if (numero === null) return "";
+	if (numero == null) return "";
 	return Intl.NumberFormat("es-AR", {
 		style: "currency",
 		currency: "ARS",
@@ -25,13 +25,13 @@ export function Moneda(numero) {
 }
 
 export function Booleano(valor) {
-	if (valor === null) return "";
+	if (valor == null) return "";
 	if (valor) return "Si";
 	return "No";
 }
 
 export function Fecha(isoString) {
-	if (isoString === null) return "";
+	if (isoString == null) return "";
 	return Intl.DateTimeFormat("es-AR", {
 		day: "2-digit",
 		month: "2-digit",
