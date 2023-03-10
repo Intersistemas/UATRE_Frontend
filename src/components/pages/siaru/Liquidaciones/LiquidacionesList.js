@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
+import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 
 const LiquidacionesList = (props) => {
@@ -14,6 +15,8 @@ const LiquidacionesList = (props) => {
 		{ codigo: 0, descripcion: "Periodo"},
 		{ codigo: 1, descripcion: "Acta"},
 	];
+	const [tiposPago, setTiposPago] = useState([]);
+	const { isLoading, error, sendRequest } = useHttp();
 
 	const cs = {
 		overflow: "hidden",
@@ -43,6 +46,14 @@ const LiquidacionesList = (props) => {
 			sort: true,
 			formatter: (v) => tiposLiquidacion.find(r => r.codigo === v)?.descripcion ?? "",
       headerStyle: (colum, colIndex) => ({ width: "80px" }),
+			style: { ...cs, textAlign: "left" },
+		},
+		{
+			dataField: "liquidacionesTiposPagosId",
+			text: "Tipo de pago",
+			sort: true,
+			formatter: (v) => tiposPago.find(r => r.codigo === v)?.descripcion ?? "",
+      headerStyle: (colum, colIndex) => ({ width: "150px" }),
 			style: { ...cs, textAlign: "left" },
 		},
 		{
@@ -83,6 +94,22 @@ const LiquidacionesList = (props) => {
 			onSizePerPageChange: onPaginationChange,
 		});
 	}
+
+	useEffect(() => {
+		if (tiposPago.length === 0) {
+			sendRequest(
+				{
+					baseURL: "SIARU",
+					endpoint: `/Siaru_LiquidacionesTiposPagos/`,
+					method: "GET",
+				},
+				async (resp) => setTiposPago([...resp])
+			);
+		}
+	}, [tiposPago.length, sendRequest]);
+
+	if (isLoading) return <h4>Cargando...</h4>;
+	if (error) return <h4>{error}</h4>;
 
 	return (
 		<Table
