@@ -11,6 +11,7 @@ import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import Select from "../../../ui/Select/Select";
 import LiquidacionesList from "./LiquidacionesList";
+import LiquidacionDetails from "./LiquidacionDetails";
 
 const LiquidacionesHandler = () => {
 	const location = useLocation();
@@ -20,6 +21,7 @@ const LiquidacionesHandler = () => {
 	if (empresa.id == null) navigate("/");
 
 	const [liquidaciones, setLiquidaciones] = useState([]);
+	const [refreshLiqudaciones, setRefreshLiquidaciones] = useState(true);
 	const [liquidacion, setLiquidacion] = useState(null);
 	const [pagination, setPagination] = useState({
 		index: 1,
@@ -35,75 +37,112 @@ const LiquidacionesHandler = () => {
 	const [establecimiento, setEstablecimiento] = useState({ id: 0 });
 	const { isLoading, error, sendRequest: request } = useHttp();
 
-	const recargarLiquidaciones = (registro = null) => {
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Paginado?EmpresasId=${empresa.id}&Page=${pagination.index},${pagination.size}`,
-				method: "GET",
-			},
-			async (response) => {
-				setLiquidaciones(response.data);
-				setPagination({
-					index: response.index,
-					size: response.size,
-					count: response.count,
-					pages: response.pages,
-				});
-				setLiquidacion(registro);
-			}
-		);
-	};
-
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [{ nombre: `Empresas` }],
 	};
+	const liquidacionDesc = (liquidacion) ? `liquidacion número ${liquidacion.id}` : ``;
+	if (liquidacion) {
+		moduloInfo.acciones = [
+			...moduloInfo.acciones,
+			{nombre: `Imprimir ${liquidacionDesc}`},
+			{nombre: `Pagar ${liquidacionDesc}`},
+		]
+	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	//#endregion
 
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Periodos?EmpresasId=${empresa.id ?? 0}`,
-				method: "GET",
-			},
-			async (response) =>
-				setPeriodos([
-					{ descipcion: "Todos", valor: 0 },
-					...response.map((r) => ({
-						descipcion: Formato.Periodo(r),
-						valor: r,
-					})),
-				])
-		);
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id ?? 0}`,
-				method: "GET",
-			},
-			async (response) =>
-				setEstablecimientos([
-					{ descipcion: "Todos", valor: { id: 0 } },
-					...response.map((r) => ({ descipcion: r.nombre, valor: r })),
-				])
-		);
+		if (periodos.length === 1) {
+			request(
+				{
+					baseURL: "SIARU",
+					endpoint: `/Siaru_Liquidaciones/Periodos?EmpresasId=${empresa.id ?? 0}`,
+					method: "GET",
+				},
+				async (response) =>
+					setPeriodos([
+						{ descipcion: "Todos", valor: 0 },
+						...response.map((r) => ({
+							descipcion: Formato.Periodo(r),
+							valor: r,
+						})),
+					])
+			);
+		}
 
-		recargarLiquidaciones(liquidacion);
+		if (establecimientos.length === 1) {
+			request(
+				{
+					baseURL: "SIARU",
+					endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id ?? 0}`,
+					method: "GET",
+				},
+				async (response) =>
+					setEstablecimientos([
+						{ descipcion: "Todos", valor: { id: 0 } },
+						...response.map((r) => ({ descipcion: r.nombre, valor: r })),
+					])
+			);
+		}
+
+		if (refreshLiqudaciones) {
+			let params = `EmpresasId=${empresa.id}`;
+			params = `${params}&Page=${pagination.index},${pagination.size}`;
+			params = `${params}&Sort=-Id`;
+			if (periodo) params = `${params}&Periodo=${periodo}`;
+			if (establecimiento?.id)
+				params = `${params}&EmpresasEstablecimientosId=${establecimiento.id}`;
+			request(
+				{
+					baseURL: "SIARU",
+					endpoint: `/Siaru_Liquidaciones/Paginado?${params}`,
+					method: "GET",
+				},
+				async (response) => {
+					setLiquidaciones(response.data);
+					setPagination({
+						index: response.index,
+						size: response.size,
+						count: response.count,
+						pages: response.pages,
+					});
+					if (refreshLiqudaciones) setRefreshLiquidaciones(false);
+				}
+			);
+		}
 
 		switch (moduloAccion) {
 			case `Empresas`:
 				navigate("/siaru");
 				break;
+			case `Imprimir ${liquidacionDesc}`:
+				alert("Proximamente");
+				break;
+			case `Pagar ${liquidacionDesc}`:
+				alert("Proximamente");
+				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [request, empresa, pagination.index, pagination.size, moduloAccion]);
+	}, [
+		periodos.length,
+		periodo,
+		empresa.id,
+		establecimientos.length,
+		establecimiento.id,
+		pagination.index,
+		pagination.size,
+		refreshLiqudaciones,
+		moduloAccion,
+		liquidacionDesc,
+		request,
+		navigate,
+		dispatch,
+	]);
 
 	if (isLoading) return <h1>Cargando...</h1>;
 	if (error) return <h1>{error}</h1>;
@@ -133,9 +172,10 @@ const LiquidacionesHandler = () => {
 							label: r.descipcion,
 							value: r.valor,
 						}))}
-						onChange={(value) =>
-							setPeriodo(periodos.find((r) => r.valor === value).valor)
-						}
+						onChange={(value) => {
+							setPeriodo(value);
+							setRefreshLiquidaciones(true);
+						}}
 					/>
 				</Grid>
 				<Grid width="50%">
@@ -147,11 +187,12 @@ const LiquidacionesHandler = () => {
 							label: r.descipcion,
 							value: r.valor?.id,
 						}))}
-						onChange={(value) =>
+						onChange={(value) => {
 							setEstablecimiento(
 								establecimientos.find((r) => r.valor.id === value).valor
-							)
-						}
+							);
+							setRefreshLiquidaciones(true);
+						}}
 					/>
 				</Grid>
 			</Grid>
@@ -162,6 +203,9 @@ const LiquidacionesHandler = () => {
 						onSelect: (r) => setLiquidacion(r),
 					}}
 				/>
+			</Grid>
+			<Grid full="width">
+				<LiquidacionDetails config={{ data: liquidacion }} />
 			</Grid>
 		</Grid>
 	);

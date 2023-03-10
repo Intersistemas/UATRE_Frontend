@@ -10,6 +10,10 @@ const LiquidacionesList = (props) => {
 	const onSelect = config.onSelect ?? ((registro) => {});
 	const onPaginationChange =
 		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
+	const tiposLiquidacion = [
+		{ codigo: 0, descripcion: "Periodo"},
+		{ codigo: 1, descripcion: "Acta"},
+	];
 
 	const cs = {
 		overflow: "hidden",
@@ -18,15 +22,46 @@ const LiquidacionesList = (props) => {
 	};
 	const columns = [
 		{
+			dataField: "id",
+			text: "Número",
+			formatter: Formato.Entero,
+			sort: true,
+      headerStyle: (colum, colIndex) => ({ width: "100px" }),
+			style: { ...cs, textAlign: "right" },
+		},
+		{
 			dataField: "periodo",
 			text: "Periodo",
 			formatter: Formato.Periodo,
 			sort: true,
+      headerStyle: (colum, colIndex) => ({ width: "100px" }),
 			style: { ...cs },
+		},
+		{
+			dataField: "tipoLiquidacion",
+			text: "Tipo",
+			sort: true,
+			formatter: (v) => tiposLiquidacion.find(r => r.codigo === v)?.descripcion ?? "",
+      headerStyle: (colum, colIndex) => ({ width: "80px" }),
+			style: { ...cs, textAlign: "left" },
 		},
 		{
 			dataField: "empresasEstablecimientos_Nombre",
 			text: "Establecimiento",
+			sort: true,
+			style: { ...cs, textAlign: "left" },
+		},
+		{
+			dataField: "bajaFecha",
+			text: "Baja fecha",
+			formatter: Formato.Fecha,
+			sort: true,
+      headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			style: { ...cs },
+		},
+		{
+			dataField: "refMotivosBaja_Descripcion",
+			text: "Baja motivo",
 			sort: true,
 			style: { ...cs, textAlign: "left" },
 		},
