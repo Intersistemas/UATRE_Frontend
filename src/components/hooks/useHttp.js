@@ -12,12 +12,14 @@ const useHttp = () => {
         let url = ''
 
         switch (configRequest.baseURL) {
-          case "AFIP":
-            url = "http://intersistemas.net:8801/api";
+          case "Comunes":
+            url = "http://intersistemas.net:8202/api";
+            //url = "https://localhost:7032/api";
             break;
 
           case "Afiliaciones":
-            url = 'http://intersistemas.net:8200/api';
+            //url = 'http://intersistemas.net:8200/api';
+            url = "http://localhost:5165/api";
             break;
 
           case "SIARU":
