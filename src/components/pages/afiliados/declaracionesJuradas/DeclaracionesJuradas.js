@@ -5,6 +5,7 @@ import FormatearFecha from "../../../helpers/FormatearFecha";
 import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./DeclaracionesJuradas.module.css";
+import Formato from "../../../helpers/Formato";
 
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -35,10 +36,12 @@ const DeclaracionesJuradas = (props) => {
         dataField: "periodo",
         text: "Periodo",
         sort: true,
+        formatter: Formato.Periodo,
       },
       {
         dataField: "cuit",
         text: "CUIT",
+        formatter: Formato.Cuit,
       },
       {
         dataField: "empresa",
@@ -99,13 +102,14 @@ const DeclaracionesJuradas = (props) => {
   };
 
   let tableProps = {
+    promptBuscar:"Buscar en DDJJ:",
     keyField: "id",
     data: ddJJUatreList,
     columns: columns,
     selectRow: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
-    noDataIndication: <h4>No hay Declaraciones Juradas del Afiliado</h4>,
+    noDataIndication: <h4>No se registran Declaraciones Juradas del Afiliado: </h4>,
     overlay: overlayFactory({ spinner: true })
   }
 
@@ -113,7 +117,7 @@ const DeclaracionesJuradas = (props) => {
 
   return (
     <div className={styles.container}>
-      <h4>Declaraciones Juradas</h4>
+      {/*<h4>Declaraciones Juradas</h4>*/}
       <div className={styles.div}>
         <div className={styles.declaracion}>
           <Table {...tableProps}/>

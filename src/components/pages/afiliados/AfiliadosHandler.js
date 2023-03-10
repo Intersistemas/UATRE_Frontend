@@ -16,7 +16,7 @@ const AfiliadosHandler = () => {
   ];
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
-  const [sizePerPage, setSizePerPage] = useState(10);
+  const [sizePerPage, setSizePerPage] = useState(10000);
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -48,7 +48,7 @@ const AfiliadosHandler = () => {
 
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
-        //console.log('afiliadosObj', afiliadosObj)
+        console.log('afiliadosObj', afiliadosObj)
         setAfiliadosRespuesta(afiliadosObj);
         if (refresh) setRefresh(false);
     };
