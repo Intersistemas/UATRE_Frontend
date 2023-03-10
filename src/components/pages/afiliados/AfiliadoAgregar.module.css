@@ -55,3 +55,15 @@
     width: 96%;
     text-align: center;
 }
+
+.titulo {
+flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.labelEsRural {
+    color:red;
+}

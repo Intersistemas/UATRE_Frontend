@@ -22,6 +22,10 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
+  //#region Tablas para el form
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
+  //#endregion
+
   //#region despachar Informar Modulo
   const moduloInfo = {
     nombre: "Afiliados",
@@ -46,6 +50,7 @@ const AfiliadosHandler = () => {
   dispatch(handleModuloSeleccionar(moduloInfo)); 
 //#endregion
 
+//#region Cargar Tablas
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
         //console.log('afiliadosObj', afiliadosObj)
@@ -68,7 +73,28 @@ const AfiliadosHandler = () => {
     );
   }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
 
+  useEffect(() => {
+    const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
+      //console.log('afiliadosObj', afiliadosObj)
+      const estadosSolicitudesOptions = estadosSolicitudesObj.map(
+        (estadoSolicitud) => {
+          return { value: estadoSolicitud.id, label: estadoSolicitud.descripcion };
+        }
+      );
+      setEstadosSolicitudes(estadosSolicitudesOptions);
+    };    
 
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: '/EstadoSolicitud',
+        method: "GET",
+      },
+      processEstadosSolicitudes
+    );
+  }, [request]);  
+
+//#endregion
   const  moduloAccion  = useSelector(state => state.moduloAccion)
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
@@ -145,12 +171,15 @@ const AfiliadosHandler = () => {
     return (
       <Fragment>
         {afiliadoAgregarShow && (
-          <AfiliadoAgregar onClose={onCloseAfiliadoAgregarHandler}/>
+          <AfiliadoAgregar 
+            onClose={onCloseAfiliadoAgregarHandler} 
+            estadosSolicitudes={estadosSolicitudes}
+          />
         )}
-        
+
         <AfiliadosLista
           afiliados={afiliadosRespuesta}
-          loading={isLoading}
+          loading={afiliadosRespuesta?.length ? false : isLoading}
           estadosSolicitud={estadosSolicitud}
           estadoSolicitudActual={estadoSolicitud}
           //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
