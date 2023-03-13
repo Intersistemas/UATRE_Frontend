@@ -26,14 +26,11 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
-<<<<<<< HEAD
 const navigate = useNavigate()
-=======
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
   //#endregion
 
->>>>>>> 24b9b34e23c649d0641b92c321686f351f0374ed
   //#region despachar Informar Modulo
   const moduloInfo = {
     nombre: "Afiliados",
@@ -92,9 +89,6 @@ const navigate = useNavigate()
       setEstadosSolicitudes(estadosSolicitudesOptions);
     };    
 
-<<<<<<< HEAD
-
-=======
     request(
       {
         baseURL: "Afiliaciones",
@@ -106,7 +100,6 @@ const navigate = useNavigate()
   }, [request]);  
 
 //#endregion
->>>>>>> 24b9b34e23c649d0641b92c321686f351f0374ed
   const  moduloAccion  = useSelector(state => state.moduloAccion)
   const afiliadoSeleccionado = useSelector(state => state.afiliado)
   const {id} = afiliadoSeleccionado

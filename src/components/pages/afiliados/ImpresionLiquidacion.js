@@ -1,8 +1,12 @@
+import { PDFViewer } from '@react-pdf/renderer'
 import React from 'react'
+import LiquidacionPdf from './LiquidacionPdf'
 
 const ImpresionLiquidacion = () => {
   return (
-    <div>ImpresionLiquidacion</div>
+    <PDFViewer style={{height: '90vh', width: '100%'}}>
+      <LiquidacionPdf  />
+    </PDFViewer>
   )
 }
 
