@@ -24,7 +24,29 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
     background-image: url(./media/campo_trigo1.jpg);
-   
+
+    /*background-image: url(./media/Background/5.jpg);
+    /*background-image: url(./media/Background/1.png);*/
+    /*background-image: url(./media/Background/6.jpg);*/
+    /*background-image: url(./media/Background/7.jpg);*/
+ 
+    /*LISOS*/
+    /*background-image: url(./media/Background/color1.png);*/
+    /*background-image: url(./media/Background/color2.png);*/
+    /*background-image: url(./media/Background/color3.png);*/
+    /*background-image: url(./media/Background/color4.png);*/
+    /*background-image: url(./media/Background/color6.png);*/
+    /*background-image: url(./media/Background/color7.png);*/
+
+    /*muy feo
+    background-image: url(./media/Background/9.jpg);
+    background-image: url(./media/Background/8.jpg);
+    background-image: url(./media/Background/color5.png);
+    background-image: url(./media/Background/10.jpg);*/
+
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 
@@ -33,10 +55,40 @@ code {
     monospace;
 }
 
-
 #overlay-root,
 body:has(#overlay-root:not(:empty)) > .MuiPopover-root > .MuiPaper-root {
 	zoom: 75%;
+}
+
+main{
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+      /*background-image: url(./media/campo_trigo1.jpg) !important;*/
+  
+      /*background-image: url(./media/Background/5.jpg);
+      /*background-image: url(./media/Background/1.png);*/
+      /*background-image: url(./media/Background/6.jpg);*/
+      /*background-image: url(./media/Background/7.jpg);*/
+   
+      /*LISOS*/
+      /*background-image: url(./media/Background/color1.png);*/
+      /*background-image: url(./media/Background/color2.png);*/
+      /*background-image: url(./media/Background/color3.png);*/
+      /*background-image: url(./media/Background/color4.png);*/
+      /*background-image: url(./media/Background/color6.png);*/
+      background-image: url(./media/Background/color7.png);
+  
+      /*muy feo
+      background-image: url(./media/Background/9.jpg);
+      background-image: url(./media/Background/8.jpg);
+      background-image: url(./media/Background/color5.png);
+      background-image: url(./media/Background/10.jpg);*/
+  
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
 }
 
 .caret {
@@ -57,3 +109,4 @@ body:has(#overlay-root:not(:empty)) > .MuiPopover-root > .MuiPaper-root {
   border-bottom: 4px solid \9;
   content: "";
 }
+

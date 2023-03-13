@@ -47,6 +47,10 @@ export function Cuit(numero) {
 	return Mascara(numero, "##-##.###.###-#");
 }
 
+export function DNI(numero) {
+	return Mascara(numero, "##.###.###");
+}
+
 export function Entero(numero) {
 	if (numero == null || numero === "") return numero;
 	numero = `${numero}`;
@@ -72,6 +76,7 @@ class _Formato {
 	Cuit = Cuit;
 	Entero = Entero;
 	Decimal = Decimal;
+	DNI = DNI;
 }
 
 const Formato = new _Formato();
