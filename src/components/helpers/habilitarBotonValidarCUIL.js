@@ -1,5 +1,5 @@
 const habilitarBotonValidarCUIL = (props) => {
-  if (props.cuilIsValid === false) {
+  if (props.padronRespuesta?.idPersona > 0) {
     return true;
   }
 
@@ -7,7 +7,7 @@ const habilitarBotonValidarCUIL = (props) => {
     return true;
   }
 
-  if (props.padronRespuesta?.idPersonaField > 0) {
+  if (!props.cuilIsValid) {
     return true;
   }
 

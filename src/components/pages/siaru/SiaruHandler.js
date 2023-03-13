@@ -97,7 +97,7 @@ const SiaruHandler = (props) => {
 				navigate("/siaru/establecimientos", { state: { empresa: empresa } });
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				alert("Proximamente");
+				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
 				break;
 			default:
 				break;

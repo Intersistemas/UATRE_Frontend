@@ -63,6 +63,8 @@
 
 .container{
   background-image: url(../../media/campo_trigo1.jpg);
+  
+  /*background-image: url(../../media/Background/1.png);*/
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

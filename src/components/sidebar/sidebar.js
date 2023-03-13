@@ -77,7 +77,7 @@ const Sidebar = ({children}) => {
                          <div>
                             <div className={clases.icon}><FaRegUser/></div>
                         </div>
-                            {(isOpen && <div className={clases.link_text}>{Usuario.cuit}<br/>{Usuario.nombre}</div>)}
+                            {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
                         {
                         menuItem.map((item, index)=>(

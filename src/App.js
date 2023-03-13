@@ -8,7 +8,11 @@ import InicioHandler from './components/pages/inicio/InicioHandler';
 import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
 import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
+<<<<<<< HEAD
 import Afiliado from './components/pages/afiliados/Afiliado';
+=======
+import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
+>>>>>>> 24b9b34e23c649d0641b92c321686f351f0374ed
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -33,6 +37,7 @@ const App = () => {
             <Route path="/afiliaciones/:id" element={<Afiliado/>} />
 						<Route path="/siaru" element={<SiaruHandler/>} />
 						<Route path="/siaru/establecimientos" element={<EstablecimientosHandler/>} />
+						<Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />

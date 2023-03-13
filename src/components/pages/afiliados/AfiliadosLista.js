@@ -1,8 +1,19 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-import paginationFactory from "react-bootstrap-table2-paginator";
+
 //import overlayFactory from "react-bootstrap-table2-overlay";
+
+import BootstrapTable from "react-bootstrap-table-next";
+import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit';
+import paginationFactory, {
+  PaginationProvider,
+  SizePerPageDropdownStandalone,
+  PaginationListStandalone
+} from "react-bootstrap-table2-paginator";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
+
 import styles from "./AfiliadosLista.module.css";
 import Button from "../../ui/Button/Button";
 import filterFactory, {
@@ -18,6 +29,9 @@ import { Tab, Tabs } from "@mui/material";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
 import Formato from "../../helpers/Formato";
+import { Height } from "@mui/icons-material";
+
+const { SearchBar } = Search;
 
 const AfiliadosLista = (props) => {
   const dispatch = useDispatch();
@@ -32,6 +46,13 @@ const AfiliadosLista = (props) => {
   };
 
 
+  const defaultSorted = [
+    {
+      dataField: "nroAfiliado",
+      order: "asc"
+    }
+  ];
+
   const columns = [
     {
       dataField: "cuil",
@@ -40,11 +61,13 @@ const AfiliadosLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
+      formatter: Formato.Cuit,
     },
     {
       dataField: "nroAfiliado",
       text: "Afiliado",
       sort: true,
+      formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
         return { width: "6%", textAlign: "center" };
       },
@@ -152,11 +175,9 @@ const AfiliadosLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
+      formatter: Formato.DNI,
     },
   ];
-  //#endregion
-
-  //#region eventos de la lista
 
 
   /*const rowEvents = {
@@ -169,7 +190,7 @@ const AfiliadosLista = (props) => {
   };*/
 
   const rowEvents  = (row) => {
-      console.log(`row: ${row}`);
+      //console.log(`row: ${row}`);
       setAfiliadoSeleccionado(row);
       dispatch(handleAfiliadoSeleccionar(row));
       
@@ -186,7 +207,9 @@ const AfiliadosLista = (props) => {
     props.onFilterChange(filters);
   };
 
+  //#region  la paginacion la maneja el componente Table
   const pagination = paginationFactory({
+    custom: true,
     page: afiliados.page,
     sizePerPage: afiliados.sizePerPage,
     paginationShowsTotal: false,
@@ -209,11 +232,11 @@ const AfiliadosLista = (props) => {
       props.onSizePerPageChange(sizePerPage, page);
     },
   });
+//#endregion 
 
   const indication = () => {
     <h4>No hay informacion a mostrar</h4>;
   };
-  //#endregion
 
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);
@@ -222,8 +245,10 @@ const AfiliadosLista = (props) => {
   const handleSeleccionDDJJ = (ddjj) => {};
 
   const tableProps = {
+      promptBuscar:"Buscar en Afiliados:",
+      defaultSorted: defaultSorted,
       remote: true,
-      keyField: "id",
+      keyField: "nroAfiliado",
       loading: props.loading,
       data: afiliados.data,
       columns: columns,
@@ -233,32 +258,18 @@ const AfiliadosLista = (props) => {
       noDataIndication: indication,
       onSelected: rowEvents,
   }
-
   const enDesarrollo = () => {
     alert("asd");
   } 
-
   return (
-    <div className={styles.div}>
-      <div className="detalles_card">
-      {/*<Button className="botonBorder" width={20} onClick={props.onClickAfiliadoAgregar}>
-        Agregar Afiliado
-      </Button>
-      <Button
-      className="botonBorder"
-        width={20}
-        onClick={props.onResolverEstadoSolicitud}
-        disabled={
-          afiliadoSeleccionado?.estadoSolicitud === "Pendiente" ? false : true
-        }
-      >
-        Resolver Solicitud
-      </Button>*/}
-      </div>
+    <div>
+      <h1 className='titulo'>Afiliaciones</h1>
+      <div  className={styles.div}>     
       <Tabs
         value={selectedTab}
         onChange={handleChangeTab}
         aria-label="basic tabs example"
+        style={{position: 'fixed'}}
       >
         <Tab  className={styles.tab} label="Afiliados" />
        
@@ -270,33 +281,15 @@ const AfiliadosLista = (props) => {
           }`}*/
           
           label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-          style={{ width: "800px" }}
+          style={{ width: "800px", height: "67px"  }}
           //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
           disabled={afiliadoSeleccionado?.cuil ? false : true}
         />
       </Tabs>
-
       {selectedTab === 0 && (
+
       <Table {...tableProps} />
       
-      //   <BootstrapTable
-      //     bootstrap4
-      //     remote
-      //     keyField="id"
-      //     loading={props.loading}
-      //     data={afiliados.data}
-      //     columns={columns}
-      //     pagination={pagination}
-      //     onTableChange={handleTableChange}
-      //     filter={filterFactory()}
-      //     striped
-      //     hover
-      //     condensed
-      //     noDataIndication={indication}
-      //     selectRow={selectRow}
-      //     rowEvents={rowEvents}
-      // />
-
       )}
 
       {selectedTab === 1 && (
@@ -306,6 +299,7 @@ const AfiliadosLista = (props) => {
           onSeleccionRegistro={handleSeleccionDDJJ}
         />        
       )}
+       </div>
     </div>
   );
 };
