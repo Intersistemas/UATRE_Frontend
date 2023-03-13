@@ -2,9 +2,13 @@ import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
 import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
+
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from '../../../redux/actions';
 import { handleModuloEjecutarAccion } from '../../../redux/actions';
+import { redirect, useNavigate } from "react-router-dom";
+
+
 
 
 const AfiliadosHandler = () => {
@@ -22,10 +26,14 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
+<<<<<<< HEAD
+const navigate = useNavigate()
+=======
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
   //#endregion
 
+>>>>>>> 24b9b34e23c649d0641b92c321686f351f0374ed
   //#region despachar Informar Modulo
   const moduloInfo = {
     nombre: "Afiliados",
@@ -44,7 +52,7 @@ const AfiliadosHandler = () => {
       }
     ]
   }
-
+  
   const dispatch = useDispatch();
   //dispatch(handleModuloSeleccionar("Afiliaciones",acciones)); //intentaba pasar dos parametros a la funcion 
   dispatch(handleModuloSeleccionar(moduloInfo)); 
@@ -84,6 +92,9 @@ const AfiliadosHandler = () => {
       setEstadosSolicitudes(estadosSolicitudesOptions);
     };    
 
+<<<<<<< HEAD
+
+=======
     request(
       {
         baseURL: "Afiliaciones",
@@ -95,7 +106,10 @@ const AfiliadosHandler = () => {
   }, [request]);  
 
 //#endregion
+>>>>>>> 24b9b34e23c649d0641b92c321686f351f0374ed
   const  moduloAccion  = useSelector(state => state.moduloAccion)
+  const afiliadoSeleccionado = useSelector(state => state.afiliado)
+  const {id} = afiliadoSeleccionado
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
@@ -112,7 +126,11 @@ const AfiliadosHandler = () => {
         alert('Funcionalidad de Modificar En desarrollo ');
         break;
       case "Imprimir Solicitud":
-        alert('Funcionalidad de Imprimir En desarrollo ');
+        navigate(`/afiliaciones/${id}`)
+        
+        // alert('Funcionalidad de Imprimir En desarrollo ');
+        // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
+        
         break;
       default: break;
     }
@@ -188,6 +206,8 @@ const AfiliadosHandler = () => {
           onSizePerPageChange={handleSizePerPageChange}
           onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
           onFilterChange={handleFilterChange}
+        
+          
         />
       </Fragment>
     );

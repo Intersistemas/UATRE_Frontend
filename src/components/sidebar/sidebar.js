@@ -4,7 +4,7 @@ import {
     FaTh,FaBars,FaRegUser, FaChevronRight
 }from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
@@ -81,7 +81,7 @@ const Sidebar = ({children}) => {
                     </div>
                         {
                         menuItem.map((item, index)=>(
-                            <NavLink to={item.path} key={index} className={clases.link} activeclassName={clases.active}>
+                            <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
                                 <div className={clases.icon}>{item.icon}</div>
                                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
                             </NavLink>
@@ -93,7 +93,9 @@ const Sidebar = ({children}) => {
                             botones.map((item, index)=>(
                             
                             <div className={clases.actionButtons}>
+                               
                                 <FaChevronRight/>
+                                
                                 <Button key={index} onClick={ () => despacharAcciones(item.nombre)}> 
                                     {(isOpen && <div onClick={ () => despacharAcciones(item.nombre)}>{item.nombre}</div>)}
                                 </Button>
@@ -102,7 +104,7 @@ const Sidebar = ({children}) => {
                         }
                         </div>
                     <div>
-                        <NavLink to="/login" className={clases.link} activeclassName={clases.active} onClick={logoutHandler}>
+                        <NavLink to="/login" className={clases.link} activeClassName={clases.active} onClick={logoutHandler}>
                             <div onClick={logoutHandler} className={clases.icon}><BsFillXCircleFill/></div>
                             {(isOpen && <div onClick={logoutHandler} className={clases.link_text}>Cerrar Sesión</div>)}
                         </NavLink>

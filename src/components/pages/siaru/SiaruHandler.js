@@ -31,9 +31,11 @@ const SiaruHandler = (props) => {
 				method: "GET",
 			},
 			async (response) => setEmpresa(response)
+			
 		);
 	};
-
+	
+	
 	//#region despachar Informar Modulo
 	const descEmpresa = empresa
 		? `${Formato.Cuit(empresa.cuit)} - ${empresa.razonSocial}`
