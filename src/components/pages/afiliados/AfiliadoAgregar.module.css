@@ -67,3 +67,7 @@ flex-direction: row;
 .labelEsRural {
     color:red;
 }
+
+.MuiFormHelperText-root {
+  color: red;
+}
