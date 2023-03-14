@@ -4,10 +4,10 @@ import overlayFactory from "react-bootstrap-table2-overlay";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
-import styles from "./DeclaracionesJuradas.module.css";
+import styles from "./Documentacion.module.css";
 import Formato from "../../../helpers/Formato";
 
-const DeclaracionesJuradas = (props) => {
+const Documentacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
   const { cuil, infoCompleta } = props.cuil === null ? 0 : props;
@@ -68,47 +68,22 @@ const DeclaracionesJuradas = (props) => {
       {
         dataField: "segurosepelio",
         text: "Seguro Sepelio",
-        formatter: (cell,row) => {
-          return (
-            <span>$ {Math.floor(row.periodo/50)}</span>
-          );
-        } 
       },
       {
         dataField: "version",
         text: "Versión",
-        formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(7))}</span>
-          );
-        } 
       },
       {
         dataField: "codigodezona",
         text: "Código de Zona",
-        formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(2,6))}</span>
-          );
-        } 
       },
       {
         dataField: "codigodemodalidadcontratacion",
         text: "Código de Modalidad de Contratación",
-        formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(6,7))}</span>
-          );
-        } 
       },
       {
         dataField: "codigoactividad",
         text: "Código de Actividad",
-        formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(1,4))}</span>
-          );
-        } 
       }
       
     ];
@@ -188,4 +163,4 @@ const DeclaracionesJuradas = (props) => {
   );
 };
 
-export default DeclaracionesJuradas;
+export default Documentacion;
