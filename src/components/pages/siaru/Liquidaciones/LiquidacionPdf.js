@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
   image: {
     width: "50px",
     height: "50px",
+    marginLeft: "5px",
   },
   tresCasillas: {
     width: "33.3%",
@@ -46,8 +47,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "40px",
     border: "1px solid black",
-    textAlign: "center",
+    textAlign: "start",
     justifyContent: "center",
+    paddingLeft: "10px",
   },
   imagenAncho: {
     width: "100%",

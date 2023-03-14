@@ -7,7 +7,7 @@ import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
 //import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Tab, Tabs } from "@mui/material";
+import { Fab, Tab, Tabs, TextField } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
@@ -69,6 +69,8 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   const [selectedTab, setSelectedTab] = useState(0);
+
+  const [selectedFile, setSelectedFile] = useState(null);
 
   //#region manejo de validaciones
   const [cuilIsValid, setCUILIsValid] = useState(false);
@@ -160,7 +162,7 @@ const AfiliadoAgregar = (props) => {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
         setAfiliadoExiste(true);
-        setPadronRespuesta(true)
+        setPadronRespuesta(true);
         setNombre(afiliadoObj.nombre);
         setNacionalidad(afiliadoObj.nacionalidadId);
         //setFechaNacimiento(afiliadoObj.fechaNacimiento);
@@ -174,16 +176,18 @@ const AfiliadoAgregar = (props) => {
         setCorreo(afiliadoObj.correo);
         setActividad(afiliadoObj.actividadId);
         setPuesto(afiliadoObj.puestoId);
-        setDomicilio()
+        setDomicilio();
         setLocalidad(afiliadoObj.refLocalidadId);
-        setSeccional(afiliadoObj.seccionalId)
-        setEstadoSolicitud(afiliadoObj.estadoSolicitudId)
-        
+        setSeccional(afiliadoObj.seccionalId);
+        setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
+
         //datos empleador
-        setCUITEmpresa(afiliadoObj.cuit)
+        setCUITEmpresa(afiliadoObj.cuit);
 
         //traer datos de afip
-        alert(`El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`);
+        alert(
+          `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
+        );
       };
 
       request(
@@ -738,22 +742,22 @@ const AfiliadoAgregar = (props) => {
       case "cuil":
         dispatchCUIL({ type: "USER_INPUT", value: value });
         setCUIL(value);
-        setNombre("")
-        setNacionalidad("")
-        setFechaNacimiento("")
-        setEstadoCivil("")
-        setSexo("")
-        setTipoDocumento("")
-        setNumeroDocumento("")
-        setDomicilio("")
-        setProvincia("")
-        setLocalidad("")
-        setSeccional("")
-        setTelefono("")
-        setCorreo("")
-        setPuesto("")
-        setActividad("")
-        setPadronRespuesta(null)
+        setNombre("");
+        setNacionalidad("");
+        setFechaNacimiento("");
+        setEstadoCivil("");
+        setSexo("");
+        setTipoDocumento("");
+        setNumeroDocumento("");
+        setDomicilio("");
+        setProvincia("");
+        setLocalidad("");
+        setSeccional("");
+        setTelefono("");
+        setCorreo("");
+        setPuesto("");
+        setActividad("");
+        setPadronRespuesta(null);
         break;
 
       case "nombre":
@@ -817,6 +821,16 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+  //seleccionar Archivo
+  const seleccionarArchivo = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
+  const handleUpload = () => {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+  };
+
   return (
     <Modal onClose={props.onClose}>
       <h5 className={classes.titulo}>
@@ -842,6 +856,10 @@ const AfiliadoAgregar = (props) => {
             label={
               padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"
             }
+            disabled={nuevoAfiliadoResponse ? true : false}
+          />
+          <Tab
+            label={"Documentacion"}
             disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
@@ -1321,6 +1339,67 @@ const AfiliadoAgregar = (props) => {
       )}
 
       {selectedTab === 3 && (
+        <>
+          <div className={classes.div}>
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="nacionalidadSelect"
+                  label="Nacionalidad"
+                  options={nacionalidades}
+                  value={nacionalidad}
+                  defaultValue={nacionalidades[0]}
+                  onChange={handleChangeSelect}
+                  disabled={!padronRespuesta?.idPersona ? true : false}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="internoEntidad"
+                  value={"Entidad Interno"}
+                  disabled={padronRespuesta?.idPersona ? true : false}
+                  width={98}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="nacionalidadSelect"
+                  label="Nacionalidad"
+                  options={nacionalidades}
+                  value={nacionalidad}
+                  defaultValue={nacionalidades[0]}
+                  onChange={handleChangeSelect}
+                  disabled={!padronRespuesta?.idPersona ? true : false}
+                />
+              </div>
+              <input
+                type="file"
+                styles={{ width: "20px" }}
+                onChange={seleccionarArchivo}
+              />
+              <Button
+                className={classes.button}
+                width={20}
+                onClick={handleUpload}
+              >
+                Subir Archivo
+              </Button>
+            </div>
+
+            <TextField
+              id="observaciones"
+              multiline
+              rows={4}
+              width={98}
+              defaultValue="observaciones"
+            />
+          </div>
+        </>
+      )}
+      {selectedTab === 4 && (
         <>
           <div className={classes.renglon}>
             <div className={classes.input100}>
