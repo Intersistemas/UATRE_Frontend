@@ -11,6 +11,7 @@ import EstablecimientosHandler from "./components/pages/siaru/Establecimientos/E
 import Afiliado from "./components/pages/afiliados/Afiliado";
 import LiquidacionesHandler from "./components/pages/siaru/Liquidaciones/LiquidacionesHandler";
 import ImpresionLiquidacion from "./components/pages/siaru/Liquidaciones/ImpresionLiquidacion";
+import CodigoDeBarras from "./components/pages/siaru/CodigoDeBarras";
 
 const App = () => {
   const authContext = useContext(AuthContext);
@@ -40,7 +41,7 @@ const App = () => {
             element={<ImpresionLiquidacion />}
           />
           <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/inicio" element={<InicioHandler />} />
+          <Route path="/CodigoDeBarras" element={<CodigoDeBarras />} />
           <Route path="/inicio" element={<InicioHandler />} />
           <Route path="/inicio" element={<InicioHandler />} />
         </Routes>

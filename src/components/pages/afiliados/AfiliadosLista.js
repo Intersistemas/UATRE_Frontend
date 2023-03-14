@@ -31,6 +31,8 @@ import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
 import Formato from "../../helpers/Formato";
 import { Height } from "@mui/icons-material";
+import Seccional from "./seccional/Seccional";
+import useHttp from "../../hooks/useHttp";
 
 const { SearchBar } = Search;
 
@@ -38,6 +40,11 @@ const AfiliadosLista = (props) => {
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(0);
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
+  const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
+  const { isLoading, error, sendRequest: request } = useHttp();
+
+
 
   const afiliados = {
     data: props.afiliados.data,
@@ -192,12 +199,42 @@ const AfiliadosLista = (props) => {
 
   const rowEvents  = (row) => {
        console.log('row:',row);
-      setAfiliadoSeleccionado(row);
+      //setAfiliadoSeleccionado(row);
+
+      switch(selectedTab){
+        case 0:
+          setAfiliadoSeleccionado(row);
+          break;
+
+          case 1:
+            setddjjUatreSeleccionado(row);
+            //consulto los datos de la empresa seleccionada
+            fetchEmpresa(row.cuit)
+            break;
+          default: break;
+      }
 
       dispatch(handleAfiliadoSeleccionar(row));
       
   };
 
+  const fetchEmpresa = (cuit) => {
+		if ((cuit ?? 0) == 0) {
+			setEmpresaSeleccionada(null);
+			return;
+		}
+		request(
+			{
+				baseURL: "Comunes",
+				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${cuit}`,
+				method: "GET",
+			},
+			async (response) => {
+      console.log('response_empresa:',response)
+      setEmpresaSeleccionada(response)}
+			
+		);
+	};
 
   const handleTableChange = (
     type,
@@ -224,13 +261,9 @@ const AfiliadosLista = (props) => {
     //alwaysShowAllBtns: true,
     hideSizePerPage: true,
     onPageChange: function (page, sizePerPage) {
-      //console.log('page1', page);
-      //console.log('sizePerPage1', sizePerPage);
       props.onPageChange(page, sizePerPage);
     },
     onSizePerPageChange: function (page, sizePerPage) {
-      //console.log('page', page);
-      //console.log('sizePerPage', sizePerPage);
       props.onSizePerPageChange(sizePerPage, page);
     },
   });
@@ -244,7 +277,10 @@ const AfiliadosLista = (props) => {
     setSelectedTab(newValue);
   };
 
-  const handleSeleccionDDJJ = (ddjj) => {};
+  const handleSeleccionDDJJ = (ddjj) => {
+
+
+  };
 
   const tableProps = {
       promptBuscar:"Buscar en Afiliados:",
@@ -275,13 +311,7 @@ const AfiliadosLista = (props) => {
       >
         <Tab  className={styles.tab} label="Afiliados" />
        
-        <Tab className={styles.tab}
-          /*label={`DDJJ UATRE ${
-            afiliadoSeleccionado?.estadoSolicitud === "Activo"
-              ? afiliadoSeleccionado?.nombre
-              : ""
-          }`}*/
-          
+        <Tab className={styles.tab}          
           label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
           style={{ width: "800px", height: "67px"  }}
           //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
@@ -301,30 +331,57 @@ const AfiliadosLista = (props) => {
         />
 
         <Tab className={styles.tab}
-          label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+          label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
           style={{ width: "800px", height: "67px"  }}
           disabled={afiliadoSeleccionado?.cuil ? false : true}
         />
-
       </Tabs>
-      {selectedTab === 0 && (
 
-      <Table {...tableProps} />
-      
+      {selectedTab === 0 && (
+        <Table {...tableProps} />
       )}
 
       {selectedTab === 1 && (
         <DeclaracionesJuradas
           cuil={afiliadoSeleccionado.cuil}
           infoCompleta={true}
-          onSeleccionRegistro={handleSeleccionDDJJ}
+          onSeleccionRegistro={rowEvents}
         />        
       )}
+
+      {selectedTab === 2 && (
+        <div style={{'display': 'inline-grid'}}>
+         <p/>
+          <p/>
+          <p/>
+          <h3>No se registran datos de Documentación</h3>
+        </div>
+      )}
+
+      {selectedTab === 3 && (
+        <div style={{'display': 'inline-grid'}}>
+        <p/>
+         <p/>
+         <p/>
+         <h3>No se registran cambios de datos</h3>
+       </div>
+      )}
+
+      {selectedTab === 4 && (
+        <Seccional
+          localidadId={afiliadoSeleccionado.refLocalidadId}
+          //onSeleccionRegistro={rowEvents}
+        />        
+      )}
+
       </div>
 
-      <AfiliadoDetails config={{
-        data: afiliadoSeleccionado
-      }}/>
+        <AfiliadoDetails config={{
+          data: afiliadoSeleccionado,
+          ddjj: ddjjUatreSeleccionado,
+          empresa: empresaSeleccionada,
+          tab: selectedTab
+        }}/>
     </div>
   );
 };

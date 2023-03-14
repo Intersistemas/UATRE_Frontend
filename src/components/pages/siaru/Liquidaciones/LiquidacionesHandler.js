@@ -40,7 +40,7 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }],
+		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
 	};
 	const liquidacionDesc = (liquidacion) ? `liquidacion número ${liquidacion.id}` : ``;
 	if (liquidacion) {
@@ -117,6 +117,9 @@ const LiquidacionesHandler = () => {
 		switch (moduloAccion) {
 			case `Empresas`:
 				navigate("/siaru");
+				break;
+			case `Procesar liquidaciones`:
+				navigate("/siaru/liquidaciones/procesar", { state: { empresa: empresa } });
 				break;
 			case `Imprimir ${liquidacionDesc}`:
 				navigate("/siaru/liquidaciones/impresion")

@@ -6,8 +6,9 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
-import React from "react";
+import React, { useEffect } from "react";
 import Logo1 from "../../../../media/Logo1.png";
+import CodigoDeBarras from "../CodigoDeBarras";
 
 const styles = StyleSheet.create({
   contenedor: {
@@ -110,6 +111,11 @@ const styles = StyleSheet.create({
 });
 
 const LiquidacionPdf = () => {
+  const data = '1607102022183871621143220221116168962680009435600000105136'
+
+  fetch(`https://barcode.tec-it.com/barcode.ashx?data=${data}&code=Code128&translate-esc=on`)
+    .then((response) => response.json())
+    .then((codigo) => console.log(codigo));
   return (
     <Document>
       <Page size="a4" orientation="landscape">
@@ -211,6 +217,9 @@ const LiquidacionPdf = () => {
               <Text style={styles.texto3}>
                 |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
               </Text>
+            </View>
+            <View style={styles.unaCasilla}>
+              <Image style={styles.image} src={`https://barcode.tec-it.com/barcode.ashx?data=${data}&code=Code128&translate-esc=on`}></Image>
             </View>
             <Text style={styles.border}></Text>
           </View>
