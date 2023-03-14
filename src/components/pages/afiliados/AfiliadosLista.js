@@ -32,6 +32,7 @@ import Table from "../../ui/Table/Table";
 import Formato from "../../helpers/Formato";
 import { Height } from "@mui/icons-material";
 import Seccional from "./seccional/Seccional";
+import useHttp from "../../hooks/useHttp";
 
 const { SearchBar } = Search;
 
@@ -40,6 +41,8 @@ const AfiliadosLista = (props) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
+  const { isLoading, error, sendRequest: request } = useHttp();
 
 
 
@@ -206,7 +209,7 @@ const AfiliadosLista = (props) => {
           case 1:
             setddjjUatreSeleccionado(row);
             //consulto los datos de la empresa seleccionada
-            
+            fetchEmpresa(row.cuit)
             break;
           default: break;
       }
@@ -215,6 +218,23 @@ const AfiliadosLista = (props) => {
       
   };
 
+  const fetchEmpresa = (cuit) => {
+		if ((cuit ?? 0) == 0) {
+			setEmpresaSeleccionada(null);
+			return;
+		}
+		request(
+			{
+				baseURL: "Comunes",
+				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${cuit}`,
+				method: "GET",
+			},
+			async (response) => {
+      console.log('response_empresa:',response)
+      setEmpresaSeleccionada(response)}
+			
+		);
+	};
 
   const handleTableChange = (
     type,
@@ -359,6 +379,7 @@ const AfiliadosLista = (props) => {
         <AfiliadoDetails config={{
           data: afiliadoSeleccionado,
           ddjj: ddjjUatreSeleccionado,
+          empresa: empresaSeleccionada,
           tab: selectedTab
         }}/>
     </div>
