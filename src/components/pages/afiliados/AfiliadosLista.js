@@ -16,6 +16,7 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 
 import styles from "./AfiliadosLista.module.css";
 import Button from "../../ui/Button/Button";
+import AfiliadoDetails from './AfiliadoDetails';
 import filterFactory, {
   textFilter,
   selectFilter,
@@ -190,8 +191,9 @@ const AfiliadosLista = (props) => {
   };*/
 
   const rowEvents  = (row) => {
-      //console.log(`row: ${row}`);
+       console.log('row:',row);
       setAfiliadoSeleccionado(row);
+
       dispatch(handleAfiliadoSeleccionar(row));
   };
 
@@ -284,6 +286,25 @@ const AfiliadosLista = (props) => {
           //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
           disabled={afiliadoSeleccionado?.cuil ? false : true}
         />
+
+        <Tab className={styles.tab}
+          label= { afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+          style={{ width: "800px", height: "67px"  }}
+          disabled={afiliadoSeleccionado?.cuil ? false : true}
+        />
+
+        <Tab className={styles.tab}
+          label= { afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
+          style={{ width: "800px", height: "67px"  }}
+          disabled={afiliadoSeleccionado?.cuil ? false : true}
+        />
+
+        <Tab className={styles.tab}
+          label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+          style={{ width: "800px", height: "67px"  }}
+          disabled={afiliadoSeleccionado?.cuil ? false : true}
+        />
+
       </Tabs>
       {selectedTab === 0 && (
 
@@ -298,7 +319,11 @@ const AfiliadosLista = (props) => {
           onSeleccionRegistro={handleSeleccionDDJJ}
         />        
       )}
-       </div>
+      </div>
+
+      <AfiliadoDetails config={{
+        data: afiliadoSeleccionado
+      }}/>
     </div>
   );
 };
