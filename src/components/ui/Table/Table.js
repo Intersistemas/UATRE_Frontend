@@ -57,7 +57,7 @@ const rowStyle2 = (row, cell) => { //esta pensado como funcion para que cada com
 };
 
 let MyGrid = 
-<PaginationProvider
+          <PaginationProvider
           pagination={paginationFactory({
             custom: true,
             totalSize: props.data.length,
