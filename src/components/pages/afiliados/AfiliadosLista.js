@@ -195,6 +195,7 @@ const AfiliadosLista = (props) => {
       setAfiliadoSeleccionado(row);
 
       dispatch(handleAfiliadoSeleccionar(row));
+      
   };
 
 

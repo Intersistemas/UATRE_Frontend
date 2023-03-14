@@ -31,9 +31,11 @@ const SiaruHandler = (props) => {
 				method: "GET",
 			},
 			async (response) => setEmpresa(response)
+			
 		);
 	};
-
+	
+	
 	//#region despachar Informar Modulo
 	const descEmpresa = empresa
 		? `${Formato.Cuit(empresa.cuit)} - ${empresa.razonSocial}`
@@ -64,8 +66,8 @@ const SiaruHandler = (props) => {
 		// );
 		setEmpresas([
 			{
-				cuit: 34618764356,
-				razonsocial: "HUAYRA SCA",
+				cuit: 30555457142,
+				razonsocial: "MAZZINO LIBANO SA",
 				localidad: "Rio Negro",
 				domicilio: "AVELEYRA 338",
 			},
