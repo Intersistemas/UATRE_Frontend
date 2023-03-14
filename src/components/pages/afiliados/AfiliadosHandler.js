@@ -12,12 +12,6 @@ import { redirect, useNavigate } from "react-router-dom";
 
 
 const AfiliadosHandler = () => {
-
-  const estadosSolicitud = [
-    { id: 1, value: 0, label: "Todos" },
-    { id: 2, value: 1, label: "Pendiente" },
-    { id: 3, value: 2, label: "Activo" },
-  ];
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(10000);
@@ -63,7 +57,7 @@ const navigate = useNavigate()
         if (refresh) setRefresh(false);
     };
 
-    let endpoint = `/Afiliado?PageIndex=${page}&PageSize=${sizePerPage}`;
+    let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
     if (estadoSolicitud) {
         endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
@@ -182,8 +176,8 @@ const navigate = useNavigate()
     return (
       <Fragment>
         {afiliadoAgregarShow && (
-          <AfiliadoAgregar 
-            onClose={onCloseAfiliadoAgregarHandler} 
+          <AfiliadoAgregar
+            onClose={onCloseAfiliadoAgregarHandler}
             estadosSolicitudes={estadosSolicitudes}
           />
         )}
@@ -191,7 +185,7 @@ const navigate = useNavigate()
         <AfiliadosLista
           afiliados={afiliadosRespuesta}
           loading={afiliadosRespuesta?.length ? false : isLoading}
-          estadosSolicitud={estadosSolicitud}
+          estadosSolicitud={estadosSolicitudes}
           estadoSolicitudActual={estadoSolicitud}
           //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
           onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
