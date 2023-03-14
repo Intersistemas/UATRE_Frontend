@@ -13,19 +13,20 @@ import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 import ValidarCUIT from "../../helpers/ValidarCUIT";
+import InputMask from "../../ui/Input/InputMask";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
 
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
-  const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);  
+  const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
   //#endregion
 
   //#region Alert
-  const [showAlert, setShowAlert] = useState(false);
-  const [textAlert, setTextAlert] = useState("")
-  const [severityAlert, setSeverityAlert] = useState("")
+  const [showAlert, setShowAlert] = useState(true);
+  const [textAlert, setTextAlert] = useState("");
+  const [severityAlert, setSeverityAlert] = useState("");
   //#endregion
 
   //#region variables para respuestas de servicios
@@ -176,13 +177,15 @@ const AfiliadoAgregar = (props) => {
     const identifier = setTimeout(() => {
       console.log("checking showAlert...", showAlert);
       //if (showAlert) {
-        setShowAlert(false);
+      setShowAlert(false);
+      setTextAlert("");
+      setSeverityAlert("");
       //}
-    }, 7000);
+    }, 10000);
 
     return () => {
       clearTimeout(identifier);
-      console.log("alert")
+      //console.log("alert")
     };
   }, [showAlert]);
   //#endregion
@@ -211,7 +214,7 @@ const AfiliadoAgregar = (props) => {
         setCorreo(afiliadoObj.correo);
         setActividad(afiliadoObj.actividadId);
         setPuesto(afiliadoObj.puestoId);
-        setDomicilio();
+        setDomicilio(afiliadoObj.domicilio);
         setLocalidad(afiliadoObj.refLocalidadId);
         setSeccional(afiliadoObj.seccionalId);
         setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
@@ -235,11 +238,11 @@ const AfiliadoAgregar = (props) => {
         setDomicilioRealAFIP(afiliadoObj.afipDomicilioDireccion);
 
         //alert
-        setShowAlert(true)
+        setShowAlert(true);
         setTextAlert(
           `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
         );
-        setSeverityAlert("info")
+        setSeverityAlert("info");
         // alert(
         //   `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
         // );
@@ -267,7 +270,7 @@ const AfiliadoAgregar = (props) => {
         );
         setLocalidadEmpresa("");
         setTelefonoEmpresa(empresaObj.telefono ?? "");
-        setCorreoEmpresa(empresaObj.correo ?? "");
+        setCorreoEmpresa(empresaObj.email ?? "");
         setLugarTrabajoEmpresa("");
         //ciius
       };
@@ -546,7 +549,7 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuil}&VerificarHistorico=${true}`,
+        endpoint: `/AFIPConsulta?CUIT=${cuil}&VerificarHistorico=${false}`,
         method: "GET",
       },
       error.includes("JSON") ? processConsultaPadron : alert("CUIL inválido!")
@@ -560,21 +563,16 @@ const AfiliadoAgregar = (props) => {
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
       setRazonSocialEmpresa(
-        padronObj?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        padronObj?.razonSocial ?? `${padronObj?.apellido} ${padronObj?.nombre}`
       );
-      setActividadEmpresa(
-        padronEmpresaRespuesta?.descripcionActividadPrincipal ?? ""
-      );
+      setActividadEmpresa(padronObj?.descripcionActividadPrincipal ?? "");
       setDomicilioEmpresa(
-        padronEmpresaRespuesta
-          ? `${padronEmpresaRespuesta?.domicilios[1]?.direccion}`
-          : ""
+        padronObj ? `${padronObj?.domicilios[1]?.direccion}` : ""
       );
       setLocalidadEmpresa(
-        padronEmpresaRespuesta
-          ? padronEmpresaRespuesta?.domicilios[1]?.localidad ??
-              padronEmpresaRespuesta?.domicilios[1]?.descripcionProvincia
+        padronObj
+          ? padronObj?.domicilios[1]?.localidad ??
+              padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
       // setTelefonoEmpresa()
@@ -631,9 +629,9 @@ const AfiliadoAgregar = (props) => {
       domicilioEstado: "string",
       domicilioDatoAdicional: "string",
       domicilioDatoAdicionalTipo: "string",
-      ciiU1: padronEmpresaRespuesta,
-      ciiU2: null,
-      ciiU3: null,
+      ciiU1: padronEmpresaRespuesta.ciiU1,
+      ciiU2: padronEmpresaRespuesta.ciiU2,
+      ciiU3: padronEmpresaRespuesta.ciiU3,
     };
 
     const empresaAgregar = async (empresaObjResponse) => {
@@ -722,9 +720,9 @@ const AfiliadoAgregar = (props) => {
         setNuevoAfiliadoResponse(afiliadoResponseObj);
         //alert("Afiliado creado con éxito!");
         //Alert
-        setShowAlert(true)
-        setSeverityAlert("success")
-        setTextAlert("Afiliado creado con éxito!")
+        setShowAlert(true);
+        setSeverityAlert("success");
+        setTextAlert("Afiliado creado con éxito!");
 
         //handleCerrarModal();
         setSelectedTab(3);
@@ -766,15 +764,20 @@ const AfiliadoAgregar = (props) => {
         op: "replace",
         value: "0",
       },
+      {
+        path: "EstadoSolicitudObservaciones",
+        op: "replace",
+        value: resolverSolicitudObs,
+      },
     ];
 
     const resolverSolicitudAfiliado = async (
       resolverSolicitudAfiliadoResponse
     ) => {
       if (resolverSolicitudAfiliadoResponse) {
-        setShowAlert(true)
-        setSeverityAlert("success")
-        setTextAlert("Solicitud resuelta!")
+        setShowAlert(true);
+        setSeverityAlert("success");
+        setTextAlert("Solicitud resuelta en estado Activo!");
 
         if (+estadoSolicitud === 2) {
           setShowImprimirLiquidacion(true);
@@ -904,6 +907,22 @@ const AfiliadoAgregar = (props) => {
         dispatchCUIT({ type: "USER_INPUT", value: value });
         setCUITEmpresa(value);
         setPadronEmpresaRespuesta(null);
+        setRazonSocialEmpresa("");
+        setActividadEmpresa("");
+        setDomicilioEmpresa("");
+        setLocalidadEmpresa("");
+        setTelefonoEmpresa("");
+        setCorreoEmpresa("");
+        setLugarTrabajoEmpresa("");
+        //ciius
+        break;
+
+      case "telefonoEmpresa":
+        setTelefonoEmpresa(value);
+        break;
+
+      case "correoEmpresa":
+        setCorreoEmpresa(value);
         break;
 
       case "resolverSolicitudObs":
@@ -937,7 +956,11 @@ const AfiliadoAgregar = (props) => {
 
   return (
     <Modal onClose={props.onClose}>
-      <Alert hidden={!showAlert} severity={severityAlert} variant="filled">{textAlert}</Alert>
+      <div className={classes.alert}>
+        <Alert hidden={!showAlert} severity={severityAlert} variant="filled">
+          {textAlert}
+        </Alert>
+      </div>
       <h5 className={classes.titulo}>
         {padronRespuesta
           ? `Alta de Nuevo Afiliado a UATRE: ${cuil} ${nombre}`
@@ -1088,7 +1111,7 @@ const AfiliadoAgregar = (props) => {
                 id="domicilio"
                 value={domicilio}
                 label="Domicilio"
-                disabled={false}
+                disabled={!padronRespuesta?.idPersona ? true : false}
                 onChange={handleInputChange}
               />
             </div>
@@ -1333,6 +1356,7 @@ const AfiliadoAgregar = (props) => {
                 label="Telefono"
                 disabled={false}
                 width={100}
+                onChange={handleInputChange}
               />
             </div>
 
@@ -1341,8 +1365,9 @@ const AfiliadoAgregar = (props) => {
                 id="correoEmpresa"
                 value={correoEmpresa}
                 label="Correo"
-                disabled={true}
+                disabled={false}
                 width={100}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -1355,6 +1380,7 @@ const AfiliadoAgregar = (props) => {
                 label="Lugar de Trabajo"
                 disabled={false}
                 //width={100}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -1460,12 +1486,14 @@ const AfiliadoAgregar = (props) => {
               />
             </div>
           </div>
+
           <div className={classes.renglon}>
             <div className={classes.boton}>
               <Button
                 className={classes.button}
                 width={100}
                 onClick={resolverSolicitudHandler}
+                disabled={showImprimirLiquidacion}
               >
                 Resolver
               </Button>
@@ -1477,7 +1505,7 @@ const AfiliadoAgregar = (props) => {
                 disabled={!showImprimirLiquidacion}
                 //onClick={imprimirLiquidacionHandler}
               >
-                Imprimir Liquidación
+                Imprimir Certificado Afiliación
               </Button>
             </div>
           </div>
@@ -1493,7 +1521,7 @@ const AfiliadoAgregar = (props) => {
               !formularioIsValid || nuevoAfiliadoResponse || afiliadoExiste
             }
           >
-            Agregar
+            Agregar Afiliado
           </Button>
         </div>
         <div className={classes.boton}>

@@ -26,9 +26,9 @@ const InputMaterial = (props) => {
     }
   };
 
-  const shrink = props.type === "date" || props.value !== '' ? true : false
+  const shrink = props.type === "date" || props.value !== '' ? true : false  
   //console.log("helperText", props.helperText)
-  return (
+  return (    
     <TextField
       id={props.id}
       size="small"
