@@ -7,7 +7,7 @@ import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
 //import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Alert, Input, InputLabel, MenuItem, Select, Snackbar, Tab, Tabs } from "@mui/material";
+import { Alert, Input, InputAdornment, InputLabel, MenuItem, Select, Snackbar, Tab, Tabs, TextareaAutosize, TextField } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
@@ -15,6 +15,7 @@ import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 import ValidarCUIT from "../../helpers/ValidarCUIT";
 import InputMask from "../../ui/Input/InputMask";
 import { TextFields } from "@mui/icons-material";
+import { Box } from "@mui/system";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -88,7 +89,15 @@ const AfiliadoAgregar = (props) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
-  const [selectedFile, setSelectedFile] = useState(null);
+
+  const [documento, setDocumento] = useState({
+    "entidadTipo": "",
+    "entidadId": 0,
+    "refTipoDocumentacionId": 0,
+    "archivo": "",
+    "observaciones": ""
+  })
+  const [file, setFile] = useState(null);
 
 
 
@@ -799,7 +808,7 @@ const AfiliadoAgregar = (props) => {
           "Content-Type": "application/json-patch+json",
         },
       },
-      resolverSolicitudAfiliado
+      console.log('archivo enviado')
     );
   };
   //#endregion
@@ -958,16 +967,52 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
-  //seleccionar Archivo
-  const seleccionarArchivo = (event) => {
-    setSelectedFile(event.target.files[0]);
+
+
+  const agregarTipoArchivo = (e) => {
+    setDocumento({
+      ...documento,
+      "refTipoDocumentacionId": e.target.value
+    })
+
+  }
+
+  const agregarEntidadTipo = async (e) => {
+    const EntidadTipo = e.target.value
+
+    const respuesta = await fetch(`http://svr-test:8202/api/DocumentacionEntidad/GetBySpec?EntidadTipo=${EntidadTipo}`)
+    const resultado = await respuesta.json()
+    const { entidadId } = resultado
+    setDocumento({
+      ...documento,
+      "entidadTipo": EntidadTipo,
+      "entidadId": entidadId
+    })
+  }
+  const agregarObservaciones = (e) => {
+    setDocumento({
+      ...documento,
+      "observaciones": e.target.value
+    })
+  }
+
+
+  function agregarArchivo(archivos) {
+    Array.from(archivos).forEach(archivo => {
+      const reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onload = () => {
+        const base64 = reader.result
+        setDocumento({
+          ...documento,
+          "archivo": base64
+        })
+      }
+    })
   };
 
-  const handleUpload = () => {
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-  };
 
+  console.log(documento);
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.alert}>
@@ -1481,60 +1526,69 @@ const AfiliadoAgregar = (props) => {
       {selectedTab === 3 && (
         <>
           <div className={classes.div}>
+            {/* Tipo Documentacion */}
             <div className={classes.renglon}>
-
-              <InputLabel id="tipoEntidad">Age</InputLabel>
-              <Select
-                labelId="tipoEntidad"
-                id="tipoEntidad"
-                value={'Uno'}
-                label="Uno"
-                onChange={handleInputChange}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                <MenuItem value={10}>Uno</MenuItem>
-                <MenuItem value={20}>Dos</MenuItem>
-                <MenuItem value={30}>Tres</MenuItem>
-              </Select>
-
+              <label>Tipo de Documentacion</label>
               <div className={classes.input}>
-                <InputMaterial
-                  id="internoEntidad"
-                  value={"Entidad Interno"}
-                  disabled={padronRespuesta?.idPersona ? true : false}
-                  width={98}
-                  onChange={handleInputChange}
-                />
+                <select
+                  name="tipoDocumentacion"
+                  label="tipoDocumentacion"
+                  value={documento.refTipoDocumentacionId}
+                  onChange={agregarTipoArchivo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={1}>Test</option>
+                  <option value={4}>Recibo de Sueldo</option>
+                  <option value={6}>Solicitud de Afiliacion</option>
+                </select>
               </div>
             </div>
+            {/*  FIN Tipo Documentacion */}
+            {/* Entidad Tipo */}
             <div className={classes.renglon}>
+              <label>Tipo Entidad</label>
               <div className={classes.input}>
-                <SelectMaterial
-                  name="nacionalidadSelect"
-                  label="Nacionalidad"
-                  options={nacionalidades}
-                  value={nacionalidad}
-                  defaultValue={nacionalidades[0]}
-                  onChange={handleChangeSelect}
-                  disabled={!padronRespuesta?.idPersona ? true : false}
-                />
+                <select
+                  name="tipoEntidad"
+                  label="tipoEntidad"
+                  value={documento.entidadTipo}
+                  onChange={agregarEntidadTipo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={'S'}>Test S</option>
+                  <option value={'O'}>Test O</option>
+                  <option value={'D'}>Test D</option>
+                </select>
               </div>
-              <Input
-                type="file"
-
-                onChange={seleccionarArchivo}
+            </div>
+            {/*  FIN Entidad Tipo */}
+            {/* Observaciones */}
+            <div className={classes.renglon}>
+              <label>Observaciones</label>
+              <TextareaAutosize
+                id="observaciones"
+                name='observaciones'
+                value={documento.observaciones}
+                onChange={agregarObservaciones}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
               />
-
             </div>
-
-
-
+            {/* Fin Observaciones */}
+            {/* Archivos */}
+            <div className={classes.renglon}>
+              <label>Archivos</label>
+              <input type={"file"}
+                name='files'
+                multiple
+                onChange={e => agregarArchivo(e.target.files)}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
+              />
+            </div>
+            {/* Fin Archivos */}
           </div>
+
         </>
-      )
-      }
+      )}
       {
         selectedTab === 4 && (
           <>
@@ -1587,8 +1641,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
           </>
-        )
-      }
+        )}
       <div className={classes.botones}>
         <div className={classes.boton}>
           <Button
