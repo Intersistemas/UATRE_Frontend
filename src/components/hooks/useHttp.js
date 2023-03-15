@@ -23,8 +23,7 @@ const useHttp = () => {
             break;
 
           case "SIARU":
-            // url = 'http://intersistemas.net:8201/api';
-						url = "http://localhost:41706/api";
+            url = 'http://intersistemas.net:8201/api';
             break;
             
           case 'Seguridad':
