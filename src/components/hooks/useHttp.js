@@ -5,7 +5,7 @@ const useHttp = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
 
-    const sendRequest = useCallback(async (configRequest, applyData) => {
+    const sendRequest = useCallback(async (configRequest, applyData, takeError = (error) => {}) => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
@@ -59,8 +59,21 @@ const useHttp = () => {
                 const errorResponse = await response.json();
                 if(errorResponse.statusCode && errorResponse.mensaje)
                 {
-                    errorMessage = 'Error ' + errorResponse.statusCode + '-' + errorResponse.mensaje
+									errorMessage = 'Error ' + errorResponse.statusCode + '-' + errorResponse.mensaje
+									takeError({
+										type: "Body",
+										code: errorResponse.statusCode,
+										message: errorResponse.mensaje,
+									});
                 }
+								else
+								{
+									takeError({
+										type: "Response",
+										code: response.status,
+										message: response.statusText,
+									});
+								}
                 throw new Error(errorMessage);
             }
 
