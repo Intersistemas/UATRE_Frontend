@@ -24,6 +24,8 @@ const LiquidacionesProcesarHandler = () => {
 	const [periodos, setPeriodos] = useState([]);
 	const [periodoSelect, setPeriodoSelect] = useState();
 	const [periodoSelectErr, setPeriodoSelectErr] = useState("");
+	const [periodoAnterior, setPeriodoAnterior] = useState();
+	const [periodoAnteriorErr, setPeriodoAnteriorErr] = useState("");
 	const [periodoNuevo, setPeriodoNuevo] = useState();
 	const [periodoNuevoErr, setPeriodoNuevoErr] = useState("");
 	const [archivoF931, setArchivoF931] = useState();
@@ -77,15 +79,17 @@ const LiquidacionesProcesarHandler = () => {
 			<Grid full="width">
 				<h2 className="subtitulo">
 					Procesar liquidaciones de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}</h2>
+					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+				</h2>
 			</Grid>
 			<Grid col gap="5px">
+
 				{/* Grupo "Seleccione un periodo existente a liquidar" */}
 				<Grid
 					className={`${styles.fondo} ${styles.grupo}`}
 					col
 					full="width"
-					style={{minWidth: "310px"}}
+					style={{ minWidth: "310px" }}
 					gap="10px"
 				>
 					<Grid full="width">
@@ -94,14 +98,16 @@ const LiquidacionesProcesarHandler = () => {
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="10px">
-						<Grid className={styles.label} grow>
+						<Grid grow>
 							<Select
 								name="periodo"
 								label="Periodo"
 								value={periodoSelect}
 								options={periodos.map((r) => ({
 									label: `${Formato.Periodo(r.periodo)} - ${
-										r.liquidacionIdUltima ? "Periodo con liquidaciones asociadas" : "Periodo sin liquidaciones asociadas"
+										r.liquidacionIdUltima
+											? "Periodo con liquidaciones asociadas"
+											: "Periodo sin liquidaciones asociadas"
 									}`,
 									value: r.periodo,
 								}))}
@@ -111,13 +117,16 @@ const LiquidacionesProcesarHandler = () => {
 								}}
 							/>
 						</Grid>
-						<Grid  block basis="200px">
+						<Grid block basis="200px">
 							<Button
 								onClick={() => {
 									if (periodoSelect == null) {
 										setPeriodoSelectErr("Debe seleccionar un periodo");
 									} else {
 										setPeriodoSelectErr("");
+										navigate("/siaru/liquidaciones/procesar/existente", {
+											state: { empresa: empresa, periodo: periodoSelect },
+										});
 									}
 								}}
 							>
@@ -129,12 +138,13 @@ const LiquidacionesProcesarHandler = () => {
 						{periodoSelectErr}
 					</Grid>
 				</Grid>
+
 				{/* Grupo "Copiar liquidación de un período anterior" */}
 				<Grid
 					className={`${styles.fondo} ${styles.grupo}`}
 					col
 					full="width"
-					style={{minWidth: "310px"}}
+					style={{ minWidth: "310px" }}
 					gap="10px"
 				>
 					<Grid full="width">
@@ -144,7 +154,26 @@ const LiquidacionesProcesarHandler = () => {
 					</Grid>
 					<Grid full="width" gap="10px">
 						{/* ToDo: Seleccion de periodo existente */}
-						<Grid block basis="200px" className={styles.label}>
+						<Grid grow>
+							<Select
+								name="periodo"
+								label="Periodo anterior"
+								value={periodoAnterior}
+								options={periodos.map((r) => ({
+									label: `${Formato.Periodo(r.periodo)} - ${
+										r.liquidacionIdUltima
+											? "Periodo con liquidaciones asociadas"
+											: "Periodo sin liquidaciones asociadas"
+									}`,
+									value: r.periodo,
+								}))}
+								onChange={(v) => {
+									setPeriodoAnterior(v);
+									setPeriodoAnteriorErr("");
+								}}
+							/>
+						</Grid>
+						<Grid  block basis="250px">
 							<DateTimePicker
 								type="month"
 								label="Ingrese período a liquidar"
@@ -158,11 +187,11 @@ const LiquidacionesProcesarHandler = () => {
 								}}
 							/>
 						</Grid>
-						<Grid grow>
+						<Grid block basis="200px">
 							<Button
 								onClick={() => {
 									if (periodoNuevo == null) {
-										setPeriodoNuevoErr("Debe ingresar un periodo nuevo");
+										setPeriodoNuevoErr("Debe ingresar un periodo a liquidar");
 									} else {
 										setPeriodoNuevoErr("");
 									}
@@ -176,12 +205,13 @@ const LiquidacionesProcesarHandler = () => {
 						{periodoNuevoErr}
 					</Grid>
 				</Grid>
+
 				{/* Grupo "Liquidar desde archivo" */}
 				<Grid
 					className={`${styles.fondo} ${styles.grupo}`}
 					col
 					full="width"
-					style={{minWidth: "310px"}}
+					style={{ minWidth: "310px" }}
 					gap="10px"
 				>
 					<Grid full="width">
@@ -190,14 +220,14 @@ const LiquidacionesProcesarHandler = () => {
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="10px">
-						<Grid grow>
+						<Grid  block basis="300px">
 							<Button>
 								Seleccionar archivo a liquidar
 								<input hidden accept=".txt" type="file" />
 							</Button>
 						</Grid>
-						<Grid block basis="100px" />
-						<Grid block basis="100px">
+						<Grid grow/>
+						<Grid block basis="200px">
 							<Button
 								onClick={() => {
 									if (archivoF931 == null) {
@@ -216,8 +246,7 @@ const LiquidacionesProcesarHandler = () => {
 					</Grid>
 				</Grid>
 			</Grid>
-			<Grid full>
-			</Grid>
+			<Grid full></Grid>
 		</Grid>
 	);
 };

@@ -11,6 +11,7 @@ import EstablecimientosHandler from './components/pages/siaru/Establecimientos/E
 import Afiliado from './components/pages/afiliados/Afiliado';
 import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -37,6 +38,7 @@ const App = () => {
 						<Route path="/siaru/establecimientos" element={<EstablecimientosHandler/>} />
 						<Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
+						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler  />} />
             <Route path="/inicio" element={<InicioHandler />} />
