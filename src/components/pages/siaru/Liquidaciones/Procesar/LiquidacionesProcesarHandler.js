@@ -12,6 +12,7 @@ import Grid from "../../../../ui/Grid/Grid";
 import Select from "../../../../ui/Select/Select";
 import Button from "../../../../ui/Button/Button";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
+import LiquidacionForm from "./Manual/Form";
 import dayjs from "dayjs";
 
 const LiquidacionesProcesarHandler = () => {
@@ -30,6 +31,7 @@ const LiquidacionesProcesarHandler = () => {
 	const [periodoNuevoErr, setPeriodoNuevoErr] = useState("");
 	const [archivoF931, setArchivoF931] = useState();
 	const [archivoF931Err, setArchivoF931Err] = useState("");
+	const [liquidacionForm, setLiquidacionForm] = useState();
 	const { isLoading, error, sendRequest: request } = useHttp();
 
 	//#region despachar Informar Modulo
@@ -83,7 +85,6 @@ const LiquidacionesProcesarHandler = () => {
 				</h2>
 			</Grid>
 			<Grid col gap="5px">
-
 				{/* Grupo "Seleccione un periodo existente a liquidar" */}
 				<Grid
 					className={`${styles.fondo} ${styles.grupo}`}
@@ -153,7 +154,6 @@ const LiquidacionesProcesarHandler = () => {
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="10px">
-						{/* ToDo: Seleccion de periodo existente */}
 						<Grid grow>
 							<Select
 								name="periodo"
@@ -173,7 +173,7 @@ const LiquidacionesProcesarHandler = () => {
 								}}
 							/>
 						</Grid>
-						<Grid  block basis="250px">
+						<Grid block basis="250px">
 							<DateTimePicker
 								type="month"
 								label="Ingrese período a liquidar"
@@ -220,13 +220,13 @@ const LiquidacionesProcesarHandler = () => {
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="10px">
-						<Grid  block basis="300px">
+						<Grid block basis="300px">
 							<Button>
 								Seleccionar archivo a liquidar
 								<input hidden accept=".txt" type="file" />
 							</Button>
 						</Grid>
-						<Grid grow/>
+						<Grid grow />
 						<Grid block basis="200px">
 							<Button
 								onClick={() => {
@@ -244,6 +244,41 @@ const LiquidacionesProcesarHandler = () => {
 					<Grid full="width" style={{ color: "red" }}>
 						{archivoF931Err}
 					</Grid>
+				</Grid>
+
+				{/* Grupo "Liquidación manual" */}
+				<Grid
+					className={`${styles.fondo} ${styles.grupo}`}
+					col
+					full="width"
+					style={{ minWidth: "310px" }}
+					gap="10px"
+				>
+					<Grid full="width">
+						<Grid className={styles.cabecera} grow>
+							Liquidación manual
+						</Grid>
+					</Grid>
+					<Grid full="width" gap="10px">
+						<Grid block basis="300px">
+							<Button
+								onClick={() =>
+									setLiquidacionForm(
+										<LiquidacionForm
+											config={{
+												empresa: empresa,
+												onCancela: () => setLiquidacionForm(null),
+												onConfirma: () => setLiquidacionForm(null),
+											}}
+										/>
+									)
+								}
+							>
+								Ingresar liquidacion manual
+							</Button>
+						</Grid>
+					</Grid>
+					{liquidacionForm}
 				</Grid>
 			</Grid>
 			<Grid full></Grid>
