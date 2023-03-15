@@ -997,7 +997,7 @@ const AfiliadoAgregar = (props) => {
   }
 
 
-  function agregarArchivo(archivos) {
+  const agregarArchivo = (archivos) => {
     Array.from(archivos).forEach(archivo => {
       const reader = new FileReader();
       reader.readAsDataURL(archivo);
@@ -1010,6 +1010,29 @@ const AfiliadoAgregar = (props) => {
       }
     })
   };
+
+  const insertarDocumentacion = async () => {
+    // request(
+    //   {
+    //     baseURL: "SIARU",
+    //     endpoint: `/DocumentacionEntidad`,
+    //     method: "POST",
+    //     body: documento,
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   },
+    // );
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: documento
+    };
+    const response = await fetch('http://intersistemas.net:8201/api/DocumentacionEntidad', requestOptions);
+    const data = await response.json();
+    this.setState({ postId: data.id });
+  }
 
 
   console.log(documento);
@@ -1586,7 +1609,7 @@ const AfiliadoAgregar = (props) => {
             </div>
             {/* Fin Archivos */}
           </div>
-
+          <button type="submit" onClick={insertarDocumentacion}>Insertar Documentacion</button>
         </>
       )}
       {
