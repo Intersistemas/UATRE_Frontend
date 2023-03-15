@@ -2,9 +2,14 @@ import React from "react";
 import Formato from "../../../../../helpers/Formato";
 import Table from "../../../../../ui/Table/Table";
 
-const DDJJList = ({ config }) => {
+const LiquidacionList = ({ config }) => {
 	const onSelect = config.onSelect ?? ((registro) => {});
-	console.log("establecimientos", config.establecimientos);
+	const tiposPagos = [
+		{ id: 1, descripcion: "Sindical" },
+		{ id: 2, descripcion: "Solidario" },
+		{ id: 3, descripcion: "Sepelio" },
+	];
+	const tiposLiquidaciones = ["Periodo", "Acta"];
 
 	const cs = {
 		overflow: "hidden",
@@ -27,32 +32,32 @@ const DDJJList = ({ config }) => {
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "cuil",
-			text: "CUIL",
+			dataField: "tipoLiquidacion",
+			text: "Tipo de liquidacion",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "150px" }),
-			formatter: Formato.Cuit,
+			formatter: (v) => tiposLiquidaciones[v],
 			style: { ...cs },
 		},
 		{
-			dataField: "nombre",
-			text: "Nombre",
+			dataField: "liquidacionesTiposPagosId",
+			text: "Tipo de pago",
 			sort: true,
+			formatter: (v) => tiposPagos.find(r => r.id == v)?.descripcion ?? "",
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "condicionRural",
-			text: "Es Rural",
+			dataField: "cantidadTrabajadores",
+			text: "Cant. Trabajadores",
 			sort: true,
-			formatter: (v) => Formato.Booleano(v === "RU"),
 			headerStyle: (colum, colIndex) => ({ width: "100px" }),
 			style: { ...cs },
 		},
 		{
-			dataField: "afiliadoId",
-			text: "Es Afiliado",
+			dataField: "totalRemuneraciones",
+			text: "Total Remuneraciones",
 			sort: true,
-			formatter: (v) => Formato.Booleano(v > 0),
+			formatter: Formato.Moneda,
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
@@ -60,7 +65,7 @@ const DDJJList = ({ config }) => {
 
 	return (
 		<Table
-			keyField="cuil"
+			keyField="id"
 			loading={config.loading ?? false}
 			data={config.data ? [...config.data] : []}
 			columns={columns}
@@ -70,4 +75,4 @@ const DDJJList = ({ config }) => {
 	);
 };
 
-export default DDJJList;
+export default LiquidacionList;
