@@ -4,7 +4,6 @@ import Table from "../../../../../ui/Table/Table";
 
 const DDJJList = ({ config }) => {
 	const onSelect = config.onSelect ?? ((registro) => {});
-	console.log("establecimientos", config.establecimientos);
 
 	const cs = {
 		overflow: "hidden",

@@ -92,6 +92,15 @@ const AfiliadoAgregar = (props) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
+  const [documento, setDocumento] = useState({
+    "entidadTipo": '',
+    "entidadId": 0,
+    "refTipoDocumentacionId": 0,
+    "archivo": "",
+    "observaciones": ""
+  })
+  const [file, setFile] = useState(null);
+
   //#region manejo de validaciones
   // const [cuilHelperText, setCUILHelperText] = useState("");
   // const [cuitHelperText, setCUITHelperText] = useState("");
@@ -957,6 +966,68 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+  const agregarTipoArchivo = (e) => {
+
+    setDocumento({
+      ...documento,
+      "refTipoDocumentacionId": e.target.value
+    })
+
+  }
+
+  const agregarEntidadTipo = async (e) => {
+    const EntidadTipo = e.target.value
+
+    const respuesta = await fetch(`http://svr-test:8202/api/DocumentacionEntidad/GetBySpec?EntidadTipo=${EntidadTipo}`)
+    const resultado = await respuesta.json()
+    const { entidadId } = resultado
+    setDocumento({
+      ...documento,
+      "entidadTipo": EntidadTipo,
+      "entidadId": entidadId
+    })
+  }
+  const agregarObservaciones = (e) => {
+    setDocumento({
+      ...documento,
+      "observaciones": e.target.value
+    })
+  }
+
+  const agregarArchivo = (archivos) => {
+    Array.from(archivos).forEach(archivo => {
+      let reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onload = () => {
+        let base64 = reader.result.replace('data:', '').replace(/^.+,/, '')
+        console.log(base64);
+        setDocumento({
+          ...documento,
+          "archivo": base64
+        })
+      }
+    })
+  };
+
+  const insertarDocumentacion = (e) => {
+    e.preventDefault()
+    request(
+      {
+        baseURL: "SiaruTest",
+        endpoint: `/DocumentacionEntidad`,
+        method: "POST",
+        body: documento,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+
+  }
+
+  console.log(documento);
+
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -992,6 +1063,12 @@ const AfiliadoAgregar = (props) => {
             disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
+
+            label={"Documentacion"}
+            disabled={nuevoAfiliadoResponse ? true : false}
+          />
+          <Tab
+
             label="Resolver Solicitud"
             hidden={
               (nuevoAfiliadoResponse || afiliadoExiste) &&
@@ -1471,11 +1548,52 @@ const AfiliadoAgregar = (props) => {
               {padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"}
             </h4>
             <div className={classes.renglon}>
-              <DeclaracionesJuradas
-                cuil={cuil}
-                onSeleccionRegistro={handleSeleccionDDJJ}
-                mostrarBuscar={false}
-                registros={3}
+              <label>Tipo de Documentacion</label>
+              <div className={classes.input}>
+                <Select
+
+                  name="tipoDocumentacion"
+                  label="tipoDocumentacion"
+                  value={documento.refTipoDocumentacionId}
+                  defaultValue={"Tipo"}
+                  onChange={agregarTipoArchivo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+
+                  <MenuItem value={1}>Test</MenuItem >
+                  <MenuItem value={4}>Recibo de Sueldo</MenuItem >
+                  <MenuItem value={6}>Solicitud de Afiliacion</MenuItem >
+                </Select>
+              </div>
+            </div>
+            {/*  FIN Tipo Documentacion */}
+            {/* Entidad Tipo */}
+            <div className={classes.renglon}>
+              <label>Tipo Entidad</label>
+              <div className={classes.input}>
+                <Select
+                  name="tipoEntidad"
+                  label="tipoEntidad"
+                  value={documento.entidadTipo}
+                  onChange={agregarEntidadTipo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <MenuItem value={'S'}>Test S</MenuItem>
+                  <MenuItem value={'O'}>Test O</MenuItem>
+                  <MenuItem value={'D'}>Test D</MenuItem>
+                </Select>
+              </div>
+            </div>
+            {/*  FIN Entidad Tipo */}
+            {/* Observaciones */}
+            <div className={classes.renglon}>
+              <label>Observaciones</label>
+              <TextareaAutosize
+                id="observaciones"
+                name='observaciones'
+                value={documento.observaciones}
+                onChange={agregarObservaciones}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
               />
             </div>
           </div>
@@ -1546,10 +1664,14 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
           </div>
-          <div className={classes.div}>
-            <h4>Afiliados en ultima DDJJ</h4>
-            <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
 
+
+          <button style={{ marginTop: '15px' }} type="button" onClick={insertarDocumentacion}>Insertar Documentacion</button>
+        </>
+      )}
+      {
+        selectedTab === 4 && (
+          <>
             <div className={classes.renglon}>
               <div className={classes.input25}>
                 <SelectMaterial

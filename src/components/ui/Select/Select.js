@@ -32,6 +32,7 @@ const Select = (props) => {
 			<InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
 			<MuiSelect
 				labelId={props.label + "-label"}
+				InputLabelProps={{ shrink: true }}
 				name={props.name}
 				label={props.label}
 				value={props.value == null ? "" : props.value}
@@ -40,9 +41,6 @@ const Select = (props) => {
 				MenuProps={MenuProps}
 				size="small"
 				disabled={props.disabled}
-				InputLabelProps={{
-					shrink: true,
-				}}
 			>
 				{props.options.map((option, ix) => (
 					<MenuItem key={ix + 1} value={option.value}>
