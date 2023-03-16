@@ -203,6 +203,7 @@ const LiquidacionesHandler = () => {
 				<LiquidacionesList
 					config={{
 						data: liquidaciones,
+						pagination: pagination,
 						onSelect: (r) => setLiquidacion(r),
 					}}
 				/>
