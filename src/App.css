@@ -57,6 +57,14 @@
   
 }
 
+@media (max-width: 2560px) { 
+  .container {
+  max-width: 2560px !important;
+  margin: 0 !important;
+  /*color: red !important;*/
+  }
+}
+
 @media (max-width: 1920px) {
   .container {
     max-width: 1740px !important;

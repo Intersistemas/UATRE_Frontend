@@ -4,7 +4,7 @@
     /*width: 95%;*/
     /*display: block;*/
     /*flex-direction: row;*/
-    padding: 2% 0%;
+    padding: 2% 0% 0% 0%;
     /*right: 0;*/
     /*margin-left: 2.5%;*/
     /*zoom: 78%;*/
@@ -24,8 +24,8 @@
 
 @media (max-width: 1920px) {
     .tabs {
-        zoom: 90%;
-        margin: -1.5% 0% 0% 0%;
+        zoom: 80%;
+        margin: 0.2% 0% 0% 0%;
     }
   }
   

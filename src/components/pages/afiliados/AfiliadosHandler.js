@@ -14,7 +14,7 @@ import { redirect, useNavigate } from "react-router-dom";
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
-  const [sizePerPage, setSizePerPage] = useState(10000);
+  const [sizePerPage, setSizePerPage] = useState(15);
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);

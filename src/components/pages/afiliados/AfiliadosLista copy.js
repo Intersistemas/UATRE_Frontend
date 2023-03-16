@@ -29,7 +29,6 @@ import { useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
-import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
 import { Height } from "@mui/icons-material";
 import Seccional from "./seccional/Seccional";
@@ -61,6 +60,8 @@ const AfiliadosLista = (props) => {
       order: "asc"
     }
   ];
+
+
 
   const columns = [
     {
@@ -231,6 +232,8 @@ const AfiliadosLista = (props) => {
     },
     
   ];
+
+  
   
   const columnsVacia = [
     {
@@ -239,25 +242,35 @@ const AfiliadosLista = (props) => {
       sort: true
     }
   ]
-
+  /*const rowEvents = {
+    onClick: (e, row, rowIndex) => {
+      console.log(`row: ${row}`);
+      //handleSelectList(row);
+      setAfiliadoSeleccionado(row);
+      dispatch(handleAfiliadoSeleccionar(row));
+    },
+  };*/
 
   const rowEvents  = (row) => {
-    console.log('Afiliado_Seleccionado:',row);
-   switch(selectedTab){
-     case 0:
-       setAfiliadoSeleccionado(row);
-       break;
+       console.log('row:',row);
+      //setAfiliadoSeleccionado(row);
 
-       case 1:
-         setddjjUatreSeleccionado(row);
-         //consulto los datos de la empresa seleccionada
-         fetchEmpresa(row.cuit)
-         break;
-       default: break;
-   }
+      switch(selectedTab){
+        case 0:
+          setAfiliadoSeleccionado(row);
+          break;
 
-   dispatch(handleAfiliadoSeleccionar(row));
-};
+          case 1:
+            setddjjUatreSeleccionado(row);
+            //consulto los datos de la empresa seleccionada
+            fetchEmpresa(row.cuit)
+            break;
+          default: break;
+      }
+
+      dispatch(handleAfiliadoSeleccionar(row));
+      
+  };
 
   const fetchEmpresa = (cuit) => {
     console.log('cuit',cuit)
@@ -290,7 +303,7 @@ const AfiliadosLista = (props) => {
 
   //#region  la paginacion la maneja el componente Table
   const pagination = paginationFactory({
-    //custom: true,
+    custom: true,
     page: afiliados.page,
     sizePerPage: afiliados.sizePerPage,
     paginationShowsTotal: false,
@@ -326,7 +339,7 @@ const AfiliadosLista = (props) => {
 
   const tableProps = {
       promptBuscar:"Buscar en Afiliados:",
-      //defaultSorted: defaultSorted,
+      defaultSorted: defaultSorted,
       remote: true,
       keyField: "nroAfiliado",
       loading: props.loading,
@@ -338,6 +351,8 @@ const AfiliadosLista = (props) => {
       noDataIndication: indication,
       onSelected: rowEvents,
   }
+
+
 
   const tablePropsVacia = {
       promptBuscar:"Buscar en Afiliados:",
@@ -357,24 +372,9 @@ const AfiliadosLista = (props) => {
     filter: filterFactory(),
 }
 
-
-const selectRow = {
-  mode: "radio",
-  clickToSelect: true,
-  hideSelectColumn: true,
-  style: {
-    backgroundColor: "rgb(194 194 194 / 70%)",
-    color: "black",
-    fontWeight: "bold",
-  },
-};
-
-const rowStyle = {
-  backgroundColor: "#ffffff99",
-  border: "1.5px solid #3595D2",
-  color: '#000080', //color: '#727272',
-};
-
+  const enDesarrollo = () => {
+    alert("asd");
+  } 
   return (
     <div className={styles.container}> 
         <h1 className='titulo'>Afiliaciones</h1>
@@ -416,27 +416,7 @@ const rowStyle = {
             </div> 
 
               {selectedTab === 0 && (
-                <div style={{paddingTop: '4%'}}>
-                  <TableSegmentado {...tableProps}/>
-                 {/*<BootstrapTable
-                  bootstrap4
-                  remote
-                  keyField="id"
-                  loading={props.loading}
-                  data={afiliados.data}
-                  columns={columns}
-                  pagination={pagination}
-                  onTableChange={handleTableChange}
-                  filter={filterFactory()}
-                  striped
-                  hover
-                  condensed
-                  noDataIndication={indication}
-                  selectRow={selectRow}
-                  rowEvents={rowEvents}
-                  rowStyle={rowStyle}
-              />*/}
-                </div> 
+                <Table {...tableProps} />
               )}
 
               {selectedTab === 1 && (
@@ -446,6 +426,7 @@ const rowStyle = {
                   onSeleccionRegistro={rowEvents}
                 />        
               )}
+
               {selectedTab === 2 && (
                 
                 <Table  {...tablePropsVacia}/>

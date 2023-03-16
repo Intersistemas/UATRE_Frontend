@@ -10,7 +10,6 @@ td, th {
     text-overflow: ellipsis !important;
 }
 
-
 /*DIMENSIONES*/
 @media (max-width: 1920px) {
     .tabla {
@@ -21,7 +20,7 @@ td, th {
   
   @media (max-width: 1360px) {
     .tabla {
-        zoom: 74%;
+        zoom: 55%;
         width: 100%;
     }
   }
