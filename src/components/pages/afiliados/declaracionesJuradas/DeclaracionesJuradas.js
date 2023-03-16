@@ -10,18 +10,24 @@ import Formato from "../../../helpers/Formato";
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
-  const { cuil, infoCompleta } = props.cuil === null ? 0 : props;
+  const { cuil, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
 
   useEffect(() => {
+    console.log("registros",registros)
     if (cuil > 0) {
       const processDDJJUatre = async (ddJJUatreObj) => {
-        setDDJJUatreList(ddJJUatreObj);
+        setDDJJUatreList(ddJJUatreObj.data);
       };
 
+      console.log(
+        `/DDJJUatre/GetDDJJUatreListBySpecs?CUIL=${cuil}&Sort=periodo${
+          registros ? `PageSize=${registros}` : ``
+        }`
+      );
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${cuil}`,
+          endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIL=${cuil}&Sort=periodo${registros ? `&PageSize=${registros}` : ``}`,
           method: "GET",
         },
         processDDJJUatre
@@ -148,8 +154,9 @@ const DeclaracionesJuradas = (props) => {
   };
 
   let tableProps = {
+    mostrarBuscar: mostrarBuscar ?? true,
     promptBuscar:"Buscar en DDJJ:",
-    keyField: "remuneracionImponible",
+    keyField: "id",
     data: ddJJUatreList,
     columns: columns,
     selectRow: selectRow,
