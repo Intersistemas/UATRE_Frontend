@@ -1,13 +1,13 @@
 .div {
-    align-items: center;
+    /*align-items: center;*/
     /*background-color: transparent;*/
-    width: 95%;
-    display: block;
-    flex-direction: row;
-    padding: 0;
-    right: 0;
-    margin-left: 2.5%;
-    zoom: 78%;
+    /*width: 95%;*/
+    /*display: block;*/
+    /*flex-direction: row;*/
+    padding: 2% 0%;
+    /*right: 0;*/
+    /*margin-left: 2.5%;*/
+    /*zoom: 78%;*/
 }
 
 .tab{
@@ -19,10 +19,19 @@
 }
 
 .tabs{
-    color: '#FFFFFF'!important;
-    background-color: #186090;
+    position: fixed;
 }
 
-.filter{
-
-}
+@media (max-width: 1920px) {
+    .tabs {
+        zoom: 90%;
+        margin: -1.5% 0% 0% 0%;
+    }
+  }
+  
+  @media (max-width: 1360px) {
+    .tabs {
+        zoom: 60%;
+        margin: -0.9% 0% 0% 0%;
+    }
+  }

@@ -10,3 +10,18 @@ td, th {
     text-overflow: ellipsis !important;
 }
 
+
+/*DIMENSIONES*/
+@media (max-width: 1920px) {
+    .tabla {
+        zoom: 90%;
+        width: 100%;
+    }
+  }
+  
+  @media (max-width: 1360px) {
+    .tabla {
+        zoom: 74%;
+        width: 100%;
+    }
+  }

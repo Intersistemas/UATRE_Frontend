@@ -26,3 +26,17 @@
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+
+@media (max-width: 1920px) {
+    .contenedor {
+        zoom: 90%;
+      
+    }
+  }
+  
+  @media (max-width: 1360px) {
+    .contenedor {
+        zoom: 70%;
+        
+    }
+  }

@@ -12,6 +12,7 @@ import store from '../../redux/store';
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion } from '../../redux/actions';
+import fondo from '../../media/Background/color3.png';
 
 
 const Sidebar = ({ children }) => {
@@ -88,6 +89,7 @@ const Sidebar = ({ children }) => {
                                 ))
                             }
 
+<<<<<<< HEAD
                             <div>
                                 {botones.length === 0 ? null :
                                     botones.map((item, index) => (
@@ -118,6 +120,19 @@ const Sidebar = ({ children }) => {
                 </div>
             )}
         </>
+=======
+            
+           <main className= "container">
+
+                <img src={fondo} alt="fondo" class="bg-image" />
+                <div style={{position: 'fixed', padding: '2%'}}>{children}</div>
+                
+            </main>
+           
+        </div>
+        )}
+     </>
+>>>>>>> 31587e623d00b79ed4b93ad88f5075ff0379d889
     )
         ;
 };
