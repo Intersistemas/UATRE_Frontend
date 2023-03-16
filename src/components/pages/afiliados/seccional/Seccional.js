@@ -38,6 +38,11 @@ const Seccional = (props) => {
       
       {
         dataField: "id",
+        text: "Id",
+        hidden: true
+      },
+      {
+        dataField: "codigo",
         text: "Código Seccional",
       },
       {

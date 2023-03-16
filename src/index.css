@@ -23,30 +23,6 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-    background-image: url(./media/campo_trigo1.jpg);
-
-    /*background-image: url(./media/Background/5.jpg);
-    /*background-image: url(./media/Background/1.png);*/
-    /*background-image: url(./media/Background/6.jpg);*/
-    /*background-image: url(./media/Background/7.jpg);*/
- 
-    /*LISOS*/
-    /*background-image: url(./media/Background/color1.png);*/
-    /*background-image: url(./media/Background/color2.png);*/
-    /*background-image: url(./media/Background/color3.png);*/
-    /*background-image: url(./media/Background/color4.png);*/
-    /*background-image: url(./media/Background/color6.png);*/
-    /*background-image: url(./media/Background/color7.png);*/
-
-    /*muy feo
-    background-image: url(./media/Background/9.jpg);
-    background-image: url(./media/Background/8.jpg);
-    background-image: url(./media/Background/color5.png);
-    background-image: url(./media/Background/10.jpg);*/
-
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
 }
  
 
@@ -65,31 +41,11 @@ main{
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
-      /*background-image: url(./media/campo_trigo1.jpg) !important;*/
+    display: flex;
+   width: 100%;
   
-      /*background-image: url(./media/Background/5.jpg);
-      /*background-image: url(./media/Background/1.png);*/
-      /*background-image: url(./media/Background/6.jpg);*/
-      /*background-image: url(./media/Background/7.jpg);*/
-   
-      /*LISOS*/
-      /*background-image: url(./media/Background/color1.png);*/
-      /*background-image: url(./media/Background/color2.png);*/
-      /*background-image: url(./media/Background/color3.png);*/
-      /*background-image: url(./media/Background/color4.png);*/
-      /*background-image: url(./media/Background/color6.png);*/
-      background-image: url(./media/Background/color7.png);
-  
-      /*muy feo
-      background-image: url(./media/Background/9.jpg);
-      background-image: url(./media/Background/8.jpg);
-      background-image: url(./media/Background/color5.png);
-      background-image: url(./media/Background/10.jpg);*/
-  
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
 }
+
 
 .caret {
   display: inline-block;
@@ -110,3 +66,11 @@ main{
   content: "";
 }
 
+.bg-image {
+      opacity: 0.7;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      width: 100%;
+      height: auto;
+}

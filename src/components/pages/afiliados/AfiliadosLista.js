@@ -61,7 +61,17 @@ const AfiliadosLista = (props) => {
     }
   ];
 
+
+
   const columns = [
+    {
+      dataField: "nroAfiliado",
+      text: "Nro.Afiliado",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7%", textAlign: "center" };
+      },
+    },
     {
       dataField: "cuil",
       text: "CUIL",
@@ -72,58 +82,48 @@ const AfiliadosLista = (props) => {
       formatter: Formato.Cuit,
     },
     {
-      dataField: "nroAfiliado",
-      text: "Afiliado",
+      dataField: "documento",
+      text: "Documento",
       sort: true,
-      formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "6%", textAlign: "center" };
+        return { width: "8%", textAlign: "center" };
       },
-    },
-    {
-      dataField: "fechaIngreso",
-      text: "Fecha Ingreso",
-      sort: true,
-      formatter: FormatearFecha,
-      headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
-      },
+      formatter: Formato.DNI,
     },
     {
       dataField: "nombre",
       text: "Nombre",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "auto", textAlign: "center" };
+        return { width: "20%", textAlign: "center" };
       },
     },
     {
-      dataField: "actividad",
-      text: "Actividad",
-      sort: true,
+      dataField: "sexo",
+      text: "Sexo",
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "7%", textAlign: "center" };
       },
     },
+    
     {
-      dataField: "seccional",
-      text: "Seccional",
-      sort: true,
+      dataField: "estadoCivil",
+      text: "Estado Civil",
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "7%", textAlign: "center" };
       },
     },
+
     {
-      dataField: "puesto",
-      text: "Puesto",
-      sort: true,
+      dataField: "nacionalidad",
+      text: "Nacionalidad",
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
     },
-   { //ME GENERA ERROR CON EL SEARCH TAB
+    { //ME GENERA ERROR CON EL SEARCH TAB
       dataField: "estadoSolicitud",
-      text: "Estado",
+      text: "Situación",
       sort: true,
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
@@ -169,6 +169,51 @@ const AfiliadosLista = (props) => {
       }),*/
     },
     {
+      dataField: "seccional",
+      text: "Seccional",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "10%", textAlign: "center" };
+      },
+    },
+    {
+      dataField: "fechaIngreso",
+      text: "Fecha Ingreso",
+      sort: true,
+      formatter: FormatearFecha,
+      headerStyle: (colum, colIndex) => {
+        return { width: "9%", textAlign: "center" };
+      },
+    },
+
+    {
+      dataField: "fechaEgreso",
+      text: "Fecha Egreso",
+      sort: true,
+      formatter: FormatearFecha,
+      headerStyle: (colum, colIndex) => {
+        return { width: "9%", textAlign: "center" };
+      },
+    },
+
+    {
+      dataField: "puesto",
+      text: "Puesto",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "8%", textAlign: "center" };
+      },
+    },
+    {
+      dataField: "empresaCUIT",
+      text: "CUIT",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "9%", textAlign: "center" };
+      },
+      formatter: Formato.Cuit,
+    },
+    {
       dataField: "empresa",
       text: "Empresa",
       sort: true,
@@ -176,18 +221,27 @@ const AfiliadosLista = (props) => {
         return { width: "15%", textAlign: "center" };
       },
     },
+        
     {
-      dataField: "documento",
-      text: "Documento",
+      dataField: "actividad",
+      text: "Actividad",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "10%", textAlign: "center" };
       },
-      formatter: Formato.DNI,
     },
+    
   ];
 
-
+  
+  
+  const columnsVacia = [
+    {
+      dataField: "nroAfiliado",
+      text: "Nro.Afiliado",
+      sort: true
+    }
+  ]
   /*const rowEvents = {
     onClick: (e, row, rowIndex) => {
       console.log(`row: ${row}`);
@@ -219,6 +273,7 @@ const AfiliadosLista = (props) => {
   };
 
   const fetchEmpresa = (cuit) => {
+    console.log('cuit',cuit)
 		if ((cuit ?? 0) == 0) {
 			setEmpresaSeleccionada(null);
 			return;
@@ -296,85 +351,98 @@ const AfiliadosLista = (props) => {
       noDataIndication: indication,
       onSelected: rowEvents,
   }
+
+
+
+  const tablePropsVacia = {
+      promptBuscar:"Buscar en Afiliados:",
+      keyField: "nroAfiliado",
+      data: [],
+      columns: columnsVacia,
+      noDataIndication: <h4>No se registran Declaraciones Juradas del Afiliado: </h4>,
+      filter: filterFactory(),
+  }
+
+  const tablePropsVacia2 = {
+    promptBuscar:"Buscar en Afiliados:",
+    keyField: "nroAfiliado",
+    data: [],
+    columns: columnsVacia,
+    noDataIndication: <h4>No se registran Cambios en el Afiliado: </h4>,
+    filter: filterFactory(),
+}
+
   const enDesarrollo = () => {
     alert("asd");
   } 
   return (
-    <div>
-      <h1 className='titulo'>Afiliaciones</h1>
-      <div  className={styles.div}>     
-      <Tabs
-        value={selectedTab}
-        onChange={handleChangeTab}
-        aria-label="basic tabs example"
-        style={{position: 'fixed'}}
-      >
-        <Tab  className={styles.tab} label="Afiliados" />
-       
-        <Tab className={styles.tab}          
-          label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-          style={{ width: "800px", height: "67px"  }}
-          //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
-          disabled={afiliadoSeleccionado?.cuil ? false : true}
-        />
+    <div className={styles.container}> 
+        <h1 className='titulo'>Afiliaciones</h1>
+        <div  className={styles.div}>    
+            <div>
+                <Tabs
+                  value={selectedTab}
+                  onChange={handleChangeTab}
+                  aria-label="basic tabs example"
+                  className={styles.tabs}
+                >
+                  <Tab  className={styles.tab} label="Afiliados" />
+                
+                  <Tab className={styles.tab}          
+                    label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
+                    style={{ width: "800px", height: "67px"  }}
+                    //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+                    disabled={afiliadoSeleccionado?.cuil ? false : true}
+                  />
 
-        <Tab className={styles.tab}
-          label= { afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
-          style={{ width: "800px", height: "67px"  }}
-          disabled={afiliadoSeleccionado?.cuil ? false : true}
-        />
+                  <Tab className={styles.tab}
+                    label= { afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+                    style={{ width: "800px", height: "67px"  }}
+                    disabled={afiliadoSeleccionado?.cuil ? false : true}
+                  />
 
-        <Tab className={styles.tab}
-          label= { afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
-          style={{ width: "800px", height: "67px"  }}
-          disabled={afiliadoSeleccionado?.cuil ? false : true}
-        />
+                  <Tab className={styles.tab}
+                    label= { afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
+                    style={{ width: "800px", height: "67px"  }}
+                    disabled={afiliadoSeleccionado?.cuil ? false : true}
+                  />
 
-        <Tab className={styles.tab}
-          label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-          style={{ width: "800px", height: "67px"  }}
-          disabled={afiliadoSeleccionado?.cuil ? false : true}
-        />
-      </Tabs>
+                  <Tab className={styles.tab}
+                    label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
+                    style={{ width: "800px", height: "67px"  }}
+                    disabled={afiliadoSeleccionado?.cuil ? false : true}
+                  />
+                </Tabs>
+            </div> 
 
-      {selectedTab === 0 && (
-        <Table {...tableProps} />
-      )}
+              {selectedTab === 0 && (
+                <Table {...tableProps} />
+              )}
 
-      {selectedTab === 1 && (
-        <DeclaracionesJuradas
-          cuil={afiliadoSeleccionado.cuil}
-          infoCompleta={true}
-          onSeleccionRegistro={rowEvents}
-        />        
-      )}
+              {selectedTab === 1 && (
+                <DeclaracionesJuradas
+                  cuil={afiliadoSeleccionado.cuil}
+                  infoCompleta={true}
+                  onSeleccionRegistro={rowEvents}
+                />        
+              )}
 
-      {selectedTab === 2 && (
-        <div style={{'display': 'inline-grid'}}>
-         <p/>
-          <p/>
-          <p/>
-          <h3>No se registran datos de Documentación</h3>
+              {selectedTab === 2 && (
+                
+                <Table  {...tablePropsVacia}/>
+              )}
+
+              {selectedTab === 3 && (
+               <Table  {...tablePropsVacia2}/>
+              )}
+
+              {selectedTab === 4 && (
+                <Seccional
+                  localidadId={afiliadoSeleccionado.refLocalidadId}
+                  //onSeleccionRegistro={rowEvents}
+                />        
+              )}
         </div>
-      )}
-
-      {selectedTab === 3 && (
-        <div style={{'display': 'inline-grid'}}>
-        <p/>
-         <p/>
-         <p/>
-         <h3>No se registran cambios de datos</h3>
-       </div>
-      )}
-
-      {selectedTab === 4 && (
-        <Seccional
-          localidadId={afiliadoSeleccionado.refLocalidadId}
-          //onSeleccionRegistro={rowEvents}
-        />        
-      )}
-
-      </div>
 
         <AfiliadoDetails config={{
           data: afiliadoSeleccionado,
