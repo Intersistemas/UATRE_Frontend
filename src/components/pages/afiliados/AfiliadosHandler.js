@@ -20,7 +20,7 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
 
-const navigate = useNavigate()
+  const navigate = useNavigate()
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
   //#endregion
@@ -43,25 +43,25 @@ const navigate = useNavigate()
       }
     ]
   }
-  
+
   const dispatch = useDispatch();
   //dispatch(handleModuloSeleccionar("Afiliaciones",acciones)); //intentaba pasar dos parametros a la funcion 
-  dispatch(handleModuloSeleccionar(moduloInfo)); 
-//#endregion
+  dispatch(handleModuloSeleccionar(moduloInfo));
+  //#endregion
 
-//#region Cargar Tablas
+  //#region Cargar Tablas
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
-        console.log('afiliadosObj', afiliadosObj)
-        setAfiliadosRespuesta(afiliadosObj);
-        if (refresh) setRefresh(false);
+      console.log('afiliadosObj', afiliadosObj)
+      setAfiliadosRespuesta(afiliadosObj);
+      if (refresh) setRefresh(false);
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
     if (estadoSolicitud) {
-        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
-    
+
     request(
       {
         baseURL: "Afiliaciones",
@@ -70,7 +70,7 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud]);
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -81,7 +81,7 @@ const navigate = useNavigate()
         }
       );
       setEstadosSolicitudes(estadosSolicitudesOptions);
-    };    
+    };
 
     request(
       {
@@ -91,18 +91,18 @@ const navigate = useNavigate()
       },
       processEstadosSolicitudes
     );
-  }, [request]);  
+  }, [request]);
 
-//#endregion
-  const  moduloAccion  = useSelector(state => state.moduloAccion)
+  //#endregion
+  const moduloAccion = useSelector(state => state.moduloAccion)
   const afiliadoSeleccionado = useSelector(state => state.afiliado)
-  const {id} = afiliadoSeleccionado
+  const { id, cuil } = afiliadoSeleccionado
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
-    
+
     //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-    switch (moduloAccion){
+    switch (moduloAccion) {
       case "Agregar Afiliado":
         setAfiliadoAgregarShow(true);
         break;
@@ -113,17 +113,17 @@ const navigate = useNavigate()
         alert('Funcionalidad de Modificar En desarrollo ');
         break;
       case "Imprimir Solicitud":
-        navigate(`/afiliaciones/${id}`)
-        
+        navigate(`/afiliaciones/${cuil}`)
+
         // alert('Funcionalidad de Imprimir En desarrollo ');
         // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
-        
+
         break;
       default: break;
     }
-      dispatch(handleModuloEjecutarAccion(''));//Dejo el estado de ejecutar Accion LIMPIO!
+    dispatch(handleModuloEjecutarAccion(''));//Dejo el estado de ejecutar Accion LIMPIO!
 
-  },[moduloAccion])
+  }, [moduloAccion])
 
   // const handleDarDeBajaAfiliado = (afiliado) => {
 
@@ -131,7 +131,7 @@ const navigate = useNavigate()
 
   // const handleResolverEstadoSolicitud = (afiliado) => {
 
-  
+
   const handleResolverEstadoSolicitud = () => {
     alert("Funcionalidad en desarrollo");
   };
@@ -148,7 +148,7 @@ const navigate = useNavigate()
   };
 
   const handlePageChange = (page, sizePerPage) => {
-    console.log('llega con la data',page,sizePerPage)
+    console.log('llega con la data', page, sizePerPage)
     setPage(page);
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
@@ -175,25 +175,27 @@ const navigate = useNavigate()
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
-          {afiliadoAgregarShow && (
-            <AfiliadoAgregar
-              onClose={onCloseAfiliadoAgregarHandler}
-              estadosSolicitudes={estadosSolicitudes}
-            />
-          )}
-
-          <AfiliadosLista
-            afiliados={afiliadosRespuesta}
-            loading={afiliadosRespuesta?.length ? false : isLoading}
-            estadosSolicitud={estadosSolicitudes}
-            estadoSolicitudActual={estadoSolicitud}
-            //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
-            onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
-            onPageChange={handlePageChange}
-            onSizePerPageChange={handleSizePerPageChange}
-            onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+        {afiliadoAgregarShow && (
+          <AfiliadoAgregar
+            onClose={onCloseAfiliadoAgregarHandler}
+            estadosSolicitudes={estadosSolicitudes}
           />
-      
+        )}
+
+        <AfiliadosLista
+          afiliados={afiliadosRespuesta}
+          loading={afiliadosRespuesta?.length ? false : isLoading}
+          estadosSolicitud={estadosSolicitudes}
+          estadoSolicitudActual={estadoSolicitud}
+          //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
+          onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+          onPageChange={handlePageChange}
+          onSizePerPageChange={handleSizePerPageChange}
+          onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+          onFilterChange={handleFilterChange}
+
+
+        />
       </Fragment>
     );
 };

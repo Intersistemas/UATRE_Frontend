@@ -91,7 +91,7 @@ const AfiliadoAgregar = (props) => {
 
 
   const [documento, setDocumento] = useState({
-    "entidadTipo": "",
+    "entidadTipo": '',
     "entidadId": 0,
     "refTipoDocumentacionId": 0,
     "archivo": "",
@@ -970,6 +970,7 @@ const AfiliadoAgregar = (props) => {
 
 
   const agregarTipoArchivo = (e) => {
+
     setDocumento({
       ...documento,
       "refTipoDocumentacionId": e.target.value
@@ -996,13 +997,13 @@ const AfiliadoAgregar = (props) => {
     })
   }
 
-
   const agregarArchivo = (archivos) => {
     Array.from(archivos).forEach(archivo => {
-      const reader = new FileReader();
+      let reader = new FileReader();
       reader.readAsDataURL(archivo);
       reader.onload = () => {
-        const base64 = reader.result
+        let base64 = reader.result.replace('data:', '').replace(/^.+,/, '')
+        console.log(base64);
         setDocumento({
           ...documento,
           "archivo": base64
@@ -1011,29 +1012,22 @@ const AfiliadoAgregar = (props) => {
     })
   };
 
-  const insertarDocumentacion = async () => {
-    // request(
-    //   {
-    //     baseURL: "SIARU",
-    //     endpoint: `/DocumentacionEntidad`,
-    //     method: "POST",
-    //     body: documento,
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   },
-    // );
+  const insertarDocumentacion = (e) => {
+    e.preventDefault()
+    request(
+      {
+        baseURL: "SiaruTest",
+        endpoint: `/DocumentacionEntidad`,
+        method: "POST",
+        body: documento,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: documento
-    };
-    const response = await fetch('http://intersistemas.net:8201/api/DocumentacionEntidad', requestOptions);
-    const data = await response.json();
-    this.setState({ postId: data.id });
+
   }
-
 
   console.log(documento);
   return (
@@ -1073,7 +1067,6 @@ const AfiliadoAgregar = (props) => {
             disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
-
             label="Resolver Solicitud"
             hidden={
               (nuevoAfiliadoResponse || afiliadoExiste) &&
@@ -1553,17 +1546,20 @@ const AfiliadoAgregar = (props) => {
             <div className={classes.renglon}>
               <label>Tipo de Documentacion</label>
               <div className={classes.input}>
-                <select
+                <Select
+
                   name="tipoDocumentacion"
                   label="tipoDocumentacion"
                   value={documento.refTipoDocumentacionId}
+                  defaultValue={"Tipo"}
                   onChange={agregarTipoArchivo}
                 // disabled={!padronRespuesta?.idPersona ? true : false}
                 >
-                  <option value={1}>Test</option>
-                  <option value={4}>Recibo de Sueldo</option>
-                  <option value={6}>Solicitud de Afiliacion</option>
-                </select>
+
+                  <MenuItem value={1}>Test</MenuItem >
+                  <MenuItem value={4}>Recibo de Sueldo</MenuItem >
+                  <MenuItem value={6}>Solicitud de Afiliacion</MenuItem >
+                </Select>
               </div>
             </div>
             {/*  FIN Tipo Documentacion */}
@@ -1571,17 +1567,17 @@ const AfiliadoAgregar = (props) => {
             <div className={classes.renglon}>
               <label>Tipo Entidad</label>
               <div className={classes.input}>
-                <select
+                <Select
                   name="tipoEntidad"
                   label="tipoEntidad"
                   value={documento.entidadTipo}
                   onChange={agregarEntidadTipo}
                 // disabled={!padronRespuesta?.idPersona ? true : false}
                 >
-                  <option value={'S'}>Test S</option>
-                  <option value={'O'}>Test O</option>
-                  <option value={'D'}>Test D</option>
-                </select>
+                  <MenuItem value={'S'}>Test S</MenuItem>
+                  <MenuItem value={'O'}>Test O</MenuItem>
+                  <MenuItem value={'D'}>Test D</MenuItem>
+                </Select>
               </div>
             </div>
             {/*  FIN Entidad Tipo */}
@@ -1609,7 +1605,8 @@ const AfiliadoAgregar = (props) => {
             </div>
             {/* Fin Archivos */}
           </div>
-          <button type="submit" onClick={insertarDocumentacion}>Insertar Documentacion</button>
+
+          <button style={{ marginTop: '15px' }} type="button" onClick={insertarDocumentacion}>Insertar Documentacion</button>
         </>
       )}
       {
