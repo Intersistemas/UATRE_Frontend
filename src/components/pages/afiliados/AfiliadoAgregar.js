@@ -7,14 +7,15 @@ import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
 //import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Alert, Tab, Tabs } from "@mui/material";
+import { Alert, Input, InputAdornment, InputLabel, MenuItem, Select, Snackbar, Tab, Tabs, TextareaAutosize, TextField } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 import ValidarCUIT from "../../helpers/ValidarCUIT";
 import InputMask from "../../ui/Input/InputMask";
-import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
+import { TextFields } from "@mui/icons-material";
+import { Box } from "@mui/system";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -22,10 +23,6 @@ const AfiliadoAgregar = (props) => {
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
-  const [
-    resolverSolicitudAfiliadoResponse,
-    setResolverSolicitudAfiliadoResponse,
-  ] = useState(0);
   //#endregion
 
   //#region Alert
@@ -92,6 +89,18 @@ const AfiliadoAgregar = (props) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
+
+  const [documento, setDocumento] = useState({
+    "entidadTipo": "",
+    "entidadId": 0,
+    "refTipoDocumentacionId": 0,
+    "archivo": "",
+    "observaciones": ""
+  })
+  const [file, setFile] = useState(null);
+
+
+
   //#region manejo de validaciones
   // const [cuilHelperText, setCUILHelperText] = useState("");
   // const [cuitHelperText, setCUITHelperText] = useState("");
@@ -113,7 +122,7 @@ const AfiliadoAgregar = (props) => {
 
   const [nombreIsValid, setNombreIsValid] = useState(false);
   const nombreReducer = (state, action) => {
-    //console.log("reducer");
+    console.log("reducer");
     if (action.type === "USER_INPUT") {
       return { value: action.value, isValid: action.value.length > 0 };
     }
@@ -147,32 +156,32 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking...", cuilState.isValid);
-      console.log("checking...", cuitState.isValid);
+      console.log("checking...", cuilState.isValid);
+      console.log("checking...", nombreState.isValid);
       setAfiliadoExiste(false);
       setCUILIsValid(cuilState.isValid);
       setNombreIsValid(nombreState.isValid);
 
-      if (cuilState.isValid && nombreState.isValid && cuitState.isValid) {
+      if (cuilState.isValid && nombreState.isValid) {
         setFormularioIsValid(true);
       }
     }, 400);
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
+      console.log("cleanup");
     };
-  }, [cuilState.isValid, nombreState.isValid, cuitState.isValid]);
+  }, [cuilState.isValid, nombreState.isValid]);
 
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking empresa.", cuitState.isValid);
+      console.log("checking empresa.", cuitState.isValid);
       setCUITIsValid(cuitState.isValid);
     }, 200);
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
+      console.log("cleanup");
     };
   }, [cuitState.isValid]);
   //#endregion
@@ -180,9 +189,9 @@ const AfiliadoAgregar = (props) => {
   //#region Manejo de notificaciones y alert
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking showAlert...", showAlert);
+      console.log("checking showAlert...", showAlert);
       //if (showAlert) {
-      //setShowAlert(false);
+      setShowAlert(false);
       setTextAlert("");
       setSeverityAlert("");
       //}
@@ -523,8 +532,8 @@ const AfiliadoAgregar = (props) => {
 
       //localidad
       const processLocalidades = async (localidadesObj) => {
-        //console.log("localidades", localidadesObj);
-        //console.log("localidad", localidadesObj[0].id);
+        console.log("localidades", localidadesObj);
+        console.log("localidad", localidadesObj[0].id);
         setLocalidad(localidadesObj[0].id ?? "");
       };
 
@@ -537,7 +546,7 @@ const AfiliadoAgregar = (props) => {
       setTipoDocumentoAFIP(padronObj.tipoDocumento);
       setNumeroDocumentoAFIP(padronObj.numeroDocumento);
       setEstadoClaveAFIP(padronObj.estadoClave);
-      setDomicilioRealAFIP(domicilioReal.direccion);
+      setDomicilioRealAFIP(domicilioReal);
 
       request(
         {
@@ -562,6 +571,7 @@ const AfiliadoAgregar = (props) => {
   };
 
   const validarEmpresaCUITHandler = (cuit) => {
+    console.log("entra");
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
       setPadronEmpresaRespuesta(padronObj);
@@ -576,7 +586,7 @@ const AfiliadoAgregar = (props) => {
       setLocalidadEmpresa(
         padronObj
           ? padronObj?.domicilios[1]?.localidad ??
-              padronObj?.domicilios[1]?.descripcionProvincia
+          padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
       // setTelefonoEmpresa()
@@ -588,7 +598,7 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${true}`,
+        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${false}`,
         method: "GET",
       },
       processConsultaPadron
@@ -604,14 +614,14 @@ const AfiliadoAgregar = (props) => {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
         ? padronEmpresaRespuesta?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
         : "",
       claveTipo: padronEmpresaRespuesta.tipoClave,
       claveEstado: padronEmpresaRespuesta.estadoClave,
       claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
       actividadPrincipalDescripcion:
         padronEmpresaRespuesta.descripcionActividadPrincipal,
-      actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+      actividadPrincipalId: padronEmpresaRespuesta.actividadPrincipalId,
       actividadPrincipalPeriodo:
         padronEmpresaRespuesta.periodoActividadPrincipal,
       contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
@@ -659,9 +669,9 @@ const AfiliadoAgregar = (props) => {
 
   const nuevoAfiliado = {
     cuil: +cuil,
-    nombre: `${padronRespuesta?.apellido ?? ""} ${
-      padronRespuesta?.nombre ?? ""
-    }`,
+    nroAfiliado: 0,
+    nombre: `${padronRespuesta?.apellido ?? ""} ${padronRespuesta?.nombre ?? ""
+      }`,
     puestoId: +puesto,
     fechaIngreso: null,
     fechaEgreso: null,
@@ -781,7 +791,7 @@ const AfiliadoAgregar = (props) => {
         setShowAlert(true);
         setSeverityAlert("success");
         setTextAlert("Solicitud resuelta en estado Activo!");
-        setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
+
         if (+estadoSolicitud === 2) {
           setShowImprimirLiquidacion(true);
         }
@@ -798,15 +808,15 @@ const AfiliadoAgregar = (props) => {
           "Content-Type": "application/json-patch+json",
         },
       },
-      resolverSolicitudAfiliado
+      console.log('archivo enviado')
     );
   };
   //#endregion
 
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
-    //console.log("objetoSeleccionadp", value);
-    //console.log("id", name);
+    console.log("objetoSeleccionadp", value);
+    console.log("id", name);
     switch (name) {
       case "actividadSelect":
         setActividad(value);
@@ -843,7 +853,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "localidadSelect":
-        //log("selectLocalidad", value);
+        console.log("selectLocalidad", value);
         setLocalidad(value);
         break;
       case "estadoSolicitudSelect":
@@ -946,7 +956,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle DDJJ
   const handleSeleccionDDJJ = (row) => {
-    //console.log(row.cuit);
+    console.log(row.cuit);
     setCUITEmpresa(row.cuit);
   };
   //#endregion
@@ -957,14 +967,81 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+
+
+  const agregarTipoArchivo = (e) => {
+    setDocumento({
+      ...documento,
+      "refTipoDocumentacionId": e.target.value
+    })
+
+  }
+
+  const agregarEntidadTipo = async (e) => {
+    const EntidadTipo = e.target.value
+
+    const respuesta = await fetch(`http://svr-test:8202/api/DocumentacionEntidad/GetBySpec?EntidadTipo=${EntidadTipo}`)
+    const resultado = await respuesta.json()
+    const { entidadId } = resultado
+    setDocumento({
+      ...documento,
+      "entidadTipo": EntidadTipo,
+      "entidadId": entidadId
+    })
+  }
+  const agregarObservaciones = (e) => {
+    setDocumento({
+      ...documento,
+      "observaciones": e.target.value
+    })
+  }
+
+
+  const agregarArchivo = (archivos) => {
+    Array.from(archivos).forEach(archivo => {
+      const reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onload = () => {
+        const base64 = reader.result
+        setDocumento({
+          ...documento,
+          "archivo": base64
+        })
+      }
+    })
+  };
+
+  const insertarDocumentacion = async () => {
+    // request(
+    //   {
+    //     baseURL: "SIARU",
+    //     endpoint: `/DocumentacionEntidad`,
+    //     method: "POST",
+    //     body: documento,
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   },
+    // );
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: documento
+    };
+    const response = await fetch('http://intersistemas.net:8201/api/DocumentacionEntidad', requestOptions);
+    const data = await response.json();
+    this.setState({ postId: data.id });
+  }
+
+
+  console.log(documento);
   return (
     <Modal onClose={props.onClose}>
-      <div className={classes.div}>
-        <div className={classes.alert}>
-          <Alert hidden={!showAlert} severity={severityAlert} variant="filled">
-            {textAlert}
-          </Alert>
-        </div>
+      <div className={classes.alert}>
+        <Alert hidden={!showAlert} severity={severityAlert} variant="filled">
+          {textAlert}
+        </Alert>
       </div>
       <h5 className={classes.titulo}>
         {padronRespuesta
@@ -992,10 +1069,15 @@ const AfiliadoAgregar = (props) => {
             disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
+            label={"Documentacion"}
+            disabled={nuevoAfiliadoResponse ? true : false}
+          />
+          <Tab
+
             label="Resolver Solicitud"
             hidden={
               (nuevoAfiliadoResponse || afiliadoExiste) &&
-              (+estadoSolicitud === 1 || resolverSolicitudAfiliadoResponse)
+                +estadoSolicitud === 1
                 ? false
                 : true
             }
@@ -1074,7 +1156,7 @@ const AfiliadoAgregar = (props) => {
                 value={estadoCivil}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
-                //width={100}
+              //width={100}
               />
             </div>
             <div className={classes.input25}>
@@ -1085,7 +1167,7 @@ const AfiliadoAgregar = (props) => {
                 value={sexo}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
-                //width={100}
+              //width={100}
               />
             </div>
           </div>
@@ -1098,7 +1180,7 @@ const AfiliadoAgregar = (props) => {
                 label="Tipo Documento"
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 onChange={handleChangeSelect}
-                //width={98}
+              //width={98}
               />
             </div>
             <div className={classes.input25}>
@@ -1447,7 +1529,7 @@ const AfiliadoAgregar = (props) => {
                 disabled={true}
               />
               {padronEmpresaRespuesta &&
-              padronEmpresaRespuesta?.ciiU3EsRural ? (
+                padronEmpresaRespuesta?.ciiU3EsRural ? (
                 <div className={classes.input100}>
                   <label className={classes.labelEsRural}>
                     Es Actividad Rural
@@ -1467,91 +1549,74 @@ const AfiliadoAgregar = (props) => {
       {selectedTab === 3 && (
         <>
           <div className={classes.div}>
-            <h4>
-              {padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"}
-            </h4>
+            {/* Tipo Documentacion */}
             <div className={classes.renglon}>
-              <DeclaracionesJuradas
-                cuil={cuil}
-                onSeleccionRegistro={handleSeleccionDDJJ}
-                mostrarBuscar={false}
-                registros={3}
+              <label>Tipo de Documentacion</label>
+              <div className={classes.input}>
+                <select
+                  name="tipoDocumentacion"
+                  label="tipoDocumentacion"
+                  value={documento.refTipoDocumentacionId}
+                  onChange={agregarTipoArchivo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={1}>Test</option>
+                  <option value={4}>Recibo de Sueldo</option>
+                  <option value={6}>Solicitud de Afiliacion</option>
+                </select>
+              </div>
+            </div>
+            {/*  FIN Tipo Documentacion */}
+            {/* Entidad Tipo */}
+            <div className={classes.renglon}>
+              <label>Tipo Entidad</label>
+              <div className={classes.input}>
+                <select
+                  name="tipoEntidad"
+                  label="tipoEntidad"
+                  value={documento.entidadTipo}
+                  onChange={agregarEntidadTipo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={'S'}>Test S</option>
+                  <option value={'O'}>Test O</option>
+                  <option value={'D'}>Test D</option>
+                </select>
+              </div>
+            </div>
+            {/*  FIN Entidad Tipo */}
+            {/* Observaciones */}
+            <div className={classes.renglon}>
+              <label>Observaciones</label>
+              <TextareaAutosize
+                id="observaciones"
+                name='observaciones'
+                value={documento.observaciones}
+                onChange={agregarObservaciones}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
               />
             </div>
-          </div>
-          <div className={classes.div}>
-            <h4>Actividades del Empleador</h4>
+            {/* Fin Observaciones */}
+            {/* Archivos */}
             <div className={classes.renglon}>
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU1"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1
-                      ? `${padronEmpresaRespuesta.ciiU1} - ${padronEmpresaRespuesta.ciiU1Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Principal"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
-                <div className={classes.input33}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null} */}
-              </div>
-
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU2"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2
-                      ? `${padronEmpresaRespuesta.ciiU2} - ${padronEmpresaRespuesta.ciiU2Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Secundaria"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
-              <div className={classes.input33}>
-                <label className={classes.labelEsRural}>
-                  Es Actividad Rural
-                </label>
-              </div>
-            ) : null} */}
-              </div>
-
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU3"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU3
-                      ? `${padronEmpresaRespuesta.ciiU3} - ${padronEmpresaRespuesta.ciiU3Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Terciaria"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta?.ciiU3EsRural ? (
-              <div className={classes.input33}>
-                <label className={classes.labelEsRural}>
-                  Es Actividad Rural
-                </label>
-              </div>
-            ) : null} */}
-              </div>
+              <label>Archivos</label>
+              <input type={"file"}
+                name='files'
+                multiple
+                onChange={e => agregarArchivo(e.target.files)}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
+              />
             </div>
+            {/* Fin Archivos */}
           </div>
-          <div className={classes.div}>
-            <h4>Afiliados en ultima DDJJ</h4>
-            <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
-
+          <button type="submit" onClick={insertarDocumentacion}>Insertar Documentacion</button>
+        </>
+      )}
+      {
+        selectedTab === 4 && (
+          <>
             <div className={classes.renglon}>
-              <div className={classes.input25}>
+              <div className={classes.input100}>
                 <SelectMaterial
                   name="estadoSolicitudSelect"
                   label="Estado Solciitud:"
@@ -1559,47 +1624,47 @@ const AfiliadoAgregar = (props) => {
                   value={estadoSolicitud}
                   //defaultValue={nacionalidades[0]}
                   onChange={handleChangeSelect}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 />
               </div>
-
-              <div className={classes.input75}>
+            </div>
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
                 <InputMaterial
                   id="resolverSolicitudObs"
                   value={resolverSolicitudObs}
                   label="Observaciones"
                   width={100}
                   onChange={handleInputChange}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 />
               </div>
             </div>
 
-            <div className={classes.botonesResolverSolicitud}>
-              <div className={classes.botonResolverSolicitud}>
+            <div className={classes.renglon}>
+              <div className={classes.boton}>
                 <Button
                   className={classes.button}
                   width={100}
                   onClick={resolverSolicitudHandler}
                   disabled={showImprimirLiquidacion}
                 >
-                  Resolver Solicitud
+                  Resolver
                 </Button>
               </div>
-              <div className={classes.botonResolverSolicitud}>
+              <div className={classes.boton}>
                 <Button
                   className={classes.button}
                   width={100}
                   disabled={!showImprimirLiquidacion}
-                  //onClick={imprimirLiquidacionHandler}
+                //onClick={imprimirLiquidacionHandler}
                 >
                   Imprimir Certificado Afiliación
                 </Button>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
       <div className={classes.botones}>
         <div className={classes.boton}>
           <Button
@@ -1619,7 +1684,7 @@ const AfiliadoAgregar = (props) => {
           </Button>
         </div>
       </div>
-    </Modal>
+    </Modal >
   );
 };
 

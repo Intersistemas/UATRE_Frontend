@@ -12,21 +12,18 @@ import Afiliado from './components/pages/afiliados/Afiliado';
 import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
+import ImpresionLiquidacion from "./components/pages/siaru/Liquidaciones/ImpresionLiquidacion";
+import CodigoDeBarras from "./components/pages/siaru/CodigoDeBarras";
 
 const App = () => {
-  const authContext = useContext(AuthContext); 
+  const authContext = useContext(AuthContext);
   const isLoggedIn = authContext.isLoggedIn;
 
   return (
-
     <div className="App">
+
      
-        <Routes>
-              {
-                  !isLoggedIn 
-                  && (<Route path="/*" element={<Login/>} />)
-              }
-        </Routes> 
+      <Routes>{!isLoggedIn && (<Route path="/*" element={<Login/>} />)}</Routes> 
 
         <SideBar>
           
@@ -40,17 +37,15 @@ const App = () => {
 						<Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+            <Route path="/siaru/liquidaciones/impresion" element={<ImpresionLiquidacion />}/>
             <Route path="/inicio" element={<InicioHandler />} />
-            <Route path="/inicio" element={<InicioHandler  />} />
+            <Route path="/CodigoDeBarras" element={<CodigoDeBarras />} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler />} />
           </Routes>
-         
         </SideBar>
-
     </div>
-
   );
-}
+};
 
 export default App;
