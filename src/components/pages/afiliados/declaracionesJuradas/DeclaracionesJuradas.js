@@ -13,8 +13,9 @@ const DeclaracionesJuradas = (props) => {
   const { cuil, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
 
   useEffect(() => {
-    console.log("registros",registros)
+    //console.log("registros ddJJUatreObj",registros)
     if (cuil > 0) {
+
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj.data);
       };

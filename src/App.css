@@ -39,25 +39,40 @@
 }
 
 
+
 .container{
 
-/*  background-image: url(./media/campo_trigo1.jpg);*/
-  background-image: url(./media/Background/1.png);
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-
   container-type: inline-size;
-  -webkit-font-smoothing: antialiased;
+  /*backgroundImage: `url(${backgroundImage})`,*/
+  background-position: 'center';
+  background-size: 'cover';
+  background-repeat: 'no-repeat';
+  width: '100vw';
+  height: '100vh';
 
-  width: 100vw;
-  height: 100vh;
   display: flex;
   justify-content: center;
-
-  max-width: 100%;
+  padding: 0 !important;
+  /*max-width: 100%;*/
   
 }
+
+@media (max-width: 1920px) {
+  .container {
+    max-width: 1740px !important;
+    margin: 0 !important;
+    /*color: red !important;*/
+  }
+}
+
+@media (max-width: 1360px) {
+  .container {
+    max-width: 1190px !important;
+    margin: 0 !important;
+    /*color: blue !important;*/
+  }
+}
+
 
 .container:before {
 
@@ -68,7 +83,7 @@
 .titulo{
   /*background: -webkit-linear-gradient(90deg, #186090, #18609000 90%);*/
   color: white;
-  padding: 2% 0% 2% 0%;
+  /*padding: 0% 0% 2% 0%;*/
   text-shadow: 3px 3px 2px #186090;
 }
 

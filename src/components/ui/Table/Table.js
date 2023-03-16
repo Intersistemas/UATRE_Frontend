@@ -52,9 +52,10 @@ color: '#727272',
     const rowStyle = {
       backgroundColor: "#ffffff99",
       border: "1.5px solid #3595D2",
-      color: "#000", //color: '#727272',
+      color: '#000080', //color: '#727272',
     };
     return rowStyle;
+
   };
 
   let MyGrid = (
@@ -103,9 +104,6 @@ color: '#727272',
             <div>
               {props.mostrarBuscar !== false ? (
                 <div style={{ display: "flex", justifyContent: "right" }}>
-                  <h3>
-                    {props.promptBuscar ? props.promptBuscar : "Buscar:"} &nbsp;
-                  </h3>
                   <SearchBar
                     {...toolkitprops.searchProps}
                     srText=""
@@ -147,9 +145,10 @@ color: '#727272',
     </PaginationProvider>
   );
   return (
-    <div>
-      {MyGrid}
-      {/*<BootstrapTable
+
+    <div className={classes.tabla}>
+          {MyGrid}
+        {/*<BootstrapTable
           hover
           bootstrap4
           condensed  

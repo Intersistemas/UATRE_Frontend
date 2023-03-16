@@ -1,0 +1,47 @@
+.titulo {
+	color: white !important;
+	text-shadow: 3px 3px 3px #186090 !important;
+}
+
+.fondo {
+	background-color: #ffffffb3;
+}
+
+.grupo {
+	padding: 10px;
+	color: #186090;
+	text-align: left;
+	border: solid 1px;
+	border-radius: 20px;
+}
+
+.cabecera {
+	font-weight: bold;
+	text-align: left;
+	border-bottom: dashed 1px;
+}
+
+.label {
+	font-weight: bold;
+	text-align: right;
+}
+
+.data {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+
+.tab {
+	color: #FFF !important;
+	background-color: #186090 !important;
+	border-radius: 15px 15px 0px 0px !important;
+	/*border-color: #ccc!important;*/
+	border: 2px solid #ccc!important;
+}
+
+.tabs {
+	color: '#FFFFFF'!important;
+	background-color: #186090;
+}
