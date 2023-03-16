@@ -268,7 +268,7 @@ const LiquidacionesProcesarHandler = () => {
 											config={{
 												empresa: empresa,
 												onCancela: () => setLiquidacionForm(null),
-												onConfirma: () => setLiquidacionForm(null),
+												onConfirma: () => navigate("/siaru/liquidaciones", { state: { empresa: empresa } }),
 											}}
 										/>
 									)
