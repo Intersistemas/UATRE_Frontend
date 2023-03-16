@@ -26,9 +26,9 @@ const InputMaterial = (props) => {
     }
   };
 
-  const shrink = props.type === "date" || props.value !== '' ? true : false
-
-  return (
+  const shrink = props.type === "date" || props.value !== '' ? true : false  
+  //console.log("helperText", props.helperText)
+  return (    
     <TextField
       id={props.id}
       size="small"
@@ -44,7 +44,8 @@ const InputMaterial = (props) => {
       InputLabelProps={{
         shrink: shrink,
       }}
-      //helperText={helperText}
+      helperText={props.helperText ?? ""}
+      error={props.error ?? false}
     />
   );
 };
