@@ -6,7 +6,7 @@ import Table from "../../../ui/Table/Table";
 
 const LiquidacionesList = (props) => {
 	const config = { ...props.config };
-	const data = [...config.data];
+	const data = config.data ? [...config.data] : [];
 	const pagination = { ...config.pagination };
 	const onSelect = config.onSelect ?? ((registro) => {});
 	const onPaginationChange =
@@ -119,7 +119,7 @@ const LiquidacionesList = (props) => {
 			data={data}
 			columns={columns}
 			pagination={bootstrapPagination}
-			noDataIndication={<h4>No hay informacion a mostrar</h4>}
+			noDataIndication={config.noData}
 			onSelected={onSelect}
 		/>
 	);
