@@ -1,0 +1,10 @@
+.details {
+	background-color: #ffffffb3;
+	/*background: -webkit-linear-gradient(360deg, #ffffff, #18609000 99%);*/
+	color: #186090;
+	text-align: left;
+}
+
+.details > div > span {
+	font-weight: bold;
+}

@@ -1,0 +1,27 @@
+
+.headerClass{
+    color: white;
+    background-color: rgb(85 85 85 / 90%);
+}
+
+td, th {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+
+
+/*DIMENSIONES*/
+@media (max-width: 1920px) {
+    .tabla {
+        zoom: 90%;
+        width: 100%;
+    }
+  }
+  
+  @media (max-width: 1360px) {
+    .tabla {
+        zoom: 74%;
+        width: 100%;
+    }
+  }

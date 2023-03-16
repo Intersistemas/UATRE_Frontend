@@ -1,9 +1,9 @@
 .login {
   width: 20%;
   /* max-width: 40rem; */
-  margin: 8rem auto;
+  margin: auto;
   padding: 2rem;
-  background-color: rgb(255 255 255 / 50%);
+  background-color: rgb(255 255 255 / 50%); 
 }
 
 .control {
@@ -53,22 +53,28 @@
   font-weight: bold;
 }
 
-.btn2{
-  color: #186090 !important; 
-  background: white !important;
-  border: 1px solid #186090 !important;
-}
-
-.btn2:hover,
-.btn2:active {
-color:white !important;
-background: #186090 !important;
-}
-
 
 @media (min-width: 768px) {
   .control {
     align-items: center;
   }
 
+}
+
+.container{
+  background-image: url(../../media/campo_trigo1.jpg);
+  
+  /*background-image: url(../../media/Background/1.png);*/
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  container-type: inline-size;
+  -webkit-font-smoothing: antialiased;
+
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  
 }

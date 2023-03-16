@@ -7,10 +7,12 @@ const AuthContext = React.createContext({
     token: '',
     isLoggedIn: false,
     rol: null,
-    usuario: '',
+    usuario: {},
     login: async (token, expiresIn, rol, usuario) => {},
     logout: () => {}
 })
+
+
 
 const calculateTokenExpiracy = (expiresIn) => {
     const currentTime = new Date().getTime();
@@ -73,7 +75,7 @@ export const AuthContextProvider = (props) => {
         setUsuario(usuario);
         localStorage.setItem('token', token)
         localStorage.setItem('expirationTime', expiresIn)
-        localStorage.setItem('usuario', usuario)
+        localStorage.setItem('usuario', JSON.stringify(usuario))
         //console.log("loginHandler - expiresIn", expiresIn)
         const remainingDuration = calculateTokenExpiracy(expiresIn)
 

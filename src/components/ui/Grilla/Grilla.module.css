@@ -1,0 +1,39 @@
+.grilla {
+	display: flex;
+	flex-direction: column;
+}
+
+.renglon {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.celda {
+	padding: 5px;
+}
+
+.izquierda {
+	justify-content: left;
+}
+
+.derecha {
+	justify-content: right;
+}
+
+.centro {
+	justify-content: center;
+}
+
+.arriba {
+	align-items: flex-start;
+}
+
+.abajo {
+	align-items: flex-end;
+}
+
+.expandir {
+	flex-grow: 1;
+}

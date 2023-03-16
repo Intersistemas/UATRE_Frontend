@@ -1,0 +1,37 @@
+.div {
+    /*align-items: center;*/
+    /*background-color: transparent;*/
+    /*width: 95%;*/
+    /*display: block;*/
+    /*flex-direction: row;*/
+    padding: 2% 0%;
+    /*right: 0;*/
+    /*margin-left: 2.5%;*/
+    /*zoom: 78%;*/
+}
+
+.tab{
+    color: #FFF !important;
+    background-color: #186090 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    /*border-color: #ccc!important;*/
+    border: 2px solid #ccc!important;
+}
+
+.tabs{
+    position: fixed;
+}
+
+@media (max-width: 1920px) {
+    .tabs {
+        zoom: 90%;
+        margin: -1.5% 0% 0% 0%;
+    }
+  }
+  
+  @media (max-width: 1360px) {
+    .tabs {
+        zoom: 60%;
+        margin: -0.9% 0% 0% 0%;
+    }
+  }

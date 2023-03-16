@@ -1,0 +1,12 @@
+
+
+.boton {
+    color:black;
+    transition: all 0.3;
+    
+}
+.boton:hover {
+    color:white
+}
+
+
