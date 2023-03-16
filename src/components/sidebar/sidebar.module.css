@@ -5,15 +5,8 @@
 }
 .container{
   display:flex;
-  padding-left: 0 !important; 
-  margin-left: 0 !important;
-  max-width: 100% !important;
+}
 
-}
-main{
-  width: 100%;
-  padding: 20px;
-}
 .sidebar{
   background: var(--color1);/*#186090;*/
   color: #fff;

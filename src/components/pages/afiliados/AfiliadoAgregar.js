@@ -7,13 +7,15 @@ import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
 //import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Alert, Snackbar, Tab, Tabs } from "@mui/material";
+import { Alert, Input, InputAdornment, InputLabel, MenuItem, Select, Snackbar, Tab, Tabs, TextareaAutosize, TextField } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 import ValidarCUIT from "../../helpers/ValidarCUIT";
 import InputMask from "../../ui/Input/InputMask";
+import { TextFields } from "@mui/icons-material";
+import { Box } from "@mui/system";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -86,6 +88,18 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   const [selectedTab, setSelectedTab] = useState(0);
+
+
+  const [documento, setDocumento] = useState({
+    "entidadTipo": "",
+    "entidadId": 0,
+    "refTipoDocumentacionId": 0,
+    "archivo": "",
+    "observaciones": ""
+  })
+  const [file, setFile] = useState(null);
+
+
 
   //#region manejo de validaciones
   // const [cuilHelperText, setCUILHelperText] = useState("");
@@ -572,7 +586,7 @@ const AfiliadoAgregar = (props) => {
       setLocalidadEmpresa(
         padronObj
           ? padronObj?.domicilios[1]?.localidad ??
-              padronObj?.domicilios[1]?.descripcionProvincia
+          padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
       // setTelefonoEmpresa()
@@ -600,7 +614,7 @@ const AfiliadoAgregar = (props) => {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
         ? padronEmpresaRespuesta?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
         : "",
       claveTipo: padronEmpresaRespuesta.tipoClave,
       claveEstado: padronEmpresaRespuesta.estadoClave,
@@ -656,9 +670,8 @@ const AfiliadoAgregar = (props) => {
   const nuevoAfiliado = {
     cuil: +cuil,
     nroAfiliado: 0,
-    nombre: `${padronRespuesta?.apellido ?? ""} ${
-      padronRespuesta?.nombre ?? ""
-    }`,
+    nombre: `${padronRespuesta?.apellido ?? ""} ${padronRespuesta?.nombre ?? ""
+      }`,
     puestoId: +puesto,
     fechaIngreso: null,
     fechaEgreso: null,
@@ -795,7 +808,7 @@ const AfiliadoAgregar = (props) => {
           "Content-Type": "application/json-patch+json",
         },
       },
-      resolverSolicitudAfiliado
+      console.log('archivo enviado')
     );
   };
   //#endregion
@@ -954,6 +967,75 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+
+
+  const agregarTipoArchivo = (e) => {
+    setDocumento({
+      ...documento,
+      "refTipoDocumentacionId": e.target.value
+    })
+
+  }
+
+  const agregarEntidadTipo = async (e) => {
+    const EntidadTipo = e.target.value
+
+    const respuesta = await fetch(`http://svr-test:8202/api/DocumentacionEntidad/GetBySpec?EntidadTipo=${EntidadTipo}`)
+    const resultado = await respuesta.json()
+    const { entidadId } = resultado
+    setDocumento({
+      ...documento,
+      "entidadTipo": EntidadTipo,
+      "entidadId": entidadId
+    })
+  }
+  const agregarObservaciones = (e) => {
+    setDocumento({
+      ...documento,
+      "observaciones": e.target.value
+    })
+  }
+
+
+  const agregarArchivo = (archivos) => {
+    Array.from(archivos).forEach(archivo => {
+      const reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onload = () => {
+        const base64 = reader.result
+        setDocumento({
+          ...documento,
+          "archivo": base64
+        })
+      }
+    })
+  };
+
+  const insertarDocumentacion = async () => {
+    // request(
+    //   {
+    //     baseURL: "SIARU",
+    //     endpoint: `/DocumentacionEntidad`,
+    //     method: "POST",
+    //     body: documento,
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   },
+    // );
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: documento
+    };
+    const response = await fetch('http://intersistemas.net:8201/api/DocumentacionEntidad', requestOptions);
+    const data = await response.json();
+    this.setState({ postId: data.id });
+  }
+
+
+  console.log(documento);
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.alert}>
@@ -987,10 +1069,15 @@ const AfiliadoAgregar = (props) => {
             disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
+            label={"Documentacion"}
+            disabled={nuevoAfiliadoResponse ? true : false}
+          />
+          <Tab
+
             label="Resolver Solicitud"
             hidden={
               (nuevoAfiliadoResponse || afiliadoExiste) &&
-              +estadoSolicitud === 1
+                +estadoSolicitud === 1
                 ? false
                 : true
             }
@@ -1069,7 +1156,7 @@ const AfiliadoAgregar = (props) => {
                 value={estadoCivil}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
-                //width={100}
+              //width={100}
               />
             </div>
             <div className={classes.input25}>
@@ -1080,7 +1167,7 @@ const AfiliadoAgregar = (props) => {
                 value={sexo}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
-                //width={100}
+              //width={100}
               />
             </div>
           </div>
@@ -1093,7 +1180,7 @@ const AfiliadoAgregar = (props) => {
                 label="Tipo Documento"
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 onChange={handleChangeSelect}
-                //width={98}
+              //width={98}
               />
             </div>
             <div className={classes.input25}>
@@ -1442,7 +1529,7 @@ const AfiliadoAgregar = (props) => {
                 disabled={true}
               />
               {padronEmpresaRespuesta &&
-              padronEmpresaRespuesta?.ciiU3EsRural ? (
+                padronEmpresaRespuesta?.ciiU3EsRural ? (
                 <div className={classes.input100}>
                   <label className={classes.labelEsRural}>
                     Es Actividad Rural
@@ -1461,56 +1548,123 @@ const AfiliadoAgregar = (props) => {
       )}
       {selectedTab === 3 && (
         <>
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <SelectMaterial
-                name="estadoSolicitudSelect"
-                label="Estado Solciitud:"
-                options={props.estadosSolicitudes}
-                value={estadoSolicitud}
-                //defaultValue={nacionalidades[0]}
-                onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+          <div className={classes.div}>
+            {/* Tipo Documentacion */}
+            <div className={classes.renglon}>
+              <label>Tipo de Documentacion</label>
+              <div className={classes.input}>
+                <select
+                  name="tipoDocumentacion"
+                  label="tipoDocumentacion"
+                  value={documento.refTipoDocumentacionId}
+                  onChange={agregarTipoArchivo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={1}>Test</option>
+                  <option value={4}>Recibo de Sueldo</option>
+                  <option value={6}>Solicitud de Afiliacion</option>
+                </select>
+              </div>
+            </div>
+            {/*  FIN Tipo Documentacion */}
+            {/* Entidad Tipo */}
+            <div className={classes.renglon}>
+              <label>Tipo Entidad</label>
+              <div className={classes.input}>
+                <select
+                  name="tipoEntidad"
+                  label="tipoEntidad"
+                  value={documento.entidadTipo}
+                  onChange={agregarEntidadTipo}
+                // disabled={!padronRespuesta?.idPersona ? true : false}
+                >
+                  <option value={'S'}>Test S</option>
+                  <option value={'O'}>Test O</option>
+                  <option value={'D'}>Test D</option>
+                </select>
+              </div>
+            </div>
+            {/*  FIN Entidad Tipo */}
+            {/* Observaciones */}
+            <div className={classes.renglon}>
+              <label>Observaciones</label>
+              <TextareaAutosize
+                id="observaciones"
+                name='observaciones'
+                value={documento.observaciones}
+                onChange={agregarObservaciones}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
               />
             </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="resolverSolicitudObs"
-                value={resolverSolicitudObs}
-                label="Observaciones"
-                width={100}
-                onChange={handleInputChange}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+            {/* Fin Observaciones */}
+            {/* Archivos */}
+            <div className={classes.renglon}>
+              <label>Archivos</label>
+              <input type={"file"}
+                name='files'
+                multiple
+                onChange={e => agregarArchivo(e.target.files)}
+              // disabled={!padronRespuesta?.idPersona ? true : false}
               />
             </div>
+            {/* Fin Archivos */}
           </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.boton}>
-              <Button
-                className={classes.button}
-                width={100}
-                onClick={resolverSolicitudHandler}
-                disabled={showImprimirLiquidacion}
-              >
-                Resolver
-              </Button>
-            </div>
-            <div className={classes.boton}>
-              <Button
-                className={classes.button}
-                width={100}
-                disabled={!showImprimirLiquidacion}
-                //onClick={imprimirLiquidacionHandler}
-              >
-                Imprimir Certificado Afiliación
-              </Button>
-            </div>
-          </div>
+          <button type="submit" onClick={insertarDocumentacion}>Insertar Documentacion</button>
         </>
       )}
+      {
+        selectedTab === 4 && (
+          <>
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
+                <SelectMaterial
+                  name="estadoSolicitudSelect"
+                  label="Estado Solciitud:"
+                  options={props.estadosSolicitudes}
+                  value={estadoSolicitud}
+                  //defaultValue={nacionalidades[0]}
+                  onChange={handleChangeSelect}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
+                />
+              </div>
+            </div>
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
+                <InputMaterial
+                  id="resolverSolicitudObs"
+                  value={resolverSolicitudObs}
+                  label="Observaciones"
+                  width={100}
+                  onChange={handleInputChange}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.boton}>
+                <Button
+                  className={classes.button}
+                  width={100}
+                  onClick={resolverSolicitudHandler}
+                  disabled={showImprimirLiquidacion}
+                >
+                  Resolver
+                </Button>
+              </div>
+              <div className={classes.boton}>
+                <Button
+                  className={classes.button}
+                  width={100}
+                  disabled={!showImprimirLiquidacion}
+                //onClick={imprimirLiquidacionHandler}
+                >
+                  Imprimir Certificado Afiliación
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       <div className={classes.botones}>
         <div className={classes.boton}>
           <Button
@@ -1530,7 +1684,7 @@ const AfiliadoAgregar = (props) => {
           </Button>
         </div>
       </div>
-    </Modal>
+    </Modal >
   );
 };
 

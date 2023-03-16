@@ -177,7 +177,7 @@ const LiquidacionesHandler = () => {
 				});
 				break;
 			case `Imprimir ${liquidacionDesc}`:
-				alert("Proximamente");
+				navigate("/siaru/liquidaciones/impresion")
 				break;
 			case `Pagar ${liquidacionDesc}`:
 				alert("Proximamente");
