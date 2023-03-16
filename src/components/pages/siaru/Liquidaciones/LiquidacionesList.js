@@ -41,6 +41,14 @@ const LiquidacionesList = (props) => {
 			style: { ...cs },
 		},
 		{
+			dataField: "fecha",
+			text: "Fecha",
+			formatter: Formato.Fecha,
+			sort: true,
+      headerStyle: (colum, colIndex) => ({ width: "100px" }),
+			style: { ...cs },
+		},
+		{
 			dataField: "tipoLiquidacion",
 			text: "Tipo",
 			sort: true,

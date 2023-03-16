@@ -290,9 +290,9 @@ const Form = (props) => {
 	const gap = 10;
 	return (
 		<Modal onClose={onCancela}>
-			<Grid col gap={`${gap}px`} full>
-				<Grid full="width" justify="center">
-					<h3>Generando liquidacion</h3>
+			<Grid className={styles.content} col gap={`${gap}px`} full>
+				<Grid className={styles.titulo} full="width" justify="center">
+				<span>Generando liquidacion</span>
 				</Grid>
 				<Grid full="width">
 					<div className={styles.subtitulo}>
@@ -365,6 +365,7 @@ const Form = (props) => {
 						<DateTimePicker
 							type="month"
 							label="Periodo"
+							InputLabelProps={{ shrink: true }}
 							value={otros.periodo}
 							disableFuture
 							required
@@ -380,6 +381,7 @@ const Form = (props) => {
 						<DateTimePicker
 							type="date"
 							label="Fecha de vencimiento"
+							InputLabelProps={{ shrink: true }}
 							disabled
 							value={otros.vencimientoFecha}
 						/>
@@ -388,6 +390,7 @@ const Form = (props) => {
 						<DateTimePicker
 							type="date"
 							label="Fecha pago estimada"
+							InputLabelProps={{ shrink: true }}
 							value={data.fechaPagoEstimada}
 							minDate={dayjs().format("YYYY-MM-DD")}
 							required
@@ -438,20 +441,11 @@ const Form = (props) => {
 					<Grid width="77%" />
 				</Grid>
 				<Grid full="width">
-					<h3>Subtotales</h3>
+					<div className={styles.subtitulo}>
+						<span>Subtotales</span>
+					</div>
 				</Grid>
 				<Grid gap={`${gap}px`} full="width">
-					<Grid width="50%">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
-							type="number"
-							label="Porcentaje"
-							InputLabelProps={{ shrink: true }}
-							disabled
-							value={data.interesPorcentaje}
-						/>
-					</Grid>
 					<Grid width="50%">
 						<TextField
 							size="small"
@@ -465,7 +459,9 @@ const Form = (props) => {
 					</Grid>
 				</Grid>
 				<Grid full="width">
-					<h3>Intereses</h3>
+					<div className={styles.subtitulo}>
+						<span>Intereses</span>
+					</div>
 				</Grid>
 				<Grid gap={`${gap}px`} full="width">
 					<Grid width="50%">
@@ -482,7 +478,9 @@ const Form = (props) => {
 					<Grid width="50%" />
 				</Grid>
 				<Grid full="width">
-					<h3>Total a pagar</h3>
+					<div className={styles.subtitulo}>
+						<span>Total a pagar</span>
+					</div>
 				</Grid>
 				<Grid gap={`${gap}px`} full="width">
 					<Grid width="50%">
