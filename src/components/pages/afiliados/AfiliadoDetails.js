@@ -8,6 +8,7 @@ const AfiliadoDetails = (props) => {
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
 	const ddjj = config.ddjj ?? 0;
+	const empresa = config.empresa ?? {};
 	const [hotFiel, setHotField] = useState();
 	
 
@@ -186,39 +187,51 @@ const AfiliadoDetails = (props) => {
 					  <Grid block basis='5%' className={styles.label}>
 						  CUIT:
 					  </Grid>
+					  
 					  <Grid block basis="8%" className={styles.data}>
-						  {ddjj.cuit ?? ""}
+						  {empresa.cuit ?? ""}
 					  </Grid>
   
-					  <Grid block basis="12%" className={styles.label}>
+					  <Grid block basis="7%" className={styles.label}>
 						  Razón Social:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.data}>
-						  {ddjj.empresa ?? ""}
+					  <Grid block basis="15%" className={styles.data}>
+						  {empresa.razonSocial ?? ""}
 					  </Grid>
   
 					  <Grid block basis="7%" className={styles.label}>
 						  Localidad Empleador:
 					  </Grid>
 					  <Grid block basis="20%" className={styles.data}>
-						  {/*data.afipApellido ?? ""} {data.afipNombre ?? ""*/}
+						  Descripcion Localidad
 					  </Grid>
   
 					  <Grid block basis="6%" className={styles.label}>
 						  Provincia Empleador:
 					  </Grid>
 					  <Grid block basis="5%" className={styles.data}>
-						  {/*data.afipTipoClave ?? ""*/}
+						  Descripcion Provincia
 					  </Grid>
   
 					  <Grid block basis="7%" className={styles.label}>
 						  CIIU1:
 					  </Grid>
+					  <Grid block basis="5%" className={styles.data}>
+					  	{empresa.ciiU1Descripcion ?? "Descripcion CIIU1"}
+					  </Grid>
+					  
 					  <Grid block basis="7%" className={styles.label}>
 						  CIIU2:
 					  </Grid>
+					  <Grid block basis="5%" className={styles.data}>
+					  	{empresa.ciiU2Descripcion ?? "Descripcion CIIU2"}
+					  </Grid>
+
 					  <Grid block basis="7%" className={styles.label}>
 						  CIIU3:
+					  </Grid>
+					  <Grid block basis="5%" className={styles.data}>
+					  	{empresa.ciiU3Descripcion ?? "Descripcion CIIU3"}
 					  </Grid>
 				  </Grid>
   
@@ -227,25 +240,25 @@ const AfiliadoDetails = (props) => {
 						 Código de Zona:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-						 Zona (Explicitada):
+						 Zona:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 						 Código de Modalidad de Contratación:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-					  	Modalidad de Contratación (explicitada):
+					  	Modalidad de Contratación:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 						 Código de Actividad:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-						 Actividad (Explicitada):
+						 Actividad:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 						 Código de Condición de CUIL:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-					  	Condición de CUIL (Explicitada):
+					  	Condición de CUIL:
 					  </Grid>
 				  </Grid>
   
@@ -254,13 +267,13 @@ const AfiliadoDetails = (props) => {
 						 Código de Situación de CUIL:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-					  	Situación de CUIL (Explicitada):
+					  	Situación de CUIL:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Codigo de Siniestro:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
-					  	Siniestro (Explicitado):
+					  	Siniestro:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Reducción:
@@ -347,8 +360,10 @@ const AfiliadoDetails = (props) => {
 
 	
 	return (
+		<div className={styles.contenedor}>
+			{hotFiel}
+		</div>
 
-		hotFiel
 	);
 };
 

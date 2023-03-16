@@ -1,73 +1,50 @@
 import { useEffect, useState } from "react";
-import BootstrapTable from "react-bootstrap-table-next";
+//import BootstrapTable from "react-bootstrap-table-next";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
-import styles from "./Seccional.module.css";
+import styles from "./DeclaracionesJuradas.module.css";
 import Formato from "../../../helpers/Formato";
 
-const Seccional = (props) => {
+const AfiliadosUltimaDDJJ = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [localidad, setLocalidad] = useState([]);
-  const  localidadId  = props.localidadId  < 4 ? 4 : props.localidadId;
-  console.log('localidadId',props.localidadId)
-
+  const [ddJJUatreCUITList, setDDJJUatreCUITList] = useState([]);
+  const { cuit } = props.cuit === null ? 0 : props;
 
   useEffect(() => {
-    if (localidadId > 0) {
-    console.log('localidad_request:',localidad)
-      const processLocalidad = async (localidad) => {
-        setLocalidad(localidad);
+    console.log("props", props.cuit)
+    console.log("cuit", cuit);
+    if (cuit) {
+      const processDDJJUatreCUIT = async (ddJJUatreObj) => {
+        setDDJJUatreCUITList(ddJJUatreObj.data);
       };
 
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/Seccional/GetSeccionalesSpecs?LocalidadId=${localidadId}`,
+          endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIT=${cuit}&Sort=periodo&TakeRecords=1&PageSize=3`,
           method: "GET",
         },
-        processLocalidad
+        processDDJJUatreCUIT
       );
     }
-  }, [request, localidadId]);
+  }, [request, cuit]);
 
-  let columns = null
-  if (localidadId) {
+  let columns = null;
+  
     columns = [
-      
       {
-        dataField: "id",
-        text: "Id",
-        hidden: true
-      },
-      {
-        dataField: "codigo",
-        text: "Código Seccional",
-      },
-      {
-        dataField: "descripcion",
-        text: "Nombre Seccional",
-      },
-      {
-        dataField: "domicilio",
-        text: "Domicilio",
+        dataField: "cuil",
+        text: "CUIL",
         sort: true,
-        formatter: ()=>{
-          return 'Domicilio pendiente de carga'
-        }
       },
       {
-        dataField: "localidad",
-        text: "Localidad",
-        formatter: ()=>{
-          return 'Localidad pendiente de carga'
-        }
-
-      },
-
+        dataField: "nombreAfiliado",
+        text: "Nombre",
+      },      
     ];
-  } 
+  
 
   const selectRow = {
     mode: "radio",
@@ -83,27 +60,28 @@ const Seccional = (props) => {
   };
 
   let tableProps = {
-    promptBuscar:"Buscar en Seccional:",
+    mostrarBuscar: false,
+    promptBuscar: "Buscar en DDJJ:",
     keyField: "id",
-    data: localidad,
+    data: ddJJUatreCUITList,
     columns: columns,
     selectRow: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
-    noDataIndication: <h4>No se registran Seccionales: </h4>,
+    noDataIndication: (
+      <h4>No se registran Declaraciones Juradas de la Empresa: </h4>
+    ),
     overlay: overlayFactory({ spinner: true }),
-    onSelected: props.onSeleccionRegistro
-  }
-
-
+    onSelected: props.onSeleccionRegistro,
+  };
 
   return (
     <div className={styles.container}>
       {/*<h4>Declaraciones Juradas</h4>*/}
       <div className={styles.div}>
         <div className={styles.declaracion}>
-          <Table {...tableProps}/>
-          
+          <Table {...tableProps} />
+
           {/*<BootstrapTable
             keyField="id"
             data={ddJJUatreList}
@@ -123,4 +101,4 @@ const Seccional = (props) => {
   );
 };
 
-export default Seccional;
+export default AfiliadosUltimaDDJJ;

@@ -175,27 +175,25 @@ const navigate = useNavigate()
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
-        {afiliadoAgregarShow && (
-          <AfiliadoAgregar
-            onClose={onCloseAfiliadoAgregarHandler}
-            estadosSolicitudes={estadosSolicitudes}
-          />
-        )}
+          {afiliadoAgregarShow && (
+            <AfiliadoAgregar
+              onClose={onCloseAfiliadoAgregarHandler}
+              estadosSolicitudes={estadosSolicitudes}
+            />
+          )}
 
-        <AfiliadosLista
-          afiliados={afiliadosRespuesta}
-          loading={afiliadosRespuesta?.length ? false : isLoading}
-          estadosSolicitud={estadosSolicitudes}
-          estadoSolicitudActual={estadoSolicitud}
-          //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
-          onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
-          onPageChange={handlePageChange}
-          onSizePerPageChange={handleSizePerPageChange}
-          onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
-          onFilterChange={handleFilterChange}
-        
-          
-        />
+          <AfiliadosLista
+            afiliados={afiliadosRespuesta}
+            loading={afiliadosRespuesta?.length ? false : isLoading}
+            estadosSolicitud={estadosSolicitudes}
+            estadoSolicitudActual={estadoSolicitud}
+            //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
+            onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+            onPageChange={handlePageChange}
+            onSizePerPageChange={handleSizePerPageChange}
+            onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+          />
+      
       </Fragment>
     );
 };

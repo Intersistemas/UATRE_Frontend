@@ -5,7 +5,7 @@ const useHttp = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
 
-    const sendRequest = useCallback(async (configRequest, applyData) => {
+    const sendRequest = useCallback(async (configRequest, applyData, takeError = (error) => {}) => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
@@ -43,6 +43,7 @@ const useHttp = () => {
             }
         }
         
+				let err;
         try {
             const response = await fetch(
                 url + configRequest.endpoint,
@@ -52,15 +53,27 @@ const useHttp = () => {
                     body: configRequest.body ? JSON.stringify(configRequest.body) : null
                 }
             )
-            
             if(!response.ok)
             {
                 let errorMessage = 'Error ' + response.status + '-' + response.statusText;                
                 const errorResponse = await response.json();
                 if(errorResponse.statusCode && errorResponse.mensaje)
                 {
-                    errorMessage = 'Error ' + errorResponse.statusCode + '-' + errorResponse.mensaje
+									errorMessage = 'Error ' + errorResponse.statusCode + '-' + errorResponse.mensaje
+									err = {
+										type: "Body",
+										code: errorResponse.statusCode,
+										message: errorResponse.mensaje,
+									};
                 }
+								else
+								{
+									err = {
+										type: "Response",
+										code: response.status,
+										message: response.statusText,
+									};
+								}
                 throw new Error(errorMessage);
             }
 
@@ -68,7 +81,14 @@ const useHttp = () => {
             applyData(data);
 
         } catch (error) {
-            setError(error.message || 'Error');
+					if (!err) {
+						err = {
+							type: "Error",
+							message: error.message,
+						};
+					}
+					takeError(err);
+					setError(error.message || "Error");
         } finally {
             setIsLoading(false);
         }
