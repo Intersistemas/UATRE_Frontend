@@ -12,6 +12,7 @@ import Afiliado from "./components/pages/afiliados/Afiliado";
 import LiquidacionesHandler from "./components/pages/siaru/Liquidaciones/LiquidacionesHandler";
 import ImpresionLiquidacion from "./components/pages/siaru/Liquidaciones/ImpresionLiquidacion";
 import CodigoDeBarras from "./components/pages/siaru/CodigoDeBarras";
+import CodigoDeBarras2 from "./components/pages/siaru/CodigoDeBarras2";
 
 const App = () => {
   const authContext = useContext(AuthContext);
@@ -26,7 +27,7 @@ const App = () => {
           <Route path="/inicio" element={<InicioHandler />} />
           <Route path="/inicio" element={<InicioHandler />} />
           <Route path="/afiliaciones" element={<AfiliadosHandler />} />
-          <Route path="/afiliaciones/:id" element={<Afiliado />} />
+          <Route path="/afiliaciones/:afiCuil" element={<Afiliado />} />
           <Route path="/siaru" element={<SiaruHandler />} />
           <Route
             path="/siaru/establecimientos"
@@ -41,7 +42,7 @@ const App = () => {
             element={<ImpresionLiquidacion />}
           />
           <Route path="/inicio" element={<InicioHandler />} />
-          <Route path="/CodigoDeBarras" element={<CodigoDeBarras />} />
+          <Route path="/CodigoDeBarras" element={<CodigoDeBarras2 />} />
           <Route path="/inicio" element={<InicioHandler />} />
           <Route path="/inicio" element={<InicioHandler />} />
         </Routes>
