@@ -32,11 +32,10 @@ const Form = (props) => {
 					method: "GET",
 				},
 				async (resp) => {
-					const newParams = {
-						...params,
+					setParams((p) => ({
+						...p,
 						[param]: Formato.Decimal(resp.valor ?? 0),
-					};
-					setParams(newParams);
+					}));
 				},
 				async (error) => {
 					error.message = `${error.message} (${param})`;
@@ -134,7 +133,9 @@ const Form = (props) => {
 
 	const calcularData = (nData) => {
 		const r = { ...nData };
-		const tipoPago = tiposPagos.data?.find((tp) => tp.id === r.liquidacionesTiposPagosId);
+		const tipoPago = tiposPagos.data?.find(
+			(tp) => tp.id === r.liquidacionesTiposPagosId
+		);
 		//calculo intereses
 		r.interesPorcentaje = tipoPago?.porcentaje ?? 0;
 		r.interesNeto = r.totalRemuneraciones * (r.interesPorcentaje / 100);
@@ -154,13 +155,13 @@ const Form = (props) => {
 	const joinData = (nData) => setData(calcularData({ ...data, ...nData }));
 
 	// Continuar con el alta
-	const handleAgregar = () => {
+	const handleAgregar = (nData) => {
 		request(
 			{
 				baseURL: "SIARU",
 				endpoint: `/Siaru_Liquidaciones`,
 				method: "POST",
-				body: data,
+				body: nData,
 				headers: { "Content-Type": "application/json" },
 			},
 			async (resp) => onConfirma(resp),
@@ -169,7 +170,7 @@ const Form = (props) => {
 				setModalExistente(null);
 			}
 		);
-	}
+	};
 
 	// Mensaje de alerta para dar de baja liquidación existente
 	const [modalExistente, setModalExistente] = useState();
@@ -187,20 +188,22 @@ const Form = (props) => {
 					headers: { "Content-Type": "application/json" },
 				},
 				async (_resp) => {
-					setData({...data, rectificativa: anterior.rectificativa + 1});
-					handleAgregar();
+					handleAgregar({ ...data, rectificativa: anterior.rectificativa + 1 });
 				},
 				async (error) => {
 					setErrors((e) => [...e, error]);
 					setModalExistente(null);
 				}
 			);
-		}
+		};
 		setModalExistente(
 			<Modal onClose={handleCancelar}>
 				<Grid col gap={`${gap}px`} full>
 					<Grid full="width" justify="center">
-						<h3>Ya existe una liquidación para el establecimiento y el período indicado</h3>
+						<h3>
+							Ya existe una liquidación para el establecimiento y el período
+							indicado
+						</h3>
 					</Grid>
 					<Grid col full justify="end">
 						<Grid gap={`${gap}px`}>
@@ -210,14 +213,16 @@ const Form = (props) => {
 								</Button>
 							</Grid>
 							<Grid width="50%">
-								<Button onClick={handleBajaContinuar}>Dar de baja liquidación anterior y continuar</Button>
+								<Button onClick={handleBajaContinuar}>
+									Dar de baja liquidación anterior y continuar
+								</Button>
 							</Grid>
 						</Grid>
 					</Grid>
 				</Grid>
 			</Modal>
 		);
-	}
+	};
 
 	const handleConfirma = () => {
 		//validaciones
@@ -276,7 +281,8 @@ const Form = (props) => {
 				endpoint: `/Siaru_Liquidaciones?${pars}`,
 				method: "GET",
 			},
-			async (resp) => resp.length > 0 ? handleExistente(resp[0]) : handleAgregar(),
+			async (resp) =>
+				resp.length > 0 ? handleExistente(resp[0]) : handleAgregar(data),
 			async (error) => setEstabList({ error: error })
 		);
 	};
