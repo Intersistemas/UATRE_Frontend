@@ -28,6 +28,7 @@ const App = () => {
         </Routes> 
 
         <SideBar>
+          
           <Routes>
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/inicio" element={<InicioHandler/>} />
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/inicio" element={<InicioHandler />} />
           </Routes>
+         
         </SideBar>
 
     </div>

@@ -51,7 +51,7 @@ const rowStyle2 = (row, cell) => { //esta pensado como funcion para que cada com
   const rowStyle = { 
     backgroundColor: '#ffffff99',
     border: '1.5px solid #3595D2', 
-    color: '#000',//color: '#727272',
+    color: '#000080',//'#000',//color: '#727272',
   };
   return rowStyle;
 };
@@ -101,13 +101,13 @@ let MyGrid =
             {toolkitprops => (
               <div>
                 <div style = {{display: 'flex', justifyContent: 'right'}}>
-                  <h3>{props.promptBuscar ? props.promptBuscar : 'Buscar:'} &nbsp;</h3>
+                  {/*<h3>{props.promptBuscar ? props.promptBuscar : 'Buscar:'} &nbsp;</h3>*/}
                   <SearchBar {...toolkitprops.searchProps}
                     srText = ""
                     placeholder = "Ingrese datos a buscar"
                   />
                 </div>
-                <br />
+               
                 <div className={classes.tabla}>
                   <BootstrapTable
                     {...toolkitprops.baseProps}
@@ -139,7 +139,7 @@ let MyGrid =
       )}
   </PaginationProvider>
   return (
-    <div>
+    <div className={classes.tabla}>
           {MyGrid}
         {/*<BootstrapTable
           hover
