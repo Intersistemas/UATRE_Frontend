@@ -83,6 +83,21 @@ const LiquidacionesHandler = () => {
 	}, [empresa.id, request]);
 	//#endregion
 
+	//#region declaracion y carga de tipos de pago
+	const [liquidacionesTiposPagos, setLiquidacionesTiposPagos] = useState({ loading: true });
+	useEffect(() => {
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/Siaru_LiquidacionesTiposPagos`,
+				method: "GET",
+			},
+			async (res) => setLiquidacionesTiposPagos({ data: res }),
+			async (err) => setLiquidacionesTiposPagos({ error: err })
+		);
+	}, [request]);
+	//#endregion
+
 	//#region declaracion y carga de liquidaciones
 	const [liquidaciones, setLiquidaciones] = useState({ loading: true });
 	const [pagination, setPagination] = useState({
@@ -258,7 +273,12 @@ const LiquidacionesHandler = () => {
 				/>
 			</Grid>
 			<Grid full="width">
-				<LiquidacionDetails config={{ data: liquidacion }} />
+				<LiquidacionDetails
+					config={{
+						data: liquidacion,
+						tiposPagos: liquidacionesTiposPagos.data,
+					}}
+				/>
 			</Grid>
 		</Grid>
 	);
