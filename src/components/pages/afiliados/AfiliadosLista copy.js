@@ -3,7 +3,7 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
 
 //import overlayFactory from "react-bootstrap-table2-overlay";
-import * as React from 'react';
+
 import BootstrapTable from "react-bootstrap-table-next";
 import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit';
 import paginationFactory, {
@@ -29,7 +29,6 @@ import { useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
-import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
 import { Height } from "@mui/icons-material";
 import Seccional from "./seccional/Seccional";
@@ -45,12 +44,6 @@ const AfiliadosLista = (props) => {
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
   const { isLoading, error, sendRequest: request } = useHttp();
 
-  const [selector, setSelector] = React.useState('');
-
-
-  const handleChange = (event) => {
-    setSelector(event.target.value);
-  };
 
 
   const afiliados = {
@@ -67,6 +60,8 @@ const AfiliadosLista = (props) => {
       order: "asc"
     }
   ];
+
+
 
   const columns = [
     {
@@ -237,16 +232,9 @@ const AfiliadosLista = (props) => {
     },
     
   ];
+
   
-  /*const selectores =  columns.fromEntries(Object.entries(obj).filter(e=>e[0]!=='b'));
   
-  columns.map((item, index) => {
-    return ({item.dataField, item.text})
-    });
-
-    console.log('selectores',selectores);*/
-
-
   const columnsVacia = [
     {
       dataField: "nroAfiliado",
@@ -254,25 +242,35 @@ const AfiliadosLista = (props) => {
       sort: true
     }
   ]
-
+  /*const rowEvents = {
+    onClick: (e, row, rowIndex) => {
+      console.log(`row: ${row}`);
+      //handleSelectList(row);
+      setAfiliadoSeleccionado(row);
+      dispatch(handleAfiliadoSeleccionar(row));
+    },
+  };*/
 
   const rowEvents  = (row) => {
-    console.log('Afiliado_Seleccionado:',row);
-   switch(selectedTab){
-     case 0:
-       setAfiliadoSeleccionado(row);
-       break;
+       console.log('row:',row);
+      //setAfiliadoSeleccionado(row);
 
-       case 1:
-         setddjjUatreSeleccionado(row);
-         //consulto los datos de la empresa seleccionada
-         fetchEmpresa(row.cuit)
-         break;
-       default: break;
-   }
+      switch(selectedTab){
+        case 0:
+          setAfiliadoSeleccionado(row);
+          break;
 
-   dispatch(handleAfiliadoSeleccionar(row));
-};
+          case 1:
+            setddjjUatreSeleccionado(row);
+            //consulto los datos de la empresa seleccionada
+            fetchEmpresa(row.cuit)
+            break;
+          default: break;
+      }
+
+      dispatch(handleAfiliadoSeleccionar(row));
+      
+  };
 
   const fetchEmpresa = (cuit) => {
     console.log('cuit',cuit)
@@ -305,7 +303,7 @@ const AfiliadosLista = (props) => {
 
   //#region  la paginacion la maneja el componente Table
   const pagination = paginationFactory({
-    //custom: true,
+    custom: true,
     page: afiliados.page,
     sizePerPage: afiliados.sizePerPage,
     paginationShowsTotal: false,
@@ -341,7 +339,7 @@ const AfiliadosLista = (props) => {
 
   const tableProps = {
       promptBuscar:"Buscar en Afiliados:",
-      //defaultSorted: defaultSorted,
+      defaultSorted: defaultSorted,
       remote: true,
       keyField: "nroAfiliado",
       loading: props.loading,
@@ -353,6 +351,8 @@ const AfiliadosLista = (props) => {
       noDataIndication: indication,
       onSelected: rowEvents,
   }
+
+
 
   const tablePropsVacia = {
       promptBuscar:"Buscar en Afiliados:",
@@ -372,25 +372,9 @@ const AfiliadosLista = (props) => {
     filter: filterFactory(),
 }
 
-
-const selectRow = {
-  mode: "radio",
-  clickToSelect: true,
-  hideSelectColumn: true,
-  style: {
-    backgroundColor: "rgb(194 194 194 / 70%)",
-    color: "black",
-    fontWeight: "bold",
-  },
-};
-
-const rowStyle = {
-  backgroundColor: "#ffffff99",
-  border: "1.5px solid #3595D2",
-  color: '#000080', //color: '#727272',
-};
-
-
+  const enDesarrollo = () => {
+    alert("asd");
+  } 
   return (
     <div className={styles.container}> 
         <h1 className='titulo'>Afiliaciones</h1>
@@ -406,53 +390,33 @@ const rowStyle = {
                 
                   <Tab className={styles.tab}          
                     label= { afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-                    style={{ width: "300px", height: "67px"  }}
+                    style={{ width: "800px", height: "67px"  }}
                     //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                     label= { afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
-                    style={{ width: "300px", height: "67px"  }}
+                    style={{ width: "800px", height: "67px"  }}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                     label= { afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
-                    style={{ width: "300px", height: "67px"  }}
+                    style={{ width: "800px", height: "67px"  }}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                     label= { afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-                    style={{ width: "300px", height: "67px"  }}
+                    style={{ width: "800px", height: "67px"  }}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
                 </Tabs>
             </div> 
 
               {selectedTab === 0 && (
-                <div>
-                  <TableSegmentado {...tableProps}/>
-                 {/*<BootstrapTable
-                  bootstrap4
-                  remote
-                  keyField="id"
-                  loading={props.loading}
-                  data={afiliados.data}
-                  columns={columns}
-                  pagination={pagination}
-                  onTableChange={handleTableChange}
-                  filter={filterFactory()}
-                  striped
-                  hover
-                  condensed
-                  noDataIndication={indication}
-                  selectRow={selectRow}
-                  rowEvents={rowEvents}
-                  rowStyle={rowStyle}
-              />*/}
-                </div> 
+                <Table {...tableProps} />
               )}
 
               {selectedTab === 1 && (
@@ -462,6 +426,7 @@ const rowStyle = {
                   onSeleccionRegistro={rowEvents}
                 />        
               )}
+
               {selectedTab === 2 && (
                 
                 <Table  {...tablePropsVacia}/>
