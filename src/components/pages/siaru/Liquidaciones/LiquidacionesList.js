@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import useHttp from "../../../hooks/useHttp";
-import Table from "../../../ui/Table/Table";
+import TableRemote from "../../../ui/Table/TableRemote";
 
 const LiquidacionesList = (props) => {
 	const config = { ...props.config };
@@ -120,7 +120,7 @@ const LiquidacionesList = (props) => {
 	if (error) return <h4>{error}</h4>;
 
 	return (
-		<Table
+		<TableRemote
 			remote
 			keyField="id"
 			loading={config.loading}

@@ -84,7 +84,9 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	//#region declaracion y carga de tipos de pago
-	const [liquidacionesTiposPagos, setLiquidacionesTiposPagos] = useState({ loading: true });
+	const [liquidacionesTiposPagos, setLiquidacionesTiposPagos] = useState({
+		loading: true,
+	});
 	useEffect(() => {
 		request(
 			{
@@ -269,6 +271,14 @@ const LiquidacionesHandler = () => {
 						noData: liqNoData,
 						pagination: pagination,
 						onSelect: (r) => setLiquidacion(r),
+						onPaginationChange: (pageIndex, pageSize) => {
+							setPagination((p) => ({
+								...p,
+								index: pageIndex,
+								size: pageSize,
+							}));
+							setRefreshLiquidaciones(true);
+						},
 					}}
 				/>
 			</Grid>
