@@ -2,11 +2,9 @@ import React from "react";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import Table from "../../../ui/Table/Table";
-import styles from "./EmpresasList.module.css";
 
-const EmpresasList = (props) => {
-	const config = { ...props.config };
-	const data = [...config.data];
+const EmpresasList = ({config}) => {
+	const data = config.data ? [...config.data] : [];
 	const pagination = { ...config.pagination };
 	const onSelect = config.onSelect ?? ((registro) => {});
 	const onPaginationChange =
@@ -19,17 +17,18 @@ const EmpresasList = (props) => {
 	};
 	const columns = [
 		{
-			dataField: "cuit",
+			dataField: "cuitEmpresa",
 			text: "CUIT",
 			sort: true,
 			formatter: Formato.Cuit,
+      headerStyle: (colum, colIndex) => ({ width: "150px" }),
 			style: {...cs}
 		},
 		{
-			dataField: "razonsocial",
+			dataField: "razonSocial",
 			text: "Razon Social",
 			sort: true,
-			style: {...cs}
+			style: {...cs, textAlign: "left"}
 		},
 	];
 
@@ -53,12 +52,12 @@ const EmpresasList = (props) => {
 	return (
 		<Table
 			remote
-			keyField="cuit"
+			keyField="cuitEmpresa"
 			loading={config.loading}
 			data={data}
 			columns={columns}
 			pagination={bootstrapPagination}
-			noDataIndication={<h4>No hay informacion a mostrar</h4>}
+			noDataIndication={config.noData}
 			onSelected={onSelect}
 		/>
 	);

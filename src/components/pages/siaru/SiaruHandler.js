@@ -13,38 +13,57 @@ import {
 } from "../../../redux/actions";
 
 const SiaruHandler = (props) => {
-	const [empresas, setEmpresas] = useState([]);
-	const [empresa, setEmpresa] = useState(null);
-	const { isLoading, error, sendRequest: request } = useHttp();
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const { sendRequest: request } = useHttp();
 
-	const fetchEmpresa = (cuit) => {
-		if ((cuit ?? 0) == 0) {
-			setEmpresa(null);
+	//#region declaración y carga de lista de empresas
+	const [empresaList, setEmpresaList] = useState({ loading: true });
+	const [empresaRecord, setEmpresaRecord] = useState();
+	useEffect(() => {
+		request(
+			{
+				baseURL: "Seguridad",
+				endpoint: `/PermisosUsuario`,
+				method: "GET",
+				headers: {
+					Authorization: true,
+				},
+			},
+			async (res) => setEmpresaList({ data: res }),
+			async (err) => setEmpresaList({ error: err })
+		);
+	}, [request]);
+	//#endregion
+
+	//#region declaración y carga de detalles de empresa
+	const [empresa, setEmpresa] = useState({ loading: true });
+	useEffect(() => {
+		if (!empresaRecord?.cuitEmpresa) {
+			setEmpresa({});
 			return;
 		}
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Empresas/${cuit}`,
+				endpoint: `/Empresas/${empresaRecord.cuitEmpresa}`,
 				method: "GET",
 			},
-			async (response) => setEmpresa(response)
-			
+			async (res) => setEmpresa({ data: res }),
+			async (err) => setEmpresa({ error: err })
 		);
-	};
-	
-	
+	}, [empresaRecord, request]);
+	//#endregion
+
 	//#region despachar Informar Modulo
-	const descEmpresa = empresa
-		? `${Formato.Cuit(empresa.cuit)} - ${empresa.razonSocial}`
+	const descEmpresa = empresa.data
+		? `${Formato.Cuit(empresa.data.cuit)} - ${empresa.data.razonSocial}`
 		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
 	};
-	if (empresa) {
+	if (empresa.data) {
 		moduloInfo.acciones = [
 			...moduloInfo.acciones,
 			{ nombre: `Establecimientos de ${descEmpresa}` },
@@ -52,61 +71,24 @@ const SiaruHandler = (props) => {
 		];
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
-	//#endregion
-
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		// request(
-		// 	{
-		// 		baseURL: "SIARU",
-		// 		endpoint: `/Empresas/${cuit}`,
-		// 		method: "GET",
-		// 	},
-		// 	async (response) => setEmpresas(response)
-		// );
-		setEmpresas([
-			{
-				cuit: 30555457142,
-				razonsocial: "MAZZINO LIBANO SA",
-				localidad: "Rio Negro",
-				domicilio: "AVELEYRA 338",
-			},
-			{
-				cuit: 34617797587,
-				razonsocial: "LUISITO SA",
-				localidad: "Buenos Aires",
-				domicilio: "JUJUY 766",
-			},
-			{
-				cuit: 34610675923,
-				razonsocial: "TAPE S.A.",
-				localidad: "Buenos Aires",
-				domicilio: "RODRIGUEZ PEÑA 616",
-			},
-			{
-				cuit: 34560268019,
-				razonsocial: "ASOC COOP DE LA EEA MZA-I",
-				localidad: "Corrientes",
-				domicilio: "SAN MARTIN 3853",
-			},
-		]);
-
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
-				navigate("/siaru/establecimientos", { state: { empresa: empresa } });
+				navigate("/siaru/establecimientos", {
+					state: { empresa: empresa.data },
+				});
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
+				navigate("/siaru/liquidaciones", { state: { empresa: empresa.data } });
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa]);
-
-	// if (isLoading) return <h1>Cargando...</h1>;
-	// if (error) return <h1>{error}</h1>;
+	}, [moduloAccion, empresa.data]);
+	//#endregion
 
 	return (
 		<Grid col full>
@@ -120,13 +102,31 @@ const SiaruHandler = (props) => {
 				<Grid width="50%">
 					<EmpresasList
 						config={{
-							data: empresas,
-							onSelect: (r) => fetchEmpresa(r?.cuit),
+							loading: empresaList.loading,
+							data: empresaList.data,
+							noData: (() => {
+								const rq = empresaList;
+								if (rq?.loading) return <h4>Cargando...</h4>;
+								if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
+								switch (rq.error.type) {
+									case "Body":
+										return <h4>{rq.error.message}</h4>;
+									default:
+										return (
+											<h4 style={{ color: "red" }}>
+												{"Error "}
+												{rq.error.code ? `${rq.error.code} - ` : ""}
+												{rq.error.message}
+											</h4>
+										);
+								}
+							})(),
+							onSelect: (r) => setEmpresaRecord(r),
 						}}
 					/>
 				</Grid>
 				<Grid block width="50%" style={{ paddingTop: "75px" }}>
-					<EmpresaDetails config={{ data: empresa }} />
+					<EmpresaDetails config={{ data: empresa.data }} />
 				</Grid>
 			</Grid>
 		</Grid>

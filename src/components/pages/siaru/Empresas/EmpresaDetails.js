@@ -3,8 +3,7 @@ import Formato from "../../../helpers/Formato";
 import Grid from "../../../ui/Grid/Grid";
 import styles from "./EmpresaDetails.module.css";
 
-const EmpresaDetails = (props) => {
-	const config = props.config;
+const EmpresaDetails = ({config}) => {
 	const data = config.data ?? {};
 
 	return (
