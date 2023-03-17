@@ -1,10 +1,19 @@
+.titulo > span {
+	font-weight: bold;
+	font-size: 27pt;
+	color: navy;
+}
+
 .subtitulo {
-	font-size: larger;
+	font-size: 16pt;
 	text-align: left;
+	color: navy;
 }
 
 .subtitulo > span {
 	font-weight: bold;
+	font-size: 22pt;
+	color: navy;
 }
 
 .botones {
@@ -17,4 +26,14 @@
 	margin-top: 1%;
 	width: 96%;
 	text-align: center;
+}
+
+.content label {
+	font-size: 16pt;
+	font-weight: bold;
+	color: navy !important;
+}
+
+.content .MuiInputLabel-sizeSmall {
+	font-size: 16pt;
 }

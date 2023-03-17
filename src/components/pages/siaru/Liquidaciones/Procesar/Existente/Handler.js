@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./Handler.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import useHttp from "../../../../../hooks/useHttp";
@@ -17,16 +17,21 @@ const Handler = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = location.state?.empresa ? location.state.empresa : {};
+	const empresa = useMemo(
+		() => location.state?.empresa ? location.state.empresa : {},
+		[location.state?.empresa]
+	);
 	const periodo = location.state?.periodo;
 	if (empresa.id == null || periodo == null) navigate("/");
 
 	const [currentTab, setCurrentTab] = useState(0);
-	const { isLoading, error, sendRequest: request } = useHttp();
+	const { sendRequest: request } = useHttp();
 
-	// Cargo ddjj y liquidaciones
-	const [ddjj, setDDJJ] = useState({ loading: true });
-	const [liquidaciones, setLiquidaciones] = useState({ loading: true });
+	//#region declaración y carga de ddjj y liquidaciones
+	const [ddjjList, setDDJJList] = useState({ loading: true });
+	const [ddjj, setDDJJ] = useState({});
+	const [liqList, setLiqList] = useState({ loading: true });
+	const [liq, setLiq] = useState({});
 	useEffect(() => {
 		request(
 			{
@@ -59,17 +64,52 @@ const Handler = () => {
 						];
 					});
 				});
-				setDDJJ({ data: newDDJJ });
-				setLiquidaciones({ data: newLiquidaciones });
+				setDDJJList({ data: newDDJJ });
+				setLiqList({ data: newLiquidaciones });
 			},
 			async (error) => {
-				setDDJJ({ error: error });
-				setLiquidaciones({ error: error });
+				setDDJJList({ error: error });
+				setLiqList({ error: error });
 			}
 		);
 	}, [periodo, empresa.cuit, request]);
+	//#endregion
 
-	// Cargo establecimientos de la empresa
+	/** Retorna información de error o mensaje "sin datos" */
+	const getNoData = (rq) => {
+		if (rq?.loading) return <h4>Cargando...</h4>;
+		if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
+		switch (rq.error.type){
+			case "Body":
+				return <h4>{rq.error.message}</h4>;
+			default:
+				return (
+					<h4 style={{ color: "red" }}>
+						{"Error "}
+						{rq.error.code ? `${rq.error.code} - ` : ""}
+						{rq.error.message}
+					</h4>
+				);
+		}
+	}
+	
+	/** Retorna ddjjList aplicando filtro */
+	const filtrarDDJJList = () => {
+		if (!ddjjList.data) return ddjjList.data;
+		let ret = [...ddjjList.data]
+
+		return ret;
+	}
+
+	/** Retorna liqList aplicando filtro */
+	const filtrarLiqList = ({filtro, orden} = {}) => {
+		if (!liqList.data) return liqList.data;
+		let ret = [...liqList.data]
+
+		return ret;
+	}
+
+	//#region declaración y carga de esablecimientos
 	const [establecimientos, setEstablecimientos] = useState({ loading: true });
 	useEffect(() => {
 		request(
@@ -85,20 +125,33 @@ const Handler = () => {
 				setEstablecimientos({ error: error });
 			}
 		);
-	}, []);
+	}, [empresa.id, request]);
+	//#endregion
 
-	let noData = <h4>No hay informacion a mostrar</h4>;
-	if (ddjj.error) {
-		if (ddjj.error.type === "Body") {
-			noData = <h4>{ddjj.error.message}</h4>;
-		} else {
-			noData = (
-				<h4 style={{ color: "red" }}>
-					Error {ddjj.error.code} - {ddjj.error.message}
-				</h4>
-			);
+	//#region despachar Informar Modulo
+	const moduloInfo = {
+		nombre: "SIARU",
+		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
+	};
+	dispatch(handleModuloSeleccionar(moduloInfo));
+	const moduloAccion = useSelector((state) => state.moduloAccion);
+	useEffect(() => {
+		switch (moduloAccion) {
+			case `Empresas`:
+				navigate("/siaru", { state: { empresa: empresa } });
+				break;
+			case `Procesar liquidaciones`:
+				navigate("/siaru/liquidaciones/procesar", {
+					state: { empresa: empresa },
+				});
+				break;
+			default:
+				break;
 		}
-	}
+		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	}, [moduloAccion, empresa, navigate, dispatch]);
+	// #endregion
+
 	let currentTabContent;
 	switch (currentTab) {
 		case 0:
@@ -107,15 +160,13 @@ const Handler = () => {
 					<Grid full="width">
 						<DDJJList
 							config={{
-								loading: ddjj.loading,
-								data: ddjj.data,
-								noData: noData,
-								establecimientos: establecimientos,
-								onChangeRecord: (record) => {
-									//
-								}
+								loading: ddjjList.loading,
+								data: filtrarDDJJList(),
+								noData: getNoData(ddjjList),
 							}}
 						/>
+					</Grid>
+					<Grid full="width">
 					</Grid>
 				</Grid>
 			);
@@ -124,12 +175,14 @@ const Handler = () => {
 			currentTabContent = (
 				<LiquidacionList
 					config={{
-						loading: liquidaciones.loading,
-						data: liquidaciones.data,
-						noData: noData,
+						loading: liqList.loading,
+						data: filtrarLiqList(),
+						noData: getNoData(liqList),
 					}}
 				/>
 			);
+			break;
+		default:
 			break;
 	}
 

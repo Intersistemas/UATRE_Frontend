@@ -14,6 +14,7 @@ const DateTimePicker = (props) => {
 		error = "",
 		required,
 		renderInput = null,
+		InputLabelProps,
 		...resto
 	} = props;
 
@@ -23,6 +24,7 @@ const DateTimePicker = (props) => {
 		r.style = { ...r.style, width: "100%" };
 		r.error = error;
 		r.required = required;
+		r.InputLabelProps = InputLabelProps;
 		return r
 	}
 
