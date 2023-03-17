@@ -238,13 +238,14 @@ const AfiliadosLista = (props) => {
     
   ];
   
-  /*const selectores =  columns.fromEntries(Object.entries(obj).filter(e=>e[0]!=='b'));
-  
-  columns.map((item, index) => {
-    return ({item.dataField, item.text})
-    });
+   const selectores =   [...columns]
+    
 
-    console.log('selectores',selectores);*/
+/*
+    dataField: 
+    text: 
+*/
+    console.log('selectores',selectores);
 
 
   const columnsVacia = [
@@ -335,7 +336,6 @@ const AfiliadosLista = (props) => {
   };
 
   const handleSeleccionDDJJ = (ddjj) => {
-
 
   };
 
