@@ -19,7 +19,7 @@ const DDJJList = ({ config }) => {
 			style: { ...cs },
 		},
 		{
-			dataField: "empresasEstablecimientosNombre",
+			dataField: "empresasEstablecimientos_Nombre",
 			text: "Estab. nombre",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "250px" }),

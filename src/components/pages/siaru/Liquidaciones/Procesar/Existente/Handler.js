@@ -12,13 +12,15 @@ import DDJJList from "./DDJJList";
 import Formato from "../../../../../helpers/Formato";
 import { Tab, Tabs } from "@mui/material";
 import LiquidacionList from "./LiquidacionList";
+import DDJJForm from "./DDJJForm";
+import dayjs from "dayjs";
 
 const Handler = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const empresa = useMemo(
-		() => location.state?.empresa ? location.state.empresa : {},
+		() => (location.state?.empresa ? location.state.empresa : {}),
 		[location.state?.empresa]
 	);
 	const periodo = location.state?.periodo;
@@ -31,7 +33,7 @@ const Handler = () => {
 	const [ddjjList, setDDJJList] = useState({ loading: true });
 	const [ddjj, setDDJJ] = useState({});
 	const [liqList, setLiqList] = useState({ loading: true });
-	const [liq, setLiq] = useState({});
+	// const [liq, setLiq] = useState({});
 	useEffect(() => {
 		request(
 			{
@@ -46,20 +48,21 @@ const Handler = () => {
 				rta.forEach((tent, index) => {
 					// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 					// En caso contrario, es solo a modo informativo de nomina
+					const {nomina, ...liq} = tent;
 					if (
-						tent.empresasEstablecimientosId &&
-						tent.liquidacionesTiposPagosId
+						liq.empresasEstablecimientosId &&
+						liq.liquidacionesTiposPagosId
 					) {
-						newLiquidaciones = [...newLiquidaciones, { id: index, ...tent }];
+						newLiquidaciones = [...newLiquidaciones, { index: newLiquidaciones.length, ...liq }];
 					}
-					tent.nomina.forEach((nom) => {
+					nomina.forEach((nom) => {
 						newDDJJ = [
 							...newDDJJ,
 							{
 								...nom,
 								empresasEstablecimientosId: tent.empresasEstablecimientosId,
-								empresasEstablecimientosNombre:
-									tent.empresasEstablecimientosNombre,
+								empresasEstablecimientos_Nombre:
+									tent.empresasEstablecimientos_Nombre,
 							},
 						];
 					});
@@ -79,7 +82,7 @@ const Handler = () => {
 	const getNoData = (rq) => {
 		if (rq?.loading) return <h4>Cargando...</h4>;
 		if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
-		switch (rq.error.type){
+		switch (rq.error.type) {
 			case "Body":
 				return <h4>{rq.error.message}</h4>;
 			default:
@@ -91,23 +94,23 @@ const Handler = () => {
 					</h4>
 				);
 		}
-	}
-	
+	};
+
 	/** Retorna ddjjList aplicando filtro */
 	const filtrarDDJJList = () => {
 		if (!ddjjList.data) return ddjjList.data;
-		let ret = [...ddjjList.data]
+		let ret = [...ddjjList.data];
 
 		return ret;
-	}
+	};
 
 	/** Retorna liqList aplicando filtro */
-	const filtrarLiqList = ({filtro, orden} = {}) => {
+	const filtrarLiqList = () => {
 		if (!liqList.data) return liqList.data;
-		let ret = [...liqList.data]
+		let ret = [...liqList.data];
 
 		return ret;
-	}
+	};
 
 	//#region declaración y carga de esablecimientos
 	const [establecimientos, setEstablecimientos] = useState({ loading: true });
@@ -152,6 +155,57 @@ const Handler = () => {
 	}, [moduloAccion, empresa, navigate, dispatch]);
 	// #endregion
 
+	const newLiq = (ddjjRecord, index) => {
+		if (ddjjRecord.empresasEstablecimientosId === 0) return null;
+		if (ddjjRecord.condicionRural !== "RU") return null;
+		return {
+			index: index,
+			empresasEstablecimientosId: ddjjRecord.empresasEstablecimientosId,
+			periodo: periodo,
+			fecha: dayjs().format("YYYY-MM-DD") ?? null,
+			cantidadTrabajadores: 1,
+			totalRemuneraciones: ddjjRecord.remuneracionImponible,
+			tipoLiquidacion: 0,
+			refMotivosBajaId: 0,
+			liquidacionesTiposPagosId: ddjjRecord.afiliadoId ? 1 : 2,
+			empresasEstablecimientos_Nombre: ddjjRecord.empresasEstablecimientos_Nombre,
+		};
+	}
+
+	const calcLiqListDesdeDDJJList = () => {
+		let newLiqList = [];
+		if (!ddjjList.data) return setLiqList({ data: newLiqList });
+		ddjjList.data.forEach((ddjj) => {
+			if (ddjj.empresasEstablecimientosId === 0) return;
+			if (ddjj.condicionRural !== "RU") return;
+			const estab = establecimientos.data?.find(
+				(r) => r.id === ddjj.empresasEstablecimientosId
+			);
+			if (!estab) return;
+
+			const liqCalc = newLiq(ddjj, newLiqList.length);
+			let liq = newLiqList.find(
+				(r) =>
+					r.empresasEstablecimientosId === liqCalc.empresasEstablecimientosId &&
+					r.liquidacionesTiposPagosId === liqCalc.liquidacionesTiposPagosId
+			);
+			if (liq) {
+				liq.cantidadTrabajadores += liqCalc.cantidadTrabajadores;
+				liq.totalRemuneraciones =
+					Math.round(
+						(liq.totalRemuneraciones +
+							liqCalc.totalRemuneraciones +
+							Number.EPSILON) *
+							100
+					) / 100;
+			} else {
+				newLiqList = [...newLiqList, liqCalc];
+		}
+		});
+
+		return setLiqList({ data: newLiqList });
+	};
+
 	let currentTabContent;
 	switch (currentTab) {
 		case 0:
@@ -163,10 +217,25 @@ const Handler = () => {
 								loading: ddjjList.loading,
 								data: filtrarDDJJList(),
 								noData: getNoData(ddjjList),
+								onSelect: (r) => setDDJJ(r),
 							}}
 						/>
 					</Grid>
 					<Grid full="width">
+						<DDJJForm
+							config={{
+								data: ddjj,
+								establecimientos: establecimientos.data,
+								onChange: (v) => {
+									if (!ddjjList.data) return;
+									const vIx = ddjjList.data.findIndex((r) => r.cuil === v.cuil);
+									if (vIx < 0) return;
+									ddjjList.data[vIx] = v;
+									calcLiqListDesdeDDJJList();
+									setDDJJ(v);
+								},
+							}}
+						/>
 					</Grid>
 				</Grid>
 			);

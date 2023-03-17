@@ -87,7 +87,7 @@ const SiaruHandler = (props) => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa.data]);
+	}, [moduloAccion, descEmpresa, empresa.data, navigate, dispatch]);
 	//#endregion
 
 	return (

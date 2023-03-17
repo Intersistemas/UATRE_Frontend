@@ -25,7 +25,7 @@ const LiquidacionList = ({ config }) => {
 			style: { ...cs },
 		},
 		{
-			dataField: "empresasEstablecimientosNombre",
+			dataField: "empresasEstablecimientos_Nombre",
 			text: "Estab. nombre",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "250px" }),
@@ -43,7 +43,7 @@ const LiquidacionList = ({ config }) => {
 			dataField: "liquidacionesTiposPagosId",
 			text: "Tipo de pago",
 			sort: true,
-			formatter: (v) => tiposPagos.find(r => r.id == v)?.descripcion ?? "",
+			formatter: (v) => tiposPagos.find(r => r.id === v)?.descripcion ?? "",
 			style: { ...cs, textAlign: "left" },
 		},
 		{
@@ -65,7 +65,7 @@ const LiquidacionList = ({ config }) => {
 
 	return (
 		<Table
-			keyField="id"
+			keyField="index"
 			loading={config.loading ?? false}
 			data={config.data ? [...config.data] : []}
 			columns={columns}
