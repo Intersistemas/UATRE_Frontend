@@ -551,7 +551,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste) {
       const processGetEmpresa = async (empresaObj) => {
-        console.log("empresaObj", empresaObj);
+        //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -721,7 +721,7 @@ const AfiliadoAgregar = (props) => {
               label: `${seccional.codigo} ${seccional.descripcion}`,
             };
           });
-        console.log("seccionalesSelect", seccionalesSelect);
+        //console.log("seccionalesSelect", seccionalesSelect);
         setSeccionales(seccionalesSelect);
       };
 
@@ -779,7 +779,7 @@ const AfiliadoAgregar = (props) => {
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     const processConsultaPadron = async (padronObj) => {
-      console.log("padronObj", padronObj);
+      //console.log("padronObj", padronObj);
       setPadronRespuesta(padronObj);
       dispatchNombre({
         type: "USER_INPUT",
@@ -879,7 +879,7 @@ const AfiliadoAgregar = (props) => {
 
   const validarEmpresaCUITHandler = (cuit) => {
     const processConsultaPadron = async (padronObj) => {
-      console.log("padronObj", padronObj);
+      //console.log("padronObj", padronObj);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
       setRazonSocialEmpresa(
@@ -955,7 +955,7 @@ const AfiliadoAgregar = (props) => {
     };
 
     const empresaAgregar = async (empresaObjResponse) => {
-      console.log("empresaObjResponse", empresaObjResponse);
+      //console.log("empresaObjResponse", empresaObjResponse);
       setEmpresaId(empresaObjResponse);
     };
 
@@ -1170,7 +1170,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "localidadSelect":
-        console.log("selectLocalidad", value);
+        //console.log("selectLocalidad", value);
         setLocalidad(value);
         dispatchLocalidad({ type: "USER_INPUT", value: value });
         break;
