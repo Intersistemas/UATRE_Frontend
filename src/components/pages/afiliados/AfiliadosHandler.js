@@ -15,6 +15,10 @@ const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchColumn, setSearchColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -58,9 +62,20 @@ const navigate = useNavigate()
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
+    
     if (estadoSolicitud) {
         endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
+    if (sortColumn) { //ORDENAMIENTO
+        endpoint = `${endpoint}&Sort=${sortColumn}`;
+    }
+    if (search) { //BUSQUEDA
+        endpoint = `${endpoint}&Search=${search}`;
+    }
+    if (searchColumn) { //COLUMNA DE BUSUQUEDA
+        //endpoint = `${endpoint}&SearchColumn=${searchColumn}`;
+    }
+
     
     request(
       {
@@ -70,7 +85,7 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,search,searchColumn, sortColumn]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -153,6 +168,24 @@ const navigate = useNavigate()
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
   };
+  
+  const handleSearch = (select,entry) => {
+    console.log('handleSearch_llega con la data',select,entry)
+    setSearch(entry);
+    setSearchColumn(select); //TODO
+    setAfiliadosRespuesta([]);
+  };
+
+  const handleSort = (sortColumn,sortOrder) => {
+    console.log('handleSort_llega con la data',sortColumn,sortOrder);
+    setSortColumn(sortColumn);
+
+    //setOrder(sortOrder); TODO
+
+    //setPage(page);
+    //setSizePerPage(sizePerPage);
+    //setAfiliadosRespuesta([]);
+  };
 
   const handleSizePerPageChange = (page, sizePerPage) => {
     setPage(page);
@@ -189,6 +222,8 @@ const navigate = useNavigate()
             estadoSolicitudActual={estadoSolicitud}
             //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
             onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+            onSearch={handleSearch}
+            onSort={handleSort}
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
