@@ -106,8 +106,6 @@ const handleChangeSearchEntry = (event) => {
     
       }
 
-      
-
        <BootstrapTable
           hover
           bootstrap4

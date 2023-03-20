@@ -63,6 +63,7 @@ const navigate = useNavigate()
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
     
+    console.log('sortColumn',sortColumn)
     if (estadoSolicitud) {
         endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
@@ -181,10 +182,6 @@ const navigate = useNavigate()
     setSortColumn(sortColumn);
 
     //setOrder(sortOrder); TODO
-
-    //setPage(page);
-    //setSizePerPage(sizePerPage);
-    //setAfiliadosRespuesta([]);
   };
 
   const handleSizePerPageChange = (page, sizePerPage) => {

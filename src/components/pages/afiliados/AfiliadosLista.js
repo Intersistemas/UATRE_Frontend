@@ -306,7 +306,7 @@ const AfiliadosLista = (props) => {
   ) => {
     //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
     setAfiliadoSeleccionado(null);
-    props.onSort(sortField,sortOrder)
+    sortField&&props.onSort(sortField,sortOrder);
     //const currentIndex = (page - 1) * sizePerPage;
     //props.onFilterChange(filters);
   };
