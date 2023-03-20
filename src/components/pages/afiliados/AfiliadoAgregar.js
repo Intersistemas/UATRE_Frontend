@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useRef, useState } from "react";
 import Button from "../../ui/Button/Button";
 //import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
+import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
@@ -15,6 +16,8 @@ import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
 import ValidarCUIT from "../../helpers/ValidarCUIT";
 import InputMask from "../../ui/Input/InputMask";
 import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
+import DocumentacionList from "./documentacion/DocumentacionList";
+import DocumentacionForm from "./documentacion/DocumentacionForm";
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -47,6 +50,10 @@ const AfiliadoAgregar = (props) => {
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
+
+	const [documentacionTipoList, setDocumentacionTipoList] = useState({ loading: true });
+	const [documentacionList, setDocumentacionList] = useState([]);
+	const [documentacionItem, setDocumentacionItem] = useState({});
   //#endregion
 
   //#region Datos Personales Formulario
@@ -1000,6 +1007,7 @@ const AfiliadoAgregar = (props) => {
                 : true
             }
           />
+					<Tab label="Documentacion" />
         </Tabs>
       </div>
       {selectedTab === 0 && (
@@ -1600,6 +1608,37 @@ const AfiliadoAgregar = (props) => {
           </div>
         </>
       )}
+			{selectedTab === 4 && (
+				<Grid col full="width" gap="10px">
+					<Grid full="width" gap="5px">
+						<DocumentacionList
+						config={{
+							data: documentacionList,
+							onSelect: (r) => setDocumentacionItem(r),
+						}}
+						/>
+					</Grid>
+					<Grid full="width" gap="5px">
+						<Grid grow>
+							<Button>Agregar documentación</Button>
+						</Grid>
+						<Grid grow>
+							<Button>Modificar documentación</Button>
+						</Grid>
+						<Grid grow>
+							<Button>Dar de baja documentación</Button>
+						</Grid>
+					</Grid>
+					<Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
+						<DocumentacionForm
+							config={{
+								data: documentacionItem,
+								onChange: (newData) => setDocumentacionItem(oldData => ({...oldData, ...newData})),
+							}}
+						/>
+					</Grid>
+				</Grid>
+			)}
       <div className={classes.botones}>
         <div className={classes.boton}>
           <Button
