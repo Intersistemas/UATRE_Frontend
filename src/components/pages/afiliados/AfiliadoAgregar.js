@@ -63,7 +63,7 @@ const AfiliadoAgregar = (props) => {
   const [localidad, setLocalidad] = useState("");
   const [estadoCivil, setEstadoCivil] = useState("");
   const [cuil, setCUIL] = useState("");
-  const [nombre, setNombre] = useState(null);
+  const [nombre, setNombre] = useState("");
   const [tipoDocumento, setTipoDocumento] = useState("");
   const [numeroDocumento, setNumeroDocumento] = useState("");
   const [domicilio, setDomicilio] = useState("");
@@ -166,7 +166,7 @@ const AfiliadoAgregar = (props) => {
   const nacionalidadReducer = (state, action) => {
     console.log("nacionalidad", action.value);
     if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
+      return { value: action.value, isValid: action.value !== "" ? true : false };
     }
     if (action.type === "USER_BLUR") {
       return { value: state.value, isValid: state.value ? true : false };
@@ -373,19 +373,15 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking...", cuilState.isValid);
-      console.log("checking... email", emailState.isValid);
-      console.log("checking... nacionalidad", nacionalidadState.isValid);
-
       //setAfiliadoExiste(false);
       setCUILIsValid(cuilState.isValid);
       setNombreIsValid(nombreState.isValid);
-      setNacionalidadIsValid(nacionalidadIsValid);
-      setFechaNacimientoIsValid(fechaNacimientoIsValid);
-      setEstadoCivilIsValid(estadoCivilIsValid);
-      sertGeneroIsValid(generoIsValid);
-      setTipoDocumentoIsValid(tipoDocumentoIsValid);
-      setNumeroDocumentoIsValid(numeroDocumentoIsValid);
+      setNacionalidadIsValid(nacionalidadState.isValid);
+      setFechaNacimientoIsValid(fechaNacimientoState.isValid);
+      setEstadoCivilIsValid(estadoCivilState.isValid);
+      sertGeneroIsValid(generoState.isValid);
+      setTipoDocumentoIsValid(tipoDocumentoState.isValid);
+      setNumeroDocumentoIsValid(numeroDocumentoState.isValid);
       setDomicilioIsValid(domicilioState.isValid);
       setProvinciaIsValid(provinciaState.isValid);
       setLocalidadIsValid(localidadState.isValid);
@@ -398,19 +394,19 @@ const AfiliadoAgregar = (props) => {
         cuilState.isValid &&
         nombreState.isValid &&
         nacionalidadState.isValid &&
-        //fechaNacimientoState.isValid &&
-        // estadoCivilState.isValid &&
-        // generoState.isValid &&
-        // tipoDocumentoState.isValid &&
-        // numeroDocumentoState.isValid &&
-        // domicilioState.isValid &&
-        // provinciaState.isValid &&
-        // localidadState.isValid &&
-         seccionalState.isValid &&
-         oficioState.isValid &&
-         actividadState.isValid &&
+        fechaNacimientoState.isValid &&
+        estadoCivilState.isValid &&
+        generoState.isValid &&
+        tipoDocumentoState.isValid &&
+        numeroDocumentoState.isValid &&
+        domicilioState.isValid &&
+        provinciaState.isValid &&
+        localidadState.isValid &&
+        seccionalState.isValid &&
+        oficioState.isValid &&
+        actividadState.isValid &&
         cuitState.isValid &&
-       (correo.length > 0 ? emailState.isValid : true)
+        (correo !== "" ? emailState.isValid : true)
       ) {
         setFormularioIsValid(true);
       }
@@ -423,8 +419,6 @@ const AfiliadoAgregar = (props) => {
   }, [
     cuilState.isValid,
     nombreState.isValid,
-    nacionalidadIsValid,
-    fechaNacimientoState.isValid,
     estadoCivilState.isValid,
     generoState.isValid,
     tipoDocumentoState.isValid,
@@ -436,8 +430,10 @@ const AfiliadoAgregar = (props) => {
     oficioState.isValid,
     actividadState.isValid,
     cuitState.isValid,
-    emailState.value,
     emailState.isValid,
+    fechaNacimientoState.isValid,
+    nacionalidadState.isValid,
+    correo,
   ]);
 
   useEffect(() => {
@@ -458,17 +454,32 @@ const AfiliadoAgregar = (props) => {
     const identifier = setTimeout(() => {
       //console.log("checking showAlert...", showAlert);
       //if (showAlert) {
-      //setShowAlert(false);
+      setShowAlert(false);
       setTextAlert("");
       setSeverityAlert("");
       //}
-    }, 10000);
+    }, 8000);
 
     return () => {
       clearTimeout(identifier);
-      //console.log("alert")
+      //console.log("alert");
     };
   }, [showAlert]);
+
+  useEffect(() => {
+    const identifier = setTimeout(() => {
+      //console.log("checking showAlert...", showAlert);
+      if (resolverSolicitudAfiliadoResponse) {
+        handleCerrarModal()
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(identifier);
+      console.log("alert");
+    };
+  }, [resolverSolicitudAfiliadoResponse]);
+
   //#endregion
 
   //#region manejo si el afiliado existe
@@ -913,9 +924,18 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region submit afiliado
+  const [clickAgregar, setClickAgregar] = useState(false)
   const afiliadoAgregarHandler = async (event) => {
     event.preventDefault();
+    setClickAgregar(true)
     //console.log("domicilioRealAFIP", domicilioRealAFIP);
+    if (!formularioIsValid)
+    {
+      setShowAlert(true)
+      setTextAlert("Debe completar todos los campos")
+      setSeverityAlert("error")
+      return;
+    }
     const empresa = {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
@@ -1094,9 +1114,16 @@ const AfiliadoAgregar = (props) => {
       resolverSolicitudAfiliadoResponse
     ) => {
       if (resolverSolicitudAfiliadoResponse) {
+        console.log("props.estadosSolicitudes", props.estadosSolicitudes);
+        const estadoSolicitudSel = props.estadosSolicitudes.find(
+          (estadoSolicitudSel) => estadoSolicitudSel.value === +estadoSolicitud
+        );
+        console.log("estadoSolicitudSel", estadoSolicitudSel);
         setShowAlert(true);
         setSeverityAlert("success");
-        setTextAlert("Solicitud resuelta en estado Activo!");
+        setTextAlert(
+          `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
+        );
         setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
         if (+estadoSolicitud === 2) {
           setShowImprimirLiquidacion(true);
@@ -1188,6 +1215,14 @@ const AfiliadoAgregar = (props) => {
   const handleInputChange = (value, id) => {
     switch (id) {
       case "cuil":
+        setAfiliadoExiste(false)
+        setNuevoAfiliadoResponse(null)
+        setClickAgregar(false)
+        setTextAlert("");
+        setSeverityAlert("")
+        setPadronRespuesta(null);
+        setCUITEmpresa("")
+
         dispatchCUIL({ type: "USER_INPUT", value: value });
         setCUIL(value);
         setNombre("");
@@ -1205,8 +1240,7 @@ const AfiliadoAgregar = (props) => {
         setCorreo("");
         setPuesto("");
         setActividad("");
-        dispatchActividad({ type: "USER_INPUT", value: "" });
-        setPadronRespuesta(null);
+        dispatchActividad({ type: "USER_INPUT", value: "" });        
         break;
 
       case "nombre":
@@ -1281,6 +1315,7 @@ const AfiliadoAgregar = (props) => {
   const handleSeleccionDDJJ = (row) => {
     //console.log(row.cuit);
     setCUITEmpresa(row.cuit);
+    dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
   };
   //#endregion
 
@@ -1289,14 +1324,12 @@ const AfiliadoAgregar = (props) => {
     setSelectedTab(newValue);
   };
   //#endregion
-
-  console.log(estadoSolicitud)
-  console.log(resolverSolicitudAfiliadoResponse)
+  
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
         <div className={classes.alert}>
-          <Alert hidden={!showAlert} severity={severityAlert} variant="filled">
+          <Alert severity={severityAlert} variant="filled">
             {textAlert}
           </Alert>
         </div>
@@ -1329,9 +1362,7 @@ const AfiliadoAgregar = (props) => {
           <Tab
             label="Resolver Solicitud"
             hidden={
-              (nuevoAfiliadoResponse !== null || afiliadoExiste)
-                ? false
-                : true
+              nuevoAfiliadoResponse !== null || afiliadoExiste ? false : true
             }
           />
         </Tabs>
@@ -1347,15 +1378,20 @@ const AfiliadoAgregar = (props) => {
                 disabled={padronRespuesta?.idPersona ? true : false}
                 width={98}
                 onChange={handleInputChange}
-                helperText={!cuilIsValid && cuil !== "" ? "CUIL inválido" : ""}
-                error={!cuilIsValid && cuil !== "" ? true : false}
+                helperText={!cuilState.isValid && cuil !== ""}
+                error={
+                  (!cuilState.isValid && cuil !== "") ||
+                  (!formularioIsValid && clickAgregar)
+                    ? true
+                    : false
+                }
               />
             </div>
             <Button
               width={20}
               heigth={80}
               disabled={habilitarBotonValidarCUIL({
-                cuilIsValid: cuilIsValid,
+                cuilIsValid: cuilState.isValid,
                 afiliadoExiste: afiliadoExiste,
                 padronRespuesta: padronRespuesta ?? null,
               })}
@@ -1373,6 +1409,7 @@ const AfiliadoAgregar = (props) => {
                 width={100}
                 onChange={handleInputChange}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!nombreState.isValid && clickAgregar ? true : false}
               />
             </div>
             <div className={classes.input}>
@@ -1384,6 +1421,9 @@ const AfiliadoAgregar = (props) => {
                 defaultValue={nacionalidades[0]}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={
+                  !nacionalidadState.isValid && clickAgregar ? true : false
+                }
               />
               {/* <SearchSelectMaterial
                 name="nacionalidadSelect"
@@ -1405,6 +1445,9 @@ const AfiliadoAgregar = (props) => {
                 type="date"
                 onChange={handleInputChange}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={
+                  !fechaNacimientoState.isValid && clickAgregar ? true : false
+                }
               />
             </div>
             <div className={classes.input25}>
@@ -1416,6 +1459,7 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 //width={100}
+                error={!estadoCivilState.isValid && clickAgregar ? true : false}
               />
             </div>
             <div className={classes.input25}>
@@ -1427,6 +1471,7 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 //width={100}
+                error={!generoState.isValid && clickAgregar ? true : false}
               />
             </div>
           </div>
@@ -1440,6 +1485,9 @@ const AfiliadoAgregar = (props) => {
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 onChange={handleChangeSelect}
                 //width={98}
+                error={
+                  !tipoDocumentoState.isValid && clickAgregar ? true : false
+                }
               />
             </div>
             <div className={classes.input25}>
@@ -1450,6 +1498,9 @@ const AfiliadoAgregar = (props) => {
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 //width={96}
                 onChange={handleInputChange}
+                error={
+                  !numeroDocumentoState.isValid && clickAgregar ? true : false
+                }
               />
             </div>
             <div className={classes.input}>
@@ -1459,6 +1510,7 @@ const AfiliadoAgregar = (props) => {
                 label="Domicilio"
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 onChange={handleInputChange}
+                error={!domicilioState.isValid && clickAgregar ? true : false}
               />
             </div>
           </div>
@@ -1472,6 +1524,7 @@ const AfiliadoAgregar = (props) => {
                 value={provincia}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!provinciaState.isValid && clickAgregar ? true : false}
               />
             </div>
             <div className={classes.input}>
@@ -1482,6 +1535,7 @@ const AfiliadoAgregar = (props) => {
                 value={localidad}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!localidadState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
                 name="localidadSelect"
@@ -1504,6 +1558,7 @@ const AfiliadoAgregar = (props) => {
                 value={seccional}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!seccionalState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
                 name="seccionalSelect"
@@ -1536,7 +1591,7 @@ const AfiliadoAgregar = (props) => {
                 width={100}
                 onChange={handleInputChange}
                 helperText={
-                  !emailIsValid && correo !== "" ? "Email inválido" : ""
+                  !emailState.isValid && correo !== "" ? "Email inválido" : ""
                 }
                 error={!emailIsValid && correo !== "" ? true : false}
               />
@@ -1551,6 +1606,7 @@ const AfiliadoAgregar = (props) => {
                 value={puesto}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!oficioState.isValid && clickAgregar ? true : false}
               />
             </div>
             <div className={classes.input}>
@@ -1561,6 +1617,7 @@ const AfiliadoAgregar = (props) => {
                 value={actividad}
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
+                error={!actividadState.isValid && clickAgregar ? true : false}
               />
             </div>
           </div>
@@ -1970,9 +2027,7 @@ const AfiliadoAgregar = (props) => {
             className={classes.button}
             width={100}
             onClick={afiliadoAgregarHandler}
-            disabled={
-              !formularioIsValid || nuevoAfiliadoResponse || afiliadoExiste
-            }
+            disabled={nuevoAfiliadoResponse || afiliadoExiste}
           >
             Agregar Afiliado
           </Button>
