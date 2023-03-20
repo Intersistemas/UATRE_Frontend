@@ -12,13 +12,17 @@ import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
-import ValidarCUIT from "../../helpers/ValidarCUIT";
+import ValidarCUIT from "../../validators/ValidarCUIT";
 import InputMask from "../../ui/Input/InputMask";
 import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
+import ValidarEmail from "../../validators/ValidarEmail";
+import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
+
+const initialObject = { value: 0, label: "" };
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
-
+  const [selectedTab, setSelectedTab] = useState(0);
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
@@ -53,7 +57,7 @@ const AfiliadoAgregar = (props) => {
   const [actividad, setActividad] = useState("");
   const [puesto, setPuesto] = useState("");
   const [sexo, setSexo] = useState("");
-  const [nacionalidad, setNacionalidad] = useState("");
+  const [nacionalidad, setNacionalidad] = useState("") //useState(initialObject);
   const [seccional, setSeccional] = useState("");
   const [provincia, setProvincia] = useState("");
   const [localidad, setLocalidad] = useState("");
@@ -89,8 +93,6 @@ const AfiliadoAgregar = (props) => {
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
   const [empresaId, setEmpresaId] = useState(0);
   //#endregion
-
-  const [selectedTab, setSelectedTab] = useState(0);
 
   //#region manejo de validaciones
   // const [cuilHelperText, setCUILHelperText] = useState("");
@@ -144,16 +146,272 @@ const AfiliadoAgregar = (props) => {
     isValid: false,
   });
 
+  const [emailIsValid, setEmailIsValid] = useState(false);
+  const emailReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: ValidarEmail(action.value) };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: ValidarEmail(state.value) };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [emailState, dispatchEmail] = useReducer(emailReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [nacionalidadIsValid, setNacionalidadIsValid] = useState(false);
+  const nacionalidadReducer = (state, action) => {
+    console.log("nacionalidad", action.value);
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [nacionalidadState, dispatchNacionalidad] = useReducer(
+    nacionalidadReducer,
+    {
+      value: "",
+      isValid: false,
+    }
+  );
+
+  const [fechaNacimientoIsValid, setFechaNacimientoIsValid] = useState(false);
+  const fechaNacimientoReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [fechaNacimientoState, dispatchFechaNacimiento] = useReducer(
+    fechaNacimientoReducer,
+    {
+      value: "",
+      isValid: false,
+    }
+  );
+
+  const [estadoCivilIsValid, setEstadoCivilIsValid] = useState(false);
+  const estadoCivilReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [estadoCivilState, dispatchEstadoCivil] = useReducer(
+    estadoCivilReducer,
+    {
+      value: "",
+      isValid: false,
+    }
+  );
+
+  const [generoIsValid, sertGeneroIsValid] = useState(false);
+  const generoReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [generoState, dispatchGenero] = useReducer(generoReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [tipoDocumentoIsValid, setTipoDocumentoIsValid] = useState(false);
+  const tipoDocumentoReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [tipoDocumentoState, dispatchTipoDocumento] = useReducer(
+    tipoDocumentoReducer,
+    {
+      value: "",
+      isValid: false,
+    }
+  );
+
+  const [numeroDocumentoIsValid, setNumeroDocumentoIsValid] = useState(false);
+  const numeroDocumentoReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [numeroDocumentoState, dispatchNumeroDocumento] = useReducer(
+    numeroDocumentoReducer,
+    {
+      value: "",
+      isValid: false,
+    }
+  );
+
+  const [domicilioIsValid, setDomicilioIsValid] = useState(false);
+  const domicilioReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [domicilioState, dispatchDomicilio] = useReducer(domicilioReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [provinciaIsValid, setProvinciaIsValid] = useState(false);
+  const provinciaReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [provinciaState, dispatchProvincia] = useReducer(provinciaReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [localidadIsValid, setLocalidadIsValid] = useState(false);
+  const localidadReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [localidadState, dispatchLocalidad] = useReducer(localidadReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [seccionalIsValid, setSeccionalIsValid] = useState(false);
+  const seccionalReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [seccionalState, dispatchSeccional] = useReducer(seccionalReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [oficioIsValid, setOficioIsValid] = useState(false);
+  const oficioReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [oficioState, dispatchOficio] = useReducer(oficioReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [actividadIsValid, setActividadIsValid] = useState(false);
+  const actividadReducer = (state, action) => {
+    if (action.type === "USER_INPUT") {
+      return { value: action.value, isValid: action.value ? true : false };
+    }
+    if (action.type === "USER_BLUR") {
+      return { value: state.value, isValid: state.value ? true : false };
+    }
+    return { value: "", isValid: false };
+  };
+
+  const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
+    value: "",
+    isValid: false,
+  });
+
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
       //console.log("checking...", cuilState.isValid);
-      console.log("checking...", cuitState.isValid);
-      setAfiliadoExiste(false);
+      console.log("checking... email", emailState.isValid);
+      console.log("checking... nacionalidad", nacionalidadState.isValid);
+
+      //setAfiliadoExiste(false);
       setCUILIsValid(cuilState.isValid);
       setNombreIsValid(nombreState.isValid);
+      setNacionalidadIsValid(nacionalidadIsValid);
+      setFechaNacimientoIsValid(fechaNacimientoIsValid);
+      setEstadoCivilIsValid(estadoCivilIsValid);
+      sertGeneroIsValid(generoIsValid);
+      setTipoDocumentoIsValid(tipoDocumentoIsValid);
+      setNumeroDocumentoIsValid(numeroDocumentoIsValid);
+      setDomicilioIsValid(domicilioState.isValid);
+      setProvinciaIsValid(provinciaState.isValid);
+      setLocalidadIsValid(localidadState.isValid);
+      setSeccionalIsValid(seccionalState.isValid);
+      setOficioIsValid(oficioState.isValid);
+      setActividadIsValid(actividadState.isValid);
+      setEmailIsValid(emailState.isValid);
 
-      if (cuilState.isValid && nombreState.isValid && cuitState.isValid) {
+      if (
+        cuilState.isValid &&
+        nombreState.isValid &&
+        nacionalidadState.isValid &&
+        //fechaNacimientoState.isValid &&
+        // estadoCivilState.isValid &&
+        // generoState.isValid &&
+        // tipoDocumentoState.isValid &&
+        // numeroDocumentoState.isValid &&
+        // domicilioState.isValid &&
+        // provinciaState.isValid &&
+        // localidadState.isValid &&
+         seccionalState.isValid &&
+         oficioState.isValid &&
+         actividadState.isValid &&
+        cuitState.isValid &&
+       (correo.length > 0 ? emailState.isValid : true)
+      ) {
         setFormularioIsValid(true);
       }
     }, 400);
@@ -162,7 +420,25 @@ const AfiliadoAgregar = (props) => {
       clearTimeout(identifier);
       //console.log("cleanup");
     };
-  }, [cuilState.isValid, nombreState.isValid, cuitState.isValid]);
+  }, [
+    cuilState.isValid,
+    nombreState.isValid,
+    nacionalidadIsValid,
+    fechaNacimientoState.isValid,
+    estadoCivilState.isValid,
+    generoState.isValid,
+    tipoDocumentoState.isValid,
+    numeroDocumentoState.isValid,
+    domicilioState.isValid,
+    provinciaState.isValid,
+    localidadState.isValid,
+    seccionalState.isValid,
+    oficioState.isValid,
+    actividadState.isValid,
+    cuitState.isValid,
+    emailState.value,
+    emailState.isValid,
+  ]);
 
   useEffect(() => {
     const identifier = setTimeout(() => {
@@ -202,9 +478,14 @@ const AfiliadoAgregar = (props) => {
     if (cuilIsValid && cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
+        setNuevoAfiliadoResponse(afiliadoObj.id)
         setAfiliadoExiste(true);
         setPadronRespuesta(true);
         setNombre(afiliadoObj.nombre);
+        // setNacionalidad({
+        //   value: afiliadoObj.nacionalidadId,
+        //   label: afiliadoObj.nacionalidad,
+        // });
         setNacionalidad(afiliadoObj.nacionalidadId);
         setFechaNacimiento(
           moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
@@ -212,16 +493,19 @@ const AfiliadoAgregar = (props) => {
         setEstadoCivil(afiliadoObj.estadoCivilId);
         setSexo(afiliadoObj.sexoId);
         setProvincia(afiliadoObj.provinciaId);
-        setSeccional(afiliadoObj.seccionalId);
+        setSeccional(afiliadoObj.seccionalId)
         setTipoDocumento(afiliadoObj.tipoDocumentoId);
         setNumeroDocumento(afiliadoObj.documento);
         setTelefono(afiliadoObj.telefono);
         setCorreo(afiliadoObj.correo);
         setActividad(afiliadoObj.actividadId);
+        dispatchActividad({
+          type: "USER_INPUT",
+          value: afiliadoObj.actividadId,
+        });
         setPuesto(afiliadoObj.puestoId);
         setDomicilio(afiliadoObj.domicilio);
         setLocalidad(afiliadoObj.refLocalidadId);
-        setSeccional(afiliadoObj.seccionalId);
         setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
 
         //datos empleador
@@ -267,7 +551,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste) {
       const processGetEmpresa = async (empresaObj) => {
-        console.log("empresaObj", empresaObj);
+        //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -427,12 +711,15 @@ const AfiliadoAgregar = (props) => {
   }, [request, provincia]);
 
   useEffect(() => {
-    if (localidad !== "") {
+    if (localidad) {
       const processSeccionales = async (seccionalesObj) => {
         const seccionalesSelect = seccionalesObj
           .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
           .map((seccional) => {
-            return { value: seccional.id, label: seccional.descripcion };
+            return {
+              value: seccional.id,
+              label: `${seccional.codigo} ${seccional.descripcion}`,
+            };
           });
         //console.log("seccionalesSelect", seccionalesSelect);
         setSeccionales(seccionalesSelect);
@@ -492,7 +779,7 @@ const AfiliadoAgregar = (props) => {
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     const processConsultaPadron = async (padronObj) => {
-      console.log("padronObj", padronObj);
+      //console.log("padronObj", padronObj);
       setPadronRespuesta(padronObj);
       dispatchNombre({
         type: "USER_INPUT",
@@ -502,30 +789,59 @@ const AfiliadoAgregar = (props) => {
       setFechaNacimiento(
         moment(padronObj.fechaNacimiento).format("yyyy-MM-DD")
       );
+      dispatchFechaNacimiento({
+        type: "USER_INPUT",
+        value: padronObj.fechaNacimiento,
+      });
 
       //tipo doc
       const tipoDoc = tiposDocumentos.filter(
         (tipoDoc) => tipoDoc.label === padronObj.tipoDocumento
       );
       setTipoDocumento(tipoDoc[0].value);
+      dispatchTipoDocumento({ type: "USER_INPUT", value: tipoDoc[0].value });
       setNumeroDocumento(padronObj.numeroDocumento);
+      dispatchNumeroDocumento({
+        type: "USER_INPUT",
+        value: padronObj.numeroDocumento,
+      });
       const domicilioReal = padronObj.domicilios.find(
         (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
       );
       setDomicilio(domicilioReal.direccion);
-      setNacionalidad(nacionalidades[0].value);
+      dispatchDomicilio({ type: "USER_INPUT", value: domicilioReal.direccion });
+      //console.log("nacionalidad", nacionalidades[5].label);
+      // setNacionalidad({
+      //   value: nacionalidades[5].value,
+      //   label: nacionalidades[5].label,
+      // });
+      setNacionalidad(nacionalidades[5].value);
+      dispatchNacionalidad({
+        type: "USER_INPUT",
+        value: nacionalidades[5].value,
+      });
 
       //provincia
       const provincia = provincias.find(
         (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
       );
       setProvincia(provincia.value);
+      dispatchProvincia({ type: "USER_INPUT", value: provincia.value });
 
       //localidad
       const processLocalidades = async (localidadesObj) => {
         //console.log("localidades", localidadesObj);
         //console.log("localidad", localidadesObj[0].id);
-        setLocalidad(localidadesObj[0].id ?? "");
+        const localidad = localidadesObj.find(
+          (localidad) =>
+            localidad.codPostal === parseInt(domicilioReal.codigoPostal)
+        );
+        //console.log("localidad", localidad)
+        setLocalidad(localidad ? localidad.id : "");
+        dispatchLocalidad({
+          type: "USER_INPUT",
+          value: localidadesObj[0].id ?? "",
+        });
       };
 
       //datos afip
@@ -563,7 +879,7 @@ const AfiliadoAgregar = (props) => {
 
   const validarEmpresaCUITHandler = (cuit) => {
     const processConsultaPadron = async (padronObj) => {
-      console.log("padronObj", padronObj);
+      //console.log("padronObj", padronObj);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
       setRazonSocialEmpresa(
@@ -639,7 +955,7 @@ const AfiliadoAgregar = (props) => {
     };
 
     const empresaAgregar = async (empresaObjResponse) => {
-      console.log("empresaObjResponse", empresaObjResponse);
+      //console.log("empresaObjResponse", empresaObjResponse);
       setEmpresaId(empresaObjResponse);
     };
 
@@ -667,7 +983,7 @@ const AfiliadoAgregar = (props) => {
     fechaEgreso: null,
     nacionalidadId: +nacionalidad,
     empresaId: +empresaId,
-    seccionalId: seccional,
+    seccionalId: +seccional,
     sexoId: +sexo,
     tipoDocumentoId: +tipoDocumento,
     documento: +numeroDocumento,
@@ -810,41 +1126,53 @@ const AfiliadoAgregar = (props) => {
     switch (name) {
       case "actividadSelect":
         setActividad(value);
+        dispatchActividad({ type: "USER_INPUT", value: value });
         break;
 
       case "puestoSelect":
         setPuesto(value);
+        dispatchOficio({ type: "USER_INPUT", value: value });
         break;
 
       case "nacionalidadSelect":
         setNacionalidad(value);
+        dispatchNacionalidad({ type: "USER_INPUT", value: value });
         break;
 
       case "sexoSelect":
         setSexo(value);
+        dispatchGenero({ type: "USER_INPUT", value: value });
         break;
 
       case "seccionalSelect":
+        //console.log("seccionalValue", value);
         setSeccional(value);
+        dispatchSeccional({ type: "USER_INPUT", value: value });
         break;
 
       case "estadoCivilSelect":
         setEstadoCivil(value);
+        dispatchEstadoCivil({ type: "USER_INPUT", value: value });
         break;
 
       case "tipoDocumentoSelect":
         setTipoDocumento(value);
+        dispatchTipoDocumento({ type: "USER_INPUT", value: value });
         break;
 
       case "provinciaSelect":
         setProvincia(value);
         setLocalidad("");
         setSeccional("");
+        dispatchProvincia({ type: "USER_INPUT", value: value });
+        dispatchLocalidad({ type: "USER_INPUT", value: "" });
+        dispatchSeccional({ type: "USER_INPUT", value: "" });
         break;
 
       case "localidadSelect":
-        //log("selectLocalidad", value);
+        //console.log("selectLocalidad", value);
         setLocalidad(value);
+        dispatchLocalidad({ type: "USER_INPUT", value: value });
         break;
       case "estadoSolicitudSelect":
         setEstadoSolicitud(value);
@@ -877,6 +1205,7 @@ const AfiliadoAgregar = (props) => {
         setCorreo("");
         setPuesto("");
         setActividad("");
+        dispatchActividad({ type: "USER_INPUT", value: "" });
         setPadronRespuesta(null);
         break;
 
@@ -888,14 +1217,17 @@ const AfiliadoAgregar = (props) => {
       case "fechaNacimiento":
         //console.log('fecha', value)
         setFechaNacimiento(value);
+        dispatchFechaNacimiento({ type: "USER_INPUT", value: value });
         break;
 
       case "numeroDocumento":
         setNumeroDocumento(value);
+        dispatchNumeroDocumento({ type: "USER_INPUT", value: value });
         break;
 
       case "domicilio":
         setDomicilio(value);
+        dispatchDomicilio({ type: "USER_INPUT", value: value });
         break;
 
       case "telefono":
@@ -904,6 +1236,7 @@ const AfiliadoAgregar = (props) => {
 
       case "correo":
         setCorreo(value);
+        dispatchEmail({ type: "USER_INPUT", value: value });
         break;
 
       case "cuit":
@@ -957,6 +1290,8 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+  console.log(estadoSolicitud)
+  console.log(resolverSolicitudAfiliadoResponse)
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -994,8 +1329,7 @@ const AfiliadoAgregar = (props) => {
           <Tab
             label="Resolver Solicitud"
             hidden={
-              (nuevoAfiliadoResponse || afiliadoExiste) &&
-              (+estadoSolicitud === 1 || resolverSolicitudAfiliadoResponse)
+              (nuevoAfiliadoResponse !== null || afiliadoExiste)
                 ? false
                 : true
             }
@@ -1013,10 +1347,8 @@ const AfiliadoAgregar = (props) => {
                 disabled={padronRespuesta?.idPersona ? true : false}
                 width={98}
                 onChange={handleInputChange}
-                helperText={
-                  !cuilIsValid && cuil.length === 11 ? "CUIL inválido" : ""
-                }
-                error={!cuilIsValid && cuil.length === 11 ? true : false}
+                helperText={!cuilIsValid && cuil !== "" ? "CUIL inválido" : ""}
+                error={!cuilIsValid && cuil !== "" ? true : false}
               />
             </div>
             <Button
@@ -1053,6 +1385,15 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               />
+              {/* <SearchSelectMaterial
+                name="nacionalidadSelect"
+                label="Nacionalidad"
+                options={nacionalidades}
+                value={nacionalidad}
+                defaultValue={nacionalidad}
+                onChange={handleChangeSelect}
+                disabled={!padronRespuesta?.idPersona ? true : false}
+            />*/}
             </div>
           </div>
           <div className={classes.renglon}>
@@ -1142,6 +1483,15 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               />
+              {/* <SearchSelectMaterial
+                name="localidadSelect"
+                label="Localidad"
+                options={localidades}
+                value={localidad}
+                defaultValue={localidad}
+                onChange={handleChangeSelect}
+                disabled={!padronRespuesta?.idPersona ? true : false}
+              /> */}
             </div>
           </div>
 
@@ -1155,6 +1505,14 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               />
+              {/* <SearchSelectMaterial
+                name="seccionalSelect"
+                label="Seccional"
+                options={seccionales}
+                value={seccional}
+                onChange={handleChangeSelect}
+                disabled={!padronRespuesta?.idPersona ? true : false}
+              /> */}
             </div>
           </div>
 
@@ -1177,6 +1535,10 @@ const AfiliadoAgregar = (props) => {
                 disabled={!padronRespuesta?.idPersona ? true : false}
                 width={100}
                 onChange={handleInputChange}
+                helperText={
+                  !emailIsValid && correo !== "" ? "Email inválido" : ""
+                }
+                error={!emailIsValid && correo !== "" ? true : false}
               />
             </div>
           </div>
@@ -1462,6 +1824,7 @@ const AfiliadoAgregar = (props) => {
         <DeclaracionesJuradas
           cuil={cuil}
           onSeleccionRegistro={handleSeleccionDDJJ}
+          infoCompleta={true}
         />
       )}
       {selectedTab === 3 && (
@@ -1473,7 +1836,8 @@ const AfiliadoAgregar = (props) => {
             <div className={classes.renglon}>
               <DeclaracionesJuradas
                 cuil={cuil}
-                onSeleccionRegistro={handleSeleccionDDJJ}
+                //onSeleccionRegistro={handleSeleccionDDJJ}
+                infoCompleta={true}
                 mostrarBuscar={false}
                 registros={3}
               />
