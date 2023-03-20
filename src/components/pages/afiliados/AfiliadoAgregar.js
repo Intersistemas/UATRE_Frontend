@@ -51,7 +51,6 @@ const AfiliadoAgregar = (props) => {
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
 
-	const [documentacionTipoList, setDocumentacionTipoList] = useState({ loading: true });
 	const [documentacionList, setDocumentacionList] = useState([]);
 	const [documentacionItem, setDocumentacionItem] = useState({});
   //#endregion
@@ -1612,28 +1611,100 @@ const AfiliadoAgregar = (props) => {
 				<Grid col full="width" gap="10px">
 					<Grid full="width" gap="5px">
 						<DocumentacionList
-						config={{
-							data: documentacionList,
-							onSelect: (r) => setDocumentacionItem(r),
-						}}
+							config={{
+								data: documentacionList,
+								onSelect: (r) =>
+									setDocumentacionItem({
+										data: { ...r },
+										req: null,
+									}),
+							}}
 						/>
 					</Grid>
 					<Grid full="width" gap="5px">
 						<Grid grow>
-							<Button>Agregar documentación</Button>
+							<Button
+								onClick={() =>
+									setDocumentacionItem(oldItem => ({ ...oldItem, req: 1 }))
+								}
+							>
+								Agregar documentación
+							</Button>
 						</Grid>
 						<Grid grow>
-							<Button>Modificar documentación</Button>
+							<Button
+								disabled={documentacionItem.data == null}
+								onClick={() =>
+									setDocumentacionItem(oldItem => ({ ...oldItem, req: 2 }))
+								}
+							>
+								Modificar documentación
+							</Button>
 						</Grid>
 						<Grid grow>
-							<Button>Dar de baja documentación</Button>
+							<Button
+								disabled={documentacionItem.data == null}
+								onClick={() =>
+									setDocumentacionItem(oldItem => ({ ...oldItem, req: 3 }))
+								}
+							>
+								Dar de baja documentación
+							</Button>
 						</Grid>
 					</Grid>
 					<Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
 						<DocumentacionForm
 							config={{
-								data: documentacionItem,
-								onChange: (newData) => setDocumentacionItem(oldData => ({...oldData, ...newData})),
+								data: documentacionItem.data,
+								disabled: documentacionItem.req == null,
+								onChange: (dataChanges) =>
+									setDocumentacionItem((oldValue) => {
+										console.log("oldValue", oldValue);
+										const newData = { ...oldValue.data, ...dataChanges };
+										console.log("newData", newData);
+										return { ...oldValue, data: newData };
+									}),
+								onCancel: () =>
+									setDocumentacionItem((oldValue) => {
+										const newValue = {
+											data: {
+												...(documentacionList.find(
+													(r) => r.id === oldValue.id
+												) ?? {}),
+											},
+											req: null,
+										};
+										return newValue;
+									}),
+								onConfirm: () => {
+									console.log("documentacionItem.req", documentacionItem.req);
+									if (documentacionItem.req == null) return;
+									const data = { ...documentacionItem.data };
+									console.log("data", data);
+									if (documentacionItem.req === 1) {
+										setDocumentacionList((oldList) => {
+											data.id = oldList.length + 1;
+											setDocumentacionItem({ data: data, req: null });
+											return [...oldList, data];
+										});
+										return;
+									}
+									const index = documentacionList.findIndex(
+										(r) => r.id === data?.id
+									);
+									if (index == null) return;
+									setDocumentacionList((oldList) => {
+										const newList = [...oldList];
+										if (documentacionItem.req === 2) {
+											newList.splice(index, 1, data);
+											setDocumentacionItem({ data: data, req: null });
+										} else {
+											newList.splice(index, 1);
+											setDocumentacionItem({ req: null });
+										}
+										return newList;
+									});
+								},
 							}}
 						/>
 					</Grid>

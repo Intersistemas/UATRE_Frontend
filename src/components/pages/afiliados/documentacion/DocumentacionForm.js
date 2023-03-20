@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import useHttp from "../../../hooks/useHttp";
+import Button from "../../../ui/Button/Button";
 import Grid from "../../../ui/Grid/Grid";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import SelectMaterial from "../../../ui/Select/SelectMaterial";
 
 const DocumentacionForm = ({ config }) => {
-	const data = config.data ? { ...config.data } : {};
-	const onChange = config.onChange ?? ((newData) => {});
+	const data = config.data ?? {};
+	const disabled = config.disabled ? true : false;
+	const onChange = config.onChange ?? ((dataChanges) => {});
+	const onCancel = config.onCancel ?? (() => {});
+	const onConfirm = config.onConfirm ?? (() => {});
 	const { sendRequest: request } = useHttp();
 
 	//#region declaracion y carga de lista de tipos de documentacion
@@ -32,44 +36,56 @@ const DocumentacionForm = ({ config }) => {
 
 	return (
 		<Grid col full gap="10px">
-			<Grid full="width">
-				{tipoList.loading ? (
-					<h4>Cargando..</h4>
-				) : tipoList.error ? (
-					<h4>Error {tipoList.error.message}</h4>
-				) : (
-					<SelectMaterial
-						name="refTipoDocumentacionId"
-						label="Tipo de documentacion"
-						options={tipoList.data ?? []}
-						value={data?.refTipoDocumentacionId}
-						defaultValue={tipoList[0]}
-						onChange={(v) => onChange({ refTipoDocumentacionId: v })}
+			<Grid full="width" gap="10px">
+				<Grid grow>
+					{tipoList.loading ? (
+						<h4>Cargando..</h4>
+					) : tipoList.error ? (
+						<h4>Error {tipoList.error.message}</h4>
+					) : (
+						<SelectMaterial
+							name="refTipoDocumentacionId"
+							label="Tipo de documentacion"
+							disabled={disabled}
+							options={tipoList.data ?? []}
+							value={data.refTipoDocumentacionId ?? undefined}
+							defaultValue={tipoList[0]}
+							onChange={(v) => onChange({ refTipoDocumentacionId: v })}
+						/>
+					)}
+				</Grid>
+				<Grid grow>
+					<input
+						type="file"
+						name="archivo"
+						disabled={disabled}
+						onChange={(e) => {
+							if (e.target.files.length === 0) return;
+							const archivo = e.target.files[0];
+							const reader = new FileReader();
+							reader.readAsDataURL(archivo);
+							reader.onload = () => onChange({ archivo: reader.result });
+						}}
 					/>
-				)}
-			</Grid>
-			<Grid full="width">
-				<input
-					type="file"
-					name="archivo"
-					onChange={(e) => {
-						if (e.target.files.length === 0) return;
-						console.log("e.target.files", e.target.files);
-						const archivo = e.target.files[0];
-						const reader = new FileReader();
-						reader.readAsDataURL(archivo);
-						reader.onload = () => onChange({ archivo: reader.result });
-					}}
-				/>
+				</Grid>
 			</Grid>
 			<Grid full="width">
 				<InputMaterial
 					id="observaciones"
 					label="Observaciones"
-					value={data?.observaciones ?? ""}
+					disabled={disabled}
+					value={data.observaciones ?? ""}
 					onChange={(v) => onChange({ observaciones: v })}
 					width={100}
 				/>
+			</Grid>
+			<Grid full="width" justify="center" gap="50px">
+				<Grid>
+					<Button onClick={() => onConfirm()} disabled={disabled}>Confirmar</Button>
+				</Grid>
+				<Grid>
+					<Button onClick={() => onCancel()}disabled={disabled}>Cancelar</Button>
+				</Grid>
 			</Grid>
 		</Grid>
 	);
