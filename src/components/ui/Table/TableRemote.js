@@ -79,10 +79,11 @@ const handleChangeSearchEntry = (event) => {
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600 }} style={{display:'flex'}}>
+       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: '30%' }}>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Buscar por</InputLabel>
+          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
+          
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             value={selectValue}
@@ -96,10 +97,18 @@ const handleChangeSearchEntry = (event) => {
             }
           </Select>
         </FormControl>
-        <TextField  fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}/>
+        <TextField 
+        fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}
+        helperText={
+          props.error
+            ? "Error buscando datos"
+            : ""
+        }
+        error={props.error}
+        />
         <Button
-              width={100}
-              onClick={()=>props.accionBuscar(selectValue.dataField,entryValue)}
+              width={80}
+              onClick={()=>props.accionBuscar(selectValue.text,entryValue)}
               disabled={!entryValue ?? true}
         >BUSCAR</Button>
       </Box>

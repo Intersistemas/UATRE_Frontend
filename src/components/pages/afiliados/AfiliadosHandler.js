@@ -68,16 +68,16 @@ const navigate = useNavigate()
         endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
     if (sortColumn) { //ORDENAMIENTO
+        sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
         endpoint = `${endpoint}&Sort=${sortColumn}`;
     }
     if (search) { //BUSQUEDA
-        endpoint = `${endpoint}&Search=${search}`;
+        endpoint = `${endpoint}&FilterValue=${search}`;
     }
     if (searchColumn) { //COLUMNA DE BUSUQUEDA
-        //endpoint = `${endpoint}&SearchColumn=${searchColumn}`;
+        endpoint = `${endpoint}&FilterBy=${searchColumn}`;
     }
 
-    
     request(
       {
         baseURL: "Afiliaciones",
@@ -86,7 +86,7 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud,search,searchColumn, sortColumn]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,search,searchColumn, sortColumn,sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -173,14 +173,19 @@ const navigate = useNavigate()
   const handleSearch = (select,entry) => {
     console.log('handleSearch_llega con la data',select,entry)
     setSearch(entry);
-    setSearchColumn(select); //TODO
-    setAfiliadosRespuesta([]);
+    switch(select){
+      case "Nro.Afiliado":
+        setSearchColumn("NroAfiliado")
+        break;
+      default:  setSearchColumn(select);
+    }
+    //setAfiliadosRespuesta([]);
   };
 
   const handleSort = (sortColumn,sortOrder) => {
     console.log('handleSort_llega con la data',sortColumn,sortOrder);
-    setSortColumn(sortColumn);
-
+    setSortColumn(sortColumn=='cuil'?'CUIL':sortColumn);
+    setSortOrder(sortOrder);
     //setOrder(sortOrder); TODO
   };
 
@@ -198,9 +203,9 @@ const navigate = useNavigate()
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
-  if (error) {
+  /*if (error) {
     return <h1>{error}</h1>;
-  }
+  }*/
 
   if (afiliadosRespuesta.length !== 0)
     return (
@@ -214,6 +219,7 @@ const navigate = useNavigate()
 
           <AfiliadosLista
             afiliados={afiliadosRespuesta}
+            errorRequest={error}
             loading={afiliadosRespuesta?.length ? false : isLoading}
             estadosSolicitud={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
@@ -224,6 +230,7 @@ const navigate = useNavigate()
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+            
           />
       
       </Fragment>
