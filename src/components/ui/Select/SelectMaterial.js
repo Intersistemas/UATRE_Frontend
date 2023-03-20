@@ -1,4 +1,4 @@
-import { MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { MenuItem, Select, InputLabel, FormControl, FormHelperText } from "@mui/material";
 import styles from "./SelectMaterial.module.css";
 
 const ITEM_HEIGHT = 48;
@@ -22,6 +22,7 @@ const SelectMaterial = (props) => {
     <FormControl
       size="small"
       style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+      error={props.error ?? false}
     >
       <InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
       <Select
@@ -37,8 +38,8 @@ const SelectMaterial = (props) => {
         disabled={props.disabled}
         // InputLabelProps={{
         //   shrink: true,
-        // }}
-      >
+        // }}       
+      >        
         {props.options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}
