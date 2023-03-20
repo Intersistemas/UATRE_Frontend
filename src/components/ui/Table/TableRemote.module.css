@@ -16,7 +16,7 @@ td, th {
     .tabla {
         zoom: 90%;
         width: 100%;
-        padding-top: 4%;
+        /*padding-top: 4%;*/
     }
   }
   
@@ -24,6 +24,6 @@ td, th {
     .tabla {
         zoom: 74%;
         width: 100%;
-        padding-top: 4%;
+       /* padding-top: 4%;*/
     }
   }

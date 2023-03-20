@@ -79,9 +79,9 @@ const handleChangeSearchEntry = (event) => {
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600 }} style={{display:'flex'}}>
+       <Box sx={{ maxWidth: 600 }} style={{display:'flex', float: 'right'}}>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Buscar por</InputLabel>
+          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
             labelId="demo-simple-select-label"
             id="demo-simple-select"
