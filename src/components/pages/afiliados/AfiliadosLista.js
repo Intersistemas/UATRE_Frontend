@@ -316,8 +316,7 @@ const AfiliadosLista = (props) => {
     //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
     setAfiliadoSeleccionado(null);
     sortField&&props.onSort(sortField,sortOrder);
-    //const currentIndex = (page - 1) * sizePerPage;
-    //props.onFilterChange(filters);
+
   };
 
   //#region  la paginacion la maneja el componente Table
@@ -366,6 +365,7 @@ const AfiliadosLista = (props) => {
       filter: filterFactory(),
       noDataIndication: indication,
       onSelected: rowEvents,
+      error: props.errorRequest ? true : false,
   }
 
   const tablePropsVacia = {
