@@ -51,7 +51,7 @@ const AfiliadoAgregar = (props) => {
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
 
-	const [documentacionList, setDocumentacionList] = useState([]);
+	const [documentacionList, setDocumentacionList] = useState({ data: [], idGen: 0 });
 	const [documentacionItem, setDocumentacionItem] = useState({});
   //#endregion
 
@@ -1612,30 +1612,30 @@ const AfiliadoAgregar = (props) => {
 					<Grid full="width" gap="5px">
 						<DocumentacionList
 							config={{
-								data: documentacionList,
-								onSelect: (r) =>
+								data: documentacionList.data,
+								onSelect: (r) => {
 									setDocumentacionItem({
 										data: { ...r },
+										hisotry: { ...r },
 										req: null,
-									}),
+									});
+								},
 							}}
 						/>
 					</Grid>
 					<Grid full="width" gap="5px">
 						<Grid grow>
 							<Button
-								onClick={() =>
-									setDocumentacionItem(oldItem => ({ ...oldItem, req: 1 }))
-								}
+								onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
 							>
 								Agregar documentación
 							</Button>
 						</Grid>
 						<Grid grow>
 							<Button
-								disabled={documentacionItem.data == null}
+								disabled={documentacionItem.req != null}
 								onClick={() =>
-									setDocumentacionItem(oldItem => ({ ...oldItem, req: 2 }))
+									setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
 								}
 							>
 								Modificar documentación
@@ -1643,12 +1643,12 @@ const AfiliadoAgregar = (props) => {
 						</Grid>
 						<Grid grow>
 							<Button
-								disabled={documentacionItem.data == null}
+								disabled={documentacionItem.req != null}
 								onClick={() =>
-									setDocumentacionItem(oldItem => ({ ...oldItem, req: 3 }))
+									setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
 								}
 							>
-								Dar de baja documentación
+								Borrar documentación
 							</Button>
 						</Grid>
 					</Grid>
@@ -1658,52 +1658,56 @@ const AfiliadoAgregar = (props) => {
 								data: documentacionItem.data,
 								disabled: documentacionItem.req == null,
 								onChange: (dataChanges) =>
-									setDocumentacionItem((oldValue) => {
-										console.log("oldValue", oldValue);
-										const newData = { ...oldValue.data, ...dataChanges };
-										console.log("newData", newData);
-										return { ...oldValue, data: newData };
-									}),
+									setDocumentacionItem((oldValue) => ({
+										...oldValue,
+										data: { ...oldValue.data, ...dataChanges },
+									})),
 								onCancel: () =>
-									setDocumentacionItem((oldValue) => {
-										const newValue = {
-											data: {
-												...(documentacionList.find(
-													(r) => r.id === oldValue.id
-												) ?? {}),
-											},
-											req: null,
-										};
-										return newValue;
-									}),
+									setDocumentacionItem((oldValue) => ({
+										data: oldValue.history,
+										history: oldValue.history,
+										req: null,
+									})),
 								onConfirm: () => {
-									console.log("documentacionItem.req", documentacionItem.req);
-									if (documentacionItem.req == null) return;
-									const data = { ...documentacionItem.data };
-									console.log("data", data);
-									if (documentacionItem.req === 1) {
-										setDocumentacionList((oldList) => {
-											data.id = oldList.length + 1;
-											setDocumentacionItem({ data: data, req: null });
-											return [...oldList, data];
-										});
-										return;
+									let data;
+									let index = null;
+									switch (documentacionItem.req) {
+										case 1: // Agrega
+											data = { ...documentacionItem.data, id: null };
+											index = documentacionList.data.length;
+											break;
+										case 2: // Modifica
+											data = { ...documentacionItem.data };
+											break;
+										case 3: // Borra
+											data = null;
+											break;
+										default:
+											return;
 									}
-									const index = documentacionList.findIndex(
-										(r) => r.id === data?.id
-									);
-									if (index == null) return;
-									setDocumentacionList((oldList) => {
-										const newList = [...oldList];
-										if (documentacionItem.req === 2) {
-											newList.splice(index, 1, data);
-											setDocumentacionItem({ data: data, req: null });
+									if (index == null) {
+										// Modifica o Borra
+										index = documentacionList.data.findIndex(
+											(r) => r.id === documentacionItem.data?.id
+										);
+									}
+									setDocumentacionList((oldValue) => {
+										const newValue = { ...oldValue, data: [...oldValue.data] };
+										if (data == null) {
+											// Borra
+											newValue.data.splice(index, 1);
 										} else {
-											newList.splice(index, 1);
-											setDocumentacionItem({ req: null });
+											// Agrega o Modifica
+											if (data.id == null) {
+												// Agrega
+												newValue.idGen += 1;
+												data.id = newValue.idGen;
+											}
+											newValue.data.splice(index, 1, { ...data });
 										}
-										return newList;
+										return newValue;
 									});
+									setDocumentacionItem({ req: null });
 								},
 							}}
 						/>

@@ -48,7 +48,7 @@ const DocumentacionForm = ({ config }) => {
 							label="Tipo de documentacion"
 							disabled={disabled}
 							options={tipoList.data ?? []}
-							value={data.refTipoDocumentacionId ?? undefined}
+							value={data.refTipoDocumentacionId ?? ""}
 							defaultValue={tipoList[0]}
 							onChange={(v) => onChange({ refTipoDocumentacionId: v })}
 						/>
@@ -64,7 +64,11 @@ const DocumentacionForm = ({ config }) => {
 							const archivo = e.target.files[0];
 							const reader = new FileReader();
 							reader.readAsDataURL(archivo);
-							reader.onload = () => onChange({ archivo: reader.result });
+							reader.onload = () =>
+								onChange({
+									archivoBase64: reader.result,
+									archivoNombre: archivo.name,
+								});
 						}}
 					/>
 				</Grid>
@@ -81,10 +85,14 @@ const DocumentacionForm = ({ config }) => {
 			</Grid>
 			<Grid full="width" justify="center" gap="50px">
 				<Grid>
-					<Button onClick={() => onConfirm()} disabled={disabled}>Confirmar</Button>
+					<Button onClick={() => onConfirm()} disabled={disabled}>
+						Confirmar
+					</Button>
 				</Grid>
 				<Grid>
-					<Button onClick={() => onCancel()}disabled={disabled}>Cancelar</Button>
+					<Button onClick={() => onCancel()} disabled={disabled}>
+						Cancelar
+					</Button>
 				</Grid>
 			</Grid>
 		</Grid>
