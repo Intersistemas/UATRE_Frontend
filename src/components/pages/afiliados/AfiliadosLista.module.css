@@ -22,22 +22,22 @@
     position: fixed;
 }
 
-@media (max-width: 1920px) {
+@media screen and (max-width: 1920px) {
     .tabs {
         zoom: 90%;
         margin: -1.5% 0% 0% 0%;
     }
   }
   
-  @media (max-width: 1360px) {
+  @media screen and (max-width: 1360px) {
     .tabs {
         zoom: 60%;
         margin: -0.9% 0% 0% 0%;
     }
   }
-  @media (max-width: 700px) {
+  @media screen and (max-width: 700px) {
     .tabs {
-        zoom: 50%;
+        zoom: 70%;
         margin: -0.9% 0% 0% 0%;
     }
   }

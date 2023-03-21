@@ -252,12 +252,32 @@ const AfiliadosLista = (props) => {
     
   ];
   
-   const selectores = columns.map((items)=>(
+  /*const selectores = columns.map((items)=>(
     {
       dataField:items.dataField,
       text: items.text
     }
-  ));
+  ));*/
+
+  const selectores = [
+    {
+      dataField: "NroAfiliado",
+      text:"NroAfiliado"
+    },
+    {
+      dataField: "CUIL",
+      text:"CUIL"
+    },
+    {
+      dataField: "Documento",
+      text:"Documento"
+    },
+    {
+      dataField: "Nombre",
+      text:"Nombre"
+    }
+
+  ]
 
   console.log('selectores',selectores);
 
