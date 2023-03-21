@@ -111,7 +111,7 @@ const Login = () => {
 
 			
 				
-				<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
+			<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
 			<InputGroup className="mb-3">	
 				<Form.Control type= {verClave ? "text" : "password"} placeholder="Clave"
 				id="password"

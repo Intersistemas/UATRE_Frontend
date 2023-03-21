@@ -22,7 +22,6 @@
     position: fixed;
 }
 
-
 @media screen and (max-width: 1920px) {
     .tabs {
         zoom: 90%;
@@ -30,12 +29,14 @@
     }
   }
   
+
   @media screen and (max-width: 1370px) {
     .tabs {
         zoom: 80%;
         margin: -0.9% 0% 0% 0%;
     }
   }
+
   @media screen and (max-width: 800px) {
     .tabs {
         zoom: 70%;
