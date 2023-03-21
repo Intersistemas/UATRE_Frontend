@@ -69,11 +69,14 @@ const TableRemote = (props) => {
     //props.handleSelectFilter(event.target.value);
   };
 
-const handleChangeSearchEntry = (event) => {
-    console.log('event',event.target.value);
+  const handleChangeSearchEntry = (event) => {
     setEntryValue(event.target.value);
       //props.handleSelectFilter(event.target.value);
-    };
+  };
+
+  const accionLimpiarFiltros = () =>{
+    props.accionBuscar('','');
+  };
   
   return (
 
@@ -111,6 +114,10 @@ const handleChangeSearchEntry = (event) => {
               onClick={()=>props.accionBuscar(selectValue.text,entryValue)}
               disabled={!entryValue ?? true}
         >BUSCAR</Button>
+        <Button
+              width={40}
+              onClick={()=>accionLimpiarFiltros()}
+        >Limpiar</Button>
       </Box>
     
       }

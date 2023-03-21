@@ -4,7 +4,7 @@
     /*width: 95%;*/
     /*display: block;*/
     /*flex-direction: row;*/
-    padding: 2% 0%;
+    padding: 2% 0% 0% 0%;
     /*right: 0;*/
     /*margin-left: 2.5%;*/
     /*zoom: 78%;*/
@@ -22,6 +22,13 @@
     position: fixed;
 }
 
+@media (max-width: 2570px) {
+    .tabs {
+        zoom: 100%;
+        margin: -1.5% 0% 0% 0%;
+    }
+}
+
 @media screen and (max-width: 1920px) {
     .tabs {
         zoom: 90%;
@@ -29,17 +36,16 @@
     }
   }
   
-
   @media screen and (max-width: 1370px) {
     .tabs {
-        zoom: 80%;
+        zoom: 70%;
         margin: -0.9% 0% 0% 0%;
     }
   }
 
   @media screen and (max-width: 800px) {
     .tabs {
-        zoom: 70%;
+        zoom: 60%;
         margin: -0.9% 0% 0% 0%;
     }
   }

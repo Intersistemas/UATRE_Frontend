@@ -12,6 +12,14 @@ td, th {
 
 
 /*DIMENSIONES*/
+@media (max-width: 2570px) {
+    .tabla {
+        zoom: 100%;
+        width: 100%;
+        /*padding-top: 4%;*/
+    }
+  }
+
 @media (max-width: 1920px) {
     .tabla {
         zoom: 90%;
@@ -20,9 +28,16 @@ td, th {
     }
   }
   
-  @media (max-width: 1360px) {
+  @media (max-width: 1370px) {
     .tabla {
-        zoom: 74%;
+        zoom: 70%;
+        width: 100%;
+       /* padding-top: 4%;*/
+    }
+  }
+  @media (max-width: 800px) {
+    .tabla {
+        zoom: 60%;
         width: 100%;
        /* padding-top: 4%;*/
     }

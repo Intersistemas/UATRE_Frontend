@@ -26,7 +26,7 @@ const AfiliadosHandler = () => {
 
 const navigate = useNavigate()
   //#region Tablas para el form
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([{value: 0, label:"Todos"}])
   //#endregion
 
   //#region despachar Informar Modulo
@@ -64,8 +64,10 @@ const navigate = useNavigate()
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
     
     console.log('sortColumn',sortColumn)
-    if (estadoSolicitud) {
-        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+    
+    if (estadoSolicitud > 0) {
+        //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+        endpoint = `${endpoint}&FilterBy=EstadoSolicitudId&FilterValue=${estadoSolicitud}`;
     }
     if (sortColumn) { //ORDENAMIENTO
         sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
@@ -90,13 +92,12 @@ const navigate = useNavigate()
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
-      //console.log('afiliadosObj', afiliadosObj)
       const estadosSolicitudesOptions = estadosSolicitudesObj.map(
         (estadoSolicitud) => {
           return { value: estadoSolicitud.id, label: estadoSolicitud.descripcion };
         }
       );
-      setEstadosSolicitudes(estadosSolicitudesOptions);
+      setEstadosSolicitudes([...estadosSolicitudes, ...estadosSolicitudesOptions]);
     };    
 
     request(
@@ -164,14 +165,12 @@ const navigate = useNavigate()
   };
 
   const handlePageChange = (page, sizePerPage) => {
-    console.log('llega con la data',page,sizePerPage)
     setPage(page);
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
   };
   
   const handleSearch = (select,entry) => {
-    console.log('handleSearch_llega con la data',select,entry)
     setSearch(entry);
     switch(select){
       case "Nro.Afiliado":
@@ -183,7 +182,6 @@ const navigate = useNavigate()
   };
 
   const handleSort = (sortColumn,sortOrder) => {
-    console.log('handleSort_llega con la data',sortColumn,sortOrder);
     setSortColumn(sortColumn=='cuil'?'CUIL':sortColumn);
     setSortOrder(sortOrder);
     //setOrder(sortOrder); TODO
@@ -221,7 +219,7 @@ const navigate = useNavigate()
             afiliados={afiliadosRespuesta}
             errorRequest={error}
             loading={afiliadosRespuesta?.length ? false : isLoading}
-            estadosSolicitud={estadosSolicitudes}
+            estadosSolicitudes={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
             //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
             onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
@@ -230,6 +228,7 @@ const navigate = useNavigate()
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+            onFilterChange={handleFilterChange}
             
           />
       
