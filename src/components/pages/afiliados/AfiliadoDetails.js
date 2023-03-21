@@ -335,14 +335,14 @@ const AfiliadoDetails = (props) => {
 						  {empresa.razonSocial ?? ""}
 					  </Grid>
   
-					  <Grid block basis="7%" className={styles.label}>
+					  <Grid block basis="11%" className={styles.label}>
 						  Localidad Empleador:
 					  </Grid>
-					  <Grid block basis="20%" className={styles.data}>
+					  <Grid block basis="15%" className={styles.data}>
 						  Descripcion Localidad
 					  </Grid>
   
-					  <Grid block basis="6%" className={styles.label}>
+					  <Grid block basis="11%" className={styles.label}>
 						  Provincia Empleador:
 					  </Grid>
 					  <Grid block basis="5%" className={styles.data}>
@@ -372,26 +372,35 @@ const AfiliadoDetails = (props) => {
 				  </Grid>
   
 				  <Grid full="width" gap="5px">
-					  <Grid block basis="10%" className={styles.label}>
+					  <Grid block basis="8%" className={styles.label}>
 						 Código de Zona:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
+					  <Grid block basis="4%" className={styles.data}>
+					  	{ddjj.zona ?? " "}
+					  </Grid>
+					  <Grid block basis="5%" className={styles.label}>
 						 Zona:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-						 Código de Modalidad de Contratación:
+					  <Grid block basis="15%" className={styles.label}>
+						 Cód.Modalidad de Contratación:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Modalidad de Contratación:
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.modalidad ?? " "}
+					  </Grid>
+					  <Grid block basis="12%" className={styles.label}>
+					  	  Modalidad de Contratación:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 						 Código de Actividad:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.actividad ?? " "}
+					  </Grid>
+					  <Grid block basis="6%" className={styles.label}>
 						 Actividad:
 					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-						 Código de Condición de CUIL:
+					  <Grid block basis="12%" className={styles.label}>
+						 Cód.Condición de CUIL:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Condición de CUIL:
@@ -400,7 +409,7 @@ const AfiliadoDetails = (props) => {
   
 				  <Grid full="width" gap="5px">
 				  	  <Grid block basis="10%" className={styles.label}>
-						 Código de Situación de CUIL:
+						 Cód.Situación de CUIL:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Situación de CUIL:
@@ -420,8 +429,14 @@ const AfiliadoDetails = (props) => {
 					  <Grid block basis="10%" className={styles.label}>
 					  	Cantidad Hs Extras:
 					  </Grid>
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.hsExtrasCantidad ?? " "}
+					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Dias Trabajados:
+					  </Grid>
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.diasTrabajados ?? " "}
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Situación Rural:
