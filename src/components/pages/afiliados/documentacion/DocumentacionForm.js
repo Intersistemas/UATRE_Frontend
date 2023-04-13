@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useHttp from "../../../hooks/useHttp";
 import Button from "../../../ui/Button/Button";
 import Grid from "../../../ui/Grid/Grid";
@@ -12,6 +12,8 @@ const DocumentacionForm = ({ config }) => {
 	const onCancel = config.onCancel ?? (() => {});
 	const onConfirm = config.onConfirm ?? (() => {});
 	const { sendRequest: request } = useHttp();
+
+	const archivoRef = useRef(null);
 
 	//#region declaracion y carga de lista de tipos de documentacion
 	const [tipoList, setTipoList] = useState({ loading: true });
@@ -54,23 +56,34 @@ const DocumentacionForm = ({ config }) => {
 						/>
 					)}
 				</Grid>
-				<Grid grow>
-					<input
-						type="file"
-						name="archivo"
-						disabled={disabled}
-						onChange={(e) => {
-							if (e.target.files.length === 0) return;
-							const archivo = e.target.files[0];
-							const reader = new FileReader();
-							reader.readAsDataURL(archivo);
-							reader.onload = () =>
-								onChange({
-									archivoBase64: reader.result,
-									archivoNombre: archivo.name,
-								});
-						}}
-					/>
+				<Grid grow gap="10px">
+					<Grid grow>{data?.archivoNombre ?? ""}</Grid>
+					<Grid width="150px">
+						<input
+							ref={archivoRef}
+							type="file"
+							name="archivo"
+							hidden
+							disabled={disabled}
+							onChange={(e) => {
+								if (e.target.files.length === 0) return;
+								const archivo = e.target.files[0];
+								const reader = new FileReader();
+								reader.readAsDataURL(archivo);
+								reader.onload = () =>
+									onChange({
+										archivoBase64: reader.result,
+										archivoNombre: archivo.name,
+									});
+							}}
+						/>
+						<Button
+							onClick={() => archivoRef.current?.click()}
+							disabled={disabled}
+						>
+							Subir archivo
+						</Button>
+					</Grid>
 				</Grid>
 			</Grid>
 			<Grid full="width">
