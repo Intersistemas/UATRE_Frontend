@@ -83,7 +83,7 @@ const DeclaracionesJuradas = (props) => {
       },
       {
         dataField: "version",
-        text: "Versión",
+        text: "Rectificativa",
         formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(7))}</span>

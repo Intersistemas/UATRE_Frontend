@@ -4,6 +4,7 @@ const habilitarBotonValidarCUIL = (props) => {
   }
 
   if (props.afiliadoExiste) {
+    console.log("existe",props.afiliadoExiste)
     return true;
   }
 

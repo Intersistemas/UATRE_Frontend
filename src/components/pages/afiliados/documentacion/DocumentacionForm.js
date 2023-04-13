@@ -39,9 +39,9 @@ const DocumentacionForm = ({ config }) => {
 	return (
 		<Grid col full gap="10px">
 			<Grid full="width" gap="10px">
-				<Grid grow>
+				<Grid width="50%">
 					{tipoList.loading ? (
-						<h4>Cargando..</h4>
+						<h6>Cargando tipos de documentacion..</h6>
 					) : tipoList.error ? (
 						<h4>Error {tipoList.error.message}</h4>
 					) : (
@@ -56,34 +56,31 @@ const DocumentacionForm = ({ config }) => {
 						/>
 					)}
 				</Grid>
-				<Grid grow gap="10px">
-					<Grid grow>{data?.archivoNombre ?? ""}</Grid>
-					<Grid width="150px">
-						<input
-							ref={archivoRef}
-							type="file"
-							name="archivo"
-							hidden
-							disabled={disabled}
-							onChange={(e) => {
-								if (e.target.files.length === 0) return;
-								const archivo = e.target.files[0];
-								const reader = new FileReader();
-								reader.readAsDataURL(archivo);
-								reader.onload = () =>
-									onChange({
-										archivoBase64: reader.result,
-										archivoNombre: archivo.name,
-									});
-							}}
-						/>
-						<Button
-							onClick={() => archivoRef.current?.click()}
-							disabled={disabled}
-						>
-							Subir archivo
-						</Button>
-					</Grid>
+				<Grid grow>{data?.archivoNombre ?? ""}</Grid>
+				<Grid width="150px">
+					<input
+						ref={archivoRef}
+						type="file"
+						hidden
+						disabled={disabled}
+						onChange={(e) => {
+							if (e.target.files.length === 0) return;
+							const archivo = e.target.files[0];
+							const reader = new FileReader();
+							reader.readAsDataURL(archivo);
+							reader.onload = () =>
+								onChange({
+									archivoBase64: reader.result,
+									archivoNombre: archivo.name,
+								});
+						}}
+					/>
+					<Button
+						onClick={() => archivoRef.current?.click()}
+						disabled={disabled}
+					>
+						Subir archivo
+					</Button>
 				</Grid>
 			</Grid>
 			<Grid full="width">

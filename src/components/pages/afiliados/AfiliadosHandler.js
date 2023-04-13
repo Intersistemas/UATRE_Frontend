@@ -15,6 +15,10 @@ const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchColumn, setSearchColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -58,10 +62,22 @@ const navigate = useNavigate()
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
+    
+    console.log('sortColumn',sortColumn)
     if (estadoSolicitud) {
         endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
-    
+    if (sortColumn) { //ORDENAMIENTO
+        sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
+        endpoint = `${endpoint}&Sort=${sortColumn}`;
+    }
+    if (search) { //BUSQUEDA
+        endpoint = `${endpoint}&FilterValue=${search}`;
+    }
+    if (searchColumn) { //COLUMNA DE BUSUQUEDA
+        endpoint = `${endpoint}&FilterBy=${searchColumn}`;
+    }
+
     request(
       {
         baseURL: "Afiliaciones",
@@ -70,7 +86,7 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,search,searchColumn, sortColumn,sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -153,6 +169,25 @@ const navigate = useNavigate()
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
   };
+  
+  const handleSearch = (select,entry) => {
+    console.log('handleSearch_llega con la data',select,entry)
+    setSearch(entry);
+    switch(select){
+      case "Nro.Afiliado":
+        setSearchColumn("NroAfiliado")
+        break;
+      default:  setSearchColumn(select);
+    }
+    //setAfiliadosRespuesta([]);
+  };
+
+  const handleSort = (sortColumn,sortOrder) => {
+    console.log('handleSort_llega con la data',sortColumn,sortOrder);
+    setSortColumn(sortColumn=='cuil'?'CUIL':sortColumn);
+    setSortOrder(sortOrder);
+    //setOrder(sortOrder); TODO
+  };
 
   const handleSizePerPageChange = (page, sizePerPage) => {
     setPage(page);
@@ -168,9 +203,9 @@ const navigate = useNavigate()
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
-  if (error) {
+  /*if (error) {
     return <h1>{error}</h1>;
-  }
+  }*/
 
   if (afiliadosRespuesta.length !== 0)
     return (
@@ -184,14 +219,18 @@ const navigate = useNavigate()
 
           <AfiliadosLista
             afiliados={afiliadosRespuesta}
+            errorRequest={error}
             loading={afiliadosRespuesta?.length ? false : isLoading}
             estadosSolicitud={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
             //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
             onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+            onSearch={handleSearch}
+            onSort={handleSort}
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+            
           />
       
       </Fragment>

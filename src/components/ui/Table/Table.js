@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import classes from "./Table.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
@@ -58,13 +58,40 @@ color: '#727272',
 
   };
 
+	// Normalizo la paginación que pasa por props
+	let pagination = { index: 1, size: 15 }; // Valores por defecto
+	if (props.pagination) {
+		if (props.pagination.index > 0) pagination.index = props.pagination.index; // Especifica index válido
+		if (props.pagination.size > 0) pagination.size = props.pagination.size; // Especifica size válido
+		if (props.pagination.onChange)
+			pagination.onChange = props.pagination.onChange; // Especifica callback onChange
+	}
+	// Estado de paginación propio, por si no especifica mediante props
+	const [myPagination, setMyPagination] = useState({
+		// Usar valores especificados o por defecto
+		...pagination,
+		// Salvo el onChange que define el comportamiento por defecto
+		onChange: (page) =>
+			setMyPagination((oldData) => {
+				const newData = {}; // Contendrá valores que cambian
+				if (page.index !== oldData.index) newData.index = page.index; // Cambia index
+				if (page.size !== oldData.size) newData.size = page.size; // Cambia size
+				if (!Object.keys(newData).length) return oldData; // Sin cambios
+				return { ...oldData, ...newData }; // Informa nuevo estado con valores cambiados
+			}),
+	});
+	// Si no especifica onChange, utilizar mi paginación
+	if (!pagination.onChange) pagination = myPagination;
+
   let MyGrid = (
     <PaginationProvider
       pagination={paginationFactory({
         custom: true,
         totalSize: props.data.length,
-        page: 1,
-        sizePerPage: 15,
+        page: pagination.index,
+        sizePerPage: pagination.size,
+				onPageChange: (page, sizePerPage) =>
+					pagination.onChange({ index: page, size: sizePerPage }),
         paginationShowsTotal: false,
         hideSizePerPage: true,
         /*sizePerPageList: [
