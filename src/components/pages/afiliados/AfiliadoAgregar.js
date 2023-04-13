@@ -1062,6 +1062,33 @@ const AfiliadoAgregar = (props) => {
       console.log("POST", nuevoAfiliado);
       const afiliadoAgregar = async (afiliadoResponseObj) => {
         console.log("afiliadosObj", afiliadoResponseObj);
+				
+				// Envío documentación enlazada al nuevo afiliado
+				documentacionList?.data?.forEach((doc) => {
+					if (!doc.refTipoDocumentacionId) return;
+					if (!doc.archivoBase64) return;
+					const body = {
+						entidadTipo: "A",
+						entidadId: afiliadoResponseObj,
+						refTipoDocumentacionId: doc.refTipoDocumentacionId,
+						archivo: doc.archivoBase64,
+						observaciones: doc.observaciones,
+					};
+					request(
+						{
+							baseURL: "Comunes",
+							endpoint: `/DocumentacionEntidad`,
+							method: "POST",
+							body: body,
+							headers: {
+								"Content-Type": "application/json",
+							},
+						},
+						async (res) => console.log("OK", body, "res", res),
+						async (err) => console.log("Error", body, "err", err)
+					);
+				});
+				
         setNuevoAfiliadoResponse(afiliadoResponseObj);
         //alert("Afiliado creado con éxito!");
         //Alert
