@@ -27,16 +27,26 @@
 	text-overflow: ellipsis;
 }
 
-@media (max-width: 1920px) {
+
+  @media (max-width: 2570px) {
+    .contenedor {
+        zoom: 100%;
+    }
+  }
+
+  @media (max-width: 1920px) {
     .contenedor {
         zoom: 90%;
-      
     }
   }
   
-  @media (max-width: 1360px) {
+  @media (max-width: 1370px) {
     .contenedor {
         zoom: 70%;
-        
+    }
+  }
+  @media (max-width: 800px) {
+    .contenedor {
+        zoom: 60%; 
     }
   }

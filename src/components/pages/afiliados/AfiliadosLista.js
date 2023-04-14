@@ -46,7 +46,7 @@ const AfiliadosLista = (props) => {
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
   const { isLoading, error, sendRequest: request } = useHttp();
 
-  const [selectFilter, setSelectFilter] = React.useState('');
+  //const [selectFilter, setSelectFilter] = React.useState('');
 
   const AndTabs = styled(Tabs)({
     '.MuiTabs-flexContainer': {
@@ -142,11 +142,11 @@ const AfiliadosLista = (props) => {
     },
     { //ME GENERA ERROR CON EL SEARCH TAB
       dataField: "estadoSolicitud",
-      text: "Situación",
-      sort: true,
+      //text: "Situación",
+      //sort: true,
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
       formatter: (cell) => {
         switch (cell){
@@ -155,7 +155,7 @@ const AfiliadosLista = (props) => {
               style={{backgroundColor: '#ffff64cc' }}
             >{cell}</div>)
             break;
-          case "Baja": 
+          case "No Activo": 
             return (<div
               style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
               >{cell}</div>)
@@ -178,14 +178,15 @@ const AfiliadosLista = (props) => {
             break;
         }        
       },
-      /*filter: selectFilter({
+      
+      filter: selectFilter({
         comparator: Comparator.EQ,
-        options: props.estadosSolicitud,
+        options: props.estadosSolicitudes,
         defaultValue: props.estadoSolicitudActual,
-        className: styles.filter,//"my-custom-text-filter",
+        className: "my-custom-text-filter",
         placeholder: "Seleccion Estado...",
         withoutEmptyOption: true,
-      }),*/
+      }),
     },
     {
       dataField: "seccional",
@@ -279,9 +280,6 @@ const AfiliadosLista = (props) => {
 
   ]
 
-  console.log('selectores',selectores);
-
-
   const columnsVacia = [
     {
       dataField: "nroAfiliado",
@@ -334,9 +332,10 @@ const AfiliadosLista = (props) => {
     { page, sizePerPage, filters, sortField, sortOrder, cellEdit}
   ) => {
     //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
+    //console.log('filters:',filters);
     setAfiliadoSeleccionado(null);
     sortField&&props.onSort(sortField,sortOrder);
-
+    props.onFilterChange(filters);
   };
 
   //#region  la paginacion la maneja el componente Table

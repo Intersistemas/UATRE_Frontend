@@ -28,10 +28,10 @@ const AfiliadoDetails = (props) => {
 				  <Grid block basis="051px" className={styles.label}>
 					  CUIL:
 				  </Grid>
-				  <Grid block basis="130px" className={styles.data}>
+				  <Grid block basis="140px" className={styles.data}>
 					  {Formato.Cuit(data.cuil)}
 				  </Grid>
-				  <Grid block basis="310px" className={styles.label}>
+				  <Grid block basis="200px" className={styles.label}>
 					  Nombre y Apellido:
 				  </Grid>
 				  <Grid block basis="calc(100% - 286px)" className={styles.data}>
@@ -50,7 +50,7 @@ const AfiliadoDetails = (props) => {
 							  CUIL:
 						  </Grid>
 						  <Grid block basis="8%" className={styles.data}>
-							  {data.afipcuil ?? ""}
+							  {Formato.Cuit(data.afipcuil) ?? ""}
 						  </Grid>
   
 						  <Grid block basis="12%" className={styles.label}>
@@ -454,10 +454,10 @@ const AfiliadoDetails = (props) => {
 			  <Grid block basis="051px" className={styles.label}>
 				  CUIL:
 			  </Grid>
-			  <Grid block basis="130px" className={styles.data}>
+			  <Grid block basis="140px" className={styles.data}>
 				  {Formato.Cuit(data.cuil)}
 			  </Grid>
-			  <Grid block basis="310px" className={styles.label}>
+			  <Grid block basis="200px" className={styles.label}>
 				  Nombre y Apellido:
 			  </Grid>
 			  <Grid block basis="calc(100% - 286px)" className={styles.data}>
