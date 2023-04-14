@@ -11,18 +11,38 @@ import { Alert, Tab, Tabs } from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
-import habilitarBotonValidarCUIL from "../../helpers/habilitarBotonValidarCUIL";
+import deshabilitarBotonValidarCUIL from "../../helpers/deshabilitarBotonValidarCUIL";
 import ValidarCUIT from "../../validators/ValidarCUIT";
-import InputMask from "../../ui/Input/InputMask";
+//import InputMask from "../../ui/Input/InputMask";
 import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
 import ValidarEmail from "../../validators/ValidarEmail";
-import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
+import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
+//import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
 
-const initialObject = { value: 0, label: "" };
+//const initialObject = { value: 0, label: "" };
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
+
+  //#region Capturo errores
+useEffect(() => {
+  if (error && error.code === 500) {
+    setCUILLoading(false);
+    setShowAlert(true);
+    setSeverityAlert("error");
+    setTextAlert(`Error - ${error.message}`);
+    
+    return;
+  }
+}, [error])
+//#endregion
+
+  //#region Variables de estado para ButtonLoadingCustom  
+  const [cuilLoading, setCUILLoading] = useState(false);
+  const [cuitLoading, setCUITLoading] = useState(false)
+  //#endregion
+
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
@@ -486,6 +506,11 @@ const AfiliadoAgregar = (props) => {
   const [afiliadoExiste, setAfiliadoExiste] = useState(false);
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
   useEffect(() => {
+    // if (error){
+    //   //console.log("afiliado existe", error?.code ?? error);
+    //   return;
+    // }
+
     if (cuilIsValid && cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
@@ -788,9 +813,20 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Operacions validar CUIT/CUIL
-  const validarAfiliadoCUILHandler = () => {
+  const validarAfiliadoCUILHandler = () => {          
+    setCUILLoading(true)
+    
     const processConsultaPadron = async (padronObj) => {
-      //console.log("padronObj", padronObj);
+      if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00")
+      {
+        setCUILLoading(false);
+        setShowAlert(true);
+        setSeverityAlert("error");
+        setTextAlert(`Error validando CUIL - Persona fallecida`);
+
+        return;
+      }
+
       setPadronRespuesta(padronObj);
       dispatchNombre({
         type: "USER_INPUT",
@@ -866,6 +902,8 @@ const AfiliadoAgregar = (props) => {
       setEstadoClaveAFIP(padronObj.estadoClave);
       setDomicilioRealAFIP(domicilioReal.direccion);
 
+      setCUILLoading(false)
+
       request(
         {
           baseURL: "Afiliaciones",
@@ -884,11 +922,12 @@ const AfiliadoAgregar = (props) => {
         endpoint: `/AFIPConsulta?CUIT=${cuil}&VerificarHistorico=${false}`,
         method: "GET",
       },
-      error.includes("JSON") ? processConsultaPadron : alert("CUIL inválido!")
+      processConsultaPadron
     );
   };
 
-  const validarEmpresaCUITHandler = (cuit) => {
+  const validarEmpresaCUITHandler = () => {
+    setCUITLoading(true)
     const processConsultaPadron = async (padronObj) => {
       //console.log("padronObj", padronObj);
       setPadronEmpresaRespuesta(padronObj);
@@ -910,6 +949,7 @@ const AfiliadoAgregar = (props) => {
       // setCorreoEmpresa()
       // setLugarTrabajoEmpresa()
       //ciius
+      setCUITLoading(false)
     };
 
     request(
@@ -1387,18 +1427,19 @@ const AfiliadoAgregar = (props) => {
                 }
               />
             </div>
-            <Button
+            <LoadingButtonCustom
               width={20}
               heigth={80}
-              disabled={habilitarBotonValidarCUIL({
-                cuilIsValid: cuilState.isValid,
+              disabled={deshabilitarBotonValidarCUIL({
+                cuilIsValid: cuilIsValid,
                 afiliadoExiste: afiliadoExiste,
                 padronRespuesta: padronRespuesta ?? null,
               })}
               onClick={validarAfiliadoCUILHandler}
+              loading={cuilLoading}
             >
-              Validar CUIL
-            </Button>
+              {!cuilLoading ? `Validar CUIL` : `Validando...`}
+            </LoadingButtonCustom>
           </div>
           <div className={classes.renglon}>
             <div className={classes.input}>
@@ -1717,17 +1758,23 @@ const AfiliadoAgregar = (props) => {
                     ? "CUIT inválido"
                     : ""
                 }
-                error={!cuitIsValid && cuitEmpresa.length === 11 ? true : false}
+                error={
+                  (!cuitState.isValid && cuitEmpresa !== "") ||
+                  (!formularioIsValid && clickAgregar)
+                    ? true
+                    : false
+                }
               />
             </div>
-            <Button
+            <LoadingButtonCustom
               width={20}
               heigth={80}
               disabled={!cuitIsValid ? true : false}
               onClick={validarEmpresaCUITHandler}
+              loading={cuitLoading}
             >
-              Validar CUIT
-            </Button>
+              {!cuitLoading ? `Validar CUIT` : `Validando...`}
+            </LoadingButtonCustom>
           </div>
 
           <div className={classes.renglon}>
