@@ -1,4 +1,4 @@
-const habilitarBotonValidarCUIL = (props) => {
+const deshabilitarBotonValidarCUIL = (props) => {
   if (props.padronRespuesta?.idPersona > 0) {
     return true;
   }
@@ -15,4 +15,4 @@ const habilitarBotonValidarCUIL = (props) => {
   return false;
 };
 
-export default habilitarBotonValidarCUIL;
+export default deshabilitarBotonValidarCUIL;
