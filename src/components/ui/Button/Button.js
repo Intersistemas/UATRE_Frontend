@@ -9,7 +9,6 @@ const Button = (props) => {
 
       className={`${classes[`${props.className}`]} ${classes.boton}`}
       style={{width: props.width != null ? `${props.width}%`:"100%"}}
-
       onClick={props.onClick}
       disabled={props.disabled || false}
     >
@@ -17,5 +16,5 @@ const Button = (props) => {
     </Button1>
   );
 };
-
+ 
 export default Button;

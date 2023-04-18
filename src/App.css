@@ -1,6 +1,7 @@
 
 .App {
   text-align: center;
+  position: fixed;
 }
 
 .App-logo {
@@ -38,12 +39,32 @@
   }
 }
 
-
-
 .container{
+  display: grid;
+  place-items: center;
+  padding: 0% !important;
+  /*grid-auto-rows: min-content;*/
+  grid-row-gap: 1%;
+  grid-template-rows: max-content;
+}
 
+.container div{
+    width: 100%;
+    align-self: flex-start;
+}
+
+.table{
+  margin: 0% !important;
+}
+
+.page-link{
+  padding: 0.1rem 0.5rem !important;
+}
+
+/*
+.container{
   container-type: inline-size;
-  /*backgroundImage: `url(${backgroundImage})`,*/
+  /*backgroundImage: `url(${backgroundImage})`,
   background-position: 'center';
   background-size: 'cover';
   background-repeat: 'no-repeat';
@@ -53,9 +74,9 @@
   display: flex;
   justify-content: center;
   padding: 0 !important;
-  /*max-width: 100%;*/
-  
-}
+  /*max-width: 100%;*
+}*/
+
 @media (max-width: 2570px) {
   .container {
     max-width: 2400px !important;
@@ -82,16 +103,52 @@
 
 
 .container:before {
-
-  opacity: 0.6;
+  opacity: 0.5;
   max-width: 100%;
 }
 
-.titulo{
-  /*background: -webkit-linear-gradient(90deg, #186090, #18609000 90%);*/
+.titulo2{
+  font-family: fantasy;
+  text-transform: uppercase;
+  align-self: flex-start;
+  width: 100%;
   color: white;
-  /*padding: 0% 0% 2% 0%;*/
-  text-shadow: 3px 3px 2px #186090;
+  background-color: var(--color3);
+  /*border-radius: 20px;*/
+  padding: 2% 0% 2% 0%;
+  text-shadow: 3px 3px 5px var(--color1);
+}
+
+.titulo1 {
+  background-size: 50%, cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url(https://www.uatre.org.ar/assets/images/historia/sun.png), url(./media/uatre_banderas4.png);
+  font-family: fantasy;
+  text-transform: uppercase;
+  align-self: flex-start;
+  width: 100%;
+  color: var(--color1);
+  background-color: var(--color3);
+  /*border-radius: 20px;*/
+  padding: 2% 0% 1% 0%;
+  text-shadow: 3px 3px 5px white;
+}
+
+.titulo{
+  text-align: left;
+    margin-left: 5rem;
+    background-size: 50%,100%;
+    background-repeat: no-repeat;
+    background-position-x: right;
+    background-image: url(./media/titulo_sol.png), linear-gradient(to right, rgb(255 255 255), rgb(24 96 144 / 50%), rgb(19 75 112));
+    font-family: fantasy;
+    text-transform: uppercase;
+    align-self: flex-start;
+    width: 100%;
+    color: var(--color1);
+    padding: 3% 0% 0% 0%;
+    text-shadow: 3px 3px 5px white;
 }
 
 .subtitulo {
@@ -101,7 +158,40 @@
 	  text-align: left;
     color: #186090;
     margin-top: 3%;
+}
 
+.contenido{
+  width: 98% !important;
+  background-color: var(--color3-40);
+  border-radius: 20px;
+  padding: 0.5%;
+  position: relative;
+  min-height: -webkit-fill-available;
+  margin: 0.5rem 0%;
+}
+
+@media (max-width: 2570px) {
+  .contenido {
+      zoom: 100%;
+  }
+}
+
+@media screen and (max-width: 1920px) {
+  .contenido {
+      zoom: 90%;
+  }
+}
+
+@media screen and (max-width: 1370px) {
+  .contenido {
+      zoom: 70%;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .contenido {
+      zoom: 60%;
+  }
 }
 
 .detalles_card{

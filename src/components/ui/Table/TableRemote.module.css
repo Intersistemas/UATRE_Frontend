@@ -12,11 +12,11 @@ td, th {
 
 
 /*DIMENSIONES*/
+/*
 @media (max-width: 2570px) {
     .tabla {
         zoom: 100%;
         width: 100%;
-        /*padding-top: 4%;*/
     }
   }
 
@@ -24,7 +24,6 @@ td, th {
     .tabla {
         zoom: 90%;
         width: 100%;
-        /*padding-top: 4%;*/
     }
   }
   
@@ -32,13 +31,12 @@ td, th {
     .tabla {
         zoom: 70%;
         width: 100%;
-       /* padding-top: 4%;*/
     }
   }
   @media (max-width: 800px) {
     .tabla {
         zoom: 60%;
         width: 100%;
-       /* padding-top: 4%;*/
     }
   }
+*/

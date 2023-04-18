@@ -82,7 +82,7 @@ const TableRemote = (props) => {
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: '30%' }}>
+       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: 'auto' }}>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
@@ -102,11 +102,11 @@ const TableRemote = (props) => {
         </FormControl>
         <TextField 
         fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}
-        helperText={
+        /*helperText={
           props.error
             ? "Error buscando datos"
             : ""
-        }
+        }*/
         error={props.error}
         />
         <Button

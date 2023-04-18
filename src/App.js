@@ -12,6 +12,7 @@ import Afiliado from './components/pages/afiliados/Afiliado';
 import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
+import fondo from './media/Background/color3.png';
 
 const App = () => {
   const authContext = useContext(AuthContext); 
@@ -20,14 +21,14 @@ const App = () => {
   return (
 
     <div className="App">
-     
+        
         <Routes>
               {
                   !isLoggedIn 
                   && (<Route path="/*" element={<Login/>} />)
               }
         </Routes> 
-
+        <img src={fondo} alt="fondo" class="bg-image" />
         <SideBar>
           
           <Routes>

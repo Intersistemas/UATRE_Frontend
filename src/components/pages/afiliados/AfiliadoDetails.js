@@ -3,176 +3,41 @@ import Formato from "../../helpers/Formato";
 import Grid from "../../ui/Grid/Grid";
 import styles from "./AfiliadoDetails.module.css";
 
+
+import { styled } from '@mui/material/styles';
+/*import TextField from '@material-ui/core/TextField';*/
+import TextField from "@mui/material/TextField";
+
+const useStyles = styled((theme) => ({
+	root: {
+	  '& > *': {
+		margin: theme.spacing(1),
+		width: '25ch',
+	  },
+	},
+  }));
+
 const AfiliadoDetails = (props) => {
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
 	const ddjj = config.ddjj ?? 0;
 	const empresa = config.empresa ?? {};
-	const [hotFiel, setHotField] = useState();
+	const [hotField, setHotField] = useState();
 	
+
+	const classes = useStyles();
 
 	useEffect(()=>
 	{
 		switch (tab) {
 			//case 0: break;
 			case 0:
-			  {//#region  Tab 0 AFILIADOS
-				setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
-			  <Grid full="width">
-				  <Grid className={styles.titulo} grow>
-					  Informacion Detallada de
-				  </Grid>
-			  </Grid>
-			  <Grid full="width" gap="5px">
-				  <Grid block basis="051px" className={styles.label}>
-					  CUIL:
-				  </Grid>
-				  <Grid block basis="140px" className={styles.data}>
-					  {Formato.Cuit(data.cuil)}
-				  </Grid>
-				  <Grid block basis="200px" className={styles.label}>
-					  Nombre y Apellido:
-				  </Grid>
-				  <Grid block basis="calc(100% - 286px)" className={styles.data}>
-					  {data.nombre}
-				  </Grid>
-			  </Grid>
-			  <Grid full="width">
-				  <Grid className={styles.grupo} col full>
-					  <Grid full="width">
-						  <Grid className={styles.titulo} grow>
-							  Datos AFIP:
-						  </Grid>
-					  </Grid>
-					  <Grid full="width" gap="5px">
-						  <Grid block basis='5%' className={styles.label}>
-							  CUIL:
-						  </Grid>
-						  <Grid block basis="8%" className={styles.data}>
-							  {Formato.Cuit(data.afipcuil) ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="12%" className={styles.label}>
-							  Tipo y Nro. Documento:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipTipoDocumento ?? ""} {data.afipNumeroDocumento ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="7%" className={styles.label}>
-							  Nombre Real:
-						  </Grid>
-						  <Grid block basis="20%" className={styles.data}>
-							  {data.afipApellido ?? ""} {data.afipNombre ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="6%" className={styles.label}>
-							  Tipo Clave:
-						  </Grid>
-						  <Grid block basis="5%" className={styles.data}>
-							  {data.afipTipoClave ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="7%" className={styles.label}>
-							  Estado Clave:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipEstadoClave ?? ""}
-						  </Grid>
-						  
-					  </Grid>
-  
-					  <Grid full="width" gap="5px">
-						  <Grid block basis="10%" className={styles.label}>
-							  Fecha Fallecimiento:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipFechaFallecimiento ?? ""}
-						  </Grid>  
-						  <Grid block basis="10%" className={styles.label}>
-						  Actividad Principal:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipActividadPrincipal ?? ""}
-						  </Grid>
-						  <Grid block basis="10%" className={styles.label}>
-								  Periodo Actividad:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipPeriodoActividadPrincipal ?? ""}
-						  </Grid>
-					  </Grid>
-  
-					  <Grid full="width" gap="5px">
-						  <Grid block basis="7%" className={styles.label}>
-							  Dirección:
-						  </Grid>
-						  <Grid block basis="20%" className={styles.data}>
-							  {data.afipDomicilioDireccion ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="7%" className={styles.label}>
-							  Localidad:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipDomicilioLocalidad ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="10%" className={styles.label}>
-							  Codigo Postal:
-						  </Grid>
-						  <Grid block basis="6%" className={styles.data}>
-							  {data.afipDomicilioCodigoPostal ?? ""}
-						  </Grid> 
-						  <Grid block basis="7%" className={styles.label}>
-							  Povincia:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipDomicilioProvincia ?? ""}
-						  </Grid>
-  
-						  <Grid block basis="14%" className={styles.label}>
-							  Domicilio Adicional:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipDomicilioDatoAdicional ?? ""}
-						  </Grid>
-
-						  <Grid block basis="17%" className={styles.label}>
-							   Domicilio Tipo Adicional:
-						  </Grid>
-						  <Grid block basis="10%" className={styles.data}>
-							  {data.afipDomicilioTipoDatoAdicional ?? ""}
-						  </Grid>
-  
-					  </Grid>
-				  </Grid>
-			  </Grid>
-		  </Grid>)
-		  //#endregion}
-			  }
-			  break;
-			  case 1:
 				{//#region  Tab 0 AFILIADOS
-				  setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
+				setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 				<Grid full="width">
 					<Grid className={styles.titulo} grow>
-						Informacion Detallada de
-					</Grid>
-				</Grid>
-				<Grid full="width" gap="5px">
-					<Grid block basis="051px" className={styles.label}>
-						CUIL:
-					</Grid>
-					<Grid block basis="130px" className={styles.data}>
-						{Formato.Cuit(data.cuil)}
-					</Grid>
-					<Grid block basis="310px" className={styles.label}>
-						Nombre y Apellido:
-					</Grid>
-					<Grid block basis="calc(100% - 286px)" className={styles.data}>
-						{data.nombre}
+						Información Detallada del Afiliado: ({Formato.Cuit(data.cuil) ?? " "}) {data.nombre ?? " "} 
 					</Grid>
 				</Grid>
 				<Grid full="width">
@@ -183,106 +48,24 @@ const AfiliadoDetails = (props) => {
 							</Grid>
 						</Grid>
 						<Grid full="width" gap="5px">
-							<Grid block basis='5%' className={styles.label}>
-								CUIL:
-							</Grid>
-							<Grid block basis="8%" className={styles.data}>
-								{data.afipcuil ?? ""}
-							</Grid>
-	
-							<Grid block basis="12%" className={styles.label}>
-								Tipo y Nro. Documento:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipTipoDocumento ?? ""} {data.afipNumeroDocumento ?? ""}
-							</Grid>
-	
-							<Grid block basis="7%" className={styles.label}>
-								Nombre Real:
-							</Grid>
-							<Grid block basis="20%" className={styles.data}>
-								{data.afipApellido ?? ""} {data.afipNombre ?? ""}
-							</Grid>
-	
-							<Grid block basis="6%" className={styles.label}>
-								Tipo Clave:
-							</Grid>
-							<Grid block basis="5%" className={styles.data}>
-								{data.afipTipoClave ?? ""}
-							</Grid>
-	
-							<Grid block basis="7%" className={styles.label}>
-								Estado Clave:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipEstadoClave ?? ""}
-							</Grid>
-							
+						<TextField variant="standard" size="small" label="CUIL"
+						InputLabelProps={{style: {color: '#186090' },}} value={data.afipcuil ?? ""} />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={data.afipTipoDocumento ?? ""} /*{data.afipNumeroDocumento ?? ""}*/ />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Nombre Real" value={data.afipApellido ?? ""} /*{data.afipNombre ?? ""} */ />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo Clave" value={data.afipTipoClave ?? ""} />	
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Estado Clave" value={data.afipEstadoClave ?? ""} />							
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Fecha Fallecimiento" value={data.afipFechaFallecimiento ?? ""} />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? ""}/>
 						</Grid>
-	
+
 						<Grid full="width" gap="5px">
-							<Grid block basis="10%" className={styles.label}>
-								Fecha Fallecimiento:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipFechaFallecimiento ?? ""}
-							</Grid>  
-							<Grid block basis="10%" className={styles.label}>
-							Actividad Principal:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipActividadPrincipal ?? ""}
-							</Grid>
-							<Grid block basis="10%" className={styles.label}>
-									Periodo Actividad:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipPeriodoActividadPrincipal ?? ""}
-							</Grid>
-						</Grid>
-	
-						<Grid full="width" gap="5px">
-							<Grid block basis="7%" className={styles.label}>
-								Dirección:
-							</Grid>
-							<Grid block basis="20%" className={styles.data}>
-								{data.afipDomicilioDireccion ?? ""}
-							</Grid>
-	
-							<Grid block basis="7%" className={styles.label}>
-								Localidad:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipDomicilioLocalidad ?? ""}
-							</Grid>
-	
-							<Grid block basis="10%" className={styles.label}>
-								Codigo Postal:
-							</Grid>
-							<Grid block basis="6%" className={styles.data}>
-								{data.afipDomicilioCodigoPostal ?? ""}
-							</Grid> 
-							<Grid block basis="7%" className={styles.label}>
-								Povincia:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipDomicilioProvincia ?? ""}
-							</Grid>
-	
-							<Grid block basis="14%" className={styles.label}>
-								Domicilio Adicional:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipDomicilioDatoAdicional ?? ""}
-							</Grid>
-  
-							<Grid block basis="17%" className={styles.label}>
-								 Domicilio Tipo Adicional:
-							</Grid>
-							<Grid block basis="10%" className={styles.data}>
-								{data.afipDomicilioTipoDatoAdicional ?? ""}
-							</Grid>
-	
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? ""}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? ""}/>	
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={data.afipDomicilioLocalidad ?? ""}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo Postal" value={data.afipDomicilioCodigoPostal ?? ""}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Povincia" value={data.afipDomicilioProvincia ?? ""}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Adicional" value={data.afipDomicilioDatoAdicional ?? ""}/>
+  							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Tipo Adicional" value={data.afipDomicilioTipoDatoAdicional ?? ""}/>
 						</Grid>
 					</Grid>
 				</Grid>
@@ -290,8 +73,8 @@ const AfiliadoDetails = (props) => {
 			//#endregion}
 				}
 				break;
-			case 2:
-			  {//#region  Tab 1 DDJJ UATRE
+			case 1:
+			  {//#region  Tab  DDJJ UATRE
 		  setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 		  <Grid full="width">
 			  <Grid className={styles.titulo} grow>
@@ -316,7 +99,7 @@ const AfiliadoDetails = (props) => {
 			  <Grid className={styles.grupo} col full>
 				  <Grid full="width">
 					  <Grid className={styles.titulo} grow>
-						  Empresa:
+						  Empresa
 					  </Grid>
 				  </Grid>
 				  <Grid full="width" gap="5px">
@@ -328,7 +111,7 @@ const AfiliadoDetails = (props) => {
 						  {empresa.cuit ?? ""}
 					  </Grid>
   
-					  <Grid block basis="7%" className={styles.label}>
+					  <Grid block basis="9%" className={styles.label}>
 						  Razón Social:
 					  </Grid>
 					  <Grid block basis="15%" className={styles.data}>
@@ -336,17 +119,17 @@ const AfiliadoDetails = (props) => {
 					  </Grid>
   
 					  <Grid block basis="11%" className={styles.label}>
-						  Localidad Empleador:
+						  Localidad:
 					  </Grid>
 					  <Grid block basis="15%" className={styles.data}>
 						  Descripcion Localidad
 					  </Grid>
   
 					  <Grid block basis="11%" className={styles.label}>
-						  Provincia Empleador:
+						  Provincia:
 					  </Grid>
 					  <Grid block basis="5%" className={styles.data}>
-						  Descripcion Provincia
+						  Descripción Provincia
 					  </Grid>
   
 					  <Grid block basis="7%" className={styles.label}>
@@ -381,13 +164,13 @@ const AfiliadoDetails = (props) => {
 					  <Grid block basis="5%" className={styles.label}>
 						 Zona:
 					  </Grid>
-					  <Grid block basis="15%" className={styles.label}>
+					  <Grid block basis="17%" className={styles.label}>
 						 Cód.Modalidad de Contratación:
 					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
+					  <Grid block basis="1%" className={styles.data}>
 					  	{ddjj.modalidad ?? " "}
 					  </Grid>
-					  <Grid block basis="12%" className={styles.label}>
+					  <Grid block basis="14%" className={styles.label}>
 					  	  Modalidad de Contratación:
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
@@ -402,6 +185,9 @@ const AfiliadoDetails = (props) => {
 					  <Grid block basis="12%" className={styles.label}>
 						 Cód.Condición de CUIL:
 					  </Grid>
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.cuilCondicion ?? ""}
+					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Condición de CUIL:
 					  </Grid>
@@ -410,6 +196,9 @@ const AfiliadoDetails = (props) => {
 				  <Grid full="width" gap="5px">
 				  	  <Grid block basis="10%" className={styles.label}>
 						 Cód.Situación de CUIL:
+					  </Grid>
+					  <Grid block basis="2%" className={styles.data}>
+					  	{ddjj.cuilSituacion ?? ""}
 					  </Grid>
 					  <Grid block basis="10%" className={styles.label}>
 					  	Situación de CUIL:
@@ -450,14 +239,13 @@ const AfiliadoDetails = (props) => {
 	  //#endregion}
 			  }
 			  break;
-
-			  case 3:
+			case 2:
 					setHotField()
 				break;
-				case 4:
+			case 3:
 					setHotField()
 				break;
-				case 5:
+			case 4:
 					{//#region  Tab 1 DDJJ UATRE
 		  setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 		  <Grid full="width">
@@ -512,7 +300,7 @@ const AfiliadoDetails = (props) => {
 	
 	return (
 		<div className={styles.contenedor}>
-			{hotFiel}
+			{hotField}
 		</div>
 
 	);
