@@ -44,7 +44,7 @@
   color: var(--gris1)!important;
   cursor: not-allowed!important;
 }
-
+ 
 
 .botonBlanco {
   color: var(--color1) !important;
@@ -60,6 +60,8 @@
 
 .botonBorder{
   border-radius: 10px !important;
-  border: 3px solid #ccc !important;
+  border: 2px solid #FFF !important;
+  /*border: 2px solid var(--color3-80) !important;*/
+  
 }
 

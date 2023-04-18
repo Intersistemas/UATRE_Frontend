@@ -2,7 +2,9 @@
   /*ESCALA DE AZULES*/
   --color1: #186090;
   --color2: #3595D2;
-  --color3: #82C3ED; 
+  --color3: #8bb0c8;
+  --color3-40: #8cb0c766;
+  --color3-80: #8cb0c7cc;
 
   /*82C3ED50 para tablas*/
   
@@ -67,10 +69,11 @@ main{
 }
 
 .bg-image {
-      opacity: 0.5;
+      opacity: 0.0;
       background-position: center;
-      background-size: cover;
+      background-size: contain;
       background-repeat: no-repeat;
       width: 100%;
       height: auto;
+      position: fixed;
 }
