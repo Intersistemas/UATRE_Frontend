@@ -63,7 +63,7 @@ const Sidebar = ({children}) => {
     return (
         <>     
         {isLoggedIn && (
-        <div className={clases.container}>
+        <div className={clases.sidebar_container}>
            <div style={{width: isOpen ? "200px" : "50px"}} className={clases.sidebar}>
                 <div className={clases.sidebar_opciones}>
                     <div className={clases.top_section}>
@@ -88,21 +88,15 @@ const Sidebar = ({children}) => {
                             </NavLink>
                         ))
                         */}
-
-                        <div>
-                        { botones.length === 0 ? null :
-                            botones.map((item, index)=>(
-                            
-                            <div className={clases.actionButtons}>
-                               
-                                <FaChevronRight/>
-                                
-                                <Button key={index} onClick={ () => despacharAcciones(item.nombre)}> 
-                                    {(isOpen && <div onClick={ () => despacharAcciones(item.nombre)}>{item.nombre}</div>)}
-                                </Button>
-                            </div>
-                            ))
-                        }
+                        <div className={clases.actionButtons}>
+                            { botones.length === 0 ? null :
+                                botones.map((item, index)=>(                                
+                                    <Button className="botonBorder" key={index} onClick={ () => despacharAcciones(item.nombre)}> 
+                                    
+                                        {(isOpen && <span style={{ float: 'left', fontWeight: 'normal'}} onClick={ () => despacharAcciones(item.nombre)}> <FaChevronRight/>{item.nombre}</span>)}
+                                    </Button>
+                                ))
+                            }
                         </div>
                     <div>
                         <NavLink to="/login" className={clases.link} activeClassName={clases.active} onClick={logoutHandler}>
@@ -116,8 +110,7 @@ const Sidebar = ({children}) => {
             
            <main className= "container">
 
-                <img src={fondo} alt="fondo" class="bg-image" />
-                <div style={{position: 'fixed', padding: '2%'}}>{children}</div>
+                <>{children}</>
                 
             </main>
            

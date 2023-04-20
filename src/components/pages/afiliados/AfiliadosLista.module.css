@@ -1,15 +1,3 @@
-.div {
-    /*align-items: center;*/
-    /*background-color: transparent;*/
-    /*width: 95%;*/
-    /*display: block;*/
-    /*flex-direction: row;*/
-    padding: 2% 0%;
-    /*right: 0;*/
-    /*margin-left: 2.5%;*/
-    /*zoom: 78%;*/
-}
-
 .tab{
     color: #FFF !important;
     background-color: #186090 !important;
@@ -20,26 +8,32 @@
 
 .tabs{
     position: fixed;
+    width: auto;
+}
+
+
+/*
+@media (max-width: 2570px) {
+    .tabs {
+        zoom: 100%;
+        margin: 0.4% 0% 0% 0%;
+    }
 }
 
 @media screen and (max-width: 1920px) {
     .tabs {
         zoom: 90%;
-        margin: -1.5% 0% 0% 0%;
     }
   }
   
-
   @media screen and (max-width: 1370px) {
     .tabs {
-        zoom: 80%;
-        margin: -0.9% 0% 0% 0%;
+        zoom: 70%;
     }
   }
 
   @media screen and (max-width: 800px) {
     .tabs {
-        zoom: 70%;
-        margin: -0.9% 0% 0% 0%;
+        zoom: 60%;
     }
-  }
+  }*/

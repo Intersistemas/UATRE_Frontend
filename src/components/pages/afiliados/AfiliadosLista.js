@@ -46,7 +46,7 @@ const AfiliadosLista = (props) => {
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
   const { isLoading, error, sendRequest: request } = useHttp();
 
-  const [selectFilter, setSelectFilter] = React.useState('');
+  //const [selectFilter, setSelectFilter] = React.useState('');
 
   const AndTabs = styled(Tabs)({
     '.MuiTabs-flexContainer': {
@@ -142,11 +142,11 @@ const AfiliadosLista = (props) => {
     },
     { //ME GENERA ERROR CON EL SEARCH TAB
       dataField: "estadoSolicitud",
-      text: "Situación",
-      sort: true,
+      //text: "Situación",
+      //sort: true,
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
       formatter: (cell) => {
         switch (cell){
@@ -155,7 +155,7 @@ const AfiliadosLista = (props) => {
               style={{backgroundColor: '#ffff64cc' }}
             >{cell}</div>)
             break;
-          case "Baja": 
+          case "No Activo": 
             return (<div
               style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
               >{cell}</div>)
@@ -178,14 +178,15 @@ const AfiliadosLista = (props) => {
             break;
         }        
       },
-      /*filter: selectFilter({
+      
+      filter: selectFilter({
         comparator: Comparator.EQ,
-        options: props.estadosSolicitud,
+        options: props.estadosSolicitudes,
         defaultValue: props.estadoSolicitudActual,
-        className: styles.filter,//"my-custom-text-filter",
+        className: "my-custom-text-filter",
         placeholder: "Seleccion Estado...",
         withoutEmptyOption: true,
-      }),*/
+      }),
     },
     {
       dataField: "seccional",
@@ -279,9 +280,6 @@ const AfiliadosLista = (props) => {
 
   ]
 
-  console.log('selectores',selectores);
-
-
   const columnsVacia = [
     {
       dataField: "nroAfiliado",
@@ -294,17 +292,18 @@ const AfiliadosLista = (props) => {
     //console.log('Afiliado_Seleccionado:',row);
    switch(selectedTab){
      case 0:
-       setAfiliadoSeleccionado(row);
-       break;
+        setAfiliadoSeleccionado(row);
+        break;
      case 1:
         setAfiliadoSeleccionado(row);
         break;
-       case 2:
-         setddjjUatreSeleccionado(row);
+    case 2:
+          console.log('DDJJ Seleccionada:',row)
+          setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit)
          break;
-       default: break;
+    default: break;
    }
 
    dispatch(handleAfiliadoSeleccionar(row));
@@ -334,9 +333,10 @@ const AfiliadosLista = (props) => {
     { page, sizePerPage, filters, sortField, sortOrder, cellEdit}
   ) => {
     //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
+    //console.log('filters:',filters);
     setAfiliadoSeleccionado(null);
     sortField&&props.onSort(sortField,sortOrder);
-
+    props.onFilterChange(filters);
   };
 
   //#region  la paginacion la maneja el componente Table
@@ -407,105 +407,84 @@ const AfiliadosLista = (props) => {
 }
 
   return (
-    <div className={styles.container}> 
-        <h1 className='titulo'>Afiliaciones</h1>
-        <div  className={styles.div}>    
-            <div>
-                <AndTabs
-                  value={selectedTab}
-                  onChange={handleChangeTab}
-                  aria-label="basic tabs example"
-                  className={styles.tabs}
-                >
-                 
-                  <Tab  className={styles.tab} label="Afiliados"
-                    style={{ width: "120px", height: "70px"  }}
-                   />
-                   
-                   <Tab className={styles.tab}          
-                    label= { afiliadoSeleccionado?.nombre ? `AFILIADO:    ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "AFILIADOS"}
-                    style={{ minWidth: '950px', height: "80px", minHeight: '50px',
-                    position: 'fixed',
-                    fontWeight: 'bold',
-                    fontSize: 'large',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'flex-start'
-                  }}
-                    //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
-                   
+    <> 
+        <div  className='titulo'>
+          <h1>Afiliaciones</h1>  
+        </div>
+
+        <div className="contenido">
+
+              <div style={{display: 'flex', color: '#186090', height: '1.5rem'}}>
+                  <h5>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</h5>
+              </div>
+              <div style={{margin: '0% 0% -0.6rem 0%'}}>
+              <AndTabs
+                value={selectedTab}
+                onChange={handleChangeTab}
+                className={styles.tabs}
+              >
+                  <Tab  className={styles.tab}
+                   label= 'AFILIADOS'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
                   />
                   <Tab className={styles.tab}          
                     label= 'DDJJ UATRE'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-                    style={{ width: "200px", height: "40px", minHeight: '40px'}}
                     //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
-                 
+                  
                   <Tab className={styles.tab}
                     label= 'Documentación'//{ afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
-                    style={{ width: "200px", height: "40px", minHeight: '40px'}}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                     label= 'Cambios de Datos'//{ afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
-                    style={{ width: "200px", height: "40px", minHeight: '40px'}}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                   label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-                  style={{ width: "230px", height: "40px", minHeight: '40px'}}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />                 
-                  
-                </AndTabs>
+              </AndTabs>
+              </div>
+          {selectedTab === 0 && (
+            <div>
+              <TableSegmentado {...tableProps}/>
             </div> 
+          )}
 
-              {selectedTab === 0 && (
-                <div>
-                  <TableSegmentado {...tableProps}/>
-                </div> 
-              )}
+          {selectedTab === 1 && (
+            <DeclaracionesJuradas
+              cuil={afiliadoSeleccionado.cuil}
+              infoCompleta={true}
+              onSeleccionRegistro={rowEvents}
+            />        
+          )}
+          {selectedTab === 2 && (
+            
+            <Table  {...tablePropsVacia}/>
+          )}
 
-              {selectedTab === 1 && (
-                <div>
-                  <TableSegmentado {...tableProps}/>
-                </div> 
-              )}
+          {selectedTab === 3 && (
+            <Table  {...tablePropsVacia2}/>
+          )}
 
-              {selectedTab === 2 && (
-                <DeclaracionesJuradas
-                  cuil={afiliadoSeleccionado.cuil}
-                  infoCompleta={true}
-                  onSeleccionRegistro={rowEvents}
-                />        
-              )}
-              {selectedTab === 3 && (
-                
-                <Table  {...tablePropsVacia}/>
-              )}
+          {selectedTab === 4 && (
+            <Seccional
+              localidadId={afiliadoSeleccionado.refLocalidadId}
+              //onSeleccionRegistro={rowEvents}
+            />        
+          )}
 
-              {selectedTab === 4 && (
-               <Table  {...tablePropsVacia2}/>
-              )}
-
-              {selectedTab === 5 && (
-                <Seccional
-                  localidadId={afiliadoSeleccionado.refLocalidadId}
-                  //onSeleccionRegistro={rowEvents}
-                />        
-              )}
-        </div>
-
-        <AfiliadoDetails config={{
-          data: afiliadoSeleccionado,
-          ddjj: ddjjUatreSeleccionado,
-          empresa: empresaSeleccionada,
-          tab: selectedTab
-        }}/>
-    </div>
+          <AfiliadoDetails config={{
+            data: afiliadoSeleccionado,
+            ddjj: ddjjUatreSeleccionado,
+            empresa: empresaSeleccionada,
+            tab: selectedTab
+          }}/>
+      </div>
+    </>
   );
 };
 

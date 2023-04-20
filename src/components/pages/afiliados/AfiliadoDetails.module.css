@@ -13,7 +13,7 @@
 .titulo {
 	font-weight: bold;
 	text-align: left;
-	border-bottom: dashed 1px;
+
 }
 
 .label {
@@ -27,16 +27,8 @@
 	text-overflow: ellipsis;
 }
 
-@media (max-width: 1920px) {
-    .contenedor {
-        zoom: 90%;
-      
-    }
-  }
-  
-  @media (max-width: 1360px) {
-    .contenedor {
-        zoom: 70%;
-        
-    }
-  }
+.contenedor{
+  position: absolute;
+  bottom: 0.5rem;
+  width: 99% !important;
+}

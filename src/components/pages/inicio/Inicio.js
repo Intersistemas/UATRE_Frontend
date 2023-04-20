@@ -125,11 +125,6 @@ const columns = [
     <div>
           <h1 className='titulo'>Sistema Integral de UATRE</h1>
       
-          {/*
-          <Table
-                {...props2}
-          />*/}
-           
           	{perAfiliaciones}
             <p />
             {perSiaru}
