@@ -1187,9 +1187,7 @@ const AfiliadoAgregar = (props) => {
 
     const nuevoAfiliadoObservado = {
       cuil: +cuil,
-      nombre: `${padronRespuesta?.apellido ?? ""} ${
-        padronRespuesta?.nombre ?? ""
-      }`,
+      nombre: nombre,
       puestoId: +puesto,
       fechaIngreso: null,
       fechaEgreso: null,
