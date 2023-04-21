@@ -23,34 +23,73 @@ const AfiliadosHandler = () => {
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState();
+  const moduloInfoDefoult = {
+    nombre: "Afiliados",
+    acciones: [
+      {
+        id: 1,
+        name: "Agregar Afiliado",
+        icon: '',
+        disabled: false,
+      },
+      {
+        id: 2,
+        name: "Modificar Afiliado",
+        icon: '',
+        disabled: true,
+      },
+      {
+        id: 3,
+        name: "Resolver Solicitud",
+        icon: '',
+        disabled: true,
+      },
+      {
+        id: 4,
+        name: "Imprimir Solicitud",
+        icon: '',
+        disabled: true,
+      }
+    ]
+  }
+  const [moduloInfo, setModuloInfo] = useState(moduloInfoDefoult);
 
-const navigate = useNavigate()
+  const navigate = useNavigate()
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([{value: 0, label:"Todos"}])
   //#endregion
 
-  //#region despachar Informar Modulo
-  const moduloInfo = {
-    nombre: "Afiliados",
-    acciones: [
-      {
-        nombre: "Agregar Afiliado",
-      },
-      {
-        nombre: "Modificar Afiliado",
-      },
-      {
-        nombre: "Resolver Solicitud",
-      },
-      {
-        nombre: "Imprimir Solicitud",
-      }
-    ]
-  }
-  
+  //#region despachar Informar Modulo  
   const dispatch = useDispatch();
-  //dispatch(handleModuloSeleccionar("Afiliaciones",acciones)); //intentaba pasar dos parametros a la funcion 
   dispatch(handleModuloSeleccionar(moduloInfo)); 
+//#endregion
+
+//#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones (por esto me debo olbigado a hacer un dispatch)
+useEffect(() => {
+
+  switch (afiliadoSeleccionado?.estadoSolicitud){
+    
+    case "Observado":
+      
+        const  accionesAux = moduloInfoDefoult.acciones.map((accion) =>
+        (accion.id === 2) ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux});
+        break;
+    case "Pendiente":
+      setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+        const  accionesAux2 = moduloInfoDefoult.acciones.map((accion) =>
+        accion.id === 2 || accion.id === 3 ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux2});
+        break;
+    default: 
+    setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+    break;
+  }
+  console.log('moduloInfo3',moduloInfo)
+  dispatch(handleModuloSeleccionar(moduloInfo)); 
+  
+},[afiliadoSeleccionado])
 //#endregion
 
 //#region Cargar Tablas
@@ -88,7 +127,7 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud,search,searchColumn, sortColumn,sortOrder]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,search, searchColumn, sortColumn, sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -111,9 +150,13 @@ const navigate = useNavigate()
   }, [request]);  
 
 //#endregion
-  const  moduloAccion  = useSelector(state => state.moduloAccion)
-  const afiliadoSeleccionado = useSelector(state => state.afiliado)
+  
+const  moduloAccion  = useSelector(state => state.moduloAccion)
+const {id} = 0;
+  
+  /*const afiliadoSeleccionado = useSelector(state => state.afiliado)
   const {id} = afiliadoSeleccionado
+*/
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
@@ -142,22 +185,11 @@ const navigate = useNavigate()
 
   },[moduloAccion])
 
-  // const handleDarDeBajaAfiliado = (afiliado) => {
-
-  // }
-
-  // const handleResolverEstadoSolicitud = (afiliado) => {
-
   
   const handleResolverEstadoSolicitud = () => {
     alert("Funcionalidad en desarrollo");
   };
-  // }
-
-  const handleClickAfiliadoAgregar = () => {
-    setAfiliadoAgregarShow(true);
-  };
-
+ 
 
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
@@ -221,15 +253,12 @@ const navigate = useNavigate()
             loading={afiliadosRespuesta?.length ? false : isLoading}
             estadosSolicitudes={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
-            //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
-            onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
             onSearch={handleSearch}
             onSort={handleSort}
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
-            onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
             onFilterChange={handleFilterChange}
-            
+            setAfiliadoSeleccionado={setAfiliadoSeleccionado}
           />
       
       </Fragment>
