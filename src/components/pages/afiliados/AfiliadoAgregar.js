@@ -26,21 +26,21 @@ const AfiliadoAgregar = (props) => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   //#region Capturo errores
-useEffect(() => {
-  if (error && error.code === 500) {
-    setCUILLoading(false);
-    setShowAlert(true);
-    setSeverityAlert("error");
-    setTextAlert(`Error - ${error.message}`);
-    
-    return;
-  }
-}, [error])
-//#endregion
+  useEffect(() => {
+    if (error && error.code === 500) {
+      setCUILLoading(false);
+      setShowAlert(true);
+      setSeverityAlert("error");
+      setTextAlert(`Error - ${error.message}`);
 
-  //#region Variables de estado para ButtonLoadingCustom  
+      return;
+    }
+  }, [error]);
+  //#endregion
+
+  //#region Variables de estado para ButtonLoadingCustom
   const [cuilLoading, setCUILLoading] = useState(false);
-  const [cuitLoading, setCUITLoading] = useState(false)
+  const [cuitLoading, setCUITLoading] = useState(false);
   //#endregion
 
   //#region estados para validaciones
@@ -50,6 +50,8 @@ useEffect(() => {
     resolverSolicitudAfiliadoResponse,
     setResolverSolicitudAfiliadoResponse,
   ] = useState(0);
+  const [cuilValidado, setCuilValidado] = useState(false);
+  const [cuitValidado, setCuitValidado] = useState(false);
   //#endregion
 
   //#region Alert
@@ -60,6 +62,8 @@ useEffect(() => {
 
   //#region variables para respuestas de servicios
   const [nuevoAfiliadoResponse, setNuevoAfiliadoResponse] = useState(null);
+  const [nuevoAfiliadoObservadoResponse, setNuevoAfiliadoObservadoResponse] =
+    useState(null);
   const [padronRespuesta, setPadronRespuesta] = useState(null);
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [actividades, setActividades] = useState([]);
@@ -77,7 +81,7 @@ useEffect(() => {
   const [actividad, setActividad] = useState("");
   const [puesto, setPuesto] = useState("");
   const [sexo, setSexo] = useState("");
-  const [nacionalidad, setNacionalidad] = useState("") //useState(initialObject);
+  const [nacionalidad, setNacionalidad] = useState(""); //useState(initialObject);
   const [seccional, setSeccional] = useState("");
   const [provincia, setProvincia] = useState("");
   const [localidad, setLocalidad] = useState("");
@@ -100,6 +104,8 @@ useEffect(() => {
   const [numeroDocumentoAFIP, setNumeroDocumentoAFIP] = useState("");
   const [estadoClaveAFIP, setEstadoClaveAFIP] = useState("");
   const [domicilioRealAFIP, setDomicilioRealAFIP] = useState(null);
+
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
   //#endregion
 
   //#region Datos Empleador
@@ -186,7 +192,10 @@ useEffect(() => {
   const nacionalidadReducer = (state, action) => {
     console.log("nacionalidad", action.value);
     if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value !== "" ? true : false };
+      return {
+        value: action.value,
+        isValid: action.value !== "" ? true : false,
+      };
     }
     if (action.type === "USER_BLUR") {
       return { value: state.value, isValid: state.value ? true : false };
@@ -490,7 +499,7 @@ useEffect(() => {
     const identifier = setTimeout(() => {
       //console.log("checking showAlert...", showAlert);
       if (resolverSolicitudAfiliadoResponse) {
-        handleCerrarModal()
+        handleCerrarModal();
       }
     }, 5000);
 
@@ -514,7 +523,7 @@ useEffect(() => {
     if (cuilIsValid && cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
-        setNuevoAfiliadoResponse(afiliadoObj.id)
+        setNuevoAfiliadoResponse(afiliadoObj.id);
         setAfiliadoExiste(true);
         setPadronRespuesta(true);
         setNombre(afiliadoObj.nombre);
@@ -529,7 +538,7 @@ useEffect(() => {
         setEstadoCivil(afiliadoObj.estadoCivilId);
         setSexo(afiliadoObj.sexoId);
         setProvincia(afiliadoObj.provinciaId);
-        setSeccional(afiliadoObj.seccionalId)
+        setSeccional(afiliadoObj.seccionalId);
         setTipoDocumento(afiliadoObj.tipoDocumentoId);
         setNumeroDocumento(afiliadoObj.documento);
         setTelefono(afiliadoObj.telefono);
@@ -561,6 +570,19 @@ useEffect(() => {
         setNumeroDocumentoAFIP(afiliadoObj.afipNumeroDocumento);
         setEstadoClaveAFIP(afiliadoObj.afipEstadoClave);
         setDomicilioRealAFIP(afiliadoObj.afipDomicilioDireccion);
+
+        if (afiliadoObj.estadoSolicitudId === 1) {
+          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+            (estado) =>
+              estado.label === "Pendiente" ||
+              estado.label === "Activo" ||
+              estado.label === "Observado" ||
+              estado.label === "Rechazado"
+          );
+          //console.log("estados", estadosSolicitudesPendientes);
+          setEstadosSolicitudes(estadosSolicitudesPendientes);
+          selectedTab(3);
+        }
 
         //alert
         setShowAlert(true);
@@ -813,12 +835,11 @@ useEffect(() => {
   //#endregion
 
   //#region Operacions validar CUIT/CUIL
-  const validarAfiliadoCUILHandler = () => {          
-    setCUILLoading(true)
-    
+  const validarAfiliadoCUILHandler = () => {
+    setCUILLoading(true);
+
     const processConsultaPadron = async (padronObj) => {
-      if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00")
-      {
+      if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
         setShowAlert(true);
         setSeverityAlert("error");
@@ -827,6 +848,7 @@ useEffect(() => {
         return;
       }
 
+      setCuilValidado(true);
       setPadronRespuesta(padronObj);
       dispatchNombre({
         type: "USER_INPUT",
@@ -902,7 +924,7 @@ useEffect(() => {
       setEstadoClaveAFIP(padronObj.estadoClave);
       setDomicilioRealAFIP(domicilioReal.direccion);
 
-      setCUILLoading(false)
+      setCUILLoading(false);
 
       request(
         {
@@ -927,9 +949,10 @@ useEffect(() => {
   };
 
   const validarEmpresaCUITHandler = () => {
-    setCUITLoading(true)
+    setCUITLoading(true);
     const processConsultaPadron = async (padronObj) => {
       //console.log("padronObj", padronObj);
+      setCuitValidado(true);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
       setRazonSocialEmpresa(
@@ -949,7 +972,7 @@ useEffect(() => {
       // setCorreoEmpresa()
       // setLugarTrabajoEmpresa()
       //ciius
-      setCUITLoading(false)
+      setCUITLoading(false);
     };
 
     request(
@@ -964,16 +987,15 @@ useEffect(() => {
   //#endregion
 
   //#region submit afiliado
-  const [clickAgregar, setClickAgregar] = useState(false)
+  const [clickAgregar, setClickAgregar] = useState(false);
   const afiliadoAgregarHandler = async (event) => {
     event.preventDefault();
-    setClickAgregar(true)
+    setClickAgregar(true);
     //console.log("domicilioRealAFIP", domicilioRealAFIP);
-    if (!formularioIsValid)
-    {
-      setShowAlert(true)
-      setTextAlert("Debe completar todos los campos")
-      setSeverityAlert("error")
+    if (!formularioIsValid) {
+      setShowAlert(true);
+      setTextAlert("Debe completar todos los campos");
+      setSeverityAlert("error");
       return;
     }
     const empresa = {
@@ -1014,113 +1036,251 @@ useEffect(() => {
       ciiU3: padronEmpresaRespuesta.ciiU3,
     };
 
-    const empresaAgregar = async (empresaObjResponse) => {
-      //console.log("empresaObjResponse", empresaObjResponse);
-      setEmpresaId(empresaObjResponse);
+    const nuevoAfiliado = {
+      cuil: +cuil,
+      nombre: `${padronRespuesta?.apellido ?? ""} ${
+        padronRespuesta?.nombre ?? ""
+      }`,
+      puestoId: +puesto,
+      fechaIngreso: null,
+      fechaEgreso: null,
+      nacionalidadId: +nacionalidad,
+      //empresaId: +empresaId,
+      seccionalId: +seccional,
+      sexoId: +sexo,
+      tipoDocumentoId: +tipoDocumento,
+      documento: +numeroDocumento,
+      actividadId: +actividad,
+      estadoSolicitudId: 1,
+      estadoCivilId: +estadoCivil,
+      refLocalidadId: +localidad,
+      domicilio: domicilio,
+      telefono: telefono,
+      correo: correo,
+      celular: "",
+      fechaNacimiento: fechaNacimiento,
+      afipcuil: +cuil,
+      afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
+      afipNombre: padronRespuesta?.nombre ?? "",
+      afipApellido: padronRespuesta?.apellido ?? "",
+      afipRazonSocial: "",
+      afipTipoDocumento: padronRespuesta?.tipoDocumento,
+      afipNumeroDocumento: padronRespuesta?.numeroDocumento,
+      afipTipoPersona: padronRespuesta?.tipoPersona,
+      afipTipoClave: padronRespuesta?.tipoClave,
+      afipEstadoClave: padronRespuesta?.estadoClave,
+      afipClaveInactivaAsociada: 0,
+      afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+      afipFormaJuridica: padronRespuesta?.formaJuridica,
+      afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
+      afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
+      afipPeriodoActividadPrincipal: 0,
+      afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
+      afipMesCierre: padronRespuesta?.mesCierre,
+      afipDomicilioDireccion: domicilioRealAFIP?.direccion,
+      afipDomicilioCalle: domicilioRealAFIP?.calle,
+      afipDomicilioNumero: domicilioRealAFIP?.numero,
+      afipDomicilioPiso: domicilioRealAFIP?.piso,
+      afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
+      afipDomicilioSector: domicilioRealAFIP?.sector,
+      afipDomicilioTorre: domicilioRealAFIP?.torre,
+      afipDomicilioManzana: domicilioRealAFIP?.manzana,
+      afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
+      afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
+      afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
+      afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
+      afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
+      afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
+      afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
+      afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
+      empresa: empresa,
+    };
+
+    console.log("POST", nuevoAfiliado);
+    const afiliadoAgregar = async (afiliadoResponseObj) => {
+      console.log("afiliadosObj", afiliadoResponseObj);
+      setNuevoAfiliadoResponse(afiliadoResponseObj);
+      //alert("Afiliado creado con éxito!");
+      //Alert
+      setShowAlert(true);
+      setSeverityAlert("success");
+      setTextAlert("Afiliado creado con éxito!");
+
+      //handleCerrarModal();
+
+      const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+        (estado) =>
+          estado.label === "Pendiente" ||
+          estado.label === "Activo" ||
+          estado.label === "Observado" ||
+          estado.label === "Rechazado"
+      );
+
+      setEstadosSolicitudes(estadosSolicitudesPendientes);
+      setSelectedTab(3);
     };
 
     request(
       {
-        baseURL: "Comunes",
-        endpoint: `/Empresas`,
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado`,
         method: "POST",
-        body: empresa,
+        body: nuevoAfiliado,
         headers: {
           "Content-Type": "application/json",
         },
       },
-      empresaAgregar
+      afiliadoAgregar
+    );
+  };
+  //#endregion
+
+  //#region Observar afiliado
+  //const [clickAgregar, setClickAgregar] = useState(false);
+  const afiliadoObservarHandler = async (event) => {
+    event.preventDefault();
+    setClickAgregar(true);
+    //console.log("domicilioRealAFIP", domicilioRealAFIP);
+    if (!formularioIsValid) {
+      setShowAlert(true);
+      setTextAlert("Debe completar todos los campos");
+      setSeverityAlert("error");
+      return;
+    }
+    const empresa = {
+      cuit: cuitEmpresa,
+      razonSocial: padronEmpresaRespuesta
+        ? padronEmpresaRespuesta?.razonSocial ??
+          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        : "",
+      claveTipo: padronEmpresaRespuesta.tipoClave,
+      claveEstado: padronEmpresaRespuesta.estadoClave,
+      claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+      actividadPrincipalDescripcion:
+        padronEmpresaRespuesta.descripcionActividadPrincipal,
+      actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+      actividadPrincipalPeriodo:
+        padronEmpresaRespuesta.periodoActividadPrincipal,
+      contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+      cierreMes: padronEmpresaRespuesta.mesCierre,
+      email: correoEmpresa,
+      telefono: telefonoEmpresa,
+      domicilioCalle: "string",
+      domicilioNumero: 0,
+      domicilioPiso: "string",
+      domicilioDpto: "string",
+      domicilioSector: "string",
+      domicilioTorre: "string",
+      domicilioManzana: "string",
+      domicilioProvinciasId: 0,
+      domicilioLocalidadesId: 0,
+      domicilioCodigoPostal: 0,
+      domicilioCPA: "string",
+      domicilioTipo: "string",
+      domicilioEstado: "string",
+      domicilioDatoAdicional: "string",
+      domicilioDatoAdicionalTipo: "string",
+      ciiU1: padronEmpresaRespuesta.ciiU1,
+      ciiU2: padronEmpresaRespuesta.ciiU2,
+      ciiU3: padronEmpresaRespuesta.ciiU3,
+    };
+
+    const nuevoAfiliadoObservado = {
+      cuil: +cuil,
+      nombre: `${padronRespuesta?.apellido ?? ""} ${
+        padronRespuesta?.nombre ?? ""
+      }`,
+      puestoId: +puesto,
+      fechaIngreso: null,
+      fechaEgreso: null,
+      nacionalidadId: +nacionalidad,
+      //empresaId: +empresaId,
+      seccionalId: +seccional,
+      sexoId: +sexo,
+      tipoDocumentoId: +tipoDocumento,
+      documento: +numeroDocumento,
+      actividadId: +actividad,
+      estadoSolicitudId: 4,
+      estadoCivilId: +estadoCivil,
+      refLocalidadId: +localidad,
+      domicilio: domicilio,
+      telefono: telefono,
+      correo: correo,
+      celular: "",
+      fechaNacimiento: fechaNacimiento,
+      afipcuil: +cuil,
+      // afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
+      // afipNombre: padronRespuesta?.nombre ?? "",
+      // afipApellido: padronRespuesta?.apellido ?? "",
+      // afipRazonSocial: "",
+      // afipTipoDocumento: padronRespuesta?.tipoDocumento,
+      // afipNumeroDocumento: padronRespuesta?.numeroDocumento,
+      // afipTipoPersona: padronRespuesta?.tipoPersona,
+      // afipTipoClave: padronRespuesta?.tipoClave,
+      // afipEstadoClave: padronRespuesta?.estadoClave,
+      // afipClaveInactivaAsociada: 0,
+      // afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+      // afipFormaJuridica: padronRespuesta?.formaJuridica,
+      // afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
+      // afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
+      // afipPeriodoActividadPrincipal: 0,
+      // afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
+      // afipMesCierre: padronRespuesta?.mesCierre,
+      // afipDomicilioDireccion: domicilioRealAFIP?.direccion,
+      // afipDomicilioCalle: domicilioRealAFIP?.calle,
+      // afipDomicilioNumero: domicilioRealAFIP?.numero,
+      // afipDomicilioPiso: domicilioRealAFIP?.piso,
+      // afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
+      // afipDomicilioSector: domicilioRealAFIP?.sector,
+      // afipDomicilioTorre: domicilioRealAFIP?.torre,
+      // afipDomicilioManzana: domicilioRealAFIP?.manzana,
+      // afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
+      // afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
+      // afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
+      // afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
+      // afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
+      // afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
+      // afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
+      // afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
+      empresa: empresa,
+    };
+
+    console.log("POST", nuevoAfiliadoObservado);
+    const afiliadoObservadoAgregar = async (afiliadoObservadoResponseObj) => {
+      console.log("afiliadoObservadoResponseObj", afiliadoObservadoResponseObj);
+      
+      //setNuevoAfiliadoObservadoResponse(afiliadoObservadoResponseObj);
+      //alert("Afiliado creado con éxito!");
+      //Alert
+      setShowAlert(true);
+      setSeverityAlert("success");
+      setTextAlert(
+        `Afiliado Observado con Id ${afiliadoObservadoResponseObj} creado con éxito!`
+      );
+
+      //handleCerrarModal();
+      const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
+        (estado) => estado.label === "Observado"
+      );
+      setEstadoSolicitud(estadosSolicitudesObservado);
+      setEstadosSolicitudes(estadosSolicitudesObservado);
+      setSelectedTab(3);
+    };
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado`,
+        method: "POST",
+        body: nuevoAfiliadoObservado,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      afiliadoObservadoAgregar
     );
   };
 
-  const nuevoAfiliado = {
-    cuil: +cuil,
-    nombre: `${padronRespuesta?.apellido ?? ""} ${
-      padronRespuesta?.nombre ?? ""
-    }`,
-    puestoId: +puesto,
-    fechaIngreso: null,
-    fechaEgreso: null,
-    nacionalidadId: +nacionalidad,
-    empresaId: +empresaId,
-    seccionalId: +seccional,
-    sexoId: +sexo,
-    tipoDocumentoId: +tipoDocumento,
-    documento: +numeroDocumento,
-    actividadId: +actividad,
-    estadoSolicitudId: 1,
-    estadoCivilId: +estadoCivil,
-    refLocalidadId: +localidad,
-    domicilio: domicilio,
-    telefono: telefono,
-    correo: correo,
-    celular: "",
-    fechaNacimiento: fechaNacimiento,
-    afipcuil: +cuil,
-    afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
-    afipNombre: padronRespuesta?.nombre ?? "",
-    afipApellido: padronRespuesta?.apellido ?? "",
-    afipRazonSocial: "",
-    afipTipoDocumento: padronRespuesta?.tipoDocumento,
-    afipNumeroDocumento: padronRespuesta?.numeroDocumento,
-    afipTipoPersona: padronRespuesta?.tipoPersona,
-    afipTipoClave: padronRespuesta?.tipoClave,
-    afipEstadoClave: padronRespuesta?.estadoClave,
-    afipClaveInactivaAsociada: 0,
-    afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
-    afipFormaJuridica: padronRespuesta?.formaJuridica,
-    afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
-    afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
-    afipPeriodoActividadPrincipal: 0,
-    afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
-    afipMesCierre: padronRespuesta?.mesCierre,
-    afipDomicilioDireccion: domicilioRealAFIP?.direccion,
-    afipDomicilioCalle: domicilioRealAFIP?.calle,
-    afipDomicilioNumero: domicilioRealAFIP?.numero,
-    afipDomicilioPiso: domicilioRealAFIP?.piso,
-    afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
-    afipDomicilioSector: domicilioRealAFIP?.sector,
-    afipDomicilioTorre: domicilioRealAFIP?.torre,
-    afipDomicilioManzana: domicilioRealAFIP?.manzana,
-    afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
-    afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
-    afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
-    afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
-    afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
-    afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
-    afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
-    afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
-  };
-  useEffect(() => {
-    if (empresaId > 0) {
-      console.log("POST", nuevoAfiliado);
-      const afiliadoAgregar = async (afiliadoResponseObj) => {
-        console.log("afiliadosObj", afiliadoResponseObj);
-        setNuevoAfiliadoResponse(afiliadoResponseObj);
-        //alert("Afiliado creado con éxito!");
-        //Alert
-        setShowAlert(true);
-        setSeverityAlert("success");
-        setTextAlert("Afiliado creado con éxito!");
-
-        //handleCerrarModal();
-        setSelectedTab(3);
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado`,
-          method: "POST",
-          body: nuevoAfiliado,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        afiliadoAgregar
-      );
-    }
-  }, [empresaId, request]);
   //#endregion
 
   //#region Resolver Solciitud Afiliado
@@ -1255,13 +1415,14 @@ useEffect(() => {
   const handleInputChange = (value, id) => {
     switch (id) {
       case "cuil":
-        setAfiliadoExiste(false)
-        setNuevoAfiliadoResponse(null)
-        setClickAgregar(false)
+        setCuilValidado(false);
+        setAfiliadoExiste(false);
+        setNuevoAfiliadoResponse(null);
+        setClickAgregar(false);
         setTextAlert("");
-        setSeverityAlert("")
+        setSeverityAlert("");
         setPadronRespuesta(null);
-        setCUITEmpresa("")
+        setCUITEmpresa("");
 
         dispatchCUIL({ type: "USER_INPUT", value: value });
         setCUIL(value);
@@ -1280,7 +1441,7 @@ useEffect(() => {
         setCorreo("");
         setPuesto("");
         setActividad("");
-        dispatchActividad({ type: "USER_INPUT", value: "" });        
+        dispatchActividad({ type: "USER_INPUT", value: "" });
         break;
 
       case "nombre":
@@ -1314,6 +1475,7 @@ useEffect(() => {
         break;
 
       case "cuit":
+        setCuitValidado(false);
         dispatchCUIT({ type: "USER_INPUT", value: value });
         setCUITEmpresa(value);
         setPadronEmpresaRespuesta(null);
@@ -1364,7 +1526,7 @@ useEffect(() => {
     setSelectedTab(newValue);
   };
   //#endregion
-  
+
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -1449,7 +1611,7 @@ useEffect(() => {
                 label="Apellido y Nombre"
                 width={100}
                 onChange={handleInputChange}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={cuilValidado ? true : false}
                 error={!nombreState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1461,7 +1623,7 @@ useEffect(() => {
                 value={nacionalidad}
                 defaultValue={nacionalidades[0]}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={cuilValidado ? true : false}
                 error={
                   !nacionalidadState.isValid && clickAgregar ? true : false
                 }
@@ -1485,7 +1647,7 @@ useEffect(() => {
                 label="Fecha de Nacimiento"
                 type="date"
                 onChange={handleInputChange}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={cuilValidado ? true : false}
                 error={
                   !fechaNacimientoState.isValid && clickAgregar ? true : false
                 }
@@ -1498,7 +1660,7 @@ useEffect(() => {
                 options={estadosCiviles}
                 value={estadoCivil}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={cuilValidado ? true : false}
                 //width={100}
                 error={!estadoCivilState.isValid && clickAgregar ? true : false}
               />
@@ -1510,7 +1672,7 @@ useEffect(() => {
                 options={sexos}
                 value={sexo}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 //width={100}
                 error={!generoState.isValid && clickAgregar ? true : false}
               />
@@ -1523,7 +1685,7 @@ useEffect(() => {
                 value={tipoDocumento}
                 options={tiposDocumentos}
                 label="Tipo Documento"
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={cuilValidado ? true : false}
                 onChange={handleChangeSelect}
                 //width={98}
                 error={
@@ -1536,7 +1698,7 @@ useEffect(() => {
                 id="numeroDocumento"
                 value={numeroDocumento}
                 label="Numero Documento"
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={cuilValidado ? true : false}
                 //width={96}
                 onChange={handleInputChange}
                 error={
@@ -1549,7 +1711,7 @@ useEffect(() => {
                 id="domicilio"
                 value={domicilio}
                 label="Domicilio"
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={cuilValidado ? true : false}
                 onChange={handleInputChange}
                 error={!domicilioState.isValid && clickAgregar ? true : false}
               />
@@ -1564,7 +1726,7 @@ useEffect(() => {
                 options={provincias}
                 value={provincia}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 error={!provinciaState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1575,7 +1737,7 @@ useEffect(() => {
                 options={localidades}
                 value={localidad}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 error={!localidadState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
@@ -1598,7 +1760,7 @@ useEffect(() => {
                 options={seccionales}
                 value={seccional}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 error={!seccionalState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
@@ -1618,7 +1780,7 @@ useEffect(() => {
                 id="telefono"
                 value={telefono}
                 label="Telefono/Celular"
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 width={100}
                 onChange={handleInputChange}
               />
@@ -1628,7 +1790,7 @@ useEffect(() => {
                 id="correo"
                 value={correo}
                 label="Correo"
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 width={100}
                 onChange={handleInputChange}
                 helperText={
@@ -1646,7 +1808,7 @@ useEffect(() => {
                 options={puestos}
                 value={puesto}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 error={!oficioState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1657,7 +1819,7 @@ useEffect(() => {
                 options={actividades}
                 value={actividad}
                 onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
+                //disabled={!padronRespuesta?.idPersona ? true : false}
                 error={!actividadState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -2023,7 +2185,7 @@ useEffect(() => {
                 <SelectMaterial
                   name="estadoSolicitudSelect"
                   label="Estado Solciitud:"
-                  options={props.estadosSolicitudes}
+                  options={estadosSolicitudes}
                   value={estadoSolicitud}
                   //defaultValue={nacionalidades[0]}
                   onChange={handleChangeSelect}
@@ -2074,9 +2236,24 @@ useEffect(() => {
             className={classes.button}
             width={100}
             onClick={afiliadoAgregarHandler}
-            disabled={nuevoAfiliadoResponse || afiliadoExiste}
+            disabled={
+              nuevoAfiliadoResponse ||
+              afiliadoExiste ||
+              !cuilValidado ||
+              !cuitValidado
+            }
           >
             Agregar Afiliado
+          </Button>
+        </div>
+        <div className={classes.boton}>
+          <Button
+            className={classes.button}
+            width={100}
+            onClick={afiliadoObservarHandler}
+            disabled={nuevoAfiliadoResponse || afiliadoExiste}
+          >
+            Observar Afiliado
           </Button>
         </div>
         <div className={classes.boton}>

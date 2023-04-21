@@ -68,21 +68,21 @@ const DeclaracionesJuradas = (props) => {
         text: "Fecha Proceso",
         formatter: FormatearFecha,
       },
-      {
-        dataField: "remuneracionImponible",
-        text: "Remuneración Imponible",
-        hidden: true
-      },
-      {
-        dataField: "segurosepelio",
-        text: "Seguro Sepelio",
-        hidden: true,
-        formatter: (cell,row) => {
-          return (
-            <span>$ {Math.floor(row.periodo/50)}</span>
-          );
-        } 
-      },
+      // {
+      //   dataField: "remuneracionImponible",
+      //   text: "Remuneración Imponible",
+      //   hidden: true
+      // },
+      // {
+      //   dataField: "segurosepelio",
+      //   text: "Seguro Sepelio",
+      //   hidden: true,
+      //   formatter: (cell,row) => {
+      //     return (
+      //       <span>$ {Math.floor(row.periodo/50)}</span>
+      //     );
+      //   } 
+      // },
       {
         dataField: "rectificativa",
         text: "Versión",
@@ -146,10 +146,10 @@ const DeclaracionesJuradas = (props) => {
         dataField: "empresa",
         text: "Empresa",
       },
-      {
-        dataField: "remuneracionImponible",
-        text: "Remuneracion Imponible",
-      },
+      // {
+      //   dataField: "remuneracionImponible",
+      //   text: "Remuneracion Imponible",
+      // },
     ];
   }
 
