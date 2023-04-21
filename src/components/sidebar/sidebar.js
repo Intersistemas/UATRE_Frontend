@@ -8,16 +8,15 @@ import { Link, NavLink } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
-import store from '../../redux/store';
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion } from '../../redux/actions';
-import fondo from '../../media/Background/color3.png';
 
 
 const Sidebar = ({children}) => {
 
     const  moduloActual = useSelector(state => state.modulo)
+    const afiliadoSeleccionado = useSelector(state => state.afiliado)
     
     const dispatch = useDispatch();  //Ver acciones a pasar
 
@@ -39,21 +38,11 @@ const Sidebar = ({children}) => {
     ]
 
     useEffect(() => {
-                let array = [];
+                console.log('afiliadoSeleccionado',afiliadoSeleccionado);
+                console.log('moduloActual.acciones',moduloActual.acciones)
+                setBotones(moduloActual.acciones ?? '');
 
-                if (moduloActual.nombre === "Afiliados") {
-                    array = moduloActual.acciones;
-                };
-
-                if (moduloActual.nombre === "SIARU") {
-                    array = moduloActual.acciones;
-                };
-
-                if (moduloActual.nombre === "Pagos") {
-                    array = moduloActual.acciones;
-                };
-                setBotones(array);
-    },[moduloActual])
+    },[moduloActual, afiliadoSeleccionado])
 
     //Despacho/actualizo el estado global de acciones, el componente que creo las acciones capturará el estado y sabrá qué hacer
     const despacharAcciones = (accion)=>{
@@ -91,9 +80,8 @@ const Sidebar = ({children}) => {
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(                                
-                                    <Button className="botonBorder" key={index} onClick={ () => despacharAcciones(item.nombre)}> 
-                                    
-                                        {(isOpen && <span style={{ float: 'left', fontWeight: 'normal'}} onClick={ () => despacharAcciones(item.nombre)}> <FaChevronRight/>{item.nombre}</span>)}
+                                    <Button disabled = {item.disabled} className="botonBorder" key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        {(isOpen && <span style={{ float: 'left', fontWeight: 'normal'}} onClick={ () => despacharAcciones(item.name)}> <FaChevronRight/>{item.name}</span>)}
                                     </Button>
                                 ))
                             }

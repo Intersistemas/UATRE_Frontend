@@ -81,28 +81,31 @@ const AfiliadosLista = (props) => {
 
   const columns = [
     {
+      headerTitle: (column, colIndex) => `Numero de Afiliado`,
       dataField: "nroAfiliado",
-      text: "Nro.Afiliado",
+      text: "Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
+        return { width: "6%", textAlign: "center" };
       },
       /*headerEvents: {
         onClick: (e, column, columnIndex) => console.log('e, column, columnIndex',e, column, columnIndex)
       }*/
     },
     {
+      headerTitle: true,
       dataField: "cuil",
       text: "CUIL",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "11%", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
     {
+      headerTitle: (colum, colIndex) => (`Documento número`),
       dataField: "documento",
-      text: "Documento",
+      text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
@@ -110,6 +113,7 @@ const AfiliadosLista = (props) => {
       formatter: Formato.DNI,
     },
     {
+      headerTitle: true,
       dataField: "nombre",
       text: "Nombre",
       sort: true,
@@ -118,6 +122,7 @@ const AfiliadosLista = (props) => {
       },
     },
     {
+      headerTitle: true,
       dataField: "sexo",
       text: "Sexo",
       headerStyle: (colum, colIndex) => {
@@ -126,14 +131,17 @@ const AfiliadosLista = (props) => {
     },
     
     {
+      headerTitle: (column, colIndex) => `Estado Civil`,
       dataField: "estadoCivil",
-      text: "Estado Civil",
+      text: "E.Civil",
       headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
+        return { width: "5%", textAlign: "center" };
       },
     },
 
     {
+
+      headerTitle: true,
       dataField: "nacionalidad",
       text: "Nacionalidad",
       headerStyle: (colum, colIndex) => {
@@ -141,12 +149,13 @@ const AfiliadosLista = (props) => {
       },
     },
     { //ME GENERA ERROR CON EL SEARCH TAB
+      headerTitle: (colum, colIndex) => (`Situación del Afiliado`),
       dataField: "estadoSolicitud",
       //text: "Situación",
       //sort: true,
       //title: "Estado Solicitud",
       headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
+        return { width: "8%", textAlign: "center" };
       },
       formatter: (cell) => {
         switch (cell){
@@ -189,6 +198,7 @@ const AfiliadosLista = (props) => {
       }),
     },
     {
+      headerTitle: true,
       dataField: "seccional",
       text: "Seccional",
       sort: true,
@@ -197,26 +207,29 @@ const AfiliadosLista = (props) => {
       },
     },
     {
+      headerTitle: (colum, colIndex) => (`Fecha de Ingreso`),
       dataField: "fechaIngreso",
-      text: "Fecha Ingreso",
+      text: "Ingreso",
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
+        return { width: "8%", textAlign: "center" };
       },
     },
 
     {
+      headerTitle: (colum, colIndex) => (`Fecha de Egreso`),
       dataField: "fechaEgreso",
-      text: "Fecha Egreso",
+      text: "Egreso",
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
+        return { width: "8%", textAlign: "center" };
       },
     },
 
     {
+      headerTitle: true,
       dataField: "puesto",
       text: "Puesto",
       sort: true,
@@ -225,15 +238,17 @@ const AfiliadosLista = (props) => {
       },
     },
     {
+      headerTitle: true,
       dataField: "empresaCUIT",
       text: "CUIT",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "11%", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
     {
+      headerTitle: true,
       dataField: "empresa",
       text: "Empresa",
       sort: true,
@@ -241,8 +256,8 @@ const AfiliadosLista = (props) => {
         return { width: "15%", textAlign: "center" };
       },
     },
-        
     {
+      headerTitle: true,
       dataField: "actividad",
       text: "Actividad",
       sort: true,
@@ -293,11 +308,9 @@ const AfiliadosLista = (props) => {
    switch(selectedTab){
      case 0:
         setAfiliadoSeleccionado(row);
+        props.setAfiliadoSeleccionado(row);
         break;
      case 1:
-        setAfiliadoSeleccionado(row);
-        break;
-    case 2:
           console.log('DDJJ Seleccionada:',row)
           setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
