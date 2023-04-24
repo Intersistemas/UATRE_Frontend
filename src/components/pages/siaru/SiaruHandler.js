@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import useHttp from "../../hooks/useHttp";
 import Grid from "../../ui/Grid/Grid";
 import Formato from "../../helpers/Formato";
@@ -11,29 +11,36 @@ import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 } from "../../../redux/actions";
+import AuthContext from "../../../store/authContext";
 
 const SiaruHandler = (props) => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { sendRequest: request } = useHttp();
+  const authContext = useContext(AuthContext);
+
 
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
 	useEffect(() => {
-		request(
-			{
-				baseURL: "Seguridad",
-				endpoint: `/PermisosUsuario`,
-				method: "GET",
-				headers: {
-					Authorization: true,
-				},
-			},
-			async (res) => setEmpresaList({ data: res }),
-			async (err) => setEmpresaList({ error: err })
-		);
-	}, [request]);
+		// request(
+		// 	{
+		// 		baseURL: "Seguridad",
+		// 		endpoint: `/PermisosUsuario`,
+		// 		method: "GET",
+		// 		headers: {
+		// 			Authorization: true,
+		// 		},
+		// 	},
+		// 	async (res) => setEmpresaList({ data: res }),
+		// 	async (err) => setEmpresaList({ error: err })
+		// );
+	// }, [request]);
+		if (authContext.usuario?.empresas) {
+			setEmpresaList({ data: authContext.usuario?.empresas });
+		}
+	}, []);
 	//#endregion
 
 	//#region declaración y carga de detalles de empresa
@@ -45,8 +52,8 @@ const SiaruHandler = (props) => {
 		}
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/Empresas/${empresaRecord.cuitEmpresa}`,
+				baseURL: "Comunes",
+				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${empresaRecord.cuitEmpresa}`,
 				method: "GET",
 			},
 			async (res) => setEmpresa({ data: res }),
