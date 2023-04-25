@@ -72,9 +72,14 @@ useEffect(() => {
     
     case "Observado":
       
-        const  accionesAux = moduloInfoDefoult.acciones.map((accion) =>
+        const  accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
         (accion.id === 2) ? {...accion, disabled: false} : accion);
-        setModuloInfo({...moduloInfo, acciones:accionesAux});
+        setModuloInfo({...moduloInfo, acciones:accionesAux0});
+        break;
+    case "Activo":
+        const  accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
+        (accion.id === 4) ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux1});
         break;
     case "Pendiente":
       setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
