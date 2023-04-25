@@ -40,7 +40,7 @@ const AfiliadosUltimaDDJJ = (props) => {
         sort: true,
       },
       {
-        dataField: "nombreAfiliado",
+        dataField: "afiliadoNombre",
         text: "Nombre",
       },      
     ];
