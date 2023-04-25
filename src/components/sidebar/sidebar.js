@@ -69,14 +69,14 @@ const Sidebar = ({children}) => {
                         </div>
                             {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
-                        {/*
+                        {
                         menuItem.map((item, index)=>(
                             <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
                                 <div className={clases.icon}>{item.icon}</div>
                                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
                             </NavLink>
                         ))
-                        */}
+                        }
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(                                
