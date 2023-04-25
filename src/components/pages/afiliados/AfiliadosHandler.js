@@ -57,7 +57,7 @@ const AfiliadosHandler = () => {
 
   const navigate = useNavigate()
   //#region Tablas para el form
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([{value: 0, label:"Todos"}])
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([{ value: 0, label:" Todos" }])
   //#endregion
 
   //#region despachar Informar Modulo  
@@ -131,12 +131,19 @@ useEffect(() => {
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
-      const estadosSolicitudesOptions = estadosSolicitudesObj.map(
+      const estadosSolicitudesTable = estadosSolicitudesObj.map(
         (estadoSolicitud) => {
           return { value: estadoSolicitud.id, label: estadoSolicitud.descripcion };
         }
       );
-      setEstadosSolicitudes([...estadosSolicitudes, ...estadosSolicitudesOptions]);
+      const estadosSolicitudesOptions = estadosSolicitudesTable.filter((estado) => estado.label !== "Sin Asignar")
+
+      estadosSolicitudesOptions.push({ value: 0, label: "Todos"})
+      console.log("estadosSolicitudesOptions", estadosSolicitudesOptions);
+      setEstadosSolicitudes(
+        estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
+      );
+      //setEstadosSolicitudes(estadosSolicitudes);
     };    
 
     request(
