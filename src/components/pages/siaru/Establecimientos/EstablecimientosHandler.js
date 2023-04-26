@@ -35,8 +35,8 @@ const EstablecimientosHandler = (props) => {
 	const recargarEstablecimientos = (despliega = null) => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos/Paginado?EmpresasId=${empresaId}&Page=${pagination.index},${pagination.size}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}`,
 				method: "GET",
 			},
 			async (response) => {

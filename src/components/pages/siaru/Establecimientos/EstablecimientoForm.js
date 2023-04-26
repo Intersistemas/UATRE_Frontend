@@ -7,8 +7,6 @@ import Modal from "../../../ui/Modal/Modal";
 import Grid from "../../../ui/Grid/Grid";
 import TextField from "@mui/material/TextField";
 import Select from "../../../ui/Select/Select";
-import DateTimePicker from "../../../ui/DateTimePicker/DateTimePicker";
-import dayjs from "dayjs";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -78,7 +76,7 @@ const Form = (props) => {
 		}
 
 		const req = {
-			baseURL: "SIARU",
+			baseURL: "Comunes",
 			headers: { "Content-Type": "application/json" },
 			body: data,
 		};
@@ -89,9 +87,6 @@ const Form = (props) => {
 				req.endpoint = `/EmpresasEstablecimientos`;
 				break;
 			case "B":
-				req.method = "PUT";
-				req.endpoint = `/EmpresasEstablecimientos/${data.id}`;
-				break;
 			case "M":
 				req.method = "PUT";
 				req.endpoint = `/EmpresasEstablecimientos/${data.id}`;
