@@ -68,54 +68,66 @@ const DeclaracionesJuradas = (props) => {
         text: "Fecha Proceso",
         formatter: FormatearFecha,
       },
+      // {
+      //   dataField: "remuneracionImponible",
+      //   text: "Remuneración Imponible",
+      //   hidden: true
+      // },
+      // {
+      //   dataField: "segurosepelio",
+      //   text: "Seguro Sepelio",
+      //   hidden: true,
+      //   formatter: (cell,row) => {
+      //     return (
+      //       <span>$ {Math.floor(row.periodo/50)}</span>
+      //     );
+      //   } 
+      // },
       {
-        dataField: "remuneracionImponible",
-        text: "Remuneración Imponible",
-      },
-      {
-        dataField: "segurosepelio",
-        text: "Seguro Sepelio",
-        formatter: (cell,row) => {
-          return (
-            <span>$ {Math.floor(row.periodo/50)}</span>
-          );
-        } 
-      },
-      {
-        dataField: "version",
-        text: "Rectificativa",
-        formatter: (cell,row) => {
+        dataField: "rectificativa",
+        text: "Versión",
+        /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(7))}</span>
           );
-        } 
+        } */
       },
       {
-        dataField: "codigodezona",
+        dataField: "version",
+        text: "Versión",
+        hidden: true
+        /*formatter: (cell,row) => {
+          return (
+            <span>{((row.obligacionNro).toString().substring(7))}</span>
+          );
+        } */
+      },
+      {
+        dataField: "zona",
         text: "Código de Zona",
-        formatter: (cell,row) => {
+        /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(2,6))}</span>
           );
-        } 
+        }*/
       },
       {
-        dataField: "codigodemodalidadcontratacion",
+        dataField: "modalidad",
         text: "Código de Modalidad de Contratación",
-        formatter: (cell,row) => {
+        /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(6,7))}</span>
           );
-        } 
+        } */
       },
       {
-        dataField: "codigoactividad",
+        dataField: "actividad",
         text: "Código de Actividad",
-        formatter: (cell,row) => {
+        /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(1,4))}</span>
           );
-        } 
+        } */
       }
       
     ];
@@ -134,10 +146,10 @@ const DeclaracionesJuradas = (props) => {
         dataField: "empresa",
         text: "Empresa",
       },
-      {
-        dataField: "remuneracionImponible",
-        text: "Remuneracion Imponible",
-      },
+      // {
+      //   dataField: "remuneracionImponible",
+      //   text: "Remuneracion Imponible",
+      // },
     ];
   }
 

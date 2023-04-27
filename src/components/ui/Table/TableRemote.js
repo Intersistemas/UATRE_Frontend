@@ -20,37 +20,43 @@ import paginationFactory, {
 } from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
+import Button from "../Button/Button";
 
 const { SearchBar } = Search;
 
 const TableRemote = (props) => {
 
-  
+  const [selectValue, setSelectValue] = React.useState('');
+  const [entryValue, setEntryValue] = React.useState('');
 
+  
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    //selected: props.rowSelectedIndex ?? '',
     style: {
       backgroundColor: "rgb(194 194 194 / 70%)",
       color: "black",
       fontWeight: "bold",
     },
+    /*onSelect: (rowIndex) => {
+      props.setRowSelectedIndex(rowIndex);
+    }*/
   };
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      props.onSelected(row);
+      props.onSelected(row,rowIndex);
     },
   };
 
-
-
-  /*const rowStyle = { 
-backgroundColor: '#ffffffcc',
-border: '1.5px solid #3595D2', 
-color: '#727272',
-};*/
 
   const rowStyle2 = (row, cell) => {
     //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
@@ -63,27 +69,64 @@ color: '#727272',
 
   };
 
+  const handleChangeSearchSelect = (event) => {
+    setSelectValue(event.target.value);
+    //props.handleSelectFilter(event.target.value);
+  };
 
+  const handleChangeSearchEntry = (event) => {
+    setEntryValue(event.target.value);
+      //props.handleSelectFilter(event.target.value);
+  };
+
+  const accionLimpiarFiltros = () =>{
+    props.accionBuscar('','');
+  };
   
   return (
 
     <div className={classes.tabla}>
-       {/*<Box sx={{ minWidth: 120 }}>
+      {props.selectoresBuscar &&
+       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: 'auto' }}>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Age</InputLabel>
+          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
+          
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={age}
-            label="Age"
-            onChange={handleChange}
+            value={selectValue}
+            label="Buscar por:"
+            onChange={handleChangeSearchSelect}
+            
           >
-            <MenuItem value={10}>Ten</MenuItem>
-            <MenuItem value={20}>Twenty</MenuItem>
-            <MenuItem value={30}>Thirty</MenuItem>
+            {props.selectoresBuscar.map((valores)=>{
+                  return <MenuItem value={valores}>{valores.text}</MenuItem>
+                  })
+            }
           </Select>
         </FormControl>
-    </Box>*/}
+        <TextField 
+        fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}
+        /*helperText={
+          props.error
+            ? "Error buscando datos"
+            : ""
+        }*/
+        error={props.error}
+        />
+        <Button
+              width={80}
+              onClick={()=>props.accionBuscar(selectValue.text,entryValue)}
+              disabled={!entryValue ?? true}
+        >BUSCAR</Button>
+        <Button
+              width={40}
+              onClick={()=>accionLimpiarFiltros()}
+        >Limpiar</Button>
+      </Box>
+    
+      }
+
        <BootstrapTable
           hover
           bootstrap4

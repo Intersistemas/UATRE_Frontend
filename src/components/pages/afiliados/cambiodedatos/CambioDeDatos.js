@@ -15,6 +15,7 @@ const CambioDeDatos = (props) => {
   useEffect(() => {
     if (cuil > 0) {
       const processDDJJUatre = async (ddJJUatreObj) => {
+        console.log('DDJJ:',ddJJUatreObj);
         setDDJJUatreList(ddJJUatreObj);
       };
 

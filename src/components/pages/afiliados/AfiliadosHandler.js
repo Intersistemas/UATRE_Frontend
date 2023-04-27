@@ -15,38 +15,86 @@ const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchColumn, setSearchColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
-
-const navigate = useNavigate()
-  //#region Tablas para el form
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([])
-  //#endregion
-
-  //#region despachar Informar Modulo
-  const moduloInfo = {
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState();
+  const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
       {
-        nombre: "Agregar Afiliado",
+        id: 1,
+        name: "Agregar Afiliado",
+        icon: '',
+        disabled: false,
       },
       {
-        nombre: "Modificar Afiliado",
+        id: 2,
+        name: "Modificar Afiliado",
+        icon: '',
+        disabled: true,
       },
       {
-        nombre: "Resolver Solicitud",
+        id: 3,
+        name: "Resolver Solicitud",
+        icon: '',
+        disabled: true,
       },
       {
-        nombre: "Imprimir Solicitud",
+        id: 4,
+        name: "Imprimir Solicitud",
+        icon: '',
+        disabled: true,
       }
     ]
   }
-  
+  const [moduloInfo, setModuloInfo] = useState(moduloInfoDefoult);
+
+  const navigate = useNavigate()
+  //#region Tablas para el form
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([{ value: 0, label:" Todos" }])
+  //#endregion
+
+  //#region despachar Informar Modulo  
   const dispatch = useDispatch();
-  //dispatch(handleModuloSeleccionar("Afiliaciones",acciones)); //intentaba pasar dos parametros a la funcion 
   dispatch(handleModuloSeleccionar(moduloInfo)); 
+//#endregion
+
+//#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones (por esto me debo olbigado a hacer un dispatch)
+useEffect(() => {
+
+  switch (afiliadoSeleccionado?.estadoSolicitud){
+    
+    case "Observado":
+      
+        const  accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
+        (accion.id === 2) ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux0});
+        break;
+    case "Activo":
+        const  accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
+        (accion.id === 4) ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux1});
+        break;
+    case "Pendiente":
+      setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+        const  accionesAux2 = moduloInfoDefoult.acciones.map((accion) =>
+        accion.id === 2 || accion.id === 3 ? {...accion, disabled: false} : accion);
+        setModuloInfo({...moduloInfo, acciones:accionesAux2});
+        break;
+    default: 
+    setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+    break;
+  }
+  console.log('moduloInfo3',moduloInfo)
+  dispatch(handleModuloSeleccionar(moduloInfo)); 
+  
+},[afiliadoSeleccionado])
 //#endregion
 
 //#region Cargar Tablas
@@ -58,10 +106,24 @@ const navigate = useNavigate()
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
-    if (estadoSolicitud) {
-        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-    }
     
+    console.log('sortColumn',sortColumn)
+    
+    if (estadoSolicitud > 0) {
+        //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+        endpoint = `${endpoint}&FilterBy=EstadoSolicitudId&FilterValue=${estadoSolicitud}`;
+    }
+    if (sortColumn) { //ORDENAMIENTO
+        sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
+        endpoint = `${endpoint}&Sort=${sortColumn}`;
+    }
+    if (search) { //BUSQUEDA
+        endpoint = `${endpoint}&FilterValue=${search}`;
+    }
+    if (searchColumn) { //COLUMNA DE BUSUQUEDA
+        endpoint = `${endpoint}&FilterBy=${searchColumn}`;
+    }
+
     request(
       {
         baseURL: "Afiliaciones",
@@ -70,17 +132,23 @@ const navigate = useNavigate()
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,search, searchColumn, sortColumn, sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
-      //console.log('afiliadosObj', afiliadosObj)
-      const estadosSolicitudesOptions = estadosSolicitudesObj.map(
+      const estadosSolicitudesTable = estadosSolicitudesObj.map(
         (estadoSolicitud) => {
           return { value: estadoSolicitud.id, label: estadoSolicitud.descripcion };
         }
       );
-      setEstadosSolicitudes(estadosSolicitudesOptions);
+      const estadosSolicitudesOptions = estadosSolicitudesTable.filter((estado) => estado.label !== "Sin Asignar")
+
+      estadosSolicitudesOptions.push({ value: 0, label: "Todos"})
+      console.log("estadosSolicitudesOptions", estadosSolicitudesOptions);
+      setEstadosSolicitudes(
+        estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
+      );
+      //setEstadosSolicitudes(estadosSolicitudes);
     };    
 
     request(
@@ -94,9 +162,13 @@ const navigate = useNavigate()
   }, [request]);  
 
 //#endregion
-  const  moduloAccion  = useSelector(state => state.moduloAccion)
-  const afiliadoSeleccionado = useSelector(state => state.afiliado)
+  
+const  moduloAccion  = useSelector(state => state.moduloAccion)
+const {id} = 0;
+  
+  /*const afiliadoSeleccionado = useSelector(state => state.afiliado)
   const {id} = afiliadoSeleccionado
+*/
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
@@ -125,22 +197,11 @@ const navigate = useNavigate()
 
   },[moduloAccion])
 
-  // const handleDarDeBajaAfiliado = (afiliado) => {
-
-  // }
-
-  // const handleResolverEstadoSolicitud = (afiliado) => {
-
   
   const handleResolverEstadoSolicitud = () => {
     alert("Funcionalidad en desarrollo");
   };
-  // }
-
-  const handleClickAfiliadoAgregar = () => {
-    setAfiliadoAgregarShow(true);
-  };
-
+ 
 
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
@@ -148,10 +209,26 @@ const navigate = useNavigate()
   };
 
   const handlePageChange = (page, sizePerPage) => {
-    console.log('llega con la data',page,sizePerPage)
     setPage(page);
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
+  };
+  
+  const handleSearch = (select,entry) => {
+    setSearch(entry);
+    switch(select){
+      case "Nro.Afiliado":
+        setSearchColumn("NroAfiliado")
+        break;
+      default:  setSearchColumn(select);
+    }
+    //setAfiliadosRespuesta([]);
+  };
+
+  const handleSort = (sortColumn,sortOrder) => {
+    setSortColumn(sortColumn=='cuil'?'CUIL':sortColumn);
+    setSortOrder(sortOrder);
+    //setOrder(sortOrder); TODO
   };
 
   const handleSizePerPageChange = (page, sizePerPage) => {
@@ -168,9 +245,9 @@ const navigate = useNavigate()
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
-  if (error) {
+  /*if (error) {
     return <h1>{error}</h1>;
-  }
+  }*/
 
   if (afiliadosRespuesta.length !== 0)
     return (
@@ -184,14 +261,16 @@ const navigate = useNavigate()
 
           <AfiliadosLista
             afiliados={afiliadosRespuesta}
+            errorRequest={error}
             loading={afiliadosRespuesta?.length ? false : isLoading}
-            estadosSolicitud={estadosSolicitudes}
+            estadosSolicitudes={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
-            //onDarDeBajaAfiliado={handleDarDeBajaAfiliado}
-            onResolverEstadoSolicitud={handleResolverEstadoSolicitud}
+            onSearch={handleSearch}
+            onSort={handleSort}
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
-            onClickAfiliadoAgregar={handleClickAfiliadoAgregar}
+            onFilterChange={handleFilterChange}
+            setAfiliadoSeleccionado={setAfiliadoSeleccionado}
           />
       
       </Fragment>

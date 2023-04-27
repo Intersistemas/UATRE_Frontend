@@ -46,7 +46,23 @@ const Login = () => {
 	  await authContext.login(userObject.token.tokenId, userObject.token.validTo.toString(), userObject.rol, userObject)
 	  console.log('logged');
 	  //pasar al authcontext el usuario
-	  navigate("/inicio");
+
+	  //(enteredCUIT == a'filiaciones@uatre' || enteredCUIT == 'recaudaciones@uatre')
+	  console.log('enteredCUIT',enteredCUIT);
+
+	  {switch(enteredCUIT){
+		case 'afiliaciones@uatre':
+			 navigate("/afiliaciones");
+			 break;
+		case 'recaudaciones@uatre':
+			 navigate("/siaru");
+			 break;
+		default: navigate("/inicio");
+	  }}
+
+	  //{enteredCUIT == 'afiliaciones@uatre' ?? navigate("/afiliaciones")};
+	  //{enteredCUIT == 'recaudaciones@uatre' ?? (navigate("/siaru"))};
+	  //navigate("/inicio");
   }
 
   const sendLoginHandler = async() => {
@@ -66,6 +82,7 @@ const Login = () => {
 	  }
 	},processLogIn);
   }
+
 
   const submitHandler = (event) => {
 	  event.preventDefault();
@@ -94,7 +111,7 @@ const Login = () => {
 
 			
 				
-				<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
+			<Form.Label style={{color: '#555555'}} ><strong>Clave</strong></Form.Label>
 			<InputGroup className="mb-3">	
 				<Form.Control type= {verClave ? "text" : "password"} placeholder="Clave"
 				id="password"

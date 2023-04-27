@@ -18,8 +18,8 @@ const useHttp = () => {
             break;
 
           case "Afiliaciones":
-            url = 'http://intersistemas.net:8200/api';
-            //url = "http://localhost:5165/api";
+            //url = 'http://intersistemas.net:8200/api';
+            url = "http://localhost:5165/api";
             break;
 
           case "SIARU":
@@ -53,37 +53,35 @@ const useHttp = () => {
                     body: configRequest.body ? JSON.stringify(configRequest.body) : null
                 }
             )
+            
             if(!response.ok)
-            {
-                let errorMessage = 'Error ' + response.status + '-' + response.statusText;                
+            {                            
                 const errorResponse = await response.json();
-                if(errorResponse.statusCode && errorResponse.mensaje)
-                {
-									errorMessage = 'Error ' + errorResponse.statusCode + '-' + errorResponse.mensaje
-									err = {
-										type: "Body",
-										code: errorResponse.statusCode,
-										message: errorResponse.mensaje,
-									};
-                }
-								else
-								{
-									err = {
-										type: "Response",
-										code: response.status,
-										message: response.statusText,
-									};
-								}
-                throw new Error(errorMessage);
+                console.log("response not ok", errorResponse);  
+                err = {
+                  type:
+                    errorResponse.StatusCode === 500
+                      ? "Internal Server Error"
+                      : "Error",
+                  code: errorResponse.StatusCode,
+                  message: errorResponse.Message,
+                };
+
+                setError(err)
+                takeError(err)
+                
+                return //caputo el error en el componente
             }
 
             const data = await response.json();
-            applyData(data);
+            applyData(data);  
+            
 
         } catch (error) {
 					if (!err) {
 						err = {
 							type: "Error",
+              code: 0,
 							message: error.message,
 						};
 					}
