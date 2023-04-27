@@ -57,7 +57,7 @@ const LiquidacionesList = (props) => {
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "liquidacionesTiposPagosId",
+			dataField: "liquidacionTipoPagoId",
 			text: "Tipo de pago",
 			sort: true,
 			formatter: (v) => tiposPago.find(r => r.codigo === v)?.descripcion ?? "",
@@ -65,7 +65,7 @@ const LiquidacionesList = (props) => {
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "empresasEstablecimientos_Nombre",
+			dataField: "empresaEstablecimiento_Nombre",
 			text: "Establecimiento",
 			sort: true,
 			style: { ...cs, textAlign: "left" },
@@ -79,7 +79,7 @@ const LiquidacionesList = (props) => {
 			style: { ...cs },
 		},
 		{
-			dataField: "refMotivosBaja_Descripcion",
+			dataField: "refMotivoBaja_Descripcion",
 			text: "Baja motivo",
 			sort: true,
 			style: { ...cs, textAlign: "left" },
@@ -108,7 +108,7 @@ const LiquidacionesList = (props) => {
 			sendRequest(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Siaru_LiquidacionesTiposPagos/`,
+					endpoint: `/LiquidacionesTiposPagos/`,
 					method: "GET",
 				},
 				async (resp) => setTiposPago([...resp])

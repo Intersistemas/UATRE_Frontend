@@ -37,7 +37,7 @@ const Form = (props) => {
 	}
 
 	const [err, setErr] = useState({
-		empresasId: "",
+		empresaId: "",
 		nroSucursal: "",
 		nombre: "",
 		refMotivosBajaId: "",
@@ -49,10 +49,10 @@ const Form = (props) => {
 		const newErr = { ...err };
 
 		if ("AM".split("").indexOf(action) !== -1) {
-			if (!data.empresasId) {
+			if (!data.empresaId) {
 				tieneErr = true;
-				newErr.empresasId = "Debe especificar la empresa";
-			} else newErr.empresasId = "";
+				newErr.empresaId = "Debe especificar la empresa";
+			} else newErr.empresaId = "";
 
 			if (!data.nroSucursal) {
 				tieneErr = true;
@@ -78,18 +78,17 @@ const Form = (props) => {
 		const req = {
 			baseURL: "Comunes",
 			headers: { "Content-Type": "application/json" },
+			endpoint: `/EmpresaEstablecimientos`,
 			body: data,
 		};
 
 		switch (action) {
 			case "A":
 				req.method = "POST";
-				req.endpoint = `/EmpresasEstablecimientos`;
 				break;
 			case "B":
 			case "M":
 				req.method = "PUT";
-				req.endpoint = `/EmpresasEstablecimientos/${data.id}`;
 				break;
 			default:
 				onCancela();
@@ -145,7 +144,7 @@ const Form = (props) => {
 						<h3>{actionMsg} Establecimiento</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
-						<h3>[empresasId: {data.empresasId ?? ""}]</h3>
+						<h3>[empresaId: {data.empresaId ?? ""}]</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
 						<h3>{data.id ?? ""}</h3>

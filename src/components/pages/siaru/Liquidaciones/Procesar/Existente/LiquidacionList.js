@@ -4,6 +4,8 @@ import Table from "../../../../../ui/Table/Table";
 
 const LiquidacionList = ({ config }) => {
 	const onSelect = config.onSelect ?? ((registro) => {});
+	const data = [];
+	config.data?.forEach(liq => data.push(liq));
 	const tiposPagos = [
 		{ id: 1, descripcion: "Sindical" },
 		{ id: 2, descripcion: "Solidario" },
@@ -18,14 +20,14 @@ const LiquidacionList = ({ config }) => {
 	};
 	const columns = [
 		{
-			dataField: "empresasEstablecimientosId",
+			dataField: "empresaEstablecimientoId",
 			text: "Estab. Nro.",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "150px" }),
 			style: { ...cs },
 		},
 		{
-			dataField: "empresasEstablecimientos_Nombre",
+			dataField: "empresaEstablecimiento_Nombre",
 			text: "Estab. nombre",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "250px" }),
@@ -67,7 +69,7 @@ const LiquidacionList = ({ config }) => {
 		<Table
 			keyField="index"
 			loading={config.loading ?? false}
-			data={config.data ? [...config.data] : []}
+			data={data}
 			columns={columns}
 			noDataIndication={config.noData}
 			onSelected={onSelect}

@@ -28,7 +28,7 @@ const Form = (props) => {
 			request(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Parametros?Nombre=${param}`,
+					endpoint: `/Parametros?Nombre=${param}`,	//ToDo: Cambiar a api Comunes
 					method: "GET",
 				},
 				async (resp) => {
@@ -55,7 +55,7 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_LiquidacionesTiposPagos`,
+				endpoint: `/LiquidacionesTiposPagos`,
 				method: "GET",
 			},
 			async (resp) => setTiposPagos({ data: resp }),
@@ -68,8 +68,8 @@ const Form = (props) => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id}&PageSize=5000`,
 				method: "GET",
 			},
 			async (resp) => setEstabList({ data: resp }),
@@ -159,7 +159,7 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones`,
+				endpoint: `/Liquidaciones`,
 				method: "POST",
 				body: nData,
 				headers: { "Content-Type": "application/json" },
@@ -182,7 +182,7 @@ const Form = (props) => {
 			request(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Siaru_Liquidaciones/${anterior.id}`,
+					endpoint: `/Liquidaciones`,
 					method: "PUT",
 					body: anterior,
 					headers: { "Content-Type": "application/json" },
@@ -278,7 +278,7 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones?${pars}`,
+				endpoint: `/Liquidaciones?${pars}`,
 				method: "GET",
 			},
 			async (resp) =>

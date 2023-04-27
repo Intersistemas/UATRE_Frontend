@@ -47,12 +47,18 @@ const LiquidacionesProcesarHandler = () => {
 		if (periodos.length === 0) {
 			request(
 				{
-					baseURL: "SIARU",
-					endpoint: `/DDJJUatre?CUIT=${empresa.cuit ?? 0}&Sort=-Periodo`,
+					baseURL: "Afiliaciones",
+					//ToDo: Cambiar por endpoint específico una vez que esté echo
+					endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIT=${empresa.cuit ?? 0}&Sort=Periodo&PageSize=5000`,
 					method: "GET",
 				},
-				async (respuesta) => {
-					setPeriodos(respuesta);
+				async (res) => {
+					let map = new Map();
+					res.data.map((r) => {
+						if (!map.has(r.periodo) || map.get(r.periodo).liquidacionIdUltima < r.liquidacionId)
+							map.set(r.periodo, { periodo: r.periodo, liquidacionIdUltima: r.liquidacionId })
+					})
+					setPeriodos([...map.values()]);
 				}
 			);
 		}

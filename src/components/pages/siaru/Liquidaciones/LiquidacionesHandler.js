@@ -35,7 +35,7 @@ const LiquidacionesHandler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Periodos?EmpresasId=${empresa.id ?? 0}`,
+				endpoint: `/Liquidaciones/Periodos?EmpresaId=${empresa.id ?? 0}`,
 				method: "GET",
 			},
 			async (res) =>
@@ -63,15 +63,15 @@ const LiquidacionesHandler = () => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id ?? 0}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id ?? 0}`,
 				method: "GET",
 			},
 			async (res) =>
 				setEstablecimientos({
 					data: [
 						{ descipcion: "Todos", valor: { id: 0 } },
-						...res.map((r) => ({ descipcion: r.nombre, valor: r })),
+						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
 					],
 				}),
 			async (err) =>
@@ -91,7 +91,7 @@ const LiquidacionesHandler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_LiquidacionesTiposPagos`,
+				endpoint: `/LiquidacionesTiposPagos`,
 				method: "GET",
 			},
 			async (res) => setLiquidacionesTiposPagos({ data: res }),
@@ -112,16 +112,16 @@ const LiquidacionesHandler = () => {
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
 		if (refreshLiqudaciones) {
-			let params = `EmpresasId=${empresa.id}`;
+			let params = `EmpresaId=${empresa.id}`;
 			params = `${params}&Page=${pagination.index},${pagination.size}`;
 			params = `${params}&Sort=-Id`;
 			if (periodo) params = `${params}&Periodo=${periodo}`;
 			if (establecimiento?.id)
-				params = `${params}&EmpresasEstablecimientosId=${establecimiento.id}`;
+				params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
 			request(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Siaru_Liquidaciones/Paginado?${params}`,
+					endpoint: `/Liquidaciones?${params}`,
 					method: "GET",
 				},
 				async (res) => {

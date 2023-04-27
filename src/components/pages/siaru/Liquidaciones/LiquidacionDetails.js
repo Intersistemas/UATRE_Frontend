@@ -25,8 +25,6 @@ const LiquidacionDetails = ({ config }) => {
 			.format("YYYY-MM-DD");
 	}
 
-	console.log("data", data, "calc", calc);
-
 	return (
 		<Grid
 			className={`${styles.fondo} ${styles.grupo}`}
@@ -57,17 +55,17 @@ const LiquidacionDetails = ({ config }) => {
 					Tipo de pago:
 				</Grid>
 				<Grid block basis="65px" className={styles.data}>
-					{tiposPago.find((r) => r.codigo === data.liquidacionesTiposPagosId)
+					{tiposPago.find((r) => r.codigo === data.liquidacionTipoPagoId)
 						?.descripcion ?? ""}
 				</Grid>
 				<Grid block basis="130px" className={styles.label}>
 					Establecimiento:
 				</Grid>
 				<Grid basis="35px" className={styles.data} justify="end">
-					{data.empresasEstablecimientosId ?? ""}
+					{data.empresaEstablecimientoId ?? ""}
 				</Grid>
 				<Grid grow className={styles.data}>
-					{data.empresasEstablecimientos_Nombre ?? ""}
+					{data.empresaEstablecimiento_Nombre ?? ""}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
@@ -143,7 +141,7 @@ const LiquidacionDetails = ({ config }) => {
 					Motivo de baja:
 				</Grid>
 				<Grid grow className={styles.data}>
-					{data.refMotivosBaja_Descripcion}
+					{data.refMotivoBaja_Descripcion}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">

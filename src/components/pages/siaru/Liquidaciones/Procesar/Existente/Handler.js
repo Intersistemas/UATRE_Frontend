@@ -38,7 +38,7 @@ const Handler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Tentativa?CUIT=${empresa.cuit}&Periodo=${periodo}`,
+				endpoint: `/Liquidaciones/Tentativas?CUIT=${empresa.cuit}&Periodo=${periodo}`,
 				method: "GET",
 			},
 			async (resp) => {
@@ -48,23 +48,19 @@ const Handler = () => {
 				rta.forEach((tent, index) => {
 					// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 					// En caso contrario, es solo a modo informativo de nomina
-					const {nomina, ...liq} = tent;
+					const {nominas, ...liq} = tent;
 					if (
-						liq.empresasEstablecimientosId &&
-						liq.liquidacionesTiposPagosId
+						liq.empresaEstablecimientoId &&
+						liq.liquidacionTipoPagoId
 					) {
-						newLiquidaciones = [...newLiquidaciones, { index: newLiquidaciones.length, ...liq }];
+						newLiquidaciones.push({ index: newLiquidaciones.length, ...liq })
 					}
-					nomina.forEach((nom) => {
-						newDDJJ = [
-							...newDDJJ,
-							{
-								...nom,
-								empresasEstablecimientosId: tent.empresasEstablecimientosId,
-								empresasEstablecimientos_Nombre:
-									tent.empresasEstablecimientos_Nombre,
-							},
-						];
+					nominas.forEach((nom) => {
+						newDDJJ.push({
+							...nom,
+							empresaEstablecimientoId: tent.empresaEstablecimientoId,
+							empresaEstablecimiento_Nombre: tent.empresaEstablecimiento_Nombre,
+						});
 					});
 				});
 				setDDJJList({ data: newDDJJ });
@@ -100,7 +96,6 @@ const Handler = () => {
 	const filtrarDDJJList = () => {
 		if (!ddjjList.data) return ddjjList.data;
 		let ret = [...ddjjList.data];
-
 		return ret;
 	};
 
@@ -108,7 +103,6 @@ const Handler = () => {
 	const filtrarLiqList = () => {
 		if (!liqList.data) return liqList.data;
 		let ret = [...liqList.data];
-
 		return ret;
 	};
 
@@ -117,16 +111,12 @@ const Handler = () => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id}&PageSize=5000`,
 				method: "GET",
 			},
-			async (resp) => {
-				setEstablecimientos({ data: resp });
-			},
-			async (error) => {
-				setEstablecimientos({ error: error });
-			}
+			async (resp) => setEstablecimientos({ data: resp.data }),
+			async (error) => setEstablecimientos({ error: error })
 		);
 	}, [empresa.id, request]);
 	//#endregion
@@ -156,19 +146,19 @@ const Handler = () => {
 	// #endregion
 
 	const newLiq = (ddjjRecord, index) => {
-		if (ddjjRecord.empresasEstablecimientosId === 0) return null;
+		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (ddjjRecord.condicionRural !== "RU") return null;
 		return {
 			index: index,
-			empresasEstablecimientosId: ddjjRecord.empresasEstablecimientosId,
+			empresaEstablecimientoId: ddjjRecord.empresaEstablecimientoId,
 			periodo: periodo,
 			fecha: dayjs().format("YYYY-MM-DD") ?? null,
 			cantidadTrabajadores: 1,
 			totalRemuneraciones: ddjjRecord.remuneracionImponible,
 			tipoLiquidacion: 0,
-			refMotivosBajaId: 0,
-			liquidacionesTiposPagosId: ddjjRecord.afiliadoId ? 1 : 2,
-			empresasEstablecimientos_Nombre: ddjjRecord.empresasEstablecimientos_Nombre,
+			refMotivoBajaId: 0,
+			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 2,
+			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 		};
 	}
 
@@ -176,18 +166,18 @@ const Handler = () => {
 		let newLiqList = [];
 		if (!ddjjList.data) return setLiqList({ data: newLiqList });
 		ddjjList.data.forEach((ddjj) => {
-			if (ddjj.empresasEstablecimientosId === 0) return;
+			if (ddjj.empresaEstablecimientoId === 0) return;
 			if (ddjj.condicionRural !== "RU") return;
 			const estab = establecimientos.data?.find(
-				(r) => r.id === ddjj.empresasEstablecimientosId
+				(r) => r.id === ddjj.empresaEstablecimientoId
 			);
 			if (!estab) return;
 
 			const liqCalc = newLiq(ddjj, newLiqList.length);
 			let liq = newLiqList.find(
 				(r) =>
-					r.empresasEstablecimientosId === liqCalc.empresasEstablecimientosId &&
-					r.liquidacionesTiposPagosId === liqCalc.liquidacionesTiposPagosId
+					r.empresaEstablecimientoId === liqCalc.empresaEstablecimientoId &&
+					r.liquidacionTipoPagoId === liqCalc.liquidacionTipoPagoId
 			);
 			if (liq) {
 				liq.cantidadTrabajadores += liqCalc.cantidadTrabajadores;

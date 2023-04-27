@@ -83,8 +83,8 @@ const EstablecimientosHandler = (props) => {
 		const configForm = {
 			data: establecimiento,
 			onCancela: () => setForm(null),
-			onConfirma: (data) => {
-				recargarEstablecimientos(data);
+			onConfirma: (_data) => {
+				recargarEstablecimientos();
 				setForm(null);
 			},
 		};
@@ -93,13 +93,13 @@ const EstablecimientosHandler = (props) => {
 				navigate("/siaru");
 				break;
 			case `Agregar Establecimiento`:
-				configForm.data = { empresasId: empresaId };
+				configForm.data = { empresaId: empresaId };
 				configForm.action = "A";
 				setForm(<Form config={configForm} />);
 				break;
 			case `Consultar Establecimiento ${estabDesc}`:
 				configForm.action = "C";
-				configForm.onConfirma = (data) => configForm.onCancela();
+				configForm.onConfirma = (_data) => configForm.onCancela();
 				setForm(<Form config={configForm} />);
 				break;
 			case `Modificar Establecimiento ${estabDesc}`:
