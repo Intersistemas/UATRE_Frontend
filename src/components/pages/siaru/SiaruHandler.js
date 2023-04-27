@@ -17,8 +17,7 @@ const SiaruHandler = (props) => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { sendRequest: request } = useHttp();
-  const authContext = useContext(AuthContext);
-
+	const authContext = useContext(AuthContext);
 
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
@@ -36,7 +35,7 @@ const SiaruHandler = (props) => {
 		// 	async (res) => setEmpresaList({ data: res }),
 		// 	async (err) => setEmpresaList({ error: err })
 		// );
-	// }, [request]);
+		// }, [request]);
 		if (authContext.usuario?.empresas) {
 			setEmpresaList({ data: authContext.usuario?.empresas });
 		}
@@ -71,11 +70,8 @@ const SiaruHandler = (props) => {
 		acciones: [],
 	};
 	if (empresa.data) {
-		moduloInfo.acciones = [
-			...moduloInfo.acciones,
-			{ nombre: `Establecimientos de ${descEmpresa}` },
-			{ nombre: `Liquidaciones de ${descEmpresa}` },
-		];
+		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
+		moduloInfo.acciones.push({ name: `Liquidaciones de ${descEmpresa}` });
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);

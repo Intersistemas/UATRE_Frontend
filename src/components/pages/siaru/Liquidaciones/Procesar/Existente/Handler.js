@@ -124,7 +124,7 @@ const Handler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);

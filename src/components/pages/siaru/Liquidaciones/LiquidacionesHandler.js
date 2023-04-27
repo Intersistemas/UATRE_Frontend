@@ -64,7 +64,9 @@ const LiquidacionesHandler = () => {
 		request(
 			{
 				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id ?? 0}`,
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${
+					empresa.id ?? 0
+				}`,
 				method: "GET",
 			},
 			async (res) =>
@@ -169,17 +171,14 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
 		: ``;
 	if (liquidacion) {
-		moduloInfo.acciones = [
-			...moduloInfo.acciones,
-			{ nombre: `Imprimir ${liquidacionDesc}` },
-			{ nombre: `Pagar ${liquidacionDesc}` },
-		];
+		moduloInfo.acciones.push({ name: `Imprimir ${liquidacionDesc}` });
+		moduloInfo.acciones.push({ name: `Pagar ${liquidacionDesc}` });
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);

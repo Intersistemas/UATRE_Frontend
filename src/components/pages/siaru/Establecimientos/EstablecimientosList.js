@@ -21,14 +21,14 @@ const EstablecimientosList = (props) => {
 			dataField: "nombre",
 			text: "Nombre",
 			sort: true,
-			style: {...cs}
+			style: { ...cs },
 		},
 		{
 			dataField: "nroSucursal",
 			text: "Nro. Sucursal",
 			sort: true,
 			formatter: Formato.Entero,
-			style: {...cs}
+			style: { ...cs },
 		},
 	];
 

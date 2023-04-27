@@ -37,7 +37,7 @@ const LiquidacionesProcesarHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Liquidaciones` }],
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
@@ -49,15 +49,23 @@ const LiquidacionesProcesarHandler = () => {
 				{
 					baseURL: "Afiliaciones",
 					//ToDo: Cambiar por endpoint específico una vez que esté echo
-					endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIT=${empresa.cuit ?? 0}&Sort=Periodo&PageSize=5000`,
+					endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIT=${
+						empresa.cuit ?? 0
+					}&Sort=Periodo&PageSize=5000`,
 					method: "GET",
 				},
 				async (res) => {
 					let map = new Map();
 					res.data.map((r) => {
-						if (!map.has(r.periodo) || map.get(r.periodo).liquidacionIdUltima < r.liquidacionId)
-							map.set(r.periodo, { periodo: r.periodo, liquidacionIdUltima: r.liquidacionId })
-					})
+						if (
+							!map.has(r.periodo) ||
+							map.get(r.periodo).liquidacionIdUltima < r.liquidacionId
+						)
+							map.set(r.periodo, {
+								periodo: r.periodo,
+								liquidacionIdUltima: r.liquidacionId,
+							});
+					});
 					setPeriodos([...map.values()]);
 				}
 			);
@@ -274,7 +282,10 @@ const LiquidacionesProcesarHandler = () => {
 											config={{
 												empresa: empresa,
 												onCancela: () => setLiquidacionForm(null),
-												onConfirma: () => navigate("/siaru/liquidaciones", { state: { empresa: empresa } }),
+												onConfirma: () =>
+													navigate("/siaru/liquidaciones", {
+														state: { empresa: empresa },
+													}),
 											}}
 										/>
 									)

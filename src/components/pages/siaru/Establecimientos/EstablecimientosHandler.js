@@ -56,21 +56,18 @@ const EstablecimientosHandler = (props) => {
 	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Agregar Establecimiento` }],
+		acciones: [{ name: `Empresas` }, { name: `Agregar Establecimiento` }],
 	};
 	if (establecimiento) {
-		moduloInfo.acciones = [
-			...moduloInfo.acciones,
-			{
-				nombre: `Consultar Establecimiento ${estabDesc}`,
-			},
-			{
-				nombre: `Modificar Establecimiento ${estabDesc}`,
-			},
-			{
-				nombre: `Dar de baja Establecimiento ${estabDesc}`,
-			},
-		];
+		moduloInfo.acciones.push({
+			name: `Consultar Establecimiento ${estabDesc}`,
+		});
+		moduloInfo.acciones.push({
+			name: `Modificar Establecimiento ${estabDesc}`,
+		});
+		moduloInfo.acciones.push({
+			name: `Dar de baja Establecimiento ${estabDesc}`,
+		});
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	//#endregion
