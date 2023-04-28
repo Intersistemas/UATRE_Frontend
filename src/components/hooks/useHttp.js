@@ -18,9 +18,14 @@ const useHttp = () => {
             break;
 
           case "Afiliaciones":
-            //url = 'http://intersistemas.net:8200/api';
-            url = "http://localhost:5165/api";
+            url = 'http://intersistemas.net:8200/api';
+            //url = "http://localhost:5165/api";
             break;
+
+          case "DDJJ":
+              url = 'http://intersistemas.net:8203/api';
+              //url = "http://localhost:5165/api";
+              break;
 
           case "SIARU":
             url = 'http://intersistemas.net:8201/api';
