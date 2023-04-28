@@ -17,11 +17,10 @@ const Documentacion = (props) => {
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj);
       };
-
       request(
         {
-          baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${cuil}`,
+          baseURL: "DDJJ",
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
           method: "GET",
         },
         processDDJJUatre
