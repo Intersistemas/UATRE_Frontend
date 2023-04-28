@@ -18,8 +18,8 @@ const useHttp = () => {
             break;
 
           case "Afiliaciones":
-            url = 'http://intersistemas.net:8200/api';
-            //url = "http://localhost:5165/api";
+            //url = 'http://intersistemas.net:8200/api';
+            url = "http://localhost:5165/api";
             break;
 
           case "SIARU":
@@ -55,13 +55,16 @@ const useHttp = () => {
             )
             
             if(!response.ok)
-            {                
+            {                            
                 const errorResponse = await response.json();
-
+                console.log("response not ok", errorResponse);  
                 err = {
-                  type: errorResponse.statusText,
-                  code: errorResponse.statusCode,
-                  message: errorResponse.mensaje ?? errorResponse.statusText,
+                  type:
+                    errorResponse.StatusCode === 500
+                      ? "Internal Server Error"
+                      : "Error",
+                  code: errorResponse.StatusCode,
+                  message: errorResponse.Message,
                 };
 
                 setError(err)

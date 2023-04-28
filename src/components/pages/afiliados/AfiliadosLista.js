@@ -45,7 +45,7 @@ const AfiliadosLista = (props) => {
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
   const { isLoading, error, sendRequest: request } = useHttp();
-
+  const [rowSelectedIndex, setRowSelectedIndex] = useState(null);
   //const [selectFilter, setSelectFilter] = React.useState('');
 
   const AndTabs = styled(Tabs)({
@@ -83,7 +83,7 @@ const AfiliadosLista = (props) => {
     {
       headerTitle: (column, colIndex) => `Numero de Afiliado`,
       dataField: "nroAfiliado",
-      text: "Nro.",
+      text: "Nro.Afil.",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "6%", textAlign: "center" };
@@ -133,7 +133,7 @@ const AfiliadosLista = (props) => {
     {
       headerTitle: (column, colIndex) => `Estado Civil`,
       dataField: "estadoCivil",
-      text: "E.Civil",
+      text: "Est.Civil",
       headerStyle: (colum, colIndex) => {
         return { width: "5%", textAlign: "center" };
       },
@@ -143,7 +143,7 @@ const AfiliadosLista = (props) => {
 
       headerTitle: true,
       dataField: "nacionalidad",
-      text: "Nacionalidad",
+      text: "Nac.",
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
@@ -209,7 +209,7 @@ const AfiliadosLista = (props) => {
     {
       headerTitle: (colum, colIndex) => (`Fecha de Ingreso`),
       dataField: "fechaIngreso",
-      text: "Ingreso",
+      text: "F.Ingreso",
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
@@ -220,7 +220,7 @@ const AfiliadosLista = (props) => {
     {
       headerTitle: (colum, colIndex) => (`Fecha de Egreso`),
       dataField: "fechaEgreso",
-      text: "Egreso",
+      text: "F.Egreso",
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
@@ -303,8 +303,9 @@ const AfiliadosLista = (props) => {
     }
   ]
 
-  const rowEvents  = (row) => {
-    //console.log('Afiliado_Seleccionado:',row);
+  
+  const rowEvents  = (row, rowIndex) => {
+  console.log('Afiliado_Seleccionado**:',rowIndex);
    switch(selectedTab){
      case 0:
         setAfiliadoSeleccionado(row);
@@ -347,7 +348,7 @@ const AfiliadosLista = (props) => {
   ) => {
     //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
     //console.log('filters:',filters);
-    setAfiliadoSeleccionado(null);
+    //setAfiliadoSeleccionado(null);
     sortField&&props.onSort(sortField,sortOrder);
     props.onFilterChange(filters);
   };
@@ -399,6 +400,7 @@ const AfiliadosLista = (props) => {
       noDataIndication: indication,
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
+      rowSelectedIndex: rowSelectedIndex,
   }
 
   const tablePropsVacia = {
@@ -427,7 +429,7 @@ const AfiliadosLista = (props) => {
 
         <div className="contenido">
 
-              <div style={{display: 'flex', color: '#186090', height: '1.5rem'}}>
+              <div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
                   <h5>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</h5>
               </div>
               <div style={{margin: '0% 0% -0.6rem 0%'}}>

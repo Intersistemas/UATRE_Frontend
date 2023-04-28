@@ -30,11 +30,20 @@ const AfiliadoAgregar = (props) => {
 
   //#region Capturo errores
   useEffect(() => {
+    console.log("error", error)
     if (error && error.code === 500) {
       setCUILLoading(false);
       setShowAlert(true);
       setSeverityAlert("error");
       setTextAlert(`Error - ${error.message}`);
+
+      if (cuilLoading) {
+        setCUILLoading(false);
+      }
+
+      if (cuitLoading) {
+        setCUITLoading(false);
+      }
 
       return;
     }
@@ -548,7 +557,9 @@ const AfiliadoAgregar = (props) => {
         setTipoDocumento(afiliadoObj.tipoDocumentoId);
         setNumeroDocumento(afiliadoObj.documento);
         setTelefono(afiliadoObj.telefono);
-        setCorreo(afiliadoObj.correo);
+        if (afiliadoObj.correo !== null) {
+          setCorreo(afiliadoObj.correo);
+        };
         setActividad(afiliadoObj.actividadId);
         dispatchActividad({
           type: "USER_INPUT",
@@ -560,6 +571,7 @@ const AfiliadoAgregar = (props) => {
         setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
 
         //datos empleador
+        dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
         setCUITEmpresa(afiliadoObj.empresaCUIT);
         setRazonSocialEmpresa(afiliadoObj.empresa);
         setEmpresaIdExiste(afiliadoObj.empresaId);
@@ -587,7 +599,7 @@ const AfiliadoAgregar = (props) => {
           );
           //console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
-          selectedTab(3);
+          //selectedTab(3);
         }
 
         //alert
@@ -617,6 +629,7 @@ const AfiliadoAgregar = (props) => {
       const processGetEmpresa = async (empresaObj) => {
         //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
+        setRazonSocialEmpresa(empresaObj.razonSocial)
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
           `${empresaObj.domicilioCalle} ${empresaObj.domicilioNumero}`
@@ -631,7 +644,7 @@ const AfiliadoAgregar = (props) => {
       request(
         {
           baseURL: "Comunes",
-          endpoint: `/Empresas/GetEmpresaById?id=${empresaIdExiste}`,
+          endpoint: `/Empresas/GetById?Id=${empresaIdExiste}`,
           method: "GET",
         },
         processGetEmpresa
@@ -930,6 +943,11 @@ const AfiliadoAgregar = (props) => {
       setEstadoClaveAFIP(padronObj.estadoClave);
       setDomicilioRealAFIP(domicilioReal.direccion);
 
+      //Resolver solicitud
+      setEstadoSolicitud(padronObj.estadoSolicitudId);
+      setResolverSolicitudObs(padronObj.estadoSolicitudObservaciones);
+
+      //Cargo los estados posibles
       setCUILLoading(false);
 
       request(
@@ -1150,6 +1168,7 @@ const AfiliadoAgregar = (props) => {
           estado.label === "Rechazado"
       );
 
+      setEstadoSolicitud(1)
       setEstadosSolicitudes(estadosSolicitudesPendientes);
       setSelectedTab(3);
     };
@@ -1173,30 +1192,25 @@ const AfiliadoAgregar = (props) => {
   //const [clickAgregar, setClickAgregar] = useState(false);
   const afiliadoObservarHandler = async (event) => {
     event.preventDefault();
-    setClickAgregar(true);
-    //console.log("domicilioRealAFIP", domicilioRealAFIP);
-    if (!formularioIsValid) {
-      setShowAlert(true);
-      setTextAlert("Debe completar todos los campos");
-      setSeverityAlert("error");
-      return;
-    }
+    
     const empresa = {
-      cuit: cuitEmpresa,
-      razonSocial: padronEmpresaRespuesta
+      cuit: cuitValidado ? cuitEmpresa : 99999999999,
+      razonSocial: cuitValidado ?
+      padronEmpresaRespuesta
         ? padronEmpresaRespuesta?.razonSocial ??
           `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-        : "",
-      claveTipo: padronEmpresaRespuesta.tipoClave,
-      claveEstado: padronEmpresaRespuesta.estadoClave,
-      claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+        : ""
+        : "Sin Asignar",
+      claveTipo: padronEmpresaRespuesta?.tipoClave,
+      claveEstado: padronEmpresaRespuesta?.estadoClave,
+      claveInactivaAsociada: padronEmpresaRespuesta?.claveInactivaAsociada,
       actividadPrincipalDescripcion:
-        padronEmpresaRespuesta.descripcionActividadPrincipal,
-      actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+        padronEmpresaRespuesta?.descripcionActividadPrincipal,
+      actividadPrincipalId: padronEmpresaRespuesta?.idActividadPrincipal,
       actividadPrincipalPeriodo:
-        padronEmpresaRespuesta.periodoActividadPrincipal,
-      contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
-      cierreMes: padronEmpresaRespuesta.mesCierre,
+        padronEmpresaRespuesta?.periodoActividadPrincipal,
+      contratoSocialFecha: padronEmpresaRespuesta?.fechaContratoSocial,
+      cierreMes: padronEmpresaRespuesta?.mesCierre,
       email: correoEmpresa,
       telefono: telefonoEmpresa,
       domicilioCalle: "string",
@@ -1214,32 +1228,32 @@ const AfiliadoAgregar = (props) => {
       domicilioEstado: "string",
       domicilioDatoAdicional: "string",
       domicilioDatoAdicionalTipo: "string",
-      ciiU1: padronEmpresaRespuesta.ciiU1,
-      ciiU2: padronEmpresaRespuesta.ciiU2,
-      ciiU3: padronEmpresaRespuesta.ciiU3,
+      ciiU1: padronEmpresaRespuesta?.ciiU1,
+      ciiU2: padronEmpresaRespuesta?.ciiU2,
+      ciiU3: padronEmpresaRespuesta?.ciiU3,
     };
 
     const nuevoAfiliadoObservado = {
       cuil: +cuil,
-      nombre: nombre,
-      puestoId: +puesto,
+      nombre: nombre !== "" ? nombre : "Sin Asignar",
+      puestoId: puesto !== "" ? +puesto : 99999,
       fechaIngreso: null,
       fechaEgreso: null,
-      nacionalidadId: +nacionalidad,
+      nacionalidadId: nacionalidad !== "" ? +nacionalidad : 99999,
       //empresaId: +empresaId,
-      seccionalId: +seccional,
-      sexoId: +sexo,
-      tipoDocumentoId: +tipoDocumento,
-      documento: +numeroDocumento,
-      actividadId: +actividad,
+      seccionalId: seccional !== "" ? +seccional : 99999,
+      sexoId: sexo !== "" ? +sexo: 99999,
+      tipoDocumentoId: tipoDocumento !== "" ? +tipoDocumento : 99999,
+      documento: numeroDocumento !== "" ? +numeroDocumento : 0,
+      actividadId: actividad !== "" ? +actividad : 99999,
       estadoSolicitudId: 4,
-      estadoCivilId: +estadoCivil,
-      refLocalidadId: +localidad,
+      estadoCivilId: estadoCivil !== "" ? +estadoCivil : 99999,
+      refLocalidadId: localidad !== "" ? +localidad : 99999,
       domicilio: domicilio,
       telefono: telefono,
       correo: correo,
       celular: "",
-      fechaNacimiento: fechaNacimiento,
+      fechaNacimiento: fechaNacimiento !== "" ? fechaNacimiento : null,
       afipcuil: +cuil,
       // afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
       // afipNombre: padronRespuesta?.nombre ?? "",
@@ -1281,7 +1295,7 @@ const AfiliadoAgregar = (props) => {
     const afiliadoObservadoAgregar = async (afiliadoObservadoResponseObj) => {
       console.log("afiliadoObservadoResponseObj", afiliadoObservadoResponseObj);
       
-      //setNuevoAfiliadoObservadoResponse(afiliadoObservadoResponseObj);
+      setNuevoAfiliadoObservadoResponse(afiliadoObservadoResponseObj);
       //alert("Afiliado creado con éxito!");
       //Alert
       setShowAlert(true);
@@ -1291,10 +1305,11 @@ const AfiliadoAgregar = (props) => {
       );
 
       //handleCerrarModal();
+      console.log("props.estadosSolicitudes", props.estadosSolicitudes);
       const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
         (estado) => estado.label === "Observado"
       );
-      setEstadoSolicitud(estadosSolicitudesObservado);
+      setEstadoSolicitud(estadosSolicitudesObservado[0].value);
       setEstadosSolicitudes(estadosSolicitudesObservado);
       setSelectedTab(3);
     };
@@ -1317,6 +1332,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Resolver Solciitud Afiliado
   const resolverSolicitudHandler = (event) => {
+    console.log("id", nuevoAfiliadoObservadoResponse)
     event.preventDefault();
 
     const patchAfiliado = [
@@ -1328,7 +1344,7 @@ const AfiliadoAgregar = (props) => {
       {
         path: "FechaIngreso",
         op: "replace",
-        value: "0",
+        value: null,
       },
       {
         path: "NroAfiliado",
@@ -1366,7 +1382,7 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse}`,
+        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse !== null ? nuevoAfiliadoResponse : nuevoAfiliadoObservadoResponse}`,
         method: "PATCH",
         body: patchAfiliado,
         headers: {
@@ -1569,7 +1585,9 @@ const AfiliadoAgregar = (props) => {
         </div>
       </div>
       <h5 className={classes.titulo}>
-        {padronRespuesta
+        {afiliadoExiste
+          ? `Edición/Consulta Afiliado a UATRE: ${cuil} ${nombre}`
+          : padronRespuesta
           ? `Alta de Nuevo Afiliado a UATRE: ${cuil} ${nombre}`
           : "Alta de Nuevo Afiliado a UATRE"}
       </h5>
@@ -1581,22 +1599,22 @@ const AfiliadoAgregar = (props) => {
         >
           <Tab
             label="Datos Personales"
-            disabled={nuevoAfiliadoResponse ? true : false}
+            //disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
             label="Datos Empleador"
-            disabled={nuevoAfiliadoResponse ? true : false}
+            //disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
             label={
               padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"
             }
-            disabled={nuevoAfiliadoResponse ? true : false}
+            //disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
             label="Resolver Solicitud"
             hidden={
-              nuevoAfiliadoResponse !== null || afiliadoExiste ? false : true
+              estadoSolicitud === 1 || estadoSolicitud === 4 ? false : true
             }
           />
 					<Tab label="Documentacion" />
@@ -1827,9 +1845,15 @@ const AfiliadoAgregar = (props) => {
                 width={100}
                 onChange={handleInputChange}
                 helperText={
-                  !emailState.isValid && correo !== "" ? "Email inválido" : ""
+                  !emailState.isValid && correo !== "" && correo !== null
+                    ? "Email inválido"
+                    : ""
                 }
-                error={!emailIsValid && correo !== "" ? true : false}
+                error={
+                  !emailIsValid && correo !== "" && correo !== null
+                    ? true
+                    : false
+                }
               />
             </div>
           </div>
@@ -2210,7 +2234,7 @@ const AfiliadoAgregar = (props) => {
             </div>
           </div>
           <div className={classes.div}>
-            <h4>Afiliados en ultima DDJJ</h4>
+            <h4>Afiliados en ultima DDJJ del Empleador</h4>
             <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
 
             <div className={classes.renglon}>
@@ -2391,7 +2415,7 @@ const AfiliadoAgregar = (props) => {
             className={classes.button}
             width={100}
             onClick={afiliadoObservarHandler}
-            disabled={nuevoAfiliadoResponse || afiliadoExiste}
+            disabled={nuevoAfiliadoObservadoResponse || afiliadoExiste}
           >
             Observar Afiliado
           </Button>

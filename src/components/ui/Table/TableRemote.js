@@ -35,20 +35,25 @@ const TableRemote = (props) => {
   const [selectValue, setSelectValue] = React.useState('');
   const [entryValue, setEntryValue] = React.useState('');
 
+  
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    //selected: props.rowSelectedIndex ?? '',
     style: {
       backgroundColor: "rgb(194 194 194 / 70%)",
       color: "black",
       fontWeight: "bold",
     },
+    /*onSelect: (rowIndex) => {
+      props.setRowSelectedIndex(rowIndex);
+    }*/
   };
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      props.onSelected(row);
+      props.onSelected(row,rowIndex);
     },
   };
 
