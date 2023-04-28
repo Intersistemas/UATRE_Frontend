@@ -70,7 +70,7 @@ const DocumentacionForm = ({ config }) => {
 							reader.readAsDataURL(archivo);
 							reader.onload = () =>
 								onChange({
-									archivoBase64: reader.result,
+									archivoBase64: reader.result?.split("base64,")[1],
 									archivoNombre: archivo.name,
 								});
 						}}
