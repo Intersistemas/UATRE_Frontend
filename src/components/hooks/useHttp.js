@@ -17,6 +17,11 @@ const useHttp = () => {
             //url = "https://localhost:7032/api";
             break;
 
+          case "DDJJ":
+            url = "http://intersistemas.net:8203/api";
+            //url = "https://localhost:7032/api";
+            break;
+
           case "Afiliaciones":
             url = 'http://intersistemas.net:8200/api';
             //url = "http://localhost:5165/api";
@@ -28,15 +33,15 @@ const useHttp = () => {
               break;
 
           case "SIARU":
-            url = 'http://intersistemas.net:8201/api';
+            url = "http://intersistemas.net:8201/api";
             break;
-            
-          case 'Seguridad':
-                url = 'http://intersistemas.net:8800/api'
-                break;
-	
-            default:
-                break;
+
+          case "Seguridad":
+            url = "http://intersistemas.net:8800/api";
+            break;
+
+          default:
+            break;
         }
         
         //Agrego Token

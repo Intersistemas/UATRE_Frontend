@@ -21,8 +21,8 @@ const CambioDeDatos = (props) => {
 
       request(
         {
-          baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${cuil}`,
+          baseURL: "DDJJ",
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
           method: "GET",
         },
         processDDJJUatre
