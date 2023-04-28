@@ -304,10 +304,12 @@ const AfiliadosLista = (props) => {
   ]
 
   
-  const rowEvents  = (row, rowIndex) => {
-  console.log('Afiliado_Seleccionado**:',rowIndex);
+  const rowEvents  = (row) => {
+  console.log('Afiliado_Seleccionado**:',row);
+  setRowSelectedIndex([row.nroAfiliado]);
    switch(selectedTab){
      case 0:
+        //setRowSelectedIndex(null);
         setAfiliadoSeleccionado(row);
         props.setAfiliadoSeleccionado(row);
         break;
@@ -433,35 +435,41 @@ const AfiliadosLista = (props) => {
                   <h5>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</h5>
               </div>
               <div style={{margin: '0% 0% -0.6rem 0%'}}>
-              <AndTabs
+              <Tabs
                 value={selectedTab}
                 onChange={handleChangeTab}
                 className={styles.tabs}
               >
-                  <Tab  className={styles.tab}
+                  <Tab  
+                   className={styles.tab}
+                   style={{backgroundColor: "#186090"}}
                    label= 'AFILIADOS'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
                   />
-                  <Tab className={styles.tab}          
+                  <Tab className={styles.tab}  
+                    style={{backgroundColor: "#186090"}}        
                     label= 'DDJJ UATRE'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
                     //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
                   
                   <Tab className={styles.tab}
+                  style={{backgroundColor: "#186090"}}
                     label= 'Documentación'//{ afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
+                  style={{backgroundColor: "#186090"}}
                     label= 'Cambios de Datos'//{ afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
+                  style={{backgroundColor: "#186090"}}
                   label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />                 
-              </AndTabs>
+              </Tabs>
               </div>
           {selectedTab === 0 && (
             <div>

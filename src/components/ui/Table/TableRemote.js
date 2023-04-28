@@ -2,22 +2,10 @@ import React from "react";
 import classes from "./TableRemote.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-import ToolkitProvider, {
-  Search,
-} from "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit";
 import "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-import filterFactory, {
-  textFilter,
-  selectFilter,
-  Comparator,
-} from "react-bootstrap-table2-filter";
-import paginationFactory, {
-  PaginationProvider,
-  SizePerPageDropdownStandalone,
-  PaginationListStandalone,
-} from "react-bootstrap-table2-paginator";
+import filterFactory from "react-bootstrap-table2-filter";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import Box from '@mui/material/Box';
@@ -28,32 +16,27 @@ import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Button from "../Button/Button";
 
-const { SearchBar } = Search;
-
 const TableRemote = (props) => {
 
   const [selectValue, setSelectValue] = React.useState('');
   const [entryValue, setEntryValue] = React.useState('');
-
+console.log('**propsIndex**',props.rowSelectedIndex)
   
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
-    //selected: props.rowSelectedIndex ?? '',
+    selected: props.rowSelectedIndex ?? null,
     style: {
       backgroundColor: "rgb(194 194 194 / 70%)",
       color: "black",
       fontWeight: "bold",
     },
-    /*onSelect: (rowIndex) => {
-      props.setRowSelectedIndex(rowIndex);
-    }*/
   };
 
   const rowEvents = {
-    onClick: (e, row, rowIndex) => {
-      props.onSelected(row,rowIndex);
+    onClick: (e, row) => {
+      props.onSelected(row);
     },
   };
 

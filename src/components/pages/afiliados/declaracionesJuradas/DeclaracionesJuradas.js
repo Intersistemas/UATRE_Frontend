@@ -19,16 +19,10 @@ const DeclaracionesJuradas = (props) => {
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj.data);
       };
-
-      console.log(
-        `/DDJJUatre/GetDDJJUatreListBySpecs?CUIL=${cuil}&Sort=periodo${
-          registros ? `PageSize=${registros}` : ``
-        }`
-      );
       request(
         {
-          baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIL=${cuil}&Sort=periodo${registros ? `&PageSize=${registros}` : ``}`,
+          baseURL: "DDJJ",
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
           method: "GET",
         },
         processDDJJUatre
@@ -59,13 +53,15 @@ const DeclaracionesJuradas = (props) => {
         formatter: Formato.Periodo,
       },
       {
+        headerTitle: (colum, colIndex) => (`Fecha De Presentación`),
         dataField: "presentacionFecha",
-        text: "Fecha Presentación",
+        text: "F.Presentación",
         formatter: FormatearFecha,
       },
       {
+        headerTitle: (colum, colIndex) => (`Fecha De Proceso`),
         dataField: "procesoFecha",
-        text: "Fecha Proceso",
+        text: "F.Proceso",
         formatter: FormatearFecha,
       },
       // {
@@ -103,8 +99,9 @@ const DeclaracionesJuradas = (props) => {
         } */
       },
       {
+        headerTitle: (colum, colIndex) => (`Código de Zona`),
         dataField: "zona",
-        text: "Código de Zona",
+        text: "Cod.Zona",
         /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(2,6))}</span>
@@ -112,8 +109,9 @@ const DeclaracionesJuradas = (props) => {
         }*/
       },
       {
+        headerTitle: (colum, colIndex) => (`Código de Modalidad de Contratación`),
         dataField: "modalidad",
-        text: "Código de Modalidad de Contratación",
+        text: "Cod.Mod.Contrat.",
         /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(6,7))}</span>
@@ -121,8 +119,9 @@ const DeclaracionesJuradas = (props) => {
         } */
       },
       {
+        headerTitle: (colum, colIndex) => (`Código de Actividad`),
         dataField: "actividad",
-        text: "Código de Actividad",
+        text: "Cod.Actividad",
         /*formatter: (cell,row) => {
           return (
             <span>{((row.obligacionNro).toString().substring(1,4))}</span>
