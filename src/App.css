@@ -136,7 +136,7 @@
 }
 
 .titulo{
-  text-align: left;
+    text-align: left;
     margin-left: 5rem;
     background-size: 50%,100%;
     background-repeat: no-repeat;
@@ -147,9 +147,10 @@
     align-self: flex-start;
     width: 100%;
     color: var(--color1);
-    padding: 3% 0% 0% 0%;
+    padding: 3rem 0rem 0rem 0rem;
     text-shadow: 3px 3px 5px white;
 }
+
 
 .subtitulo {
 	  width: fit-content;
@@ -171,25 +172,25 @@
 }
 
 @media (max-width: 2570px) {
-  .contenido {
+  .contenido,.titulo {
       zoom: 100%;
   }
 }
 
 @media screen and (max-width: 1920px) {
-  .contenido {
+  .contenido,.titulo {
       zoom: 90%;
   }
 }
 
 @media screen and (max-width: 1370px) {
-  .contenido {
+  .contenido, .titulo{
       zoom: 70%;
   }
 }
 
 @media screen and (max-width: 800px) {
-  .contenido {
+  .contenido, .titulo{
       zoom: 60%;
   }
 }
@@ -201,4 +202,8 @@
 
 .filter-label span{
   display: none;
+}
+
+.Mui-selected{
+  background-color: var(--color3) !important;
 }
