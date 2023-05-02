@@ -206,90 +206,95 @@ const LiquidacionesHandler = () => {
 	// #endregion
 
 	return (
-		<Grid col full gap="5px">
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Liquidaciones de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
-				</h2>
-			</Grid>
-			<Grid
-				full="width"
-				gap="5px"
-				style={{ background: "#ffffffe0", padding: "5px" }}
-			>
-				<Grid width="50%">
-					<Select
-						name="periodo"
-						label="Periodo"
-						error={
-							periodos.loading ? "Cargando" : periodos.error?.message ?? ""
-						}
-						value={periodo}
-						options={periodos.data.map((r) => ({
-							label: r.descipcion,
-							value: r.valor,
-						}))}
-						onChange={(value) => {
-							setPeriodo(value);
-							setRefreshLiquidaciones(true);
-						}}
-					/>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full gap="5px">
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Liquidaciones de
+							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+						</h2>
+					</Grid>
+					<Grid
+						full="width"
+						gap="5px"
+						style={{ background: "#ffffffe0", padding: "5px" }}
+					>
+						<Grid width="50%">
+							<Select
+								name="periodo"
+								label="Periodo"
+								error={
+									periodos.loading ? "Cargando" : periodos.error?.message ?? ""
+								}
+								value={periodo}
+								options={periodos.data.map((r) => ({
+									label: r.descipcion,
+									value: r.valor,
+								}))}
+								onChange={(value) => {
+									setPeriodo(value);
+									setRefreshLiquidaciones(true);
+								}}
+							/>
+						</Grid>
+						<Grid width="50%">
+							<Select
+								name="establecimiento"
+								label="Establecimiento"
+								error={
+									establecimientos.loading
+										? "Cargando"
+										: establecimientos.error?.message ?? ""
+								}
+								value={establecimiento.id}
+								options={establecimientos.data.map((r) => ({
+									label: r.descipcion,
+									value: r.valor?.id,
+								}))}
+								onChange={(value) => {
+									setEstablecimiento(
+										establecimientos.data.find((r) => r.valor.id === value)
+											.valor
+									);
+									setRefreshLiquidaciones(true);
+								}}
+							/>
+						</Grid>
+					</Grid>
+					<Grid full="width">
+						<LiquidacionesList
+							config={{
+								loading: liquidaciones.loading,
+								data: liquidaciones.data,
+								noData: liqNoData,
+								pagination: pagination,
+								onSelect: (r) => setLiquidacion(r),
+								onPaginationChange: (pageIndex, pageSize) => {
+									setPagination((p) => ({
+										...p,
+										index: pageIndex,
+										size: pageSize,
+									}));
+									setRefreshLiquidaciones(true);
+								},
+							}}
+						/>
+					</Grid>
+					<Grid full="width">
+						<LiquidacionDetails
+							config={{
+								data: liquidacion,
+								tiposPagos: liquidacionesTiposPagos.data,
+							}}
+						/>
+					</Grid>
 				</Grid>
-				<Grid width="50%">
-					<Select
-						name="establecimiento"
-						label="Establecimiento"
-						error={
-							establecimientos.loading
-								? "Cargando"
-								: establecimientos.error?.message ?? ""
-						}
-						value={establecimiento.id}
-						options={establecimientos.data.map((r) => ({
-							label: r.descipcion,
-							value: r.valor?.id,
-						}))}
-						onChange={(value) => {
-							setEstablecimiento(
-								establecimientos.data.find((r) => r.valor.id === value).valor
-							);
-							setRefreshLiquidaciones(true);
-						}}
-					/>
-				</Grid>
-			</Grid>
-			<Grid full="width">
-				<LiquidacionesList
-					config={{
-						loading: liquidaciones.loading,
-						data: liquidaciones.data,
-						noData: liqNoData,
-						pagination: pagination,
-						onSelect: (r) => setLiquidacion(r),
-						onPaginationChange: (pageIndex, pageSize) => {
-							setPagination((p) => ({
-								...p,
-								index: pageIndex,
-								size: pageSize,
-							}));
-							setRefreshLiquidaciones(true);
-						},
-					}}
-				/>
-			</Grid>
-			<Grid full="width">
-				<LiquidacionDetails
-					config={{
-						data: liquidacion,
-						tiposPagos: liquidacionesTiposPagos.data,
-					}}
-				/>
-			</Grid>
-		</Grid>
+			</div>
+		</>
 	);
 };
 

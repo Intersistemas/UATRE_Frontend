@@ -117,31 +117,35 @@ const EstablecimientosHandler = (props) => {
 	if (error) return <h1>{error}</h1>;
 
 	return (
-		<Grid col full>
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
-					{empresa.razonSocial ?? ""}
-				</h2>
-			</Grid>
-			<Grid full="width" grow gap="5px">
-				<Grid width="50%">
-					<EstablecimientosList
-						config={{
-							data: establecimientos,
-							onSelect: (r) => setEstablecimiento(r),
-						}}
-					/>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full>
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
+							{empresa.razonSocial ?? ""}
+						</h2>
+					</Grid>
+					<Grid full="width" grow gap="5px">
+						<Grid width="50%">
+							<EstablecimientosList
+								config={{
+									data: establecimientos,
+									onSelect: (r) => setEstablecimiento(r),
+								}}
+							/>
+						</Grid>
+						<Grid block width="50%" style={{ paddingTop: "75px" }}>
+							<EstablecimientoDetails config={{ data: establecimiento }} />
+						</Grid>
+						{form}
+					</Grid>
 				</Grid>
-				<Grid block width="50%" style={{ paddingTop: "75px" }}>
-					<EstablecimientoDetails config={{ data: establecimiento }} />
-				</Grid>
-				{form}
-			</Grid>
-		</Grid>
+			</div>
+		</>
 	);
 };
 

@@ -23,19 +23,6 @@ const SiaruHandler = (props) => {
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
 	useEffect(() => {
-		// request(
-		// 	{
-		// 		baseURL: "Seguridad",
-		// 		endpoint: `/PermisosUsuario`,
-		// 		method: "GET",
-		// 		headers: {
-		// 			Authorization: true,
-		// 		},
-		// 	},
-		// 	async (res) => setEmpresaList({ data: res }),
-		// 	async (err) => setEmpresaList({ error: err })
-		// );
-		// }, [request]);
 		if (authContext.usuario?.empresas) {
 			setEmpresaList({ data: authContext.usuario?.empresas });
 		}
@@ -94,45 +81,50 @@ const SiaruHandler = (props) => {
 	//#endregion
 
 	return (
-		<Grid col full>
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">Empresas</h2>
-			</Grid>
-			<Grid full="width" grow gap="5px">
-				<Grid width="50%">
-					<EmpresasList
-						config={{
-							loading: empresaList.loading,
-							data: empresaList.data,
-							noData: (() => {
-								const rq = empresaList;
-								if (rq?.loading) return <h4>Cargando...</h4>;
-								if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
-								switch (rq.error.type) {
-									case "Body":
-										return <h4>{rq.error.message}</h4>;
-									default:
-										return (
-											<h4 style={{ color: "red" }}>
-												{"Error "}
-												{rq.error.code ? `${rq.error.code} - ` : ""}
-												{rq.error.message}
-											</h4>
-										);
-								}
-							})(),
-							onSelect: (r) => setEmpresaRecord(r),
-						}}
-					/>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full>
+					<Grid full="width">
+						<h2 className="subtitulo">Empresas</h2>
+					</Grid>
+					<Grid full="width" grow gap="5px">
+						<Grid width="50%">
+							<EmpresasList
+								config={{
+									loading: empresaList.loading,
+									data: empresaList.data,
+									noData: (() => {
+										const rq = empresaList;
+										if (rq?.loading) return <h4>Cargando...</h4>;
+										if (!rq?.error)
+											return <h4>No hay informacion a mostrar</h4>;
+										switch (rq.error.type) {
+											case "Body":
+												return <h4>{rq.error.message}</h4>;
+											default:
+												return (
+													<h4 style={{ color: "red" }}>
+														{"Error "}
+														{rq.error.code ? `${rq.error.code} - ` : ""}
+														{rq.error.message}
+													</h4>
+												);
+										}
+									})(),
+									onSelect: (r) => setEmpresaRecord(r),
+								}}
+							/>
+						</Grid>
+						<Grid block width="50%" style={{ paddingTop: "75px" }}>
+							<EmpresaDetails config={{ data: empresa.data }} />
+						</Grid>
+					</Grid>
 				</Grid>
-				<Grid block width="50%" style={{ paddingTop: "75px" }}>
-					<EmpresaDetails config={{ data: empresa.data }} />
-				</Grid>
-			</Grid>
-		</Grid>
+			</div>
+		</>
 	);
 };
 

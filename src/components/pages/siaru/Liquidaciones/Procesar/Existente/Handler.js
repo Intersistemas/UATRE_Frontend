@@ -48,12 +48,9 @@ const Handler = () => {
 				rta.forEach((tent, index) => {
 					// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 					// En caso contrario, es solo a modo informativo de nomina
-					const {nominas, ...liq} = tent;
-					if (
-						liq.empresaEstablecimientoId &&
-						liq.liquidacionTipoPagoId
-					) {
-						newLiquidaciones.push({ index: newLiquidaciones.length, ...liq })
+					const { nominas, ...liq } = tent;
+					if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
+						newLiquidaciones.push({ index: newLiquidaciones.length, ...liq });
 					}
 					nominas.forEach((nom) => {
 						newDDJJ.push({
@@ -160,7 +157,7 @@ const Handler = () => {
 			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 2,
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 		};
-	}
+	};
 
 	const calcLiqListDesdeDDJJList = () => {
 		let newLiqList = [];
@@ -190,7 +187,7 @@ const Handler = () => {
 					) / 100;
 			} else {
 				newLiqList = [...newLiqList, liqCalc];
-		}
+			}
 		});
 
 		return setLiqList({ data: newLiqList });
@@ -246,37 +243,41 @@ const Handler = () => {
 	}
 
 	return (
-		<Grid col full gap="5px">
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Liquidar periodo {Formato.Periodo(periodo)} de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
-				</h2>
-			</Grid>
-			<Grid block full="width">
-				<Tabs
-					value={currentTab}
-					onChange={(_event, newValue) => setCurrentTab(newValue)}
-					aria-label="basic tabs example"
-					style={{ position: "fixed" }}
-				>
-					<Tab
-						className={styles.tab}
-						style={{ backgroundColor: "#186090" }}
-						label="Detalle de la liquidacion"
-					/>
-					<Tab
-						className={styles.tab}
-						style={{ backgroundColor: "#186090" }}
-						label="Liquidacion a generar por establecimiento"
-					/>
-				</Tabs>
-				{currentTabContent}
-			</Grid>
-		</Grid>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full gap="5px">
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Liquidar periodo {Formato.Periodo(periodo)} de
+							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+						</h2>
+					</Grid>
+					<Grid block full="width">
+						<Tabs
+							value={currentTab}
+							onChange={(_event, newValue) => setCurrentTab(newValue)}
+							aria-label="basic tabs example"
+							style={{ position: "fixed" }}
+						>
+							<Tab
+								className={styles.tab}
+								style={{ backgroundColor: "#186090" }}
+								label="Detalle de la liquidacion"
+							/>
+							<Tab
+								className={styles.tab}
+								style={{ backgroundColor: "#186090" }}
+								label="Liquidacion a generar por establecimiento"
+							/>
+						</Tabs>
+						{currentTabContent}
+					</Grid>
+				</Grid>
+			</div>
+		</>
 	);
 };
 
