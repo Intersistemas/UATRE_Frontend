@@ -174,7 +174,7 @@ const DeclaracionesJuradas = (props) => {
     selectRow: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
-    noDataIndication: <h4>No se registran Declaraciones Juradas del Afiliado: </h4>,
+    noDataIndication: <h4>No se registran Declaraciones Juradas del Afiliado </h4>,
     overlay: overlayFactory({ spinner: true }),
     onSelected: props.onSeleccionRegistro
   }

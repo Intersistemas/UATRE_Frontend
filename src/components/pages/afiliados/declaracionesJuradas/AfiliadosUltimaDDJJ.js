@@ -13,10 +13,11 @@ const AfiliadosUltimaDDJJ = (props) => {
   const { cuit } = props.cuit === null ? 0 : props;
 
   useEffect(() => {
-    console.log("props", props.cuit)
-    console.log("cuit", cuit);
+    // console.log("props", props.cuit)
+    // console.log("cuit", cuit);
     if (cuit) {
       const processDDJJUatreCUIT = async (ddJJUatreObj) => {
+        console.log("ddJJUatreObj", ddJJUatreObj);
         setDDJJUatreCUITList(ddJJUatreObj.data);
       };
 
@@ -38,11 +39,12 @@ const AfiliadosUltimaDDJJ = (props) => {
         dataField: "cuil",
         text: "CUIL",
         sort: true,
+        formatter: Formato.Cuit,
       },
       {
         dataField: "afiliadoNombre",
         text: "Nombre",
-      },      
+      },
     ];
   
 
@@ -69,7 +71,7 @@ const AfiliadosUltimaDDJJ = (props) => {
     rowEvents: rowEvents,
     loading: isLoading,
     noDataIndication: (
-      <h4>No se registran Declaraciones Juradas de la Empresa: </h4>
+      <h4>No se registran Declaraciones Juradas de la Empresa </h4>
     ),
     overlay: overlayFactory({ spinner: true }),
     onSelected: props.onSeleccionRegistro,
