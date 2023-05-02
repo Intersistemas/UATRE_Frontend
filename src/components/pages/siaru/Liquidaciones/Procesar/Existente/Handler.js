@@ -263,9 +263,14 @@ const Handler = () => {
 					aria-label="basic tabs example"
 					style={{ position: "fixed" }}
 				>
-					<Tab className={styles.tab} label="Detalle de la liquidacion" />
 					<Tab
 						className={styles.tab}
+						style={{ backgroundColor: "#186090" }}
+						label="Detalle de la liquidacion"
+					/>
+					<Tab
+						className={styles.tab}
+						style={{ backgroundColor: "#186090" }}
 						label="Liquidacion a generar por establecimiento"
 					/>
 				</Tabs>
