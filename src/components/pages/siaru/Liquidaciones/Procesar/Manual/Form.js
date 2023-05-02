@@ -27,8 +27,8 @@ const Form = (props) => {
 		const requestParam = (param) => {
 			request(
 				{
-					baseURL: "SIARU",
-					endpoint: `/Parametros?Nombre=${param}`,	//ToDo: Cambiar a api Comunes
+					baseURL: "Comunes",
+					endpoint: `/Parametros?Nombre=${param}`,
 					method: "GET",
 				},
 				async (resp) => {
