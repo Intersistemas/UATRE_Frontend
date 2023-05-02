@@ -17,11 +17,10 @@ const Documentacion = (props) => {
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj);
       };
-
       request(
         {
-          baseURL: "Afiliaciones",
-          endpoint: `/DDJJUatre/GetDDJJUatreByCUIL?CUIL=${cuil}`,
+          baseURL: "DDJJ",
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
           method: "GET",
         },
         processDDJJUatre
@@ -117,7 +116,6 @@ const Documentacion = (props) => {
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      //console.log(`row: ${row.cuit}`);
       props.onSeleccionRegistro(row);
     },
   };
@@ -143,20 +141,6 @@ const Documentacion = (props) => {
       <div className={styles.div}>
         <div className={styles.declaracion}>
           <Table {...tableProps}/>
-          
-          {/*<BootstrapTable
-            keyField="id"
-            data={ddJJUatreList}
-            columns={columns}
-            selectRow={selectRow}
-            rowEvents={rowEvents}
-            loading={isLoading}
-            striped
-            hover
-            condensed
-            noDataIndication={<h4>No hay DDJJ</h4>}
-            overlay={ overlayFactory({ spinner: true })}
-          />*/}
         </div>
       </div>
     </div>

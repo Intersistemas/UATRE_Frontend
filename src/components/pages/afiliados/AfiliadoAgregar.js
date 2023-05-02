@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useRef, useState } from "react";
 import Button from "../../ui/Button/Button";
 //import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
+import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
@@ -18,6 +19,9 @@ import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
 import ValidarEmail from "../../validators/ValidarEmail";
 import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
+import DocumentacionList from "./documentacion/DocumentacionList";
+import DocumentacionForm from "./documentacion/DocumentacionForm";
+import EstadoSolicitud from "../../helpers/EstadoSolicitud";
 
 //const initialObject = { value: 0, label: "" };
 
@@ -27,19 +31,29 @@ const AfiliadoAgregar = (props) => {
 
   //#region Capturo errores
   useEffect(() => {
-    console.log("error", error)
-    if (error && error.code === 500) {
-      setCUILLoading(false);
-      setShowAlert(true);
-      setSeverityAlert("error");
-      setTextAlert(`Error - ${error.message}`);
-
-      if (cuilLoading) {
+    console.log("error", error);
+    if (error) {
+      if (error.code === 500) {
         setCUILLoading(false);
+        setShowAlert(true);
+        setSeverityAlert("error");
+        setTextAlert(`Error - ${error.message}`);        
       }
 
-      if (cuitLoading) {
+      if (error.code === 404 && cuilLoading) {
+        setCUILLoading(false);
+        setShowAlert(true);
+        setSeverityAlert("error");
+        //setTextAlert(`Error - ${error.message}`);
+        setTextAlert(`Error - No existe el CUIL ${cuil} en el Padron de AFIP`);
+      }
+
+      if (error.code === 404 && cuitLoading) {
         setCUITLoading(false);
+        setShowAlert(true);
+        setSeverityAlert("error");
+        //setTextAlert(`Error - ${error.message}`);
+        setTextAlert(`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`);
       }
 
       return;
@@ -84,6 +98,12 @@ const AfiliadoAgregar = (props) => {
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
+
+  const [documentacionList, setDocumentacionList] = useState({
+    data: [],
+    idGen: 0,
+  });
+  const [documentacionItem, setDocumentacionItem] = useState({});
   //#endregion
 
   //#region Datos Personales Formulario
@@ -104,6 +124,7 @@ const AfiliadoAgregar = (props) => {
   const [correo, setCorreo] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [estadoSolicitud, setEstadoSolicitud] = useState(1);
+  const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] = useState("")
   const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
 
   const [nombreAFIP, setNombreAFIP] = useState("");
@@ -553,7 +574,7 @@ const AfiliadoAgregar = (props) => {
         setTelefono(afiliadoObj.telefono);
         if (afiliadoObj.correo !== null) {
           setCorreo(afiliadoObj.correo);
-        };
+        }
         setActividad(afiliadoObj.actividadId);
         dispatchActividad({
           type: "USER_INPUT",
@@ -563,6 +584,7 @@ const AfiliadoAgregar = (props) => {
         setDomicilio(afiliadoObj.domicilio);
         setLocalidad(afiliadoObj.refLocalidadId);
         setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
+        setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
@@ -623,7 +645,7 @@ const AfiliadoAgregar = (props) => {
       const processGetEmpresa = async (empresaObj) => {
         //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
-        setRazonSocialEmpresa(empresaObj.razonSocial)
+        setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
           `${empresaObj.domicilioCalle} ${empresaObj.domicilioNumero}`
@@ -1117,6 +1139,33 @@ const AfiliadoAgregar = (props) => {
     console.log("POST", nuevoAfiliado);
     const afiliadoAgregar = async (afiliadoResponseObj) => {
       console.log("afiliadosObj", afiliadoResponseObj);
+
+      // Envío documentación enlazada al nuevo afiliado
+      documentacionList?.data?.forEach((doc) => {
+        if (!doc.refTipoDocumentacionId) return;
+        if (!doc.archivoBase64) return;
+        const body = {
+          entidadTipo: "A",
+          entidadId: afiliadoResponseObj,
+          refTipoDocumentacionId: doc.refTipoDocumentacionId,
+          archivo: doc.archivoBase64,
+          observaciones: doc.observaciones,
+        };
+        request(
+          {
+            baseURL: "Comunes",
+            endpoint: `/DocumentacionEntidad`,
+            method: "POST",
+            body: body,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+          async (res) => console.log("OK", body, "res", res),
+          async (err) => console.log("Error", body, "err", err)
+        );
+      });
+
       setNuevoAfiliadoResponse(afiliadoResponseObj);
       //alert("Afiliado creado con éxito!");
       //Alert
@@ -1134,7 +1183,7 @@ const AfiliadoAgregar = (props) => {
           estado.label === "Rechazado"
       );
 
-      setEstadoSolicitud(1)
+      setEstadoSolicitud(1);
       setEstadosSolicitudes(estadosSolicitudesPendientes);
       setSelectedTab(3);
     };
@@ -1158,14 +1207,14 @@ const AfiliadoAgregar = (props) => {
   //const [clickAgregar, setClickAgregar] = useState(false);
   const afiliadoObservarHandler = async (event) => {
     event.preventDefault();
-    
+
     const empresa = {
       cuit: cuitValidado ? cuitEmpresa : 99999999999,
-      razonSocial: cuitValidado ?
-      padronEmpresaRespuesta
-        ? padronEmpresaRespuesta?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-        : ""
+      razonSocial: cuitValidado
+        ? padronEmpresaRespuesta
+          ? padronEmpresaRespuesta?.razonSocial ??
+            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          : ""
         : "Sin Asignar",
       claveTipo: padronEmpresaRespuesta?.tipoClave,
       claveEstado: padronEmpresaRespuesta?.estadoClave,
@@ -1208,7 +1257,7 @@ const AfiliadoAgregar = (props) => {
       nacionalidadId: nacionalidad !== "" ? +nacionalidad : 99999,
       //empresaId: +empresaId,
       seccionalId: seccional !== "" ? +seccional : 99999,
-      sexoId: sexo !== "" ? +sexo: 99999,
+      sexoId: sexo !== "" ? +sexo : 99999,
       tipoDocumentoId: tipoDocumento !== "" ? +tipoDocumento : 99999,
       documento: numeroDocumento !== "" ? +numeroDocumento : 0,
       actividadId: actividad !== "" ? +actividad : 99999,
@@ -1260,7 +1309,7 @@ const AfiliadoAgregar = (props) => {
     console.log("POST", nuevoAfiliadoObservado);
     const afiliadoObservadoAgregar = async (afiliadoObservadoResponseObj) => {
       console.log("afiliadoObservadoResponseObj", afiliadoObservadoResponseObj);
-      
+
       setNuevoAfiliadoObservadoResponse(afiliadoObservadoResponseObj);
       //alert("Afiliado creado con éxito!");
       //Alert
@@ -1298,7 +1347,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Resolver Solciitud Afiliado
   const resolverSolicitudHandler = (event) => {
-    console.log("id", nuevoAfiliadoObservadoResponse)
+    console.log("id", nuevoAfiliadoObservadoResponse);
     event.preventDefault();
 
     const patchAfiliado = [
@@ -1348,7 +1397,11 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse !== null ? nuevoAfiliadoResponse : nuevoAfiliadoObservadoResponse}`,
+        endpoint: `/Afiliado?Id=${
+          nuevoAfiliadoResponse !== null
+            ? nuevoAfiliadoResponse
+            : nuevoAfiliadoObservadoResponse
+        }`,
         method: "PATCH",
         body: patchAfiliado,
         headers: {
@@ -1541,6 +1594,22 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+  //#region Functions
+  const InputDisabled = () => {
+    //console.log("InputDisable")
+    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4) {
+      return true;
+    }
+
+    // if (padronRespuesta !== null) {
+
+    //   return true;
+    // }
+
+    return false;
+  };
+  //#endregion
+
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -1557,6 +1626,9 @@ const AfiliadoAgregar = (props) => {
           ? `Alta de Nuevo Afiliado a UATRE: ${cuil} ${nombre}`
           : "Alta de Nuevo Afiliado a UATRE"}
       </h5>
+      <h6 className={classes.titulo}>
+        {afiliadoExiste ? `Estado Solciitud del Afiliado: ${estadoSolicitudDescripcion}` : null}
+      </h6>
       <div className={classes.div}>
         <Tabs
           value={selectedTab}
@@ -1573,7 +1645,7 @@ const AfiliadoAgregar = (props) => {
           />
           <Tab
             label={
-              padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"
+              padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : "DDJJ UATRE"
             }
             //disabled={nuevoAfiliadoResponse ? true : false}
           />
@@ -1583,6 +1655,7 @@ const AfiliadoAgregar = (props) => {
               estadoSolicitud === 1 || estadoSolicitud === 4 ? false : true
             }
           />
+          <Tab label="Documentacion" />
         </Tabs>
       </div>
       {selectedTab === 0 && (
@@ -1593,10 +1666,14 @@ const AfiliadoAgregar = (props) => {
                 id="cuil"
                 value={cuil}
                 label="CUIL"
-                disabled={padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 width={98}
                 onChange={handleInputChange}
-                helperText={!cuilState.isValid && cuil !== ""}
+                helperText={
+                  !cuilState.isValid && cuil !== ""
+                    ? "CUIL con formato incorrecto"
+                    : ""
+                }
                 error={
                   (!cuilState.isValid && cuil !== "") ||
                   (!formularioIsValid && clickAgregar)
@@ -1627,7 +1704,7 @@ const AfiliadoAgregar = (props) => {
                 label="Apellido y Nombre"
                 width={100}
                 onChange={handleInputChange}
-                disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 error={!nombreState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1639,7 +1716,7 @@ const AfiliadoAgregar = (props) => {
                 value={nacionalidad}
                 defaultValue={nacionalidades[0]}
                 onChange={handleChangeSelect}
-                //disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 error={
                   !nacionalidadState.isValid && clickAgregar ? true : false
                 }
@@ -1663,7 +1740,7 @@ const AfiliadoAgregar = (props) => {
                 label="Fecha de Nacimiento"
                 type="date"
                 onChange={handleInputChange}
-                disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 error={
                   !fechaNacimientoState.isValid && clickAgregar ? true : false
                 }
@@ -1676,7 +1753,7 @@ const AfiliadoAgregar = (props) => {
                 options={estadosCiviles}
                 value={estadoCivil}
                 onChange={handleChangeSelect}
-                //disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 //width={100}
                 error={!estadoCivilState.isValid && clickAgregar ? true : false}
               />
@@ -1688,7 +1765,7 @@ const AfiliadoAgregar = (props) => {
                 options={sexos}
                 value={sexo}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 //width={100}
                 error={!generoState.isValid && clickAgregar ? true : false}
               />
@@ -1701,7 +1778,7 @@ const AfiliadoAgregar = (props) => {
                 value={tipoDocumento}
                 options={tiposDocumentos}
                 label="Tipo Documento"
-                disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 onChange={handleChangeSelect}
                 //width={98}
                 error={
@@ -1714,7 +1791,7 @@ const AfiliadoAgregar = (props) => {
                 id="numeroDocumento"
                 value={numeroDocumento}
                 label="Numero Documento"
-                disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 //width={96}
                 onChange={handleInputChange}
                 error={
@@ -1727,7 +1804,7 @@ const AfiliadoAgregar = (props) => {
                 id="domicilio"
                 value={domicilio}
                 label="Domicilio"
-                //disabled={cuilValidado ? true : false}
+                disabled={InputDisabled()}
                 onChange={handleInputChange}
                 error={!domicilioState.isValid && clickAgregar ? true : false}
               />
@@ -1742,7 +1819,7 @@ const AfiliadoAgregar = (props) => {
                 options={provincias}
                 value={provincia}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 error={!provinciaState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1753,7 +1830,7 @@ const AfiliadoAgregar = (props) => {
                 options={localidades}
                 value={localidad}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 error={!localidadState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
@@ -1776,7 +1853,7 @@ const AfiliadoAgregar = (props) => {
                 options={seccionales}
                 value={seccional}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 error={!seccionalState.isValid && clickAgregar ? true : false}
               />
               {/* <SearchSelectMaterial
@@ -1796,7 +1873,7 @@ const AfiliadoAgregar = (props) => {
                 id="telefono"
                 value={telefono}
                 label="Telefono/Celular"
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 width={100}
                 onChange={handleInputChange}
               />
@@ -1806,7 +1883,7 @@ const AfiliadoAgregar = (props) => {
                 id="correo"
                 value={correo}
                 label="Correo"
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 width={100}
                 onChange={handleInputChange}
                 helperText={
@@ -1830,7 +1907,7 @@ const AfiliadoAgregar = (props) => {
                 options={puestos}
                 value={puesto}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 error={!oficioState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1841,7 +1918,7 @@ const AfiliadoAgregar = (props) => {
                 options={actividades}
                 value={actividad}
                 onChange={handleChangeSelect}
-                //disabled={!padronRespuesta?.idPersona ? true : false}
+                disabled={InputDisabled()}
                 error={!actividadState.isValid && clickAgregar ? true : false}
               />
             </div>
@@ -1934,7 +2011,7 @@ const AfiliadoAgregar = (props) => {
                 id="cuit"
                 value={cuitEmpresa}
                 label="CUIT"
-                /*disabled={padronEmpresaRespuesta?.id ? true : false}*/
+                disabled={InputDisabled()}
                 width={98}
                 onChange={handleInputChange}
                 helperText={
@@ -2251,6 +2328,113 @@ const AfiliadoAgregar = (props) => {
             </div>
           </div>
         </>
+      )}
+      {selectedTab === 4 && (
+        <Grid col full="width" gap="10px">
+          <Grid full="width" gap="5px">
+            <DocumentacionList
+              config={{
+                data: documentacionList.data,
+                onSelect: (r) => {
+                  setDocumentacionItem({
+                    data: { ...r },
+                    hisotry: { ...r },
+                    req: null,
+                  });
+                },
+              }}
+            />
+          </Grid>
+          <Grid full="width" gap="5px">
+            <Grid grow>
+              <Button
+                onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
+              >
+                Agregar documentación
+              </Button>
+            </Grid>
+            <Grid grow>
+              <Button
+                disabled={documentacionItem.req != null}
+                onClick={() =>
+                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
+                }
+              >
+                Modificar documentación
+              </Button>
+            </Grid>
+            <Grid grow>
+              <Button
+                disabled={documentacionItem.req != null}
+                onClick={() =>
+                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
+                }
+              >
+                Borrar documentación
+              </Button>
+            </Grid>
+          </Grid>
+          <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
+            <DocumentacionForm
+              config={{
+                data: documentacionItem.data,
+                disabled: documentacionItem.req == null,
+                onChange: (dataChanges) =>
+                  setDocumentacionItem((oldValue) => ({
+                    ...oldValue,
+                    data: { ...oldValue.data, ...dataChanges },
+                  })),
+                onCancel: () =>
+                  setDocumentacionItem((oldValue) => ({
+                    data: oldValue.history,
+                    history: oldValue.history,
+                    req: null,
+                  })),
+                onConfirm: () => {
+                  let data;
+                  let index = null;
+                  switch (documentacionItem.req) {
+                    case 1: // Agrega
+                      data = { ...documentacionItem.data, id: null };
+                      index = documentacionList.data.length;
+                      break;
+                    case 2: // Modifica
+                      data = { ...documentacionItem.data };
+                      break;
+                    case 3: // Borra
+                      data = null;
+                      break;
+                    default:
+                      return;
+                  }
+                  if (index == null) {
+                    // Modifica o Borra
+                    index = documentacionList.data.findIndex(
+                      (r) => r.id === documentacionItem.data?.id
+                    );
+                  }
+                  setDocumentacionList((oldValue) => {
+                    const newValue = { ...oldValue, data: [...oldValue.data] };
+                    if (data == null) {
+                      // Borra
+                      newValue.data.splice(index, 1);
+                    } else {
+                      // Agrega o Modifica
+                      if (data.id == null) {
+                        // Agrega
+                        newValue.idGen += 1;
+                        data.id = newValue.idGen;
+                      }
+                      newValue.data.splice(index, 1, { ...data });
+                    }
+                    return newValue;
+                  });
+                  setDocumentacionItem({ req: null });
+                },
+              }}
+            />
+          </Grid>
+        </Grid>
       )}
       <div className={classes.botones}>
         <div className={classes.boton}>

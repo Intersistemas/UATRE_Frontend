@@ -1,6 +1,21 @@
 .tab{
     color: #FFF !important;
-    background-color: #186090 !important;
+    background-color: #186090;
+    border-radius: 15px 15px 0px 0px !important;
+    /*border-color: #ccc!important;*/
+    border: 2px solid #ccc!important;
+}
+
+.tab:hover{
+    color: #FFF !important;
+    background-color: #88acc5 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    /*border-color: #ccc!important;*/
+    border: 2px solid #ccc!important;
+}
+.tab:active{
+    color: #FFF !important;
+    background-color: #88acc5 !important;
     border-radius: 15px 15px 0px 0px !important;
     /*border-color: #ccc!important;*/
     border: 2px solid #ccc!important;

@@ -76,23 +76,10 @@ const AfiliadoDetails = (props) => {
 			case 1:
 			  {//#region  Tab  DDJJ UATRE
 		  setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
+
 		  <Grid full="width">
 			  <Grid className={styles.titulo} grow>
-				  Informacion Detallada de DDJJUatre - Periodo: {ddjj.periodo}
-			  </Grid>
-		  </Grid>
-		  <Grid full="width" gap="5px">
-			  <Grid block basis="051px" className={styles.label}>
-				  CUIL:
-			  </Grid>
-			  <Grid block basis="130px" className={styles.data}>
-				  {Formato.Cuit(data.cuil)}
-			  </Grid>
-			  <Grid block basis="310px" className={styles.label}>
-				  Nombre y Apellido:
-			  </Grid>
-			  <Grid block basis="calc(100% - 286px)" className={styles.data}>
-				  {data.nombre}
+				  Informacion Detallada de DDJJUatre - ({Formato.Cuit(data.cuil) ?? " "}) {data.nombre ?? " "} - Periodo: {ddjj.periodo}
 			  </Grid>
 		  </Grid>
 		  <Grid full="width">
@@ -102,137 +89,40 @@ const AfiliadoDetails = (props) => {
 						  Empresa
 					  </Grid>
 				  </Grid>
-				  <Grid full="width" gap="5px">
-					  <Grid block basis='5%' className={styles.label}>
-						  CUIT:
-					  </Grid>
-					  
-					  <Grid block basis="8%" className={styles.data}>
-						  {empresa.cuit ?? ""}
-					  </Grid>
-  
-					  <Grid block basis="9%" className={styles.label}>
-						  Razón Social:
-					  </Grid>
-					  <Grid block basis="15%" className={styles.data}>
-						  {empresa.razonSocial ?? ""}
-					  </Grid>
-  
-					  <Grid block basis="11%" className={styles.label}>
-						  Localidad:
-					  </Grid>
-					  <Grid block basis="15%" className={styles.data}>
-						  Descripcion Localidad
-					  </Grid>
-  
-					  <Grid block basis="11%" className={styles.label}>
-						  Provincia:
-					  </Grid>
-					  <Grid block basis="5%" className={styles.data}>
-						  Descripción Provincia
-					  </Grid>
-  
-					  <Grid block basis="7%" className={styles.label}>
-						  CIIU1:
-					  </Grid>
-					  <Grid block basis="5%" className={styles.data}>
-					  	{empresa.ciiU1Descripcion ?? "Descripcion CIIU1"}
-					  </Grid>
-					  
-					  <Grid block basis="7%" className={styles.label}>
-						  CIIU2:
-					  </Grid>
-					  <Grid block basis="5%" className={styles.data}>
-					  	{empresa.ciiU2Descripcion ?? "Descripcion CIIU2"}
-					  </Grid>
 
-					  <Grid block basis="7%" className={styles.label}>
-						  CIIU3:
-					  </Grid>
-					  <Grid block basis="5%" className={styles.data}>
-					  	{empresa.ciiU3Descripcion ?? "Descripcion CIIU3"}
-					  </Grid>
-				  </Grid>
-  
 				  <Grid full="width" gap="5px">
-					  <Grid block basis="8%" className={styles.label}>
-						 Código de Zona:
-					  </Grid>
-					  <Grid block basis="4%" className={styles.data}>
-					  	{ddjj.zona ?? " "}
-					  </Grid>
-					  <Grid block basis="5%" className={styles.label}>
-						 Zona:
-					  </Grid>
-					  <Grid block basis="17%" className={styles.label}>
-						 Cód.Modalidad de Contratación:
-					  </Grid>
-					  <Grid block basis="1%" className={styles.data}>
-					  	{ddjj.modalidad ?? " "}
-					  </Grid>
-					  <Grid block basis="14%" className={styles.label}>
-					  	  Modalidad de Contratación:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-						 Código de Actividad:
-					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
-					  	{ddjj.actividad ?? " "}
-					  </Grid>
-					  <Grid block basis="6%" className={styles.label}>
-						 Actividad:
-					  </Grid>
-					  <Grid block basis="12%" className={styles.label}>
-						 Cód.Condición de CUIL:
-					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
-					  	{ddjj.cuilCondicion ?? ""}
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Condición de CUIL:
-					  </Grid>
-				  </Grid>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={empresa.cuit ?? ""} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? ""} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={empresa.localidad ?? "Descripcion Localidad"}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Provincia" value={empresa.provincia ?? "Descripcion provincia"}/>	
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? "Descripcion CIIU1"}/>							
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU2Descripcion ?? "Descripcion CIIU1"}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU3Descripcion ?? "Descripcion CIIU1"}/>
+					</Grid>
   
-				  <Grid full="width" gap="5px">
-				  	  <Grid block basis="10%" className={styles.label}>
-						 Cód.Situación de CUIL:
-					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
-					  	{ddjj.cuilSituacion ?? ""}
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Situación de CUIL:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Codigo de Siniestro:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Siniestro:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Reducción:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	 Importes:
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Cantidad Hs Extras:
-					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
-					  	{ddjj.hsExtrasCantidad ?? " "}
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Dias Trabajados:
-					  </Grid>
-					  <Grid block basis="2%" className={styles.data}>
-					  	{ddjj.diasTrabajados ?? " "}
-					  </Grid>
-					  <Grid block basis="10%" className={styles.label}>
-					  	Situación Rural:
-					  </Grid>
 
+					<Grid full="width" gap="5px">
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Código de Zona" value={ddjj.zona ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Zona" value={ddjj.zona ?? ""} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>	
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Código de Actividad" value={ddjj.actividad ?? " "}/>							
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad" value={ddjj.actividad ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Condición de CUIL" value={ddjj.cuilCondicion ?? ""}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? ""}/>
+					</Grid>
 
-				  </Grid>
+					<Grid full="width" gap="5px">
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? ""}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación de CUIL" value={""} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo de Siniestro" value={" "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Siniestro" value={" "}/>	
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Reducción" value={ " "}/>							
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Importes" value={" "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cantidad Hs Extras" value={ddjj.hsExtrasCantidad ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dias Trabajados" value={" "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación Rural" value={" "}/>
+					</Grid>
 			  </Grid>
 		  </Grid>
 	  </Grid>)
