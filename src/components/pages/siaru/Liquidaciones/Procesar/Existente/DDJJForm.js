@@ -31,7 +31,7 @@ const DDJJForm = ({ config }) => {
 				<Grid block basis="051px" className={styles.label}>
 					CUIL:
 				</Grid>
-				<Grid block basis="125px" className={styles.data}>
+				<Grid block basis="300px" className={styles.data}>
 					{Formato.Cuit(data.cuil)}
 				</Grid>
 				<Grid block basis="110px" className={styles.label}>
@@ -40,10 +40,10 @@ const DDJJForm = ({ config }) => {
 				<Grid grow className={styles.data}>
 					{data.nombre}
 				</Grid>
-				<Grid block basis="200px" className={styles.label}>
+				<Grid block basis="425px" className={styles.label}>
 					Remuneración imponible:
 				</Grid>
-				<Grid block basis="125px" className={styles.data}>
+				<Grid block basis="300px" className={styles.data}>
 					{Formato.Moneda(data.remuneracionImponible)}
 				</Grid>
 			</Grid>

@@ -22,7 +22,6 @@ const LiquidacionesProcesarHandler = () => {
 	const empresa = location.state?.empresa ? location.state.empresa : {};
 	if (empresa.id == null) navigate("/");
 
-	const [periodos, setPeriodos] = useState([]);
 	const [periodoSelect, setPeriodoSelect] = useState();
 	const [periodoSelectErr, setPeriodoSelectErr] = useState("");
 	const [periodoAnterior, setPeriodoAnterior] = useState();
@@ -32,7 +31,28 @@ const LiquidacionesProcesarHandler = () => {
 	const [archivoF931, setArchivoF931] = useState();
 	const [archivoF931Err, setArchivoF931Err] = useState("");
 	const [liquidacionForm, setLiquidacionForm] = useState();
-	const { isLoading, error, sendRequest: request } = useHttp();
+	const { sendRequest: request } = useHttp();
+
+	//#region cargar Periodos
+	const [periodos, setPeriodos] = useState({ loading: true });
+	useEffect(() => {
+		request(
+			{
+				baseURL: "DDJJ",
+				endpoint: `/DDJJUatre/GetCUITPeriodos?CUIL=${empresa.cuit ?? 0}`,
+				method: "GET",
+			},
+			async (res) => {
+				console.log("res", res);
+				setPeriodos({ data: [...res] });
+			},
+			async (err) => {
+				console.log("err", err);
+				setPeriodos({ error: err });
+			}
+		);
+	}, [request]);
+	//#endregion
 
 	//#region despachar Informar Modulo
 	const moduloInfo = {
@@ -41,36 +61,7 @@ const LiquidacionesProcesarHandler = () => {
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
-	//#endregion
-
 	useEffect(() => {
-		if (periodos.length === 0) {
-			request(
-				{
-					baseURL: "Afiliaciones",
-					//ToDo: Cambiar por endpoint específico una vez que esté echo
-					endpoint: `/DDJJUatre/GetDDJJUatreListBySpecs?CUIT=${
-						empresa.cuit ?? 0
-					}&Sort=Periodo&PageSize=5000`,
-					method: "GET",
-				},
-				async (res) => {
-					let map = new Map();
-					res.data.map((r) => {
-						if (
-							!map.has(r.periodo) ||
-							map.get(r.periodo).liquidacionIdUltima < r.liquidacionId
-						)
-							map.set(r.periodo, {
-								periodo: r.periodo,
-								liquidacionIdUltima: r.liquidacionId,
-							});
-					});
-					setPeriodos([...map.values()]);
-				}
-			);
-		}
-
 		switch (moduloAccion) {
 			case `Empresas`:
 				navigate("/siaru", { state: { empresa: empresa } });
@@ -82,10 +73,8 @@ const LiquidacionesProcesarHandler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [periodos.length, empresa, moduloAccion, request, navigate, dispatch]);
-
-	if (isLoading) return <h1>Cargando...</h1>;
-	if (error) return <h1>{error}</h1>;
+	}, [empresa, moduloAccion, navigate, dispatch]);
+	//#endregion
 
 	return (
 		<Grid col gap="5px" full>
@@ -118,14 +107,15 @@ const LiquidacionesProcesarHandler = () => {
 								name="periodo"
 								label="Periodo"
 								value={periodoSelect}
-								options={periodos.map((r) => ({
+								error={periodos.loading ? "Cargando" : periodos.error ?? ""}
+								options={periodos.data?.map((r) => ({
 									label: `${Formato.Periodo(r.periodo)} - ${
 										r.liquidacionIdUltima
 											? "Periodo con liquidaciones asociadas"
 											: "Periodo sin liquidaciones asociadas"
 									}`,
 									value: r.periodo,
-								}))}
+								})) ?? []}
 								onChange={(v) => {
 									setPeriodoSelect(v);
 									setPeriodoSelectErr("");
@@ -173,14 +163,15 @@ const LiquidacionesProcesarHandler = () => {
 								name="periodo"
 								label="Periodo anterior"
 								value={periodoAnterior}
-								options={periodos.map((r) => ({
+								error={periodos.loading ? "Cargando" : periodos.error ?? ""}
+								options={periodos.data?.map((r) => ({
 									label: `${Formato.Periodo(r.periodo)} - ${
 										r.liquidacionIdUltima
 											? "Periodo con liquidaciones asociadas"
 											: "Periodo sin liquidaciones asociadas"
 									}`,
 									value: r.periodo,
-								}))}
+								})) ?? []}
 								onChange={(v) => {
 									setPeriodoAnterior(v);
 									setPeriodoAnteriorErr("");
