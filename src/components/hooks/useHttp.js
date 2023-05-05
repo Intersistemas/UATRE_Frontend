@@ -17,11 +17,15 @@ const useHttp = () => {
             //url = "https://localhost:7032/api";
             break;
 
+          case "DDJJ":
+            url = "http://intersistemas.net:8203/api";
+            //url = "https://localhost:7032/api";
+            break;
+
           case "Afiliaciones":
             url = 'http://uatretest.intersistemas.net:8200/api';
             //url = "http://localhost:5165/api";
             break;
-
           case "DDJJ":
               url = 'http://uatretest.intersistemas.net:8203/api';
               //url = "http://localhost:5165/api";
@@ -37,6 +41,7 @@ const useHttp = () => {
 	
             default:
                 break;
+
         }
         
         //Agrego Token
@@ -69,7 +74,7 @@ const useHttp = () => {
                       ? "Internal Server Error"
                       : "Error",
                   code: errorResponse.StatusCode,
-                  message: errorResponse.Message,
+                  message: errorResponse.Message || errorResponse.Mensaje,
                 };
 
                 setError(err)
