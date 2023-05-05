@@ -1656,7 +1656,7 @@ const AfiliadoAgregar = (props) => {
             //disabled={nuevoAfiliadoResponse ? true : false}
           />
           <Tab
-            label="Resolver Solicitud"
+            label="Resuelve Solicitud"
             hidden={
               estadoSolicitud === 1 || estadoSolicitud === 4 ? false : true
             }
