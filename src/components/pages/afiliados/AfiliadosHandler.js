@@ -23,7 +23,7 @@ const AfiliadosHandler = () => {
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState();
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
   const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
@@ -37,7 +37,7 @@ const AfiliadosHandler = () => {
         id: 2,
         name: "Modifica Afiliado",
         icon: '',
-        disabled: true,
+        disabled: false,
       },
       {
         id: 3,
@@ -191,7 +191,8 @@ const {id} = 0;
         setAfiliadoAgregarShow(true);
         break;
       case "Modifica Afiliado":
-        alert('Funcionalidad de Modificar En desarrollo ');
+        setAfiliadoAgregarShow(true);
+
         break;
       case "Resuelve Solicitud":
         alert('Funcionalidad de Resolver En desarrollo ');
@@ -256,6 +257,11 @@ const {id} = 0;
     setEstadoSolcitud(parseInt(filters.estadoSolicitud.filterVal) ?? 0);
   };
 
+  const handleOnAfiliadoSeleccionado = (afiliado) => {
+    //console.log("Afiliado seleccionado", afiliado)
+    setAfiliadoSeleccionado(afiliado);
+  }
+
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
@@ -270,6 +276,8 @@ const {id} = 0;
             <AfiliadoAgregar
               onClose={onCloseAfiliadoAgregarHandler}
               estadosSolicitudes={estadosSolicitudes}
+              accion={moduloAccion}
+              cuil={afiliadoSeleccionado}
             />
           )}
 
@@ -284,7 +292,7 @@ const {id} = 0;
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onFilterChange={handleFilterChange}
-            setAfiliadoSeleccionado={setAfiliadoSeleccionado}
+            onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
           />
       
       </Fragment>

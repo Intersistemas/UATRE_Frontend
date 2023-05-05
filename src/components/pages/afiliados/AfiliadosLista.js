@@ -311,7 +311,7 @@ const AfiliadosLista = (props) => {
      case 0:
         //setRowSelectedIndex(null);
         setAfiliadoSeleccionado(row);
-        props.setAfiliadoSeleccionado(row);
+        props.onAfiliadoSeleccionado(row);
         break;
      case 1:
           console.log('DDJJ Seleccionada:',row)

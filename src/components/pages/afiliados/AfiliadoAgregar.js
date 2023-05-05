@@ -547,11 +547,13 @@ const AfiliadoAgregar = (props) => {
   const [afiliadoExiste, setAfiliadoExiste] = useState(false);
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
   useEffect(() => {
-    // if (error){
-    //   //console.log("afiliado existe", error?.code ?? error);
-    //   return;
-    // }
+    if(props.cuil > 0 && props.accion === ""){
+      setCUIL(props.cuil)
+      dispatchCUIL(props.cuil)
+    }
+  },[props.cuil])
 
+  useEffect(() => {
     if (cuilIsValid && cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
