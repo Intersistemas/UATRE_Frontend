@@ -21,10 +21,12 @@ import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCusto
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
 import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
-import EstadoSolicitud from "../../helpers/EstadoSolicitud";
 
 //const initialObject = { value: 0, label: "" };
-
+const seccionalSinAsignar = [{
+  value: 99999,
+  label: "Sin Asignar"
+}]
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -814,8 +816,9 @@ const AfiliadoAgregar = (props) => {
               label: `${seccional.codigo} ${seccional.descripcion}`,
             };
           });
-        //console.log("seccionalesSelect", seccionalesSelect);
-        setSeccionales(seccionalesSelect);
+        console.log("seccionalesSelect", seccionalesSelect);
+        console.log("seccionalSinAsignar", seccionalSinAsignar);
+        setSeccionales(seccionalesSelect.length > 0 ? seccionalesSelect : seccionalSinAsignar);
       };
 
       request(
@@ -1468,6 +1471,7 @@ const AfiliadoAgregar = (props) => {
         setLocalidad(value);
         dispatchLocalidad({ type: "USER_INPUT", value: value });
         break;
+
       case "estadoSolicitudSelect":
         setEstadoSolicitud(value);
         break;
@@ -1588,7 +1592,7 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
-  //#region //Handle tab change
+  //#region Handle tab change
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);
   };
@@ -1627,7 +1631,7 @@ const AfiliadoAgregar = (props) => {
           : "Alta de Nuevo Afiliado a UATRE"}
       </h5>
       <h6 className={classes.titulo}>
-        {afiliadoExiste ? `Estado Solciitud del Afiliado: ${estadoSolicitudDescripcion}` : null}
+        {afiliadoExiste ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}` : null}
       </h6>
       <div className={classes.div}>
         <Tabs
