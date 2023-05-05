@@ -186,11 +186,24 @@ const Handler = () => {
 							100
 					) / 100;
 			} else {
-				newLiqList = [...newLiqList, liqCalc];
+				//ToDo: Traer Id de Liquidacion según empresaEstablecimientoId, liquidacionTipoPagoId, periodo, tipoLiquidacion y refMotivoBajaId = 0
+				// En caso de no existir, asignar 0 para indicar que no existe liquidacion.
+				// Ya que al momento de confirmar, de exisistir liquidacion,
+				// debe consultar si realizar la baja de la liquidacion anterior o cancelar
+				newLiqList.push(liqCalc);
 			}
 		});
-
+		console.log("newLiqList", newLiqList);
 		return setLiqList({ data: newLiqList });
+	};
+
+	const handleDDJJFormOnChange = (record) => {
+		if (!ddjjList.data) return;
+		const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
+		if (recordIx < 0) return;
+		ddjjList.data[recordIx] = record;
+		calcLiqListDesdeDDJJList();
+		setDDJJ(record);
 	};
 
 	let currentTabContent;
@@ -213,14 +226,7 @@ const Handler = () => {
 							config={{
 								data: ddjj,
 								establecimientos: establecimientos.data,
-								onChange: (v) => {
-									if (!ddjjList.data) return;
-									const vIx = ddjjList.data.findIndex((r) => r.cuil === v.cuil);
-									if (vIx < 0) return;
-									ddjjList.data[vIx] = v;
-									calcLiqListDesdeDDJJList();
-									setDDJJ(v);
-								},
+								onChange: handleDDJJFormOnChange,
 							}}
 						/>
 					</Grid>
