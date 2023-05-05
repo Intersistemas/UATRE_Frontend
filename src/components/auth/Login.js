@@ -83,7 +83,6 @@ const Login = () => {
 	},processLogIn);
   }
 
-
   const submitHandler = (event) => {
 	  event.preventDefault();
 	  //props.onLogin(enteredCUIT, enteredPassword);

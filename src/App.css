@@ -48,7 +48,7 @@
   grid-template-rows: max-content;
 }
 
-.container div{
+.container > div{
     width: 100%;
     align-self: flex-start;
 }
@@ -60,22 +60,6 @@
 .page-link{
   padding: 0.1rem 0.5rem !important;
 }
-
-/*
-.container{
-  container-type: inline-size;
-  /*backgroundImage: `url(${backgroundImage})`,
-  background-position: 'center';
-  background-size: 'cover';
-  background-repeat: 'no-repeat';
-  width: '100vw';
-  height: '100vh';
-
-  display: flex;
-  justify-content: center;
-  padding: 0 !important;
-  /*max-width: 100%;*
-}*/
 
 @media (max-width: 2570px) {
   .container {
@@ -101,38 +85,9 @@
   }
 }
 
-
 .container:before {
   opacity: 0.5;
   max-width: 100%;
-}
-
-.titulo2{
-  font-family: fantasy;
-  text-transform: uppercase;
-  align-self: flex-start;
-  width: 100%;
-  color: white;
-  background-color: var(--color3);
-  /*border-radius: 20px;*/
-  padding: 2% 0% 2% 0%;
-  text-shadow: 3px 3px 5px var(--color1);
-}
-
-.titulo1 {
-  background-size: 50%, cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-image: url(https://www.uatre.org.ar/assets/images/historia/sun.png), url(./media/uatre_banderas4.png);
-  font-family: fantasy;
-  text-transform: uppercase;
-  align-self: flex-start;
-  width: 100%;
-  color: var(--color1);
-  background-color: var(--color3);
-  /*border-radius: 20px;*/
-  padding: 2% 0% 1% 0%;
-  text-shadow: 3px 3px 5px white;
 }
 
 .titulo{
@@ -154,7 +109,7 @@
 
 .subtitulo {
 	  width: fit-content;
-    background-color: rgb(255 255 255 / 90%);
+    /*background-color: rgb(255 255 255 / 90%);*/
     margin: 0%;
 	  text-align: left;
     color: #186090;
