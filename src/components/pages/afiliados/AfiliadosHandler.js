@@ -24,6 +24,7 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
+  const [accionSeleccionada, setAccionSeleccionada] = useState("") 
   const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
@@ -37,7 +38,7 @@ const AfiliadosHandler = () => {
         id: 2,
         name: "Modifica Afiliado",
         icon: '',
-        disabled: false,
+        disabled: true,
       },
       {
         id: 3,
@@ -189,18 +190,19 @@ const {id} = 0;
     switch (moduloAccion){
       case "Agregar Afiliado":
         setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Agregar")
         break;
       case "Modifica Afiliado":
         setAfiliadoAgregarShow(true);
-
+        setAccionSeleccionada("Modificar");
         break;
       case "Resuelve Solicitud":
-        alert('Funcionalidad de Resolver En desarrollo ');
+        setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Resolver");
         break;
       case "Imprime Carnet de Afiliacón":
         navigate(`/afiliaciones/${id}`);
         break;
-
       case "Consulta Afiliado":
         alert('Funcionalidad de Consulta En desarrollo ');
         break;
@@ -276,8 +278,8 @@ const {id} = 0;
             <AfiliadoAgregar
               onClose={onCloseAfiliadoAgregarHandler}
               estadosSolicitudes={estadosSolicitudes}
-              accion={moduloAccion}
-              cuil={afiliadoSeleccionado}
+              accion={accionSeleccionada}
+              cuil={afiliadoSeleccionado.cuil}
             />
           )}
 
