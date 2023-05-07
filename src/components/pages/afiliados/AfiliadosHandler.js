@@ -78,7 +78,6 @@ useEffect(() => {
   switch (afiliadoSeleccionado?.estadoSolicitud){
     
     case "Observado":
-      
         const  accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
         (accion.id === 2) ? {...accion, disabled: false} : accion);
         setModuloInfo({...moduloInfo, acciones:accionesAux0});
