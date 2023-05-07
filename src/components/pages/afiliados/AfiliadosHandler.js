@@ -77,7 +77,6 @@ useEffect(() => {
   switch (afiliadoSeleccionado?.estadoSolicitud){
     
     case "Observado":
-      
         const  accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
         (accion.id === 2) ? {...accion, disabled: false} : accion);
         setModuloInfo({...moduloInfo, acciones:accionesAux0});
@@ -199,7 +198,6 @@ const {id} = 0;
       case "Imprime Carnet de Afiliacón":
         navigate(`/afiliaciones/${id}`);
         break;
-
       case "Consulta Afiliado":
         alert('Funcionalidad de Consulta En desarrollo ');
         break;
