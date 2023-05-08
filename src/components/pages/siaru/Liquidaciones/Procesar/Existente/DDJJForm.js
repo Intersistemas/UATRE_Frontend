@@ -3,16 +3,19 @@ import styles from "./DDJJForm.module.css";
 import Grid from "../../../../../ui/Grid/Grid";
 import Select from "../../../../../ui/Select/Select";
 import Formato from "../../../../../helpers/Formato";
+import { TextField } from "@mui/material";
 
 const DDJJForm = ({ config }) => {
 	const data = config.data ?? {};
 	const establecimientos = [{ id: 0, nombre: "Sin establecimiento" }];
-	config.establecimientos?.forEach(est => establecimientos.push(est));
+	config.establecimientos?.forEach((est) => establecimientos.push(est));
 	const onChange = config.onChange ?? ((r) => {});
 	const condicionesRural = [
 		{ label: "Rural", value: "RU" },
 		{ label: "No Rural", value: "NR" },
 	];
+
+	const inputLabelStyles = { color: "#186090" };
 
 	return (
 		<Grid
@@ -28,24 +31,30 @@ const DDJJForm = ({ config }) => {
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<Grid block basis="051px" className={styles.label}>
-					CUIL:
-				</Grid>
-				<Grid block basis="300px" className={styles.data}>
-					{Formato.Cuit(data.cuil)}
-				</Grid>
-				<Grid block basis="110px" className={styles.label}>
-					Nombre:
-				</Grid>
-				<Grid grow className={styles.data}>
-					{data.nombre}
-				</Grid>
-				<Grid block basis="425px" className={styles.label}>
-					Remuneración imponible:
-				</Grid>
-				<Grid block basis="300px" className={styles.data}>
-					{Formato.Moneda(data.remuneracionImponible)}
-				</Grid>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="CUIL"
+					value={Formato.Cuit(data.cuil) ?? ""}
+					style={{ width: "10%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Nombre"
+					value={data.nombre ?? ""}
+					style={{ width: "80%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Remuneración imponible"
+					value={Formato.Moneda(data.remuneracionImponible) ?? ""}
+					style={{ width: "10%" }}
+				/>
 			</Grid>
 			<Grid full="width" gap="10px">
 				<Grid width="50%">

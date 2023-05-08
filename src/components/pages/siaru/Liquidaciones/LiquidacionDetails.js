@@ -28,8 +28,7 @@ const LiquidacionDetails = ({ config }) => {
 	const inputLabelStyles = { color: "#186090" };
 
 	let importeTotal;
-	if (data.interesImporte != null || data.interesNeto != null)
-	{
+	if (data.interesImporte != null || data.interesNeto != null) {
 		importeTotal = 0;
 		if (data.interesImporte != null) importeTotal += data.interesImporte;
 		if (data.interesNeto != null) importeTotal += data.interesNeto;
