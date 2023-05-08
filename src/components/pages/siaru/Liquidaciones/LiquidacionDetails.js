@@ -106,7 +106,7 @@ const LiquidacionDetails = ({ config }) => {
 				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-			<TextField
+				<TextField
 					InputLabelProps={{ style: inputLabelStyles }}
 					variant="standard"
 					size="small"
