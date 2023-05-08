@@ -30,7 +30,7 @@ const EmpresaDetails = ({ config }) => {
 					size="small"
 					label="Razon Social"
 					value={data.razonSocial ?? ""}
-					style={{ width: "75%" }}
+					style={{ width: "100%" }}
 				/>
 			</Grid>
 			<Grid full="width">
@@ -47,7 +47,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Calle"
 							value={data.domicilioCalle ?? ""}
-							style={{ width: "25%" }}
+							style={{ width: "100%" }}
 						/>
 						<TextField
 							InputLabelProps={{ style: inputLabelStyles }}
@@ -55,7 +55,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Nro"
 							value={data.domicilioNumero ?? ""}
-							style={{ width: "25%" }}
+							style={{ width: "100%" }}
 						/>
 						<TextField
 							InputLabelProps={{ style: inputLabelStyles }}
@@ -63,7 +63,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Piso"
 							value={data.domicilioPiso ?? ""}
-							style={{ width: "25%" }}
+							style={{ width: "100%" }}
 						/>
 						<TextField
 							InputLabelProps={{ style: inputLabelStyles }}
@@ -71,7 +71,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Dpto"
 							value={data.domicilioDpto ?? ""}
-							style={{ width: "25%" }}
+							style={{ width: "100%" }}
 						/>
 					</Grid>
 					<Grid full="width" gap="5px">
@@ -81,7 +81,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Provincia"
 							value={data.domicilioProvincia ?? ""}
-							style={{ width: "50%" }}
+							style={{ width: "100%" }}
 						/>
 						<TextField
 							InputLabelProps={{ style: inputLabelStyles }}
@@ -89,7 +89,7 @@ const EmpresaDetails = ({ config }) => {
 							size="small"
 							label="Localidad"
 							value={data.domicilioLocalidad ?? ""}
-							style={{ width: "50%" }}
+							style={{ width: "100%" }}
 						/>
 					</Grid>
 				</Grid>
