@@ -47,7 +47,7 @@ const AfiliadoDetails = (props) => {
 								Datos AFIP:
 							</Grid>
 						</Grid>
-						<Grid full="width" gap="5px">
+						<Grid full="width" justify="evenly">
 						<TextField variant="standard" size="small" label="CUIL"
 						InputLabelProps={{style: {color: '#186090' },}} value={data.afipcuil ?? ""} />
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={data.afipTipoDocumento ?? ""} /*{data.afipNumeroDocumento ?? ""}*/ />
@@ -58,7 +58,7 @@ const AfiliadoDetails = (props) => {
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? ""}/>
 						</Grid>
 
-						<Grid full="width" gap="5px">
+						<Grid full="width" justify="evenly">
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? ""}/>
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? ""}/>	
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={data.afipDomicilioLocalidad ?? ""}/>

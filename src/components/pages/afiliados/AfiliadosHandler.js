@@ -23,7 +23,8 @@ const AfiliadosHandler = () => {
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState();
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
+  const [accionSeleccionada, setAccionSeleccionada] = useState("") 
   const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
@@ -35,19 +36,25 @@ const AfiliadosHandler = () => {
       },
       {
         id: 2,
-        name: "Modificar Afiliado",
+        name: "Modifica Afiliado",
         icon: '',
         disabled: true,
       },
       {
         id: 3,
-        name: "Resolver Solicitud",
+        name: "Resuelve Solicitud",
         icon: '',
         disabled: true,
       },
       {
         id: 4,
-        name: "Imprimir Solicitud",
+        name: "Imprime Carnet de Afiliación",
+        icon: '',
+        disabled: true,
+      },
+      {
+        id: 5,
+        name: "Consulta Afiliado",
         icon: '',
         disabled: true,
       }
@@ -71,14 +78,13 @@ useEffect(() => {
   switch (afiliadoSeleccionado?.estadoSolicitud){
     
     case "Observado":
-      
         const  accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
         (accion.id === 2) ? {...accion, disabled: false} : accion);
         setModuloInfo({...moduloInfo, acciones:accionesAux0});
         break;
     case "Activo":
         const  accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
-        (accion.id === 4) ? {...accion, disabled: false} : accion);
+        (accion.id === 4 || accion.id === 5) ? {...accion, disabled: false} : accion);
         setModuloInfo({...moduloInfo, acciones:accionesAux1});
         break;
     case "Pendiente":
@@ -87,6 +93,12 @@ useEffect(() => {
         accion.id === 2 || accion.id === 3 ? {...accion, disabled: false} : accion);
         setModuloInfo({...moduloInfo, acciones:accionesAux2});
         break;
+    case "Baja":
+          setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+            const  accionesAux3 = moduloInfoDefoult.acciones.map((accion) =>
+            accion.id === 5 ? {...accion, disabled: false} : accion);
+            setModuloInfo({...moduloInfo, acciones:accionesAux3});
+            break;
     default: 
     setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
     break;
@@ -177,20 +189,25 @@ const {id} = 0;
     switch (moduloAccion){
       case "Agregar Afiliado":
         setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Agregar")
         break;
-      case "Modificar Afiliado":
-        alert('Funcionalidad de Modificar En desarrollo ');
+      case "Modifica Afiliado":
+        setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Modificar");
         break;
-      case "Resolver Solicitud":
-        alert('Funcionalidad de Modificar En desarrollo ');
+      case "Resuelve Solicitud":
+        setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Resolver");
         break;
-      case "Imprimir Solicitud":
-        navigate(`/afiliaciones/${id}`)
-        
+      case "Imprime Carnet de Afiliacón":
+        navigate(`/afiliaciones/${id}`);
+        break;
+      case "Consulta Afiliado":
+        alert('Funcionalidad de Consulta En desarrollo ');
+        break;
         // alert('Funcionalidad de Imprimir En desarrollo ');
         // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
-        
-        break;
+
       default: break;
     }
       dispatch(handleModuloEjecutarAccion(''));//Dejo el estado de ejecutar Accion LIMPIO!
@@ -202,7 +219,6 @@ const {id} = 0;
     alert("Funcionalidad en desarrollo");
   };
  
-
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
     if (refresh === true) setRefresh(true);
@@ -242,6 +258,11 @@ const {id} = 0;
     setEstadoSolcitud(parseInt(filters.estadoSolicitud.filterVal) ?? 0);
   };
 
+  const handleOnAfiliadoSeleccionado = (afiliado) => {
+    //console.log("Afiliado seleccionado", afiliado)
+    setAfiliadoSeleccionado(afiliado);
+  }
+
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
@@ -256,6 +277,8 @@ const {id} = 0;
             <AfiliadoAgregar
               onClose={onCloseAfiliadoAgregarHandler}
               estadosSolicitudes={estadosSolicitudes}
+              accion={accionSeleccionada}
+              cuil={afiliadoSeleccionado.cuil}
             />
           )}
 
@@ -270,7 +293,7 @@ const {id} = 0;
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
             onFilterChange={handleFilterChange}
-            setAfiliadoSeleccionado={setAfiliadoSeleccionado}
+            onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
           />
       
       </Fragment>

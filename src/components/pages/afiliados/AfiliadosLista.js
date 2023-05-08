@@ -311,7 +311,7 @@ const AfiliadosLista = (props) => {
      case 0:
         //setRowSelectedIndex(null);
         setAfiliadoSeleccionado(row);
-        props.setAfiliadoSeleccionado(row);
+        props.onAfiliadoSeleccionado(row);
         break;
      case 1:
           console.log('DDJJ Seleccionada:',row)
@@ -405,23 +405,24 @@ const AfiliadosLista = (props) => {
       rowSelectedIndex: rowSelectedIndex,
   }
 
-  const tablePropsVacia = {
-      promptBuscar:"Buscar en Afiliados:",
-      keyField: "nroAfiliado",
-      data: [],
-      columns: columnsVacia,
-      noDataIndication: <h4>No se registran Declaraciones Juradas del Afiliado: </h4>,
-      filter: filterFactory(),
-  }
 
-  const tablePropsVacia2 = {
+  const tablePropsVacia0 = {
     promptBuscar:"Buscar en Afiliados:",
     keyField: "nroAfiliado",
     data: [],
     columns: columnsVacia,
-    noDataIndication: <h4>No se registran Cambios en el Afiliado: </h4>,
+    noDataIndication: <h4>No se registran Documentos del Afiliado: </h4>,
     filter: filterFactory(),
 }
+
+  const tablePropsVacia1 = {
+      promptBuscar:"Buscar en Afiliados:",
+      keyField: "nroAfiliado",
+      data: [],
+      columns: columnsVacia,
+      noDataIndication: <h4>No se registran Cambios en el Afiliado: </h4>,
+      filter: filterFactory(),
+  }
 
   return (
     <> 
@@ -486,11 +487,11 @@ const AfiliadosLista = (props) => {
           )}
           {selectedTab === 2 && (
             
-            <Table  {...tablePropsVacia}/>
+            <Table  {...tablePropsVacia0}/>
           )}
 
           {selectedTab === 3 && (
-            <Table  {...tablePropsVacia2}/>
+            <Table  {...tablePropsVacia1}/>
           )}
 
           {selectedTab === 4 && (
