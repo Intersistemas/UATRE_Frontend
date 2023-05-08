@@ -27,6 +27,15 @@ const LiquidacionDetails = ({ config }) => {
 	}
 	const inputLabelStyles = { color: "#186090" };
 
+	let importeTotal;
+	if (data.interesImporte != null || data.interesNeto != null)
+	{
+		importeTotal = 0;
+		if (data.interesImporte != null) importeTotal += data.interesImporte;
+		if (data.interesNeto != null) importeTotal += data.interesNeto;
+		importeTotal = Math.round((importeTotal + Number.EPSILON) * 100) / 100;
+	}
+
 	return (
 		<Grid
 			className={`${styles.fondo} ${styles.grupo}`}
@@ -143,7 +152,7 @@ const LiquidacionDetails = ({ config }) => {
 					variant="standard"
 					size="small"
 					label="Total a pagar"
-					value={Formato.Moneda(data.interesNeto + data.interesImporte) ?? ""}
+					value={Formato.Moneda(importeTotal) ?? ""}
 					style={{ width: "100%" }}
 				/>
 				<TextField
