@@ -48,24 +48,24 @@ const AfiliadoDetails = (props) => {
 							</Grid>
 						</Grid>
 						<Grid full="width" justify="evenly">
-						<TextField variant="standard" size="small" label="CUIL"
-						InputLabelProps={{style: {color: '#186090' },}} value={data.afipcuil ?? ""} />
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={data.afipTipoDocumento ?? ""} /*{data.afipNumeroDocumento ?? ""}*/ />
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Nombre Real" value={data.afipApellido ?? ""} /*{data.afipNombre ?? ""} */ />
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo Clave" value={data.afipTipoClave ?? ""} />	
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Estado Clave" value={data.afipEstadoClave ?? ""} />							
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Fecha Fallecimiento" value={data.afipFechaFallecimiento ?? ""} />
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? ""}/>
+						<	TextField variant="standard" size="small" label="CUIL"
+						InputLabelProps={{style: {color: '#186090' },}} value={data.afipcuil ?? " "} />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={data.afipTipoDocumento ?? " "} /*{data.afipNumeroDocumento ?? " "}*/ />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Nombre Real" value={data.afipApellido ?? " "} /*{data.afipNombre ?? " "} */ />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo Clave" value={data.afipTipoClave ?? " "} />	
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Estado Clave" value={data.afipEstadoClave ?? " "} />							
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Fecha Fallecimiento" value={data.afipFechaFallecimiento ?? " "} />
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? " "}/>
 						</Grid>
 
 						<Grid full="width" justify="evenly">
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? ""}/>
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? ""}/>	
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={data.afipDomicilioLocalidad ?? ""}/>
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo Postal" value={data.afipDomicilioCodigoPostal ?? ""}/>
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Povincia" value={data.afipDomicilioProvincia ?? ""}/>
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Adicional" value={data.afipDomicilioDatoAdicional ?? ""}/>
-  							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Tipo Adicional" value={data.afipDomicilioTipoDatoAdicional ?? ""}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? " "}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? " "}/>	
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={data.afipDomicilioLocalidad ?? " "}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo Postal" value={data.afipDomicilioCodigoPostal ?? " "}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Povincia" value={data.afipDomicilioProvincia ?? " "}/>
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Adicional" value={data.afipDomicilioDatoAdicional ?? " "}/>
+  							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Domicilio Tipo Adicional" value={data.afipDomicilioTipoDatoAdicional ?? " "}/>
 						</Grid>
 					</Grid>
 				</Grid>
@@ -90,38 +90,38 @@ const AfiliadoDetails = (props) => {
 					  </Grid>
 				  </Grid>
 
-				  <Grid full="width" gap="5px">
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={empresa.cuit ?? ""} />
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? ""} />
+				  <Grid full="width" justify="evenly">
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={empresa.cuit ?? " "} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={empresa.localidad ?? "Descripcion Localidad"}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Provincia" value={empresa.provincia ?? "Descripcion provincia"}/>	
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? "Descripcion CIIU1"}/>							
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU2Descripcion ?? "Descripcion CIIU1"}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU3Descripcion ?? "Descripcion CIIU1"}/>
-					</Grid>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación Rural" value={ddjj.condicionRural ?? " "}/>
+				 	</Grid>
   
 
-					<Grid full="width" gap="5px">
+					<Grid full="width" justify="evenly">
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Código de Zona" value={ddjj.zona ?? " "}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Zona" value={ddjj.zona ?? ""} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Zona" value={ddjj.zona ?? " "} />
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>	
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Código de Actividad" value={ddjj.actividad ?? " "}/>							
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad" value={ddjj.actividad ?? " "}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Condición de CUIL" value={ddjj.cuilCondicion ?? ""}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? ""}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
 					</Grid>
 
-					<Grid full="width" gap="5px">
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? ""}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación de CUIL" value={""} />
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo de Siniestro" value={" "}/>
+					<Grid full="width" justify="evenly">
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación de CUIL" value={" "} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Codigo de Siniestro" value={ddjj.siniestroCod ?? " "}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Siniestro" value={" "}/>	
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Reducción" value={ " "}/>							
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Reducción" value={ddjj.reduccion?? " "}/>							
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Importes" value={" "}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Cantidad Hs Extras" value={ddjj.hsExtrasCantidad ?? " "}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dias Trabajados" value={" "}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación Rural" value={" "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dias Trabajados" value={ddjj.diasTrabajados ?? " "}/>
 					</Grid>
 			  </Grid>
 		  </Grid>
