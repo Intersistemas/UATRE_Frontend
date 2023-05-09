@@ -6,10 +6,14 @@ import Table from "../../../ui/Table/Table";
 const EmpresasList = ({config}) => {
 	const data = config.data ? [...config.data] : [];
 	const pagination = { ...config.pagination };
-	const onSelect = config.onSelect ?? ((registro) => {});
+	//const onSelect = config.onSelect ?? ((registro) => {});
 	const onPaginationChange =
 		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
 
+		const handlerOnSelect = (registro) => {
+			console.log("registro", registro)
+			config.onSelect(registro)
+		}
 	const cs = {
 		overflow: "hidden",
 		textOverflow: "ellipsis",
@@ -58,7 +62,7 @@ const EmpresasList = ({config}) => {
 			columns={columns}
 			pagination={bootstrapPagination}
 			noDataIndication={config.noData}
-			onSelected={onSelect}
+			onSelected={handlerOnSelect}
 		/>
 	);
 };

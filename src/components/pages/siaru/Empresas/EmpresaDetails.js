@@ -5,7 +5,7 @@ import styles from "./EmpresaDetails.module.css";
 
 const EmpresaDetails = ({config}) => {
 	const data = config.data ?? {};
-
+	console.log("config.data", config.data);
 	return (
 		<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 			<Grid full="width">
@@ -18,7 +18,7 @@ const EmpresaDetails = ({config}) => {
 					CUIT:
 				</Grid>
 				<Grid block basis="125px" className={styles.data}>
-					{Formato.Cuit(data.cuit)}
+					{Formato.Cuit(data.cuitEmpresa)}
 				</Grid>
 				<Grid block basis="110px" className={styles.label}>
 					Razon Social:
