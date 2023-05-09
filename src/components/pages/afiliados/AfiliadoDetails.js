@@ -49,15 +49,15 @@ const AfiliadoDetails = (props) => {
 						</Grid>
 						<Grid full="width" justify="evenly">
 						<	TextField variant="standard" size="small" label="CUIL"
-						InputLabelProps={{style: {color: '#186090' },}} value={data.afipcuil ?? " "} />
-							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={data.afipTipoDocumento ?? " "} /*{data.afipNumeroDocumento ?? " "}*/ />
+						InputLabelProps={{style: {color: '#186090' },}} value={Formato.Cuit(data.afipcuil) ?? " "} /> 													
+							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo y Nro. Documento" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? " "}`}/*{data.afipNumeroDocumento ?? " "}*/ />
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Nombre Real" value={data.afipApellido ?? " "} /*{data.afipNombre ?? " "} */ />
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Tipo Clave" value={data.afipTipoClave ?? " "} />	
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Estado Clave" value={data.afipEstadoClave ?? " "} />							
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Fecha Fallecimiento" value={data.afipFechaFallecimiento ?? " "} />
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? " "}/>
 						</Grid>
-
+						
 						<Grid full="width" justify="evenly">
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? " "}/>
 							<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? " "}/>	
@@ -91,7 +91,7 @@ const AfiliadoDetails = (props) => {
 				  </Grid>
 
 				  <Grid full="width" justify="evenly">
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={empresa.cuit ?? " "} />
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={Formato.Cuit(empresa.cuit) ?? " "} />
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={empresa.localidad ?? "Descripcion Localidad"}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Provincia" value={empresa.provincia ?? "Descripcion provincia"}/>	
