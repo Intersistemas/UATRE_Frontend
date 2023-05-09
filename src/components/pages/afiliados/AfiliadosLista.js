@@ -54,11 +54,22 @@ const AfiliadosLista = (props) => {
       alignItems: 'flex-end',
     },
   });
+  
+  
 
   const handleSelectFilter = (select,entry) => {
-    console.log('evento: ',select,entry)
+    console.log('evento: ',select,entry);
     //BUSQUEDA Y FILTRO
-    props.onSearch(select,entry);
+   
+    switch (select){
+      case 'CUIT':
+        fetchEmpresa(entry);
+        props.onSearch("EmpresaId",empresaSeleccionada.id)
+        break;
+      default: props.onSearch(select,entry);
+      break;
+    }
+  
     //setSelectFilter(event.target.value);
 
   };
@@ -72,12 +83,12 @@ const AfiliadosLista = (props) => {
   };
 
 
-  const defaultSorted = [
+  /*const defaultSorted = [
     {
       dataField: "nroAfiliado",
       order: "asc"
     }
-  ];
+  ];*/
 
   const columns = [
     {
@@ -88,9 +99,6 @@ const AfiliadosLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "6%", textAlign: "center" };
       },
-      /*headerEvents: {
-        onClick: (e, column, columnIndex) => console.log('e, column, columnIndex',e, column, columnIndex)
-      }*/
     },
     {
       headerTitle: true,
@@ -98,7 +106,7 @@ const AfiliadosLista = (props) => {
       text: "CUIL",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "11%", textAlign: "center" };
+        return { width: "12%", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
@@ -108,7 +116,7 @@ const AfiliadosLista = (props) => {
       text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
       formatter: Formato.DNI,
     },
@@ -201,7 +209,7 @@ const AfiliadosLista = (props) => {
       headerTitle: true,
       dataField: "seccional",
       text: "Seccional",
-      sort: true,
+      //sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "10%", textAlign: "center" };
       },
@@ -213,7 +221,7 @@ const AfiliadosLista = (props) => {
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
     },
 
@@ -224,7 +232,7 @@ const AfiliadosLista = (props) => {
       sort: true,
       formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "9%", textAlign: "center" };
       },
     },
 
@@ -232,35 +240,35 @@ const AfiliadosLista = (props) => {
       headerTitle: true,
       dataField: "puesto",
       text: "Puesto",
-      sort: true,
+      //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
+        return { width: "7%", textAlign: "center" };
       },
     },
     {
       headerTitle: true,
       dataField: "empresaCUIT",
       text: "CUIT",
-      sort: true,
+      //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "11%", textAlign: "center" };
+        return { width: "12%", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
     {
       headerTitle: true,
-      dataField: "empresa",
+      dataField: "empresaDescripcion",
       text: "Empresa",
-      sort: true,
+      //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "15%", textAlign: "center" };
+        return { width: "12%", textAlign: "center" };
       },
     },
     {
       headerTitle: true,
       dataField: "actividad",
       text: "Actividad",
-      sort: true,
+      //sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "10%", textAlign: "center" };
       },
@@ -268,12 +276,6 @@ const AfiliadosLista = (props) => {
     
   ];
   
-  /*const selectores = columns.map((items)=>(
-    {
-      dataField:items.dataField,
-      text: items.text
-    }
-  ));*/
 
   const selectores = [
     {
@@ -291,7 +293,25 @@ const AfiliadosLista = (props) => {
     {
       dataField: "Nombre",
       text:"Nombre"
-    }
+    },
+    {
+      dataField: "CUIT",
+      text:"CUIT Empresa"
+    },
+    {
+      dataField: "Seccional.Descripcion",
+      text:"Seccional"
+    },
+    {
+      dataField: "FechaIngreso",
+      text:"Fecha Ingreso"
+    },
+    {
+      dataField: "FechaEgreso",
+      text:"Fecha Egreso"
+    },
+
+    
 
   ]
 
@@ -306,7 +326,7 @@ const AfiliadosLista = (props) => {
   
   const rowEvents  = (row) => {
   console.log('Afiliado_Seleccionado**:',row);
-  setRowSelectedIndex([row.nroAfiliado]);
+  setRowSelectedIndex([row.id]);
    switch(selectedTab){
      case 0:
         //setRowSelectedIndex(null);
@@ -326,7 +346,7 @@ const AfiliadosLista = (props) => {
 };
 
   const fetchEmpresa = (cuit) => {
-    console.log('cuit',cuit)
+    console.log('fetchEmpresa:',cuit)
 		if ((cuit ?? 0) == 0) {
 			setEmpresaSeleccionada(null);
 			return;
@@ -338,7 +358,7 @@ const AfiliadosLista = (props) => {
 				method: "GET",
 			},
 			async (response) => {
-      console.log('response_empresa:',response)
+      console.log('GetEmpresa',response);
       setEmpresaSeleccionada(response)}
 			
 		);
@@ -392,7 +412,7 @@ const AfiliadosLista = (props) => {
       accionBuscar: handleSelectFilter,
       //defaultSorted: defaultSorted,
       remote: true,
-      keyField: "nroAfiliado",
+      keyField: "id",
       loading: props.loading,
       data: afiliados.data,
       columns: columns,
@@ -411,7 +431,7 @@ const AfiliadosLista = (props) => {
     keyField: "nroAfiliado",
     data: [],
     columns: columnsVacia,
-    noDataIndication: <h4>No se registran Documentos del Afiliado: </h4>,
+    noDataIndication: <h4>No existe documentación relacionada al Afiliado seleccionado.</h4>,
     filter: filterFactory(),
 }
 
@@ -420,7 +440,7 @@ const AfiliadosLista = (props) => {
       keyField: "nroAfiliado",
       data: [],
       columns: columnsVacia,
-      noDataIndication: <h4>No se registran Cambios en el Afiliado: </h4>,
+      noDataIndication: <h4>No se registran cambios de datos en el Afiliado seleccionado.</h4>,
       filter: filterFactory(),
   }
 
