@@ -5,11 +5,11 @@ import Formato from "../../helpers/Formato";
 import EmpresaDetails from "./Empresas/EmpresaDetails";
 import EmpresasList from "./Empresas/EmpresasList";
 import styles from "./SiaruHandler.module.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
+  handleModuloEjecutarAccion,
+  handleModuloSeleccionar,
 } from "../../../redux/actions";
 import AuthContext from "../../../store/authContext";
 
@@ -17,21 +17,23 @@ const SiaruHandler = (props) => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { sendRequest: request } = useHttp();
-	const authContext = useContext(AuthContext);
+	//const authContext = useContext(AuthContext);
 
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
-	useEffect(() => {
-		if (authContext.usuario?.empresas) {
-			setEmpresaList({ data: authContext.usuario?.empresas });
-		}
-	}, []);
+  const location = useLocation();
+
+  useEffect(() => {    
+    if (location.state.empresas?.length) {
+      setEmpresaList({ data: location.state.empresas });
+    }
+  }, [location.state.empresas]);
 	//#endregion
 
 	//#region declaración y carga de detalles de empresa
-	const [empresa, setEmpresa] = useState({ loading: true });
-	useEffect(() => {
+	//const [empresa, setEmpresa] = useState({ loading: true });
+	/*useEffect(() => {
 		if (!empresaRecord?.cuitEmpresa) {
 			setEmpresa({});
 			return;
@@ -45,18 +47,18 @@ const SiaruHandler = (props) => {
 			async (res) => setEmpresa({ data: res }),
 			async (err) => setEmpresa({ error: err })
 		);
-	}, [empresaRecord, request]);
+	}, [empresaRecord, request]);*/
 	//#endregion
 
 	//#region despachar Informar Modulo
-	const descEmpresa = empresa.data
-		? `${Formato.Cuit(empresa.data.cuit)} - ${empresa.data.razonSocial}`
+	const descEmpresa = empresaRecord
+		? `${Formato.Cuit(empresaRecord.cuitEmpresa)} - ${empresaRecord.razonSocial}`
 		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
 	};
-	if (empresa.data) {
+	if (empresaRecord) {
 		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
 		moduloInfo.acciones.push({ name: `Liquidaciones de ${descEmpresa}` });
 	}
@@ -67,17 +69,17 @@ const SiaruHandler = (props) => {
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
 				navigate("/siaru/establecimientos", {
-					state: { empresa: empresa.data },
+					state: { empresa: empresaRecord },
 				});
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa.data } });
+				navigate("/siaru/liquidaciones", { state: { empresa: empresaRecord } });
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descEmpresa, empresa.data, navigate, dispatch]);
+	}, [moduloAccion, descEmpresa, empresaRecord, navigate, dispatch]);
 	//#endregion
 
 	return (
@@ -119,7 +121,7 @@ const SiaruHandler = (props) => {
 							/>
 						</Grid>
 						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							<EmpresaDetails config={{ data: empresa.data }} />
+							 <EmpresaDetails config={{ data: empresaRecord }} />
 						</Grid>
 					</Grid>
 				</Grid>
