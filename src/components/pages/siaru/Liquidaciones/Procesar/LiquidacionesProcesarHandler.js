@@ -183,7 +183,7 @@ const LiquidacionesProcesarHandler = () => {
 									<DateTimePicker
 										type="month"
 										label="Ingrese período a liquidar"
-										value={periodoNuevo}
+										value={Formato.Mascara(periodoNuevo, "####-##-01") ?? ""}
 										disableFuture
 										minDate="1994-01-01"
 										maxDate={dayjs().format("YYYY-MM-DD")}
