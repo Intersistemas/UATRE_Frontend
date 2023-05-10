@@ -20,7 +20,6 @@ const TableRemote = (props) => {
 
   const [selectValue, setSelectValue] = React.useState('');
   const [entryValue, setEntryValue] = React.useState('');
-console.log('**propsIndex**',props.rowSelectedIndex)
   
   const selectRow = {
     mode: "radio",
@@ -88,8 +87,10 @@ console.log('**propsIndex**',props.rowSelectedIndex)
           </Select>
         </FormControl>
         <TextField 
-        fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}
-
+        fullWidth id="outlined-basic" label={selectValue?.text?.includes('Fecha') ? '':`Ingrese ${selectValue.text ?? ''}`} 
+        variant="outlined"  onChange={handleChangeSearchEntry}
+        type={selectValue?.text?.includes('Fecha') ? 'date':'text'}
+        
         onKeyPress={(ev) => {
           
           if (ev.key === 'Enter' && entryValue) {
@@ -109,7 +110,7 @@ console.log('**propsIndex**',props.rowSelectedIndex)
               width={80}
               onClick={()=>props.accionBuscar(selectValue.dataField,entryValue)}
               disabled={!entryValue ?? true}
-        >BUSCAR</Button>
+        >Buscar</Button>
         <Button
               width={40}
               onClick={()=>accionLimpiarFiltros()}

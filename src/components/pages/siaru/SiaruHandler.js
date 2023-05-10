@@ -5,11 +5,11 @@ import Formato from "../../helpers/Formato";
 import EmpresaDetails from "./Empresas/EmpresaDetails";
 import EmpresasList from "./Empresas/EmpresasList";
 import styles from "./SiaruHandler.module.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
+  handleModuloEjecutarAccion,
+  handleModuloSeleccionar,
 } from "../../../redux/actions";
 import AuthContext from "../../../store/authContext";
 
@@ -22,11 +22,18 @@ const SiaruHandler = (props) => {
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
-	useEffect(() => {
-		if (authContext.usuario?.empresas) {
-			setEmpresaList({ data: authContext.usuario?.empresas });
-		}
-	}, []);
+  // const location = useLocation();
+
+  // useEffect(() => {    
+  //   if (location.state.empresas?.length) {
+  //     setEmpresaList({ data: location.state.empresas });
+  //   }
+  // }, [location.state.empresas]);
+  useEffect(() => {
+    if (authContext.usuario?.empresas) {
+      setEmpresaList({ data: authContext.usuario.empresas });
+    }
+  }, [authContext.usuario]);
 	//#endregion
 
 	//#region declaración y carga de detalles de empresa
@@ -50,7 +57,7 @@ const SiaruHandler = (props) => {
 
 	//#region despachar Informar Modulo
 	const descEmpresa = empresa.data
-		? `${Formato.Cuit(empresa.data.cuit)} - ${empresa.data.razonSocial}`
+		? `${Formato.Cuit(empresa.data.cuitEmpresa)} - ${empresa.data.razonSocial}`
 		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
@@ -71,7 +78,9 @@ const SiaruHandler = (props) => {
 				});
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa.data } });
+				navigate("/siaru/liquidaciones", {
+					state: { empresa: empresa.data },
+				});
 				break;
 			default:
 				break;
@@ -119,7 +128,7 @@ const SiaruHandler = (props) => {
 							/>
 						</Grid>
 						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							<EmpresaDetails config={{ data: empresa.data }} />
+							 <EmpresaDetails config={{ data: empresa.data }} />
 						</Grid>
 					</Grid>
 				</Grid>

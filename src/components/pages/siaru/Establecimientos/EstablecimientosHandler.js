@@ -125,7 +125,7 @@ const EstablecimientosHandler = (props) => {
 				<Grid col full>
 					<Grid full="width">
 						<h2 className="subtitulo">
-							Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
+							Establecimientos de {Formato.Cuit(empresa.cuitEmpresa)}{" "}
 							{empresa.razonSocial ?? ""}
 						</h2>
 					</Grid>

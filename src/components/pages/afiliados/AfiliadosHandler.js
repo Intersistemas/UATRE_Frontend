@@ -30,7 +30,7 @@ const AfiliadosHandler = () => {
     acciones: [
       {
         id: 1,
-        name: "Agregar Afiliado",
+        name: "Agrega Afiliado",
         icon: '',
         disabled: false,
       },
@@ -187,17 +187,17 @@ const {id} = 0;
     
     //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
     switch (moduloAccion){
-      case "Agregar Afiliado":
+      case "Agrega Afiliado":
         setAfiliadoAgregarShow(true);
-        setAccionSeleccionada("Agregar")
+        setAccionSeleccionada("Agrega")
         break;
       case "Modifica Afiliado":
         setAfiliadoAgregarShow(true);
-        setAccionSeleccionada("Modificar");
+        setAccionSeleccionada("Modifica");
         break;
       case "Resuelve Solicitud":
         setAfiliadoAgregarShow(true);
-        setAccionSeleccionada("Resolver");
+        setAccionSeleccionada("Resuelve");
         break;
       case "Imprime Carnet de Afiliacón":
         navigate(`/afiliaciones/${id}`);

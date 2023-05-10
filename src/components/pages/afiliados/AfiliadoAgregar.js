@@ -556,7 +556,7 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     console.log("props.cuil", props.cuil);
-    if (props.cuil > 0 && (props.accion === "Modificar" || props.accion === "Resolver")) {
+    if (props.cuil > 0 && (props.accion === "Modifica" || props.accion === "Resuelve")) {
       setCUIL(props.cuil);
       dispatchCUIL({ type: "USER_INPUT", value: props.cuil });
     }
@@ -645,13 +645,13 @@ const AfiliadoAgregar = (props) => {
           //console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
 
-          if (props.accion === "Resolver"){
+          if (props.accion === "Resuelve"){
             setSelectedTab(3)
           }          
         }
 
         //alert
-        if (props.accion === "Agregar") {
+        if (props.accion === "Agrega") {
           setShowAlert(true);
           setTextAlert(
             `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
@@ -1073,7 +1073,7 @@ const AfiliadoAgregar = (props) => {
       setSeverityAlert("error");
       return;
     }
-    if (props.accion === "Agregar") {
+    if (props.accion === "Agrega") {
       const empresa = {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
@@ -1238,7 +1238,7 @@ const AfiliadoAgregar = (props) => {
         afiliadoAgregar
       );
     }
-    else if (props.accion === "Modificar"){
+    else if (props.accion === "Modifica"){
       const afiliadoModificado = {
         id: nuevoAfiliadoResponse,
         cuil: +cuil,
@@ -1757,7 +1757,7 @@ const AfiliadoAgregar = (props) => {
   };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
-    if (props.accion === "Agregar") {
+    if (props.accion === "Agrega") {
       if (
         nuevoAfiliadoResponse ||
         afiliadoExiste ||
@@ -1767,12 +1767,12 @@ const AfiliadoAgregar = (props) => {
         return true;
       }
       return false;
-    } else if (props.accion === "Modificar") {
+    } else if (props.accion === "Modifica") {
       if (!cuilValidado || !cuitValidado) {
         return true;
       }
       return false;
-    } else if (props.accion === "Resolver") {
+    } else if (props.accion === "Resuelve") {
       return true;
     }
   };
@@ -1788,7 +1788,7 @@ const AfiliadoAgregar = (props) => {
         </div>
       </div>
       <h5 className={classes.titulo}>
-        {props.accion === "Modificar"
+        {props.accion === "Modifica"
           ? `Edición Afiliado a UATRE: ${cuil} ${nombre}`
           : afiliadoExiste
           ? `Edición/Consulta Afiliado a UATRE: ${cuil} ${nombre}`
@@ -2616,9 +2616,9 @@ const AfiliadoAgregar = (props) => {
             onClick={afiliadoAgregarHandler}
             disabled={AgregarModificarAfiliadoDisableHandler()}
           >
-            {props.accion === "Modificar"
-              ? `Modificar Afiliado`
-              : `Agregar Afiliado`}
+            {props.accion === "Modifica"
+              ? `Modifica Afiliado`
+              : `Agrega Afiliado`}
           </Button>
         </div>
         <div className={classes.boton}>

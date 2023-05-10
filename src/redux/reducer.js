@@ -1,4 +1,4 @@
-import { MODULO_SELECCIONAR, AFILIADO_SELECCIONAR,MODULO_EJECUTARACCION } from "./actionTypes";
+import { MODULO_SELECCIONAR, AFILIADO_SELECCIONAR,MODULO_EJECUTARACCION, USUARIO_LOGUEADO } from "./actionTypes";
 
 const initialState = {
   modulo: {},
@@ -24,6 +24,12 @@ const reducer = (state = initialState, action) => {
       ...state,
       moduloAccion: action.payload,
     };
+
+    case USUARIO_LOGUEADO:
+      return {
+        ...state,
+        usuarioLogueado: action.payload
+      }
 
     default:
       return state;
