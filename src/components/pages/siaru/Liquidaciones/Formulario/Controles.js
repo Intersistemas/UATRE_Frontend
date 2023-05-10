@@ -357,7 +357,7 @@ const Controles = ({
 						})
 					}
 					InputLabelProps={{ shrink: true }}
-					style={{ width: "25%" }}
+					style={{ width: `calc(25% - ${gap}px)` }}
 				/>
 			</Grid>
 			<Grid full="width">
