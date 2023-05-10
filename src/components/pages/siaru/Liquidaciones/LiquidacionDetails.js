@@ -3,6 +3,7 @@ import styles from "./LiquidacionDetails.module.css";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 
 const LiquidacionDetails = ({ config }) => {
 	const data = config.data ?? {};
@@ -24,8 +25,7 @@ const LiquidacionDetails = ({ config }) => {
 			.add(1, "month")
 			.format("YYYY-MM-DD");
 	}
-
-	console.log("data", data, "calc", calc);
+	const inputLabelStyles = { color: "#186090" };
 
 	return (
 		<Grid
@@ -40,119 +40,146 @@ const LiquidacionDetails = ({ config }) => {
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<Grid block basis="50px" className={styles.label}>
-					Fecha:
-				</Grid>
-				<Grid block basis="90px" className={styles.data}>
-					{Formato.Fecha(data.fecha)}
-				</Grid>
-				<Grid block basis="150px" className={styles.label}>
-					Tipo de liquidación:
-				</Grid>
-				<Grid block basis="55px" className={styles.data}>
-					{tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
-						?.descripcion ?? ""}
-				</Grid>
-				<Grid block basis="105px" className={styles.label}>
-					Tipo de pago:
-				</Grid>
-				<Grid block basis="65px" className={styles.data}>
-					{tiposPago.find((r) => r.codigo === data.liquidacionesTiposPagosId)
-						?.descripcion ?? ""}
-				</Grid>
-				<Grid block basis="130px" className={styles.label}>
-					Establecimiento:
-				</Grid>
-				<Grid basis="35px" className={styles.data} justify="end">
-					{data.empresasEstablecimientosId ?? ""}
-				</Grid>
-				<Grid grow className={styles.data}>
-					{data.empresasEstablecimientos_Nombre ?? ""}
-				</Grid>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Fecha"
+					value={Formato.Fecha(data.fecha) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Tipo de liquidación"
+					value={
+						tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
+							?.descripcion ?? ""
+					}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Tipo de pago"
+					value={
+						tiposPago.find((r) => r.codigo === data.liquidacionTipoPagoId)
+							?.descripcion ?? ""
+					}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Establecimiento"
+					value={`${data.empresaEstablecimientoId ?? ""} ${
+						data.empresaEstablecimiento_Nombre ?? ""
+					}`}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Periodo"
+					value={Formato.Periodo(data.periodo) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Fecha de Vencimiento"
+					value={Formato.Fecha(calc.vencimientoFecha) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Fecha de pago estimada"
+					value={Formato.Fecha(data.fechaPagoEstimada) ?? ""}
+					style={{ width: "100%" }}
+				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<Grid block basis="65px" className={styles.label}>
-					Periodo:
-				</Grid>
-				<Grid block basis="60px" className={styles.data}>
-					{Formato.Periodo(data.periodo)}
-				</Grid>
-				<Grid block basis="115px" className={styles.label}>
-					Fecha de Vto:
-				</Grid>
-				<Grid block basis="090px" className={styles.data}>
-					{Formato.Fecha(calc.vencimientoFecha)}
-				</Grid>
-				<Grid block basis="190px" className={styles.label}>
-					Fecha de pago estimada:
-				</Grid>
-				<Grid block basis="090px" className={styles.data}>
-					{Formato.Fecha(data.fechaPagoEstimada)}
-				</Grid>
+			<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Cantidad de trabajadores"
+					value={Formato.Entero(data.cantidadTrabajadores) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Total de remuneraciones"
+					value={Formato.Moneda(data.totalRemuneraciones) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Aporte"
+					value={Formato.Moneda(data.interesNeto) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Importe intereses"
+					value={Formato.Moneda(data.interesImporte) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Total a pagar"
+					value={Formato.Moneda(data.interesNeto + data.interesImporte) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Secuencia rectificacion"
+					value={Formato.Entero(data.rectificativa) ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Fecha de baja"
+					value={Formato.Fecha(data.bajaFecha) ?? ""}
+					style={{ width: "100%" }}
+				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<Grid block basis="195px" className={styles.label}>
-					Cantidad de trabajadores:
-				</Grid>
-				<Grid block basis="060px" className={styles.data}>
-					{Formato.Entero(data.cantidadTrabajadores)}
-				</Grid>
-				<Grid block basis="200px" className={styles.label}>
-					Total de remuneraciones:
-				</Grid>
-				<Grid block basis="110px" className={styles.data}>
-					{Formato.Moneda(data.totalRemuneraciones)}
-				</Grid>
-			</Grid>
-			<Grid full="width" gap="5px">
-				<Grid block basis="060px" className={styles.label}>
-					Aporte:
-				</Grid>
-				<Grid block basis="110px" className={styles.data}>
-					{Formato.Moneda(data.interesNeto)}
-				</Grid>
-				<Grid block basis="140px" className={styles.label}>
-					Importe intereses:
-				</Grid>
-				<Grid block basis="110px" className={styles.data}>
-					{Formato.Moneda(data.interesImporte)}
-				</Grid>
-				<Grid block basis="140px" className={styles.label}>
-					Total a pagar:
-				</Grid>
-				<Grid block basis="110px" className={styles.data}>
-					{Formato.Moneda(data.interesImporte)}
-				</Grid>
-			</Grid>
-			<Grid full="width" gap="5px">
-				<Grid block basis="175px" className={styles.label}>
-					Secuencia rectificaicon:
-				</Grid>
-				<Grid block basis="065px" className={styles.data}>
-					{Formato.Entero(data.rectificativa)}
-				</Grid>
-				<Grid block basis="110px" className={styles.label}>
-					Fecha de baja:
-				</Grid>
-				<Grid block basis="090px" className={styles.data}>
-					{Formato.Fecha(data.bajaFecha)}
-				</Grid>
-			</Grid>
-			<Grid full="width" gap="5px">
-				<Grid block basis="175px" className={styles.label}>
-					Motivo de baja:
-				</Grid>
-				<Grid grow className={styles.data}>
-					{data.refMotivosBaja_Descripcion}
-				</Grid>
-			</Grid>
-			<Grid full="width" gap="5px">
-				<Grid block basis="175px" className={styles.label}>
-					Observaciones de baja:
-				</Grid>
-				<Grid grow className={styles.data}>
-					{data.bajaObservaciones}
-				</Grid>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Motivo de baja"
+					value={data.refMotivoBaja_Descripcion ?? ""}
+					style={{ width: "100%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Observaciones de baja"
+					value={data.bajaObservaciones ?? ""}
+					style={{ width: "100%" }}
+				/>
 			</Grid>
 		</Grid>
 	);

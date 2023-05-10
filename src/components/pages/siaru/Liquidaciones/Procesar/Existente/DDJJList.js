@@ -12,14 +12,14 @@ const DDJJList = ({ config }) => {
 	};
 	const columns = [
 		{
-			dataField: "empresasEstablecimientosId",
+			dataField: "empresaEstablecimientoId",
 			text: "Estab. Nro.",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "150px" }),
 			style: { ...cs },
 		},
 		{
-			dataField: "empresasEstablecimientos_Nombre",
+			dataField: "empresaEstablecimiento_Nombre",
 			text: "Estab. nombre",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "250px" }),

@@ -12,7 +12,6 @@ import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion } from '../../redux/actions';
 
-
 const Sidebar = ({children}) => {
 
     const  moduloActual = useSelector(state => state.modulo)
@@ -38,8 +37,6 @@ const Sidebar = ({children}) => {
     ]
 
     useEffect(() => {
-                console.log('afiliadoSeleccionado',afiliadoSeleccionado);
-                console.log('moduloActual.acciones',moduloActual.acciones)
                 setBotones(moduloActual.acciones ?? '');
 
     },[moduloActual, afiliadoSeleccionado])

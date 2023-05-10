@@ -1,12 +1,3 @@
-.subtitulo {
-	font-size: larger;
-	text-align: left;
-}
-
-.subtitulo > span {
-	font-weight: bold;
-}
-
 .botones {
 	flex-direction: row;
 	display: flex;

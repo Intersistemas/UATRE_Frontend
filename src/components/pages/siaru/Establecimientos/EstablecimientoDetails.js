@@ -2,10 +2,12 @@ import React from "react";
 import styles from "./EstablecimientoDetails.module.css";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
+import { TextField } from "@mui/material";
 
 const EstablecimientoDetails = (props) => {
 	const config = props.config;
 	const data = config.data ?? {};
+	const inputLabelStyles = { color: "#186090" };
 
 	return (
 		<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
@@ -15,18 +17,22 @@ const EstablecimientoDetails = (props) => {
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<Grid block basis="110px" className={styles.label}>
-					Nro. Sucursal:
-				</Grid>
-				<Grid block basis="50px" className={styles.data}>
-					{Formato.Entero(data.nroSucursal)}
-				</Grid>
-				<Grid block basis="72px" className={styles.label}>
-					Nombre:
-				</Grid>
-				<Grid block basis="calc(100% - 232px)" className={styles.data}>
-					{data.nombre}
-				</Grid>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Nro. Sucursal"
+					value={Formato.Entero(data.nroSucursal) ?? ""}
+					style={{ width: "25%" }}
+				/>
+				<TextField
+					InputLabelProps={{ style: inputLabelStyles }}
+					variant="standard"
+					size="small"
+					label="Nombre"
+					value={data.nombre ?? ""}
+					style={{ width: "100%" }}
+				/>
 			</Grid>
 			<Grid full="width">
 				<Grid className={styles.grupo} col full>
@@ -36,50 +42,56 @@ const EstablecimientoDetails = (props) => {
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="5px">
-						<Grid block basis="055px" className={styles.label}>
-							Calle:
-						</Grid>
-						<Grid block basis="calc(100% - 286px)" className={styles.data}>
-							{data.domicilioCalle ?? ""}
-						</Grid>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Calle"
+							value={data.domicilioCalle ?? ""}
+							style={{ width: "100%" }}
+						/>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Nro"
+							value={data.domicilioNumero ?? ""}
+							style={{ width: "100%" }}
+						/>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Piso"
+							value={data.domicilioPiso ?? ""}
+							style={{ width: "100%" }}
+						/>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Dpto"
+							value={data.domicilioDpto ?? ""}
+							style={{ width: "100%" }}
+						/>
 					</Grid>
 					<Grid full="width" gap="5px">
-						<Grid block basis="055px" className={styles.label}>
-							Nro:
-						</Grid>
-						<Grid block basis="calc(100% - 055px)" className={styles.data}>
-							{data.domicilioNumero ? data.domicilioNumero : ""}
-						</Grid>
-					</Grid>
-					<Grid full="width" gap="5px">
-						<Grid block basis="055px" className={styles.label}>
-							Piso:
-						</Grid>
-						<Grid block basis="125px" className={styles.data}>
-							{data.domicilioPiso ?? ""}
-						</Grid>
-						<Grid block basis="055px" className={styles.label}>
-							Dpto:
-						</Grid>
-						<Grid block basis="calc(100% - 235px)" className={styles.data}>
-							{data.domicilioDpto ?? ""}
-						</Grid>
-					</Grid>
-					<Grid full="width" gap="5px">
-						<Grid block basis="095px" className={styles.label}>
-							Provincia:
-						</Grid>
-						<Grid block basis="calc(100% - 095px)" className={styles.data}>
-							{data.domicilioProvincia ?? ""}
-						</Grid>
-					</Grid>
-					<Grid full="width" gap="5px">
-						<Grid block basis="095px" className={styles.label}>
-							Localidad:
-						</Grid>
-						<Grid block basis="calc(100% - 095px)" className={styles.data}>
-							{data.domicilioProvincia ?? ""}
-						</Grid>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Provincia"
+							value={data.domicilioProvincia ?? ""}
+							style={{ width: "100%" }}
+						/>
+						<TextField
+							InputLabelProps={{ style: inputLabelStyles }}
+							variant="standard"
+							size="small"
+							label="Localidad"
+							value={data.domicilioLocalidad ?? ""}
+							style={{ width: "100%" }}
+						/>
 					</Grid>
 				</Grid>
 			</Grid>

@@ -35,8 +35,8 @@ const EstablecimientosHandler = (props) => {
 	const recargarEstablecimientos = (despliega = null) => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos/Paginado?EmpresasId=${empresaId}&Page=${pagination.index},${pagination.size}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}`,
 				method: "GET",
 			},
 			async (response) => {
@@ -56,21 +56,18 @@ const EstablecimientosHandler = (props) => {
 	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Agregar Establecimiento` }],
+		acciones: [{ name: `Empresas` }, { name: `Agregar Establecimiento` }],
 	};
 	if (establecimiento) {
-		moduloInfo.acciones = [
-			...moduloInfo.acciones,
-			{
-				nombre: `Consultar Establecimiento ${estabDesc}`,
-			},
-			{
-				nombre: `Modificar Establecimiento ${estabDesc}`,
-			},
-			{
-				nombre: `Dar de baja Establecimiento ${estabDesc}`,
-			},
-		];
+		moduloInfo.acciones.push({
+			name: `Consultar Establecimiento ${estabDesc}`,
+		});
+		moduloInfo.acciones.push({
+			name: `Modificar Establecimiento ${estabDesc}`,
+		});
+		moduloInfo.acciones.push({
+			name: `Dar de baja Establecimiento ${estabDesc}`,
+		});
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	//#endregion
@@ -83,8 +80,8 @@ const EstablecimientosHandler = (props) => {
 		const configForm = {
 			data: establecimiento,
 			onCancela: () => setForm(null),
-			onConfirma: (data) => {
-				recargarEstablecimientos(data);
+			onConfirma: (_data) => {
+				recargarEstablecimientos();
 				setForm(null);
 			},
 		};
@@ -93,13 +90,13 @@ const EstablecimientosHandler = (props) => {
 				navigate("/siaru");
 				break;
 			case `Agregar Establecimiento`:
-				configForm.data = { empresasId: empresaId };
+				configForm.data = { empresaId: empresaId };
 				configForm.action = "A";
 				setForm(<Form config={configForm} />);
 				break;
 			case `Consultar Establecimiento ${estabDesc}`:
 				configForm.action = "C";
-				configForm.onConfirma = (data) => configForm.onCancela();
+				configForm.onConfirma = (_data) => configForm.onCancela();
 				setForm(<Form config={configForm} />);
 				break;
 			case `Modificar Establecimiento ${estabDesc}`:
@@ -120,31 +117,35 @@ const EstablecimientosHandler = (props) => {
 	if (error) return <h1>{error}</h1>;
 
 	return (
-		<Grid col full>
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
-					{empresa.razonSocial ?? ""}
-				</h2>
-			</Grid>
-			<Grid full="width" grow gap="5px">
-				<Grid width="50%">
-					<EstablecimientosList
-						config={{
-							data: establecimientos,
-							onSelect: (r) => setEstablecimiento(r),
-						}}
-					/>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full>
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
+							{empresa.razonSocial ?? ""}
+						</h2>
+					</Grid>
+					<Grid full="width" grow gap="5px">
+						<Grid width="50%">
+							<EstablecimientosList
+								config={{
+									data: establecimientos,
+									onSelect: (r) => setEstablecimiento(r),
+								}}
+							/>
+						</Grid>
+						<Grid block width="50%" style={{ paddingTop: "75px" }}>
+							<EstablecimientoDetails config={{ data: establecimiento }} />
+						</Grid>
+						{form}
+					</Grid>
 				</Grid>
-				<Grid block width="50%" style={{ paddingTop: "75px" }}>
-					<EstablecimientoDetails config={{ data: establecimiento }} />
-				</Grid>
-				{form}
-			</Grid>
-		</Grid>
+			</div>
+		</>
 	);
 };
 

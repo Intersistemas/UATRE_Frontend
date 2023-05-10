@@ -77,10 +77,9 @@ console.log('**propsIndex**',props.rowSelectedIndex)
           
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={selectValue}
+            value={selectValue.dataField}
             label="Buscar por:"
             onChange={handleChangeSearchSelect}
-            
           >
             {props.selectoresBuscar.map((valores)=>{
                   return <MenuItem value={valores}>{valores.text}</MenuItem>
@@ -90,6 +89,15 @@ console.log('**propsIndex**',props.rowSelectedIndex)
         </FormControl>
         <TextField 
         fullWidth id="outlined-basic" label={`Ingrese ${selectValue.text ?? ''}`} variant="outlined"  onChange={handleChangeSearchEntry}
+
+        onKeyPress={(ev) => {
+          
+          if (ev.key === 'Enter' && entryValue) {
+            props.accionBuscar(selectValue.dataField,entryValue)
+            ev.preventDefault();
+          }
+        }}
+
         /*helperText={
           props.error
             ? "Error buscando datos"
@@ -99,7 +107,7 @@ console.log('**propsIndex**',props.rowSelectedIndex)
         />
         <Button
               width={80}
-              onClick={()=>props.accionBuscar(selectValue.text,entryValue)}
+              onClick={()=>props.accionBuscar(selectValue.dataField,entryValue)}
               disabled={!entryValue ?? true}
         >BUSCAR</Button>
         <Button

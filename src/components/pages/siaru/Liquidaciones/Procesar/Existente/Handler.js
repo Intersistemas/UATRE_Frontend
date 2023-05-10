@@ -38,7 +38,7 @@ const Handler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Tentativa?CUIT=${empresa.cuit}&Periodo=${periodo}`,
+				endpoint: `/Liquidaciones/Tentativas?CUIT=${empresa.cuit}&Periodo=${periodo}`,
 				method: "GET",
 			},
 			async (resp) => {
@@ -48,23 +48,16 @@ const Handler = () => {
 				rta.forEach((tent, index) => {
 					// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 					// En caso contrario, es solo a modo informativo de nomina
-					const {nomina, ...liq} = tent;
-					if (
-						liq.empresasEstablecimientosId &&
-						liq.liquidacionesTiposPagosId
-					) {
-						newLiquidaciones = [...newLiquidaciones, { index: newLiquidaciones.length, ...liq }];
+					const { nominas, ...liq } = tent;
+					if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
+						newLiquidaciones.push({ index: newLiquidaciones.length, ...liq });
 					}
-					nomina.forEach((nom) => {
-						newDDJJ = [
-							...newDDJJ,
-							{
-								...nom,
-								empresasEstablecimientosId: tent.empresasEstablecimientosId,
-								empresasEstablecimientos_Nombre:
-									tent.empresasEstablecimientos_Nombre,
-							},
-						];
+					nominas.forEach((nom) => {
+						newDDJJ.push({
+							...nom,
+							empresaEstablecimientoId: tent.empresaEstablecimientoId,
+							empresaEstablecimiento_Nombre: tent.empresaEstablecimiento_Nombre,
+						});
 					});
 				});
 				setDDJJList({ data: newDDJJ });
@@ -100,7 +93,6 @@ const Handler = () => {
 	const filtrarDDJJList = () => {
 		if (!ddjjList.data) return ddjjList.data;
 		let ret = [...ddjjList.data];
-
 		return ret;
 	};
 
@@ -108,7 +100,6 @@ const Handler = () => {
 	const filtrarLiqList = () => {
 		if (!liqList.data) return liqList.data;
 		let ret = [...liqList.data];
-
 		return ret;
 	};
 
@@ -117,16 +108,12 @@ const Handler = () => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id}&PageSize=5000`,
 				method: "GET",
 			},
-			async (resp) => {
-				setEstablecimientos({ data: resp });
-			},
-			async (error) => {
-				setEstablecimientos({ error: error });
-			}
+			async (resp) => setEstablecimientos({ data: resp.data }),
+			async (error) => setEstablecimientos({ error: error })
 		);
 	}, [empresa.id, request]);
 	//#endregion
@@ -134,7 +121,7 @@ const Handler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
@@ -156,38 +143,38 @@ const Handler = () => {
 	// #endregion
 
 	const newLiq = (ddjjRecord, index) => {
-		if (ddjjRecord.empresasEstablecimientosId === 0) return null;
+		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (ddjjRecord.condicionRural !== "RU") return null;
 		return {
 			index: index,
-			empresasEstablecimientosId: ddjjRecord.empresasEstablecimientosId,
+			empresaEstablecimientoId: ddjjRecord.empresaEstablecimientoId,
 			periodo: periodo,
 			fecha: dayjs().format("YYYY-MM-DD") ?? null,
 			cantidadTrabajadores: 1,
 			totalRemuneraciones: ddjjRecord.remuneracionImponible,
 			tipoLiquidacion: 0,
-			refMotivosBajaId: 0,
-			liquidacionesTiposPagosId: ddjjRecord.afiliadoId ? 1 : 2,
-			empresasEstablecimientos_Nombre: ddjjRecord.empresasEstablecimientos_Nombre,
+			refMotivoBajaId: 0,
+			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 2,
+			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 		};
-	}
+	};
 
 	const calcLiqListDesdeDDJJList = () => {
 		let newLiqList = [];
 		if (!ddjjList.data) return setLiqList({ data: newLiqList });
 		ddjjList.data.forEach((ddjj) => {
-			if (ddjj.empresasEstablecimientosId === 0) return;
+			if (ddjj.empresaEstablecimientoId === 0) return;
 			if (ddjj.condicionRural !== "RU") return;
 			const estab = establecimientos.data?.find(
-				(r) => r.id === ddjj.empresasEstablecimientosId
+				(r) => r.id === ddjj.empresaEstablecimientoId
 			);
 			if (!estab) return;
 
 			const liqCalc = newLiq(ddjj, newLiqList.length);
 			let liq = newLiqList.find(
 				(r) =>
-					r.empresasEstablecimientosId === liqCalc.empresasEstablecimientosId &&
-					r.liquidacionesTiposPagosId === liqCalc.liquidacionesTiposPagosId
+					r.empresaEstablecimientoId === liqCalc.empresaEstablecimientoId &&
+					r.liquidacionTipoPagoId === liqCalc.liquidacionTipoPagoId
 			);
 			if (liq) {
 				liq.cantidadTrabajadores += liqCalc.cantidadTrabajadores;
@@ -199,11 +186,24 @@ const Handler = () => {
 							100
 					) / 100;
 			} else {
-				newLiqList = [...newLiqList, liqCalc];
-		}
+				//ToDo: Traer Id de Liquidacion según empresaEstablecimientoId, liquidacionTipoPagoId, periodo, tipoLiquidacion y refMotivoBajaId = 0
+				// En caso de no existir, asignar 0 para indicar que no existe liquidacion.
+				// Ya que al momento de confirmar, de exisistir liquidacion,
+				// debe consultar si realizar la baja de la liquidacion anterior o cancelar
+				newLiqList.push(liqCalc);
+			}
 		});
-
+		console.log("newLiqList", newLiqList);
 		return setLiqList({ data: newLiqList });
+	};
+
+	const handleDDJJFormOnChange = (record) => {
+		if (!ddjjList.data) return;
+		const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
+		if (recordIx < 0) return;
+		ddjjList.data[recordIx] = record;
+		calcLiqListDesdeDDJJList();
+		setDDJJ(record);
 	};
 
 	let currentTabContent;
@@ -226,14 +226,7 @@ const Handler = () => {
 							config={{
 								data: ddjj,
 								establecimientos: establecimientos.data,
-								onChange: (v) => {
-									if (!ddjjList.data) return;
-									const vIx = ddjjList.data.findIndex((r) => r.cuil === v.cuil);
-									if (vIx < 0) return;
-									ddjjList.data[vIx] = v;
-									calcLiqListDesdeDDJJList();
-									setDDJJ(v);
-								},
+								onChange: handleDDJJFormOnChange,
 							}}
 						/>
 					</Grid>
@@ -256,32 +249,41 @@ const Handler = () => {
 	}
 
 	return (
-		<Grid col full gap="5px">
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Liquidar periodo {Formato.Periodo(periodo)} de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
-				</h2>
-			</Grid>
-			<Grid block full="width">
-				<Tabs
-					value={currentTab}
-					onChange={(_event, newValue) => setCurrentTab(newValue)}
-					aria-label="basic tabs example"
-					style={{ position: "fixed" }}
-				>
-					<Tab className={styles.tab} label="Detalle de la liquidacion" />
-					<Tab
-						className={styles.tab}
-						label="Liquidacion a generar por establecimiento"
-					/>
-				</Tabs>
-				{currentTabContent}
-			</Grid>
-		</Grid>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full gap="5px">
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Liquidar periodo {Formato.Periodo(periodo)} de
+							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+						</h2>
+					</Grid>
+					<Grid block full="width">
+						<Tabs
+							value={currentTab}
+							onChange={(_event, newValue) => setCurrentTab(newValue)}
+							aria-label="basic tabs example"
+							style={{ position: "fixed" }}
+						>
+							<Tab
+								className={styles.tab}
+								style={{ backgroundColor: "#186090" }}
+								label="Detalle de la liquidacion"
+							/>
+							<Tab
+								className={styles.tab}
+								style={{ backgroundColor: "#186090" }}
+								label="Liquidacion a generar por establecimiento"
+							/>
+						</Tabs>
+						{currentTabContent}
+					</Grid>
+				</Grid>
+			</div>
+		</>
 	);
 };
 

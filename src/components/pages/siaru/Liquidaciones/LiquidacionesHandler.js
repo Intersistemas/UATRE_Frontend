@@ -35,7 +35,7 @@ const LiquidacionesHandler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones/Periodos?EmpresasId=${empresa.id ?? 0}`,
+				endpoint: `/Liquidaciones/Periodos?EmpresaId=${empresa.id ?? 0}`,
 				method: "GET",
 			},
 			async (res) =>
@@ -63,15 +63,17 @@ const LiquidacionesHandler = () => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id ?? 0}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${
+					empresa.id ?? 0
+				}`,
 				method: "GET",
 			},
 			async (res) =>
 				setEstablecimientos({
 					data: [
 						{ descipcion: "Todos", valor: { id: 0 } },
-						...res.map((r) => ({ descipcion: r.nombre, valor: r })),
+						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
 					],
 				}),
 			async (err) =>
@@ -91,7 +93,7 @@ const LiquidacionesHandler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_LiquidacionesTiposPagos`,
+				endpoint: `/LiquidacionesTiposPagos`,
 				method: "GET",
 			},
 			async (res) => setLiquidacionesTiposPagos({ data: res }),
@@ -112,16 +114,16 @@ const LiquidacionesHandler = () => {
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
 		if (refreshLiqudaciones) {
-			let params = `EmpresasId=${empresa.id}`;
+			let params = `EmpresaId=${empresa.id}`;
 			params = `${params}&Page=${pagination.index},${pagination.size}`;
 			params = `${params}&Sort=-Id`;
 			if (periodo) params = `${params}&Periodo=${periodo}`;
 			if (establecimiento?.id)
-				params = `${params}&EmpresasEstablecimientosId=${establecimiento.id}`;
+				params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
 			request(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Siaru_Liquidaciones/Paginado?${params}`,
+					endpoint: `/Liquidaciones?${params}`,
 					method: "GET",
 				},
 				async (res) => {
@@ -169,17 +171,14 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ nombre: `Empresas` }, { nombre: `Procesar liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
 		: ``;
 	if (liquidacion) {
-		moduloInfo.acciones = [
-			...moduloInfo.acciones,
-			{ nombre: `Imprimir ${liquidacionDesc}` },
-			{ nombre: `Pagar ${liquidacionDesc}` },
-		];
+		moduloInfo.acciones.push({ name: `Imprimir ${liquidacionDesc}` });
+		moduloInfo.acciones.push({ name: `Pagar ${liquidacionDesc}` });
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
@@ -207,90 +206,95 @@ const LiquidacionesHandler = () => {
 	// #endregion
 
 	return (
-		<Grid col full gap="5px">
-			<Grid full="width">
-				<h1 className={styles.titulo}>Sistema de Aportes Rurales</h1>
-			</Grid>
-			<Grid full="width">
-				<h2 className="subtitulo">
-					Liquidaciones de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
-				</h2>
-			</Grid>
-			<Grid
-				full="width"
-				gap="5px"
-				style={{ background: "#ffffffe0", padding: "5px" }}
-			>
-				<Grid width="50%">
-					<Select
-						name="periodo"
-						label="Periodo"
-						error={
-							periodos.loading ? "Cargando" : periodos.error?.message ?? ""
-						}
-						value={periodo}
-						options={periodos.data.map((r) => ({
-							label: r.descipcion,
-							value: r.valor,
-						}))}
-						onChange={(value) => {
-							setPeriodo(value);
-							setRefreshLiquidaciones(true);
-						}}
-					/>
+		<>
+			<div className="titulo">
+				<h1>Sistema de Aportes Rurales</h1>
+			</div>
+			<div className="contenido">
+				<Grid col full gap="5px">
+					<Grid full="width">
+						<h2 className="subtitulo">
+							Liquidaciones de
+							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+						</h2>
+					</Grid>
+					<Grid
+						full="width"
+						gap="5px"
+						style={{ background: "#ffffffe0", padding: "5px" }}
+					>
+						<Grid width="50%">
+							<Select
+								name="periodo"
+								label="Periodo"
+								error={
+									periodos.loading ? "Cargando" : periodos.error?.message ?? ""
+								}
+								value={periodo}
+								options={periodos.data.map((r) => ({
+									label: r.descipcion,
+									value: r.valor,
+								}))}
+								onChange={(value) => {
+									setPeriodo(value);
+									setRefreshLiquidaciones(true);
+								}}
+							/>
+						</Grid>
+						<Grid width="50%">
+							<Select
+								name="establecimiento"
+								label="Establecimiento"
+								error={
+									establecimientos.loading
+										? "Cargando"
+										: establecimientos.error?.message ?? ""
+								}
+								value={establecimiento.id}
+								options={establecimientos.data.map((r) => ({
+									label: r.descipcion,
+									value: r.valor?.id,
+								}))}
+								onChange={(value) => {
+									setEstablecimiento(
+										establecimientos.data.find((r) => r.valor.id === value)
+											.valor
+									);
+									setRefreshLiquidaciones(true);
+								}}
+							/>
+						</Grid>
+					</Grid>
+					<Grid full="width">
+						<LiquidacionesList
+							config={{
+								loading: liquidaciones.loading,
+								data: liquidaciones.data,
+								noData: liqNoData,
+								pagination: pagination,
+								onSelect: (r) => setLiquidacion(r),
+								onPaginationChange: (pageIndex, pageSize) => {
+									setPagination((p) => ({
+										...p,
+										index: pageIndex,
+										size: pageSize,
+									}));
+									setRefreshLiquidaciones(true);
+								},
+							}}
+						/>
+					</Grid>
+					<Grid full="width">
+						<LiquidacionDetails
+							config={{
+								data: liquidacion,
+								tiposPagos: liquidacionesTiposPagos.data,
+							}}
+						/>
+					</Grid>
 				</Grid>
-				<Grid width="50%">
-					<Select
-						name="establecimiento"
-						label="Establecimiento"
-						error={
-							establecimientos.loading
-								? "Cargando"
-								: establecimientos.error?.message ?? ""
-						}
-						value={establecimiento.id}
-						options={establecimientos.data.map((r) => ({
-							label: r.descipcion,
-							value: r.valor?.id,
-						}))}
-						onChange={(value) => {
-							setEstablecimiento(
-								establecimientos.data.find((r) => r.valor.id === value).valor
-							);
-							setRefreshLiquidaciones(true);
-						}}
-					/>
-				</Grid>
-			</Grid>
-			<Grid full="width">
-				<LiquidacionesList
-					config={{
-						loading: liquidaciones.loading,
-						data: liquidaciones.data,
-						noData: liqNoData,
-						pagination: pagination,
-						onSelect: (r) => setLiquidacion(r),
-						onPaginationChange: (pageIndex, pageSize) => {
-							setPagination((p) => ({
-								...p,
-								index: pageIndex,
-								size: pageSize,
-							}));
-							setRefreshLiquidaciones(true);
-						},
-					}}
-				/>
-			</Grid>
-			<Grid full="width">
-				<LiquidacionDetails
-					config={{
-						data: liquidacion,
-						tiposPagos: liquidacionesTiposPagos.data,
-					}}
-				/>
-			</Grid>
-		</Grid>
+			</div>
+		</>
 	);
 };
 

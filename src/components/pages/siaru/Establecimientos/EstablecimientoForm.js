@@ -7,8 +7,6 @@ import Modal from "../../../ui/Modal/Modal";
 import Grid from "../../../ui/Grid/Grid";
 import TextField from "@mui/material/TextField";
 import Select from "../../../ui/Select/Select";
-import DateTimePicker from "../../../ui/DateTimePicker/DateTimePicker";
-import dayjs from "dayjs";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -39,7 +37,7 @@ const Form = (props) => {
 	}
 
 	const [err, setErr] = useState({
-		empresasId: "",
+		empresaId: "",
 		nroSucursal: "",
 		nombre: "",
 		refMotivosBajaId: "",
@@ -51,10 +49,10 @@ const Form = (props) => {
 		const newErr = { ...err };
 
 		if ("AM".split("").indexOf(action) !== -1) {
-			if (!data.empresasId) {
+			if (!data.empresaId) {
 				tieneErr = true;
-				newErr.empresasId = "Debe especificar la empresa";
-			} else newErr.empresasId = "";
+				newErr.empresaId = "Debe especificar la empresa";
+			} else newErr.empresaId = "";
 
 			if (!data.nroSucursal) {
 				tieneErr = true;
@@ -78,23 +76,19 @@ const Form = (props) => {
 		}
 
 		const req = {
-			baseURL: "SIARU",
+			baseURL: "Comunes",
 			headers: { "Content-Type": "application/json" },
+			endpoint: `/EmpresaEstablecimientos`,
 			body: data,
 		};
 
 		switch (action) {
 			case "A":
 				req.method = "POST";
-				req.endpoint = `/EmpresasEstablecimientos`;
 				break;
 			case "B":
-				req.method = "PUT";
-				req.endpoint = `/EmpresasEstablecimientos/${data.id}`;
-				break;
 			case "M":
 				req.method = "PUT";
-				req.endpoint = `/EmpresasEstablecimientos/${data.id}`;
 				break;
 			default:
 				onCancela();
@@ -150,7 +144,7 @@ const Form = (props) => {
 						<h3>{actionMsg} Establecimiento</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
-						<h3>[empresasId: {data.empresasId ?? ""}]</h3>
+						<h3>[empresaId: {data.empresaId ?? ""}]</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
 						<h3>{data.id ?? ""}</h3>

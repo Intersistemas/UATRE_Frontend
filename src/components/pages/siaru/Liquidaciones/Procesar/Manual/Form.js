@@ -27,19 +27,19 @@ const Form = (props) => {
 		const requestParam = (param) => {
 			request(
 				{
-					baseURL: "SIARU",
+					baseURL: "Comunes",
 					endpoint: `/Parametros?Nombre=${param}`,
 					method: "GET",
 				},
-				async (resp) => {
+				async (res) => {
 					setParams((p) => ({
 						...p,
-						[param]: Formato.Decimal(resp.valor ?? 0),
+						[param]: Formato.Decimal(res.valor ?? 0),
 					}));
 				},
-				async (error) => {
-					error.message = `${error.message} (${param})`;
-					setErrors((e) => [...e, error]);
+				async (err) => {
+					err.message = `${err.message} (${param})`;
+					setErrors((e) => [...e, err]);
 				}
 			);
 		};
@@ -55,11 +55,11 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_LiquidacionesTiposPagos`,
+				endpoint: `/LiquidacionesTiposPagos`,
 				method: "GET",
 			},
-			async (resp) => setTiposPagos({ data: resp }),
-			async (error) => setTiposPagos({ error: error })
+			async (res) => setTiposPagos({ data: res }),
+			async (err) => setTiposPagos({ error: err })
 		);
 	}, [request]);
 
@@ -68,12 +68,14 @@ const Form = (props) => {
 	useEffect(() => {
 		request(
 			{
-				baseURL: "SIARU",
-				endpoint: `/EmpresasEstablecimientos?EmpresasId=${empresa.id}`,
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id}&PageSize=5000`,
 				method: "GET",
 			},
-			async (resp) => setEstabList({ data: resp }),
-			async (error) => setEstabList({ error: error })
+			async (res) => {
+				setEstabList({ data: res.data });
+			},
+			async (err) => setEstabList({ error: err })
 		);
 	}, [request, empresa.id]);
 
@@ -159,14 +161,14 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones`,
+				endpoint: `/Liquidaciones`,
 				method: "POST",
 				body: nData,
 				headers: { "Content-Type": "application/json" },
 			},
-			async (resp) => onConfirma(resp),
-			async (error) => {
-				setErrors((e) => [...e, error]);
+			async (res) => onConfirma(res),
+			async (err) => {
+				setErrors((e) => [...e, err]);
 				setModalExistente(null);
 			}
 		);
@@ -182,16 +184,16 @@ const Form = (props) => {
 			request(
 				{
 					baseURL: "SIARU",
-					endpoint: `/Siaru_Liquidaciones/${anterior.id}`,
+					endpoint: `/Liquidaciones`,
 					method: "PUT",
 					body: anterior,
 					headers: { "Content-Type": "application/json" },
 				},
-				async (_resp) => {
+				async (_res) => {
 					handleAgregar({ ...data, rectificativa: anterior.rectificativa + 1 });
 				},
-				async (error) => {
-					setErrors((e) => [...e, error]);
+				async (err) => {
+					setErrors((e) => [...e, err]);
 					setModalExistente(null);
 				}
 			);
@@ -278,12 +280,12 @@ const Form = (props) => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Siaru_Liquidaciones?${pars}`,
+				endpoint: `/Liquidaciones?${pars}`,
 				method: "GET",
 			},
-			async (resp) =>
-				resp.length > 0 ? handleExistente(resp[0]) : handleAgregar(data),
-			async (error) => setEstabList({ error: error })
+			async (res) =>
+				res.length > 0 ? handleExistente(res[0]) : handleAgregar(data),
+			async (err) => setEstabList({ error: err })
 		);
 	};
 

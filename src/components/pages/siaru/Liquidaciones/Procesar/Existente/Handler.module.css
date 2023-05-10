@@ -35,7 +35,7 @@
 
 .tab {
 	color: #FFF !important;
-	background-color: #186090;
+	/* background-color: #186090; */
 	border-radius: 15px 15px 0px 0px !important;
 	/*border-color: #ccc!important;*/
 	border: 2px solid #ccc!important;
