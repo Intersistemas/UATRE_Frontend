@@ -11,7 +11,6 @@ const EmpresasList = ({config}) => {
 		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
 
 		const handlerOnSelect = (registro) => {
-			console.log("registro", registro)
 			config.onSelect(registro)
 		}
 	const cs = {

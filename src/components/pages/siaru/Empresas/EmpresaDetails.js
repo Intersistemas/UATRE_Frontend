@@ -6,7 +6,6 @@ import styles from "./EmpresaDetails.module.css";
 
 const EmpresaDetails = ({ config }) => {
 	const data = config.data ?? {};
-	console.log("config.data", config.data);
 	const inputLabelStyles = { color: "#186090" };
 
 	return (
@@ -22,7 +21,7 @@ const EmpresaDetails = ({ config }) => {
 					variant="standard"
 					size="small"
 					label="CUIT"
-					value={Formato.Cuit(data.cuitEmpresa) ?? ""}
+					value={Formato.Cuit(data.cuit) ?? ""}
 					style={{ width: "25%" }}
 				/>
 				<TextField

@@ -93,12 +93,7 @@ const Inicio = (props) => {
     </Button>
   );
   const btnSiaru = (
-    <Button
-      width={100}
-      onClick={() =>
-        navigate("/siaru", { state: { cuit: empresasSelected?.cuit } })
-      }
-    >
+    <Button width={100} onClick={() => navigate("/siaru")}>
       Sistema de Aportes Rurales
     </Button>
   );
@@ -124,13 +119,8 @@ const Inicio = (props) => {
 
   useEffect(() => {
     if (props.modulos.length === 1){
-      if (props.modulos[0] === "Afiliaciones"){
-        navigate("/afiliaciones");
-      }
-
-      if (props.modulos[0] === "Siaru") {
-        navigate("/siaru", { state: { empresas: props.empresas } });
-      }
+      if (props.modulos[0] === "Afiliaciones") navigate("/afiliaciones");
+      if (props.modulos[0] === "Siaru") navigate("/siaru");
     }
   
     return;

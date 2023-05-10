@@ -17,23 +17,28 @@ const SiaruHandler = (props) => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { sendRequest: request } = useHttp();
-	//const authContext = useContext(AuthContext);
+	const authContext = useContext(AuthContext);
 
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
-  const location = useLocation();
+  // const location = useLocation();
 
-  useEffect(() => {    
-    if (location.state.empresas?.length) {
-      setEmpresaList({ data: location.state.empresas });
+  // useEffect(() => {    
+  //   if (location.state.empresas?.length) {
+  //     setEmpresaList({ data: location.state.empresas });
+  //   }
+  // }, [location.state.empresas]);
+  useEffect(() => {
+    if (authContext.usuario?.empresas) {
+      setEmpresaList({ data: authContext.usuario.empresas });
     }
-  }, [location.state.empresas]);
+  }, [authContext.usuario]);
 	//#endregion
 
 	//#region declaración y carga de detalles de empresa
-	//const [empresa, setEmpresa] = useState({ loading: true });
-	/*useEffect(() => {
+	const [empresa, setEmpresa] = useState({ loading: true });
+	useEffect(() => {
 		if (!empresaRecord?.cuitEmpresa) {
 			setEmpresa({});
 			return;
@@ -47,18 +52,18 @@ const SiaruHandler = (props) => {
 			async (res) => setEmpresa({ data: res }),
 			async (err) => setEmpresa({ error: err })
 		);
-	}, [empresaRecord, request]);*/
+	}, [empresaRecord, request]);
 	//#endregion
 
 	//#region despachar Informar Modulo
-	const descEmpresa = empresaRecord
-		? `${Formato.Cuit(empresaRecord.cuitEmpresa)} - ${empresaRecord.razonSocial}`
+	const descEmpresa = empresa.data
+		? `${Formato.Cuit(empresa.data.cuitEmpresa)} - ${empresa.data.razonSocial}`
 		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
 	};
-	if (empresaRecord) {
+	if (empresa.data) {
 		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
 		moduloInfo.acciones.push({ name: `Liquidaciones de ${descEmpresa}` });
 	}
@@ -69,17 +74,19 @@ const SiaruHandler = (props) => {
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
 				navigate("/siaru/establecimientos", {
-					state: { empresa: empresaRecord },
+					state: { empresa: empresa.data },
 				});
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresaRecord } });
+				navigate("/siaru/liquidaciones", {
+					state: { empresa: empresa.data },
+				});
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descEmpresa, empresaRecord, navigate, dispatch]);
+	}, [moduloAccion, descEmpresa, empresa.data, navigate, dispatch]);
 	//#endregion
 
 	return (
@@ -121,7 +128,7 @@ const SiaruHandler = (props) => {
 							/>
 						</Grid>
 						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							 <EmpresaDetails config={{ data: empresaRecord }} />
+							 <EmpresaDetails config={{ data: empresa.data }} />
 						</Grid>
 					</Grid>
 				</Grid>
