@@ -56,7 +56,9 @@
 .table{
   margin: 0% !important;
 }
-
+.table > tbody{
+border: 1.5px solid rgb(53, 149, 210);
+}
 .page-link{
   padding: 0.1rem 0.5rem !important;
 }
