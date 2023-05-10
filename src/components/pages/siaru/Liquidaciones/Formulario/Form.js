@@ -31,8 +31,18 @@ const Form = ({
 	const { sendRequest: request } = useHttp();
 
 	// Cargo parametros
+	const [pendingParams, setPendingParams] = useState([
+		"RefMotivosBajaIdRectificaLiquidacion",
+	]);
 	const [params, setParams] = useState();
 	useEffect(() => {
+		const removePendingParam = (param) =>
+			setPendingParams((old) => {
+				const newPendingParams = [...old];
+				const ix = newPendingParams.indexOf(param);
+				if (ix > -1) newPendingParams.splice(ix, 1);
+				return newPendingParams;
+			});
 		const requestParam = (param) => {
 			request(
 				{
@@ -41,22 +51,27 @@ const Form = ({
 					method: "GET",
 				},
 				async (res) => {
-					setParams((p) => ({
-						...p,
+					setParams((old) => ({
+						...old,
 						[param]: Formato.Decimal(res.valor ?? 0),
 					}));
+					removePendingParam(param);
 				},
-				async (err) =>
+				async (err) => {
 					setAlerts((old) => [
 						...old,
-						{ severity: "error", title: err.type, message: err.message },
-					])
+						{
+							severity: "error",
+							title: `${err.type} cargando parametro "${param}"`,
+							message: err.message,
+						},
+					]);
+					removePendingParam(param);
+				}
 			);
 		};
-		if (!params) {
-			requestParam("RefMotivosBajaIdRectificaLiquidacion");
-		}
-	}, [request, params]);
+		if (!params) pendingParams.forEach((param) => requestParam(param));
+	}, [request, params, pendingParams]);
 
 	const gap = 10;
 

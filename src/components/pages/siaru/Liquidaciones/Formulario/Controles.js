@@ -117,7 +117,7 @@ const Controles = ({
 			);
 		};
 		if (!params) pendingParams.forEach((param) => requestParam(param));
-	}, [request, params]);
+	}, [request, params, pendingParams]);
 
 	const calcularOtros = (data) => {
 		const r = {
