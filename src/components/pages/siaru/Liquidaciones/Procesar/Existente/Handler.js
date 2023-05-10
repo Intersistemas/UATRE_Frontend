@@ -1,19 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
-import styles from "./Handler.module.css";
-import { useNavigate, useLocation } from "react-router-dom";
-import useHttp from "../../../../../hooks/useHttp";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
+import dayjs from "dayjs";
+import { Tab, Tabs } from "@mui/material";
+import styles from "./Handler.module.css";
+import Grid from "../../../../../ui/Grid/Grid";
+import Formato from "../../../../../helpers/Formato";
+import useHttp from "../../../../../hooks/useHttp";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 } from "../../../../../../redux/actions";
-import Grid from "../../../../../ui/Grid/Grid";
-import DDJJList from "./DDJJList";
-import Formato from "../../../../../helpers/Formato";
-import { Tab, Tabs } from "@mui/material";
 import LiquidacionList from "./LiquidacionList";
+import DDJJList from "./DDJJList";
 import DDJJForm from "./DDJJForm";
-import dayjs from "dayjs";
+import LiquidacionesForm from "../../Formulario/Form";
 
 const Handler = () => {
 	const location = useLocation();
@@ -27,7 +28,23 @@ const Handler = () => {
 	if (empresa.id == null || periodo == null) navigate("/");
 
 	const [currentTab, setCurrentTab] = useState(0);
+	const [formRender, setFormRender] = useState();
 	const { sendRequest: request } = useHttp();
+
+	//#region declaracion y carga de tipos de liquidacion
+	const [tiposPagos, setTiposPagos] = useState({ loading: true });
+	useEffect(() => {
+		request(
+			{
+				baseURL: "SIARU",
+				endpoint: `/LiquidacionesTiposPagos`,
+				method: "GET",
+			},
+			async (res) => setTiposPagos({ data: res }),
+			async (err) => setTiposPagos({ error: err })
+		);
+	}, [request]);
+	//#endregion
 
 	//#region declaración y carga de ddjj y liquidaciones
 	const [ddjjList, setDDJJList] = useState({ loading: true });
@@ -91,15 +108,19 @@ const Handler = () => {
 
 	/** Retorna ddjjList aplicando filtro */
 	const filtrarDDJJList = () => {
-		if (!ddjjList.data) return ddjjList.data;
+		if (ddjjList.loading) return [];
+		if (ddjjList.error) return [];
 		let ret = [...ddjjList.data];
+		///ToDo: Aplicar filtros;
 		return ret;
 	};
 
 	/** Retorna liqList aplicando filtro */
 	const filtrarLiqList = () => {
-		if (!liqList.data) return liqList.data;
+		if (liqList.loading) return [];
+		if (liqList.error) return [];
 		let ret = [...liqList.data];
+		///ToDo: Aplicar filtros;
 		return ret;
 	};
 
@@ -154,7 +175,7 @@ const Handler = () => {
 			totalRemuneraciones: ddjjRecord.remuneracionImponible,
 			tipoLiquidacion: 0,
 			refMotivoBajaId: 0,
-			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 2,
+			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 3, ///ToDo: Parametrizar tipos de pago Sindical y Solidario
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 		};
 	};
@@ -186,14 +207,9 @@ const Handler = () => {
 							100
 					) / 100;
 			} else {
-				//ToDo: Traer Id de Liquidacion según empresaEstablecimientoId, liquidacionTipoPagoId, periodo, tipoLiquidacion y refMotivoBajaId = 0
-				// En caso de no existir, asignar 0 para indicar que no existe liquidacion.
-				// Ya que al momento de confirmar, de exisistir liquidacion,
-				// debe consultar si realizar la baja de la liquidacion anterior o cancelar
 				newLiqList.push(liqCalc);
 			}
 		});
-		console.log("newLiqList", newLiqList);
 		return setLiqList({ data: newLiqList });
 	};
 
@@ -205,6 +221,7 @@ const Handler = () => {
 		calcLiqListDesdeDDJJList();
 		setDDJJ(record);
 	};
+	const [ddjjFormDisabled, setDDJJFormDisabled] = useState(false);
 
 	let currentTabContent;
 	switch (currentTab) {
@@ -213,21 +230,18 @@ const Handler = () => {
 				<Grid col full="width">
 					<Grid full="width">
 						<DDJJList
-							config={{
-								loading: ddjjList.loading,
-								data: filtrarDDJJList(),
-								noData: getNoData(ddjjList),
-								onSelect: (r) => setDDJJ(r),
-							}}
+							records={filtrarDDJJList()}
+							loading={ddjjList.loading}
+							noData={getNoData(ddjjList)}
+							onSelect={(r) => setDDJJ(r)}
 						/>
 					</Grid>
 					<Grid full="width">
 						<DDJJForm
-							config={{
-								data: ddjj,
-								establecimientos: establecimientos.data,
-								onChange: handleDDJJFormOnChange,
-							}}
+							data={ddjj}
+							establecimientos={establecimientos.data}
+							disabled={ddjjFormDisabled}
+							onChange={handleDDJJFormOnChange}
 						/>
 					</Grid>
 				</Grid>
@@ -236,10 +250,36 @@ const Handler = () => {
 		case 1:
 			currentTabContent = (
 				<LiquidacionList
-					config={{
-						loading: liqList.loading,
-						data: filtrarLiqList(),
-						noData: getNoData(liqList),
+					records={filtrarLiqList()}
+					tiposPagos={tiposPagos.data}
+					loading={liqList.loading}
+					noData={getNoData(liqList)}
+					onOpenForm={(record) => {
+						// Deshabilitar controles de datos que ya se cargaron.
+						const disabled = {};
+						Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+						setFormRender(
+							<LiquidacionesForm
+								request={record.id ? "C" : "A"}
+								record={record}
+								empresa={empresa}
+								titulo={<span>{record.id ? "Consultando" : "Generando"} liqudacion</span>}
+								disabled={disabled}
+								onConfirm={(newRecord, request) => {
+									// Actualizo lista
+									setLiqList((old) => {
+										const data = [...old.data];
+										data[record.index] = { ...newRecord, index: record.index };
+										return { ...old, data: data };
+									});
+									// Inhabilitar cambio en DDJJList
+									setDDJJFormDisabled(true);
+									// Oculto formulario
+									setFormRender(null);
+								}}
+								onCancel={() => setFormRender(null)}
+							/>
+						);
 					}}
 				/>
 			);
@@ -282,6 +322,7 @@ const Handler = () => {
 						{currentTabContent}
 					</Grid>
 				</Grid>
+				{formRender}
 			</div>
 		</>
 	);

@@ -12,16 +12,17 @@ import { Alert, AlertTitle } from "@mui/lab";
 import { IconButton, Collapse } from "@mui/material";
 
 const Form = ({
-	request: action = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	titulo = null,
 	subtitulo = null,
 	record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
 	empresa = {}, // Empresa a la que pertenece la liquidacion
+	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onConfirm = (_record, _request) => {}, // Acción a realizar al confirmar
 	onCancel = (_request) => {}, // Accion a realizar al cancelar
 }) => {
 	record = { ...record };
-	if (action === "A") record.id = 0;
+	if (requestParam === "A") record.id = 0;
 	if (record.tipoLiquidacion === undefined) record.tipoLiquidacion = 0;
 
 	const [liquidacion, setLiquidacion] = useState(record);
@@ -61,7 +62,7 @@ const Form = ({
 
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
-		const method = action === "A" ? "POST" : "PATCH";
+		const method = requestParam === "A" ? "POST" : "PATCH";
 		if (data.refMotivosBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
 		request(
 			{
@@ -71,7 +72,7 @@ const Form = ({
 				body: data,
 				headers: { "Content-Type": "application/json" },
 			},
-			async (res) => onConfirm(res, action),
+			async (res) => onConfirm(res, requestParam),
 			async (err) => {
 				setAlerts((old) => [
 					...old,
@@ -144,11 +145,6 @@ const Form = ({
 	};
 
 	const validar = () => {
-		if (!["A", "B", "M"].includes(action)) {
-			onCancel(action);
-			return;
-		}
-
 		let tieneErrores = false;
 		const newErrores = {};
 
@@ -202,7 +198,7 @@ const Form = ({
 		}
 
 		switch (
-			action // Controles específicos segun request
+			requestParam // Validaciones específicas segun request
 		) {
 			case "A": // Alta
 				break;
@@ -217,7 +213,7 @@ const Form = ({
 			case "M": // Modificaicon
 				break;
 			default: // No se reconoce request
-				onCancel(action);
+				onCancel(requestParam);
 				return;
 		}
 
@@ -295,7 +291,7 @@ const Form = ({
 	}
 
 	if (titulo == null) {
-		switch (action) {
+		switch (requestParam) {
 			case "A":
 				titulo = <span>Agregando liquidacion</span>;
 				break;
@@ -320,8 +316,11 @@ const Form = ({
 		);
 	}
 
+	const renderConfirmaButton = ["A", "B", "M"].includes(requestParam) ? (
+		<Button onClick={validar}>Confirma</Button>
+	) : null;
 	return (
-		<Modal onClose={() => onCancel(action)}>
+		<Modal onClose={() => onCancel(requestParam)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
 				<Grid full="width" className={styles.titulo} justify="center">
 					{titulo}
@@ -331,18 +330,23 @@ const Form = ({
 					record={liquidacion} // Registro liquidacion.
 					empresaId={empresa.id}
 					error={errores} // Descripciones de errores. Cada uno debe tener el mimo nombre del campo al que refiere.
-					onChange={(cambios) =>
-						setLiquidacion((old) => ({ ...old, ...cambios }))
-					}
+					disabled={disabled}
+					onChange={(cambios) => {
+						setLiquidacion((old) => ({ ...old, ...cambios }));
+					}}
+					forzarCalculos={requestParam === "A"}
 				/>
 				<Grid gap={`${gap}px`} grow full="width">
 					<Grid grow />
 					<Grid col width="30%" justify="end">
 						<Grid gap={`${gap}px`}>
-							<Button className="botonBlanco" onClick={() => onCancel(action)}>
+							<Button
+								className="botonBlanco"
+								onClick={() => onCancel(requestParam)}
+							>
 								Cancela
 							</Button>
-							<Button onClick={validar}>Confirma</Button>
+							{renderConfirmaButton}
 						</Grid>
 					</Grid>
 				</Grid>

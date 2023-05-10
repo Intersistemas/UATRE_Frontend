@@ -5,17 +5,22 @@ import Select from "../../../../../ui/Select/Select";
 import Formato from "../../../../../helpers/Formato";
 import { TextField } from "@mui/material";
 
-const DDJJForm = ({ config }) => {
-	const data = config.data ?? {};
-	const establecimientos = [{ id: 0, nombre: "Sin establecimiento" }];
-	config.establecimientos?.forEach((est) => establecimientos.push(est));
-	const onChange = config.onChange ?? ((r) => {});
+const DDJJForm = ({
+	data = {},
+	establecimientos = [],
+	disabled = false,
+	onChange = (_record) => {},
+}) => {
+	const establecimientosOptions = [{ label: "Sin establecimiento", value: 0 }];
+	establecimientos?.forEach((est) =>
+		establecimientosOptions.push({ label: est.nombre, value: est.id })
+	);
 	const condicionesRural = [
 		{ label: "Rural", value: "RU" },
 		{ label: "No Rural", value: "NR" },
 	];
-
 	const inputLabelStyles = { color: "#186090" };
+	if (disabled) onChange = (_) => {};
 
 	return (
 		<Grid
@@ -62,20 +67,13 @@ const DDJJForm = ({ config }) => {
 						name="establecimiento"
 						label="Establecimiento"
 						value={data.empresaEstablecimientoId}
-						options={establecimientos.map((r) => ({
-							label: r.nombre,
-							value: r.id,
-						}))}
+						options={establecimientosOptions}
 						onChange={(v) => {
-							const estab = establecimientos.find((r) => r.id === v);
+							const estab = establecimientosOptions.find((r) => r.value === v);
 							const estabData = {
-								empresaEstablecimientoId: 0,
-								empresaEstablecimiento_Nombre: "Sin establecimiento",
+								empresaEstablecimientoId: estab.value,
+								empresaEstablecimiento_Nombre: estab.label,
 							};
-							if (estab) {
-								estabData.empresaEstablecimientoId = estab.id;
-								estabData.empresaEstablecimiento_Nombre = estab.nombre;
-							}
 							onChange({ ...data, ...estabData });
 						}}
 					/>

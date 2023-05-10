@@ -13,8 +13,10 @@ import CloseIcon from "@mui/icons-material/Close";
 const Controles = ({
 	record = {}, // Registro liquidacion.
 	empresaId = 0,
-	error = {}, // Descripciones de errores. Cada uno debe tener el mimo nombre del campo al que refiere.
+	error = {}, // Descripciones de errores. Cada uno debe tener el mismo nombre del campo al que refiere.
+	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onChange = (_cambios) => {}, // Evento cuando cambia de valor un campo { campoNombre: valor }.
+	forzarCalculos: forzarCalculosParam = false,
 }) => {
 	const [alerts, setAlerts] = useState([]);
 	const { sendRequest: request } = useHttp();
@@ -49,7 +51,7 @@ const Controles = ({
 	];
 
 	// Cargo tipos de pago
-	const [tiposPagos, setTiposPagos] = useState([]);
+	const [tiposPagos, setTiposPagos] = useState({ loading: true, data: [] });
 	useEffect(() => {
 		request(
 			{
@@ -58,9 +60,10 @@ const Controles = ({
 				method: "GET",
 			},
 			async (res) => {
-				setTiposPagos(res);
+				setTiposPagos({ data: res });
 			},
-			async (err) =>
+			async (err) => {
+				setTiposPagos({ error: err, data: [] });
 				setAlerts((old) => [
 					...old,
 					{
@@ -68,13 +71,24 @@ const Controles = ({
 						title: `${err.type} cargando tipos de pago`,
 						message: err.message,
 					},
-				])
+				]);
+			}
 		);
 	}, [request]);
 
 	// Cargo parametros
+	const [pendingParams, setPendingParams] = useState([
+		"InteresesDiariosPosteriorVencimiento",
+	]);
 	const [params, setParams] = useState();
 	useEffect(() => {
+		const removePendingParam = (param) =>
+			setPendingParams((old) => {
+				const newPendingParams = [...old];
+				const ix = newPendingParams.indexOf(param);
+				if (ix > -1) newPendingParams.splice(ix, 1);
+				return newPendingParams;
+			});
 		const requestParam = (param) => {
 			request(
 				{
@@ -82,12 +96,14 @@ const Controles = ({
 					endpoint: `/Parametros/${param}`,
 					method: "GET",
 				},
-				async (res) =>
+				async (res) => {
 					setParams((old) => ({
 						...old,
 						[param]: Formato.Decimal(res.valor ?? 0),
-					})),
-				async (err) =>
+					}));
+					removePendingParam(param);
+				},
+				async (err) => {
 					setAlerts((old) => [
 						...old,
 						{
@@ -95,12 +111,12 @@ const Controles = ({
 							title: `${err.type} cargando parametro "${param}"`,
 							message: err.message,
 						},
-					])
+					]);
+					removePendingParam(param);
+				}
 			);
 		};
-		if (!params) {
-			requestParam("InteresesDiariosPosteriorVencimiento");
-		}
+		if (!params) pendingParams.forEach((param) => requestParam(param));
 	}, [request, params]);
 
 	const calcularOtros = (data) => {
@@ -132,10 +148,23 @@ const Controles = ({
 		return r;
 	};
 
-	const otros = calcularOtros(record);
+	const calculados = calcularOtros(record);
 
 	const handleChange = (cambios) => {
 		const recordCambios = { ...record, ...cambios };
+		if (recordCambios.totalRemuneraciones === undefined)
+			recordCambios.totalRemuneraciones = 0;
+		if (recordCambios.interesPorcentaje === undefined)
+			recordCambios.interesPorcentaje = 0;
+
+		if ("liquidacionTipoPagoId" in cambios) {
+			recordCambios.interesPorcentaje =
+				tiposPagos.data.find(
+					(r) => r.id === recordCambios.liquidacionTipoPagoId
+				)?.porcentaje ?? 0;
+			cambios.interesPorcentaje = recordCambios.interesPorcentaje;
+		}
+
 		if ("totalRemuneraciones" in cambios || "interesPorcentaje" in cambios) {
 			recordCambios.interesNeto =
 				recordCambios.totalRemuneraciones *
@@ -158,6 +187,12 @@ const Controles = ({
 		}
 		onChange(cambios);
 	};
+
+	const [forzarCalculos, setForzarCalculos] = useState(forzarCalculosParam);
+	if (forzarCalculos && pendingParams.length === 0 && !tiposPagos.loading){
+		setForzarCalculos(false);
+		handleChange(record);
+	}
 
 	const gap = 10;
 
@@ -208,6 +243,7 @@ const Controles = ({
 						(r) => r.id === record.empresaEstablecimientoId
 					)}
 					error={error.empresaEstablecimientoId ?? ""}
+					disabled={disabled.empresaEstablecimientoId ?? false}
 					options={establecimientos.map((r) => ({ label: r.nombre, value: r }))}
 					onChange={(v) => handleChange({ empresaEstablecimientoId: v.id })}
 				/>
@@ -221,6 +257,7 @@ const Controles = ({
 						(r) => r.id === record.tipoLiquidacion
 					)}
 					error={error.tipoLiquidacion ?? ""}
+					disabled={disabled.tipoLiquidacion ?? false}
 					options={tiposLiquidaciones.map((r) => ({
 						label: r.nombre,
 						value: r,
@@ -232,13 +269,18 @@ const Controles = ({
 					name="liquidacionTipoPagoId"
 					label="Tipo de pago"
 					required
-					value={tiposPagos.find((r) => r.id === record.liquidacionTipoPagoId)}
+					value={tiposPagos.data.find(
+						(r) => r.id === record.liquidacionTipoPagoId
+					)}
 					error={error.liquidacionTipoPagoId ?? ""}
-					options={tiposPagos.map((r) => ({ label: r.descripcion, value: r }))}
+					disabled={disabled.liquidacionTipoPagoId ?? false}
+					options={tiposPagos.data.map((r) => ({
+						label: r.descripcion,
+						value: r,
+					}))}
 					onChange={(v) =>
 						handleChange({
 							liquidacionTipoPagoId: v.id,
-							interesPorcentaje: v.porcentaje,
 						})
 					}
 					style={{ width: "100%" }}
@@ -251,8 +293,9 @@ const Controles = ({
 					disableFuture
 					minDate="1994-01-01"
 					maxDate={dayjs().format("YYYY-MM-DD")}
-					value={otros.periodo ?? ""}
+					value={calculados.periodo ?? ""}
 					error={error.periodo ?? ""}
+					disabled={disabled.periodo ?? false}
 					required
 					onChange={(f) =>
 						handleChange({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
@@ -265,15 +308,16 @@ const Controles = ({
 					label="Fecha de vencimiento"
 					InputLabelProps={{ shrink: true }}
 					disabled
-					value={otros.vencimientoFecha ?? ""}
+					value={calculados.vencimientoFecha ?? ""}
 					style={{ width: "100%" }}
 				/>
 				<DateTimePicker
 					type="date"
 					label="Fecha pago estimada"
 					minDate={dayjs().format("YYYY-MM-DD")}
-					value={otros.fechaPagoEstimada ?? ""}
+					value={calculados.fechaPagoEstimada ?? ""}
 					error={error.fechaPagoEstimada ?? ""}
+					disabled={disabled.fechaPagoEstimada ?? false}
 					required
 					onChange={(f) =>
 						handleChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
@@ -288,6 +332,7 @@ const Controles = ({
 					required
 					value={record.cantidadTrabajadores}
 					error={error.cantidadTrabajadores ?? ""}
+					disabled={disabled.cantidadTrabajadores ?? false}
 					onChange={(e) =>
 						handleChange({
 							cantidadTrabajadores: Formato.Entero(e.target.value),
@@ -305,6 +350,7 @@ const Controles = ({
 					required
 					value={record.totalRemuneraciones}
 					error={error.totalRemuneraciones ?? ""}
+					disabled={disabled.totalRemuneraciones ?? false}
 					onChange={(e) =>
 						handleChange({
 							totalRemuneraciones: Formato.Decimal(e.target.value),
@@ -324,7 +370,7 @@ const Controles = ({
 					size="small"
 					type="number"
 					label="Aporte"
-					value={otros.interesNeto}
+					value={calculados.interesNeto}
 					disabled
 					InputLabelProps={{ shrink: true }}
 					style={{ width: "50%" }}
@@ -340,7 +386,7 @@ const Controles = ({
 					size="small"
 					type="number"
 					label="Importe interes"
-					value={otros.interesImporte}
+					value={calculados.interesImporte}
 					disabled
 					InputLabelProps={{ shrink: true }}
 					style={{ width: "50%" }}
@@ -357,7 +403,7 @@ const Controles = ({
 					type="number"
 					label="Importe"
 					disabled
-					value={otros.importeTotal}
+					value={calculados.importeTotal}
 					InputLabelProps={{ shrink: true }}
 					style={{ width: "50%" }}
 				/>
