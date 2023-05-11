@@ -643,11 +643,16 @@ const AfiliadoAgregar = (props) => {
               estado.label === "Rechazado"
           );
           //console.log("estados", estadosSolicitudesPendientes);
-          setEstadosSolicitudes(estadosSolicitudesPendientes);
-
-          if (props.accion === "Resuelve"){
-            setSelectedTab(3)
-          }          
+          setEstadosSolicitudes(estadosSolicitudesPendientes);        
+        }
+        else if (afiliadoObj.estadoSolicitudId === 4) {
+          const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
+            (estado) =>
+              estado.label === "Observado" ||
+              estado.label === "Rechazado"
+          );
+          //console.log("estados", estadosSolicitudesPendientes);
+          setEstadosSolicitudes(estadosSolicitudesObservado); 
         }
 
         //alert
@@ -657,6 +662,9 @@ const AfiliadoAgregar = (props) => {
             `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
           );
           setSeverityAlert("info");
+        }
+        else if (props.accion === "Resuelve") {
+          setSelectedTab(3);
         }
       };
 
@@ -1823,8 +1831,8 @@ const AfiliadoAgregar = (props) => {
           />
           <Tab
             label="Resuelve Solicitud"
-            hidden={
-              estadoSolicitud === 1 || estadoSolicitud === 4 ? false : true
+            disabled={
+              estadoSolicitud !== 1 || estadoSolicitud !== 4 ? false : true
             }
           />
           <Tab label="Documentacion" />

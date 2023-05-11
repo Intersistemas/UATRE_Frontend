@@ -36,9 +36,9 @@
 
    @media (min-width: 1024px) {
     .modal {
-      width: 60rem;
+      width: 70rem;
       height: 58rem;
-      left: calc(50% - 30rem);
+      left: calc(50% - 35rem);
       top: calc(50% - 29rem);
     }
   }
