@@ -1,0 +1,21 @@
+.content label {
+	font-size: 16pt;
+	font-weight: bold;
+	color: navy !important;
+}
+
+.content .MuiInputLabel-sizeSmall {
+	font-size: 16pt;
+}
+
+.subtitulo {
+	font-size: 16pt;
+	text-align: left;
+	color: navy;
+}
+
+.subtitulo > span {
+	font-weight: bold;
+	font-size: 22pt;
+	color: navy;
+}

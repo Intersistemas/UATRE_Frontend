@@ -1,16 +1,18 @@
 import React from "react";
 import Formato from "../../../../../helpers/Formato";
+import Button from "../../../../../ui/Button/Button";
 import Table from "../../../../../ui/Table/Table";
 
-const LiquidacionList = ({ config }) => {
-	const onSelect = config.onSelect ?? ((registro) => {});
-	const data = [];
-	config.data?.forEach(liq => data.push(liq));
-	const tiposPagos = [
-		{ id: 1, descripcion: "Sindical" },
-		{ id: 2, descripcion: "Solidario" },
-		{ id: 3, descripcion: "Sepelio" },
-	];
+const LiquidacionList = ({
+	records = [], // Lista de liquidaciones
+	tiposPagos = [], // Lista de tipos de pagos
+	loading = true,
+	noData = <h4>No hay informacion a mostrar</h4>,
+	onSelect = (_record) => {},
+	onOpenForm = (_record) => {},
+}) => {
+	records ??= [];
+	tiposPagos ??= [];
 	const tiposLiquidaciones = ["Periodo", "Acta"];
 
 	const cs = {
@@ -42,10 +44,10 @@ const LiquidacionList = ({ config }) => {
 			style: { ...cs },
 		},
 		{
-			dataField: "liquidacionesTiposPagosId",
+			dataField: "liquidacionTipoPagoId",
 			text: "Tipo de pago",
 			sort: true,
-			formatter: (v) => tiposPagos.find(r => r.id === v)?.descripcion ?? "",
+			formatter: (v) => tiposPagos.find((r) => r.id === v)?.descripcion ?? "",
 			style: { ...cs, textAlign: "left" },
 		},
 		{
@@ -63,15 +65,28 @@ const LiquidacionList = ({ config }) => {
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
+		{
+			dataField: "acciones",
+			text: "Acciones",
+			isDummyField: true,
+			formatter: (cell, row, rowIndex, formatExtraDatas) => {
+				return (
+					<Button onClick={() => onOpenForm(row)}>
+						{row.id ? "Consulta" : "Genera"}
+					</Button>
+				);
+			},
+			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+		},
 	];
 
 	return (
 		<Table
 			keyField="index"
-			loading={config.loading ?? false}
-			data={data}
+			loading={loading}
+			data={records}
 			columns={columns}
-			noDataIndication={config.noData}
+			noDataIndication={noData}
 			onSelected={onSelect}
 		/>
 	);

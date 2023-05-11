@@ -12,7 +12,8 @@ import Grid from "../../../../ui/Grid/Grid";
 import Select from "../../../../ui/Select/Select";
 import Button from "../../../../ui/Button/Button";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
-import LiquidacionForm from "./Manual/Form";
+// import LiquidacionForm from "./Manual/Form";
+import LiquidacionForm from "../Formulario/Form";
 import dayjs from "dayjs";
 
 const LiquidacionesProcesarHandler = () => {
@@ -42,14 +43,8 @@ const LiquidacionesProcesarHandler = () => {
 				endpoint: `/DDJJUatre/GetCUITPeriodos?CUIL=${empresa.cuit ?? 0}`,
 				method: "GET",
 			},
-			async (res) => {
-				console.log("res", res);
-				setPeriodos({ data: [...res] });
-			},
-			async (err) => {
-				console.log("err", err);
-				setPeriodos({ error: err });
-			}
+			async (res) => setPeriodos({ data: [...res] }),
+			async (err) => setPeriodos({ error: err })
 		);
 	}, [request]);
 	//#endregion
@@ -188,7 +183,7 @@ const LiquidacionesProcesarHandler = () => {
 									<DateTimePicker
 										type="month"
 										label="Ingrese período a liquidar"
-										value={periodoNuevo}
+										value={Formato.Mascara(periodoNuevo, "####-##-01") ?? ""}
 										disableFuture
 										minDate="1994-01-01"
 										maxDate={dayjs().format("YYYY-MM-DD")}
@@ -278,15 +273,22 @@ const LiquidacionesProcesarHandler = () => {
 										onClick={() =>
 											setLiquidacionForm(
 												<LiquidacionForm
-													config={{
-														empresa: empresa,
-														onCancela: () => setLiquidacionForm(null),
-														onConfirma: () =>
-															navigate("/siaru/liquidaciones", {
-																state: { empresa: empresa },
-															}),
-													}}
+													request="A"
+													empresa={empresa}
+													titulo={<span>Generando liquidacion</span>}
+													onConfirm={(_record, _request) => navigate("/siaru/liquidaciones", {state: { empresa: empresa }})}
+													onCancel={(_request) => setLiquidacionForm(null)}
 												/>
+											// 	<LiquidacionForm
+											// 		config={{
+											// 			empresa: empresa,
+											// 			onCancela: () => setLiquidacionForm(null),
+											// 			onConfirma: () =>
+											// 				navigate("/siaru/liquidaciones", {
+											// 					state: { empresa: empresa },
+											// 				}),
+											// 		}}
+											// 	/>
 											)
 										}
 									>

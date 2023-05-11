@@ -2,8 +2,13 @@ import React from "react";
 import Formato from "../../../../../helpers/Formato";
 import Table from "../../../../../ui/Table/Table";
 
-const DDJJList = ({ config }) => {
-	const onSelect = config.onSelect ?? ((registro) => {});
+const DDJJList = ({
+	records = [],	// Lista de Nominas
+	loading = true,
+	noData = <h4>No hay informacion a mostrar</h4>,
+	onSelect = (_record) => {}
+}) => {
+	records ??= [];
 
 	const cs = {
 		overflow: "hidden",
@@ -60,10 +65,10 @@ const DDJJList = ({ config }) => {
 	return (
 		<Table
 			keyField="cuil"
-			loading={config.loading ?? false}
-			data={config.data ? [...config.data] : []}
+			loading={loading}
+			data={records}
 			columns={columns}
-			noDataIndication={config.noData}
+			noDataIndication={noData}
 			onSelected={onSelect}
 		/>
 	);
