@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Form.module.css";
+import Tipos from "./Tipos";
+import Controles from "./Controles";
 import Formato from "../../../../helpers/Formato";
 import useHttp from "../../../../hooks/useHttp";
 import Button from "../../../../ui/Button/Button";
 import Grid from "../../../../ui/Grid/Grid";
 import Modal from "../../../../ui/Modal/Modal";
-import Controles from "./Controles";
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { Alert, AlertTitle } from "@mui/lab";
@@ -13,6 +14,7 @@ import { IconButton, Collapse } from "@mui/material";
 
 const Form = ({
 	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	tipo = Tipos.Liquidacion,
 	titulo = null,
 	subtitulo = null,
 	record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
@@ -78,11 +80,13 @@ const Form = ({
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
 		const method = requestParam === "A" ? "POST" : "PATCH";
+		const endpoint =
+			tipo === Tipos.Tentativa ? `/Liquidaciones/Tentativas` : `/Liquidaciones`;
 		if (data.refMotivosBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Liquidaciones`,
+				endpoint: endpoint,
 				method: method,
 				body: data,
 				headers: { "Content-Type": "application/json" },
@@ -160,55 +164,56 @@ const Form = ({
 	};
 
 	const validar = () => {
-		let tieneErrores = false;
+		let noValida = false;
 		const newErrores = {};
+		const newAlerts = [];
 
 		if (liquidacion.empresaEstablecimientoId) {
 			newErrores.empresaEstablecimientoId = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.empresaEstablecimientoId = "Dato requerido";
 		}
 
 		if (liquidacion.tipoLiquidacion !== undefined) {
 			newErrores.tipoLiquidacion = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.tipoLiquidacion = "Dato requerido";
 		}
 
 		if (liquidacion.liquidacionTipoPagoId) {
 			newErrores.liquidacionTipoPagoId = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.liquidacionTipoPagoId = "Dato requerido";
 		}
 
 		if (liquidacion.periodo) {
 			newErrores.periodo = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.periodo = "Dato requerido";
 		}
 
 		if (liquidacion.cantidadTrabajadores) {
 			newErrores.cantidadTrabajadores = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.cantidadTrabajadores = "Dato requerido";
 		}
 
 		if (liquidacion.totalRemuneraciones) {
 			newErrores.totalRemuneraciones = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.totalRemuneraciones = "Dato requerido";
 		}
 
 		if (liquidacion.fechaPagoEstimada) {
 			newErrores.fechaPagoEstimada = "";
 		} else {
-			tieneErrores = true;
+			noValida = true;
 			newErrores.fechaPagoEstimada = "Dato requerido";
 		}
 
@@ -221,7 +226,7 @@ const Form = ({
 				if (liquidacion.refMotivosBajaId) {
 					newErrores.refMotivosBajaId = "";
 				} else {
-					tieneErrores = true;
+					noValida = true;
 					newErrores.refMotivosBajaId = "Dato requerido cuando es una baja";
 				}
 				break;
@@ -233,7 +238,25 @@ const Form = ({
 		}
 
 		setErrores((old) => ({ ...old, ...newErrores }));
-		if (tieneErrores) return;
+
+		switch (tipo) {
+			case Tipos.Tentativa:
+				if (!liquidacion.nominas?.length) {
+					noValida = true;
+					newAlerts.push({
+						severity: "error",
+						title: "Sin nominas",
+						message: "Debe especificar nominas",
+					});
+				}
+				break;
+			default:
+				break;
+		}
+
+		setAlerts((old) => [...old, ...newAlerts]);
+
+		if (noValida) return;
 
 		console.log("liquidacion", liquidacion);
 		if (liquidacion.refMotivosBajaId) {
@@ -285,7 +308,7 @@ const Form = ({
 										size="small"
 										onClick={() => {
 											const newAlerts = [...alerts];
-											delete newAlerts[ix];
+											newAlerts.splice(ix, 1);
 											setAlerts(newAlerts);
 										}}
 									>
@@ -308,16 +331,16 @@ const Form = ({
 	if (titulo == null) {
 		switch (requestParam) {
 			case "A":
-				titulo = <span>Agregando liquidacion</span>;
+				titulo = <span>Agregando {tipo}</span>;
 				break;
 			case "B":
-				titulo = <span>Dando de baja liquidacion</span>;
+				titulo = <span>Dando de baja {tipo}</span>;
 				break;
 			case "M":
-				titulo = <span>Modificando liquidacion</span>;
+				titulo = <span>Modificando {tipo}</span>;
 				break;
 			default:
-				titulo = <span>Consultando liquidacion</span>;
+				titulo = <span>Consultando {tipo}</span>;
 				break;
 		}
 	}
@@ -343,6 +366,7 @@ const Form = ({
 				<Grid full="width">{subtitulo}</Grid>
 				<Controles
 					record={liquidacion} // Registro liquidacion.
+					tipo={tipo}
 					empresaId={empresa.id}
 					error={errores} // Descripciones de errores. Cada uno debe tener el mimo nombre del campo al que refiere.
 					disabled={disabled}

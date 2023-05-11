@@ -14,6 +14,7 @@ import {
 import LiquidacionList from "./LiquidacionList";
 import DDJJList from "./DDJJList";
 import DDJJForm from "./DDJJForm";
+import LiquidacionesTipos from "../../Formulario/Tipos";
 import LiquidacionesForm from "../../Formulario/Form";
 
 const Handler = () => {
@@ -67,6 +68,15 @@ const Handler = () => {
 					// En caso contrario, es solo a modo informativo de nomina
 					const { nominas, ...liq } = tent;
 					if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
+						liq.nominas = [];
+						if (nominas?.length) {
+							nominas.forEach((nomina) =>
+								liq.nominas.push({
+									cuil: nomina.cuil,
+									nombre: nomina.nombre,
+								})
+							);
+						}
 						newLiquidaciones.push({ index: newLiquidaciones.length, ...liq });
 					}
 					nominas.forEach((nom) => {
@@ -177,6 +187,7 @@ const Handler = () => {
 			refMotivoBajaId: 0,
 			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 3, ///ToDo: Parametrizar tipos de pago Sindical y Solidario
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
+			nominas: [{ cuil: ddjjRecord.cuil, nombre: ddjjRecord.nombre }],
 		};
 	};
 
@@ -199,6 +210,7 @@ const Handler = () => {
 			);
 			if (liq) {
 				liq.cantidadTrabajadores += liqCalc.cantidadTrabajadores;
+				liq.nominas.push(...liqCalc.nominas);
 				liq.totalRemuneraciones =
 					Math.round(
 						(liq.totalRemuneraciones +
@@ -258,9 +270,11 @@ const Handler = () => {
 						// Deshabilitar controles de datos que ya se cargaron.
 						const disabled = {};
 						Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+						disabled.totalRemuneraciones = false;
 						setFormRender(
 							<LiquidacionesForm
 								request={record.id ? "C" : "A"}
+								tipo={LiquidacionesTipos.Tentativa}
 								record={record}
 								empresa={empresa}
 								titulo={<span>{record.id ? "Consultando" : "Generando"} liqudacion</span>}

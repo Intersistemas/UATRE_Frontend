@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
-import dayjs from "dayjs";
+import Tipos from "./Tipos";
 import styles from "./Controles.module.css";
+import useHttp from "../../../../hooks/useHttp";
 import Formato from "../../../../helpers/Formato";
 import Grid from "../../../../ui/Grid/Grid";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
 import Select from "../../../../ui/Select/Select";
-import useHttp from "../../../../hooks/useHttp";
-import { TextField, Collapse, IconButton } from "@mui/material";
+import Table from "../../../../ui/Table/Table";
+import dayjs from "dayjs";
+import { TextField, Collapse, IconButton, Tabs, Tab } from "@mui/material";
 import { Alert, AlertTitle } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 
 const Controles = ({
 	record = {}, // Registro liquidacion.
+	tipo = Tipos.Liquidacion,
 	empresaId = 0,
 	error = {}, // Descripciones de errores. Cada uno debe tener el mismo nombre del campo al que refiere.
 	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
@@ -20,6 +23,7 @@ const Controles = ({
 }) => {
 	const [alerts, setAlerts] = useState([]);
 	const { sendRequest: request } = useHttp();
+	const [currentTab, setCurrentTab] = useState(0);
 
 	// Cargo establecimientos
 	const [establecimientos, setEstablecimientos] = useState([]);
@@ -189,14 +193,14 @@ const Controles = ({
 	};
 
 	const [forzarCalculos, setForzarCalculos] = useState(forzarCalculosParam);
-	if (forzarCalculos && pendingParams.length === 0 && !tiposPagos.loading){
+	if (forzarCalculos && pendingParams.length === 0 && !tiposPagos.loading) {
 		setForzarCalculos(false);
 		handleChange(record);
 	}
 
 	const gap = 10;
 
-	let alertsRender = null;
+	let alertsRender;
 	if (alerts.length > 0) {
 		alertsRender = (
 			<Grid gap={`${gap}px`} full="width">
@@ -232,184 +236,249 @@ const Controles = ({
 		);
 	}
 
+	let tabsRender;
+	if (tipo === Tipos.Tentativa) {
+		tabsRender = (
+			<Tabs
+				value={currentTab}
+				onChange={(_event, newValue) => setCurrentTab(newValue)}
+				aria-label="basic tabs example"
+			>
+				<Tab label="Datos generales" />
+				<Tab label="Nomina" />
+			</Tabs>
+		);
+	}
+
+	let content;
+	switch (currentTab) {
+		case 1:
+			const cs = {
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+			};
+			const columns = [
+				{
+					dataField: "cuil",
+					text: "CUIL",
+					sort: true,
+					headerStyle: (colum, colIndex) => ({ width: "150px" }),
+					formatter: Formato.Cuit,
+					style: { ...cs },
+				},
+				{
+					dataField: "nombre",
+					text: "Nombre",
+					sort: true,
+					style: { ...cs, textAlign: "left" },
+				},
+			];
+			content = (
+				<Table
+					keyField="cuil"
+					loading={false}
+					data={record.nominas ?? []}
+					columns={columns}
+					onSelected={(_) => {}}
+				/>
+			);
+			break;
+		default:
+			content = (
+				<>
+					<Grid full="width">
+						<Select
+							label="Establecimiento"
+							name="empresaEstablecimientoId"
+							required
+							value={establecimientos.find(
+								(r) => r.id === record.empresaEstablecimientoId
+							)}
+							error={error.empresaEstablecimientoId ?? ""}
+							disabled={disabled.empresaEstablecimientoId ?? false}
+							options={establecimientos.map((r) => ({
+								label: r.nombre,
+								value: r,
+							}))}
+							onChange={(v) => handleChange({ empresaEstablecimientoId: v.id })}
+						/>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<Select
+							label="Tipo de liquidacion"
+							name="tipoLiquidacion"
+							required
+							value={tiposLiquidaciones.find(
+								(r) => r.id === record.tipoLiquidacion
+							)}
+							error={error.tipoLiquidacion ?? ""}
+							disabled={disabled.tipoLiquidacion ?? false}
+							options={tiposLiquidaciones.map((r) => ({
+								label: r.nombre,
+								value: r,
+							}))}
+							onChange={(v) => handleChange({ tipoLiquidacion: v.id })}
+							style={{ width: "100%" }}
+						/>
+						<Select
+							name="liquidacionTipoPagoId"
+							label="Tipo de pago"
+							required
+							value={tiposPagos.data.find(
+								(r) => r.id === record.liquidacionTipoPagoId
+							)}
+							error={error.liquidacionTipoPagoId ?? ""}
+							disabled={disabled.liquidacionTipoPagoId ?? false}
+							options={tiposPagos.data.map((r) => ({
+								label: r.descripcion,
+								value: r,
+							}))}
+							onChange={(v) =>
+								handleChange({
+									liquidacionTipoPagoId: v.id,
+								})
+							}
+							style={{ width: "100%" }}
+						/>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<DateTimePicker
+							type="month"
+							label="Periodo"
+							disableFuture
+							minDate="1994-01-01"
+							maxDate={dayjs().format("YYYY-MM-DD")}
+							value={calculados.periodo ?? ""}
+							error={error.periodo ?? ""}
+							disabled={disabled.periodo ?? false}
+							required
+							onChange={(f) =>
+								handleChange({
+									periodo: Formato.Entero(f?.format("YYYYMM") ?? 0),
+								})
+							}
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "100%" }}
+						/>
+						<DateTimePicker
+							type="date"
+							label="Fecha de vencimiento"
+							InputLabelProps={{ shrink: true }}
+							disabled
+							value={calculados.vencimientoFecha ?? ""}
+							style={{ width: "100%" }}
+						/>
+						<DateTimePicker
+							type="date"
+							label="Fecha pago estimada"
+							minDate={dayjs().format("YYYY-MM-DD")}
+							value={calculados.fechaPagoEstimada ?? ""}
+							error={error.fechaPagoEstimada ?? ""}
+							disabled={disabled.fechaPagoEstimada ?? false}
+							required
+							onChange={(f) =>
+								handleChange({
+									fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
+								})
+							}
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "100%" }}
+						/>
+						<TextField
+							size="small"
+							type="number"
+							label="Cant. trabajadores"
+							required
+							value={record.cantidadTrabajadores}
+							error={error.cantidadTrabajadores ?? ""}
+							disabled={disabled.cantidadTrabajadores ?? false}
+							onChange={(e) =>
+								handleChange({
+									cantidadTrabajadores: Formato.Entero(e.target.value),
+								})
+							}
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "100%" }}
+						/>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<TextField
+							size="small"
+							type="number"
+							label="Total remuneraciones"
+							required
+							value={record.totalRemuneraciones}
+							error={error.totalRemuneraciones ?? ""}
+							disabled={disabled.totalRemuneraciones ?? false}
+							onChange={(e) =>
+								handleChange({
+									totalRemuneraciones: Formato.Decimal(e.target.value),
+								})
+							}
+							InputLabelProps={{ shrink: true }}
+							style={{ width: `calc(25% - ${gap}px)` }}
+						/>
+					</Grid>
+					<Grid full="width">
+						<div className={styles.subtitulo}>
+							<span>Subtotales</span>
+						</div>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<TextField
+							size="small"
+							type="number"
+							label="Aporte"
+							value={calculados.interesNeto}
+							disabled
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "50%" }}
+						/>
+					</Grid>
+					<Grid full="width">
+						<div className={styles.subtitulo}>
+							<span>Intereses</span>
+						</div>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<TextField
+							size="small"
+							type="number"
+							label="Importe interes"
+							value={calculados.interesImporte}
+							disabled
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "50%" }}
+						/>
+					</Grid>
+					<Grid full="width">
+						<div className={styles.subtitulo}>
+							<span>Total a pagar</span>
+						</div>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<TextField
+							size="small"
+							type="number"
+							label="Importe"
+							disabled
+							value={calculados.importeTotal}
+							InputLabelProps={{ shrink: true }}
+							style={{ width: "50%" }}
+						/>
+					</Grid>
+				</>
+			);
+			break;
+	}
+
 	return (
-		<>
-			<Grid full="width">
-				<Select
-					label="Establecimiento"
-					name="empresaEstablecimientoId"
-					required
-					value={establecimientos.find(
-						(r) => r.id === record.empresaEstablecimientoId
-					)}
-					error={error.empresaEstablecimientoId ?? ""}
-					disabled={disabled.empresaEstablecimientoId ?? false}
-					options={establecimientos.map((r) => ({ label: r.nombre, value: r }))}
-					onChange={(v) => handleChange({ empresaEstablecimientoId: v.id })}
-				/>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<Select
-					label="Tipo de liquidacion"
-					name="tipoLiquidacion"
-					required
-					value={tiposLiquidaciones.find(
-						(r) => r.id === record.tipoLiquidacion
-					)}
-					error={error.tipoLiquidacion ?? ""}
-					disabled={disabled.tipoLiquidacion ?? false}
-					options={tiposLiquidaciones.map((r) => ({
-						label: r.nombre,
-						value: r,
-					}))}
-					onChange={(v) => handleChange({ tipoLiquidacion: v.id })}
-					style={{ width: "100%" }}
-				/>
-				<Select
-					name="liquidacionTipoPagoId"
-					label="Tipo de pago"
-					required
-					value={tiposPagos.data.find(
-						(r) => r.id === record.liquidacionTipoPagoId
-					)}
-					error={error.liquidacionTipoPagoId ?? ""}
-					disabled={disabled.liquidacionTipoPagoId ?? false}
-					options={tiposPagos.data.map((r) => ({
-						label: r.descripcion,
-						value: r,
-					}))}
-					onChange={(v) =>
-						handleChange({
-							liquidacionTipoPagoId: v.id,
-						})
-					}
-					style={{ width: "100%" }}
-				/>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<DateTimePicker
-					type="month"
-					label="Periodo"
-					disableFuture
-					minDate="1994-01-01"
-					maxDate={dayjs().format("YYYY-MM-DD")}
-					value={calculados.periodo ?? ""}
-					error={error.periodo ?? ""}
-					disabled={disabled.periodo ?? false}
-					required
-					onChange={(f) =>
-						handleChange({ periodo: Formato.Entero(f?.format("YYYYMM") ?? 0) })
-					}
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "100%" }}
-				/>
-				<DateTimePicker
-					type="date"
-					label="Fecha de vencimiento"
-					InputLabelProps={{ shrink: true }}
-					disabled
-					value={calculados.vencimientoFecha ?? ""}
-					style={{ width: "100%" }}
-				/>
-				<DateTimePicker
-					type="date"
-					label="Fecha pago estimada"
-					minDate={dayjs().format("YYYY-MM-DD")}
-					value={calculados.fechaPagoEstimada ?? ""}
-					error={error.fechaPagoEstimada ?? ""}
-					disabled={disabled.fechaPagoEstimada ?? false}
-					required
-					onChange={(f) =>
-						handleChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null })
-					}
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "100%" }}
-				/>
-				<TextField
-					size="small"
-					type="number"
-					label="Cant. trabajadores"
-					required
-					value={record.cantidadTrabajadores}
-					error={error.cantidadTrabajadores ?? ""}
-					disabled={disabled.cantidadTrabajadores ?? false}
-					onChange={(e) =>
-						handleChange({
-							cantidadTrabajadores: Formato.Entero(e.target.value),
-						})
-					}
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "100%" }}
-				/>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<TextField
-					size="small"
-					type="number"
-					label="Total remuneraciones"
-					required
-					value={record.totalRemuneraciones}
-					error={error.totalRemuneraciones ?? ""}
-					disabled={disabled.totalRemuneraciones ?? false}
-					onChange={(e) =>
-						handleChange({
-							totalRemuneraciones: Formato.Decimal(e.target.value),
-						})
-					}
-					InputLabelProps={{ shrink: true }}
-					style={{ width: `calc(25% - ${gap}px)` }}
-				/>
-			</Grid>
-			<Grid full="width">
-				<div className={styles.subtitulo}>
-					<span>Subtotales</span>
-				</div>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<TextField
-					size="small"
-					type="number"
-					label="Aporte"
-					value={calculados.interesNeto}
-					disabled
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "50%" }}
-				/>
-			</Grid>
-			<Grid full="width">
-				<div className={styles.subtitulo}>
-					<span>Intereses</span>
-				</div>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<TextField
-					size="small"
-					type="number"
-					label="Importe interes"
-					value={calculados.interesImporte}
-					disabled
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "50%" }}
-				/>
-			</Grid>
-			<Grid full="width">
-				<div className={styles.subtitulo}>
-					<span>Total a pagar</span>
-				</div>
-			</Grid>
-			<Grid gap={`${gap}px`} full="width">
-				<TextField
-					size="small"
-					type="number"
-					label="Importe"
-					disabled
-					value={calculados.importeTotal}
-					InputLabelProps={{ shrink: true }}
-					style={{ width: "50%" }}
-				/>
-			</Grid>
+		<Grid col gap={`${gap}px`} full="width">
+			{tabsRender}
+			{content}
 			{alertsRender}
-		</>
+		</Grid>
 	);
 };
 
