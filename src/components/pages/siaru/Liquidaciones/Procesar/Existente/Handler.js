@@ -68,6 +68,7 @@ const Handler = () => {
 					// En caso contrario, es solo a modo informativo de nomina
 					const { nominas, ...liq } = tent;
 					if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
+						liq.id = 0;	// El ws me informa el id de liquidacion cuando existe. Este Id lo estoy usando de marca para cuando confirmo una generación.
 						liq.nominas = [];
 						if (nominas?.length) {
 							nominas.forEach((nomina) =>
