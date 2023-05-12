@@ -259,7 +259,7 @@ const {id} = 0;
   };
 
   const handleOnAfiliadoSeleccionado = (afiliado) => {
-    //console.log("Afiliado seleccionado", afiliado)
+    //console.log("Afiliado seleccionado", afiliado.cuil)
     setAfiliadoSeleccionado(afiliado);
   }
 
@@ -269,7 +269,7 @@ const {id} = 0;
   /*if (error) {
     return <h1>{error}</h1>;
   }*/
-
+  console.log("Afiliado seleccionado", afiliadoSeleccionado);  
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
@@ -278,7 +278,7 @@ const {id} = 0;
               onClose={onCloseAfiliadoAgregarHandler}
               estadosSolicitudes={estadosSolicitudes}
               accion={accionSeleccionada}
-              cuil={afiliadoSeleccionado.cuil}
+              cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
             />
           )}
 
