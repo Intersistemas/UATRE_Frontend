@@ -17,8 +17,8 @@ const AfiliadosHandler = () => {
   const [sizePerPage, setSizePerPage] = useState(12);
   const [sortColumn, setSortColumn] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [search, setSearch] = useState('');
-  const [searchColumn, setSearchColumn] = useState('');
+  const [filter, setFilter] = useState('');
+  const [filterColumn, setFilterColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -123,18 +123,19 @@ useEffect(() => {
     
     if (estadoSolicitud > 0) {
         //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-        endpoint = `${endpoint}&FilterBy=EstadoSolicitudId&FilterValue=${estadoSolicitud}`;
+        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
     if (sortColumn) { //ORDENAMIENTO
         sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
         endpoint = `${endpoint}&Sort=${sortColumn}`;
     }
-    if (search) { //BUSQUEDA
-        endpoint = `${endpoint}&FilterValue=${search}`;
+
+    if (filter) { //BUSQUEDA
+        endpoint = `${endpoint}&${filterColumn}=${filter}`;
     }
-    if (searchColumn) { //COLUMNA DE BUSUQUEDA
-        endpoint = `${endpoint}&FilterBy=${searchColumn}`;
-    }
+   /* if (filterColumn) { //COLUMNA DE BUSUQUEDA
+        endpoint = `${endpoint}&FilterBy=${filterColumn}`;
+    }*/
 
     request(
       {
@@ -144,7 +145,7 @@ useEffect(() => {
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud,search, searchColumn, sortColumn, sortOrder]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,filter, filterColumn, sortColumn, sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -230,14 +231,10 @@ const {id} = 0;
     setAfiliadosRespuesta([]);
   };
   
-  const handleSearch = (select,entry) => {
-    setSearch(entry);
-    switch(select){
-      case "Nro.Afiliado":
-        setSearchColumn("NroAfiliado")
-        break;
-      default:  setSearchColumn(select);
-    }
+  const handleFilter = (select,entry) => {
+    console.log('select,entry',select,entry)
+    setFilter(entry);
+    setFilterColumn(select);
     //setAfiliadosRespuesta([]);
   };
 
@@ -288,7 +285,7 @@ const {id} = 0;
             loading={afiliadosRespuesta?.length ? false : isLoading}
             estadosSolicitudes={estadosSolicitudes}
             estadoSolicitudActual={estadoSolicitud}
-            onSearch={handleSearch}
+            onFilter={handleFilter}
             onSort={handleSort}
             onPageChange={handlePageChange}
             onSizePerPageChange={handleSizePerPageChange}
