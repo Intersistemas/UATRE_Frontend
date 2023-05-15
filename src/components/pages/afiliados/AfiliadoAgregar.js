@@ -1873,7 +1873,7 @@ const AfiliadoAgregar = (props) => {
                 id="cuil"
                 value={cuil}
                 label="CUIL"
-                disabled={InputDisabled()}
+                disabled={InputDisabled() || estadoSolicitud === 2}
                 width={98}
                 onChange={handleInputChange}
                 helperText={
