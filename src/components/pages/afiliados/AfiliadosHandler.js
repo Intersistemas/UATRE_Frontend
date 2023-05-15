@@ -83,8 +83,11 @@ useEffect(() => {
         setModuloInfo({...moduloInfo, acciones:accionesAux0});
         break;
     case "Activo":
-        const  accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
-        (accion.id === 4 || accion.id === 5) ? {...accion, disabled: false} : accion);
+        const accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
+          accion.id === 2 || accion.id === 4 || accion.id === 5
+            ? { ...accion, disabled: false }
+            : accion
+        );
         setModuloInfo({...moduloInfo, acciones:accionesAux1});
         break;
     case "Pendiente":
