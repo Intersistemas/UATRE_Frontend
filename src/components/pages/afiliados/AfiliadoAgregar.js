@@ -1779,7 +1779,7 @@ const AfiliadoAgregar = (props) => {
   //#region Functions
   const InputDisabled = () => {
     //console.log("InputDisable")
-    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4) {
+    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4 && estadoSolicitud !== 2) {
       return true;
     }
 
@@ -1873,7 +1873,7 @@ const AfiliadoAgregar = (props) => {
                 id="cuil"
                 value={cuil}
                 label="CUIL"
-                disabled={InputDisabled()}
+                disabled={InputDisabled() || estadoSolicitud === 2}
                 width={98}
                 onChange={handleInputChange}
                 helperText={
