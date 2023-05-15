@@ -52,12 +52,15 @@ const TableRemote = (props) => {
   };
 
   const handleChangeSearchSelect = (event) => {
+    console.log('Seleccionó:',event.target.value)
     setSelectValue(event.target.value);
+    setEntryValue('');
     //props.handleSelectFilter(event.target.value);
   };
 
   const handleChangeSearchEntry = (event) => {
     setEntryValue(event.target.value);
+    
       //props.handleSelectFilter(event.target.value);
   };
 
@@ -87,32 +90,34 @@ const TableRemote = (props) => {
           </Select>
         </FormControl>
         <TextField 
-        fullWidth id="outlined-basic" label={selectValue?.text?.includes('Fecha') ? '':`Ingrese ${selectValue.text ?? ''}`} 
-        variant="outlined"  onChange={handleChangeSearchEntry}
-        type={selectValue?.text?.includes('Fecha') ? 'date':'text'}
-        
-        onKeyPress={(ev) => {
-          
-          if (ev.key === 'Enter' && entryValue) {
-            props.accionBuscar(selectValue.dataField,entryValue)
-            ev.preventDefault();
-          }
-        }}
+            fullWidth id="outlined-basic" label={selectValue?.text?.includes('Fecha') ? '':`Ingrese ${selectValue.text ?? ''}`} 
+            variant="outlined"  onChange={handleChangeSearchEntry}
+            type={selectValue?.text?.includes('Fecha') ? 'date':'text'}
+            value={entryValue}
+            onKeyPress={(ev) => {
+              
+              if (ev.key === 'Enter' && entryValue) {
+                props.accionBuscar(selectValue.dataField,entryValue)
+                ev.preventDefault();
+              }
+            }}
 
-        /*helperText={
-          props.error
-            ? "Error buscando datos"
-            : ""
-        }*/
-        error={props.error}
+            /*helperText={
+              props.error
+                ? "Error buscando datos"
+                : ""
+            }*/
+            error={props.error}
         />
         <Button
-              width={80}
+            className="botonBorder"
+              width={70}
               onClick={()=>props.accionBuscar(selectValue.dataField,entryValue)}
               disabled={!entryValue ?? true}
         >Buscar</Button>
         <Button
-              width={40}
+              className="botonBorder"
+              width={70}
               onClick={()=>accionLimpiarFiltros()}
         >Limpiar</Button>
       </Box>
