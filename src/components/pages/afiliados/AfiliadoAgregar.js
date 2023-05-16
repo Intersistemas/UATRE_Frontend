@@ -557,15 +557,16 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     console.log("props.cuil", cuilParam);
     if (props.accion === "Modifica" || props.accion === "Resuelve") {
+      setAfiliadoExiste(true);
       if (cuilParam > 0) {
         setCUIL(cuilParam);
         dispatchCUIL({ type: "USER_INPUT", value: cuilParam });
       }
     }
-  }, [props.cuil, props.accion]);
+  }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuilIsValid && cuil) {
+    if (cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
@@ -1272,6 +1273,44 @@ const AfiliadoAgregar = (props) => {
         afiliadoAgregar
       );
     } else if (props.accion === "Modifica") {
+      const empresa = {
+        cuit: cuitEmpresa,
+        razonSocial: padronEmpresaRespuesta
+          ? padronEmpresaRespuesta?.razonSocial ??
+            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          : "",
+        claveTipo: padronEmpresaRespuesta.tipoClave,
+        claveEstado: padronEmpresaRespuesta.estadoClave,
+        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+        actividadPrincipalDescripcion:
+          padronEmpresaRespuesta.descripcionActividadPrincipal,
+        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+        actividadPrincipalPeriodo:
+          padronEmpresaRespuesta.periodoActividadPrincipal,
+        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+        cierreMes: padronEmpresaRespuesta.mesCierre,
+        email: correoEmpresa,
+        telefono: telefonoEmpresa,
+        domicilioCalle: "string",
+        domicilioNumero: 0,
+        domicilioPiso: "string",
+        domicilioDpto: "string",
+        domicilioSector: "string",
+        domicilioTorre: "string",
+        domicilioManzana: "string",
+        domicilioProvinciasId: 0,
+        domicilioLocalidadesId: 0,
+        domicilioCodigoPostal: 0,
+        domicilioCPA: "string",
+        domicilioTipo: "string",
+        domicilioEstado: "string",
+        domicilioDatoAdicional: "string",
+        domicilioDatoAdicionalTipo: "string",
+        ciiU1: padronEmpresaRespuesta.ciiU1,
+        ciiU2: padronEmpresaRespuesta.ciiU2,
+        ciiU3: padronEmpresaRespuesta.ciiU3,
+      };
+
       const afiliadoModificado = {
         id: nuevoAfiliadoResponse,
         cuil: +cuil,
@@ -1280,7 +1319,7 @@ const AfiliadoAgregar = (props) => {
         fechaIngreso: null,
         fechaEgreso: null,
         nacionalidadId: +nacionalidad,
-        empresaId: +empresaId,
+        //empresaCUIT: +cuitEmpresa,
         seccionalId: +seccional,
         sexoId: +sexo,
         tipoDocumentoId: +tipoDocumento,
@@ -1328,6 +1367,7 @@ const AfiliadoAgregar = (props) => {
         afipDomicilioEstado: afiliado.afipDomicilioEstado,
         afipDomicilioDatoAdicional: afiliado.afipDomicilioDatoAdicional,
         afipDomicilioTipoDatoAdicional: afiliado.afipDomicilioTipoDatoAdicional,
+        empresa: empresa
       };
 
       const afiliadoModificar = async (afiliadoModificarResponseObj) => {
@@ -1777,8 +1817,12 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Functions
-  const InputDisabled = () => {
+  const InputDisabled = (input) => {
     //console.log("InputDisable")
+    if (input !== "cuil" && cuil === ""){
+      return true;
+    }
+    
     if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4 && estadoSolicitud !== 2) {
       return true;
     }
@@ -1824,15 +1868,15 @@ const AfiliadoAgregar = (props) => {
       </div>
       <h5 className={classes.titulo}>
         {props.accion === "Modifica"
-          ? `Edición Afiliado a UATRE: ${cuil} ${nombre}`
+          ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
           : afiliadoExiste
-          ? `Edición/Consulta Afiliado a UATRE: ${cuil} ${nombre}`
+          ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
           : padronRespuesta
-          ? `Alta de Nuevo Afiliado a UATRE: ${cuil} ${nombre}`
-          : "Alta de Nuevo Afiliado a UATRE"}
+          ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
+          : "Agrega Afiliado a UATRE"}
       </h5>
       <h6 className={classes.titulo}>
-        {afiliadoExiste
+        {afiliadoExiste || estadoSolicitud === 4
           ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
           : null}
       </h6>
@@ -1872,8 +1916,8 @@ const AfiliadoAgregar = (props) => {
               <InputMaterial
                 id="cuil"
                 value={cuil}
-                label="CUIL"
-                disabled={InputDisabled() || estadoSolicitud === 2}
+                label="CUIL"                  
+                disabled={InputDisabled("cuil") || estadoSolicitud === 2}
                 width={98}
                 onChange={handleInputChange}
                 helperText={
@@ -2661,7 +2705,9 @@ const AfiliadoAgregar = (props) => {
             className={classes.button}
             width={100}
             onClick={afiliadoObservarHandler}
-            disabled={nuevoAfiliadoObservadoResponse || afiliadoExiste}
+            disabled={
+              cuil === "" || nuevoAfiliadoObservadoResponse || afiliadoExiste || estadoSolicitud === 4
+            }
           >
             Observar Afiliado
           </Button>

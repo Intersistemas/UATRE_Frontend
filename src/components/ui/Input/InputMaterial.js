@@ -31,6 +31,7 @@ const InputMaterial = (props) => {
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
+        autoFocus={props.id === "cuil" ? true : false}
         id={props.id}
         size="small"
         //error={!props.isValid}
