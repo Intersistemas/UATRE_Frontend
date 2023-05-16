@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
@@ -25,6 +25,23 @@ const Login = () => {
   const [cuitIsValid, setCUITIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
+  const [mensajeError, setMensajeError] = useState("");
+
+  //#region Capturo errores de login
+  useEffect(() => {
+    if (error) {
+      console.log("capturo error", error);
+      if(error.code === 401){
+        setMensajeError(error.message);
+      }
+      if(error.statusCode === 500){
+        setMensajeError("Error al conectar con el servidor");
+      }
+      return;
+    }
+  }, [error]);
+
+  //#endregion
 
   const navigate = useNavigate();
 
@@ -57,7 +74,7 @@ const Login = () => {
 
     console.log("enteredCUIT", enteredCUIT);
     dispatch(handleUsuarioLogueado(userObject));
-	navigate("/inicio");
+    navigate("/inicio");
   };
 
   const sendLoginHandler = async () => {
@@ -132,7 +149,7 @@ const Login = () => {
               />
             </InputGroup.Text>
           </InputGroup>
-
+          
           <div className={classes.actions}>
             {!isLoading ? (
               <div>
@@ -146,7 +163,9 @@ const Login = () => {
               <p>Cargando...</p>
             )}
           </div>
-          <div>{error !== null ? <p>Error: {error}</p> : null}</div>
+          <div>
+            {error ? <p>Error: {mensajeError}</p> : null}
+          </div>
         </Form>
       </LoginCard>
     </div>
