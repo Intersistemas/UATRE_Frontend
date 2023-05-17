@@ -66,6 +66,12 @@ const LiquidacionList = ({
 			style: { ...cs },
 		},
 		{
+			dataField: "interesNeto",
+			text: "Total Aporte",
+			formatter: Formato.Moneda,
+			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+		},
+		{
 			dataField: "acciones",
 			text: "Acciones",
 			isDummyField: true,

@@ -177,7 +177,7 @@ const Handler = () => {
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (ddjjRecord.condicionRural !== "RU") return null;
-		return {
+		const ret = {
 			index: index,
 			empresaEstablecimientoId: ddjjRecord.empresaEstablecimientoId,
 			periodo: periodo,
@@ -190,6 +190,9 @@ const Handler = () => {
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 			nominas: [{ cuil: ddjjRecord.cuil, nombre: ddjjRecord.nombre }],
 		};
+		ret.interesPorcentaje = tiposPagos.data?.find(r => r.id === ret.liquidacionTipoPagoId)?.porcentaje ?? 0;
+		ret.interesNeto = ret.totalRemuneraciones * (ret.interesPorcentaje / 100);
+		return ret;
 	};
 
 	const calcLiqListDesdeDDJJList = () => {
@@ -216,6 +219,13 @@ const Handler = () => {
 					Math.round(
 						(liq.totalRemuneraciones +
 							liqCalc.totalRemuneraciones +
+							Number.EPSILON) *
+							100
+					) / 100;
+				liq.interesNeto = 
+					Math.round(
+						(liq.interesNeto +
+							liqCalc.interesNeto +
 							Number.EPSILON) *
 							100
 					) / 100;
