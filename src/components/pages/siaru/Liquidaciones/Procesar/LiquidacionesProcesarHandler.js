@@ -253,51 +253,6 @@ const LiquidacionesProcesarHandler = () => {
 								{archivoF931Err}
 							</Grid>
 						</Grid>
-
-						{/* Grupo "Liquidación manual" */}
-						<Grid
-							className={`${styles.fondo} ${styles.grupo}`}
-							col
-							full="width"
-							style={{ minWidth: "310px" }}
-							gap="10px"
-						>
-							<Grid full="width">
-								<Grid className={styles.cabecera} grow>
-									Liquidación manual
-								</Grid>
-							</Grid>
-							<Grid full="width" gap="10px">
-								<Grid block basis="300px">
-									<Button
-										onClick={() =>
-											setLiquidacionForm(
-												<LiquidacionForm
-													request="A"
-													empresa={empresa}
-													titulo={<span>Generando liquidacion</span>}
-													onConfirm={(_record, _request) => navigate("/siaru/liquidaciones", {state: { empresa: empresa }})}
-													onCancel={(_request) => setLiquidacionForm(null)}
-												/>
-											// 	<LiquidacionForm
-											// 		config={{
-											// 			empresa: empresa,
-											// 			onCancela: () => setLiquidacionForm(null),
-											// 			onConfirma: () =>
-											// 				navigate("/siaru/liquidaciones", {
-											// 					state: { empresa: empresa },
-											// 				}),
-											// 		}}
-											// 	/>
-											)
-										}
-									>
-										Ingresar liquidacion manual
-									</Button>
-								</Grid>
-							</Grid>
-							{liquidacionForm}
-						</Grid>
 					</Grid>
 					<Grid full></Grid>
 				</Grid>
