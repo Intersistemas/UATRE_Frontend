@@ -5,7 +5,7 @@ import Formato from "../../../helpers/Formato";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import Form from "./EstablecimientoForm";
-import styles from "./EstablecimientosHandler.module.css";
+// import styles from "./EstablecimientosHandler.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -15,6 +15,7 @@ import {
 
 const EstablecimientosHandler = (props) => {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const empresa = location.state?.empresa;
 	if (empresa?.id == null) navigate("/");
 
@@ -30,7 +31,6 @@ const EstablecimientosHandler = (props) => {
 	const [form, setForm] = useState(null);
 	const { sendRequest: request } = useHttp();
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
 
 	const recargarEstablecimientos = (despliega = null) => {
 		request(
@@ -56,6 +56,11 @@ const EstablecimientosHandler = (props) => {
 		);
 	};
 
+	//#region carga inicial de establecimientos
+	useEffect(() => {
+		recargarEstablecimientos(establecimiento);
+	}, []);
+
 	//#region despachar Informar Modulo
 	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
 	const moduloInfo = {
@@ -78,8 +83,6 @@ const EstablecimientosHandler = (props) => {
 
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		recargarEstablecimientos(establecimiento);
-
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
 			record: establecimiento,
@@ -114,7 +117,7 @@ const EstablecimientosHandler = (props) => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [empresaId, pagination.index, pagination.size, moduloAccion]);
+	}, [moduloAccion, empresaId, estabDesc, establecimiento, recargarEstablecimientos, navigate, dispatch]);
 
 	return (
 		<>

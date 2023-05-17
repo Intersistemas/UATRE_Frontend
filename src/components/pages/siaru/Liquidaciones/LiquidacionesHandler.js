@@ -76,11 +76,13 @@ const LiquidacionesHandler = () => {
 						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
 					],
 				}),
-			async (err) =>
+			async (err) => {
+				err = err?.code === 404 ? null : err;
 				setEstablecimientos({
 					data: [{ descipcion: "Todos", valor: { id: 0 } }],
 					error: err,
-				})
+				});
+			}
 		);
 	}, [empresa.id, request]);
 	//#endregion

@@ -113,7 +113,7 @@ const Form = ({
 			{ id: 0, tipo: "E", descripcion: "Activo" },
 			{ id: 1, tipo: "E", descripcion: "Otro" },
 		]);
-	});
+	}, []);
 
 	const gap = 15;
 
