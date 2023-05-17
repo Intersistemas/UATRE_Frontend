@@ -4,9 +4,11 @@ import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import { TextField } from "@mui/material";
 
-const EstablecimientoDetails = (props) => {
-	const config = props.config;
-	const data = config.data ?? {};
+const EstablecimientoDetails = ({
+	data = {},
+}) => {
+	if (!data) data = {};
+	
 	const inputLabelStyles = { color: "#186090" };
 
 	return (

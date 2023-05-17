@@ -3,14 +3,18 @@ import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import Table from "../../../ui/Table/Table";
 
-const EstablecimientosList = (props) => {
-	const config = { ...props.config };
-	const data = [...config.data];
-	const pagination = { ...config.pagination };
-	const onSelect = config.onSelect ?? ((registro) => {});
-	const onPaginationChange =
-		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
-
+const EstablecimientosList = ({
+	loading = false,
+	data = [],
+	pagination = {},
+	onSelect = (_registro) => {},
+	onPaginationChange = (_pageIndex, _pageSize) => {},
+}) => {
+	if (!data) data = [];
+	if (!pagination) pagination = {};
+	if (!onSelect) onSelect = (_registro) => {};
+	if (!onPaginationChange) onPaginationChange = (_pageIndex, _pageSize) => {};
+	
 	const cs = {
 		overflow: "hidden",
 		textOverflow: "ellipsis",
@@ -48,12 +52,11 @@ const EstablecimientosList = (props) => {
 			onSizePerPageChange: onPaginationChange,
 		});
 	}
-
 	return (
 		<Table
 			remote
 			keyField="id"
-			loading={config.loading}
+			loading={loading}
 			data={data}
 			columns={columns}
 			pagination={bootstrapPagination}

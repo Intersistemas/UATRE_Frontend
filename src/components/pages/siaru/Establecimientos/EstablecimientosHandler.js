@@ -28,7 +28,7 @@ const EstablecimientosHandler = (props) => {
 	});
 	const [establecimiento, setEstablecimiento] = useState(null);
 	const [form, setForm] = useState(null);
-	const { isLoading, error, sendRequest: request } = useHttp();
+	const { sendRequest: request } = useHttp();
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
@@ -39,14 +39,18 @@ const EstablecimientosHandler = (props) => {
 				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}`,
 				method: "GET",
 			},
-			async (response) => {
-				setEstablecimientos(response.data);
+			async (res) => {
+				setEstablecimientos(res.data);
 				setPagination({
-					index: response.index,
-					size: response.size,
-					count: response.count,
-					pages: response.pages,
+					index: res.index,
+					size: res.size,
+					count: res.count,
+					pages: res.pages,
 				});
+				setEstablecimiento(despliega);
+			},
+			async (err) => {
+				setEstablecimientos([]);
 				setEstablecimiento(despliega);
 			}
 		);
@@ -78,9 +82,9 @@ const EstablecimientosHandler = (props) => {
 
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
-			data: establecimiento,
-			onCancela: () => setForm(null),
-			onConfirma: (_data) => {
+			record: establecimiento,
+			onCancel: (_request) => setForm(null),
+			onConfirm: (_request, _record) => {
 				recargarEstablecimientos();
 				setForm(null);
 			},
@@ -90,31 +94,27 @@ const EstablecimientosHandler = (props) => {
 				navigate("/siaru");
 				break;
 			case `Agregar Establecimiento`:
-				configForm.data = { empresaId: empresaId };
-				configForm.action = "A";
-				setForm(<Form config={configForm} />);
+				configForm.record = { empresaId: empresaId };
+				configForm.request = "A";
+				setForm(<Form {...configForm} />);
 				break;
 			case `Consultar Establecimiento ${estabDesc}`:
-				configForm.action = "C";
-				configForm.onConfirma = (_data) => configForm.onCancela();
-				setForm(<Form config={configForm} />);
+				configForm.request = "C";
+				setForm(<Form {...configForm} />);
 				break;
 			case `Modificar Establecimiento ${estabDesc}`:
-				configForm.action = "M";
-				setForm(<Form config={configForm} />);
+				configForm.request = "M";
+				setForm(<Form {...configForm} />);
 				break;
 			case `Dar de baja Establecimiento ${estabDesc}`:
-				configForm.action = "B";
-				setForm(<Form config={configForm} />);
+				configForm.request = "B";
+				setForm(<Form {...configForm} />);
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 	}, [empresaId, pagination.index, pagination.size, moduloAccion]);
-
-	if (isLoading) return <h1>Cargando...</h1>;
-	if (error) return <h1>{error}</h1>;
 
 	return (
 		<>
@@ -132,14 +132,12 @@ const EstablecimientosHandler = (props) => {
 					<Grid full="width" grow gap="5px">
 						<Grid width="50%">
 							<EstablecimientosList
-								config={{
-									data: establecimientos,
-									onSelect: (r) => setEstablecimiento(r),
-								}}
+								data={establecimientos}
+								onSelect={setEstablecimiento}
 							/>
 						</Grid>
 						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							<EstablecimientoDetails config={{ data: establecimiento }} />
+							<EstablecimientoDetails data={establecimiento} />
 						</Grid>
 						{form}
 					</Grid>

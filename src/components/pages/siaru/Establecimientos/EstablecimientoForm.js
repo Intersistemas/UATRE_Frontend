@@ -10,18 +10,25 @@ import Select from "../../../ui/Select/Select";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-const Form = (props) => {
-	const config = { ...props.config };
-	const action = config.action ? `${config.action}` : "C"; //ABMC
-	const [data, setData] = useState({ ...config.data });
-	const joinData = (newData) => setData({ ...data, ...newData });
-	const onCancela = config.onCancela ?? (() => {});
-	const onConfirma = config.onConfirma ?? ((data) => {});
+const Form = ({
+	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	record = {}, // Registro de establecimiento a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
+	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
+	onConfirm = (_request, _record) => {}, // Acción a realizar al confirmar
+	onCancel = (_request) => {}, // Accion a realizar al cancelar
+}) => {
+	record = { ...record };
+	if (requestParam === "A") record.id = 0;
+
+	const [establecimiento, setEstablecimiento] = useState(record);
+	const [errores, setErrores] = useState({});
+	const [alerts, setAlerts] = useState([]);
+
 	const [motivosBaja, setMotivosBaja] = useState([]);
-	const { isLoading, error, sendRequest: request } = useHttp();
+	const { sendRequest: request } = useHttp();
 
 	let actionMsg;
-	switch (action) {
+	switch (requestParam) {
 		case "A":
 			actionMsg = "Agregando";
 			break;
@@ -36,66 +43,69 @@ const Form = (props) => {
 			break;
 	}
 
-	const [err, setErr] = useState({
-		empresaId: "",
-		nroSucursal: "",
-		nombre: "",
-		refMotivosBajaId: "",
-	});
-
-	const handleConfirma = () => {
+	const validar = () => {
 		//validaciones
-		let tieneErr = false;
-		const newErr = { ...err };
+		let noValida = false;
+		const newErrores = {};
+		const newAlerts = [];
 
-		if ("AM".split("").indexOf(action) !== -1) {
-			if (!data.empresaId) {
-				tieneErr = true;
-				newErr.empresaId = "Debe especificar la empresa";
-			} else newErr.empresaId = "";
+		if (["A", "M"].includes(requestParam)) {
+			// Alta / Modificacion
+			if (establecimiento.empresaId) {
+				newErrores.empresaId = "";
+			} else {
+				noValida = true;
+				newErrores.empresaId = "Dato requerido";
+			}
 
-			if (!data.nroSucursal) {
-				tieneErr = true;
-				newErr.nroSucursal = "Debe ingresar el Nro. Sucursal";
-			} else newErr.nroSucursal = "";
+			if (establecimiento.nroSucursal) {
+				newErrores.nroSucursal = "";
+			} else {
+				noValida = true;
+				newErrores.nroSucursal = "Dato requerido";
+			}
 
-			if (!data.nombre) {
-				tieneErr = true;
-				newErr.nombre = "Debe ingresar el nombre";
-			} else newErr.nombre = "";
-		} else if (action === "B") {
-			if (!data.refMotivosBajaId) {
-				tieneErr = true;
-				newErr.refMotivosBajaId = "Debe especificar el motivo de baja";
-			} else newErr.refMotivosBajaId = "";
-		}
-
-		if (tieneErr) {
-			setErr(newErr);
+			if (establecimiento.nombre) {
+				newErrores.nombre = "";
+			} else {
+				noValida = true;
+				newErrores.nombre = "Dato requerido";
+			}
+		} else if (requestParam === "B") {
+			// Baja
+			if (establecimiento.refMotivosBajaId) {
+				newErrores.refMotivosBajaId = "";
+			} else {
+				noValida = true;
+				newErrores.refMotivosBajaId = "Dato requerido";
+			}
+		} else {
+			// No se reconoce request
+			onCancel(requestParam);
 			return;
 		}
 
-		const req = {
-			baseURL: "Comunes",
-			headers: { "Content-Type": "application/json" },
-			endpoint: `/EmpresaEstablecimientos`,
-			body: data,
-		};
+		setErrores((old) => ({ ...old, ...newErrores }));
+		setAlerts((old) => [...old, ...newAlerts]);
+		if (noValida) return;
 
-		switch (action) {
-			case "A":
-				req.method = "POST";
-				break;
-			case "B":
-			case "M":
-				req.method = "PUT";
-				break;
-			default:
-				onCancela();
-				return;
-		}
-
-		request(req, async (response) => onConfirma(response));
+		const method = requestParam === "A" ? "POST" : "PUT";
+		request(
+			{
+				baseURL: "Comunes",
+				endpoint: `/EmpresaEstablecimientos`,
+				method: method,
+				body: establecimiento,
+				headers: { "Content-Type": "application/json" },
+			},
+			async (res) => onConfirm(requestParam, res),
+			async (err) => {
+				setAlerts((old) => [
+					...old,
+					{ severity: "error", title: err.type, message: err.message },
+				]);
+			}
+		);
 	};
 
 	useEffect(() => {
@@ -105,52 +115,63 @@ const Form = (props) => {
 		]);
 	});
 
-	if (isLoading) {
-		return (
-			<Modal onClose={onCancela}>
-				<div>Cargando</div>
-			</Modal>
+	const gap = 15;
+
+	let alertsRender = null;
+	if (alerts.length > 0) {
+		alertsRender = (
+			<Grid gap={`${gap}px`} full="width">
+				<Grid col grow>
+					{alerts?.map((r, ix) => (
+						<Collapse in={true} style={{ width: "100%" }}>
+							<Alert
+								severity={r.severity}
+								action={
+									<IconButton
+										aria-label="close"
+										color="inherit"
+										size="small"
+										onClick={() => {
+											const newAlerts = [...alerts];
+											newAlerts.splice(ix, 1);
+											setAlerts(newAlerts);
+										}}
+									>
+										<CloseIcon fontSize="inherit" />
+									</IconButton>
+								}
+								sx={{ mb: 2 }}
+								style={{ marginBottom: "0" }}
+							>
+								<AlertTitle>{r.title}</AlertTitle>
+								{r.message}
+							</Alert>
+						</Collapse>
+					))}
+				</Grid>
+			</Grid>
 		);
 	}
 
-	let errorMsg;
-	if (error) {
-		errorMsg = (
-			<Collapse in={true} style={{ width: "100%" }}>
-				<Alert
-					severity="error"
-					action={
-						<IconButton aria-label="close" color="inherit" size="small">
-							<CloseIcon fontSize="inherit" />
-						</IconButton>
-					}
-					sx={{ mb: 2 }}
-				>
-					<AlertTitle>
-						<strong>Error</strong>
-					</AlertTitle>
-					{error}
-				</Alert>
-			</Collapse>
-		);
-	}
+	const renderConfirmaButton = ["A", "B", "M"].includes(requestParam) ? (
+		<Button onClick={validar}>Confirma</Button>
+	) : null;
 
-	const gridGapPx = 15;
 	return (
-		<Modal onClose={onCancela}>
-			<Grid col full gap={`${gridGapPx}px`}>
-				<Grid full="width" gap={`${gridGapPx}px`}>
+		<Modal onClose={() => onCancel(requestParam)}>
+			<Grid col full gap={`${gap}px`}>
+				<Grid full="width" gap={`${gap}px`}>
 					<Grid grow>
 						<h3>{actionMsg} Establecimiento</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
-						<h3>[empresaId: {data.empresaId ?? ""}]</h3>
+						<h3>[empresaId: {establecimiento.empresaId ?? ""}]</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
-						<h3>{data.id ?? ""}</h3>
+						<h3>{establecimiento.id ?? ""}</h3>
 					</Grid>
 				</Grid>
-				<Grid full="width" gap={`${gridGapPx}px`}>
+				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="25%">
 						<TextField
 							size="small"
@@ -158,13 +179,15 @@ const Form = (props) => {
 							type="number"
 							label="Nro. sucursal"
 							required
-							error={err.nroSucursal}
-							helperText={err.nroSucursal}
-							value={data.nroSucursal}
+							error={errores.nroSucursal ?? ""}
+							helperText={errores.nroSucursal ?? ""}
+							value={establecimiento.nroSucursal}
+							disabled={disabled.nroSucursal ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									nroSucursal: Formato.Entero(e.target.value),
-								})
+								}))
 							}
 						/>
 					</Grid>
@@ -174,28 +197,32 @@ const Form = (props) => {
 							style={{ width: "100%" }}
 							label="Nombre"
 							required
-							helperText={err.nombre}
-							error={err.nombre}
-							value={data.nombre}
+							error={errores.nombre ?? ""}
+							helperText={errores.nombre ?? ""}
+							value={establecimiento.nombre}
+							disabled={disabled.nombre ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									nombre: `${e.target.value}`,
-								})
+								}))
 							}
 						/>
 					</Grid>
 				</Grid>
-				<Grid full="width" gap={`${gridGapPx}px`}>
+				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="50%">
 						<TextField
 							size="small"
 							style={{ width: "100%" }}
 							label="Teléfono"
-							value={data.telefono}
+							value={establecimiento.telefono}
+							disabled={disabled.telefono ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									telefono: `${e.target.value}`,
-								})
+								}))
 							}
 						/>
 					</Grid>
@@ -204,11 +231,13 @@ const Form = (props) => {
 							size="small"
 							style={{ width: "100%" }}
 							label="Correo"
-							value={data.email}
+							value={establecimiento.email}
+							disabled={disabled.email ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									email: `${e.target.value}`,
-								})
+								}))
 							}
 						/>
 					</Grid>
@@ -218,10 +247,10 @@ const Form = (props) => {
 					full="width"
 					style={{
 						border: "solid 1px #cccccc",
-						borderRadius: `${gridGapPx}px`,
-						padding: `${gridGapPx}px`,
+						borderRadius: `${gap}px`,
+						padding: `${gap}px`,
 					}}
-					gap={`${gridGapPx}px`}
+					gap={`${gap}px`}
 				>
 					<Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
 						<h4>Domicilio</h4>
@@ -231,11 +260,13 @@ const Form = (props) => {
 							size="small"
 							style={{ width: "100%" }}
 							label="Calle"
-							value={data.domicilioCalle}
+							value={establecimiento.domicilioCalle}
+							disabled={disabled.domicilioCalle ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									domicilioCalle: `${e.target.value}`,
-								})
+								}))
 							}
 						/>
 					</Grid>
@@ -244,25 +275,33 @@ const Form = (props) => {
 							size="small"
 							style={{ width: "100%" }}
 							label="Número"
-							value={data.domicilioNumero ? data.domicilioNumero : ""}
+							value={
+								establecimiento.domicilioNumero
+									? establecimiento.domicilioNumero
+									: ""
+							}
+							disabled={disabled.domicilioNumero ?? false}
 							onChange={(e) =>
-								joinData({
+								setEstablecimiento((old) => ({
+									...old,
 									domicilioNumero: `${e.target.value}`,
-								})
+								}))
 							}
 						/>
 					</Grid>
-					<Grid full="width" gap={`${gridGapPx}px`}>
+					<Grid full="width" gap={`${gap}px`}>
 						<Grid block basis="180px" className={styles.label}>
 							<TextField
 								size="small"
 								style={{ width: "100%" }}
 								label="Piso"
-								value={data.domicilioPiso}
+								value={establecimiento.domicilioPiso}
+								disabled={disabled.domicilioPiso ?? false}
 								onChange={(e) =>
-									joinData({
+									setEstablecimiento((old) => ({
+										...old,
 										domicilioPiso: `${e.target.value}`,
-									})
+									}))
 								}
 							/>
 						</Grid>
@@ -271,50 +310,61 @@ const Form = (props) => {
 								size="small"
 								style={{ width: "100%" }}
 								label="Dpto"
-								value={data.domicilioDpto}
+								value={establecimiento.domicilioDpto}
+								disabled={disabled.domicilioDpto ?? false}
 								onChange={(e) =>
-									joinData({
+									setEstablecimiento((old) => ({
+										...old,
 										domicilioDpto: `${e.target.value}`,
-									})
+									}))
 								}
 							/>
 						</Grid>
 					</Grid>
 				</Grid>
-				<Grid col full="width" gap={`${gridGapPx}`}>
+				<Grid col full="width" gap={`${gap}`}>
 					<Grid full="width">
-					<Select
+						<Select
 							name="refMotivosBajaId"
 							label="Motivo de baja"
-							required={action === "B"}
-							error={err.refMotivosBajaId}
-							value={data.refMotivosBajaId ? data.refMotivosBajaId : 0}
+							required={requestParam === "B"}
+							error={errores.refMotivosBajaId ?? ""}
+							value={
+								establecimiento.refMotivosBajaId
+									? establecimiento.refMotivosBajaId
+									: 0
+							}
+							disabled={disabled.refMotivosBajaId ?? false}
 							options={motivosBaja.map((r) => ({
 								label: r.descripcion,
 								value: r.id,
 							}))}
-							onChange={(v) => joinData({ refMotivosBajaId: v })}
+							onChange={(v) =>
+								setEstablecimiento((old) => ({
+									...old,
+									refMotivosBajaId: v,
+								}))
+							}
 						/>
 					</Grid>
 				</Grid>
 				<Grid col grow justify="end">
-					<Grid gap={`${gridGapPx * 2}px`}>
-						<Grid grow>{errorMsg}</Grid>
-						<Grid width="15%">
-							<Button className="botonBlanco" onClick={() => onCancela()}>
-								Cancelar
-							</Button>
-						</Grid>
-						<Grid width="15%">
-							<Button
-								disabled={"ABM".split("").indexOf(action) === -1}
-								onClick={handleConfirma}
-							>
-								Confirmar
-							</Button>
+					<Grid gap={`${gap * 2}px`}>
+						<Grid grow />
+						<Grid col width="30%" justify="end">
+							<Grid gap={`${gap}px`}>
+								<Button
+									className="botonBlanco"
+									onClick={() => onCancel(requestParam)}
+								>
+									Cancela
+								</Button>
+								{renderConfirmaButton}
+							</Grid>
 						</Grid>
 					</Grid>
 				</Grid>
+				{alertsRender}
 			</Grid>
 		</Modal>
 	);
