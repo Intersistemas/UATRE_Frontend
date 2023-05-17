@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
-import { Tab, Tabs } from "@mui/material";
 import styles from "./Handler.module.css";
 import Grid from "../../../../../ui/Grid/Grid";
 import Formato from "../../../../../helpers/Formato";
@@ -28,7 +27,6 @@ const Handler = () => {
 	const periodo = location.state?.periodo;
 	if (empresa.id == null || periodo == null) navigate("/");
 
-	const [currentTab, setCurrentTab] = useState(0);
 	const [formRender, setFormRender] = useState();
 	const { sendRequest: request } = useHttp();
 
@@ -68,7 +66,7 @@ const Handler = () => {
 					// En caso contrario, es solo a modo informativo de nomina
 					const { nominas, ...liq } = tent;
 					if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
-						liq.id = 0;	// El ws me informa el id de liquidacion cuando existe. Este Id lo estoy usando de marca para cuando confirmo una generación.
+						liq.id = 0; // El ws me informa el id de liquidacion cuando existe. Este Id lo estoy usando de marca para cuando confirmo una generación.
 						liq.nominas = [];
 						if (nominas?.length) {
 							nominas.forEach((nomina) =>
@@ -190,7 +188,9 @@ const Handler = () => {
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
 			nominas: [{ cuil: ddjjRecord.cuil, nombre: ddjjRecord.nombre }],
 		};
-		ret.interesPorcentaje = tiposPagos.data?.find(r => r.id === ret.liquidacionTipoPagoId)?.porcentaje ?? 0;
+		ret.interesPorcentaje =
+			tiposPagos.data?.find((r) => r.id === ret.liquidacionTipoPagoId)
+				?.porcentaje ?? 0;
 		ret.interesNeto = ret.totalRemuneraciones * (ret.interesPorcentaje / 100);
 		return ret;
 	};
@@ -222,12 +222,9 @@ const Handler = () => {
 							Number.EPSILON) *
 							100
 					) / 100;
-				liq.interesNeto = 
+				liq.interesNeto =
 					Math.round(
-						(liq.interesNeto +
-							liqCalc.interesNeto +
-							Number.EPSILON) *
-							100
+						(liq.interesNeto + liqCalc.interesNeto + Number.EPSILON) * 100
 					) / 100;
 			} else {
 				newLiqList.push(liqCalc);
@@ -246,73 +243,6 @@ const Handler = () => {
 	};
 	const [ddjjFormDisabled, setDDJJFormDisabled] = useState(false);
 
-	let currentTabContent;
-	switch (currentTab) {
-		case 0:
-			currentTabContent = (
-				<Grid col full="width">
-					<Grid full="width">
-						<DDJJList
-							records={filtrarDDJJList()}
-							loading={ddjjList.loading}
-							noData={getNoData(ddjjList)}
-							onSelect={(r) => setDDJJ(r)}
-						/>
-					</Grid>
-					<Grid full="width">
-						<DDJJForm
-							data={ddjj}
-							establecimientos={establecimientos.data}
-							disabled={ddjjFormDisabled}
-							onChange={handleDDJJFormOnChange}
-						/>
-					</Grid>
-				</Grid>
-			);
-			break;
-		case 1:
-			currentTabContent = (
-				<LiquidacionList
-					records={filtrarLiqList()}
-					tiposPagos={tiposPagos.data}
-					loading={liqList.loading}
-					noData={getNoData(liqList)}
-					onOpenForm={(record) => {
-						// Deshabilitar controles de datos que ya se cargaron.
-						const disabled = {};
-						Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
-						disabled.totalRemuneraciones = false;
-						setFormRender(
-							<LiquidacionesForm
-								request={record.id ? "C" : "A"}
-								tipo={LiquidacionesTipos.Tentativa}
-								record={record}
-								empresa={empresa}
-								titulo={<span>{record.id ? "Consultando" : "Generando"} liqudacion</span>}
-								disabled={disabled}
-								onConfirm={(newRecord, request) => {
-									// Actualizo lista
-									setLiqList((old) => {
-										const data = [...old.data];
-										data[record.index] = { ...newRecord, index: record.index };
-										return { ...old, data: data };
-									});
-									// Inhabilitar cambio en DDJJList
-									setDDJJFormDisabled(true);
-									// Oculto formulario
-									setFormRender(null);
-								}}
-								onCancel={() => setFormRender(null)}
-							/>
-						);
-					}}
-				/>
-			);
-			break;
-		default:
-			break;
-	}
-
 	return (
 		<>
 			<div className="titulo">
@@ -326,25 +256,69 @@ const Handler = () => {
 							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
 						</h2>
 					</Grid>
-					<Grid block full="width">
-						<Tabs
-							value={currentTab}
-							onChange={(_event, newValue) => setCurrentTab(newValue)}
-							aria-label="basic tabs example"
-							style={{ position: "fixed" }}
-						>
-							<Tab
-								className={styles.tab}
-								style={{ backgroundColor: "#186090" }}
-								label="Detalle de la liquidacion"
+					<Grid col full="width">
+						<Grid full="width">
+							<DDJJList
+								records={filtrarDDJJList()}
+								loading={ddjjList.loading}
+								noData={getNoData(ddjjList)}
+								onSelect={(r) => setDDJJ(r)}
+								pagination={{ index: 1, size: 5 }}
 							/>
-							<Tab
-								className={styles.tab}
-								style={{ backgroundColor: "#186090" }}
-								label="Liquidacion a generar por establecimiento"
+						</Grid>
+						<Grid full="width">
+							<LiquidacionList
+								records={filtrarLiqList()}
+								tiposPagos={tiposPagos.data}
+								loading={liqList.loading}
+								noData={getNoData(liqList)}
+								onOpenForm={(record) => {
+									// Deshabilitar controles de datos que ya se cargaron.
+									const disabled = {};
+									Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+									disabled.totalRemuneraciones = false;
+									setFormRender(
+										<LiquidacionesForm
+											request={record.id ? "C" : "A"}
+											tipo={LiquidacionesTipos.Tentativa}
+											record={record}
+											empresa={empresa}
+											titulo={
+												<span>
+													{record.id ? "Consultando" : "Generando"} liqudacion
+												</span>
+											}
+											disabled={disabled}
+											onConfirm={(newRecord, request) => {
+												// Actualizo lista
+												setLiqList((old) => {
+													const data = [...old.data];
+													data[record.index] = {
+														...newRecord,
+														index: record.index,
+													};
+													return { ...old, data: data };
+												});
+												// Inhabilitar cambio en DDJJList
+												setDDJJFormDisabled(true);
+												// Oculto formulario
+												setFormRender(null);
+											}}
+											onCancel={() => setFormRender(null)}
+										/>
+									);
+								}}
+								pagination={{ index: 1, size: 5 }}
 							/>
-						</Tabs>
-						{currentTabContent}
+						</Grid>
+						<Grid full="width">
+							<DDJJForm
+								data={ddjj}
+								establecimientos={establecimientos.data}
+								disabled={ddjjFormDisabled}
+								onChange={handleDDJJFormOnChange}
+							/>
+						</Grid>
 					</Grid>
 				</Grid>
 				{formRender}

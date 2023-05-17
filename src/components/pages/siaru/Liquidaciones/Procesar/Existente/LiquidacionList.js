@@ -10,6 +10,7 @@ const LiquidacionList = ({
 	noData = <h4>No hay informacion a mostrar</h4>,
 	onSelect = (_record) => {},
 	onOpenForm = (_record) => {},
+	...otherProps
 }) => {
 	records ??= [];
 	tiposPagos ??= [];
@@ -77,12 +78,13 @@ const LiquidacionList = ({
 			isDummyField: true,
 			formatter: (cell, row, rowIndex, formatExtraDatas) => {
 				return (
-					<Button onClick={() => onOpenForm(row)}>
+					<Button onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>
 						{row.id ? "Consulta" : "Genera"}
 					</Button>
 				);
 			},
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			style: { padding: 0 },
 		},
 	];
 
@@ -94,7 +96,8 @@ const LiquidacionList = ({
 			columns={columns}
 			noDataIndication={noData}
 			onSelected={onSelect}
-		/>
+			{...otherProps}
+	/>
 	);
 };
 

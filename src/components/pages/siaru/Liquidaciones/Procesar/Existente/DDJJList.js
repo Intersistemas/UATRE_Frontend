@@ -6,7 +6,8 @@ const DDJJList = ({
 	records = [],	// Lista de Nominas
 	loading = true,
 	noData = <h4>No hay informacion a mostrar</h4>,
-	onSelect = (_record) => {}
+	onSelect = (_record) => {},
+	...otherProps
 }) => {
 	records ??= [];
 
@@ -60,6 +61,14 @@ const DDJJList = ({
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
+		{
+			dataField: "remuneracionImponible",
+			text: "Remuneración imponible",
+			sort: true,
+			formatter: Formato.Moneda,
+			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			style: { ...cs },
+		},
 	];
 
 	return (
@@ -70,6 +79,7 @@ const DDJJList = ({
 			columns={columns}
 			noDataIndication={noData}
 			onSelected={onSelect}
+			{...otherProps}
 		/>
 	);
 };
