@@ -214,6 +214,15 @@ const AfiliadosLista = (props) => {
       },
     },
     {
+      headerTitle: true,
+      dataField: "provincia",
+      text: "Provincia",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "10%", textAlign: "center" };
+      },
+    },
+    {
       headerTitle: (colum, colIndex) => (`Fecha de Ingreso`),
       dataField: "fechaIngreso",
       text: "F.Ingreso",

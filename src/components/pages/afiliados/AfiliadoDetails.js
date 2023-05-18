@@ -93,11 +93,11 @@ const AfiliadoDetails = (props) => {
 				  <Grid full="width" justify="evenly">
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CUIT" value={Formato.Cuit(empresa.cuit) ?? " "} />
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={empresa.localidad ?? "Descripcion Localidad"}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Provincia" value={empresa.provincia ?? "Descripcion provincia"}/>	
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? "Descripcion CIIU1"}/>							
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU2Descripcion ?? "Descripcion CIIU1"}/>
-						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU3Descripcion ?? "Descripcion CIIU1"}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Localidad" value={empresa.localidad ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Provincia" value={empresa.provincia ?? " "}/>	
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? " "}/>							
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU2Descripcion ?? " "}/>
+						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="CIIU2" value={empresa.ciiU3Descripcion ?? " "}/>
 						<TextField InputLabelProps={{style: {color: '#186090' },}} variant="standard" size="small" label="Situación Rural" value={ddjj.condicionRural ?? " "}/>
 				 	</Grid>
   
