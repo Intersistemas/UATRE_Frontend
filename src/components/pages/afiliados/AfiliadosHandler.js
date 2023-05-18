@@ -7,9 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from '../../../redux/actions';
 import { handleModuloEjecutarAccion } from '../../../redux/actions';
 import { redirect, useNavigate } from "react-router-dom";
-
-
-
+import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -17,9 +15,10 @@ const AfiliadosHandler = () => {
   const [sizePerPage, setSizePerPage] = useState(12);
   const [sortColumn, setSortColumn] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [search, setSearch] = useState('');
-  const [searchColumn, setSearchColumn] = useState('');
+  const [filter, setFilter] = useState('');
+  const [filterColumn, setFilterColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
+  const [pantallaEnDesarrolloShow, setPantallaEnDesarrolloShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -83,8 +82,11 @@ useEffect(() => {
         setModuloInfo({...moduloInfo, acciones:accionesAux0});
         break;
     case "Activo":
-        const  accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
-        (accion.id === 4 || accion.id === 5) ? {...accion, disabled: false} : accion);
+        const accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
+          accion.id === 2 || accion.id === 4 || accion.id === 5
+            ? { ...accion, disabled: false }
+            : accion
+        );
         setModuloInfo({...moduloInfo, acciones:accionesAux1});
         break;
     case "Pendiente":
@@ -123,18 +125,19 @@ useEffect(() => {
     
     if (estadoSolicitud > 0) {
         //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-        endpoint = `${endpoint}&FilterBy=EstadoSolicitudId&FilterValue=${estadoSolicitud}`;
+        endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
     }
     if (sortColumn) { //ORDENAMIENTO
         sortOrder === 'desc' ? endpoint = `${endpoint}&Sort=${sortColumn}Desc`:
         endpoint = `${endpoint}&Sort=${sortColumn}`;
     }
-    if (search) { //BUSQUEDA
-        endpoint = `${endpoint}&FilterValue=${search}`;
+
+    if (filter) { //BUSQUEDA
+        endpoint = `${endpoint}&${filterColumn}=${filter}`;
     }
-    if (searchColumn) { //COLUMNA DE BUSUQUEDA
-        endpoint = `${endpoint}&FilterBy=${searchColumn}`;
-    }
+   /* if (filterColumn) { //COLUMNA DE BUSUQUEDA
+        endpoint = `${endpoint}&FilterBy=${filterColumn}`;
+    }*/
 
     request(
       {
@@ -144,7 +147,7 @@ useEffect(() => {
       },
       processAfiliados
     );
-  }, [request, page, sizePerPage, refresh, estadoSolicitud,search, searchColumn, sortColumn, sortOrder]);  
+  }, [request, page, sizePerPage, refresh, estadoSolicitud,filter, filterColumn, sortColumn, sortOrder]);  
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -199,11 +202,13 @@ const {id} = 0;
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
-      case "Imprime Carnet de Afiliacón":
-        navigate(`/afiliaciones/${id}`);
+      case "Imprime Carnet de Afiliación":
+        //navigate(`/afiliaciones/${id}`);
+        setPantallaEnDesarrolloShow(true);
         break;
       case "Consulta Afiliado":
-        alert('Funcionalidad de Consulta En desarrollo ');
+        //alert('Funcionalidad de Consulta En desarrollo ');
+        setPantallaEnDesarrolloShow(true)
         break;
         // alert('Funcionalidad de Imprimir En desarrollo ');
         // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
@@ -214,7 +219,6 @@ const {id} = 0;
 
   },[moduloAccion])
 
-  
   const handleResolverEstadoSolicitud = () => {
     alert("Funcionalidad en desarrollo");
   };
@@ -224,20 +228,21 @@ const {id} = 0;
     if (refresh === true) setRefresh(true);
   };
 
+  const onClosePantallaEnDesarrolloHandler = () => {
+    setPantallaEnDesarrolloShow(false);
+    //if (refresh === true) setRefresh(true);
+  };
+
   const handlePageChange = (page, sizePerPage) => {
     setPage(page);
     setSizePerPage(sizePerPage);
     setAfiliadosRespuesta([]);
   };
   
-  const handleSearch = (select,entry) => {
-    setSearch(entry);
-    switch(select){
-      case "Nro.Afiliado":
-        setSearchColumn("NroAfiliado")
-        break;
-      default:  setSearchColumn(select);
-    }
+  const handleFilter = (select,entry) => {
+    console.log('select,entry',select,entry)
+    setFilter(entry);
+    setFilterColumn(select);
     //setAfiliadosRespuesta([]);
   };
 
@@ -259,7 +264,7 @@ const {id} = 0;
   };
 
   const handleOnAfiliadoSeleccionado = (afiliado) => {
-    //console.log("Afiliado seleccionado", afiliado)
+    //console.log("Afiliado seleccionado", afiliado.cuil)
     setAfiliadoSeleccionado(afiliado);
   }
 
@@ -269,33 +274,37 @@ const {id} = 0;
   /*if (error) {
     return <h1>{error}</h1>;
   }*/
-
+  //console.log("Afiliado seleccionado", afiliadoSeleccionado);  
+  console.log("pantallaEnDesarrolloShow", pantallaEnDesarrolloShow);
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
-          {afiliadoAgregarShow && (
-            <AfiliadoAgregar
-              onClose={onCloseAfiliadoAgregarHandler}
-              estadosSolicitudes={estadosSolicitudes}
-              accion={accionSeleccionada}
-              cuil={afiliadoSeleccionado.cuil}
-            />
-          )}
+        {pantallaEnDesarrolloShow && (
+          <PantallaEnDesarrollo onClose={onClosePantallaEnDesarrolloHandler} />
+        )}
 
-          <AfiliadosLista
-            afiliados={afiliadosRespuesta}
-            errorRequest={error}
-            loading={afiliadosRespuesta?.length ? false : isLoading}
+        {afiliadoAgregarShow && (
+          <AfiliadoAgregar
+            onClose={onCloseAfiliadoAgregarHandler}
             estadosSolicitudes={estadosSolicitudes}
-            estadoSolicitudActual={estadoSolicitud}
-            onSearch={handleSearch}
-            onSort={handleSort}
-            onPageChange={handlePageChange}
-            onSizePerPageChange={handleSizePerPageChange}
-            onFilterChange={handleFilterChange}
-            onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
+            accion={accionSeleccionada}
+            cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
           />
-      
+        )}
+
+        <AfiliadosLista
+          afiliados={afiliadosRespuesta}
+          errorRequest={error}
+          loading={afiliadosRespuesta?.length ? false : isLoading}
+          estadosSolicitudes={estadosSolicitudes}
+          estadoSolicitudActual={estadoSolicitud}
+          onFilter={handleFilter}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onSizePerPageChange={handleSizePerPageChange}
+          onFilterChange={handleFilterChange}
+          onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
+        />
       </Fragment>
     );
 };

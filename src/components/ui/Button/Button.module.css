@@ -27,6 +27,7 @@
 
 .boton:hover,
 .boton:active {
+    transition: .4s;
     color: var(--blanco) !important;
     background: var(--color2) !important;
 }
@@ -53,7 +54,6 @@
 
 .botonBlanco:hover,
 .botonBlanco:active {
-
   color: white !important;
   background: var(--color2) !important;
 }

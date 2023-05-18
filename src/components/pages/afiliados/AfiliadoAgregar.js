@@ -21,7 +21,6 @@ import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCusto
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
 import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
-import { SwapCalls } from "@mui/icons-material";
 
 //#region gloabes
 const seccionalSinAsignar = [
@@ -34,6 +33,7 @@ const seccionalSinAsignar = [
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
+  const { cuil: cuilParam } = props;
 
   //#region Capturo errores
   useEffect(() => {
@@ -115,7 +115,7 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Datos Personales Formulario
-  const [afiliado, setAfiliado] = useState(null)
+  const [afiliado, setAfiliado] = useState(null);
   const [actividad, setActividad] = useState("");
   const [puesto, setPuesto] = useState("");
   const [sexo, setSexo] = useState("");
@@ -555,18 +555,21 @@ const AfiliadoAgregar = (props) => {
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
 
   useEffect(() => {
-    console.log("props.cuil", props.cuil);
-    if (props.cuil > 0 && (props.accion === "Modifica" || props.accion === "Resuelve")) {
-      setCUIL(props.cuil);
-      dispatchCUIL({ type: "USER_INPUT", value: props.cuil });
+    console.log("props.cuil", cuilParam);
+    if (props.accion === "Modifica" || props.accion === "Resuelve") {
+      setAfiliadoExiste(true);
+      if (cuilParam > 0) {
+        setCUIL(cuilParam);
+        dispatchCUIL({ type: "USER_INPUT", value: cuilParam });
+      }
     }
-  }, [props.cuil, props.accion]);
+  }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuilIsValid && cuil) {
+    if (cuil) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);
-        setAfiliado(afiliadoObj)
+        setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj.id);
         setAfiliadoExiste(true);
@@ -586,7 +589,7 @@ const AfiliadoAgregar = (props) => {
         if (afiliadoObj.correo !== null) {
           setCorreo(afiliadoObj.correo);
         }
-        setActividad(afiliadoObj.actividadId);        
+        setActividad(afiliadoObj.actividadId);
         setPuesto(afiliadoObj.puestoId);
         setDomicilio(afiliadoObj.domicilio);
         setLocalidad(afiliadoObj.refLocalidadId);
@@ -600,17 +603,44 @@ const AfiliadoAgregar = (props) => {
           value: afiliadoObj.actividadId,
         });
         dispatchOficio({ type: "USER_INPUT", value: afiliadoObj.puestoId });
-        dispatchNacionalidad({ type: "USER_INPUT", value: afiliadoObj.nacionalidadId });
+        dispatchNacionalidad({
+          type: "USER_INPUT",
+          value: afiliadoObj.nacionalidadId,
+        });
         dispatchGenero({ type: "USER_INPUT", value: afiliadoObj.sexoId });
-        dispatchSeccional({ type: "USER_INPUT", value: afiliadoObj.seccionalId });
-        dispatchEstadoCivil({ type: "USER_INPUT", value: afiliadoObj.estadoCivilId });
-        dispatchTipoDocumento({ type: "USER_INPUT", value: afiliadoObj.tipoDocumentoId });
-        dispatchProvincia({ type: "USER_INPUT", value: afiliadoObj.provinciaId });
-        dispatchLocalidad({ type: "USER_INPUT", value: afiliadoObj.refLocalidadId });
-        dispatchSeccional({ type: "USER_INPUT", value: afiliadoObj.seccionalId });
+        dispatchSeccional({
+          type: "USER_INPUT",
+          value: afiliadoObj.seccionalId,
+        });
+        dispatchEstadoCivil({
+          type: "USER_INPUT",
+          value: afiliadoObj.estadoCivilId,
+        });
+        dispatchTipoDocumento({
+          type: "USER_INPUT",
+          value: afiliadoObj.tipoDocumentoId,
+        });
+        dispatchProvincia({
+          type: "USER_INPUT",
+          value: afiliadoObj.provinciaId,
+        });
+        dispatchLocalidad({
+          type: "USER_INPUT",
+          value: afiliadoObj.refLocalidadId,
+        });
+        dispatchSeccional({
+          type: "USER_INPUT",
+          value: afiliadoObj.seccionalId,
+        });
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
-        dispatchFechaNacimiento({ type: "USER_INPUT", value: afiliadoObj.fechaNacimiento });
-        dispatchNumeroDocumento({ type: "USER_INPUT", value: afiliadoObj.documento });
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value: afiliadoObj.fechaNacimiento,
+        });
+        dispatchNumeroDocumento({
+          type: "USER_INPUT",
+          value: afiliadoObj.documento,
+        });
         dispatchDomicilio({ type: "USER_INPUT", value: afiliadoObj.domicilio });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
@@ -644,10 +674,13 @@ const AfiliadoAgregar = (props) => {
           );
           //console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
-
-          if (props.accion === "Resuelve"){
-            setSelectedTab(3)
-          }          
+        } else if (afiliadoObj.estadoSolicitudId === 4) {
+          const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
+            (estado) =>
+              estado.label === "Observado" || estado.label === "Rechazado"
+          );
+          //console.log("estados", estadosSolicitudesPendientes);
+          setEstadosSolicitudes(estadosSolicitudesObservado);
         }
 
         //alert
@@ -657,6 +690,8 @@ const AfiliadoAgregar = (props) => {
             `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
           );
           setSeverityAlert("info");
+        } else if (props.accion === "Resuelve") {
+          setSelectedTab(3);
         }
       };
 
@@ -1237,8 +1272,45 @@ const AfiliadoAgregar = (props) => {
         },
         afiliadoAgregar
       );
-    }
-    else if (props.accion === "Modifica"){
+    } else if (props.accion === "Modifica") {
+      const empresa = {
+        cuit: cuitEmpresa,
+        razonSocial: padronEmpresaRespuesta
+          ? padronEmpresaRespuesta?.razonSocial ??
+            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          : "",
+        claveTipo: padronEmpresaRespuesta.tipoClave,
+        claveEstado: padronEmpresaRespuesta.estadoClave,
+        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+        actividadPrincipalDescripcion:
+          padronEmpresaRespuesta.descripcionActividadPrincipal,
+        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+        actividadPrincipalPeriodo:
+          padronEmpresaRespuesta.periodoActividadPrincipal,
+        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+        cierreMes: padronEmpresaRespuesta.mesCierre,
+        email: correoEmpresa,
+        telefono: telefonoEmpresa,
+        domicilioCalle: "string",
+        domicilioNumero: 0,
+        domicilioPiso: "string",
+        domicilioDpto: "string",
+        domicilioSector: "string",
+        domicilioTorre: "string",
+        domicilioManzana: "string",
+        domicilioProvinciasId: 0,
+        domicilioLocalidadesId: 0,
+        domicilioCodigoPostal: 0,
+        domicilioCPA: "string",
+        domicilioTipo: "string",
+        domicilioEstado: "string",
+        domicilioDatoAdicional: "string",
+        domicilioDatoAdicionalTipo: "string",
+        ciiU1: padronEmpresaRespuesta.ciiU1,
+        ciiU2: padronEmpresaRespuesta.ciiU2,
+        ciiU3: padronEmpresaRespuesta.ciiU3,
+      };
+
       const afiliadoModificado = {
         id: nuevoAfiliadoResponse,
         cuil: +cuil,
@@ -1247,7 +1319,7 @@ const AfiliadoAgregar = (props) => {
         fechaIngreso: null,
         fechaEgreso: null,
         nacionalidadId: +nacionalidad,
-        empresaId: +empresaId,
+        //empresaCUIT: +cuitEmpresa,
         seccionalId: +seccional,
         sexoId: +sexo,
         tipoDocumentoId: +tipoDocumento,
@@ -1295,6 +1367,7 @@ const AfiliadoAgregar = (props) => {
         afipDomicilioEstado: afiliado.afipDomicilioEstado,
         afipDomicilioDatoAdicional: afiliado.afipDomicilioDatoAdicional,
         afipDomicilioTipoDatoAdicional: afiliado.afipDomicilioTipoDatoAdicional,
+        empresa: empresa
       };
 
       const afiliadoModificar = async (afiliadoModificarResponseObj) => {
@@ -1488,13 +1561,15 @@ const AfiliadoAgregar = (props) => {
     event.preventDefault();
 
     //Controles
-    if (afiliado.estadoSolicitudId === estadoSolicitud){
+    if (afiliado.estadoSolicitudId === estadoSolicitud) {
       setShowAlert(true);
       setSeverityAlert("info");
-      setTextAlert(`El estado seleccionado es el mismo que posee actualmente el afiliado`);
-      
-      return
-    }    
+      setTextAlert(
+        `El estado seleccionado es el mismo que posee actualmente el afiliado`
+      );
+
+      return;
+    }
 
     const patchAfiliado = [
       {
@@ -1742,9 +1817,13 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Functions
-  const InputDisabled = () => {
+  const InputDisabled = (input) => {
     //console.log("InputDisable")
-    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4) {
+    if (input !== "cuil" && cuil === ""){
+      return true;
+    }
+    
+    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4 && estadoSolicitud !== 2) {
       return true;
     }
 
@@ -1789,15 +1868,15 @@ const AfiliadoAgregar = (props) => {
       </div>
       <h5 className={classes.titulo}>
         {props.accion === "Modifica"
-          ? `Edición Afiliado a UATRE: ${cuil} ${nombre}`
+          ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
           : afiliadoExiste
-          ? `Edición/Consulta Afiliado a UATRE: ${cuil} ${nombre}`
+          ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
           : padronRespuesta
-          ? `Alta de Nuevo Afiliado a UATRE: ${cuil} ${nombre}`
-          : "Alta de Nuevo Afiliado a UATRE"}
+          ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
+          : "Agrega Afiliado a UATRE"}
       </h5>
       <h6 className={classes.titulo}>
-        {afiliadoExiste
+        {afiliadoExiste || estadoSolicitud === 4
           ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
           : null}
       </h6>
@@ -1823,8 +1902,8 @@ const AfiliadoAgregar = (props) => {
           />
           <Tab
             label="Resuelve Solicitud"
-            hidden={
-              estadoSolicitud === 1 || estadoSolicitud === 4 ? false : true
+            disabled={
+              estadoSolicitud !== 1 || estadoSolicitud !== 4 ? false : true
             }
           />
           <Tab label="Documentacion" />
@@ -1837,8 +1916,8 @@ const AfiliadoAgregar = (props) => {
               <InputMaterial
                 id="cuil"
                 value={cuil}
-                label="CUIL"
-                disabled={InputDisabled()}
+                label="CUIL"                  
+                disabled={InputDisabled("cuil") || estadoSolicitud === 2}
                 width={98}
                 onChange={handleInputChange}
                 helperText={
@@ -2626,7 +2705,9 @@ const AfiliadoAgregar = (props) => {
             className={classes.button}
             width={100}
             onClick={afiliadoObservarHandler}
-            disabled={nuevoAfiliadoObservadoResponse || afiliadoExiste}
+            disabled={
+              cuil === "" || nuevoAfiliadoObservadoResponse || afiliadoExiste || estadoSolicitud === 4
+            }
           >
             Observar Afiliado
           </Button>

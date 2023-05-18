@@ -1,145 +1,49 @@
 import React, { useState } from "react";
-import useHttp from "../../hooks/useHttp";
-import urlAPI from "../../api/apiSeguridad";
-import AuthContext from "../../../store/authContext";
-import Table from "../../ui/Table/Table";
-import { Container } from "react-bootstrap";
 import Button from "../../ui/Button/Button";
-import classes from "./Inicio.module.css";
-import { useNavigate, NavLink } from "react-router-dom";
-import { isAccordionItemSelected } from "react-bootstrap/esm/AccordionContext";
+import Grid from "../../ui/Grid/Grid";
+import { useNavigate } from "react-router-dom";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-import { FaSignature } from "react-icons/fa";
-import AfiliadosHandler from "../afiliados/AfiliadosHandler";
-import Formato from "../../helpers/Formato";
 import { useEffect } from "react";
 
-const Inicio = (props) => {
-  const navigate = useNavigate();
+const Inicio = ({ modulos = [] }) => {
+	const navigate = useNavigate();
+	const [accesos, setAccesos] = useState([]);
 
-  const [empresasSelected, setEmpresasSelected] = useState();
-  const usuario = props.usuario;
+	useEffect(() => {
+		const newAccesos = [];
+		modulos.forEach((modulo) => {
+			let acceso = {};
+			switch (modulo) {
+				case "Afiliaciones":
+					acceso.nombre = <>Afiliaciones</>;
+					acceso.accion = () => navigate("/afiliaciones");
+					break;
+				case "Siaru":
+					acceso.nombre = <>Sistema de Aportes Rurales</>;
+					acceso.accion = () => navigate("/siaru");
+					break;
+				case "Administracion de Datos":
+					acceso.nombre = <>Administración de Datos</>;
+					acceso.accion = () => navigate("/administracion");
+					break;
+				default:
+					return;
+			}
+			newAccesos.push(<Button onClick={acceso.accion}>{acceso.nombre}</Button>);
+		});
 
-  // const empresas = [
-  //   {
-  //     cuit: 34618764356,
-  //     razonsocial: "HUAYRA SCA",
-  //     localidad: "Rio Negro",
-  //     domicilio: "AVELEYRA 338",
-  //   },
-  //   {
-  //     cuit: 34617797587,
-  //     razonsocial: "LUISITO SA",
-  //     localidad: "Buenos Aires",
-  //     domicilio: "JUJUY 766",
-  //   },
-  //   {
-  //     cuit: 34610675923,
-  //     razonsocial: "TAPE S.A.",
-  //     localidad: "Buenos Aires",
-  //     domicilio: "RODRIGUEZ PEÑA 616",
-  //   },
-  //   {
-  //     cuit: 34560268019,
-  //     razonsocial: "ASOC COOP DE LA EEA MZA-I",
-  //     localidad: "Corrientes",
-  //     domicilio: "SAN MARTIN 3853",
-  //   },
-  // ];
-  const { empresas } = props;
-  console.log("empresas", empresas)
+		if (newAccesos.length === 1) newAccesos[0].props.onClick();
+		else setAccesos(newAccesos);
+	}, [modulos, navigate]);
 
-  const columns = [
-    {
-      dataField: "cuitEmpresa",
-      text: "CUIT",
-      formatter: Formato.Cuit,
-    },
-    {
-      dataField: "razonsocial",
-      text: "Razón Social",
-      sort: true,
-    },
-    {
-      dataField: "localidad",
-      text: "Localidad",
-    },
-    {
-      dataField: "domicilio",
-      text: "Domicilio",
-    },
-  ];
-
-  const handleSeleccionEmpresa = (row) => {
-    console.log("row_inicio: ", row);
-    setEmpresasSelected(row);
-  };
-
-  let props2 = {
-    keyField: "cuit",
-    data: empresas,
-    columns: columns,
-    onSelected: handleSeleccionEmpresa,
-  };
-
-  const siaru = () => {
-    //<AfiliadosHandler/>
-    navigate("/siaru");
-  };
-
-  const btnAfiliaciones = (
-    <Button width={100} onClick={() => navigate("/afiliaciones")}>
-      Afiliaciones
-    </Button>
-  );
-  const btnSiaru = (
-    <Button width={100} onClick={() => navigate("/siaru")}>
-      Sistema de Aportes Rurales
-    </Button>
-  );
-  const tblEmpresas = <Table {...props2} />;
-
-  let perAfiliaciones = null;
-  let perSiaru = null;
-  let perEmpresas = null;
-  switch (`${usuario.cuit}`) {
-    case "27000000006":
-      perAfiliaciones = btnAfiliaciones;
-      break;
-    case "27000000007":
-      perSiaru = btnSiaru;
-      perEmpresas = tblEmpresas;
-      break;
-    default:
-      perAfiliaciones = btnAfiliaciones;
-      perSiaru = btnSiaru;
-      perEmpresas = tblEmpresas;
-      break;
-  }
-
-  useEffect(() => {
-    if (props.modulos.length === 1){
-      if (props.modulos[0] === "Afiliaciones") navigate("/afiliaciones");
-      if (props.modulos[0] === "Siaru") navigate("/siaru");
-    }
-  
-    return;
-  }, [props.modulos])
-  
-
-  return (
-    <div>
-      <h1 className="titulo">Sistema Integral de UATRE</h1>
-
-      {perAfiliaciones}
-      <p />
-      {perSiaru}
-      <p />
-      <Button width={100} onClick={() => navigate("/afiliaciones")}>
-        Administración de Datos
-      </Button>
-    </div>
-  );
+	return (
+		<>
+			<h1 className="titulo">Sistema Integral de UATRE</h1>
+			<Grid col gap="20px" style={{ margin: "10px" }}>
+				{accesos}
+			</Grid>
+		</>
+	);
 };
 
 export default Inicio;

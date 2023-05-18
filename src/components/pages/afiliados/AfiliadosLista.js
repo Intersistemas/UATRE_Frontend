@@ -55,18 +55,17 @@ const AfiliadosLista = (props) => {
     },
   });
   
-  
 
-  const handleSelectFilter = (select,entry) => {
-    console.log('evento: ',select,entry);
+  const handleSelectFilter = async (select,entry) => {
+    console.log('evento select y entry: ',select,entry);
     //BUSQUEDA Y FILTRO
    
     switch (select){
       case 'CUIT':
-        fetchEmpresa(entry);
-        props.onSearch("EmpresaId",empresaSeleccionada.id)
+        fetchEmpresa(entry,'Afiliados');
+        //.then((res) => props.onFilter("EmpresaId",empresaSeleccionada.id))')
         break;
-      default: props.onSearch(select,entry);
+      default: props.onFilter(select,entry);
       break;
     }
   
@@ -215,6 +214,15 @@ const AfiliadosLista = (props) => {
       },
     },
     {
+      headerTitle: true,
+      dataField: "provincia",
+      text: "Provincia",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "10%", textAlign: "center" };
+      },
+    },
+    {
       headerTitle: (colum, colIndex) => (`Fecha de Ingreso`),
       dataField: "fechaIngreso",
       text: "F.Ingreso",
@@ -280,33 +288,26 @@ const AfiliadosLista = (props) => {
   const selectores = [
     {
       dataField: "NroAfiliado",
-      text:"NroAfiliado"
-    },
-    {
+      text:"Nro.Afiliado"
+    },{
       dataField: "CUIL",
       text:"CUIL"
-    },
-    {
+    },{
       dataField: "Documento",
       text:"Documento"
-    },
-    {
+    },{
       dataField: "Nombre",
       text:"Nombre"
-    },
-    {
+    },{
       dataField: "CUIT",
       text:"CUIT Empresa"
-    },
-    {
+    },{
       dataField: "Seccional.Descripcion",
       text:"Seccional"
-    },
-    {
+    },{
       dataField: "FechaIngreso",
       text:"Fecha Ingreso"
-    },
-    {
+    },{
       dataField: "FechaEgreso",
       text:"Fecha Egreso"
     },
@@ -337,7 +338,7 @@ const AfiliadosLista = (props) => {
           console.log('DDJJ Seleccionada:',row)
           setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
-         fetchEmpresa(row.cuit)
+         fetchEmpresa(row.cuit, 'DDJJ')
          break;
     default: break;
    }
@@ -345,7 +346,7 @@ const AfiliadosLista = (props) => {
    dispatch(handleAfiliadoSeleccionar(row));
 };
 
-  const fetchEmpresa = (cuit) => {
+  const fetchEmpresa = (cuit,tab) => {
     console.log('fetchEmpresa:',cuit)
 		if ((cuit ?? 0) == 0) {
 			setEmpresaSeleccionada(null);
@@ -357,10 +358,14 @@ const AfiliadosLista = (props) => {
 				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${cuit}`,
 				method: "GET",
 			},
-			async (response) => {
-      console.log('GetEmpresa',response);
-      setEmpresaSeleccionada(response)}
-			
+        async (response) => {
+        console.log('GetEmpresa',response);
+        setEmpresaSeleccionada(response)
+        
+       if (tab === 'Afiliados'){
+          props.onFilter("EmpresaId",response.id)
+        }
+      }
 		);
 	};
 
