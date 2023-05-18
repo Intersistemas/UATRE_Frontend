@@ -47,7 +47,7 @@ const Handler = () => {
 
 	//#region declaración y carga de ddjj y liquidaciones
 	const [ddjjList, setDDJJList] = useState({ loading: true });
-	const [ddjj, setDDJJ] = useState({});
+	const [ddjjSelected, setDDJJSelected] = useState([]);
 	const [liqList, setLiqList] = useState({ loading: true });
 	// const [liq, setLiq] = useState({});
 	useEffect(() => {
@@ -233,13 +233,17 @@ const Handler = () => {
 		return setLiqList({ data: newLiqList });
 	};
 
-	const handleDDJJFormOnChange = (record) => {
-		if (!ddjjList.data) return;
-		const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
-		if (recordIx < 0) return;
-		ddjjList.data[recordIx] = record;
+	const handleDDJJFormOnChange = (records, changes) => {
+		if (!ddjjList.data) return;	// sin datos a cambiar en origen
+		records.forEach((record, ix) => {
+			const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
+			if (recordIx < 0) return;	// No se encuentra el registro seleccionado en origen
+			const ddjj = ddjjList.data[recordIx];
+			records[ix] = { ...ddjj, ...changes }	// aplico los cambios en seleccionado
+			ddjjList.data[recordIx] = records[ix];		// aplico los cambios en origen
+		});
 		calcLiqListDesdeDDJJList();
-		setDDJJ(record);
+		setDDJJSelected(records);
 	};
 	const [ddjjFormDisabled, setDDJJFormDisabled] = useState(false);
 
@@ -262,7 +266,7 @@ const Handler = () => {
 								records={filtrarDDJJList()}
 								loading={ddjjList.loading}
 								noData={getNoData(ddjjList)}
-								onSelect={(r) => setDDJJ(r)}
+								onSelect={(r) => setDDJJSelected([r])}
 								pagination={{ index: 1, size: 5 }}
 							/>
 						</Grid>
@@ -313,7 +317,7 @@ const Handler = () => {
 						</Grid>
 						<Grid full="width">
 							<DDJJForm
-								data={ddjj}
+								records={ddjjSelected}
 								establecimientos={establecimientos.data}
 								disabled={ddjjFormDisabled}
 								onChange={handleDDJJFormOnChange}

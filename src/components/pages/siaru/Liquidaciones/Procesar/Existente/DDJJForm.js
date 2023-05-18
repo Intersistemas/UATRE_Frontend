@@ -6,21 +6,40 @@ import Formato from "../../../../../helpers/Formato";
 import { TextField } from "@mui/material";
 
 const DDJJForm = ({
-	data = {},
+	records = [],
 	establecimientos = [],
 	disabled = false,
-	onChange = (_record) => {},
+	onChange = (_records, _changes) => {},
 }) => {
+	records = [...records];
+	const joined = {
+		cuil: null,
+		nombre: null,
+		remuneracionImponible: null,
+		empresaEstablecimientoId: null,
+		condicionRural: null,
+	};
+	records.forEach((ddjj, ix) => {
+		Object.keys(joined).forEach((k) => {
+			if (joined[k] === undefined) return;
+			if (ix === 0) {
+				joined[k] = ddjj[k];
+				return;
+			}
+			if (joined[k] === ddjj[k]) return;
+			else joined[k] = undefined;
+		});
+	});
 	const establecimientosOptions = [{ label: "Sin establecimiento", value: 0 }];
 	establecimientos?.forEach((est) =>
 		establecimientosOptions.push({ label: est.nombre, value: est.id })
 	);
+	if (disabled) onChange = (_records, _changes) => {};
 	const condicionesRural = [
 		{ label: "Rural", value: "RU" },
 		{ label: "No Rural", value: "NR" },
 	];
 	const inputLabelStyles = { color: "#186090" };
-	if (disabled) onChange = (_) => {};
 
 	return (
 		<Grid
@@ -41,7 +60,7 @@ const DDJJForm = ({
 					variant="standard"
 					size="small"
 					label="CUIL"
-					value={Formato.Cuit(data.cuil) ?? ""}
+					value={Formato.Cuit(joined.cuil) ?? ""}
 					style={{ width: "10%" }}
 				/>
 				<TextField
@@ -49,7 +68,7 @@ const DDJJForm = ({
 					variant="standard"
 					size="small"
 					label="Nombre"
-					value={data.nombre ?? ""}
+					value={joined.nombre ?? ""}
 					style={{ width: "80%" }}
 				/>
 				<TextField
@@ -57,7 +76,7 @@ const DDJJForm = ({
 					variant="standard"
 					size="small"
 					label="Remuneración imponible"
-					value={Formato.Moneda(data.remuneracionImponible) ?? ""}
+					value={Formato.Moneda(joined.remuneracionImponible) ?? ""}
 					style={{ width: "10%" }}
 				/>
 			</Grid>
@@ -66,7 +85,7 @@ const DDJJForm = ({
 					<Select
 						name="establecimiento"
 						label="Establecimiento"
-						value={data.empresaEstablecimientoId}
+						value={joined.empresaEstablecimientoId}
 						options={establecimientosOptions}
 						onChange={(v) => {
 							const estab = establecimientosOptions.find((r) => r.value === v);
@@ -74,7 +93,7 @@ const DDJJForm = ({
 								empresaEstablecimientoId: estab.value,
 								empresaEstablecimiento_Nombre: estab.label,
 							};
-							onChange({ ...data, ...estabData });
+							onChange(records, { ...estabData });
 						}}
 					/>
 				</Grid>
@@ -82,9 +101,9 @@ const DDJJForm = ({
 					<Select
 						name="condicionRural"
 						label="Condición Rural"
-						value={data.condicionRural}
+						value={joined.condicionRural}
 						options={condicionesRural}
-						onChange={(v) => onChange({ ...data, condicionRural: v })}
+						onChange={(v) => onChange(records, { condicionRural: v })}
 					/>
 				</Grid>
 			</Grid>
