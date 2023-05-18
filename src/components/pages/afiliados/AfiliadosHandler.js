@@ -7,9 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from '../../../redux/actions';
 import { handleModuloEjecutarAccion } from '../../../redux/actions';
 import { redirect, useNavigate } from "react-router-dom";
-
-
-
+import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -20,6 +18,7 @@ const AfiliadosHandler = () => {
   const [filter, setFilter] = useState('');
   const [filterColumn, setFilterColumn] = useState('');
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
+  const [pantallaEnDesarrolloShow, setPantallaEnDesarrolloShow] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -203,11 +202,13 @@ const {id} = 0;
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
-      case "Imprime Carnet de Afiliacón":
-        navigate(`/afiliaciones/${id}`);
+      case "Imprime Carnet de Afiliación":
+        //navigate(`/afiliaciones/${id}`);
+        setPantallaEnDesarrolloShow(true);
         break;
       case "Consulta Afiliado":
-        alert('Funcionalidad de Consulta En desarrollo ');
+        //alert('Funcionalidad de Consulta En desarrollo ');
+        setPantallaEnDesarrolloShow(true)
         break;
         // alert('Funcionalidad de Imprimir En desarrollo ');
         // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
@@ -218,7 +219,6 @@ const {id} = 0;
 
   },[moduloAccion])
 
-  
   const handleResolverEstadoSolicitud = () => {
     alert("Funcionalidad en desarrollo");
   };
@@ -226,6 +226,11 @@ const {id} = 0;
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
     if (refresh === true) setRefresh(true);
+  };
+
+  const onClosePantallaEnDesarrolloHandler = () => {
+    setPantallaEnDesarrolloShow(false);
+    //if (refresh === true) setRefresh(true);
   };
 
   const handlePageChange = (page, sizePerPage) => {
@@ -269,33 +274,37 @@ const {id} = 0;
   /*if (error) {
     return <h1>{error}</h1>;
   }*/
-  console.log("Afiliado seleccionado", afiliadoSeleccionado);  
+  //console.log("Afiliado seleccionado", afiliadoSeleccionado);  
+  console.log("pantallaEnDesarrolloShow", pantallaEnDesarrolloShow);
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
-          {afiliadoAgregarShow && (
-            <AfiliadoAgregar
-              onClose={onCloseAfiliadoAgregarHandler}
-              estadosSolicitudes={estadosSolicitudes}
-              accion={accionSeleccionada}
-              cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
-            />
-          )}
+        {pantallaEnDesarrolloShow && (
+          <PantallaEnDesarrollo onClose={onClosePantallaEnDesarrolloHandler} />
+        )}
 
-          <AfiliadosLista
-            afiliados={afiliadosRespuesta}
-            errorRequest={error}
-            loading={afiliadosRespuesta?.length ? false : isLoading}
+        {afiliadoAgregarShow && (
+          <AfiliadoAgregar
+            onClose={onCloseAfiliadoAgregarHandler}
             estadosSolicitudes={estadosSolicitudes}
-            estadoSolicitudActual={estadoSolicitud}
-            onFilter={handleFilter}
-            onSort={handleSort}
-            onPageChange={handlePageChange}
-            onSizePerPageChange={handleSizePerPageChange}
-            onFilterChange={handleFilterChange}
-            onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
+            accion={accionSeleccionada}
+            cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
           />
-      
+        )}
+
+        <AfiliadosLista
+          afiliados={afiliadosRespuesta}
+          errorRequest={error}
+          loading={afiliadosRespuesta?.length ? false : isLoading}
+          estadosSolicitudes={estadosSolicitudes}
+          estadoSolicitudActual={estadoSolicitud}
+          onFilter={handleFilter}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onSizePerPageChange={handleSizePerPageChange}
+          onFilterChange={handleFilterChange}
+          onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
+        />
       </Fragment>
     );
 };
