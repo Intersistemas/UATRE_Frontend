@@ -22,7 +22,7 @@ const DeclaracionesJuradas = (props) => {
       request(
         {
           baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}&PageSize=3`,
           method: "GET",
         },
         processDDJJUatre
@@ -155,8 +155,6 @@ const DeclaracionesJuradas = (props) => {
     overlay: overlayFactory({ spinner: true }),
     onSelected: props.onSeleccionRegistro
   }
-
-
 
   return (
     <div className={styles.container}>
