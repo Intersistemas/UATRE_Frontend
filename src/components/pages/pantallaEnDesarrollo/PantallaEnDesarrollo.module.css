@@ -1,0 +1,26 @@
+.div {
+  width: 100%;
+  margin-top: 1%;
+  align-items: center;
+  align-content: center;
+}
+
+.boton {
+  /* width: 30%; */
+  margin: 2%;
+  /* display: flex;   */
+}
+
+.titulo {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.imagen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
