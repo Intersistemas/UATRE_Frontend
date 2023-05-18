@@ -82,51 +82,28 @@ const DeclaracionesJuradas = (props) => {
       {
         dataField: "rectificativa",
         text: "Versión",
-        /*formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(7))}</span>
-          );
-        } */
+
       },
+
+      
       {
-        dataField: "version",
-        text: "Versión",
-        hidden: true
-        /*formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(7))}</span>
-          );
-        } */
-      },
-      {
-        headerTitle: (colum, colIndex) => (`Código de Zona`),
-        dataField: "zona",
-        text: "Cod.Zona",
-        /*formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(2,6))}</span>
-          );
-        }*/
+        dataField: "obligacionSecuencia",
+        text: "Sec.Obligación",
       },
       {
         headerTitle: (colum, colIndex) => (`Código de Modalidad de Contratación`),
         dataField: "modalidad",
         text: "Cod.Mod.Contrat.",
-        /*formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(6,7))}</span>
-          );
-        } */
       },
       {
         headerTitle: (colum, colIndex) => (`Código de Actividad`),
         dataField: "actividad",
         text: "Cod.Actividad",
-        /*formatter: (cell,row) => {
-          return (
-            <span>{((row.obligacionNro).toString().substring(1,4))}</span>
-          );
-        } */
+      },
+      {
+        headerTitle: (colum, colIndex) => (`Código de Zona`),
+        dataField: "zona",
+        text: "Cod.Zona",
       }
       
     ];
