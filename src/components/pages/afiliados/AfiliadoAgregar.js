@@ -507,7 +507,7 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking empresa.", cuitState.isValid);
+      console.log("checking empresa.", cuitState.isValid);
       setCUITIsValid(cuitState.isValid);
       if (cuitState.isValid) {
         setFormularioEmpleadorIsValid(true)
@@ -570,7 +570,7 @@ const AfiliadoAgregar = (props) => {
   }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuil) {
+    if (cuil && cuilIsValid) {
       const processGetAfiliado = async (afiliadoObj) => {
         console.log("afiliadoObj", afiliadoObj);        
         setAfiliado(afiliadoObj);
@@ -709,7 +709,7 @@ const AfiliadoAgregar = (props) => {
         processGetAfiliado
       );
     }
-  }, [request, cuil]);
+  }, [request, cuil, cuilIsValid]);
 
   useEffect(() => {
     if (afiliadoExiste) {
@@ -1893,7 +1893,7 @@ const AfiliadoAgregar = (props) => {
     return true;
   }
   //#endregion
-
+console.log("cuitIsValid", cuitIsValid);
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
