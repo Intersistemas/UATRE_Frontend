@@ -14,28 +14,28 @@ const useHttp = () => {
         switch (configRequest.baseURL) {
           case "Comunes":
             //url = "http://uatretest.intersistemas.net:8202/api";
-            url = "http://uatretest.intersistemas.net:8202/api";
+            url = "http://uatre.intersistemas.net:8202/api";
             //url = "https://localhost:7032/api";
             break;
           case "Afiliaciones":
             //url = 'http://uatretest.intersistemas.net:8200/api';
-            url = "http://uatretest.intersistemas.net:8200/api";
+            url = "http://uatre.intersistemas.net:8200/api";
             //url = "http://localhost:5165/api";
             break;
           case "DDJJ":
-              //url = 'http://uatretest.intersistemas.net:8203/api';
-              url = "http://uatretest.intersistemas.net:8203/api";
+              url = 'http://uatretest.intersistemas.net:8203/api';
+              //url = "http://uatre.intersistemas.net:8203/api";
               //url = "http://localhost:5165/api";
               break;
 
           case "SIARU":
             //url = 'http://intersistemas.net:8201/api/v1';
-            url = "http://uatretest.intersistemas.net:8201/api";
+            url = "http://uatre.intersistemas.net:8201/api";
             break;
             
           case 'Seguridad':
                 // url = 'http://uatretest.intersistemas.net:8800/api'
-                url = "http://uatretest.intersistemas.net:8800/api";
+                url = "http://uatre.intersistemas.net:8800/api";
                 break;
 	
             default:
