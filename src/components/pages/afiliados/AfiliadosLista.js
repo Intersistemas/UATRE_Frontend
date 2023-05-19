@@ -215,6 +215,16 @@ const AfiliadosLista = (props) => {
     },
     {
       headerTitle: true,
+      dataField: "refDelegacionDescripcion",
+      text: "Delegación",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "10%", textAlign: "center" };
+      },
+    },
+    
+    {
+      headerTitle: true,
       dataField: "provincia",
       text: "Provincia",
       //sort: true,
