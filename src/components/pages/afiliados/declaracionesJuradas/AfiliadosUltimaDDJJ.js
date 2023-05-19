@@ -24,7 +24,7 @@ const AfiliadosUltimaDDJJ = (props) => {
       request(
         {
           baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUITAfiliados?CUIT=${cuit}&PageSize=3`,
+          endpoint: `/DDJJUatre/GetCUITAfiliados?CUIT=${cuit}&PageSize=1`,
           method: "GET",
         },
         processDDJJUatreCUIT

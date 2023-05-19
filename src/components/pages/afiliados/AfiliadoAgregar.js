@@ -76,6 +76,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
+  const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] = useState(false);
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
   const [
     resolverSolicitudAfiliadoResponse,
@@ -83,6 +84,8 @@ const AfiliadoAgregar = (props) => {
   ] = useState(0);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
+  // const [accion, setAccion] = useState("")
+  // setAccion(props.accion)
   //#endregion
 
   //#region Alert
@@ -473,7 +476,6 @@ const AfiliadoAgregar = (props) => {
         seccionalState.isValid &&
         oficioState.isValid &&
         actividadState.isValid &&
-        cuitState.isValid &&
         (correo !== "" ? emailState.isValid : true)
       ) {
         setFormularioIsValid(true);
@@ -497,7 +499,6 @@ const AfiliadoAgregar = (props) => {
     seccionalState.isValid,
     oficioState.isValid,
     actividadState.isValid,
-    cuitState.isValid,
     emailState.isValid,
     fechaNacimientoState.isValid,
     nacionalidadState.isValid,
@@ -506,8 +507,11 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //console.log("checking empresa.", cuitState.isValid);
+      console.log("checking empresa.", cuitState.isValid);
       setCUITIsValid(cuitState.isValid);
+      if (cuitState.isValid) {
+        setFormularioEmpleadorIsValid(true)
+      }
     }, 200);
 
     return () => {
@@ -555,7 +559,7 @@ const AfiliadoAgregar = (props) => {
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
 
   useEffect(() => {
-    console.log("props.cuil", cuilParam);
+    console.log("props.accion", props.accion);
     if (props.accion === "Modifica" || props.accion === "Resuelve") {
       setAfiliadoExiste(true);
       if (cuilParam > 0) {
@@ -566,9 +570,9 @@ const AfiliadoAgregar = (props) => {
   }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuil) {
+    if (cuil && cuilIsValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);
+        console.log("afiliadoObj", afiliadoObj);        
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj.id);
@@ -672,14 +676,14 @@ const AfiliadoAgregar = (props) => {
               estado.label === "Observado" ||
               estado.label === "Rechazado"
           );
-          //console.log("estados", estadosSolicitudesPendientes);
+          console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
         } else if (afiliadoObj.estadoSolicitudId === 4) {
           const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
             (estado) =>
               estado.label === "Observado" || estado.label === "Rechazado"
           );
-          //console.log("estados", estadosSolicitudesPendientes);
+          console.log("estados", estadosSolicitudesObservado);
           setEstadosSolicitudes(estadosSolicitudesObservado);
         }
 
@@ -691,6 +695,7 @@ const AfiliadoAgregar = (props) => {
           );
           setSeverityAlert("info");
         } else if (props.accion === "Resuelve") {
+          console.log("a resolver");
           setSelectedTab(3);
         }
       };
@@ -704,7 +709,7 @@ const AfiliadoAgregar = (props) => {
         processGetAfiliado
       );
     }
-  }, [request, cuilIsValid, cuil]);
+  }, [request, cuil, cuilIsValid]);
 
   useEffect(() => {
     if (afiliadoExiste) {
@@ -1108,7 +1113,7 @@ const AfiliadoAgregar = (props) => {
       setSeverityAlert("error");
       return;
     }
-    if (props.accion === "Agrega") {
+    if (props.accion === "Agrega" && !afiliadoExiste) {
       const empresa = {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
@@ -1272,7 +1277,7 @@ const AfiliadoAgregar = (props) => {
         },
         afiliadoAgregar
       );
-    } else if (props.accion === "Modifica") {
+    } else if (props.accion === "Modifica" || (props.accion === "Agrega" && afiliadoExiste)) {
       const empresa = {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
@@ -1367,7 +1372,7 @@ const AfiliadoAgregar = (props) => {
         afipDomicilioEstado: afiliado.afipDomicilioEstado,
         afipDomicilioDatoAdicional: afiliado.afipDomicilioDatoAdicional,
         afipDomicilioTipoDatoAdicional: afiliado.afipDomicilioTipoDatoAdicional,
-        empresa: empresa
+        empresa: empresa,
       };
 
       const afiliadoModificar = async (afiliadoModificarResponseObj) => {
@@ -1819,11 +1824,16 @@ const AfiliadoAgregar = (props) => {
   //#region Functions
   const InputDisabled = (input) => {
     //console.log("InputDisable")
-    if (input !== "cuil" && cuil === ""){
+    if (input !== "cuil" && cuil === "") {
       return true;
     }
-    
-    if (afiliadoExiste && estadoSolicitud !== 1 && estadoSolicitud !== 4 && estadoSolicitud !== 2) {
+
+    if (
+      afiliadoExiste &&
+      estadoSolicitud !== 1 &&
+      estadoSolicitud !== 4 &&
+      estadoSolicitud !== 2
+    ) {
       return true;
     }
 
@@ -1837,26 +1847,53 @@ const AfiliadoAgregar = (props) => {
 
   const AgregarModificarAfiliadoDisableHandler = () => {
     if (props.accion === "Agrega") {
-      if (
-        nuevoAfiliadoResponse ||
+      if (        
         afiliadoExiste ||
         !cuilValidado ||
         !cuitValidado
       ) {
-        return true;
+        return false;
       }
-      return false;
+
     } else if (props.accion === "Modifica") {
-      if (!cuilValidado || !cuitValidado) {
-        return true;
+      if (cuilValidado && cuitValidado) {
+        return false;
       }
       return false;
-    } else if (props.accion === "Resuelve") {
-      return true;
+    }
+
+    return true;
+  };
+
+  const AgregarModificarAfiliadoTitulo = () => {
+    if (props.accion === "Agrega") {
+      if (afiliadoExiste) {
+        return "Modifica Afiliado"
+      }
+
+      return "Agrega Afiliado";
+
+    } else if (props.accion === "Modifica") {
+      return "Modifica Afiliado";
     }
   };
-  //#endregion
 
+  const handleResuelveSolicitudDisable = () => {
+    if (props.accion === "Resuelve") {
+      console.log("estadoSolicitud", estadoSolicitud);
+      if (estadoSolicitud !== 1 || estadoSolicitud !== 4) {
+        return false;
+      }
+    } 
+    else if (props.accion === "Agrega") {
+      if (nuevoAfiliadoResponse) {
+        return false;
+      }
+    }
+    return true;
+  }
+  //#endregion
+console.log("cuitIsValid", cuitIsValid);
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -1890,23 +1927,20 @@ const AfiliadoAgregar = (props) => {
             label="Datos Personales"
             //disabled={nuevoAfiliadoResponse ? true : false}
           />
-          <Tab
-            label="Datos Empleador"
-            //disabled={nuevoAfiliadoResponse ? true : false}
-          />
+          <Tab label="Datos Empleador" disabled={formularioIsValid ? false : true} />
           <Tab
             label={
               padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : "DDJJ UATRE"
             }
-            //disabled={nuevoAfiliadoResponse ? true : false}
+            disabled={cuitIsValid ? false : true}
           />
           <Tab
             label="Resuelve Solicitud"
-            disabled={
-              estadoSolicitud !== 1 || estadoSolicitud !== 4 ? false : true
-            }
+            disabled={handleResuelveSolicitudDisable()}
+            hidden={props.accion === "Agrega" || props.accion === "Resuelve"
+                ? false : true}
           />
-          <Tab label="Documentacion" />
+          <Tab label="Documentacion" disabled={cuitIsValid ? false : true} />
         </Tabs>
       </div>
       {selectedTab === 0 && (
@@ -1916,7 +1950,7 @@ const AfiliadoAgregar = (props) => {
               <InputMaterial
                 id="cuil"
                 value={cuil}
-                label="CUIL"                  
+                label="CUIL"
                 disabled={InputDisabled("cuil") || estadoSolicitud === 2}
                 width={98}
                 onChange={handleInputChange}
@@ -2272,7 +2306,7 @@ const AfiliadoAgregar = (props) => {
                 }
                 error={
                   (!cuitState.isValid && cuitEmpresa !== "") ||
-                  (!formularioIsValid && clickAgregar)
+                  (!formularioEmpleadorIsValid && clickAgregar)
                     ? true
                     : false
                 }
@@ -2695,9 +2729,7 @@ const AfiliadoAgregar = (props) => {
             onClick={afiliadoAgregarHandler}
             disabled={AgregarModificarAfiliadoDisableHandler()}
           >
-            {props.accion === "Modifica"
-              ? `Modifica Afiliado`
-              : `Agrega Afiliado`}
+            {AgregarModificarAfiliadoTitulo()}
           </Button>
         </div>
         <div className={classes.boton}>
@@ -2706,7 +2738,10 @@ const AfiliadoAgregar = (props) => {
             width={100}
             onClick={afiliadoObservarHandler}
             disabled={
-              cuil === "" || nuevoAfiliadoObservadoResponse || afiliadoExiste || estadoSolicitud === 4
+              cuil === "" ||
+              nuevoAfiliadoObservadoResponse ||
+              afiliadoExiste ||
+              estadoSolicitud === 4
             }
           >
             Observar Afiliado
