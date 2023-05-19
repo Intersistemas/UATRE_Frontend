@@ -12,13 +12,16 @@ const DDJJForm = ({
 	onChange = (_records, _changes) => {},
 }) => {
 	records = [...records];
-	const joined = {
-		cuil: null,
-		nombre: null,
-		remuneracionImponible: null,
-		empresaEstablecimientoId: null,
-		condicionRural: null,
-	};
+	const joined =
+		records.length === 0
+			? {}
+			: {
+					cuil: null,
+					nombre: null,
+					remuneracionImponible: null,
+					empresaEstablecimientoId: null,
+					condicionRural: null,
+			  };
 	records.forEach((ddjj, ix) => {
 		Object.keys(joined).forEach((k) => {
 			if (joined[k] === undefined) return;
@@ -51,7 +54,7 @@ const DDJJForm = ({
 		>
 			<Grid full="width">
 				<Grid className={styles.cabecera} grow>
-					DDJJ
+					{`DDJJ seleccionadas: ${records.length}`}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">

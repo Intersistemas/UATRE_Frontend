@@ -233,14 +233,25 @@ const Handler = () => {
 		return setLiqList({ data: newLiqList });
 	};
 
+	const handleDDJJOnSelect = (isSelected, records) => {
+		const newDDJJSelected = [...ddjjSelected];
+		records.forEach((record) => {
+			const recordIx = newDDJJSelected.findIndex((r) => r.cuil === record.cuil);
+			const isFound = recordIx > -1;
+			if (isSelected && !isFound) newDDJJSelected.push(record);
+			else if (!isSelected && isFound) newDDJJSelected.splice(recordIx, 1);
+		});
+		setDDJJSelected(newDDJJSelected);
+	};
+
 	const handleDDJJFormOnChange = (records, changes) => {
-		if (!ddjjList.data) return;	// sin datos a cambiar en origen
+		if (!ddjjList.data) return; // sin datos a cambiar en origen
 		records.forEach((record, ix) => {
 			const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
-			if (recordIx < 0) return;	// No se encuentra el registro seleccionado en origen
+			if (recordIx < 0) return; // No se encuentra el registro seleccionado en origen
 			const ddjj = ddjjList.data[recordIx];
-			records[ix] = { ...ddjj, ...changes }	// aplico los cambios en seleccionado
-			ddjjList.data[recordIx] = records[ix];		// aplico los cambios en origen
+			records[ix] = { ...ddjj, ...changes }; // aplico los cambios en seleccionado
+			ddjjList.data[recordIx] = records[ix]; // aplico los cambios en origen
 		});
 		calcLiqListDesdeDDJJList();
 		setDDJJSelected(records);
@@ -266,7 +277,7 @@ const Handler = () => {
 								records={filtrarDDJJList()}
 								loading={ddjjList.loading}
 								noData={getNoData(ddjjList)}
-								onSelect={(r) => setDDJJSelected([r])}
+								onSelect={handleDDJJOnSelect}
 								pagination={{ index: 1, size: 5 }}
 							/>
 						</Grid>

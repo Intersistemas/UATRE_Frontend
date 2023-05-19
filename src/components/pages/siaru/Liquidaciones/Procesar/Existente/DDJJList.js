@@ -6,7 +6,7 @@ const DDJJList = ({
 	records = [],	// Lista de Nominas
 	loading = true,
 	noData = <h4>No hay informacion a mostrar</h4>,
-	onSelect = (_record) => {},
+	onSelect = (_isSelect, _records) => {},
 	...otherProps
 }) => {
 	records ??= [];
@@ -21,21 +21,21 @@ const DDJJList = ({
 			dataField: "empresaEstablecimientoId",
 			text: "Estab. Nro.",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "150px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			style: { ...cs },
 		},
 		{
 			dataField: "empresaEstablecimiento_Nombre",
 			text: "Estab. nombre",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "250px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
 			style: { ...cs, textAlign: "left" },
 		},
 		{
 			dataField: "cuil",
 			text: "CUIL",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "150px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			formatter: Formato.Cuit,
 			style: { ...cs },
 		},
@@ -50,7 +50,7 @@ const DDJJList = ({
 			text: "Es Rural",
 			sort: true,
 			formatter: (v) => Formato.Booleano(v === "RU"),
-			headerStyle: (colum, colIndex) => ({ width: "100px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			style: { ...cs },
 		},
 		{
@@ -58,7 +58,7 @@ const DDJJList = ({
 			text: "Es Afiliado",
 			sort: true,
 			formatter: (v) => Formato.Booleano(v > 0),
-			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
 		{
@@ -66,7 +66,7 @@ const DDJJList = ({
 			text: "Remuneración imponible",
 			sort: true,
 			formatter: Formato.Moneda,
-			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
 	];
@@ -78,7 +78,12 @@ const DDJJList = ({
 			data={records}
 			columns={columns}
 			noDataIndication={noData}
-			onSelected={onSelect}
+			selection={{
+				mode: "checkbox",
+				hideSelectColumn: false,
+				onSelect: (row, isSelect, index, e) => onSelect(isSelect, [row]),
+				onSelectAll: (isSelect, rows, e) => onSelect(isSelect, rows),
+			}}
 			{...otherProps}
 		/>
 	);
