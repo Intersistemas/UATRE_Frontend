@@ -3,200 +3,202 @@ import classes from "./Table.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import ToolkitProvider, {
-  Search,
+	Search,
 } from "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit";
 import "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-import filterFactory, {
-  textFilter,
-  selectFilter,
-  Comparator,
-} from "react-bootstrap-table2-filter";
 import paginationFactory, {
-  PaginationProvider,
-  SizePerPageDropdownStandalone,
-  PaginationListStandalone,
+	PaginationProvider,
+	SizePerPageDropdownStandalone,
+	PaginationListStandalone,
 } from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 
 const { SearchBar } = Search;
 
-const Table = (props) => {
-  const selectRow = {
-    mode: "radio",
-    clickToSelect: true,
-    hideSelectColumn: true,
-    style: {
-      backgroundColor: "rgb(194 194 194 / 70%)",
-      color: "black",
-      fontWeight: "bold",
-    },
-  };
+const paginationDef = {
+	index: 1,
+	size: 15,
+	onChange: ({ index, size }) => {},
+};
 
-  const rowEvents = {
-    onClick: (e, row, rowIndex) => {
-      props.onSelected(row);
-    },
-  };
+const onSelectedDef = (row) => {};
 
-  /*const rowStyle = { 
-backgroundColor: '#ffffffcc',
-border: '1.5px solid #3595D2', 
-color: '#727272',
-};*/
+const selectionDef = {
+	mode: "radio",
+	clickToSelect: true,
+	hideSelectColumn: true,
+	style: {
+		backgroundColor: "rgb(194 194 194 / 70%)",
+		color: "black",
+		fontWeight: "bold",
+	},
+	onSelect: (row, isSelect, rowIndex, e) => onSelectedDef(row),
+	onSelectAll: (isSelect, rows, e) => {},
+};
 
-  const rowStyle2 = (row, cell) => {
-    //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
-    const rowStyle = {
-      backgroundColor: "#ffffff99",
-      border: "1.5px solid #3595D2",
-      color: '#000080', //color: '#727272',
-    };
-    return rowStyle;
+const rowEventsDef = {
+	onClick: (e, row, rowIndex) => selectionDef.onSelect(row),
+};
 
-  };
+const onTableChangeDef = (type, newState) => {};
+
+//esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
+const rowStyleDef = (_row, _cell) => ({
+	backgroundColor: "#ffffff99",
+	border: "1.5px solid #3595D2",
+	color: "#000080", //color: '#727272',
+});
+
+const noDataIndicationDef = "No existen datos para mostrar";
+
+const Table = ({
+	data = [],
+	keyField = "",
+	columns = [],
+	loading = false,
+	pagination = { ...paginationDef },
+	selection = { ...selectionDef },
+	rowEvents = { ...rowEventsDef },
+	onSelected = onSelectedDef, //** En desuso, utilizar selectRow = { ... onSelect } en su lugar */
+	onTableChange = onTableChangeDef,
+	rowStyle = rowStyleDef,
+	mostrarBuscar = true,
+	defaultSorted = false,
+	noDataIndication = noDataIndicationDef,
+	filter = undefined,
+	overlay = undefined,
+	baseProps = {},
+	...otherProps
+}) => {
+	data ??= [];
+	keyField ??= "";
+	columns ??= [];
+	onSelected ??= onSelectedDef;
+	onTableChange ??= onTableChangeDef;
+	rowStyle ??= rowStyleDef;
+	mostrarBuscar ??= true;
+	defaultSorted ??= false;
+	noDataIndication ??= noDataIndicationDef;
+	baseProps ??= {};
+	baseProps = { ...baseProps, ...otherProps };
 
 	// Normalizo la paginación que pasa por props
-	let pagination = { index: 1, size: 15 }; // Valores por defecto
-	if (props.pagination) {
-		if (props.pagination.index > 0) pagination.index = props.pagination.index; // Especifica index válido
-		if (props.pagination.size > 0) pagination.size = props.pagination.size; // Especifica size válido
-		if (props.pagination.onChange)
-			pagination.onChange = props.pagination.onChange; // Especifica callback onChange
+	if (pagination) {
+		pagination = { ...paginationDef, ...pagination };
+		if ((pagination.index ?? 1) < 1) pagination.index = paginationDef.index; // No especifica index válido
+		if ((pagination.size ?? 1) < 1) pagination.size = paginationDef.size; // No especifica size válido
+	} else {
+		pagination = { ...paginationDef };
 	}
 	// Estado de paginación propio, por si no especifica mediante props
 	const [myPagination, setMyPagination] = useState({
 		// Usar valores especificados o por defecto
 		...pagination,
 		// Salvo el onChange que define el comportamiento por defecto
-		onChange: (page) =>
+		onChange: ({ index, size }) =>
 			setMyPagination((oldData) => {
 				const newData = {}; // Contendrá valores que cambian
-				if (page.index !== oldData.index) newData.index = page.index; // Cambia index
-				if (page.size !== oldData.size) newData.size = page.size; // Cambia size
+				if (index !== oldData.index) newData.index = index; // Cambia index
+				if (size !== oldData.size) newData.size = size; // Cambia size
 				if (!Object.keys(newData).length) return oldData; // Sin cambios
 				return { ...oldData, ...newData }; // Informa nuevo estado con valores cambiados
 			}),
 	});
 	// Si no especifica onChange, utilizar mi paginación
+	if (pagination.onChange === paginationDef.onChange)
+		pagination.onChange = undefined;
 	if (!pagination.onChange) pagination = myPagination;
 
-  let MyGrid = (
-    <PaginationProvider
-      pagination={paginationFactory({
-        custom: true,
-        totalSize: props.data.length,
-        page: pagination.index,
-        sizePerPage: pagination.size,
-				onPageChange: (page, sizePerPage) =>
-					pagination.onChange({ index: page, size: sizePerPage }),
-        paginationShowsTotal: false,
-        hideSizePerPage: true,
-        /*sizePerPageList: [
-              {
-                text: "10",
-                value: 10
-              },
-              {
-                text: "30",
-                value: 30
-              },
-              {
-                text: "50",
-                value: 50
-              },
-              {
-                text: "Todo",
-                value: afiliados.data.length
-              }
-            ],*/
-        //hideSizePerPage: props.data.length === 0
-      })}
-      keyField={props.keyField}
-      columns={props.columns}
-      data={props.data}
-      condensed
-    >
-      {({ paginationProps, paginationTableProps }) => (
-        <ToolkitProvider
-          keyField={props.keyField}
-          columns={props.columns}
-          data={props.data}
-          search
-          condensed
-        >
-          {(toolkitprops) => (
-            <div>
-              {props.mostrarBuscar !== false ? (
-                <div style={{ display: "flex", justifyContent: "right" }}>
-                  <SearchBar
-                    {...toolkitprops.searchProps}
-                    srText=""
-                    placeholder="Ingrese datos a buscar"
-                  />
-                </div>
-              ) : null}
-              <br />
-              <div className={classes.tabla}>
-                <BootstrapTable
-                  {...toolkitprops.baseProps}
-                  {...paginationTableProps}
-                  selectRow={selectRow}
-                  defaultSorted={props.defaultSorted ?? false}
-                  defaultSortDirection="asc"
-                  hover
-                  bootstrap4
-                  condensed
-                  //remote = {false}
-                  headerClasses={classes.headerClass}
-                  loading={props.loading}
-                  onTableChange={props.onTableChange}
-                  filter={props.filter}
-                  noDataIndication={
-                    props.noDataIndication ?? "No existen datos para mostrar"
-                  }
-                  rowEvents={rowEvents}
-                  overlay={props.overlay}
-                  rowStyle={props.rowStyle ? props.rowStyle : rowStyle2}
-                  {...props.baseProps}
-                />
-              </div>
-              <SizePerPageDropdownStandalone {...paginationProps} />
-              <PaginationListStandalone {...paginationProps} />
-            </div>
-          )}
-        </ToolkitProvider>
-      )}
-    </PaginationProvider>
-  );
-  return (
+	// Normalizo selectRow que pasa por props
+	if (selection) {
+		selection = { ...selectionDef, ...selection };
+		selection.style = { ...selectionDef.style, ...selection.style };
+		if (selection.onSelect === selectionDef.onSelect)
+			selection.onSelect = (row, isSelect, rowIndex, e) => onSelected(row);
+	} else {
+		selection = { ...selectionDef };
+	}
 
-    <div className={classes.tabla}>
-          {MyGrid}
-        {/*<BootstrapTable
-          hover
-          bootstrap4
-          condensed  
-          remote = {props.remote}
-          keyField= {props.keyField}
-          data={ props.data }
-          columns={ props.columns }          
-          headerClasses= {classes.headerClass}
-          loading = {props.loading}
-          pagination = {props.pagination}
-          onTableChange= {props.onTableChange}
-          filter = {props.filter}
-          noDataIndication= {props.noDataIndication}
-          rowEvents = {rowEvents}
+	// Normalizo rowEvents que pasa por props
+	if (rowEvents) {
+		rowEvents = { ...rowEventsDef, ...rowEvents };
+	} else {
+		rowEvents = { ...rowEventsDef };
+	}
+	if (rowEvents.onClick === rowEventsDef.onClick)
+		rowEvents.onClick = (e, row, rowIndex) => selection.onSelect(row);
 
-          overlay = {props.overlay}
-          selectRow={selectRow}
-          rowStyle = {rowStyle}
-      />*/}
-    </div>
-  );
+	return (
+		<div className={classes.tabla}>
+			<PaginationProvider
+				pagination={paginationFactory({
+					custom: true,
+					totalSize: data.length,
+					page: pagination.index,
+					sizePerPage: pagination.size,
+					onPageChange: (page, sizePerPage) =>
+						pagination.onChange({ index: page, size: sizePerPage }),
+					paginationShowsTotal: false,
+					hideSizePerPage: true,
+				})}
+				keyField={keyField}
+				columns={columns}
+				data={data}
+				condensed
+			>
+				{({ paginationProps, paginationTableProps }) => (
+					<ToolkitProvider
+						keyField={keyField}
+						columns={columns}
+						data={data}
+						search
+						condensed
+					>
+						{(toolkitprops) => (
+							<div>
+								{!mostrarBuscar ? null : (
+									<div style={{ display: "flex", justifyContent: "right" }}>
+										<SearchBar
+											{...toolkitprops.searchProps}
+											srText=""
+											placeholder="Ingrese datos a buscar"
+										/>
+									</div>
+								)}
+								<br />
+								<div className={classes.tabla}>
+									<BootstrapTable
+										{...toolkitprops.baseProps}
+										{...paginationTableProps}
+										selectRow={selection}
+										defaultSorted={defaultSorted}
+										defaultSortDirection="asc"
+										hover
+										bootstrap4
+										condensed
+										headerClasses={classes.headerClass}
+										loading={loading}
+										onTableChange={onTableChange}
+										filter={filter}
+										noDataIndication={noDataIndication}
+										rowEvents={rowEvents}
+										overlay={overlay}
+										rowStyle={rowStyle}
+										{...baseProps}
+									/>
+								</div>
+								<SizePerPageDropdownStandalone {...paginationProps} />
+								<PaginationListStandalone {...paginationProps} />
+							</div>
+						)}
+					</ToolkitProvider>
+				)}
+			</PaginationProvider>
+		</div>
+	);
 };
 
 export default Table;
