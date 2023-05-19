@@ -22,7 +22,7 @@ const DeclaracionesJuradas = (props) => {
       request(
         {
           baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}&PageSize=1`,
           method: "GET",
         },
         processDDJJUatre
