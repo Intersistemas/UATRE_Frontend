@@ -24,7 +24,7 @@ const useHttp = () => {
             break;
           case "DDJJ":
               url = 'http://uatretest.intersistemas.net:8203/api';
-              // url = "http://uatre.intersistemas.net:8203/api";
+              //url = "http://uatre.intersistemas.net:8203/api";
               //url = "http://localhost:5165/api";
               break;
 
