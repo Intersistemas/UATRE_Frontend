@@ -43,7 +43,28 @@ const LiquidacionesProcesarHandler = () => {
 				endpoint: `/DDJJUatre/GetCUITPeriodos?CUIL=${empresa.cuit ?? 0}`,
 				method: "GET",
 			},
-			async (res) => setPeriodos({ data: [...res] }),
+			async (resDDJJ) => {
+				const periodosDDJJ = [...resDDJJ];
+				request(
+					{
+						baseURL: "SIARU",
+						endpoint: `/Liquidaciones/Periodos?EmpresaId=${empresa.id ?? 0}`,
+						method: "GET",
+					},
+					async (resLiq) => {
+						const periodosLiq = [...resLiq];
+						periodosLiq.forEach((periodoLiq) => {
+							const periodo = periodosDDJJ.find(
+								(periodoDDJJ) => periodoDDJJ.periodo === periodoLiq
+							);
+							if (!periodo) return;
+							periodo.tieneLiquidacion = true;
+						});
+						setPeriodos({ data: periodosDDJJ });
+					},
+					async (err) => setPeriodos({ error: err })
+				);
+			},
 			async (err) => setPeriodos({ error: err })
 		);
 	}, [request]);
@@ -107,11 +128,9 @@ const LiquidacionesProcesarHandler = () => {
 										error={periodos.loading ? "Cargando" : periodos.error ?? ""}
 										options={
 											periodos.data?.map((r) => ({
-												label: `${Formato.Periodo(r.periodo)} - ${
-													r.liquidacionIdUltima
-														? "Periodo con liquidaciones asociadas"
-														: "Periodo sin liquidaciones asociadas"
-												}`,
+												label: `${Formato.Periodo(r.periodo)} - Periodo ${
+													r.tieneLiquidacion ? "con" : "sin"
+												} liquidaciones asociadas`,
 												value: r.periodo,
 											})) ?? []
 										}
@@ -165,11 +184,9 @@ const LiquidacionesProcesarHandler = () => {
 										error={periodos.loading ? "Cargando" : periodos.error ?? ""}
 										options={
 											periodos.data?.map((r) => ({
-												label: `${Formato.Periodo(r.periodo)} - ${
-													r.liquidacionIdUltima
-														? "Periodo con liquidaciones asociadas"
-														: "Periodo sin liquidaciones asociadas"
-												}`,
+												label: `${Formato.Periodo(r.periodo)} - Periodo ${
+													r.tieneLiquidacion ? "con" : "sin"
+												} liquidaciones asociadas`,
 												value: r.periodo,
 											})) ?? []
 										}
