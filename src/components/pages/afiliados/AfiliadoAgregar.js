@@ -76,7 +76,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
-  const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] = useState(false);
+  const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] =
+    useState(false);
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
   const [
     resolverSolicitudAfiliadoResponse,
@@ -84,6 +85,7 @@ const AfiliadoAgregar = (props) => {
   ] = useState(0);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
+  const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
   // const [accion, setAccion] = useState("")
   // setAccion(props.accion)
   //#endregion
@@ -510,7 +512,7 @@ const AfiliadoAgregar = (props) => {
       console.log("checking empresa.", cuitState.isValid);
       setCUITIsValid(cuitState.isValid);
       if (cuitState.isValid) {
-        setFormularioEmpleadorIsValid(true)
+        setFormularioEmpleadorIsValid(true);
       }
     }, 200);
 
@@ -572,7 +574,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (cuil && cuilIsValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);        
+        console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj.id);
@@ -1167,7 +1169,14 @@ const AfiliadoAgregar = (props) => {
         tipoDocumentoId: +tipoDocumento,
         documento: +numeroDocumento,
         actividadId: +actividad,
-        estadoSolicitudId: 1,
+        estadoSolicitudId:
+          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
+            ? 2
+            : 1,
+        estadoSolicitudObservaciones:
+          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
+            ? "Validación Automática"
+            : null,
         estadoCivilId: +estadoCivil,
         refLocalidadId: +localidad,
         domicilio: domicilio,
@@ -1251,17 +1260,25 @@ const AfiliadoAgregar = (props) => {
 
         //handleCerrarModal();
 
-        const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-          (estado) =>
-            estado.label === "Pendiente" ||
-            estado.label === "Activo" ||
-            estado.label === "Observado" ||
-            estado.label === "Rechazado"
-        );
+        //Si se incorpora automaticamente
+        if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
+          setResolverSolicitudAfiliadoResponse(1);
+        }
+        //pasa a resolver solicitud
+        else {
+          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+            (estado) =>
+              estado.label === "Pendiente" ||
+              estado.label === "Activo" ||
+              estado.label === "Observado" ||
+              estado.label === "Rechazado"
+          );
 
-        setEstadoSolicitud(1);
-        setEstadosSolicitudes(estadosSolicitudesPendientes);
-        setSelectedTab(3);
+          setEstadoSolicitud(1);
+          setEstadosSolicitudes(estadosSolicitudesPendientes);
+          setSelectedTab(3);
+        }
+
         setClickAgregar(false);
       };
 
@@ -1277,7 +1294,10 @@ const AfiliadoAgregar = (props) => {
         },
         afiliadoAgregar
       );
-    } else if (props.accion === "Modifica" || (props.accion === "Agrega" && afiliadoExiste)) {
+    } else if (
+      props.accion === "Modifica" ||
+      (props.accion === "Agrega" && afiliadoExiste)
+    ) {
       const empresa = {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
@@ -1847,14 +1867,9 @@ const AfiliadoAgregar = (props) => {
 
   const AgregarModificarAfiliadoDisableHandler = () => {
     if (props.accion === "Agrega") {
-      if (        
-        afiliadoExiste ||
-        !cuilValidado ||
-        !cuitValidado
-      ) {
-        return false;
+      if (afiliadoExiste) {
+        return true;
       }
-
     } else if (props.accion === "Modifica") {
       if (cuilValidado && cuitValidado) {
         return false;
@@ -1862,17 +1877,16 @@ const AfiliadoAgregar = (props) => {
       return false;
     }
 
-    return true;
+    return false;
   };
 
   const AgregarModificarAfiliadoTitulo = () => {
     if (props.accion === "Agrega") {
       if (afiliadoExiste) {
-        return "Modifica Afiliado"
+        return "Modifica Afiliado";
       }
 
       return "Agrega Afiliado";
-
     } else if (props.accion === "Modifica") {
       return "Modifica Afiliado";
     }
@@ -1884,16 +1898,23 @@ const AfiliadoAgregar = (props) => {
       if (estadoSolicitud !== 1 || estadoSolicitud !== 4) {
         return false;
       }
-    } 
-    else if (props.accion === "Agrega") {
+    } else if (props.accion === "Agrega") {
       if (nuevoAfiliadoResponse) {
         return false;
       }
     }
     return true;
-  }
+  };
+
+  const handleOnDeclaracionesGeneradas = (ddjjs) => {
+    if (ddjjs?.length) {
+      setUltimaDDJJ(ddjjs[0]);
+    }
+    const ultimaDDJJ = ddjjs[0];
+    console.log("ultimaDDJJ", ultimaDDJJ);
+  };
   //#endregion
-console.log("cuitIsValid", cuitIsValid);
+
   return (
     <Modal onClose={props.onClose}>
       <div className={classes.div}>
@@ -1927,7 +1948,10 @@ console.log("cuitIsValid", cuitIsValid);
             label="Datos Personales"
             //disabled={nuevoAfiliadoResponse ? true : false}
           />
-          <Tab label="Datos Empleador" disabled={formularioIsValid ? false : true} />
+          <Tab
+            label="Datos Empleador"
+            disabled={formularioIsValid ? false : true}
+          />
           <Tab
             label={
               padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : "DDJJ UATRE"
@@ -1937,8 +1961,11 @@ console.log("cuitIsValid", cuitIsValid);
           <Tab
             label="Resuelve Solicitud"
             disabled={handleResuelveSolicitudDisable()}
-            hidden={props.accion === "Agrega" || props.accion === "Resuelve"
-                ? false : true}
+            hidden={
+              props.accion === "Agrega" || props.accion === "Resuelve"
+                ? false
+                : true
+            }
           />
           <Tab label="Documentacion" disabled={cuitIsValid ? false : true} />
         </Tabs>
@@ -2315,7 +2342,7 @@ console.log("cuitIsValid", cuitIsValid);
             <LoadingButtonCustom
               width={20}
               heigth={80}
-              disabled={!cuitIsValid ? true : false}
+              disabled={cuitValidado ? true : false}
               onClick={validarEmpresaCUITHandler}
               loading={cuitLoading}
             >
@@ -2471,11 +2498,38 @@ console.log("cuitIsValid", cuitIsValid);
         </div>
       )}
       {selectedTab === 2 && (
-        <DeclaracionesJuradas
-          cuil={cuil}
-          onSeleccionRegistro={handleSeleccionDDJJ}
-          infoCompleta={true}
-        />
+        <>
+          <DeclaracionesJuradas
+            cuil={cuil}
+            onSeleccionRegistro={handleSeleccionDDJJ}
+            infoCompleta={true}
+            onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+          />
+          <div
+            className={classes.div}
+            hidden={
+              ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
+            }
+          >
+            <div className={classes.renglon}>
+              <h6>
+                El afiliado {nombre} de la Empresa {razonSocialEmpresa} está en
+                condiciones de ser incorporado al Padrón.
+              </h6>
+            </div>
+            <div className={classes.renglon}>
+              <div className={classes.boton}>
+                <Button
+                  className={classes.button}
+                  width={80}
+                  onClick={afiliadoAgregarHandler}
+                >
+                  Incorporar al Padrón
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
       {selectedTab === 3 && (
         <>

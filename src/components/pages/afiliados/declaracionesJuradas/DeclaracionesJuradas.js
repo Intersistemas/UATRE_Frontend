@@ -18,6 +18,7 @@ const DeclaracionesJuradas = (props) => {
 
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj.data);
+        props.onDeclaracionesGeneradas(ddJJUatreObj.data);
       };
       request(
         {
