@@ -7,7 +7,6 @@
   display:flex;
   position: fixed;
   width: 100%;
-  
 }
 
 .sidebar{
@@ -19,6 +18,34 @@
   /* display: flex;
   flex-direction: column; */
 }
+
+@media (max-width: 2570px) {
+  .sidebar_opciones{
+      zoom: 100%;
+  }
+}
+
+@media (max-width: 1920px) {
+  .sidebar_opciones{
+      zoom: 90%;
+  }
+}
+
+@media (max-width: 1366px) {
+  .sidebar_opciones{
+      zoom: 70%;
+  }
+  .logo{
+    zoom: 140%;
+  }
+}
+
+@media (max-width: 800px) {
+  .sidebar_opciones{
+      zoom: 60%;
+  }
+}
+
 .top_section{
   /*display: flex;*/
   align-items:center;

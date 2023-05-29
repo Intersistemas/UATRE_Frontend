@@ -18,6 +18,7 @@ const DeclaracionesJuradas = (props) => {
 
       const processDDJJUatre = async (ddJJUatreObj) => {
         setDDJJUatreList(ddJJUatreObj.data);
+        props.onDeclaracionesGeneradas(ddJJUatreObj.data);
       };
       request(
         {
@@ -140,7 +141,13 @@ const DeclaracionesJuradas = (props) => {
     clickToSelect: true,
     hideSelectColumn: true,
     //selected: 727172952,
+    style: {
+      backgroundColor: "rgb(194 194 194 / 70%)",
+      color: "black",
+      fontWeight: "bold",
+    }
   };
+  
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
@@ -156,6 +163,7 @@ const DeclaracionesJuradas = (props) => {
     data: ddJJUatreList,
     columns: columns,
     selectRow: selectRow,
+    selection: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
     noDataIndication: <h4>No existen DDJJ relacionadas al Afiliado seleccionado.</h4>,
