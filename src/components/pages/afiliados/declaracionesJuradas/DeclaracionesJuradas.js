@@ -34,6 +34,11 @@ const DeclaracionesJuradas = (props) => {
   let columns = null
   if (infoCompleta) {
     columns = [
+      {
+        dataField: "id",
+        text: "id",
+        //hidden: true
+      },
       
       {
         dataField: "cuit",
@@ -131,9 +136,11 @@ const DeclaracionesJuradas = (props) => {
   }
 
   const selectRow = {
+   
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    //selected: 727172952,
     style: {
       backgroundColor: "rgb(194 194 194 / 70%)",
       color: "black",
