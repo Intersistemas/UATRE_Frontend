@@ -334,7 +334,7 @@ const AfiliadosLista = (props) => {
     }
   ]
 
-  
+  //manejo la seleccion de cualquier registro de cualquiera de los TABs de AfiliadosLista
   const rowEvents  = (row) => {
   console.log('Afiliado_Seleccionado**:',row);
   setRowSelectedIndex([row.id]);
@@ -345,7 +345,7 @@ const AfiliadosLista = (props) => {
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
-          console.log('DDJJ Seleccionada:',row)
+          console.log('DDJJ Seleccionada**:',row)
           setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')

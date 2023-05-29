@@ -134,20 +134,20 @@ border: 1.5px solid rgb(53, 149, 210);
   }
 }
 
-@media screen and (max-width: 1920px) {
-  .contenido,.titulo {
+@media (max-width: 1920px) {
+  .contenido,.titulo, .sidebar{
       zoom: 90%;
   }
 }
 
-@media screen and (max-width: 1370px) {
-  .contenido, .titulo{
+@media (max-width: 1366px) {
+  .contenido, .titulo, .sidebar{
       zoom: 70%;
   }
 }
 
-@media screen and (max-width: 800px) {
-  .contenido, .titulo{
+@media (max-width: 800px) {
+  .contenido, .titulo, .sidebar{
       zoom: 60%;
   }
 }
