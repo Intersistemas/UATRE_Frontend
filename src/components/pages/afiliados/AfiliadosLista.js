@@ -60,6 +60,8 @@ const AfiliadosLista = (props) => {
     console.log('evento select y entry: ',select,entry);
     //BUSQUEDA Y FILTRO
    
+    props.onPageChange(1, 12);
+
     switch (select){
       case 'CUIT':
         fetchEmpresa(entry,'Afiliados');
