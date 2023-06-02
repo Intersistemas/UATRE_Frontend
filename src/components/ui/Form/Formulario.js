@@ -23,7 +23,7 @@ export const Campo = styled.div`
     }
 `;
 
-
+/*'PT Sans', sans-serif;*/
 export const InputSubmit = styled.input`
     backgound-color: var(--azul);
     width: 100%;
@@ -33,7 +33,7 @@ export const InputSubmit = styled.input`
     font-size: 1.8rem;
     text-transform: uppercase;
     border: none;
-    font-family: 'PT Sans', sans-serif;
+    font-family: var(--fuente);
     font-weight: 700;
 
     &:hover{

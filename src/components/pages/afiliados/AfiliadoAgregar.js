@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useRef, useState } from "react";
 import Button from "../../ui/Button/Button";
 //import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
+import modalCss from  "../../ui/Modal/Modal.module.css";
 import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
@@ -1917,27 +1918,29 @@ const AfiliadoAgregar = (props) => {
 
   return (
     <Modal onClose={props.onClose}>
-      <div className={classes.div}>
-        <div className={classes.alert}>
-          <Alert severity={severityAlert} variant="filled">
-            {textAlert}
-          </Alert>
+      <div className={modalCss.modalCabecera}>
+        <div className={classes.div}>
+          <div className={classes.alert}>
+            <Alert severity={severityAlert} variant="filled">
+              {textAlert}
+            </Alert>
+          </div>
         </div>
+        <h2 className={classes.titulo}>
+          {props.accion === "Modifica"
+            ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
+            : afiliadoExiste
+            ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
+            : padronRespuesta
+            ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
+            : "Agrega Afiliado a UATRE"}
+        </h2>
+        <h6 className={classes.titulo}>
+          {afiliadoExiste || estadoSolicitud === 4
+            ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
+            : null}
+        </h6>
       </div>
-      <h5 className={classes.titulo}>
-        {props.accion === "Modifica"
-          ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
-          : afiliadoExiste
-          ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
-          : padronRespuesta
-          ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
-          : "Agrega Afiliado a UATRE"}
-      </h5>
-      <h6 className={classes.titulo}>
-        {afiliadoExiste || estadoSolicitud === 4
-          ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
-          : null}
-      </h6>
       <div className={classes.div}>
         <Tabs
           value={selectedTab}
@@ -1954,7 +1957,7 @@ const AfiliadoAgregar = (props) => {
           />
           <Tab
             label={
-              padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : "DDJJ UATRE"
+              /*padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : //es demasiado grande el texto para el tab*/"DDJJ UATRE"
             }
             disabled={cuitIsValid ? false : true}
           />
