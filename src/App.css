@@ -162,5 +162,39 @@ border: 1.5px solid rgb(53, 149, 210);
 }
 
 .Mui-selected{
-  background-color: var(--color3) !important;
+  background-color: var(--color2) !important;
+}
+
+.MuiFormLabel-root{
+  font-family: var(--fuente) !important;
+}
+
+
+/*TABS*/
+[role="tab"]{
+  font-size: inherit !important;
+  color: white !important;
+  font-weight: bold !important;
+  /*font-size: large;*/
+  border: 1px solid #fff !important;
+  border-radius: 15px 15px 0px 0px !important;
+  background-color: var(--amarillo2) !important;/*var(--color1);*/
+}
+
+[role="tab"]:disabled{
+  color: var(--disableFont) !important;
+  background-color: var(--disableBack) !important;
+}
+
+[role="tab"]:hover{
+    color: #FFF !important;
+    background-color: #88acc5 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    border: 2px solid #ccc!important;
+}
+
+[aria-selected="true"]{
+  color: var(--color1) !important;/*white !important;*/
+  background-color: var(--amarillo1)!important;
+  text-shadow: 3px 3px 10px white !important;
 }

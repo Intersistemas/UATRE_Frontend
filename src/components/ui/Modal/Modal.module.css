@@ -56,7 +56,78 @@
 
   .modal input,[role="button"]{
     background-color: #FFF !important;
+    font-family: var(--fuente);
   }
+
+  .modal [role="tablist"]{
+    /*background-color: var(--color1) !important;*/
+  }
+
+  .modal [role="tab"]{
+    font-size: large !important;
+  }
+
+  .modal Button{
+    background: var(--amarillo1) !important;
+  }
+ 
+
+/*Media Query*/
+
+@media (max-width: 2570px) {
+  .modal {
+      zoom: 100%;
+  }
+}
+
+@media (max-width: 1920px) {
+  .modal{
+      zoom: 100%;
+  }
+}
+
+@media (max-width: 1366px) {
+  .modal{
+      zoom: 90%;
+      width: 70rem;
+      height: 56rem;
+      left: calc(50% - 35rem);
+      top: calc(50% - 28rem);
+  }
+}
+
+@media (max-width: 800px) {
+  .modal{
+      zoom: 75%;
+  }
+}
+
+
+.modalCabecera{
+  background-color: var(--color1);
+  color:white;
+  border-radius: 15px 15px 0px 0px;
+}
+
+.modal [data-shrink="true"]{
+  font-size: larger;
+  color: black;
+  font-weight: 600;
+}
+
+.modal input{
+  font-family: var(--fuente);
+  padding: 14px 15px 0px 15px;
+  font-weight: bold;
+  color: var(--color1);
+}
+
+.modal [role="button"]{
+  font-family: var(--fuente);
+  padding: 14px 15px 0px 15px;
+  font-weight: bold;
+  color: var(--color1);
+}
 
 /*
 .content{

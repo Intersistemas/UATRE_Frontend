@@ -14,6 +14,10 @@ import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
 import AdministracionHandler from './components/pages/administracion/Handler';
 import fondo from './media/Background/color3.png';
+/*import "./components/fonts/SantanderLight.ttf";
+import "./components/fonts/SantanderRegular.ttf";
+import "./components/fonts/SantanderLogoRegular.ttf";*/
+
 
 const App = () => {
   const authContext = useContext(AuthContext); 
