@@ -107,7 +107,7 @@ const AfiliadosLista = (props) => {
       text: "CUIL",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
+        return { width: "15%", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },

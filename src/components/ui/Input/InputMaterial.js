@@ -33,7 +33,7 @@ const InputMaterial = (props) => {
       <TextField
         autoFocus={props.id === "cuil" ? true : false}
         id={props.id}
-        size="small"
+        //size="small"
         //error={!props.isValid}
         label={props.label}
         //className={styles.inputCUIT}
@@ -46,8 +46,13 @@ const InputMaterial = (props) => {
         InputLabelProps={{
           shrink: shrink,
         }}
+        InputProps={{
+          readOnly: props.readOnly || false,
+        }}
         helperText={props.helperText ?? ""}
         error={props.error ?? false}
+        color={props.color}
+        focused={props.focused || false}
       />
     </Tooltip>
   );

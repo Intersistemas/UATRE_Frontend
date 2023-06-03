@@ -39,18 +39,21 @@ const DeclaracionesJuradas = (props) => {
         text: "id",
         //hidden: true
       },
-      
+
       {
         dataField: "cuit",
         text: "CUIT",
         formatter: Formato.Cuit,
+        headerStyle: (colum, colIndex) => {
+          return { width: "15%", textAlign: "center" };
+        },
       },
       {
         dataField: "empresa",
         text: "Razón Social",
         headerStyle: (colum, colIndex) => {
           return { width: "20%", textAlign: "center" };
-        }
+        },
       },
       {
         dataField: "periodo",
@@ -59,13 +62,13 @@ const DeclaracionesJuradas = (props) => {
         formatter: Formato.Periodo,
       },
       {
-        headerTitle: (colum, colIndex) => (`Fecha De Presentación`),
+        headerTitle: (colum, colIndex) => `Fecha De Presentación`,
         dataField: "presentacionFecha",
         text: "F.Presentación",
         formatter: FormatearFecha,
       },
       {
-        headerTitle: (colum, colIndex) => (`Fecha De Proceso`),
+        headerTitle: (colum, colIndex) => `Fecha De Proceso`,
         dataField: "procesoFecha",
         text: "F.Proceso",
         formatter: FormatearFecha,
@@ -83,35 +86,32 @@ const DeclaracionesJuradas = (props) => {
       //     return (
       //       <span>$ {Math.floor(row.periodo/50)}</span>
       //     );
-      //   } 
+      //   }
       // },
       {
         dataField: "rectificativa",
         text: "Versión",
-
       },
 
-      
       {
         dataField: "obligacionSecuencia",
         text: "Sec.Obligación",
       },
       {
-        headerTitle: (colum, colIndex) => (`Código de Modalidad de Contratación`),
+        headerTitle: (colum, colIndex) => `Código de Modalidad de Contratación`,
         dataField: "modalidad",
         text: "Cod.Mod.Contrat.",
       },
       {
-        headerTitle: (colum, colIndex) => (`Código de Actividad`),
+        headerTitle: (colum, colIndex) => `Código de Actividad`,
         dataField: "actividad",
         text: "Cod.Actividad",
       },
       {
-        headerTitle: (colum, colIndex) => (`Código de Zona`),
+        headerTitle: (colum, colIndex) => `Código de Zona`,
         dataField: "zona",
         text: "Cod.Zona",
-      }
-      
+      },
     ];
   } else {
     columns = [

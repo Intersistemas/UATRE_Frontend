@@ -37,9 +37,9 @@
    @media (min-width: 1024px) {
     .modal {
       width: 70rem;
-      height: 58rem;
+      height: 66rem;
       left: calc(50% - 35rem);
-      top: calc(50% - 29rem);
+      top: calc(50% - 33rem);
     }
   }
   
@@ -88,11 +88,11 @@
 
 @media (max-width: 1366px) {
   .modal{
-      zoom: 90%;
-      width: 70rem;
-      height: 56rem;
+      zoom: 100%;
+      width: 74rem;
+      height: 66rem;
       left: calc(50% - 35rem);
-      top: calc(50% - 28rem);
+      top: calc(50% - 37rem);
   }
 }
 
