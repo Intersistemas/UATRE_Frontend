@@ -1,10 +1,13 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
+import { forwardRef } from "react";
+import { IMaskInput } from "react-imask";
 
 const InputMaterial = (props) => {
   //Validaciones
   
-  const handleChange = (event) => {    
+  const handleChange = (event) => { 
+    console.log("event", event)   
     switch (props.id) {
       case "cuil":   
       var reCUIL = /^[0-9\b]+$/;     
@@ -46,8 +49,13 @@ const InputMaterial = (props) => {
         InputLabelProps={{
           shrink: shrink,
         }}
+        InputProps={{
+          readOnly: props.readOnly || false,
+        }}
         helperText={props.helperText ?? ""}
         error={props.error ?? false}
+        color={props.color}
+        focused={props.focused || false}
       />
     </Tooltip>
   );
