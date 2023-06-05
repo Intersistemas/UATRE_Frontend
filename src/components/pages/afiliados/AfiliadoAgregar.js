@@ -22,7 +22,6 @@ import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import ValidarCUIT from "../../validators/ValidarCUIT";
-//import InputMask from "../../ui/Input/InputMask";
 import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
 import ValidarEmail from "../../validators/ValidarEmail";
 import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
@@ -31,7 +30,6 @@ import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
-import InputMask from "../../ui/Input/InputMask";
 import Formato from "../../helpers/Formato";
 
 //#region gloabes
@@ -585,17 +583,15 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     const identifier = setTimeout(() => {
       //console.log("checking showAlert...", showAlert);
-      // if (resolverSolicitudAfiliadoResponse) {
-      //   handleCerrarModal();
-      // }
+      if (resolverSolicitudAfiliadoResponse) {
+        handleCerrarModal();
+      }
     }, 5000);
 
-    if (resolverSolicitudAfiliadoResponse) {
-      handleCerrarModal();
-    }
     return () => {
       clearTimeout(identifier);
       console.log("alert");
+      
     };
   }, [resolverSolicitudAfiliadoResponse]);
 
@@ -1225,7 +1221,7 @@ const AfiliadoAgregar = (props) => {
       resolverSolicitudObs === ""
     ) {
       // setShowAlert(true);
-      // setTextAlert("Debe completar el campo Observaciones");
+      setDialogTexto("Debe completar el campo Observaciones");
       // setSeverityAlert("error");
       return;
     }
@@ -1547,9 +1543,7 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handles Inputs
-  const handleInputChange = (value, id) => {
-    console.log("value", value)
-    console.log("id", id)
+  const handleInputChange = (value, id) => {    
     switch (id) {      
       case "cuil":
         setCuilValidado(false);
@@ -1895,10 +1889,6 @@ const AfiliadoAgregar = (props) => {
     setOpenDialog(false);
   };
 
-  const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-  });
-
   // const SimpleDialog = () => {
   //   return (
   //     <Dialog onClose={handleCloseDialog} open={openDialog}>
@@ -1913,7 +1903,7 @@ const AfiliadoAgregar = (props) => {
   //};
 
   //#endregion
-console.log("cuitempresa", cuitEmpresa)
+
   return (
     <>
       <div>
@@ -2002,7 +1992,7 @@ console.log("cuitempresa", cuitEmpresa)
               <div className={classes.input25}>
                 <InputMaterialMask
                   id="cuil"
-                  value={cuil}
+                  value={cuil.toString()}
                   label="CUIL"
                   disabled={InputDisabled("cuil") || estadoSolicitud === 2}
                   width={98}
@@ -2293,7 +2283,7 @@ console.log("cuitempresa", cuitEmpresa)
               <div className={classes.input}>
                 <InputMaterialMask
                   id="cuilAFIP"
-                  value={cuilAFIP}
+                  value={cuilAFIP.toString()}
                   label="CUIL"
                   readOnly={true}
                   onChange={handleInputChange}
@@ -2527,7 +2517,7 @@ console.log("cuitempresa", cuitEmpresa)
               <div className={classes.input}>
                 <InputMaterialMask
                   id="cuit"
-                  value={cuitEmpresa}
+                  value={cuitEmpresa.toString()}
                   label="CUIT"
                   disabled={InputDisabled()}
                   width={98}
@@ -2744,7 +2734,7 @@ console.log("cuitempresa", cuitEmpresa)
             <div className={classes.div}>
               <h4>
                 {padronRespuesta
-                  ? `DDJJ UATRE ${cuil} ${nombre}`
+                  ? `DDJJ UATRE ${Formato.Cuit(cuil)} ${nombre}`
                   : "DDJJ UATRE"}
               </h4>
               <div className={classes.renglon}>

@@ -54,7 +54,8 @@ const InputMaterialMask = (props) => {
   });
 
   const shrink = props.type === "date" || props.value !== "" ? true : false;
-  //console.log("helperText", props.helperText)
+  console.log("props.value", props.value)
+  console.log("mask", cuilMask);
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
