@@ -463,8 +463,8 @@ const AfiliadosLista = (props) => {
 
   return (
     <> 
-        <div  className='titulo'>
-          <h1>Afiliaciones</h1>  
+        <div>
+          <h1 className='titulo'>Afiliaciones</h1>  
         </div>
 
         <div className="contenido">

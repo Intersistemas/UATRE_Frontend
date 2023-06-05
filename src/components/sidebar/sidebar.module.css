@@ -52,7 +52,7 @@
   padding:20px 15px;
 }
 .logo{
-  font-size: 30px;
+  font-size: 40px;
 }
 .bars{
   display: flex;
@@ -95,9 +95,6 @@
 
 .actionButtons{
   width: 100%;
-  /*display: flex;
-  align-items: baseline;*/
-  /*background-color: cornflowerblue;*/
-  grid-row-gap: 5%;
+  grid-row-gap: 3%;
   display: grid;
 }

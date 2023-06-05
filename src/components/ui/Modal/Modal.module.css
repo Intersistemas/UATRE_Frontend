@@ -56,8 +56,13 @@
 
   .modal input,[role="button"]{
     background-color: #FFF !important;
-    font-family: var(--fuente);
+    font-family: var(--fuente)!important;;
+    font-size: 1.1rem!important;;
+    padding: 15px 15px 3px 15px!important;;
+    color: var(--color1)!important;;
+    font-weight: 600!important;;
   }
+
 
   .modal [role="tablist"]{
     /*background-color: var(--color1) !important;*/
@@ -67,10 +72,6 @@
     font-size: large !important;
   }
 
-  .modal Button{
-    background: var(--amarillo1) !important;
-  }
- 
 
 /*Media Query*/
 
@@ -111,23 +112,9 @@
 
 .modal [data-shrink="true"]{
   font-size: larger;
-  color: black;
-  font-weight: 600;
+  color: #555555;/*black;*/
 }
 
-.modal input{
-  font-family: var(--fuente);
-  /* padding: 14px 15px 0px 15px; */
-  font-weight: bold;
-  color: var(--color1);
-}
-
-.modal [role="button"]{
-  font-family: var(--fuente);
-  /* padding: 14px 15px 0px 15px; */
-  font-weight: bold;
-  color: var(--color1);
-}
 
 /*
 .content{
