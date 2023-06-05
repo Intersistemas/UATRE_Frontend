@@ -102,6 +102,7 @@
   justify-content: center;
   align-items: center;
   text-align: center;
+  margin-right: 0.5%;
 }
 
 
@@ -115,4 +116,10 @@
 
 .smallTable {
   height: 15%;
+}
+
+.subTituloVentana {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;  
 }

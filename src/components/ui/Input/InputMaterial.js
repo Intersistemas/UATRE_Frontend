@@ -1,10 +1,13 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
+import { forwardRef } from "react";
+import { IMaskInput } from "react-imask";
 
 const InputMaterial = (props) => {
   //Validaciones
   
-  const handleChange = (event) => {    
+  const handleChange = (event) => { 
+    console.log("event", event)   
     switch (props.id) {
       case "cuil":   
       var reCUIL = /^[0-9\b]+$/;     
@@ -33,7 +36,7 @@ const InputMaterial = (props) => {
       <TextField
         autoFocus={props.id === "cuil" ? true : false}
         id={props.id}
-        //size="small"
+        size="small"
         //error={!props.isValid}
         label={props.label}
         //className={styles.inputCUIT}

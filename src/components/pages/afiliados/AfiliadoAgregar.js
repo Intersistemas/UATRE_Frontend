@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useReducer,
-  useState,
-} from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import Button from "../../ui/Button/Button";
 //import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
@@ -13,7 +9,15 @@ import useHttp from "../../hooks/useHttp";
 //import SelectInput from "../../ui/Select/SelectInput";
 //import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Dialog, DialogActions, DialogTitle, Tab, Tabs } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Slide,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
@@ -25,6 +29,10 @@ import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCusto
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
 import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
+import FormatearFecha from "../../helpers/FormatearFecha";
+import InputMaterialMask from "../../ui/Input/InputMaterialMask";
+import InputMask from "../../ui/Input/InputMask";
+import Formato from "../../helpers/Formato";
 
 //#region gloabes
 const seccionalSinAsignar = [
@@ -39,6 +47,14 @@ const AfiliadoAgregar = (props) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
 
+  //#region Alert
+  // const [showAlert, setShowAlert] = useState(true);
+  // const [textAlert, setTextAlert] = useState("");
+  // const [severityAlert, setSeverityAlert] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTexto, setDialogTexto] = useState("");
+  //#endregion
+
   //#region Capturo errores
   useEffect(() => {
     console.log("error", error);
@@ -48,8 +64,8 @@ const AfiliadoAgregar = (props) => {
         // setShowAlert(true);
         // setSeverityAlert("error");
         // setTextAlert(`Error - ${error.message}`);
-        setOpenDialog(true)
-        setDialogTexto(`Error - ${error.message}`)
+        //setOpenDialog(true)
+        setDialogTexto(`Error - ${error.message}`);
       }
 
       if (error.code === 404 && cuilLoading) {
@@ -58,8 +74,10 @@ const AfiliadoAgregar = (props) => {
         // setSeverityAlert("error");
         // //setTextAlert(`Error - ${error.message}`);
         // setTextAlert(`Error - No existe el CUIL ${cuil} en el Padron de AFIP`);
-        setOpenDialog(true);
-        setDialogTexto(`Error - No existe el CUIL ${cuil} en el Padron de AFIP`);
+        //setOpenDialog(true);
+        setDialogTexto(
+          `Error - No existe el CUIL ${cuil} en el Padron de AFIP`
+        );
       }
 
       if (error.code === 404 && cuitLoading) {
@@ -70,11 +88,20 @@ const AfiliadoAgregar = (props) => {
         // setTextAlert(
         //   `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
         // );
+        //setOpenDialog(true);
+        setDialogTexto(
+          `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
+        );
       }
 
       return;
     }
-  }, [error]);
+
+    console.log("dialogTexto", dialogTexto);
+    if (dialogTexto !== "") {
+      setOpenDialog(true);
+    }
+  }, [error, dialogTexto]);
   //#endregion
 
   //#region Variables de estado para ButtonLoadingCustom
@@ -96,14 +123,6 @@ const AfiliadoAgregar = (props) => {
   const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
   // const [accion, setAccion] = useState("")
   // setAccion(props.accion)
-  //#endregion
-
-  //#region Alert
-  // const [showAlert, setShowAlert] = useState(true);
-  // const [textAlert, setTextAlert] = useState("");
-  // const [severityAlert, setSeverityAlert] = useState("");
-  const [openDialog, setOpenDialog] = useState(true);
-  const [dialogTexto, setDialogTexto] = useState(false);
   //#endregion
 
   //#region variables para respuestas de servicios
@@ -224,6 +243,7 @@ const AfiliadoAgregar = (props) => {
   const [cuitIsValid, setCUITIsValid] = useState(false);
   const cuitReducer = (state, action) => {
     if (action.type === "USER_INPUT") {
+      console.log("action.value", action.value)
       return { value: action.value, isValid: ValidarCUIT(action.value) };
     }
     if (action.type === "USER_BLUR") {
@@ -571,8 +591,8 @@ const AfiliadoAgregar = (props) => {
     }, 5000);
 
     if (resolverSolicitudAfiliadoResponse) {
-        handleCerrarModal();
-      }
+      handleCerrarModal();
+    }
     return () => {
       clearTimeout(identifier);
       console.log("alert");
@@ -731,6 +751,11 @@ const AfiliadoAgregar = (props) => {
           //   `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
           // );
           // setSeverityAlert("info");
+
+          setDialogTexto(
+            `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
+          );
+          return;
         } else if (props.accion === "Resuelve") {
           console.log("a resolver");
           setSelectedTab(3);
@@ -991,6 +1016,7 @@ const AfiliadoAgregar = (props) => {
       // setShowAlert(true);
       // setTextAlert("Debe completar todos los campos");
       // setSeverityAlert("error");
+      setDialogTexto("Debe completar todos los campos");
       return;
     }
     //#region Insertar Sol
@@ -1136,7 +1162,7 @@ const AfiliadoAgregar = (props) => {
         //Alert
         // setShowAlert(true);
         // setSeverityAlert("success");
-        // setTextAlert("Afiliado creado con éxito!");
+        setDialogTexto("Afiliado creado con éxito!");
 
         //handleCerrarModal();
 
@@ -1208,9 +1234,9 @@ const AfiliadoAgregar = (props) => {
     if (afiliado.estadoSolicitudId === estadoSolicitud) {
       // setShowAlert(true);
       // setSeverityAlert("info");
-      // setTextAlert(
-      //   `El estado seleccionado es el mismo que posee actualmente el afiliado`
-      // );
+      setDialogTexto(
+        `El estado seleccionado es el mismo que posee actualmente el afiliado`
+      );
 
       return;
     }
@@ -1249,9 +1275,9 @@ const AfiliadoAgregar = (props) => {
         console.log("estadoSolicitudSel", estadoSolicitudSel);
         // setShowAlert(true);
         // setSeverityAlert("success");
-        // setTextAlert(
-        //   `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
-        // );
+        setDialogTexto(
+          `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
+        );
         setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
         if (+estadoSolicitud === 2) {
           setShowImprimirLiquidacion(true);
@@ -1288,7 +1314,7 @@ const AfiliadoAgregar = (props) => {
         setCUILLoading(false);
         // setShowAlert(true);
         // setSeverityAlert("error");
-        // setTextAlert(`Error validando CUIL - Persona fallecida`);
+        setDialogTexto(`Error validando CUIL - Persona fallecida`);
 
         return;
       }
@@ -1522,7 +1548,9 @@ const AfiliadoAgregar = (props) => {
 
   //#region handles Inputs
   const handleInputChange = (value, id) => {
-    switch (id) {
+    console.log("value", value)
+    console.log("id", id)
+    switch (id) {      
       case "cuil":
         setCuilValidado(false);
         setAfiliadoExiste(false);
@@ -1843,7 +1871,7 @@ const AfiliadoAgregar = (props) => {
       //Alert
       // setShowAlert(true);
       // setSeverityAlert("success");
-      // setTextAlert("Afiliado modificado con éxito!");
+      setDialogTexto("Afiliado modificado con éxito!");
       // }
     };
 
@@ -1866,141 +1894,230 @@ const AfiliadoAgregar = (props) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  
-  const SimpleDialog = () => {
-    return (
-      <Dialog onClose={handleCloseDialog} open={openDialog}>
-        <DialogTitle>{}</DialogTitle>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>
-            Cerrar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  };
+
+  const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+  });
+
+  // const SimpleDialog = () => {
+  //   return (
+  //     <Dialog onClose={handleCloseDialog} open={openDialog}>
+  //       <DialogTitle>{dialogTexto}</DialogTitle>
+  //       <DialogActions>
+  //         <Button onClick={handleCloseDialog}>
+  //           Cerrar
+  //         </Button>
+  //       </DialogActions>
+  //     </Dialog>
+  //   );
+  //};
 
   //#endregion
-
+console.log("cuitempresa", cuitEmpresa)
   return (
-    <Modal onClose={props.onClose}>
-      <div className={modalCss.modalCabecera}>
-        <div className={classes.div}>
-          <div className={classes.alert}>
-            {/* <Alert severity={severityAlert} variant="filled">
+    <>
+      <div>
+        <Dialog          
+          dividers
+          onClose={handleCloseDialog}
+          open={openDialog}
+        >
+          <DialogContent dividers>
+            <Typography gutterBottom>{dialogTexto}</Typography>
+          </DialogContent>
+          <DialogActions dividers>
+            <Button onClick={handleCloseDialog}>Cerrar</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+      <Modal onClose={props.onClose}>
+        <div className={modalCss.modalCabecera}>
+          <div className={classes.div}>
+            <div className={classes.alert}>
+              {/* <Alert severity={severityAlert} variant="filled">
               {textAlert}
             </Alert> */}
-            <SimpleDialog open={openDialog} onClose={handleCloseDialog} />
+            </div>
+          </div>
+          <h3 className={classes.titulo}>
+            {props.accion === "Modifica"
+              ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
+              : afiliadoExiste
+              ? `Modifica/Consulta Afiliado de UATRE: ${Formato.Cuit(cuil)} ${nombre}`
+              : padronRespuesta
+              ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
+              : "Agrega Afiliado a UATRE"}
+          </h3>
+          <div className={classes.subTituloVentana}>
+            <h5 className={classes.titulo}>
+              {afiliadoExiste || estadoSolicitud === 4
+                ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
+                : null}
+            </h5>
+            <h5 className={classes.titulo}>
+              {afiliadoExiste && estadoSolicitud === 2
+                ? `- Fecha de Ingreso: ${FormatearFecha(
+                    afiliado.fechaIngreso
+                  )} - Nro Afiliado: ${afiliado.nroAfiliado}`
+                : null}
+            </h5>
           </div>
         </div>
-        <h2 className={classes.titulo}>
-          {props.accion === "Modifica"
-            ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
-            : afiliadoExiste
-            ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
-            : padronRespuesta
-            ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
-            : "Agrega Afiliado a UATRE"}
-        </h2>
-        <h6 className={classes.titulo}>
-          {afiliadoExiste || estadoSolicitud === 4
-            ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
-            : null}
-        </h6>
-      </div>
-      <div className={classes.div}>
-        <Tabs
-          value={selectedTab}
-          onChange={handleChangeTab}
-          aria-label="basic tabs example"
-        >
-          <Tab
-            label="Datos Personales"
-            //disabled={nuevoAfiliadoResponse ? true : false}
-          />
-          <Tab
-            label="Datos Empleador"
-            disabled={formularioIsValid ? false : true}
-          />
-          <Tab
-            label={
-              /*padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
-            }
-            disabled={cuitIsValid ? false : true}
-          />
-          <Tab
-            label="Resuelve Solicitud"
-            disabled={handleResuelveSolicitudDisable()}
-            hidden={
-              props.accion === "Agrega" || props.accion === "Resuelve"
-                ? false
-                : true
-            }
-          />
-          <Tab label="Documentacion" disabled={cuitIsValid ? false : true} />
-        </Tabs>
-      </div>
-      {selectedTab === 0 && (
         <div className={classes.div}>
-          {/* region Datos Principales */}
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuil"
-                value={cuil}
-                label="CUIL"
-                disabled={InputDisabled("cuil") || estadoSolicitud === 2}
-                width={98}
-                onChange={handleInputChange}
-                helperText={
-                  !cuilState.isValid && cuil !== ""
-                    ? "CUIL con formato incorrecto"
-                    : ""
-                }
-                error={
-                  (!cuilState.isValid && cuil !== "") ||
-                  (!formularioIsValid && clickAgregar)
-                    ? true
-                    : false
-                }
-              />
+          <Tabs
+            value={selectedTab}
+            onChange={handleChangeTab}
+            aria-label="basic tabs example"
+          >
+            <Tab
+              label="Datos Personales"
+              //disabled={nuevoAfiliadoResponse ? true : false}
+            />
+            <Tab
+              label="Datos Empleador"
+              disabled={formularioIsValid ? false : true}
+            />
+            <Tab
+              label={
+                /*padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
+              }
+              disabled={cuitIsValid ? false : true}
+            />
+            <Tab
+              label="Resuelve Solicitud"
+              disabled={handleResuelveSolicitudDisable()}
+              hidden={
+                props.accion === "Agrega" || props.accion === "Resuelve"
+                  ? false
+                  : true
+              }
+            />
+            <Tab label="Documentacion" disabled={cuitIsValid ? false : true} />
+          </Tabs>
+        </div>
+        {selectedTab === 0 && (
+          <div className={classes.div}>
+            {/* region Datos Principales */}
+            <div className={classes.renglon}>
+              <div className={classes.input25}>
+                <InputMaterialMask
+                  id="cuil"
+                  value={cuil}
+                  label="CUIL"
+                  disabled={InputDisabled("cuil") || estadoSolicitud === 2}
+                  width={98}
+                  onChange={handleInputChange}
+                  helperText={
+                    !cuilState.isValid && cuil !== ""
+                      ? "CUIL con formato incorrecto"
+                      : ""
+                  }
+                  error={
+                    (!cuilState.isValid && cuil !== "") ||
+                    (!formularioIsValid && clickAgregar)
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <LoadingButtonCustom
+                  width={80}
+                  heigth={70}
+                  disabled={deshabilitarBotonValidarCUIL()}
+                  onClick={validarAfiliadoCUILHandler}
+                  loading={cuilLoading}
+                >
+                  {!cuilLoading ? `Validar CUIL` : `Validando...`}
+                </LoadingButtonCustom>
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="nroAfiliado"
+                  value={afiliado?.nroAfiliado}
+                  label="Nro Afiliado"
+                  onChange={handleInputChange}
+                  readOnly={true}                  
+                />
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="fechaIngreso"
+                  value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+                  label="Fecha Ingreso"
+                  onChange={handleInputChange}
+                  readOnly={true}                  
+                />
+              </div>
             </div>
-            <LoadingButtonCustom
-              width={20}
-              heigth={80}
-              disabled={deshabilitarBotonValidarCUIL()}
-              onClick={validarAfiliadoCUILHandler}
-              loading={cuilLoading}
-            >
-              {!cuilLoading ? `Validar CUIL` : `Validando...`}
-            </LoadingButtonCustom>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="nombre"
-                value={nombre ?? ""}
-                label="Apellido y Nombre"
-                width={100}
-                onChange={handleInputChange}
-                disabled={InputDisabled()}
-                error={!nombreState.isValid && clickAgregar ? true : false}
-              />
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="nombre"
+                  value={nombre ?? ""}
+                  label="Apellido y Nombre"
+                  width={100}
+                  onChange={handleInputChange}
+                  disabled={InputDisabled()}
+                  error={!nombreState.isValid && clickAgregar ? true : false}
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="tipoDocumentoSelect"
+                  value={tipoDocumento}
+                  options={tiposDocumentos}
+                  label="Tipo Documento"
+                  disabled={InputDisabled()}
+                  onChange={handleChangeSelect}
+                  //width={98}
+                  error={
+                    !tipoDocumentoState.isValid && clickAgregar ? true : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="numeroDocumento"
+                  value={numeroDocumento}
+                  label="Numero Documento"
+                  disabled={InputDisabled()}
+                  //width={96}
+                  onChange={handleInputChange}
+                  error={
+                    !numeroDocumentoState.isValid && clickAgregar ? true : false
+                  }
+                />
+              </div>
             </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="nacionalidadSelect"
-                label="Nacionalidad"
-                options={nacionalidades}
-                value={nacionalidad}
-                defaultValue={nacionalidades[0]}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={
-                  !nacionalidadState.isValid && clickAgregar ? true : false
-                }
-              />
-              {/* <SearchSelectMaterial
+            <div className={classes.renglon}>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="fechaNacimiento"
+                  value={fechaNacimiento}
+                  label="Fecha de Nacimiento"
+                  type="date"
+                  onChange={handleInputChange}
+                  disabled={InputDisabled()}
+                  error={
+                    !fechaNacimientoState.isValid && clickAgregar ? true : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="nacionalidadSelect"
+                  label="Nacionalidad"
+                  options={nacionalidades}
+                  value={nacionalidad}
+                  defaultValue={nacionalidades[0]}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !nacionalidadState.isValid && clickAgregar ? true : false
+                  }
+                />
+                {/* <SearchSelectMaterial
                 name="nacionalidadSelect"
                 label="Nacionalidad"
                 options={nacionalidades}
@@ -2009,110 +2126,68 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
             />*/}
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="estadoCivilSelect"
+                  label="Estado Civil"
+                  options={estadosCiviles}
+                  value={estadoCivil}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  //width={100}
+                  error={
+                    !estadoCivilState.isValid && clickAgregar ? true : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="sexoSelect"
+                  label="Genero"
+                  options={sexos}
+                  value={sexo}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  //width={100}
+                  error={!generoState.isValid && clickAgregar ? true : false}
+                />
+              </div>
             </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="fechaNacimiento"
-                value={fechaNacimiento}
-                label="Fecha de Nacimiento"
-                type="date"
-                onChange={handleInputChange}
-                disabled={InputDisabled()}
-                error={
-                  !fechaNacimientoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="estadoCivilSelect"
-                label="Estado Civil"
-                options={estadosCiviles}
-                value={estadoCivil}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                //width={100}
-                error={!estadoCivilState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="sexoSelect"
-                label="Genero"
-                options={sexos}
-                value={sexo}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                //width={100}
-                error={!generoState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="tipoDocumentoSelect"
-                value={tipoDocumento}
-                options={tiposDocumentos}
-                label="Tipo Documento"
-                disabled={InputDisabled()}
-                onChange={handleChangeSelect}
-                //width={98}
-                error={
-                  !tipoDocumentoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input25}>
-              <InputMaterial
-                id="numeroDocumento"
-                value={numeroDocumento}
-                label="Numero Documento"
-                disabled={InputDisabled()}
-                //width={96}
-                onChange={handleInputChange}
-                error={
-                  !numeroDocumentoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilio"
-                value={domicilio}
-                label="Domicilio"
-                disabled={InputDisabled()}
-                onChange={handleInputChange}
-                error={!domicilioState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="domicilio"
+                  value={domicilio}
+                  label="Domicilio"
+                  disabled={InputDisabled()}
+                  onChange={handleInputChange}
+                  error={!domicilioState.isValid && clickAgregar ? true : false}
+                />
+              </div>
 
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="provinciaSelect"
-                label="Provincia"
-                options={provincias}
-                value={provincia}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!provinciaState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="localidadSelect"
-                label="Localidad"
-                options={localidades}
-                value={localidad}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!localidadState.isValid && clickAgregar ? true : false}
-              />
-              {/* <SearchSelectMaterial
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="provinciaSelect"
+                  label="Provincia"
+                  options={provincias}
+                  value={provincia}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={!provinciaState.isValid && clickAgregar ? true : false}
+                />
+              </div>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="localidadSelect"
+                  label="Localidad"
+                  options={localidades}
+                  value={localidad}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={!localidadState.isValid && clickAgregar ? true : false}
+                />
+                {/* <SearchSelectMaterial
                 name="localidadSelect"
                 label="Localidad"
                 options={localidades}
@@ -2121,21 +2196,21 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
+              </div>
             </div>
-          </div>
 
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <SelectMaterial
-                name="seccionalSelect"
-                label="Seccional"
-                options={seccionales}
-                value={seccional}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!seccionalState.isValid && clickAgregar ? true : false}
-              />
-              {/* <SearchSelectMaterial
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="seccionalSelect"
+                  label="Seccional"
+                  options={seccionales}
+                  value={seccional}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={!seccionalState.isValid && clickAgregar ? true : false}
+                />
+                {/* <SearchSelectMaterial
                 name="seccionalSelect"
                 label="Seccional"
                 options={seccionales}
@@ -2143,554 +2218,425 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="telefono"
-                value={telefono}
-                label="Telefono/Celular"
-                disabled={InputDisabled()}
-                width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="correo"
-                value={correo}
-                label="Correo"
-                disabled={InputDisabled()}
-                width={100}
-                onChange={handleInputChange}
-                helperText={
-                  !emailState.isValid && correo !== "" && correo !== null
-                    ? "Email inválido"
-                    : ""
-                }
-                error={
-                  !emailIsValid && correo !== "" && correo !== null
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="puestoSelect"
-                label="Oficio"
-                options={puestos}
-                value={puesto}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!oficioState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="actividadSelect"
-                label="Actividad"
-                options={actividades}
-                value={actividad}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!actividadState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <h4>Datos AFIP</h4>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="nombreYApellidoAFIP"
-                value={nombreAFIP}
-                label="Apellido y Nombre"
-                readOnly={true}
-                // color={nombreAFIP !== afiliado?.afipNombre ? "warning" : ""}
-                // focused={nombreAFIP !== afiliado?.afipNombre ? true : false}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuilAFIP"
-                value={cuilAFIP}
-                label="CUIL"
-                readOnly={true}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="fechaNacimientoAFIP"
-                type="date"
-                value={fechaNacimientoAFIP}
-                label="Fecha de Nacimiento"
-                readOnly={true}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilioAFIP"
-                value={domicilioRealAFIP}
-                label="Domicilio"
-                readOnly={true}
-                // color={
-                //   domicilioRealAFIP !== afiliado?.afipNombre ? "success" : ""
-                // }
-                // focused={
-                //   domicilioRealAFIP !== afiliado?.afipNombre ? true : false
-                // }
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="tipoDocumentoAFIP"
-                value={tipoDocumentoAFIP}
-                label="Tipo Documento"
-                readOnly={true}
-                color={
-                  tipoDocumentoAFIP !== "" &&
-                  tipoDocumentoAFIP !== afiliado?.afipTipoDocumento
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  tipoDocumentoAFIP !== "" &&
-                  tipoDocumentoAFIP !== afiliado?.afipTipoDocumento
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="numeroDocumentoAFIP"
-                value={numeroDocumentoAFIP}
-                label="Documento"
-                readOnly={true}
-                color={
-                  numeroDocumentoAFIP !== "" &&
-                  numeroDocumentoAFIP !== afiliado?.afipNumeroDocumento
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  numeroDocumentoAFIP !== "" &&
-                  numeroDocumentoAFIP !== afiliado?.afipNumeroDocumento
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="estadoClaveAFIP"
-                value={estadoClaveAFIP}
-                label="Estado Clave"
-                readOnly={true}
-                color={
-                  estadoClaveAFIP !== "" &&
-                  estadoClaveAFIP !== afiliado?.afipEstadoClave
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  estadoClaveAFIP !== "" &&
-                  estadoClaveAFIP !== afiliado?.afipEstadoClave
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="tipoClaveAFIP"
-                value={tipoClaveAFIP}
-                label="Tipo Clave"
-                readOnly={true}
-                color={
-                  tipoClaveAFIP !== "" &&
-                  tipoClaveAFIP !== afiliado?.afipTipoClave
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  tipoClaveAFIP !== "" &&
-                  tipoClaveAFIP !== afiliado?.afipTipoClave
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="tipoPersonaAFIP"
-                value={tipoPersonaAFIP}
-                label="Tipo Persona"
-                readOnly={true}
-                color={
-                  tipoPersonaAFIP !== "" &&
-                  tipoPersonaAFIP !== afiliado?.afipTipoPersona
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  tipoPersonaAFIP !== "" &&
-                  tipoPersonaAFIP !== afiliado?.afipTipoPersona
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="idActividadPrincipalAFIP"
-                value={idActividadPrincipalAFIP}
-                label="Id Actividad Principal"
-                readOnly={true}
-                color={
-                  idActividadPrincipalAFIP !== "" &&
-                  idActividadPrincipalAFIP !==
-                    afiliado?.afipIdActividadPrincipal
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  idActividadPrincipalAFIP !== "" &&
-                  idActividadPrincipalAFIP !==
-                    afiliado?.afipIdActividadPrincipal
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="descripcionActividadPrincipalAFIP"
-                value={descripcionActividadPrincipalAFIP}
-                label="Descripción Actividad Principal"
-                readOnly={true}
-                color={
-                  descripcionActividadPrincipalAFIP !== "" &&
-                  descripcionActividadPrincipalAFIP !==
-                    afiliado?.afipActividadPrincipal
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  descripcionActividadPrincipalAFIP !== "" &&
-                  descripcionActividadPrincipalAFIP !==
-                    afiliado?.afipActividadPrincipal
-                    ? true
-                    : false
-                }
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="periodoActividadPrincipalAFIP"
-                value={periodoActividadPrincipalAFIP}
-                label="Período Actividad Principal"
-                readOnly={true}
-                color={
-                  periodoActividadPrincipalAFIP !== "" &&
-                  periodoActividadPrincipalAFIP !==
-                    afiliado?.afipPeriodoActividadPrincipal
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  periodoActividadPrincipalAFIP !== "" &&
-                  periodoActividadPrincipalAFIP !==
-                    afiliado?.afipPeriodoActividadPrincipal
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="mesCierreAFIP"
-                value={mesCierreAFIP}
-                label="Mes Cierre"
-                readOnly={true}
-                color={
-                  mesCierreAFIP !== "" &&
-                  mesCierreAFIP !== afiliado?.afipMesCierre
-                    ? "warning"
-                    : ""
-                }
-                focused={
-                  mesCierreAFIP !== "" &&
-                  mesCierreAFIP !== afiliado?.afipMesCierre
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      {selectedTab === 1 && (
-        <div className={classes.div}>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuit"
-                value={cuitEmpresa}
-                label="CUIT"
-                disabled={InputDisabled()}
-                width={98}
-                onChange={handleInputChange}
-                helperText={
-                  !cuitIsValid && cuitEmpresa.length === 11
-                    ? "CUIT inválido"
-                    : ""
-                }
-                error={
-                  (!cuitState.isValid && cuitEmpresa !== "") ||
-                  (!formularioEmpleadorIsValid && clickAgregar)
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <LoadingButtonCustom
-              width={20}
-              heigth={80}
-              disabled={cuitValidado ? true : false}
-              onClick={validarEmpresaCUITHandler}
-              loading={cuitLoading}
-            >
-              {!cuitLoading ? `Validar CUIT` : `Validando...`}
-            </LoadingButtonCustom>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="razonSocialEmpresa"
-                value={razonSocialEmpresa}
-                label="Razón Social"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="actividadEmpresa"
-                value={actividadEmpresa}
-                label="Actividad"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilioEmpresa"
-                value={domicilioEmpresa}
-                label="Domicilio"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="localidadEmpresa"
-                value={localidadEmpresa}
-                label="Localidad"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="telefonoEmpresa"
-                value={telefonoEmpresa}
-                label="Telefono"
-                disabled={false}
-                width={100}
-                onChange={handleInputChange}
-              />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="puestoSelect"
+                  label="Oficio"
+                  options={puestos}
+                  value={puesto}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={!oficioState.isValid && clickAgregar ? true : false}
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="actividadSelect"
+                  label="Actividad"
+                  options={actividades}
+                  value={actividad}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={!actividadState.isValid && clickAgregar ? true : false}
+                />
+              </div>
             </div>
 
-            <div className={classes.input}>
-              <InputMaterial
-                id="correoEmpresa"
-                value={correoEmpresa}
-                label="Correo"
-                disabled={false}
-                width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="lugarTrabajoEmpresa"
-                value={lugarTrabajoEmpresa}
-                label="Lugar de Trabajo"
-                disabled={false}
-                //width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU1"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1
-                    ? `${padronEmpresaRespuesta.ciiU1} - ${padronEmpresaRespuesta.ciiU1Descripcion}`
-                    : ""
-                }
-                label="Actividad Principal"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU2"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2
-                    ? `${padronEmpresaRespuesta.ciiU2} - ${padronEmpresaRespuesta.ciiU2Descripcion}`
-                    : ""
-                }
-                label="Actividad Secundaria"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU3"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU3
-                    ? `${padronEmpresaRespuesta.ciiU3} - ${padronEmpresaRespuesta.ciiU3Descripcion}`
-                    : ""
-                }
-                label="Actividad Terciaria"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta &&
-              padronEmpresaRespuesta?.ciiU3EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
-      {selectedTab === 2 && (
-        <>
-          <DeclaracionesJuradas
-            cuil={cuil}
-            onSeleccionRegistro={handleSeleccionDDJJ}
-            infoCompleta={true}
-            onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
-          />
-          <div
-            className={classes.div}
-            hidden={
-              ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
-            }
-          >
             <div className={classes.renglon}>
-              <h6>
-                El afiliado {nombre} de la Empresa {razonSocialEmpresa} está en
-                condiciones de ser incorporado al Padrón.
-              </h6>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="telefono"
+                  value={telefono}
+                  label="Telefono/Celular"
+                  disabled={InputDisabled()}
+                  width={100}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="correo"
+                  value={correo}
+                  label="Correo"
+                  disabled={InputDisabled()}
+                  width={100}
+                  onChange={handleInputChange}
+                  helperText={
+                    !emailState.isValid && correo !== "" && correo !== null
+                      ? "Email inválido"
+                      : ""
+                  }
+                  error={
+                    !emailIsValid && correo !== "" && correo !== null
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+            </div>
+            <div className={classes.renglon}></div>
+            <div className={classes.renglon}>
+              <h4>Datos AFIP</h4>
             </div>
             <div className={classes.renglon}>
-              <div className={classes.boton}>
-                <Button
-                  className={classes.button}
-                  width={80}
-                  onClick={afiliadoAgregarHandler}
-                >
-                  Incorporar al Padrón
-                </Button>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="nombreYApellidoAFIP"
+                  value={nombreAFIP}
+                  label="Apellido y Nombre"
+                  readOnly={true}
+                  // color={nombreAFIP !== afiliado?.afipNombre ? "warning" : ""}
+                  // focused={nombreAFIP !== afiliado?.afipNombre ? true : false}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterialMask
+                  id="cuilAFIP"
+                  value={cuilAFIP}
+                  label="CUIL"
+                  readOnly={true}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="tipoDocumentoAFIP"
+                  value={tipoDocumentoAFIP}
+                  label="Tipo Documento"
+                  readOnly={true}
+                  color={
+                    tipoDocumentoAFIP !== "" &&
+                    tipoDocumentoAFIP !== afiliado?.afipTipoDocumento
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    tipoDocumentoAFIP !== "" &&
+                    tipoDocumentoAFIP !== afiliado?.afipTipoDocumento
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="numeroDocumentoAFIP"
+                  value={numeroDocumentoAFIP}
+                  label="Documento"
+                  readOnly={true}
+                  color={
+                    numeroDocumentoAFIP !== "" &&
+                    numeroDocumentoAFIP !== afiliado?.afipNumeroDocumento
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    numeroDocumentoAFIP !== "" &&
+                    numeroDocumentoAFIP !== afiliado?.afipNumeroDocumento
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="fechaNacimientoAFIP"
+                  type="date"
+                  value={fechaNacimientoAFIP}
+                  label="Fecha de Nacimiento"
+                  readOnly={true}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="tipoPersonaAFIP"
+                  value={tipoPersonaAFIP}
+                  label="Tipo Persona"
+                  readOnly={true}
+                  color={
+                    tipoPersonaAFIP !== "" &&
+                    tipoPersonaAFIP !== afiliado?.afipTipoPersona
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    tipoPersonaAFIP !== "" &&
+                    tipoPersonaAFIP !== afiliado?.afipTipoPersona
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="estadoClaveAFIP"
+                  value={estadoClaveAFIP}
+                  label="Estado Clave"
+                  readOnly={true}
+                  color={
+                    estadoClaveAFIP !== "" &&
+                    estadoClaveAFIP !== afiliado?.afipEstadoClave
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    estadoClaveAFIP !== "" &&
+                    estadoClaveAFIP !== afiliado?.afipEstadoClave
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="tipoClaveAFIP"
+                  value={tipoClaveAFIP}
+                  label="Tipo Clave"
+                  readOnly={true}
+                  color={
+                    tipoClaveAFIP !== "" &&
+                    tipoClaveAFIP !== afiliado?.afipTipoClave
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    tipoClaveAFIP !== "" &&
+                    tipoClaveAFIP !== afiliado?.afipTipoClave
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="domicilioAFIP"
+                  value={domicilioRealAFIP}
+                  label="Domicilio"
+                  readOnly={true}
+                  // color={
+                  //   domicilioRealAFIP !== afiliado?.afipNombre ? "success" : ""
+                  // }
+                  // focused={
+                  //   domicilioRealAFIP !== afiliado?.afipNombre ? true : false
+                  // }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="idActividadPrincipalAFIP"
+                  value={idActividadPrincipalAFIP}
+                  label="Id Actividad Principal"
+                  readOnly={true}
+                  color={
+                    idActividadPrincipalAFIP !== "" &&
+                    idActividadPrincipalAFIP !==
+                      afiliado?.afipIdActividadPrincipal
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    idActividadPrincipalAFIP !== "" &&
+                    idActividadPrincipalAFIP !==
+                      afiliado?.afipIdActividadPrincipal
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="periodoActividadPrincipalAFIP"
+                  value={periodoActividadPrincipalAFIP}
+                  label="Período Actividad Principal"
+                  readOnly={true}
+                  color={
+                    periodoActividadPrincipalAFIP !== "" &&
+                    periodoActividadPrincipalAFIP !==
+                      afiliado?.afipPeriodoActividadPrincipal
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    periodoActividadPrincipalAFIP !== "" &&
+                    periodoActividadPrincipalAFIP !==
+                      afiliado?.afipPeriodoActividadPrincipal
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="mesCierreAFIP"
+                  value={mesCierreAFIP}
+                  label="Mes Cierre"
+                  readOnly={true}
+                  color={
+                    mesCierreAFIP !== "" &&
+                    mesCierreAFIP !== afiliado?.afipMesCierre
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    mesCierreAFIP !== "" &&
+                    mesCierreAFIP !== afiliado?.afipMesCierre
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
+                <InputMaterial
+                  id="descripcionActividadPrincipalAFIP"
+                  value={descripcionActividadPrincipalAFIP}
+                  label="Descripción Actividad Principal"
+                  readOnly={true}
+                  color={
+                    descripcionActividadPrincipalAFIP !== "" &&
+                    descripcionActividadPrincipalAFIP !==
+                      afiliado?.afipActividadPrincipal
+                      ? "warning"
+                      : ""
+                  }
+                  focused={
+                    descripcionActividadPrincipalAFIP !== "" &&
+                    descripcionActividadPrincipalAFIP !==
+                      afiliado?.afipActividadPrincipal
+                      ? true
+                      : false
+                  }
+                  width={100}
+                />
               </div>
             </div>
           </div>
-        </>
-      )}
-      {selectedTab === 3 && (
-        <>
+        )}
+        {selectedTab === 1 && (
           <div className={classes.div}>
-            <h4>
-              {padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"}
-            </h4>
             <div className={classes.renglon}>
-              <DeclaracionesJuradas
-                cuil={cuil}
-                //onSeleccionRegistro={handleSeleccionDDJJ}
-                infoCompleta={true}
-                mostrarBuscar={false}
-                registros={3}
-              />
+              <div className={classes.input}>
+                <InputMaterialMask
+                  id="cuit"
+                  value={cuitEmpresa}
+                  label="CUIT"
+                  disabled={InputDisabled()}
+                  width={98}
+                  onChange={handleInputChange}
+                  helperText={
+                    !cuitIsValid && cuitEmpresa.length === 11
+                      ? "CUIT inválido"
+                      : ""
+                  }
+                  error={
+                    (!cuitState.isValid && cuitEmpresa !== "") ||
+                    (!formularioEmpleadorIsValid && clickAgregar)
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <LoadingButtonCustom
+                width={20}
+                heigth={80}
+                disabled={cuitValidado ? true : false}
+                onClick={validarEmpresaCUITHandler}
+                loading={cuitLoading}
+              >
+                {!cuitLoading ? `Validar CUIT` : `Validando...`}
+              </LoadingButtonCustom>
             </div>
-          </div>
-          <div className={classes.div}>
-            <h4>Actividades del Empleador</h4>
+
             <div className={classes.renglon}>
-              <div className={classes.input33}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="razonSocialEmpresa"
+                  value={razonSocialEmpresa}
+                  label="Razón Social"
+                  disabled={true}
+                  width={100}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="actividadEmpresa"
+                  value={actividadEmpresa}
+                  label="Actividad"
+                  disabled={true}
+                  width={100}
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="domicilioEmpresa"
+                  value={domicilioEmpresa}
+                  label="Domicilio"
+                  disabled={true}
+                  width={100}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="localidadEmpresa"
+                  value={localidadEmpresa}
+                  label="Localidad"
+                  disabled={true}
+                  width={100}
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="telefonoEmpresa"
+                  value={telefonoEmpresa}
+                  label="Telefono"
+                  disabled={false}
+                  width={100}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className={classes.input}>
+                <InputMaterial
+                  id="correoEmpresa"
+                  value={correoEmpresa}
+                  label="Correo"
+                  disabled={false}
+                  width={100}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
+                <InputMaterial
+                  id="lugarTrabajoEmpresa"
+                  value={lugarTrabajoEmpresa}
+                  label="Lugar de Trabajo"
+                  disabled={false}
+                  //width={100}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU1"
                   value={
@@ -2700,18 +2646,20 @@ const AfiliadoAgregar = (props) => {
                   }
                   label="Actividad Principal"
                   disabled={true}
-                  showToolTip={true}
                 />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
-                <div className={classes.input33}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null} */}
+                {padronEmpresaRespuesta &&
+                padronEmpresaRespuesta.ciiU1EsRural ? (
+                  <div className={classes.input100}>
+                    <label className={classes.labelEsRural}>
+                      Es Actividad Rural
+                    </label>
+                  </div>
+                ) : null}
               </div>
+            </div>
 
-              <div className={classes.input33}>
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU2"
                   value={
@@ -2721,18 +2669,20 @@ const AfiliadoAgregar = (props) => {
                   }
                   label="Actividad Secundaria"
                   disabled={true}
-                  showToolTip={true}
                 />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
-              <div className={classes.input33}>
-                <label className={classes.labelEsRural}>
-                  Es Actividad Rural
-                </label>
+                {padronEmpresaRespuesta &&
+                padronEmpresaRespuesta.ciiU2EsRural ? (
+                  <div className={classes.input100}>
+                    <label className={classes.labelEsRural}>
+                      Es Actividad Rural
+                    </label>
+                  </div>
+                ) : null}
               </div>
-            ) : null} */}
-              </div>
+            </div>
 
-              <div className={classes.input33}>
+            <div className={classes.renglon}>
+              <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU3"
                   value={
@@ -2742,197 +2692,321 @@ const AfiliadoAgregar = (props) => {
                   }
                   label="Actividad Terciaria"
                   disabled={true}
-                  showToolTip={true}
                 />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta?.ciiU3EsRural ? (
+                {padronEmpresaRespuesta &&
+                padronEmpresaRespuesta?.ciiU3EsRural ? (
+                  <div className={classes.input100}>
+                    <label className={classes.labelEsRural}>
+                      Es Actividad Rural
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )}
+        {selectedTab === 2 && (
+          <>
+            <DeclaracionesJuradas
+              cuil={cuil}
+              onSeleccionRegistro={handleSeleccionDDJJ}
+              infoCompleta={true}
+              onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+            />
+            <div
+              className={classes.div}
+              hidden={
+                ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
+              }
+            >
+              <div className={classes.renglon}>
+                <h6>
+                  El afiliado {nombre} de la Empresa {razonSocialEmpresa} está
+                  en condiciones de ser incorporado al Padrón.
+                </h6>
+              </div>
+              <div className={classes.renglon}>
+                <div className={classes.boton}>
+                  <Button
+                    className={classes.button}
+                    width={80}
+                    onClick={afiliadoAgregarHandler}
+                  >
+                    Incorporar al Padrón
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        {selectedTab === 3 && (
+          <>
+            <div className={classes.div}>
+              <h4>
+                {padronRespuesta
+                  ? `DDJJ UATRE ${cuil} ${nombre}`
+                  : "DDJJ UATRE"}
+              </h4>
+              <div className={classes.renglon}>
+                <DeclaracionesJuradas
+                  cuil={cuil}
+                  //onSeleccionRegistro={handleSeleccionDDJJ}
+                  infoCompleta={true}
+                  mostrarBuscar={false}
+                  registros={3}
+                />
+              </div>
+            </div>
+            <div className={classes.div}>
+              <h4>Actividades del Empleador</h4>
+              <div className={classes.renglon}>
+                <div className={classes.input33}>
+                  <InputMaterial
+                    id="CIIU1"
+                    value={
+                      padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1
+                        ? `${padronEmpresaRespuesta.ciiU1} - ${padronEmpresaRespuesta.ciiU1Descripcion}`
+                        : ""
+                    }
+                    label="Actividad Principal"
+                    disabled={true}
+                    showToolTip={true}
+                  />
+                  {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
+                <div className={classes.input33}>
+                  <label className={classes.labelEsRural}>
+                    Es Actividad Rural
+                  </label>
+                </div>
+              ) : null} */}
+                </div>
+
+                <div className={classes.input33}>
+                  <InputMaterial
+                    id="CIIU2"
+                    value={
+                      padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2
+                        ? `${padronEmpresaRespuesta.ciiU2} - ${padronEmpresaRespuesta.ciiU2Descripcion}`
+                        : ""
+                    }
+                    label="Actividad Secundaria"
+                    disabled={true}
+                    showToolTip={true}
+                  />
+                  {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
               <div className={classes.input33}>
                 <label className={classes.labelEsRural}>
                   Es Actividad Rural
                 </label>
               </div>
             ) : null} */}
-              </div>
-            </div>
-          </div>
-          <div className={classes.div}>
-            <h4>Afiliados en ultima DDJJ del Empleador</h4>
-            <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
+                </div>
 
-            <div className={classes.renglon}>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="estadoSolicitudSelect"
-                  label="Estado Solciitud:"
-                  options={estadosSolicitudes}
-                  value={estadoSolicitud}
-                  //defaultValue={nacionalidades[0]}
-                  onChange={handleChangeSelect}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
-                />
-              </div>
-
-              <div className={classes.input75}>
-                <InputMaterial
-                  id="resolverSolicitudObs"
-                  value={resolverSolicitudObs}
-                  label="Observaciones"
-                  width={100}
-                  onChange={handleInputChange}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
-                />
-              </div>
-            </div>
-
-            <div className={classes.botonesResolverSolicitud}>
-              <div className={classes.botonResolverSolicitud}>
-                <Button
-                  className={classes.button}
-                  width={100}
-                  onClick={resolverSolicitudHandler}
-                  disabled={showImprimirLiquidacion}
-                >
-                  Resolver Solicitud
-                </Button>
-              </div>
-              <div className={classes.botonResolverSolicitud}>
-                <Button
-                  className={classes.button}
-                  width={100}
-                  disabled={!showImprimirLiquidacion}
-                  //onClick={imprimirLiquidacionHandler}
-                >
-                  Imprimir Certificado Afiliación
-                </Button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-      {selectedTab === 4 && (
-        <Grid col full="width" gap="10px">
-          <Grid full="width" gap="5px">
-            <DocumentacionList
-              config={{
-                data: documentacionList.data,
-                onSelect: (r) => {
-                  setDocumentacionItem({
-                    data: { ...r },
-                    hisotry: { ...r },
-                    req: null,
-                  });
-                },
-              }}
-            />
-          </Grid>
-          <Grid full="width" gap="5px">
-            <Grid grow>
-              <Button
-                onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
-              >
-                Agregar documentación
-              </Button>
-            </Grid>
-            <Grid grow>
-              <Button
-                disabled={documentacionItem.req != null}
-                onClick={() =>
-                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
-                }
-              >
-                Modificar documentación
-              </Button>
-            </Grid>
-            <Grid grow>
-              <Button
-                disabled={documentacionItem.req != null}
-                onClick={() =>
-                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
-                }
-              >
-                Borrar documentación
-              </Button>
-            </Grid>
-          </Grid>
-          <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
-            <DocumentacionForm
-              config={{
-                data: documentacionItem.data,
-                disabled: documentacionItem.req == null,
-                onChange: (dataChanges) =>
-                  setDocumentacionItem((oldValue) => ({
-                    ...oldValue,
-                    data: { ...oldValue.data, ...dataChanges },
-                  })),
-                onCancel: () =>
-                  setDocumentacionItem((oldValue) => ({
-                    data: oldValue.history,
-                    history: oldValue.history,
-                    req: null,
-                  })),
-                onConfirm: () => {
-                  let data;
-                  let index = null;
-                  switch (documentacionItem.req) {
-                    case 1: // Agrega
-                      data = { ...documentacionItem.data, id: null };
-                      index = documentacionList.data.length;
-                      break;
-                    case 2: // Modifica
-                      data = { ...documentacionItem.data };
-                      break;
-                    case 3: // Borra
-                      data = null;
-                      break;
-                    default:
-                      return;
-                  }
-                  if (index == null) {
-                    // Modifica o Borra
-                    index = documentacionList.data.findIndex(
-                      (r) => r.id === documentacionItem.data?.id
-                    );
-                  }
-                  setDocumentacionList((oldValue) => {
-                    const newValue = { ...oldValue, data: [...oldValue.data] };
-                    if (data == null) {
-                      // Borra
-                      newValue.data.splice(index, 1);
-                    } else {
-                      // Agrega o Modifica
-                      if (data.id == null) {
-                        // Agrega
-                        newValue.idGen += 1;
-                        data.id = newValue.idGen;
-                      }
-                      newValue.data.splice(index, 1, { ...data });
+                <div className={classes.input33}>
+                  <InputMaterial
+                    id="CIIU3"
+                    value={
+                      padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU3
+                        ? `${padronEmpresaRespuesta.ciiU3} - ${padronEmpresaRespuesta.ciiU3Descripcion}`
+                        : ""
                     }
-                    return newValue;
-                  });
-                  setDocumentacionItem({ req: null });
-                },
-              }}
-            />
+                    label="Actividad Terciaria"
+                    disabled={true}
+                    showToolTip={true}
+                  />
+                  {/* {padronEmpresaRespuesta && padronEmpresaRespuesta?.ciiU3EsRural ? (
+              <div className={classes.input33}>
+                <label className={classes.labelEsRural}>
+                  Es Actividad Rural
+                </label>
+              </div>
+            ) : null} */}
+                </div>
+              </div>
+            </div>
+            <div className={classes.div}>
+              <h4>Afiliados en ultima DDJJ del Empleador</h4>
+              <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
+
+              <div className={classes.renglon}>
+                <div className={classes.input25}>
+                  <SelectMaterial
+                    name="estadoSolicitudSelect"
+                    label="Estado Solciitud:"
+                    options={estadosSolicitudes}
+                    value={estadoSolicitud}
+                    //defaultValue={nacionalidades[0]}
+                    onChange={handleChangeSelect}
+                    //disabled={!padronRespuesta?.idPersona ? true : false}
+                  />
+                </div>
+
+                <div className={classes.input75}>
+                  <InputMaterial
+                    id="resolverSolicitudObs"
+                    value={resolverSolicitudObs}
+                    label="Observaciones"
+                    width={100}
+                    onChange={handleInputChange}
+                    //disabled={!padronRespuesta?.idPersona ? true : false}
+                  />
+                </div>
+              </div>
+
+              <div className={classes.botonesResolverSolicitud}>
+                <div className={classes.botonResolverSolicitud}>
+                  <Button
+                    className={classes.button}
+                    width={100}
+                    onClick={resolverSolicitudHandler}
+                    disabled={showImprimirLiquidacion}
+                  >
+                    Resolver Solicitud
+                  </Button>
+                </div>
+                <div className={classes.botonResolverSolicitud}>
+                  <Button
+                    className={classes.button}
+                    width={100}
+                    disabled={!showImprimirLiquidacion}
+                    //onClick={imprimirLiquidacionHandler}
+                  >
+                    Imprimir Certificado Afiliación
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        {selectedTab === 4 && (
+          <Grid col full="width" gap="10px">
+            <Grid full="width" gap="5px">
+              <DocumentacionList
+                config={{
+                  data: documentacionList.data,
+                  onSelect: (r) => {
+                    setDocumentacionItem({
+                      data: { ...r },
+                      hisotry: { ...r },
+                      req: null,
+                    });
+                  },
+                }}
+              />
+            </Grid>
+            <Grid full="width" gap="5px">
+              <Grid grow>
+                <Button
+                  onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
+                >
+                  Agregar documentación
+                </Button>
+              </Grid>
+              <Grid grow>
+                <Button
+                  disabled={documentacionItem.req != null}
+                  onClick={() =>
+                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
+                  }
+                >
+                  Modificar documentación
+                </Button>
+              </Grid>
+              <Grid grow>
+                <Button
+                  disabled={documentacionItem.req != null}
+                  onClick={() =>
+                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
+                  }
+                >
+                  Borrar documentación
+                </Button>
+              </Grid>
+            </Grid>
+            <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
+              <DocumentacionForm
+                config={{
+                  data: documentacionItem.data,
+                  disabled: documentacionItem.req == null,
+                  onChange: (dataChanges) =>
+                    setDocumentacionItem((oldValue) => ({
+                      ...oldValue,
+                      data: { ...oldValue.data, ...dataChanges },
+                    })),
+                  onCancel: () =>
+                    setDocumentacionItem((oldValue) => ({
+                      data: oldValue.history,
+                      history: oldValue.history,
+                      req: null,
+                    })),
+                  onConfirm: () => {
+                    let data;
+                    let index = null;
+                    switch (documentacionItem.req) {
+                      case 1: // Agrega
+                        data = { ...documentacionItem.data, id: null };
+                        index = documentacionList.data.length;
+                        break;
+                      case 2: // Modifica
+                        data = { ...documentacionItem.data };
+                        break;
+                      case 3: // Borra
+                        data = null;
+                        break;
+                      default:
+                        return;
+                    }
+                    if (index == null) {
+                      // Modifica o Borra
+                      index = documentacionList.data.findIndex(
+                        (r) => r.id === documentacionItem.data?.id
+                      );
+                    }
+                    setDocumentacionList((oldValue) => {
+                      const newValue = {
+                        ...oldValue,
+                        data: [...oldValue.data],
+                      };
+                      if (data == null) {
+                        // Borra
+                        newValue.data.splice(index, 1);
+                      } else {
+                        // Agrega o Modifica
+                        if (data.id == null) {
+                          // Agrega
+                          newValue.idGen += 1;
+                          data.id = newValue.idGen;
+                        }
+                        newValue.data.splice(index, 1, { ...data });
+                      }
+                      return newValue;
+                    });
+                    setDocumentacionItem({ req: null });
+                  },
+                }}
+              />
+            </Grid>
           </Grid>
-        </Grid>
-      )}
-      <div className={classes.botones}>
-        <div className={classes.boton}>
-          <Button
-            className={classes.button}
-            width={100}
-            onClick={afiliadoAgregarHandler}
-            disabled={AgregarModificarAfiliadoDisableHandler()}
-          >
-            {AgregarModificarAfiliadoTitulo()}
-          </Button>
+        )}
+        <div className={classes.botones}>
+          <div className={classes.boton}>
+            <Button
+              className={classes.button}
+              width={100}
+              onClick={afiliadoAgregarHandler}
+              disabled={AgregarModificarAfiliadoDisableHandler()}
+            >
+              {AgregarModificarAfiliadoTitulo()}
+            </Button>
+          </div>
+          <div className={classes.boton}>
+            <Button type="submit" width={100} onClick={handleCerrarModal}>
+              Cerrar
+            </Button>
+          </div>
         </div>
-        <div className={classes.boton}>
-          <Button type="submit" width={100} onClick={handleCerrarModal}>
-            Cerrar
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
+    </>
   );
 };
 

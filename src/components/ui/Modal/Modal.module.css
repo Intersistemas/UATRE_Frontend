@@ -37,9 +37,9 @@
    @media (min-width: 1024px) {
     .modal {
       width: 70rem;
-      height: 66rem;
+      height: 50rem;
       left: calc(50% - 35rem);
-      top: calc(50% - 33rem);
+      top: calc(50% - 25rem);
     }
   }
   
@@ -117,14 +117,14 @@
 
 .modal input{
   font-family: var(--fuente);
-  padding: 14px 15px 0px 15px;
+  /* padding: 14px 15px 0px 15px; */
   font-weight: bold;
   color: var(--color1);
 }
 
 .modal [role="button"]{
   font-family: var(--fuente);
-  padding: 14px 15px 0px 15px;
+  /* padding: 14px 15px 0px 15px; */
   font-weight: bold;
   color: var(--color1);
 }
