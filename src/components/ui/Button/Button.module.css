@@ -28,6 +28,7 @@
 
 .boton:hover,
 .boton:active {
+    text-shadow: 0px 0px 0px white;
     transition: .4s;
     color: var(--blanco) !important;
     background: var(--color2) !important;

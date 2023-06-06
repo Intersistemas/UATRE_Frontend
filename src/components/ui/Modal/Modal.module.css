@@ -54,15 +54,6 @@
     }
   }
 
-  .modal input,[role="button"]{
-    background-color: #FFF !important;
-    font-family: var(--fuente)!important;;
-    font-size: 1.1rem!important;;
-    padding: 15px 15px 3px 15px!important;;
-    color: var(--color1)!important;;
-    font-weight: 600!important;;
-  }
-
 
   .modal [role="tablist"]{
     /*background-color: var(--color1) !important;*/
@@ -103,20 +94,13 @@
   }
 }
 
-
 .modalCabecera{
   background-color: var(--color1);
   color:white;
   border-radius: 15px 15px 0px 0px;
 }
 
-.modal [data-shrink="true"]{
-  font-size: larger;
-  color: #555555;/*black;*/
+
+.modal input{
+  padding: 1rem 1rem 0.2rem 1rem !important;
 }
-
-
-/*
-.content{
-  height: 100%;
-}*/

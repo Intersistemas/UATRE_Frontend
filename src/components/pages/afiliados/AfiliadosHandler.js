@@ -225,7 +225,7 @@ const {id} = 0;
  
   const onCloseAfiliadoAgregarHandler = (refresh) => {
     setAfiliadoAgregarShow(false);
-    if (refresh === true) setRefresh(true);
+    //if (refresh === true) setRefresh(true);
   };
 
   const onClosePantallaEnDesarrolloHandler = () => {

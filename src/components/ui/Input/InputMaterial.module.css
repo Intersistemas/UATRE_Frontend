@@ -1,19 +1,21 @@
-.input {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    padding: 0;
+
+  .input input{
+    background: #FFF !important;
+    font-family: var(--fuente)!important;
+    font-size: 1.1rem!important;
+    color: var(--color1) !important;
+    font-weight: 600!important;
   }
-  
-  .input label {
-    font-weight: bold;
-    margin-right: 1rem;
+
+  .input [role="button"],[aria-haspopup="listbox"]{
+
   }
-  
-  .input input {
-    width: 100%;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font: inherit;
-    /* padding-left: 0.5rem; */
+
+  .input input:read-only{
+    color: var(--disableFont) !important;
+    background-color: var(--disableBack) !important;
+  }
+
+  .Mui-focused{
+    border-color: white !important;
   }
