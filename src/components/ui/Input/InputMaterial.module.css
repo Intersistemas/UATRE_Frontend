@@ -1,20 +1,21 @@
 
+  /*#region --ENTRY/INPUT--*/
+    /*ENTRY/INPUT-DEFECTO*/
   .input input{
-    background: #FFF !important;
+    background: white !important;
     font-family: var(--fuente)!important;
     font-size: 1.1rem!important;
     color: var(--color1) !important;
     font-weight: 600!important;
   }
 
-  .input [role="button"],[aria-haspopup="listbox"]{
-
-  }
-
+   /*ENTRY/INPUT-DESHABILITADO*/
   .input input:read-only{
     color: var(--disableFont) !important;
-    background-color: var(--disableBack) !important;
+    background-color: white !important;
+    font-weight: lighter!important;
   }
+  /*#endregion --ENTRY/INPUT--*/
 
   .Mui-focused{
     border-color: white !important;

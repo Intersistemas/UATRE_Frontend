@@ -54,18 +54,7 @@
     }
   }
 
-
-  .modal [role="tablist"]{
-    /*background-color: var(--color1) !important;*/
-  }
-
-  .modal [role="tab"]{
-    font-size: large !important;
-  }
-
-
 /*Media Query*/
-
 @media (max-width: 2570px) {
   .modal {
       zoom: 100%;
@@ -100,7 +89,12 @@
   border-radius: 15px 15px 0px 0px;
 }
 
+/*TAB EN MODAL*/
+.modal [role="tab"]{
+  font-size: large !important;
+}
 
-.modal input{
+/*INPUT/SELECT DEL MODAL*/
+.modal input,[aria-expanded]{
   padding: 1rem 1rem 0.2rem 1rem !important;
 }

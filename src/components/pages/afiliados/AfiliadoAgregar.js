@@ -2978,22 +2978,19 @@ const AfiliadoAgregar = (props) => {
             </Grid>
           </Grid>
         )}
-        <div className={classes.botones}>
-          <div className={classes.boton}>
+        <div className={classes.footer}>
             <Button
-              className={classes.button}
-              width={100}
+              /*className={classes.button}*/
+              width={25}
               onClick={afiliadoAgregarHandler}
               disabled={AgregarModificarAfiliadoDisableHandler()}
             >
               {AgregarModificarAfiliadoTitulo()}
             </Button>
-          </div>
-          <div className={classes.boton}>
-            <Button type="submit" width={100} onClick={handleCerrarModal}>
+          
+            <Button type="submit" width={25} onClick={handleCerrarModal}>
               Cerrar
             </Button>
-          </div>
         </div>
       </Modal>
     </>

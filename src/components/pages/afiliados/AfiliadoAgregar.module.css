@@ -123,3 +123,10 @@
   flex-direction: row;
   justify-content: center;  
 }
+
+/*Seccion del ie de pagina donde se encuentran los botones */
+.footer{
+  margin-top: 1rem !important;
+  display: flex;
+  justify-content: space-around;
+}
