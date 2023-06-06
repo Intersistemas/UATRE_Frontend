@@ -1,0 +1,25 @@
+ 
+  .select div{
+    background: #FFF !important;
+    font-family: var(--fuente)!important;
+    font-size: 1.1rem!important;
+    padding: 1rem 1rem 0.2rem 1rem;
+    color: var(--color1) !important;
+    font-weight: 600!important;
+  }
+
+  .select [aria-disabled="true"]{
+    color: var(--disableFont) !important;
+    background-color: var(--disableBack) !important;
+  }
+
+  [data-shrink="true"]{
+    font-family: var(--fuente)!important;
+    color: black !important;
+    font-size: 1.2rem !important;
+    border: 1px solid gris1 !important;
+  }
+
+  legend{
+    font-size: 0.99em !important;
+  }

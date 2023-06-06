@@ -1,19 +1,19 @@
 .titulo > span {
 	font-weight: bold;
 	font-size: 27pt;
-	color: navy;
+	color: var(--color1);
 }
 
 .subtitulo {
 	font-size: 16pt;
 	text-align: left;
-	color: navy;
+	color: var(--color1);
 }
 
 .subtitulo > span {
 	font-weight: bold;
 	font-size: 22pt;
-	color: navy;
+	color: var(--color1);
 }
 
 .botones {
@@ -31,7 +31,7 @@
 .content label {
 	font-size: 16pt;
 	font-weight: bold;
-	color: navy !important;
+	color: var(--color1) !important;
 }
 
 .content .MuiInputLabel-sizeSmall {

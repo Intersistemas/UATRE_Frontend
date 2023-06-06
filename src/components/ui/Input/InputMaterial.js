@@ -1,7 +1,5 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
-import { forwardRef } from "react";
-import { IMaskInput } from "react-imask";
 
 const InputMaterial = (props) => {
   //Validaciones
@@ -34,16 +32,17 @@ const InputMaterial = (props) => {
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
+        variant={props.variant}
+        size={props.size ? props.size : "small"}
         autoFocus={props.id === "cuil" ? true : false}
         id={props.id}
-        size="small"
         //error={!props.isValid}
         label={props.label}
-        //className={styles.inputCUIT}
+        className={styles.input}
         value={props.value || ""}
         onChange={handleChange}
         disabled={props.disabled}
-        style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+        style={{ width: props.width != null ? `${props.width}%` : "100%", padding:`${props.padding}`}}
         type={props.type || "text"}
         inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
         InputLabelProps={{

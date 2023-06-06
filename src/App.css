@@ -154,22 +154,11 @@ border: 1.5px solid rgb(53, 149, 210);
   }
 }
 
-.detalles_card{
-
-  /*text-align: right;*/
-}
-
+/*SE QUITA EL TEXTO/LABEL DE "FILTER BY"*/
 .filter-label span{
   display: none;
 }
 
-.Mui-selected{
-  background-color: var(--color2) !important;
-}
-
-.MuiFormLabel-root{
-  font-family: var(--fuente) !important;
-}
 
 
 /*TABS*/
@@ -180,7 +169,7 @@ border: 1.5px solid rgb(53, 149, 210);
   /*font-size: large;*/
   border: 1px solid #fff !important;
   border-radius: 15px 15px 0px 0px !important;
-  background-color: var(--color3) !important;/*var(--color1);*/
+  background-color: var(--amarillo2) !important;/*var(--color1);*/
 }
 
 [role="tab"]:disabled{
@@ -196,12 +185,14 @@ border: 1.5px solid rgb(53, 149, 210);
 }
 
 [aria-selected="true"]{
-  color: white !important;/*white !important;*/
-  background-color: var(--color2)!important;
+  color: var(--color1) !important;/*white !important;*/
+  background-color: var(--amarillo1)!important;
   text-shadow: 0px 0px 14px white !important;
 }
+
 .MuiTabs-indicator{
   background-color: rgb(30, 89, 128);
   height: 5%;
   width: inherit;
 }
+
