@@ -1,17 +1,17 @@
 
 .boton {
-  text-shadow: 2px 2px 8px white;
-  font: inherit !important;
-  border: 0px solid var(--color1) !important;
-  /*padding: 0.3rem 7rem !important;*/
+  font-family: var(--fuente) !important;
+  font-size: 1.1rem !important;
+  color: var(--color1) !important;
+  background: var(--amarillo1) !important;
+  font-weight: bold !important;
+
   width: var(--width100); 
   cursor: pointer !important;
-  font-size: 1.1rem !important;
+  text-shadow: 2px 2px 8px white;
+  border: 0px solid var(--color1) !important;
   border-radius: 5px !important;
   box-shadow: 0 3px 2px rgb(24 96 144 / 50%) !important;
-  color: var(--color1) !important;
-  background: var(--amarillo2) !important;/*var(--color1) !important;*/
-  font-weight: bold !important;
 }
 
 .w50{
@@ -27,24 +27,22 @@
 }
 
 .boton:hover,
-.boton:active {
-    text-shadow: 0px 0px 0px white;
-    transition: .4s;
-    color: var(--blanco) !important;
-    background: var(--color2) !important;
-}
+.boton:active,
 .boton:focus {
-  border: 1px solid var(--color4) !important;
-  box-shadow: 0 0 0 0.25rem var(--color4) !important;
+    transition: .4s;
+    color: white !important;
+    background: var(--color2) !important;
+
+    text-shadow: 0px 0px 0px white;
 }
 
 .boton:disabled,
 .boton:focus:disabled,
 .boton:hover:disabled,
 .boton:active:disabled {
-  background: var(--gris2)!important;
+  background: var(--disableBack)!important;
   border-color: #ccc!important;
-  color: var(--gris1)!important;
+  color: var(--disableFont)!important;
   cursor: not-allowed!important;
 }
  

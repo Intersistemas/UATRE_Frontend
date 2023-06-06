@@ -116,7 +116,7 @@ border: 1.5px solid rgb(53, 149, 210);
     /*background-color: rgb(255 255 255 / 90%);*/
     margin: 0%;
 	  text-align: left;
-    color: #186090;
+    color: var(--color1);
     margin-top: 3%;
 }
 
@@ -159,35 +159,41 @@ border: 1.5px solid rgb(53, 149, 210);
   display: none;
 }
 
+/*BACKGROUND DEL LABEL EN material*/
+  legend{
+    font-size: 0.99em !important;
+  }
 
-
-/*TABS*/
+/*--TABS--*/
+/*TAB-DEFECTO*/
 [role="tab"]{
+  font-family: var(--fuente) !important;
   font-size: inherit !important;
   color: white !important;
   font-weight: bold !important;
-  /*font-size: large;*/
-  border: 1px solid #fff !important;
+  border: 1px solid white !important;
   border-radius: 15px 15px 0px 0px !important;
-  background-color: var(--amarillo2) !important;/*var(--color1);*/
+  background-color: var(--amarillo2) !important;
+  /*text-shadow: 0px 0px 14px white !important;*/
 }
 
+/*TAB-SELECCIONADO*/
+[aria-selected="true"]{
+  color: var(--color1) !important;
+  background-color: var(--amarillo1)!important;
+}
+
+/*TAB-HOVER/FOCUS*/
+[role="tab"]:hover{
+    color: white !important;
+    background-color: var(--color2) !important;
+}
+
+/*TAB-DESHABILITADO*/
 [role="tab"]:disabled{
   color: var(--disableFont) !important;
   background-color: var(--disableBack) !important;
-}
-
-[role="tab"]:hover{
-    color: #FFF !important;
-    background-color: var(--color1) !important;
-    border-radius: 15px 15px 0px 0px !important;
-    border: 2px solid #ccc!important;
-}
-
-[aria-selected="true"]{
-  color: var(--color1) !important;/*white !important;*/
-  background-color: var(--amarillo1)!important;
-  text-shadow: 0px 0px 14px white !important;
+  font-weight: lighter !important;
 }
 
 .MuiTabs-indicator{

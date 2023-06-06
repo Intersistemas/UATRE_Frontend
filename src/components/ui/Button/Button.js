@@ -1,10 +1,10 @@
 import React from 'react';
-import Button1 from 'react-bootstrap/Button';
+import Boton from 'react-bootstrap/Button';
 import classes from './Button.module.css';
 
 const Button = (props) => {
   return (
-    <Button1
+    <Boton
       type={props.type || 'button'}
 
       className={`${classes[`${props.className}`]} ${classes.boton}`}
@@ -13,7 +13,7 @@ const Button = (props) => {
       disabled={props.disabled || false}
     >
       {props.children}
-    </Button1>
+    </Boton>
   );
 };
  
