@@ -69,11 +69,11 @@
 
 @media (max-width: 1366px) {
   .modal{
-      zoom: 100%;
-      width: 74rem;
-      height: 66rem;
-      left: calc(50% - 35rem);
-      top: calc(50% - 37rem);
+    zoom: 100%;
+    height: 50rem;
+    left: calc(50% - 35rem);
+    top: calc(75% - 38rem);
+    width: 75rem;
   }
 }
 
@@ -98,3 +98,8 @@
 .modal input,[aria-expanded]{
   padding: 1rem 1rem 0.2rem 1rem !important;
 }
+
+.modal fieldset{
+  border-color: var(--gris2) !important;
+}
+

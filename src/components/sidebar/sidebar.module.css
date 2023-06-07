@@ -98,3 +98,6 @@
   grid-row-gap: 3%;
   display: grid;
 }
+.actionButtons Button{
+  text-align: left; 
+}

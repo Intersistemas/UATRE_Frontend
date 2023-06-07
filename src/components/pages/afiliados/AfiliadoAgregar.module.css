@@ -10,6 +10,7 @@
   margin-top: 1%;
   display: flex;
   flex-direction: row;
+  max-height: 3rem;
 }
 
 .alert {
@@ -124,7 +125,7 @@
   justify-content: center;  
 }
 
-/*Seccion del ie de pagina donde se encuentran los botones */
+/*Seccion del pie de pagina donde se encuentran los botones */
 .footer{
   margin-top: 1rem !important;
   display: flex;

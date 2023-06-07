@@ -72,11 +72,11 @@ const TableRemote = (props) => {
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: 'auto' }}>
+       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: '-webkit-fill-available' }}>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
-          
+            style={{position: 'unset'}}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             value={selectValue.dataField}
