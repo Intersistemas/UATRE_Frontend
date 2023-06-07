@@ -127,7 +127,7 @@
 
 /*Seccion del pie de pagina donde se encuentran los botones */
 .footer{
-  margin-top: 4rem !important;
+  margin-top: 3rem !important;
   display: flex;
   justify-content: space-around;
 }
