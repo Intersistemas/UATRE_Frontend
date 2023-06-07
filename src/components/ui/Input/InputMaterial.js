@@ -13,7 +13,7 @@ const InputMaterial = (props) => {
           props.onChange(event.target.value, props.id);
         }
         break;
-
+ 
       case "cuit":
         const reCUIT = /^[0-9\b]+$/;
         if (event.target.value === "" || reCUIT.test(event.target.value)) {

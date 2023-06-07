@@ -1,13 +1,10 @@
 import React, { useEffect, useReducer, useState } from "react";
 import Button from "../../ui/Button/Button";
-//import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
 import modalCss from "../../ui/Modal/Modal.module.css";
 import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
-//import SelectInput from "../../ui/Select/SelectInput";
-//import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import {
   Dialog,
@@ -1895,7 +1892,7 @@ const AfiliadoAgregar = (props) => {
   //       <DialogTitle>{dialogTexto}</DialogTitle>
   //       <DialogActions>
   //         <Button onClick={handleCloseDialog}>
-  //           Cerrar
+  //           Cierra
   //         </Button>
   //       </DialogActions>
   //     </Dialog>
@@ -1916,7 +1913,7 @@ const AfiliadoAgregar = (props) => {
             <Typography gutterBottom>{dialogTexto}</Typography>
           </DialogContent>
           <DialogActions dividers>
-            <Button onClick={handleCloseDialog}>Cerrar</Button>
+            <Button onClick={handleCloseDialog}>Cierra</Button>
           </DialogActions>
         </Dialog>
       </div>
@@ -2989,7 +2986,7 @@ const AfiliadoAgregar = (props) => {
             </Button>
           
             <Button type="submit" width={25} onClick={handleCerrarModal}>
-              Cerrar
+              Cierra
             </Button>
         </div>
       </Modal>
