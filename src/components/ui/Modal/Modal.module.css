@@ -52,6 +52,15 @@
   @media (min-width: 1201px) {/*MONITORES GRANDES, TVs*/
     .modal {
       width: 70rem;
+      height: 52rem;
+      left: calc(50% - 35rem);
+      top: calc(50% - 26rem);
+    }
+  }
+
+  @media (min-width: 1901px) {/*MONITORES GRANDES, TVs*/
+    .modal {
+      width: 70rem;
       height: 55rem;
       left: calc(50% - 35rem);
       top: calc(50% - 25rem);
