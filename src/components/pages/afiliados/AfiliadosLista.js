@@ -437,7 +437,6 @@ const AfiliadosLista = (props) => {
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
       rowSelectedIndex: rowSelectedIndex,
-      
   }
 
 

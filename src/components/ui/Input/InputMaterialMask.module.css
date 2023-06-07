@@ -17,3 +17,27 @@
     font: inherit;
     /* padding-left: 0.5rem; */
   }
+
+  
+  /*#region --ENTRY/INPUT--*/
+    /*ENTRY/INPUT-DEFECTO*/
+    .input input{
+      background: white !important;
+      font-family: var(--fuente)!important;
+      font-size: 1.1rem!important;
+      color: var(--color1) !important;
+      font-weight: 600!important;
+    }
+  
+     /*ENTRY/INPUT-DESHABILITADO*/
+    .input input:read-only, input:disabled{
+      -webkit-text-fill-color: var(--disableFont) !important;
+      color: var(--disableFont) !important;
+      background-color: white !important;
+      font-weight: lighter!important;
+    }
+    /*#endregion --ENTRY/INPUT--*/
+  
+    .Mui-focused{
+      border-color: white !important;
+    }

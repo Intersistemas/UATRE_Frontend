@@ -1,5 +1,5 @@
 import { Input, TextField, Tooltip } from "@mui/material";
-import styles from "./InputMaterialMask.module.css";
+import styles from "./InputMaterial.module.css";
 import { forwardRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 
@@ -65,7 +65,7 @@ const InputMaterialMask = (props) => {
         size="small"
         //error={!props.isValid}
         label={props.label}
-        //className={styles.inputCUIT}
+        className={styles.input}
         value={props.value || ""}
         onChange={handleChange}
         disabled={props.disabled}

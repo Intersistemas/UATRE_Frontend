@@ -10,7 +10,8 @@
   }
 
    /*ENTRY/INPUT-DESHABILITADO*/
-  .input input:read-only{
+  .input input:read-only, input:disabled{
+    -webkit-text-fill-color: var(--disableFont) !important;
     color: var(--disableFont) !important;
     background-color: white !important;
     font-weight: lighter!important;

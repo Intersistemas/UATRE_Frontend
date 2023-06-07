@@ -24,7 +24,7 @@ const PantallaEnDesarrollo = (props) => {
             width={100}
             onClick={handleCerrarModal}
           >
-            Cerrar
+            Cierra
           </Button>
         </div>
       </div>

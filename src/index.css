@@ -16,7 +16,7 @@
   --gris1: #555555;
   --gris2: #C2C2C2;
   --gris3: #727272;
-  --disableFont: #8c8c8c;
+  --disableFont: var(--color1);/*#8c8c8c;*/
   --disableBack: #c2c2c2;
 
 /*ESACALA DE AMARILLOS*/
