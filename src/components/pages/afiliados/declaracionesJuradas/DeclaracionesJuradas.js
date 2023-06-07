@@ -6,6 +6,7 @@ import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./DeclaracionesJuradas.module.css";
 import Formato from "../../../helpers/Formato";
+import paginationFactory from "react-bootstrap-table2-paginator";
 
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -156,9 +157,16 @@ const DeclaracionesJuradas = (props) => {
     },
   };
 
+  let pagination = {};
+  if(registros){
+      pagination = {
+        size: registros,
+      };
+  }  
+  console.log("registros", registros);
   let tableProps = {
     mostrarBuscar: mostrarBuscar ?? true,
-    promptBuscar:"Buscar en DDJJ:",
+    promptBuscar: "Buscar en DDJJ:",
     keyField: "id",
     data: ddJJUatreList,
     columns: columns,
@@ -166,31 +174,19 @@ const DeclaracionesJuradas = (props) => {
     selection: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
-    noDataIndication: <h4>No existen DDJJ relacionadas al Afiliado seleccionado.</h4>,
+    noDataIndication: (
+      <h4>No existen DDJJ relacionadas al Afiliado seleccionado.</h4>
+    ),
     overlay: overlayFactory({ spinner: true }),
-    onSelected: props.onSeleccionRegistro
-  }
+    onSelected: props.onSeleccionRegistro,
+    pagination: pagination,
+  };
 
   return (
     <div className={styles.container}>
-      {/*<h4>Declaraciones Juradas</h4>*/}
       <div className={styles.div}>
         <div className={styles.declaracion}>
-          <Table {...tableProps}/>
-          
-          {/*<BootstrapTable
-            keyField="id"
-            data={ddJJUatreList}
-            columns={columns}
-            selectRow={selectRow}
-            rowEvents={rowEvents}
-            loading={isLoading}
-            striped
-            hover
-            condensed
-            noDataIndication={<h4>No hay DDJJ</h4>}
-            overlay={ overlayFactory({ spinner: true })}
-          />*/}
+          <Table {...tableProps}/>          
         </div>
       </div>
     </div>

@@ -168,6 +168,7 @@ const AfiliadoAgregar = (props) => {
   const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] =
     useState("");
   const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
+  const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] = useState(moment(new Date()).format("yyyy-MM-DD"));
 
   const [nombreAFIP, setNombreAFIP] = useState("");
   const [fechaNacimientoAFIP, setFechaNacimientoAFIP] = useState("");
@@ -1246,7 +1247,7 @@ const AfiliadoAgregar = (props) => {
       {
         path: "FechaIngreso",
         op: "replace",
-        value: null,
+        value: moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
       },
       {
         path: "NroAfiliado",
@@ -1633,6 +1634,10 @@ const AfiliadoAgregar = (props) => {
         setResolverSolicitudObs(value);
         break;
 
+      case "resolverSolicitudFechaINgreso":
+        setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
+        break;
+
       default:
         break;
     }
@@ -1931,12 +1936,12 @@ const AfiliadoAgregar = (props) => {
           </div>
           <h3 className={classes.titulo}>
             {props.accion === "Modifica"
-              ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
+              ? `Modifica Afiliado: ${cuil} ${nombre}`
               : afiliadoExiste
-              ? `Modifica/Consulta Afiliado de UATRE: ${Formato.Cuit(cuil)} ${nombre}`
+              ? `Modifica/Consulta Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : padronRespuesta
-              ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
-              : "Agrega Afiliado a UATRE"}
+              ? `Agrega Afiliado: ${cuil} ${nombre}`
+              : "Agrega Afiliado"}
           </h3>
           <div className={classes.subTituloVentana}>
             <h5 className={classes.titulo}>
@@ -2270,7 +2275,7 @@ const AfiliadoAgregar = (props) => {
               <h4>Datos AFIP</h4>
             </div>
             <div className={classes.renglon}>
-              <div className={classes.input}>
+              <div className={classes.input33}>
                 <InputMaterial
                   id="nombreYApellidoAFIP"
                   value={nombreAFIP}
@@ -2280,7 +2285,7 @@ const AfiliadoAgregar = (props) => {
                   // focused={nombreAFIP !== afiliado?.afipNombre ? true : false}
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterialMask
                   id="cuilAFIP"
                   value={cuilAFIP.toString()}
@@ -2289,7 +2294,7 @@ const AfiliadoAgregar = (props) => {
                   onChange={handleInputChange}                  
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="tipoDocumentoAFIP"
                   value={tipoDocumentoAFIP}
@@ -2309,7 +2314,7 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input25}>
                 <InputMaterial
                   id="numeroDocumentoAFIP"
                   value={numeroDocumentoAFIP}
@@ -2404,7 +2409,7 @@ const AfiliadoAgregar = (props) => {
             </div>
 
             <div className={classes.renglon}>
-              <div className={classes.input}>
+              <div className={classes.input33}>
                 <InputMaterial
                   id="domicilioAFIP"
                   value={domicilioRealAFIP}
@@ -2418,7 +2423,7 @@ const AfiliadoAgregar = (props) => {
                   // }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="idActividadPrincipalAFIP"
                   value={idActividadPrincipalAFIP}
@@ -2440,11 +2445,11 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="periodoActividadPrincipalAFIP"
                   value={periodoActividadPrincipalAFIP}
-                  label="Período Actividad Principal"
+                  label="Per. Actividad Principal"
                   readOnly={true}
                   color={
                     periodoActividadPrincipalAFIP !== "" &&
@@ -2462,7 +2467,7 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input25}>
                 <InputMaterial
                   id="mesCierreAFIP"
                   value={mesCierreAFIP}
@@ -2625,7 +2630,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU1"
@@ -2648,7 +2653,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU2"
@@ -2671,7 +2676,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU3"
@@ -2702,6 +2707,7 @@ const AfiliadoAgregar = (props) => {
               onSeleccionRegistro={handleSeleccionDDJJ}
               infoCompleta={true}
               onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+              registros={12}
             />
             <div
               className={classes.div}
@@ -2737,13 +2743,13 @@ const AfiliadoAgregar = (props) => {
                   ? `DDJJ UATRE ${Formato.Cuit(cuil)} ${nombre}`
                   : "DDJJ UATRE"}
               </h4>
-              <div className={classes.renglon}>
+              <div className={classes.renglonDDJJ}>
                 <DeclaracionesJuradas
                   cuil={cuil}
                   //onSeleccionRegistro={handleSeleccionDDJJ}
                   infoCompleta={true}
                   mostrarBuscar={false}
-                  registros={3}
+                  registros={1}
                 />
               </div>
             </div>
@@ -2814,7 +2820,7 @@ const AfiliadoAgregar = (props) => {
                 </div>
               </div>
             </div>
-            <div className={classes.div}>
+            <div className={classes.divResolverSolicitud}>
               <h4>Afiliados en ultima DDJJ del Empleador</h4>
               <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
 
@@ -2828,6 +2834,18 @@ const AfiliadoAgregar = (props) => {
                     //defaultValue={nacionalidades[0]}
                     onChange={handleChangeSelect}
                     //disabled={!padronRespuesta?.idPersona ? true : false}
+                  />
+                </div>
+
+                <div className={classes.input25}>
+                  <InputMaterial
+                    id="resolverSolicitudFechaIngreso"
+                    value={resolverSolicitudFechaIngreso}
+                    label="Fecha Ingreso"
+                    type="date"
+                    width={100}
+                    onChange={handleInputChange}
+                    disabled={estadoSolicitud !== 2 ? true : false}
                   />
                 </div>
 
@@ -2889,7 +2907,7 @@ const AfiliadoAgregar = (props) => {
                 <Button
                   onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
                 >
-                  Agregar documentación
+                  Agrega documentación
                 </Button>
               </Grid>
               <Grid grow>
@@ -2899,7 +2917,7 @@ const AfiliadoAgregar = (props) => {
                     setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
                   }
                 >
-                  Modificar documentación
+                  Modifica documentación
                 </Button>
               </Grid>
               <Grid grow>
@@ -2909,11 +2927,11 @@ const AfiliadoAgregar = (props) => {
                     setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
                   }
                 >
-                  Borrar documentación
+                  Borra documentación
                 </Button>
               </Grid>
             </Grid>
-            <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
+            <Grid col full="width" gap="20px" style={{ marginTop: "10px", border: "1px solid #186090", padding: "15px" }}>
               <DocumentacionForm
                 config={{
                   data: documentacionItem.data,
