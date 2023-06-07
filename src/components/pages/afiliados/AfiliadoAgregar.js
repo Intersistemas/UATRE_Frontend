@@ -2286,7 +2286,7 @@ const AfiliadoAgregar = (props) => {
                   value={cuilAFIP.toString()}
                   label="CUIL"
                   readOnly={true}
-                  onChange={handleInputChange}
+                  onChange={handleInputChange}                  
                 />
               </div>
               <div className={classes.input}>

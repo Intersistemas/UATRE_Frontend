@@ -18,9 +18,9 @@ const useHttp = () => {
             //url = "https://localhost:7032/api";
             break;
           case "Afiliaciones":
-            url = 'http://uatretest.intersistemas.net:8200/api';
+            //url = 'http://uatretest.intersistemas.net:8200/api';
             // url = "http://uatre.intersistemas.net:8200/api";
-            //url = "http://localhost:5165/api";
+            url = "http://localhost:5165/api";
             break;
           case "DDJJ":
               url = 'http://uatretest.intersistemas.net:8203/api';
