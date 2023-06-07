@@ -5,14 +5,14 @@
     font-family: var(--fuente)!important;
     font-size: 1.1rem!important;
     color: var(--color1) !important;
-    font-weight: 600!important;
+    font-weight: 500!important;
   }
 
    /*ENTRY/INPUT/SELECT - DESHABILITADO*/
   .select [aria-disabled="true"]{
     color: var(--disableFont) !important;
     background-color: white !important;
-    font-weight: lighter!important;
+    font-weight: 500!important;
   }
 
   /*LABEL DEL SELECT*/
