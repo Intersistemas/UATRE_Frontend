@@ -78,7 +78,7 @@ const Sidebar = ({children}) => {
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(                                
                                     <Button disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
-                                        {(isOpen && <span style={{ float: 'left', fontWeight: 'normal'}} onClick={ () => despacharAcciones(item.name)}> <FaChevronRight/>{item.name}</span>)}
+                                        {(isOpen && <text onClick={ () => despacharAcciones(item.name)}> <FaChevronRight/>{item.name}</text>)}
                                     </Button>
                                 ))
                             }

@@ -322,10 +322,7 @@ const AfiliadosLista = (props) => {
     },{
       dataField: "FechaEgreso",
       text:"Fecha Egreso"
-    },
-
-    
-
+    }
   ]
 
   const columnsVacia = [
@@ -440,6 +437,7 @@ const AfiliadosLista = (props) => {
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
       rowSelectedIndex: rowSelectedIndex,
+      
   }
 
 
