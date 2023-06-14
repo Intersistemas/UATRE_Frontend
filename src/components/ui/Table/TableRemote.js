@@ -27,10 +27,10 @@ const TableRemote = (props) => {
     hideSelectColumn: true,
     selected: props.rowSelectedIndex ?? null,
     style: {
-      backgroundColor: "rgb(194 194 194 / 70%)",
+      backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
-    },
+    }
   };
 
   const rowEvents = {
@@ -40,7 +40,7 @@ const TableRemote = (props) => {
   };
 
 
-  const rowStyle2 = (row, cell) => {
+  const rowStyle = (row, cell) => {
     //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
     const rowStyle = {
       backgroundColor: "#ffffff99",
@@ -55,13 +55,11 @@ const TableRemote = (props) => {
     console.log('Seleccionó:',event.target.value)
     setSelectValue(event.target.value);
     setEntryValue('');
-    //props.handleSelectFilter(event.target.value);
+
   };
 
   const handleChangeSearchEntry = (event) => {
     setEntryValue(event.target.value);
-    
-      //props.handleSelectFilter(event.target.value);
   };
 
   const accionLimpiarFiltros = () =>{
@@ -142,10 +140,10 @@ const TableRemote = (props) => {
           }
           rowEvents = {rowEvents}
           defaultSorted={props.defaultSorted ?? false}
-          //defaultSortDirection="asc"
+          //defaultSortDirection={props.defaultSortDirection}
           overlay = {props.overlay}
           selectRow={selectRow}
-          rowStyle={props.rowStyle ? props.rowStyle : rowStyle2}
+          rowStyle={props.rowStyle ? props.rowStyle : rowStyle}
       />
     </div>
   );

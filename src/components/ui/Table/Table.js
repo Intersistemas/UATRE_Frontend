@@ -31,7 +31,7 @@ const selectionDef = {
 	clickToSelect: true,
 	hideSelectColumn: true,
 	style: {
-		backgroundColor: "rgb(194 194 194 / 70%)",
+		backgroundColor: "#EEC85E",
 		color: "black",
 		fontWeight: "bold",
 	},

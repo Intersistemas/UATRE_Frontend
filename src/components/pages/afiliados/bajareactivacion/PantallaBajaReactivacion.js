@@ -135,7 +135,7 @@ const PantallaBajaReactivacion = (props) => {
           <h3 className={classes.titulo}>
             {props.accion === "Baja"
               ? "Baja Afiliado"
-              : "Reafilia Afiliado"}
+              : "Reactiva Afiliado"}
           </h3>
           <div className={classes.renglon}></div>
           <h3

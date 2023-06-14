@@ -37,7 +37,7 @@ const DeclaracionesJuradas = (props) => {
       {
         dataField: "id",
         text: "id",
-        //hidden: true
+        hidden: true
       },
 
       {
@@ -53,6 +53,9 @@ const DeclaracionesJuradas = (props) => {
         text: "Razón Social",
         headerStyle: (colum, colIndex) => {
           return { width: "20%", textAlign: "center" };
+        },
+        style: (colum, colIndex) => {
+          return { textAlign: "left" };
         },
       },
       {
@@ -112,6 +115,16 @@ const DeclaracionesJuradas = (props) => {
         dataField: "zona",
         text: "Cod.Zona",
       },
+      {
+        dataField: "remuneracionImponible",
+        text: "Remuneración",
+        formatter: (value, row) => (
+         
+          row.condicionRural == "RU" ? value :
+          " "
+        ),
+        //"condicionRural": "RU"
+      },
     ];
   } else {
     columns = [
@@ -128,10 +141,10 @@ const DeclaracionesJuradas = (props) => {
         dataField: "empresa",
         text: "Empresa",
       },
-      // {
-      //   dataField: "remuneracionImponible",
-      //   text: "Remuneracion Imponible",
-      // },
+       {
+         dataField: "remuneracionImponible",
+         text: "Remuneración",
+       },
     ];
   }
 
@@ -140,9 +153,8 @@ const DeclaracionesJuradas = (props) => {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
-    //selected: 727172952,
     style: {
-      backgroundColor: "rgb(194 194 194 / 70%)",
+      backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
     }
