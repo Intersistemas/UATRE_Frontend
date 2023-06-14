@@ -28,6 +28,12 @@ import DocumentacionForm from "./documentacion/DocumentacionForm";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
 import Formato from "../../helpers/Formato";
+import { 
+    AFILIADO_AGREGADO,
+    AFILIADO_ACTUALIZADO, 
+    AFILIADO_REACTIVADO,
+    AFILIADO_BAJA
+} from '../../helpers/Mensajes'
 
 //#region gloabes
 const seccionalSinAsignar = [
@@ -37,6 +43,7 @@ const seccionalSinAsignar = [
   },
 ];
 //#endregion
+
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -367,11 +374,12 @@ const AfiliadoAgregar = (props) => {
 
   const [numeroDocumentoIsValid, setNumeroDocumentoIsValid] = useState(false);
   const numeroDocumentoReducer = (state, action) => {
+    console.log("documento", action.value)
     if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
+      return { value: action.value, isValid: action.value !== "" && action.value !== 0 && action.value !== "0" ? true : false };
     }
     if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
+      return { value: state.value, isValid: state.value !== "" ? true : false };
     }
     return { value: "", isValid: false };
   };
@@ -484,6 +492,8 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     const identifier = setTimeout(() => {
       //setAfiliadoExiste(false);
+      setFormularioIsValid(false);
+      //console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid)
       setCUILIsValid(cuilState.isValid);
       setNombreIsValid(nombreState.isValid);
       setNacionalidadIsValid(nacionalidadState.isValid);
@@ -1010,7 +1020,7 @@ const AfiliadoAgregar = (props) => {
       // setShowAlert(true);
       // setTextAlert("Debe completar todos los campos");
       // setSeverityAlert("error");
-      setDialogTexto("Debe completar todos los campos");
+      setDialogTexto("Se debe completar todos los campos");
       return;
     }
     //#region Insertar Sol
@@ -1156,7 +1166,7 @@ const AfiliadoAgregar = (props) => {
         //Alert
         // setShowAlert(true);
         // setSeverityAlert("success");
-        setDialogTexto("Afiliado creado con éxito!");
+        setDialogTexto(AFILIADO_AGREGADO);
 
         //handleCerrarModal();
 
@@ -1204,7 +1214,7 @@ const AfiliadoAgregar = (props) => {
       ActualizaDatosAfiliado(afiliado);
     }
     //#endregion
-    setClickAgregar(false);
+    //setClickAgregar(false);
   };
   //#endregion
 
@@ -1244,7 +1254,7 @@ const AfiliadoAgregar = (props) => {
       {
         path: "FechaIngreso",
         op: "replace",
-        value: moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
       },
       {
         path: "NroAfiliado",
@@ -1304,6 +1314,7 @@ const AfiliadoAgregar = (props) => {
     setCUILLoading(true);
 
     const processConsultaPadron = async (padronObj) => {
+      console.log("padronObj", padronObj)
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
         // setShowAlert(true);
@@ -1547,7 +1558,7 @@ const AfiliadoAgregar = (props) => {
         setCuilValidado(false);
         setAfiliadoExiste(false);
         setNuevoAfiliadoResponse(null);
-        setClickAgregar(false);
+        //setClickAgregar(false);
         // setTextAlert("");
         // setSeverityAlert("");
         setDialogTexto("");
@@ -1631,7 +1642,7 @@ const AfiliadoAgregar = (props) => {
         setResolverSolicitudObs(value);
         break;
 
-      case "resolverSolicitudFechaINgreso":
+      case "resolverSolicitudFechaIngreso":
         setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
         break;
 
@@ -1708,13 +1719,12 @@ const AfiliadoAgregar = (props) => {
         return true;
       }
     } else if (props.accion === "Modifica") {
-      if (cuilValidado && cuitValidado) {
-        return false;
+      if (!cuilValidado || !cuitValidado) {
+        return true;
       }
-      return false;
     }
 
-    return true;
+    return false;
   };
 
   const AgregarModificarAfiliadoTitulo = () => {
@@ -1867,7 +1877,7 @@ const AfiliadoAgregar = (props) => {
       //Alert
       // setShowAlert(true);
       // setSeverityAlert("success");
-      setDialogTexto("Afiliado modificado con éxito!");
+      setDialogTexto(AFILIADO_ACTUALIZADO);
       // }
     };
 
@@ -1889,28 +1899,19 @@ const AfiliadoAgregar = (props) => {
   //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    if (dialogTexto === AFILIADO_AGREGADO || dialogTexto === AFILIADO_ACTUALIZADO)
+    {
+      handleCerrarModal();
+    }
   };
-
-  // const SimpleDialog = () => {
-  //   return (
-  //     <Dialog onClose={handleCloseDialog} open={openDialog}>
-  //       <DialogTitle>{dialogTexto}</DialogTitle>
-  //       <DialogActions>
-  //         <Button onClick={handleCloseDialog}>
-  //           Cierra
-  //         </Button>
-  //       </DialogActions>
-  //     </Dialog>
-  //   );
-  //};
-
   //#endregion
 
+  //console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid)
+  //console.log("clickAgregar", clickAgregar)
   return (
     <>
       <div>
-        <Dialog          
-          dividers
+        <Dialog                    
           onClose={handleCloseDialog}
           open={openDialog}
         >
@@ -1933,11 +1934,11 @@ const AfiliadoAgregar = (props) => {
           </div>
           <h3 className={classes.titulo}>
             {props.accion === "Modifica"
-              ? `Modifica Afiliado: ${cuil} ${nombre}`
+              ? `Modifica Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : afiliadoExiste
-              ? `Modifica/Consulta Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
+              ? `Modifica Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : padronRespuesta
-              ? `Agrega Afiliado: ${cuil} ${nombre}`
+              ? `Agrega Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : "Agrega Afiliado"}
           </h3>
           <div className={classes.subTituloVentana}>
@@ -2020,7 +2021,7 @@ const AfiliadoAgregar = (props) => {
                   onClick={validarAfiliadoCUILHandler}
                   loading={cuilLoading}
                 >
-                  {!cuilLoading ? `Validar CUIL` : `Validando...`}
+                  {!cuilLoading ? `Valida CUIL` : `Validando...`}
                 </LoadingButtonCustom>
               </div>
               <div className={classes.input25}>
@@ -2842,7 +2843,7 @@ const AfiliadoAgregar = (props) => {
                     type="date"
                     width={100}
                     onChange={handleInputChange}
-                    disabled={estadoSolicitud !== 2 ? true : false}
+                    disabled={true} //{estadoSolicitud !== 2 ? true : false}
                   />
                 </div>
 
