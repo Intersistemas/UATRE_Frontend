@@ -20,7 +20,7 @@ const { SearchBar } = Search;
 
 const paginationDef = {
 	index: 1,
-	size: 15,
+	size: 12,
 	onChange: ({ index, size }) => {},
 };
 
@@ -111,7 +111,7 @@ const Table = ({
 	if (pagination.onChange === paginationDef.onChange)
 		pagination.onChange = undefined;
 	if (!pagination.onChange) pagination = myPagination;
-
+	console.log("pagination", pagination)
 	// Normalizo selectRow que pasa por props
 	if (selection) {
 		selection = { ...selectionDef, ...selection };

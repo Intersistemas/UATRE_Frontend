@@ -44,17 +44,17 @@
   @media (min-width: 1025px) {/*DESKTOP*/
     .modal {
       width: 70rem;
-      height: 52rem;
+      height: 54rem;
       left: calc(50% - 35rem);
-      top: calc(50% - 26rem);
+      top: calc(50% - 27rem);
     }
   }
   @media (min-width: 1201px) {/*MONITORES GRANDES, TVs*/
     .modal {
       width: 70rem;
-      height: 52rem;
+      height: 55rem;
       left: calc(50% - 35rem);
-      top: calc(50% - 26rem);
+      top: calc(50% - 27.5rem);
     }
   }
 

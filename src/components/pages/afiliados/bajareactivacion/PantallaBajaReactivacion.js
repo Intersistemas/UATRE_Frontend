@@ -12,6 +12,7 @@ import modalCss from "../../../ui/Modal/Modal.module.css";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import moment from "moment";
 import useHttp from "../../../hooks/useHttp";
+import { AFILIADO_BAJA, AFILIADO_REACTIVADO } from "../../../helpers/Mensajes";
 
 const PantallaBajaReactivacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
@@ -53,7 +54,7 @@ const PantallaBajaReactivacion = (props) => {
     event.preventDefault();
 
     if (observaciones === "") {
-      setDialogTexto("Debe ingresar observaciones");
+      setDialogTexto("Se deben indicar las Observaciones");
       return;
     }
 
@@ -91,7 +92,7 @@ const PantallaBajaReactivacion = (props) => {
     ) => {
       if (resolverSolicitudAfiliadoResponse) {
         console.log("props.estadosSolicitudes", props.estadosSolicitudes);        
-        setDialogTexto(props.accion === "Baja" ? "Afiliado de baja" : "Afiliado reactivado");
+        setDialogTexto(props.accion === "Baja" ? AFILIADO_BAJA : AFILIADO_REACTIVADO);
         setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);        
       }
     };
@@ -117,11 +118,11 @@ const PantallaBajaReactivacion = (props) => {
 //   }, [resolverSolicitudAfiliadoResponse])
   
 
-  console.log("fecha", fecha);
+  //console.log("fecha", fecha);
   return (
     <>
       <div>
-        <Dialog dividers onClose={handleCloseDialog} open={openDialog}>
+        <Dialog onClose={handleCloseDialog} open={openDialog}>
           <DialogContent dividers>
             <Typography gutterBottom>{dialogTexto}</Typography>
           </DialogContent>
@@ -174,11 +175,11 @@ const PantallaBajaReactivacion = (props) => {
             onClick={handleConfirmar}
             disabled={resolverSolicitudAfiliadoResponse !== 0}
           >
-            Confirmar
+            {props.Button === "Baja" ? "Baja Afiliado" : "Reactiva Afiliado"}
           </Button>
 
           <Button width={25} onClick={handleCerrarModal}>
-            Cerrar
+            Cierra
           </Button>
         </div>
       </ModalBajaReactivacion>

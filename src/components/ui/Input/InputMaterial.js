@@ -5,7 +5,7 @@ const InputMaterial = (props) => {
   //Validaciones
   
   const handleChange = (event) => { 
-    console.log("event", event)   
+    //console.log("event", event)   
     switch (props.id) {
       case "cuil":   
       var reCUIL = /^[0-9\b]+$/;     
@@ -29,6 +29,10 @@ const InputMaterial = (props) => {
 
   const shrink = props.type === "date" || props.value !== '' ? true : false  
   //console.log("helperText", props.helperText)
+  // if (props.id === "numeroDocumento")
+  // {
+  //   console.log("error", props.error)
+  // }
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
@@ -52,7 +56,8 @@ const InputMaterial = (props) => {
           readOnly: props.readOnly || false,
         }}
         helperText={props.helperText ?? ""}
-        error={props.error ?? false}
+        FormHelperTextProps={{ style: { marginTop: '0px' }}}
+        error={props.error || false}
         color={props.color}
         focused={props.focused || false}
       />

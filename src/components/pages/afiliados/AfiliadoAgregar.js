@@ -28,6 +28,12 @@ import DocumentacionForm from "./documentacion/DocumentacionForm";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
 import Formato from "../../helpers/Formato";
+import { 
+    AFILIADO_AGREGADO,
+    AFILIADO_ACTUALIZADO, 
+    AFILIADO_REACTIVADO,
+    AFILIADO_BAJA
+} from '../../helpers/Mensajes'
 
 //#region gloabes
 const seccionalSinAsignar = [
@@ -37,6 +43,7 @@ const seccionalSinAsignar = [
   },
 ];
 //#endregion
+
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -165,6 +172,7 @@ const AfiliadoAgregar = (props) => {
   const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] =
     useState("");
   const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
+  const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] = useState(moment(new Date()).format("yyyy-MM-DD"));
 
   const [nombreAFIP, setNombreAFIP] = useState("");
   const [fechaNacimientoAFIP, setFechaNacimientoAFIP] = useState("");
@@ -366,11 +374,12 @@ const AfiliadoAgregar = (props) => {
 
   const [numeroDocumentoIsValid, setNumeroDocumentoIsValid] = useState(false);
   const numeroDocumentoReducer = (state, action) => {
+    console.log("documento", action.value)
     if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
+      return { value: action.value, isValid: action.value !== "" && action.value !== 0 && action.value !== "0" ? true : false };
     }
     if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
+      return { value: state.value, isValid: state.value !== "" ? true : false };
     }
     return { value: "", isValid: false };
   };
@@ -483,6 +492,8 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     const identifier = setTimeout(() => {
       //setAfiliadoExiste(false);
+      setFormularioIsValid(false);
+      //console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid)
       setCUILIsValid(cuilState.isValid);
       setNombreIsValid(nombreState.isValid);
       setNacionalidadIsValid(nacionalidadState.isValid);
@@ -1009,7 +1020,7 @@ const AfiliadoAgregar = (props) => {
       // setShowAlert(true);
       // setTextAlert("Debe completar todos los campos");
       // setSeverityAlert("error");
-      setDialogTexto("Debe completar todos los campos");
+      setDialogTexto("Se debe completar todos los campos");
       return;
     }
     //#region Insertar Sol
@@ -1155,7 +1166,7 @@ const AfiliadoAgregar = (props) => {
         //Alert
         // setShowAlert(true);
         // setSeverityAlert("success");
-        setDialogTexto("Afiliado creado con éxito!");
+        setDialogTexto(AFILIADO_AGREGADO);
 
         //handleCerrarModal();
 
@@ -1203,7 +1214,7 @@ const AfiliadoAgregar = (props) => {
       ActualizaDatosAfiliado(afiliado);
     }
     //#endregion
-    setClickAgregar(false);
+    //setClickAgregar(false);
   };
   //#endregion
 
@@ -1243,7 +1254,7 @@ const AfiliadoAgregar = (props) => {
       {
         path: "FechaIngreso",
         op: "replace",
-        value: null,
+        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
       },
       {
         path: "NroAfiliado",
@@ -1303,6 +1314,7 @@ const AfiliadoAgregar = (props) => {
     setCUILLoading(true);
 
     const processConsultaPadron = async (padronObj) => {
+      console.log("padronObj", padronObj)
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
         // setShowAlert(true);
@@ -1546,7 +1558,7 @@ const AfiliadoAgregar = (props) => {
         setCuilValidado(false);
         setAfiliadoExiste(false);
         setNuevoAfiliadoResponse(null);
-        setClickAgregar(false);
+        //setClickAgregar(false);
         // setTextAlert("");
         // setSeverityAlert("");
         setDialogTexto("");
@@ -1630,6 +1642,10 @@ const AfiliadoAgregar = (props) => {
         setResolverSolicitudObs(value);
         break;
 
+      case "resolverSolicitudFechaIngreso":
+        setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
+        break;
+
       default:
         break;
     }
@@ -1703,13 +1719,12 @@ const AfiliadoAgregar = (props) => {
         return true;
       }
     } else if (props.accion === "Modifica") {
-      if (cuilValidado && cuitValidado) {
-        return false;
+      if (!cuilValidado || !cuitValidado) {
+        return true;
       }
-      return false;
     }
 
-    return true;
+    return false;
   };
 
   const AgregarModificarAfiliadoTitulo = () => {
@@ -1862,7 +1877,7 @@ const AfiliadoAgregar = (props) => {
       //Alert
       // setShowAlert(true);
       // setSeverityAlert("success");
-      setDialogTexto("Afiliado modificado con éxito!");
+      setDialogTexto(AFILIADO_ACTUALIZADO);
       // }
     };
 
@@ -1884,28 +1899,19 @@ const AfiliadoAgregar = (props) => {
   //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    if (dialogTexto === AFILIADO_AGREGADO || dialogTexto === AFILIADO_ACTUALIZADO)
+    {
+      handleCerrarModal();
+    }
   };
-
-  // const SimpleDialog = () => {
-  //   return (
-  //     <Dialog onClose={handleCloseDialog} open={openDialog}>
-  //       <DialogTitle>{dialogTexto}</DialogTitle>
-  //       <DialogActions>
-  //         <Button onClick={handleCloseDialog}>
-  //           Cierra
-  //         </Button>
-  //       </DialogActions>
-  //     </Dialog>
-  //   );
-  //};
-
   //#endregion
 
+  //console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid)
+  //console.log("clickAgregar", clickAgregar)
   return (
     <>
       <div>
-        <Dialog          
-          dividers
+        <Dialog                    
           onClose={handleCloseDialog}
           open={openDialog}
         >
@@ -1928,12 +1934,12 @@ const AfiliadoAgregar = (props) => {
           </div>
           <h3 className={classes.titulo}>
             {props.accion === "Modifica"
-              ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
+              ? `Modifica Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : afiliadoExiste
               ? `Modifica Afiliado de UATRE: ${Formato.Cuit(cuil)} ${nombre}`
               : padronRespuesta
-              ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
-              : "Agrega Afiliado a UATRE"}
+              ? `Agrega Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
+              : "Agrega Afiliado"}
           </h3>
           <div className={classes.subTituloVentana}>
             <h5 className={classes.titulo}>
@@ -2015,7 +2021,7 @@ const AfiliadoAgregar = (props) => {
                   onClick={validarAfiliadoCUILHandler}
                   loading={cuilLoading}
                 >
-                  {!cuilLoading ? `Validar CUIL` : `Validando...`}
+                  {!cuilLoading ? `Valida CUIL` : `Validando...`}
                 </LoadingButtonCustom>
               </div>
               <div className={classes.input25}>
@@ -2267,7 +2273,7 @@ const AfiliadoAgregar = (props) => {
               <h4>Datos AFIP</h4>
             </div>
             <div className={classes.renglon}>
-              <div className={classes.input}>
+              <div className={classes.input33}>
                 <InputMaterial
                   id="nombreYApellidoAFIP"
                   value={nombreAFIP}
@@ -2277,7 +2283,7 @@ const AfiliadoAgregar = (props) => {
                   // focused={nombreAFIP !== afiliado?.afipNombre ? true : false}
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterialMask
                   id="cuilAFIP"
                   value={cuilAFIP.toString()}
@@ -2286,7 +2292,7 @@ const AfiliadoAgregar = (props) => {
                   onChange={handleInputChange}                  
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="tipoDocumentoAFIP"
                   value={tipoDocumentoAFIP}
@@ -2306,7 +2312,7 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input25}>
                 <InputMaterial
                   id="numeroDocumentoAFIP"
                   value={numeroDocumentoAFIP}
@@ -2401,7 +2407,7 @@ const AfiliadoAgregar = (props) => {
             </div>
 
             <div className={classes.renglon}>
-              <div className={classes.input}>
+              <div className={classes.input33}>
                 <InputMaterial
                   id="domicilioAFIP"
                   value={domicilioRealAFIP}
@@ -2415,7 +2421,7 @@ const AfiliadoAgregar = (props) => {
                   // }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="idActividadPrincipalAFIP"
                   value={idActividadPrincipalAFIP}
@@ -2437,11 +2443,11 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input20}>
                 <InputMaterial
                   id="periodoActividadPrincipalAFIP"
                   value={periodoActividadPrincipalAFIP}
-                  label="Período Actividad Principal"
+                  label="Per. Actividad Principal"
                   readOnly={true}
                   color={
                     periodoActividadPrincipalAFIP !== "" &&
@@ -2459,7 +2465,7 @@ const AfiliadoAgregar = (props) => {
                   }
                 />
               </div>
-              <div className={classes.input}>
+              <div className={classes.input25}>
                 <InputMaterial
                   id="mesCierreAFIP"
                   value={mesCierreAFIP}
@@ -2622,7 +2628,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU1"
@@ -2645,7 +2651,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU2"
@@ -2668,7 +2674,7 @@ const AfiliadoAgregar = (props) => {
               </div>
             </div>
 
-            <div className={classes.renglon}>
+            <div className={classes.renglonActividad}>
               <div className={classes.input100}>
                 <InputMaterial
                   id="CIIU3"
@@ -2699,6 +2705,7 @@ const AfiliadoAgregar = (props) => {
               onSeleccionRegistro={handleSeleccionDDJJ}
               infoCompleta={true}
               onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+              registros={12}
             />
             <div
               className={classes.div}
@@ -2734,13 +2741,13 @@ const AfiliadoAgregar = (props) => {
                   ? `DDJJ UATRE ${Formato.Cuit(cuil)} ${nombre}`
                   : "DDJJ UATRE"}
               </h4>
-              <div className={classes.renglon}>
+              <div className={classes.renglonDDJJ}>
                 <DeclaracionesJuradas
                   cuil={cuil}
                   //onSeleccionRegistro={handleSeleccionDDJJ}
                   infoCompleta={true}
                   mostrarBuscar={false}
-                  registros={3}
+                  registros={1}
                 />
               </div>
             </div>
@@ -2811,7 +2818,7 @@ const AfiliadoAgregar = (props) => {
                 </div>
               </div>
             </div>
-            <div className={classes.div}>
+            <div className={classes.divResolverSolicitud}>
               <h4>Afiliados en ultima DDJJ del Empleador</h4>
               <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
 
@@ -2825,6 +2832,18 @@ const AfiliadoAgregar = (props) => {
                     //defaultValue={nacionalidades[0]}
                     onChange={handleChangeSelect}
                     //disabled={!padronRespuesta?.idPersona ? true : false}
+                  />
+                </div>
+
+                <div className={classes.input25}>
+                  <InputMaterial
+                    id="resolverSolicitudFechaIngreso"
+                    value={resolverSolicitudFechaIngreso}
+                    label="Fecha Ingreso"
+                    type="date"
+                    width={100}
+                    onChange={handleInputChange}
+                    disabled={true} //{estadoSolicitud !== 2 ? true : false}
                   />
                 </div>
 
@@ -2886,7 +2905,7 @@ const AfiliadoAgregar = (props) => {
                 <Button
                   onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
                 >
-                  Agregar documentación
+                  Agrega documentación
                 </Button>
               </Grid>
               <Grid grow>
@@ -2896,7 +2915,7 @@ const AfiliadoAgregar = (props) => {
                     setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
                   }
                 >
-                  Modificar documentación
+                  Modifica documentación
                 </Button>
               </Grid>
               <Grid grow>
@@ -2906,11 +2925,11 @@ const AfiliadoAgregar = (props) => {
                     setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
                   }
                 >
-                  Borrar documentación
+                  Borra documentación
                 </Button>
               </Grid>
             </Grid>
-            <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
+            <Grid col full="width" gap="20px" style={{ marginTop: "10px", border: "1px solid #186090", padding: "15px" }}>
               <DocumentacionForm
                 config={{
                   data: documentacionItem.data,

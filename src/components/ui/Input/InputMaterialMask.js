@@ -10,7 +10,7 @@ const InputMaterialMask = (props) => {
       '.': '',
     };
     const cuil = event.target.value.replace(/[-.]/g, m => chars[m]);
-    console.log("cuil",cuil)
+    //console.log("cuil",cuil)
     if (cuil === props.value) {
       return
     }
@@ -54,13 +54,12 @@ const InputMaterialMask = (props) => {
   });
 
   const shrink = props.type === "date" || props.value !== "" ? true : false;
-  console.log("props.value", props.value)
-  console.log("mask", cuilMask);
+
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
         //ref={props.id}
-        autoFocus={props.id === "cuil" ? true : false}
+        autoFocus={props.id === "cuil" && props.value === ""  ? true : false}
         id={props.id}
         size="small"
         //error={!props.isValid}
@@ -80,6 +79,7 @@ const InputMaterialMask = (props) => {
           inputComponent: cuilMask,
         }}
         helperText={props.helperText ?? ""}
+        FormHelperTextProps={{ style: { marginTop: "0px" } }}
         error={props.error ?? false}
         color={props.color}
         focused={props.focused || false}
