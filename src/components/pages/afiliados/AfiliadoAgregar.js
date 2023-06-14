@@ -1936,7 +1936,7 @@ const AfiliadoAgregar = (props) => {
             {props.accion === "Modifica"
               ? `Modifica Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : afiliadoExiste
-              ? `Modifica Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
+              ? `Modifica Afiliado de UATRE: ${Formato.Cuit(cuil)} ${nombre}`
               : padronRespuesta
               ? `Agrega Afiliado: ${Formato.Cuit(cuil)} ${nombre}`
               : "Agrega Afiliado"}
