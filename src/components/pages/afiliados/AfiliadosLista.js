@@ -124,6 +124,9 @@ const AfiliadosLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "20%", textAlign: "center" };
       },
+      style: (colum, colIndex) => {
+        return { textAlign: "left" };
+      },
     },
     {
       headerTitle: true,

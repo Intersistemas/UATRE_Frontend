@@ -114,7 +114,7 @@ const AfiliadosHandler = () => {
       case "No Activo":
         setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
         const accionesAux3 = moduloInfoDefoult.acciones.map((accion) =>
-          accion.id === 5 || accion.id === 6
+          accion.id === 6
            ? { ...accion, disabled: false } 
            : accion
         );

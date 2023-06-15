@@ -102,20 +102,20 @@ const AfiliadoDetails = (props) => {
   
 
 					<Grid style={{ padding: "0rem 2rem"}}>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Código de Zona" value={ddjj.zona ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Zona" value={ddjj.zona ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Zona" value={ddjj.zona ?? " "} />
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Cód.Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Mod.Contratación" value={ddjj.modalidad ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>	
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Código de Actividad" value={ddjj.actividad ?? " "}/>							
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Actividad" value={ddjj.actividad ?? " "}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={ddjj.actividad ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Cód.Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Cond.CUIL" value={ddjj.cuilCondicion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
 					</Grid>
 
 					<Grid style={{ padding: "0rem 2rem"}}>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={" "} />
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Codigo de Siniestro" value={ddjj.siniestroCod ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Siniestro" value={" "}/>	
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Reducción" value={ddjj.reduccion?? " "}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Importes" value={" "}/>
