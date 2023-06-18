@@ -21,10 +21,21 @@ const InputMaterial = (props) => {
         }
         break;
 
+      case "numeroDocumento":
+        const reNumeroDoc = /^[0-9\b]+$/;
+        if (event.target.value === "" || reNumeroDoc.test(event.target.value)) {
+          props.onChange(event.target.value, props.id);
+        }
+        break;
+
       default:
         props.onChange(event.target.value, props.id);
         break;
     }
+  };
+
+  const handleOnFocus = (event) => {
+    props.onFocus(props.id);
   };
 
   const shrink = props.type === "date" || props.value !== '' ? true : false  
@@ -46,7 +57,10 @@ const InputMaterial = (props) => {
         value={props.value || ""}
         onChange={handleChange}
         disabled={props.disabled}
-        style={{ width: props.width != null ? `${props.width}%` : "100%", padding:`${props.padding}`}}
+        style={{
+          width: props.width != null ? `${props.width}%` : "100%",
+          padding: `${props.padding}`,
+        }}
         type={props.type || "text"}
         inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
         InputLabelProps={{
@@ -56,10 +70,11 @@ const InputMaterial = (props) => {
           readOnly: props.readOnly || false,
         }}
         helperText={props.helperText ?? ""}
-        FormHelperTextProps={{ style: { marginTop: '0px' }}}
+        FormHelperTextProps={{ style: { marginTop: "0px" } }}
         error={props.error || false}
         color={props.color}
         focused={props.focused || false}
+        //onFocus={handleOnFocus}
       />
     </Tooltip>
   );

@@ -36,6 +36,10 @@ const InputMaterialMask = (props) => {
     }
   };
 
+  // const handleOnFocus = (event) => {
+  //   props.onFocus(props.id)
+  // }
+
   const cuilMask = forwardRef(function cuilMask(props, ref) {
     const { ...other } = props;
     return (
@@ -59,7 +63,7 @@ const InputMaterialMask = (props) => {
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
       <TextField
         //ref={props.id}
-        autoFocus={props.id === "cuil" && props.value === ""  ? true : false}
+        autoFocus={(props.id === "cuil" || props.id === "cuit") && props.value.length < 11 ? true : false}
         id={props.id}
         size="small"
         //error={!props.isValid}
@@ -83,6 +87,8 @@ const InputMaterialMask = (props) => {
         error={props.error ?? false}
         color={props.color}
         focused={props.focused || false}
+        //onFocus={handleOnFocus}
+        //onBlur={onBlur}
       />
     </Tooltip>
   );

@@ -13,10 +13,12 @@ import InputMaterial from "../../../ui/Input/InputMaterial";
 import moment from "moment";
 import useHttp from "../../../hooks/useHttp";
 import { AFILIADO_BAJA, AFILIADO_REACTIVADO } from "../../../helpers/Mensajes";
+import Formato from "../../../helpers/Formato";
+import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const PantallaBajaReactivacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
-
+  //console.log(props.afiliado)
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
   const [fecha, setFecha] = useState(moment(new Date()).format("yyyy-MM-DD"));
@@ -25,6 +27,7 @@ const PantallaBajaReactivacion = (props) => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    handleCerrarModal();
   };
 
   const handleCerrarModal = () => {
@@ -135,13 +138,22 @@ const PantallaBajaReactivacion = (props) => {
         <div className={modalCss.modalCabecera}>
           <h3 className={classes.titulo}>
             {props.accion === "Baja"
-              ? "Baja Afiliado"
-              : "Reactiva Afiliado"}
+              ? `Baja Afiliado: ${Formato.Cuit(props.afiliado?.cuil)} ${
+                  props.afiliado?.nombre
+                }`
+              : `Reactiva Afiliado: ${Formato.Cuit(props.afiliado?.cuil)} ${
+                  props.afiliado?.nombre
+                }`}
           </h3>
-          <div className={classes.renglon}></div>
-          <h3
-            className={classes.titulo}
-          >{`Afiliado ${props.afiliado?.nombre}`}</h3>
+          <div className={classes.subTituloVentana}>
+            <h5 className={classes.titulo}>
+              Estado Solicitud del Afiliado: {props.afiliado?.estadoSolicitud}
+            </h5>
+            <h5 className={classes.titulo}>
+              Fecha de Ingreso: {FormatearFecha(props.afiliado?.fechaIngreso)}{" "}
+              - Nro Afiliado: {props.afiliado.nroAfiliado}
+            </h5>
+          </div>
         </div>
         <div className={classes.div}>
           <div className={classes.renglon}>
@@ -175,7 +187,7 @@ const PantallaBajaReactivacion = (props) => {
             onClick={handleConfirmar}
             disabled={resolverSolicitudAfiliadoResponse !== 0}
           >
-            {props.Button === "Baja" ? "Baja Afiliado" : "Reactiva Afiliado"}
+            {props.accion === "Baja" ? "Baja Afiliado" : "Reactiva Afiliado"}
           </Button>
 
           <Button width={25} onClick={handleCerrarModal}>
