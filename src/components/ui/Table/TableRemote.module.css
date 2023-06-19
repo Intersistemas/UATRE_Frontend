@@ -10,33 +10,8 @@ td, th {
     text-overflow: ellipsis !important;
 }
 
-
-/*DIMENSIONES*/
-/*
-@media (max-width: 2570px) {
-    .tabla {
-        zoom: 100%;
-        width: 100%;
-    }
-  }
-
-@media (max-width: 1920px) {
-    .tabla {
-        zoom: 90%;
-        width: 100%;
-    }
-  }
-  
-  @media (max-width: 1370px) {
-    .tabla {
-        zoom: 70%;
-        width: 100%;
-    }
-  }
-  @media (max-width: 800px) {
-    .tabla {
-        zoom: 60%;
-        width: 100%;
-    }
-  }
-*/
+selectRow{
+  backgroundColor: var(--amarillo2);
+  color: black;
+  fontWeight: bold;
+}

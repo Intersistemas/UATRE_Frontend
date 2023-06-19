@@ -9,13 +9,14 @@ import { handleModuloEjecutarAccion } from "../../../redux/actions";
 import { redirect, useNavigate } from "react-router-dom";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
+import { Filter } from "@mui/icons-material";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
-  const [sortColumn, setSortColumn] = useState("");
-  const [sortOrder, setSortOrder] = useState("");
+  const [sortColumn, setSortColumn] = useState("nroAfiliado");
+  const [sortOrder, setSortOrder] = useState("desc"); //Por defecto ordeno por Nro Afiliado Desc
   const [filter, setFilter] = useState("");
   const [filterColumn, setFilterColumn] = useState("");
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
@@ -56,19 +57,13 @@ const AfiliadosHandler = () => {
       },
       {
         id: 5,
-        name: "Consulta Afiliado",
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 6,
         name: "Baja Afiliado",
         icon: "",
         disabled: true,
       },
       {
-        id: 7,
-        name: "Reafilia Afiliado",
+        id: 6,
+        name: "Reactiva Afiliado",
         icon: "",
         disabled: true,
       },
@@ -88,7 +83,7 @@ const AfiliadosHandler = () => {
   dispatch(handleModuloSeleccionar(moduloInfo));
   //#endregion
 
-  //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones (por esto me debo olbigado a hacer un dispatch)
+  //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones (por esto me veo  obligado a hacer un dispatch)
   useEffect(() => {
     switch (afiliadoSeleccionado?.estadoSolicitud) {
       case "Observado":
@@ -101,8 +96,7 @@ const AfiliadosHandler = () => {
         const accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
           accion.id === 2 ||
           accion.id === 4 ||
-          accion.id === 5 ||
-          accion.id === 6
+          accion.id === 5 
             ? { ...accion, disabled: false }
             : accion
         );
@@ -120,7 +114,9 @@ const AfiliadosHandler = () => {
       case "No Activo":
         setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
         const accionesAux3 = moduloInfoDefoult.acciones.map((accion) =>
-          accion.id === 5 || accion.id === 7 ? { ...accion, disabled: false } : accion
+          accion.id === 6
+           ? { ...accion, disabled: false } 
+           : accion
         );
         setModuloInfo({ ...moduloInfo, acciones: accionesAux3 });
         break;
@@ -151,7 +147,7 @@ const AfiliadosHandler = () => {
     }
     if (sortColumn) {
       //ORDENAMIENTO
-      sortOrder === "desc"
+      sortOrder == "desc"
         ? (endpoint = `${endpoint}&Sort=${sortColumn}Desc`)
         : (endpoint = `${endpoint}&Sort=${sortColumn}`);
     }
@@ -245,18 +241,18 @@ const AfiliadosHandler = () => {
         //navigate(`/afiliaciones/${id}`);
         setPantallaEnDesarrolloShow(true);
         break;
-      case "Consulta Afiliado":
+      /*case "Consulta Afiliado":
         //alert('Funcionalidad de Consulta En desarrollo ');
         setPantallaEnDesarrolloShow(true);
-        break;
+        break;*/
       case "Baja Afiliado":
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Baja");
         break;
 
-      case "Reafilia Afiliado":
+      case "Reactiva Afiliado":
         setPantallaBajaReactivacion(true);
-        setAccionSeleccionada("Reafilia");
+        setAccionSeleccionada("Reactiva");
         break;
       // alert('Funcionalidad de Imprimir En desarrollo ');
       // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
@@ -294,8 +290,12 @@ const AfiliadosHandler = () => {
 
   const handleFilter = (select, entry) => {
     console.log("select,entry", select, entry);
-    setFilter(entry);
-    setFilterColumn(select);
+    if (filter != entry){
+      handlePageChange(1,12)
+      console.log("Filter",Filter)
+      setFilter(entry)
+      setFilterColumn(select)
+    } 
     //setAfiliadosRespuesta([]);
   };
 
@@ -313,7 +313,7 @@ const AfiliadosHandler = () => {
 
   const handleFilterChange = (filters) => {
     //console.log("value", filters.estadoSolicitud.filterVal);
-    setEstadoSolcitud(parseInt(filters.estadoSolicitud.filterVal) ?? 0);
+    setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 
   const handleOnAfiliadoSeleccionado = (afiliado) => {

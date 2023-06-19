@@ -59,19 +59,14 @@ const AfiliadosLista = (props) => {
   const handleSelectFilter = async (select,entry) => {
     console.log('evento select y entry: ',select,entry);
     //BUSQUEDA Y FILTRO
-   
-    props.onPageChange(1, 12);
 
     switch (select){
       case 'CUIT':
         fetchEmpresa(entry,'Afiliados');
-        //.then((res) => props.onFilter("EmpresaId",empresaSeleccionada.id))')
         break;
       default: props.onFilter(select,entry);
       break;
     }
-  
-    //setSelectFilter(event.target.value);
 
   };
 
@@ -84,12 +79,12 @@ const AfiliadosLista = (props) => {
   };
 
 
-  /*const defaultSorted = [
+  const defaultSorted = [
     {
       dataField: "nroAfiliado",
-      order: "asc"
+      order: "desc"
     }
-  ];*/
+  ];
 
   const columns = [
     {
@@ -107,7 +102,7 @@ const AfiliadosLista = (props) => {
       text: "CUIL",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "15%", textAlign: "center" };
+        return { width: "10rem", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
@@ -128,6 +123,9 @@ const AfiliadosLista = (props) => {
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "20%", textAlign: "center" };
+      },
+      style: (colum, colIndex) => {
+        return { textAlign: "left" };
       },
     },
     {
@@ -271,7 +269,7 @@ const AfiliadosLista = (props) => {
       text: "CUIT",
       //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
+        return { width: "10rem", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
@@ -420,6 +418,7 @@ const AfiliadosLista = (props) => {
     setSelectedTab(newValue);
   };
 
+
   const tableProps = {
       promptBuscar:"Buscar en Afiliados:",
       selectoresBuscar: selectores,
@@ -478,24 +477,23 @@ const AfiliadosLista = (props) => {
                   <Tab  
                    className={styles.tab}
                    style={{backgroundColor: "#186090"}}
-                   label= 'AFILIADOS'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
+                   label= 'AFILIADOS'
                   />
                   <Tab className={styles.tab}  
                     style={{backgroundColor: "#186090"}}        
-                    label= 'DDJJ UATRE'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-                    //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+                    label= 'DDJJ UATRE'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
                   
                   <Tab className={styles.tab}
                   style={{backgroundColor: "#186090"}}
-                    label= 'Documentación'//{ afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+                    label= 'Documentación'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                   style={{backgroundColor: "#186090"}}
-                    label= 'Cambios de Datos'//{ afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
+                    label= 'Cambios de Datos'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 

@@ -1815,6 +1815,7 @@ const AfiliadoAgregar = (props) => {
           afiliado={afiliado}
           estadoSolicitudDescripcion={estadoSolicitudDescripcion}
         />
+
         <div className={classes.div}>
           <Tabs
             value={selectedTab}
