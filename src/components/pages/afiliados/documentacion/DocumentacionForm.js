@@ -96,12 +96,12 @@ const DocumentacionForm = ({ config }) => {
 			<Grid full="width" justify="center" gap="50px">
 				<Grid>
 					<Button onClick={() => onConfirm()} disabled={disabled}>
-						Confirmar
+						Confirma
 					</Button>
 				</Grid>
 				<Grid>
 					<Button onClick={() => onCancel()} disabled={disabled}>
-						Cancelar
+						Cancela
 					</Button>
 				</Grid>
 			</Grid>
