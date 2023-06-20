@@ -17,7 +17,6 @@ import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import ValidarCUIT from "../../validators/ValidarCUIT";
-import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
 import ValidarEmail from "../../validators/ValidarEmail";
 import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
@@ -25,14 +24,14 @@ import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
-import Formato from "../../helpers/Formato";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
-  AFILIADO_REACTIVADO,
-  AFILIADO_BAJA,
+  //AFILIADO_REACTIVADO,
+  //AFILIADO_BAJA,
   AFILIADO_SOLICITUDRESUELTA,
   AFILIADO_DATOSAFIPACTUALIZADO,
+  AFILIADO_AGREGADO_ACTIVO,
 } from "../../helpers/Mensajes";
 import ResolverSolicitud from "./ResolverSolicitud/ResolverSolicitud";
 import TabEmpleador from "./TabEmpleador/TabEmpleador";
@@ -308,10 +307,10 @@ const AfiliadoAgregar = (props) => {
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] =
     useState(false);
-  const [
-    resolverSolicitudAfiliadoResponse,
-    setResolverSolicitudAfiliadoResponse,
-  ] = useState(0);
+  // const [
+  //   resolverSolicitudAfiliadoResponse,
+  //   setResolverSolicitudAfiliadoResponse,
+  // ] = useState(0);
   const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
   const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] =
     useState(moment(new Date()).format("yyyy-MM-DD"));
@@ -360,7 +359,7 @@ const AfiliadoAgregar = (props) => {
   const [telefonoEmpresa, setTelefonoEmpresa] = useState("");
   const [correoEmpresa, setCorreoEmpresa] = useState("");
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
-  const [empresaId, setEmpresaId] = useState(0);
+  //const [empresaId, setEmpresaId] = useState(0);
   //#endregion
 
   //#region manejo de validaciones
@@ -535,19 +534,20 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Manejo de notificaciones y alert
-  useEffect(() => {
-    const identifier = setTimeout(() => {
-      //console.log("checking showAlert...", showAlert);
-      if (resolverSolicitudAfiliadoResponse) {
-        handleCerrarModal();
-      }
-    }, 5000);
+  // useEffect(() => {
+  //   const identifier = setTimeout(() => {
+  //     //console.log("checking showAlert...", showAlert);
+  //     if (resolverSolicitudAfiliadoResponse) {
+  //       //handleCerrarModal();
+  //       props.onClose(resolverSolicitudAfiliadoResponse === 0 ? false : true);
+  //     }
+  //   }, 5000);
 
-    return () => {
-      clearTimeout(identifier);
-      console.log("alert");
-    };
-  }, [resolverSolicitudAfiliadoResponse]);
+  //   return () => {
+  //     clearTimeout(identifier);
+  //     console.log("alert");
+  //   };
+  // }, [resolverSolicitudAfiliadoResponse]);
 
   //#endregion
 
@@ -653,6 +653,7 @@ const AfiliadoAgregar = (props) => {
           );
           console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
+          setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
         } else if (afiliadoObj.estadoSolicitudId === 4) {
           const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
             (estado) =>
@@ -660,6 +661,7 @@ const AfiliadoAgregar = (props) => {
           );
           console.log("estados", estadosSolicitudesObservado);
           setEstadosSolicitudes(estadosSolicitudesObservado);
+          setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
         }
 
         //alert
@@ -691,7 +693,7 @@ const AfiliadoAgregar = (props) => {
       const processGetEmpresa = async (empresaObj) => {
         //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
-        setEmpresaId(empresaObj.id);
+        //setEmpresaId(empresaObj.id);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -1074,16 +1076,17 @@ const AfiliadoAgregar = (props) => {
           agregarDocumentacionAfiliado
         );
 
-        setNuevoAfiliadoResponse(afiliadoResponseObj);
-        setDialogTexto(AFILIADO_AGREGADO);
+        setNuevoAfiliadoResponse(afiliadoResponseObj);        
         setOpenDialog(true);
 
         //Si se incorpora automaticamente
         if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
-          setResolverSolicitudAfiliadoResponse(1);
+          //setResolverSolicitudAfiliadoResponse(1);
+          setDialogTexto(AFILIADO_AGREGADO_ACTIVO);
         }
         //pasa a resolver solicitud
         else {
+          setDialogTexto(AFILIADO_AGREGADO);
           const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
             (estado) =>
               estado.label === "Pendiente" ||
@@ -1172,6 +1175,11 @@ const AfiliadoAgregar = (props) => {
         op: "replace",
         value: resolverSolicitudObs,
       },
+      {
+        path: "FechaEgreso",
+        op: "replace",
+        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+      },
     ];
 
     const resolverSolicitudAfiliado = async (
@@ -1188,7 +1196,7 @@ const AfiliadoAgregar = (props) => {
           `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
         );
         setOpenDialog(true);
-        setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
+        //setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
         if (+estadoSolicitudResolver === 2) {
           setShowImprimirLiquidacion(true);
         }
@@ -1520,8 +1528,8 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handle Close
-  const handleCerrarModal = () => {
-    props.onClose(nuevoAfiliadoResponse === 0 ? false : true);
+  const handleCerrarModal = (refresh) => {
+    props.onClose(refresh ?? false);
   };
   //#endregion
 
@@ -1787,9 +1795,10 @@ const AfiliadoAgregar = (props) => {
     setOpenDialog(false);
     if (
       dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
-      dialogTexto === AFILIADO_ACTUALIZADO
+      dialogTexto === AFILIADO_ACTUALIZADO ||
+      dialogTexto === AFILIADO_AGREGADO_ACTIVO
     ) {
-      handleCerrarModal();
+      handleCerrarModal(true);
     }
   };
   //#endregion
