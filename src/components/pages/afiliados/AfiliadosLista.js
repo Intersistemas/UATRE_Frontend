@@ -332,8 +332,7 @@ const AfiliadosLista = (props) => {
   ]
 
   //manejo la seleccion de cualquier registro de cualquiera de los TABs de AfiliadosLista
-  const rowEvents  = (row) => {
-  console.log('Afiliado_Seleccionado**:',row);
+  const rowEvents  = (row, isSelect) => {
   setRowSelectedIndex([row.id]);
    switch(selectedTab){
      case 0:
@@ -342,7 +341,7 @@ const AfiliadosLista = (props) => {
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
-          console.log('DDJJ Seleccionada**:',row)
+        
           setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
@@ -354,7 +353,7 @@ const AfiliadosLista = (props) => {
 };
 
   const fetchEmpresa = (cuit,tab) => {
-    console.log('fetchEmpresa:',cuit)
+   
 		if ((cuit ?? 0) == 0) {
 			setEmpresaSeleccionada(null);
 			return;
@@ -366,7 +365,7 @@ const AfiliadosLista = (props) => {
 				method: "GET",
 			},
         async (response) => {
-        console.log('GetEmpresa',response);
+        
         setEmpresaSeleccionada(response)
         
        if (tab === 'Afiliados'){
