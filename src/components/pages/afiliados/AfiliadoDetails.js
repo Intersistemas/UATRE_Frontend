@@ -47,17 +47,17 @@ const AfiliadoDetails = (props) => {
 								Datos AFIP:
 							</Grid>
 						</Grid>
-						<Grid style={{ padding: "0rem 2rem"}}>
+						<Grid style={{ padding: "0rem 1rem"}}>
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL"  value={Formato.Cuit(data.afipcuil) ?? " "} /> 													
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Tipo y Nro. Documento" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? " "}`}/*{data.afipNumeroDocumento ?? " "}*/ />
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nombre Real" value={data.afipApellido ?? " "} /*{data.afipNombre ?? " "} */ />
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Tipo Clave" value={data.afipTipoClave ?? " "} />	
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Clave" value={data.afipEstadoClave ?? " "} />							
-							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha Fallecimiento" value={data.afipFechaFallecimiento ?? " "} />
+							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha Fallecimiento" value={ data.afipFechaFallecimiento=="0001-01-01T00:00:00" ? " " : data.afipFechaFallecimiento ?? " " } />
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad Principal" value={data.afipActividadPrincipal ?? " "}/>
 						</Grid>
 						
-						<Grid style={{ padding: "0rem 2rem"}}>
+						<Grid style={{ padding: "0rem 1rem"}}>
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Periodo Actividad" value={data.afipPeriodoActividadPrincipal ?? " "}/>
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Dirección" value={data.afipDomicilioDireccion ?? " "}/>	
 							<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Localidad" value={data.afipDomicilioLocalidad ?? " "}/>
@@ -89,9 +89,9 @@ const AfiliadoDetails = (props) => {
 					  </Grid>
 				  </Grid>
 
-				  <Grid style={{ padding: "0rem 2rem"}}>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIT" value={empresa.cuit ? Formato.Cuit(empresa.cuit) : " "} />
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
+				  <Grid style={{ padding: "0rem 1rem"}}>
+						<InputMaterial padding="0rem 0.5rem"  width= "90"  variant="standard" size="small" label="CUIT" value={empresa.cuit ? Formato.Cuit(empresa.cuit) : " "} />
+						<InputMaterial padding="0rem 0.5rem"  width= "150" variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Localidad" value={empresa.localidad ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Provincia" value={empresa.provincia ?? " "}/>	
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? " "}/>							
@@ -101,18 +101,18 @@ const AfiliadoDetails = (props) => {
 				 	</Grid>
   
 
-					<Grid style={{ padding: "0rem 2rem"}}>
+					<Grid style={{ padding: "0rem 1rem"}}>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Zona" value={ddjj.zona ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Zona" value={ddjj.zona ?? " "} />
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Zona" value={ddjj.zonaDescripcion ?? " "} />
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Mod.Contratación" value={ddjj.modalidad ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Modalidad de Contratación" value={ddjj.modalidad ?? " "}/>	
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Modalidad de Contratación" value={ddjj.modalidadDescripcion ?? " "}/>	
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Actividad" value={ddjj.actividad ?? " "}/>							
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={ddjj.actividad ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={ddjj.actividadDescripcion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Cond.CUIL" value={ddjj.cuilCondicion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
 					</Grid>
 
-					<Grid style={{ padding: "0rem 2rem"}}>
+					<Grid style={{ padding: "0rem 1rem"}}>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={" "} />
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod ?? " "}/>

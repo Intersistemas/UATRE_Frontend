@@ -93,7 +93,7 @@ const AfiliadosLista = (props) => {
       text: "Nro.Afil.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "6%", textAlign: "center" };
+        return { width: "7rem", textAlign: "center" };
       },
     },
     {
@@ -515,6 +515,7 @@ const AfiliadosLista = (props) => {
               cuil={afiliadoSeleccionado.cuil}
               infoCompleta={true}
               onSeleccionRegistro={rowEvents}
+              onDeclaracionesGeneradas={null}
             />        
           )}
           {selectedTab === 2 && (
