@@ -11,12 +11,15 @@ import paginationFactory from "react-bootstrap-table2-paginator";
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
+  const [idPrimerRegistroDelGrid, setIdPrimerRegistroDelGrid] = useState(0);
   const { cuil, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
 
   useEffect(() => {
     if (cuil > 0) {
 
       const processDDJJUatre = async (ddJJUatreObj) => {
+        setIdPrimerRegistroDelGrid(ddJJUatreObj[0]?.id ?? 0);
+        props.onSeleccionRegistro(ddJJUatreObj[0]);
         setDDJJUatreList(ddJJUatreObj);
         props.onDeclaracionesGeneradas&&props.onDeclaracionesGeneradas(ddJJUatreObj.data);
       };
@@ -39,7 +42,6 @@ const DeclaracionesJuradas = (props) => {
         text: "id",
         hidden: true
       },
-
       {
         dataField: "cuit",
         text: "CUIT",
@@ -76,21 +78,6 @@ const DeclaracionesJuradas = (props) => {
         text: "F.Proceso",
         formatter: FormatearFecha,
       },
-      // {
-      //   dataField: "remuneracionImponible",
-      //   text: "Remuneración Imponible",
-      //   hidden: true
-      // },
-      // {
-      //   dataField: "segurosepelio",
-      //   text: "Seguro Sepelio",
-      //   hidden: true,
-      //   formatter: (cell,row) => {
-      //     return (
-      //       <span>$ {Math.floor(row.periodo/50)}</span>
-      //     );
-      //   }
-      // },
       {
         dataField: "rectificativa",
         text: "Versión",
@@ -148,7 +135,7 @@ const DeclaracionesJuradas = (props) => {
   }
 
   const selectRow = {
-   
+    
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
@@ -156,7 +143,9 @@ const DeclaracionesJuradas = (props) => {
       backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
-    }
+    },
+    onSelect: (row, isSelect, rowIndex, e) => props.onSeleccionRegistro(row, isSelect, rowIndex, e),
+    selected: [idPrimerRegistroDelGrid],
   };
   
 
@@ -164,6 +153,7 @@ const DeclaracionesJuradas = (props) => {
     onClick: (e, row, rowIndex) => {
       //console.log(`row: ${row.cuit}`);
       props.onSeleccionRegistro(row);
+      setIdPrimerRegistroDelGrid(row.id);
     },
   };
 
@@ -173,14 +163,14 @@ const DeclaracionesJuradas = (props) => {
         size: registros,
       };
   }  
-  console.log("registros", registros);
+
   let tableProps = {
     mostrarBuscar: mostrarBuscar ?? true,
     promptBuscar: "Buscar en DDJJ:",
     keyField: "id",
     data: ddJJUatreList,
     columns: columns,
-    selectRow: selectRow,
+    //selectRow: selectRow,
     selection: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
@@ -188,7 +178,7 @@ const DeclaracionesJuradas = (props) => {
       <h4>No existen DDJJ relacionadas al Afiliado seleccionado.</h4>
     ),
     overlay: overlayFactory({ spinner: true }),
-    onSelected: props.onSeleccionRegistro,
+    //onSelected: props.onSeleccionRegistro,
     pagination: pagination,
   };
 
