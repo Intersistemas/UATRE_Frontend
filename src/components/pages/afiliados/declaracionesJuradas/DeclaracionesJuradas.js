@@ -14,12 +14,11 @@ const DeclaracionesJuradas = (props) => {
   const { cuil, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
 
   useEffect(() => {
-    //console.log("registros ddJJUatreObj",registros)
     if (cuil > 0) {
 
       const processDDJJUatre = async (ddJJUatreObj) => {
-        setDDJJUatreList(ddJJUatreObj.data);
-        props.onDeclaracionesGeneradas(ddJJUatreObj.data);
+        setDDJJUatreList(ddJJUatreObj);
+        props.onDeclaracionesGeneradas&&props.onDeclaracionesGeneradas(ddJJUatreObj.data);
       };
       request(
         {
@@ -124,7 +123,6 @@ const DeclaracionesJuradas = (props) => {
           row.condicionRural == "RU" ? value :
           " "
         ),
-        //"condicionRural": "RU"
       },
     ];
   } else {

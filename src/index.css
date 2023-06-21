@@ -92,3 +92,7 @@ main{
       height: auto;
       position: fixed;
 }
+
+#menu- >[tabindex="-1"]{
+  margin: -1rem 0rem 0rem -8rem;
+}

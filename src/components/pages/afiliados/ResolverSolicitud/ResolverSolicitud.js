@@ -22,6 +22,7 @@ const ResolverSolicitud = (props) => {
           <DeclaracionesJuradas
             cuil={props.cuilState.value}
             //onSeleccionRegistro={handleSeleccionDDJJ}
+            onDeclaracionesGeneradas={null}
             infoCompleta={true}
             mostrarBuscar={false}
             registros={1}
