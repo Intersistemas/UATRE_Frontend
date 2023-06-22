@@ -5,7 +5,6 @@ const InputMaterial = (props) => {
   //Validaciones
   
   const handleChange = (event) => { 
-    //console.log("event", event)   
     switch (props.id) {
       case "cuil":   
       var reCUIL = /^[0-9\b]+$/;     
@@ -21,9 +20,10 @@ const InputMaterial = (props) => {
         }
         break;
 
-      case "numeroDocumento":
-        const reNumeroDoc = /^[0-9\b]+$/;
-        if (event.target.value === "" || reNumeroDoc.test(event.target.value)) {
+      case "numeroDocumento": 
+      case "telefono":
+        const reNumero = /^[0-9\b]+$/;
+        if (event.target.value === "" || reNumero.test(event.target.value)) {
           props.onChange(event.target.value, props.id);
         }
         break;
@@ -34,9 +34,9 @@ const InputMaterial = (props) => {
     }
   };
 
-  const handleOnFocus = (event) => {
-    props.onFocus(props.id);
-  };
+  // const handleOnFocus = (event) => {
+  //   props.onFocus(props.id);
+  // };
 
   const shrink = props.type === "date" || props.value !== '' ? true : false  
   //console.log("helperText", props.helperText)
@@ -67,7 +67,7 @@ const InputMaterial = (props) => {
           shrink: shrink,
         }}
         InputProps={{
-          readOnly: props.readOnly || false,
+          readOnly: props.readOnly || false,          
         }}
         helperText={props.helperText ?? ""}
         FormHelperTextProps={{ style: { marginTop: "0px" } }}

@@ -38,6 +38,7 @@ import TabEmpleador from "./TabEmpleador/TabEmpleador";
 import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
+import DatePickerMaterial from "../../ui/Input/DatePickerMaterial";
 
 //#region Reducers
 const cuilReducer = (state, action) => {
@@ -91,63 +92,86 @@ const nacionalidadReducer = (state, action) => {
     };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
-const fechaNacimientoReducer = (state, action) => {
+const fechaNacimientoReducer = (state, action) => {  
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return { value: action.value, isValid: action.value !== "" ? true : false };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return { value: state.value, isValid: state.value !== "" ? true : false };
   }
   return { value: "", isValid: false };
 };
 
 const estadoCivilReducer = (state, action) => {
+  console.log("ESTADO CIVIL reducer: ", action.value);
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const sexoReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const tipoDocumentoReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
-  }
-  if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
-  }
-  return { value: "", isValid: false };
-};
-
-const numeroDocumentoReducer = (state, action) => {
-  console.log("documento", action.value);
-  if (action.type === "USER_INPUT") {
     return {
       value: action.value,
-      isValid: action.value.length > 0 || action.value !== 0 ? true : false,
+      isValid: action.value !== "" ? true : false,
     };
   }
   if (action.type === "USER_BLUR") {
     return {
       value: state.value,
-      isValid: action.value.length > 0 || action.value !== 0 ? true : false,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const numeroDocumentoReducer = (state, action) => {
+  console.log("action.value.length", action.value);
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
     };
   }
   return { value: "", isValid: false };
@@ -155,60 +179,96 @@ const numeroDocumentoReducer = (state, action) => {
 
 const domicilioReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value.length > 0 ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value.length > 0 ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const provinciaReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const localidadReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const seccionalReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const puestoReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
 
 const actividadReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value ? true : false };
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value ? true : false };
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
@@ -246,9 +306,11 @@ const AfiliadoAgregar = (props) => {
 
   //#region Texto completar campos
   const TextCompletarCampos = () => {
+    console.log("texto dialog estadocivil", estadoCivilState.isValid);
     setDialogTexto(`Se debe completar todos los campos:\n
       ${!cuilState.isValid ? "*CUIL\n" : ""}
       ${!nombreState.isValid ? "*Nombre\n" : ""}
+      ${!fechaNacimientoState.isValid ? "*Fecha de Nacimiento\n" : ""}
       ${!numeroDocumentoState.isValid ? "*Numero Documento\n" : ""}
       ${!estadoCivilState.isValid ? "*Estado Civil\n" : ""}
       ${!sexoState.isValid ? "*Género\n" : ""}
@@ -296,7 +358,7 @@ const AfiliadoAgregar = (props) => {
       return;
     }
 
-    console.log("dialogTexto", dialogTexto);
+    //console.log("dialogTexto", dialogTexto);
     if (dialogTexto !== "") {
       setOpenDialog(true);
     }
@@ -466,9 +528,23 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //setAfiliadoExiste(false);
-      setFormularioIsValid(false);
-      console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid);
+      //setAfiliadoExiste(false);      
+      // console.log("cuilState.isValid", cuilState.isValid);
+      // console.log("nombreState.isValid", nombreState.isValid);
+      // console.log("nacionalidadState.isValid", nacionalidadState.isValid);
+      // console.log("estadoCivilState.isValid", estadoCivilState.isValid);
+      // console.log("fechaNacimiento.isValid", fechaNacimientoState.isValid);
+      // console.log("sexoState.isValid", sexoState.isValid);
+      // console.log("tipoDocumentoState.isValid", tipoDocumentoState.isValid);
+      // console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid);
+      // console.log("domicilioState.isValid", domicilioState.isValid);
+      // console.log("provinciaState.isValid", provinciaState.isValid);
+
+      // console.log("localidadState.isValid", localidadState.isValid);
+      // console.log("seccionalState.isValid", seccionalState.isValid);
+      // console.log("puestoState.isValid", puestoState.isValid);
+      // console.log("actividadState.isValid", actividadState.isValid);
+      //console.log("emailState.isValid", emailState.isValid);
 
       if (
         cuilState.isValid &&
@@ -484,10 +560,12 @@ const AfiliadoAgregar = (props) => {
         localidadState.isValid &&
         seccionalState.isValid &&
         puestoState.isValid &&
-        actividadState.isValid &&
-        (emailState.value !== "" ? emailState.isValid : true)
+        actividadState.isValid        
       ) {
-        setFormularioIsValid(true);
+        setFormularioIsValid(true);        
+      }
+      else {
+        setFormularioIsValid(false);
       }
     }, 400);
 
@@ -496,22 +574,20 @@ const AfiliadoAgregar = (props) => {
       //console.log("cleanup");
     };
   }, [
-    cuilState.isValid,
-    nombreState.isValid,
-    estadoCivilState.isValid,
-    sexoState.isValid,
-    tipoDocumentoState.isValid,
-    numeroDocumentoState.isValid,
-    domicilioState.isValid,
-    provinciaState.isValid,
-    localidadState.isValid,
-    seccionalState.isValid,
-    puestoState.isValid,
-    actividadState.isValid,
-    emailState.isValid,
-    fechaNacimientoState.isValid,
-    nacionalidadState.isValid,
-    emailState,
+    cuilState,
+    nombreState,
+    estadoCivilState,
+    sexoState,
+    tipoDocumentoState,
+    numeroDocumentoState,
+    domicilioState,
+    provinciaState,
+    localidadState,
+    seccionalState,
+    puestoState,
+    actividadState,
+    fechaNacimientoState,
+    nacionalidadState,
   ]);
 
   useEffect(() => {
@@ -600,7 +676,7 @@ const AfiliadoAgregar = (props) => {
         });
         dispatchSeccional({
           type: "USER_INPUT",
-          value: afiliadoObj.seccionalId === 0 ? "" : afiliadoObj.seccionalId,
+          value: afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.seccionalId,
         });
         dispatchEstadoCivil({
           type: "USER_INPUT",
@@ -626,14 +702,13 @@ const AfiliadoAgregar = (props) => {
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
-          value: moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD"),
+          value: afiliadoObj.fechaNacimiento !== null ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD") : "",
         });
-        console.log("afiliadoObj.documento", afiliadoObj.documento);
         dispatchNumeroDocumento({
           type: "USER_INPUT",
           value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
         });
-        dispatchDomicilio({ type: "USER_INPUT", value: afiliadoObj.domicilio });
+        dispatchDomicilio({ type: "USER_INPUT", value: afiliadoObj.domicilio ?? "" });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
         //datos empleador
@@ -651,7 +726,7 @@ const AfiliadoAgregar = (props) => {
               estado.label === "Observado" ||
               estado.label === "Rechazado"
           );
-          console.log("estados", estadosSolicitudesPendientes);
+          //console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
           setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
         } else if (afiliadoObj.estadoSolicitudId === 4) {
@@ -659,7 +734,7 @@ const AfiliadoAgregar = (props) => {
             (estado) =>
               estado.label === "Observado" || estado.label === "Rechazado"
           );
-          console.log("estados", estadosSolicitudesObservado);
+          //console.log("estados", estadosSolicitudesObservado);
           setEstadosSolicitudes(estadosSolicitudesObservado);
           setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
         }
@@ -1462,6 +1537,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "telefono":
+        dispatchTelefono({ type: "USER_INPUT", value })
         break;
 
       case "correo":
@@ -1680,10 +1756,11 @@ const AfiliadoAgregar = (props) => {
     const afiliadoModificado = {
       id: nuevoAfiliadoResponse,
       cuil: +cuilState.value,
+      nroAfiliado: +afiliado.nroAfiliado,
       nombre: nombreState.value,
       puestoId: +puestoState.value,
-      fechaIngreso: null,
-      fechaEgreso: null,
+      fechaIngreso: afiliado.fechaIngreso,
+      fechaEgreso: afiliado.fechaEgreso,
       nacionalidadId: +nacionalidadState.value,
       //empresaCUIT: +cuitEmpresa,
       seccionalId: +seccionalState.value,
@@ -1691,7 +1768,8 @@ const AfiliadoAgregar = (props) => {
       tipoDocumentoId: +tipoDocumentoState.value,
       documento: +numeroDocumentoState.value,
       actividadId: +actividadState.value,
-      estadoSolicitudId: +estadoSolicitudResolver,
+      estadoSolicitudId: +afiliado.estadoSolicitudId,
+      estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
       estadoCivilId: +estadoCivilState.value,
       refLocalidadId: +localidadState.value,
       domicilio: domicilioState.value,
@@ -1793,6 +1871,7 @@ const AfiliadoAgregar = (props) => {
   //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setDialogTexto("")
     if (
       dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
       dialogTexto === AFILIADO_ACTUALIZADO ||
@@ -1971,7 +2050,7 @@ const AfiliadoAgregar = (props) => {
                       ? true
                       : false
                   }
-                />
+                />             
               </div>
               <div className={classes.input25}>
                 <SelectMaterial
