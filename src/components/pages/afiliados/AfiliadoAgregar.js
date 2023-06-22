@@ -1045,36 +1045,45 @@ const AfiliadoAgregar = (props) => {
 
       console.log("POST", nuevoAfiliado);
       const afiliadoAgregar = async (afiliadoResponseObj) => {
-        console.log("afiliadosObj", afiliadoResponseObj);
+        // console.log({
+				// 	afiliadosObj: afiliadoResponseObj,
+				// 	documentacionList: documentacionList,
+				// });
 
         // Envío documentación enlazada al nuevo afiliado
-        let body;
-        const agregarDocumentacionAfiliado = async (afiliadoResponseObj) => {
-          documentacionList?.data?.forEach((doc) => {
-            if (!doc.refTipoDocumentacionId) return;
-            if (!doc.archivoBase64) return;
-            body = {
-              entidadTipo: "A",
-              entidadId: afiliadoResponseObj,
-              refTipoDocumentacionId: doc.refTipoDocumentacionId,
-              archivo: doc.archivoBase64,
-              observaciones: doc.observaciones,
-            };
-          });
-        };
+				documentacionList?.data?.forEach((doc) => {
+					if (!doc.refTipoDocumentacionId) return;
+					if (!doc.archivoBase64) return;
+					const body = {
+						entidadTipo: "A",
+						entidadId: afiliadoResponseObj,
+						refTipoDocumentacionId: doc.refTipoDocumentacionId,
+						archivo: doc.archivoBase64,
+						observaciones: doc.observaciones,
+					};
 
-        request(
-          {
-            baseURL: "Comunes",
-            endpoint: `/DocumentacionEntidad`,
-            method: "POST",
-            body: body,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-          agregarDocumentacionAfiliado
-        );
+					request(
+						{
+							baseURL: "Comunes",
+							endpoint: `/DocumentacionEntidad`,
+							method: "POST",
+							body: body,
+							headers: {
+								"Content-Type": "application/json",
+							},
+						},
+						async (res) =>
+							console.log({
+								"[Comunes/DocumentacionEntidad] POST OK": body,
+								res: res,
+							}),
+						async (err) =>
+							console.log({
+								"[Comunes/DocumentacionEntidad] POST Error": body,
+								err: err,
+							})
+					);
+				});
 
         setNuevoAfiliadoResponse(afiliadoResponseObj);        
         setOpenDialog(true);
