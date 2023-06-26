@@ -1614,7 +1614,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle Close
   const handleCerrarModal = (refresh) => {
-    props.onClose(refresh ?? false);
+    console.log('nuevoAfiliadoResponse*',nuevoAfiliadoResponse)
+    props.onClose(nuevoAfiliadoResponse ?? false); //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
   };
   //#endregion
 
