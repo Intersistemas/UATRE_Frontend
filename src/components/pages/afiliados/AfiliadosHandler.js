@@ -27,6 +27,7 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState({});
+  const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
   const [primerRegistroDelGrid, setPrimerRegistroDelGrid] = useState({});
   const moduloInfoDefoult = {
@@ -134,16 +135,15 @@ const AfiliadosHandler = () => {
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
       console.log("afiliadosObj", afiliadosObj);
-      setPrimerRegistroDelGrid(afiliadosObj.data[0]);
+      const cantRegPerPage = (afiliadosObj.data.length-1) ?? 0
+      setPrimerRegistroDelGrid(page == totalPageIndex ? afiliadosObj.data[cantRegPerPage] : afiliadosObj.data[0]);
       setAfiliadoSeleccionado(afiliadosObj.data[0]);
+      setTotalPageIndex(afiliadosObj.pages);
       setAfiliadosRespuesta(afiliadosObj);
       if (refresh) setRefresh(false);
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
-
-    console.log("sortColumn", sortColumn);
-
     if (estadoSolicitud > 0) {
       //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
       endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
@@ -270,9 +270,13 @@ const AfiliadosHandler = () => {
     alert("Funcionalidad en desarrollo");
   };
 
-  const onCloseAfiliadoAgregarHandler = (refresh) => {
+  const onCloseAfiliadoAgregarHandler = (idAgregado) => {
     setAfiliadoAgregarShow(false);
-    //if (refresh === true) setRefresh(true);
+    //console.log('idAgregado',idAgregado);
+    if (idAgregado){
+      setPage(totalPageIndex); //seteo el indice en la ultima pagina (para que vaya a la ultima pagina de la grilla)
+      //setRefresh(true);
+    } 
   };
 
   const onClosePantallaEnDesarrolloHandler = () => {
@@ -292,7 +296,6 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilter = (select, entry) => {
-    console.log("select,entry", select, entry);
     if (filter != entry){
       handlePageChange(1,12)
       console.log("Filter",Filter)
@@ -315,12 +318,10 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilterChange = (filters) => {
-    //console.log("value", filters.estadoSolicitud.filterVal);
     setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 
   const handleOnAfiliadoSeleccionado = (afiliado) => {
-    //console.log("Afiliado seleccionado", afiliado.cuil)
     setAfiliadoSeleccionado(afiliado);
   };
 
@@ -330,8 +331,6 @@ const AfiliadosHandler = () => {
   /*if (error) {
     return <h1>{error}</h1>;
   }*/
-  //console.log("Afiliado seleccionado", afiliadoSeleccionado);
-  //console.log("pantallaEnDesarrolloShow", pantallaEnDesarrolloShow);
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>
@@ -353,6 +352,7 @@ const AfiliadosHandler = () => {
             estadosSolicitudes={estadosSolicitudes}
             accion={accionSeleccionada}
             cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
+
           />
         )}
 

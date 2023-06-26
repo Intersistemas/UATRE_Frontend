@@ -151,10 +151,10 @@ const AfiliadosLista = (props ) => {
             return (<div
               style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
               >{cell}</div>)
-          case "Observado":
+          /*case "Observado":
             return (<div
               style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
-              >{cell}</div>)
+              >{cell}</div>)*/
           case "Rechazado":
             return (<div
               style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
