@@ -29,6 +29,7 @@ const SelectMaterial = (props) => {
       <Select
         className={styles.select}
         //className={styles.select}
+        style={{...props.style}}
         labelId={props.label + "-label"}
         name={props.name}
         label={props.label}

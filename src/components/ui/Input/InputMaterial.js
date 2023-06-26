@@ -57,7 +57,7 @@ const InputMaterial = (props) => {
         value={props.value || ""}
         onChange={handleChange}
         disabled={props.disabled}
-        style={{
+        style={{...props.style,
           width: props.width != null ? `${props.width}%` : "100%",
           padding: `${props.padding}`,
         }}

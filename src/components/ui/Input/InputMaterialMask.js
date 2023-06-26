@@ -71,8 +71,8 @@ const InputMaterialMask = (props) => {
         className={styles.input}
         value={props.value || ""}
         onChange={handleChange}
-        disabled={props.disabled}
-        style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+        disabled={props.disabled} 
+        style={{...props.style, width: props.width != null ? `${props.width}%` : "100%" }}
         type={props.type || "text"}
         inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
         InputLabelProps={{
