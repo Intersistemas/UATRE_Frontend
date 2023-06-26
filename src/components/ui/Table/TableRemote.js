@@ -25,20 +25,15 @@ const TableRemote = (props) => {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
-    selected: props.rowSelectedIndex ?? null,
+    selected: [props.primerRegistroDelGrid.id] ?? null,
     style: {
       backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
-    }
-  };
-
-  const rowEvents = {
-    onClick: (e, row) => {
-      props.onSelected(row);
     },
+    onSelect: (row, isSelect, rowIndex, e) => props.onSelected(row, isSelect, rowIndex, e),
+	  //onSelectAll: (isSelect, rows, e) => {},
   };
-
 
   const rowStyle = (row, cell) => {
     //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
@@ -115,9 +110,10 @@ const TableRemote = (props) => {
         >Buscar</Button>
         <Button
               className="botonBorder"
-              width={70}
+              //width={70}
+              style={{'min-width': 'fit-content'}}
               onClick={()=>accionLimpiarFiltros()}
-        >Limpiar</Button>
+        >Limpiar Busqueda</Button>
       </Box>
     
       }
@@ -138,7 +134,7 @@ const TableRemote = (props) => {
           noDataIndication={
             props.noDataIndication ?? "No existen datos para mostrar"
           }
-          rowEvents = {rowEvents}
+          //rowEvents = {rowEvents} //No es necesario a menos que se declare algo especial en rowEvents
           defaultSorted={props.defaultSorted ?? false}
           //defaultSortDirection={props.defaultSortDirection}
           overlay = {props.overlay}

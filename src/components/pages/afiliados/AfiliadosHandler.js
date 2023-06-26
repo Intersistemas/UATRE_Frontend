@@ -26,8 +26,9 @@ const AfiliadosHandler = () => {
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState({});
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
+  const [primerRegistroDelGrid, setPrimerRegistroDelGrid] = useState({});
   const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
@@ -133,6 +134,8 @@ const AfiliadosHandler = () => {
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
       console.log("afiliadosObj", afiliadosObj);
+      setPrimerRegistroDelGrid(afiliadosObj.data[0]);
+      setAfiliadoSeleccionado(afiliadosObj.data[0]);
       setAfiliadosRespuesta(afiliadosObj);
       if (refresh) setRefresh(false);
     };
@@ -191,7 +194,7 @@ const AfiliadosHandler = () => {
         }
       );
       const estadosSolicitudesOptions = estadosSolicitudesTable.filter(
-        (estado) => estado.label !== "Sin Asignar"
+        (estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado"
       );
 
       estadosSolicitudesOptions.push({ value: 0, label: "Todos" });
@@ -365,6 +368,8 @@ const AfiliadosHandler = () => {
           onSizePerPageChange={handleSizePerPageChange}
           onFilterChange={handleFilterChange}
           onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
+          primerRegistroDelGrid={primerRegistroDelGrid}
+          setPrimerRegistroDelGrid={setPrimerRegistroDelGrid}
         />
       </Fragment>
     );

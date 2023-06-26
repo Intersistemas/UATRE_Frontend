@@ -18,6 +18,7 @@ const useStyles = styled((theme) => ({
   }));
 
 const AfiliadoDetails = (props) => {
+	console.log('props.config**',props.config);
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
