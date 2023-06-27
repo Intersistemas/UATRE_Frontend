@@ -98,14 +98,16 @@ border: 1.5px solid rgb(53, 149, 210);
     background-size: 50%,100%;
     background-repeat: no-repeat;
     background-position-x: right;
-    background-image: url(./media/titulo_sol.png), linear-gradient(to right, rgb(255 255 255), rgb(24 96 144 / 50%), rgb(19 75 112));
-    font-family: fantasy;
+    background-image: url(./media/titulo_sol.png), linear-gradient(to right, rgb(255 255 255), rgb(24 96 144 / 50%), var(--color1));
+    font-family: var(--fuente);
     text-transform: uppercase;
     align-self: flex-start;
     width: 100%;
     color: var(--color1);
     padding: 4rem 0rem 0rem 0rem;
     text-shadow: 3px 3px 5px white;
+    font-weight: bold !important;
+    font-size: 2rem !important;
 }
 
 
@@ -114,7 +116,7 @@ border: 1.5px solid rgb(53, 149, 210);
     /*background-color: rgb(255 255 255 / 90%);*/
     margin: 0%;
 	  text-align: left;
-    color: #186090;
+    color: var(--color1);
     margin-top: 3%;
 }
 
@@ -134,33 +136,69 @@ border: 1.5px solid rgb(53, 149, 210);
   }
 }
 
-@media screen and (max-width: 1920px) {
-  .contenido,.titulo {
+@media (max-width: 1920px) {
+  .contenido,.titulo, .sidebar{
       zoom: 90%;
   }
 }
 
-@media screen and (max-width: 1370px) {
-  .contenido, .titulo{
+@media (max-width: 1366px) {
+  .contenido, .titulo, .sidebar{
       zoom: 70%;
   }
 }
 
-@media screen and (max-width: 800px) {
-  .contenido, .titulo{
+@media (max-width: 800px) {
+  .contenido, .titulo, .sidebar{
       zoom: 60%;
   }
 }
 
-.detalles_card{
-
-  /*text-align: right;*/
-}
-
+/*SE QUITA EL TEXTO/LABEL DE "FILTER BY"*/
 .filter-label span{
   display: none;
 }
 
-.Mui-selected{
-  background-color: var(--color3) !important;
+/*BACKGROUND DEL LABEL EN material*/
+  legend{
+    font-size: 0.99em !important;
+  }
+
+/*--TABS--*/
+/*TAB-DEFECTO*/
+[role="tab"]{
+  font-family: var(--fuente) !important;
+  font-size: inherit !important;
+  color: white !important;
+  font-weight: bold !important;
+  border: 1px solid white !important;
+  border-radius: 15px 15px 0px 0px !important;
+  background-color: var(--amarillo2) !important;
+  /*text-shadow: 0px 0px 14px white !important;*/
 }
+
+/*TAB-SELECCIONADO*/
+[aria-selected="true"]{
+  color: var(--color1) !important;
+  background-color: var(--amarillo1)!important;
+}
+
+/*TAB-HOVER/FOCUS*/
+[role="tab"]:hover{
+    color: white !important;
+    background-color: var(--color2) !important;
+}
+
+/*TAB-DESHABILITADO*/
+[role="tab"]:disabled{
+  color: var(--disableFont) !important;
+  background-color: var(--disableBack) !important;
+  font-weight: 600 !important;
+}
+
+.MuiTabs-indicator{
+  background-color: rgb(30, 89, 128);
+  height: 5%;
+  width: inherit;
+}
+

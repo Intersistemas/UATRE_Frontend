@@ -23,10 +23,13 @@ const SelectMaterial = (props) => {
       size="small"
       style={{ width: props.width != null ? `${props.width}%` : "100%" }}
       error={props.error ?? false}
+      
     >
       <InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
       <Select
-        //className={styles.selectJurisdiccion}
+        className={styles.select}
+        //className={styles.select}
+        style={{...props.style}}
         labelId={props.label + "-label"}
         name={props.name}
         label={props.label}

@@ -3,22 +3,14 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
 
 //import overlayFactory from "react-bootstrap-table2-overlay";
-import * as React from 'react';
-import BootstrapTable from "react-bootstrap-table-next";
-import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit';
-import paginationFactory, {
-  PaginationProvider,
-  SizePerPageDropdownStandalone,
-  PaginationListStandalone
-} from "react-bootstrap-table2-paginator";
+import React, { useEffect } from "react";
+import paginationFactory from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 
 import styles from "./AfiliadosLista.module.css";
-import Button from "../../ui/Button/Button";
 import AfiliadoDetails from './AfiliadoDetails';
 import filterFactory, {
-  textFilter,
   selectFilter,
   Comparator,
 } from "react-bootstrap-table2-filter";
@@ -31,63 +23,45 @@ import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
 import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
-import { Height } from "@mui/icons-material";
 import Seccional from "./seccional/Seccional";
 import useHttp from "../../hooks/useHttp";
 import { styled } from '@mui/material/styles';
 
-const { SearchBar } = Search;
 
-const AfiliadosLista = (props) => {
+const AfiliadosLista = (props ) => {
+
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(0);
-  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(props.primerRegistroDelGrid);
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [rowSelectedIndex, setRowSelectedIndex] = useState(null);
-  //const [selectFilter, setSelectFilter] = React.useState('');
-
-  const AndTabs = styled(Tabs)({
-    '.MuiTabs-flexContainer': {
-
-      alignItems: 'flex-end',
-    },
-  });
-  
-
+  const [rowSelectedIndex, setRowSelectedIndex] = useState([props.primerRegistroDelGrid.id]);
   const handleSelectFilter = async (select,entry) => {
     console.log('evento select y entry: ',select,entry);
     //BUSQUEDA Y FILTRO
-   
+
     switch (select){
       case 'CUIT':
         fetchEmpresa(entry,'Afiliados');
-        //.then((res) => props.onFilter("EmpresaId",empresaSeleccionada.id))')
         break;
       default: props.onFilter(select,entry);
       break;
     }
-  
-    //setSelectFilter(event.target.value);
 
   };
 
-
+  //llamo para que se refresquen los datos del primer registro seleccionado
+  useEffect(() => {
+    rowEvents(props.primerRegistroDelGrid);
+  }, [props.primerRegistroDelGrid]);
+  
   const afiliados = {
     data: props.afiliados.data,
     totalRegs: props.afiliados.count,
     page: props.afiliados.index,
     sizePerPage: props.afiliados.size,
   };
-
-
-  /*const defaultSorted = [
-    {
-      dataField: "nroAfiliado",
-      order: "asc"
-    }
-  ];*/
 
   const columns = [
     {
@@ -96,7 +70,7 @@ const AfiliadosLista = (props) => {
       text: "Nro.Afil.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "6%", textAlign: "center" };
+        return { width: "7rem", textAlign: "center" };
       },
     },
     {
@@ -105,7 +79,7 @@ const AfiliadosLista = (props) => {
       text: "CUIL",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
+        return { width: "10rem", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
@@ -126,6 +100,9 @@ const AfiliadosLista = (props) => {
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "20%", textAlign: "center" };
+      },
+      style: (colum, colIndex) => {
+        return { textAlign: "left" };
       },
     },
     {
@@ -170,26 +147,21 @@ const AfiliadosLista = (props) => {
             return (<div
               style={{backgroundColor: '#ffff64cc' }}
             >{cell}</div>)
-            break;
           case "No Activo": 
             return (<div
               style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
               >{cell}</div>)
-            break;
-          case "Observado":
+          /*case "Observado":
             return (<div
               style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
-              >{cell}</div>)
-            break;
+              >{cell}</div>)*/
           case "Rechazado":
             return (<div
               style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
               >{cell}</div>)
-            break;
           case "Activo":
               return (<div
-                >{cell}</div>)
-              break;  
+                >{cell}</div>) 
           default:  
             break;
         }        
@@ -269,7 +241,7 @@ const AfiliadosLista = (props) => {
       text: "CUIT",
       //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
+        return { width: "10rem", textAlign: "center" };
       },
       formatter: Formato.Cuit,
     },
@@ -294,7 +266,6 @@ const AfiliadosLista = (props) => {
     
   ];
   
-
   const selectores = [
     {
       dataField: "NroAfiliado",
@@ -320,10 +291,7 @@ const AfiliadosLista = (props) => {
     },{
       dataField: "FechaEgreso",
       text:"Fecha Egreso"
-    },
-
-    
-
+    }
   ]
 
   const columnsVacia = [
@@ -334,19 +302,18 @@ const AfiliadosLista = (props) => {
     }
   ]
 
-  
-  const rowEvents  = (row) => {
-  console.log('Afiliado_Seleccionado**:',row);
+  //manejo la seleccion de cualquier registro de cualquiera de los TABs de AfiliadosLista
+  const rowEvents  = (row, isSelect) => {
   setRowSelectedIndex([row.id]);
    switch(selectedTab){
      case 0:
-        //setRowSelectedIndex(null);
+        props.setPrimerRegistroDelGrid(row);
         setAfiliadoSeleccionado(row);
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
-          console.log('DDJJ Seleccionada:',row)
-          setddjjUatreSeleccionado(row);
+        
+         setddjjUatreSeleccionado(row);
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
@@ -356,9 +323,10 @@ const AfiliadosLista = (props) => {
    dispatch(handleAfiliadoSeleccionar(row));
 };
 
+
   const fetchEmpresa = (cuit,tab) => {
-    console.log('fetchEmpresa:',cuit)
-		if ((cuit ?? 0) == 0) {
+   
+		if ((cuit ?? 0) === 0) {
 			setEmpresaSeleccionada(null);
 			return;
 		}
@@ -369,7 +337,7 @@ const AfiliadosLista = (props) => {
 				method: "GET",
 			},
         async (response) => {
-        console.log('GetEmpresa',response);
+        
         setEmpresaSeleccionada(response)
         
        if (tab === 'Afiliados'){
@@ -408,7 +376,7 @@ const AfiliadosLista = (props) => {
       props.onPageChange(page, sizePerPage);
     },
     onSizePerPageChange: function (page, sizePerPage) {
-      props.onSizePerPageChange(sizePerPage, page);
+    props.onSizePerPageChange(sizePerPage, page);
     },
   });
 //#endregion 
@@ -435,9 +403,11 @@ const AfiliadosLista = (props) => {
       onTableChange: handleTableChange,
       filter: filterFactory(),
       noDataIndication: indication,
+      rowEvents: rowEvents,
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
       rowSelectedIndex: rowSelectedIndex,
+      primerRegistroDelGrid: props.primerRegistroDelGrid
   }
 
 
@@ -461,8 +431,8 @@ const AfiliadosLista = (props) => {
 
   return (
     <> 
-        <div  className='titulo'>
-          <h1>Afiliaciones</h1>  
+        <div>
+          <h1 className='titulo'>Afiliaciones</h1>  
         </div>
 
         <div className="contenido">
@@ -479,24 +449,23 @@ const AfiliadosLista = (props) => {
                   <Tab  
                    className={styles.tab}
                    style={{backgroundColor: "#186090"}}
-                   label= 'AFILIADOS'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
+                   label= 'AFILIADOS'
                   />
                   <Tab className={styles.tab}  
                     style={{backgroundColor: "#186090"}}        
-                    label= 'DDJJ UATRE'//{ afiliadoSeleccionado?.nombre ? `DDJJ UATRE ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "DDJJ UATRE"}
-                    //disabled={afiliadoSeleccionado?.cuil && afiliadoSeleccionado.estadoSolicitud === "Activo" ? false : true}
+                    label= 'DDJJ UATRE'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
                   
                   <Tab className={styles.tab}
                   style={{backgroundColor: "#186090"}}
-                    label= 'Documentación'//{ afiliadoSeleccionado?.nombre ? `Documentación de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Documentación"}
+                    label= 'Documentación'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
                   <Tab className={styles.tab}
                   style={{backgroundColor: "#186090"}}
-                    label= 'Cambios de Datos'//{ afiliadoSeleccionado?.nombre ? `Instancias de Cambios de Datos de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Instancias de Cambios de Datos"}
+                    label= 'Cambios de Datos'
                     disabled={afiliadoSeleccionado?.cuil ? false : true}
                   />
 
@@ -518,6 +487,7 @@ const AfiliadosLista = (props) => {
               cuil={afiliadoSeleccionado.cuil}
               infoCompleta={true}
               onSeleccionRegistro={rowEvents}
+              onDeclaracionesGeneradas={null}
             />        
           )}
           {selectedTab === 2 && (
@@ -532,7 +502,6 @@ const AfiliadosLista = (props) => {
           {selectedTab === 4 && (
             <Seccional
               localidadId={afiliadoSeleccionado.refLocalidadId}
-              //onSeleccionRegistro={rowEvents}
             />        
           )}
 

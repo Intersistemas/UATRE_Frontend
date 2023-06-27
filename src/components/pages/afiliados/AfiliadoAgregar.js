@@ -1,26 +1,290 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import Button from "../../ui/Button/Button";
-//import Input from "../../ui/Input/Input";
 import Modal from "../../ui/Modal/Modal";
 import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
-//import SelectInput from "../../ui/Select/SelectInput";
-//import FormatearFecha from "../../helpers/FormatearFecha";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import { Alert, Tab, Tabs } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import InputMaterial from "../../ui/Input/InputMaterial";
 import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
-import deshabilitarBotonValidarCUIL from "../../helpers/deshabilitarBotonValidarCUIL";
 import ValidarCUIT from "../../validators/ValidarCUIT";
-//import InputMask from "../../ui/Input/InputMask";
-import AfiliadosUltimaDDJJ from "./declaracionesJuradas/AfiliadosUltimaDDJJ";
 import ValidarEmail from "../../validators/ValidarEmail";
 import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
 //import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
 import DocumentacionList from "./documentacion/DocumentacionList";
 import DocumentacionForm from "./documentacion/DocumentacionForm";
+import FormatearFecha from "../../helpers/FormatearFecha";
+import InputMaterialMask from "../../ui/Input/InputMaterialMask";
+import {
+  AFILIADO_AGREGADO,
+  AFILIADO_ACTUALIZADO,
+  //AFILIADO_REACTIVADO,
+  //AFILIADO_BAJA,
+  AFILIADO_SOLICITUDRESUELTA,
+  AFILIADO_DATOSAFIPACTUALIZADO,
+  AFILIADO_AGREGADO_ACTIVO,
+} from "../../helpers/Mensajes";
+import ResolverSolicitud from "./ResolverSolicitud/ResolverSolicitud";
+import TabEmpleador from "./TabEmpleador/TabEmpleador";
+import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
+import DatosAfip from "./DatosAfip/DatosAfip";
+import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
+import DatePickerMaterial from "../../ui/Input/DatePickerMaterial";
+
+//#region Reducers
+const cuilReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: ValidarCUIT(action.value) };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: ValidarCUIT(state.value) };
+  }
+  return { value: "", isValid: false };
+};
+
+const nombreReducer = (state, action) => {
+  //console.log("reducer");
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value.length > 0 };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: state.value.length > 0 };
+  }
+  return { value: "", isValid: false };
+};
+
+const cuitReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    //console.log("action.value", action.value);
+    return { value: action.value, isValid: ValidarCUIT(action.value) };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: ValidarCUIT(state.value) };
+  }
+  return { value: "", isValid: false };
+};
+
+const emailReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: ValidarEmail(action.value) };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: ValidarEmail(state.value) };
+  }
+  return { value: "", isValid: false };
+};
+
+const nacionalidadReducer = (state, action) => {
+  console.log("nacionalidad", action.value);
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const fechaNacimientoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value !== "" ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: state.value !== "" ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
+const estadoCivilReducer = (state, action) => {
+  console.log("ESTADO CIVIL reducer: ", action.value);
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const sexoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const tipoDocumentoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const numeroDocumentoReducer = (state, action) => {
+  console.log("action.value.length", action.value);
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const domicilioReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value.length > 0 ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value.length > 0 ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const provinciaReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const localidadReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const seccionalReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const puestoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const actividadReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid: action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid: state.value !== "" ? true : false,
+    };
+  }
+  return { value: "", isValid: false };
+};
+
+const telefonoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: state.value ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
+//#endregion
 
 //#region gloabes
 const seccionalSinAsignar = [
@@ -30,74 +294,98 @@ const seccionalSinAsignar = [
   },
 ];
 //#endregion
+
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
 
+  //#region Alert
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTexto, setDialogTexto] = useState("");
+  //#endregion
+
+  //#region Texto completar campos
+  const TextCompletarCampos = () => {
+    console.log("texto dialog estadocivil", estadoCivilState.isValid);
+    setDialogTexto(`Se debe completar todos los campos:\n
+      ${!cuilState.isValid ? "*CUIL\n" : ""}
+      ${!nombreState.isValid ? "*Nombre\n" : ""}
+      ${!fechaNacimientoState.isValid ? "*Fecha de Nacimiento\n" : ""}
+      ${!numeroDocumentoState.isValid ? "*Numero Documento\n" : ""}
+      ${!estadoCivilState.isValid ? "*Estado Civil\n" : ""}
+      ${!sexoState.isValid ? "*Género\n" : ""}
+      ${!domicilioState.isValid ? "*Domicilio\n" : ""}
+      ${!provinciaState.isValid ? "*Provincia\n" : ""}
+      ${!localidadState.isValid ? "*Localidad\n" : ""}
+      ${!seccionalState.isValid ? "*Seccional\n" : ""}
+      ${!puestoState.isValid ? "*Puesto\n" : ""}
+      ${!actividadState.isValid ? "*Actividad\n" : ""}
+      ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
+      `);
+  };
+  //#endregion
+
+  //#region Variables de estado para ButtonLoadingCustom
+  const [cuilLoading, setCUILLoading] = useState(false);
+  const [cuitLoading, setCUITLoading] = useState(false);
+  const [afiliadoProcesando, setAfiliadoProcesando] = useState(false);
+  //#endregion
+
   //#region Capturo errores
   useEffect(() => {
     console.log("error", error);
     if (error) {
+      setAfiliadoProcesando(false);
       if (error.code === 500) {
         setCUILLoading(false);
-        setShowAlert(true);
-        setSeverityAlert("error");
-        setTextAlert(`Error - ${error.message}`);
+        setDialogTexto(`Error - ${error.message}`);
       }
 
       if (error.code === 404 && cuilLoading) {
         setCUILLoading(false);
-        setShowAlert(true);
-        setSeverityAlert("error");
-        //setTextAlert(`Error - ${error.message}`);
-        setTextAlert(`Error - No existe el CUIL ${cuil} en el Padron de AFIP`);
+        setDialogTexto(
+          `Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
+        );
       }
 
       if (error.code === 404 && cuitLoading) {
         setCUITLoading(false);
-        setShowAlert(true);
-        setSeverityAlert("error");
-        //setTextAlert(`Error - ${error.message}`);
-        setTextAlert(
+        setDialogTexto(
           `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
         );
       }
 
       return;
     }
-  }, [error]);
-  //#endregion
 
-  //#region Variables de estado para ButtonLoadingCustom
-  const [cuilLoading, setCUILLoading] = useState(false);
-  const [cuitLoading, setCUITLoading] = useState(false);
+    //console.log("dialogTexto", dialogTexto);
+    if (dialogTexto !== "") {
+      setOpenDialog(true);
+    }
+  }, [error]);
   //#endregion
 
   //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
-  const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] = useState(false);
+  const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] =
+    useState(false);
+  // const [
+  //   resolverSolicitudAfiliadoResponse,
+  //   setResolverSolicitudAfiliadoResponse,
+  // ] = useState(0);
+  const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
+  const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] =
+    useState(moment(new Date()).format("yyyy-MM-DD"));
   const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
-  const [
-    resolverSolicitudAfiliadoResponse,
-    setResolverSolicitudAfiliadoResponse,
-  ] = useState(0);
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
-  // const [accion, setAccion] = useState("")
-  // setAccion(props.accion)
-  //#endregion
-
-  //#region Alert
-  const [showAlert, setShowAlert] = useState(true);
-  const [textAlert, setTextAlert] = useState("");
-  const [severityAlert, setSeverityAlert] = useState("");
+  const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
   //#endregion
 
   //#region variables para respuestas de servicios
   const [nuevoAfiliadoResponse, setNuevoAfiliadoResponse] = useState(null);
-  const [nuevoAfiliadoObservadoResponse, setNuevoAfiliadoObservadoResponse] =
-    useState(null);
   const [padronRespuesta, setPadronRespuesta] = useState(null);
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [actividades, setActividades] = useState([]);
@@ -119,35 +407,10 @@ const AfiliadoAgregar = (props) => {
 
   //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
-  const [actividad, setActividad] = useState("");
-  const [puesto, setPuesto] = useState("");
-  const [sexo, setSexo] = useState("");
-  const [nacionalidad, setNacionalidad] = useState(""); //useState(initialObject);
-  const [seccional, setSeccional] = useState("");
-  const [provincia, setProvincia] = useState("");
-  const [localidad, setLocalidad] = useState("");
-  const [estadoCivil, setEstadoCivil] = useState("");
-  const [cuil, setCUIL] = useState("");
-  const [nombre, setNombre] = useState("");
-  const [tipoDocumento, setTipoDocumento] = useState("");
-  const [numeroDocumento, setNumeroDocumento] = useState("");
-  const [domicilio, setDomicilio] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [correo, setCorreo] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [estadoSolicitud, setEstadoSolicitud] = useState(1);
+  const [estadoSolicitudResolver, setEstadoSolicitudResolver] = useState(1);
   const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] =
     useState("");
-  const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
 
-  const [nombreAFIP, setNombreAFIP] = useState("");
-  const [fechaNacimientoAFIP, setFechaNacimientoAFIP] = useState("");
-  const [cuilAFIP, setCUILAFIP] = useState("");
-  const [tipoDocumentoAFIP, setTipoDocumentoAFIP] = useState("");
-  const [numeroDocumentoAFIP, setNumeroDocumentoAFIP] = useState("");
-  const [estadoClaveAFIP, setEstadoClaveAFIP] = useState("");
-  const [domicilioRealAFIP, setDomicilioRealAFIP] = useState(null);
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
   //#endregion
 
   //#region Datos Empleador
@@ -159,91 +422,29 @@ const AfiliadoAgregar = (props) => {
   const [telefonoEmpresa, setTelefonoEmpresa] = useState("");
   const [correoEmpresa, setCorreoEmpresa] = useState("");
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
-  const [empresaId, setEmpresaId] = useState(0);
+  //const [empresaId, setEmpresaId] = useState(0);
   //#endregion
 
   //#region manejo de validaciones
-  // const [cuilHelperText, setCUILHelperText] = useState("");
-  // const [cuitHelperText, setCUITHelperText] = useState("");
-  const [cuilIsValid, setCUILIsValid] = useState(false);
-  const cuilReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: ValidarCUIT(action.value) };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: ValidarCUIT(state.value) };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
     value: "",
     isValid: false,
   });
-
-  const [nombreIsValid, setNombreIsValid] = useState(false);
-  const nombreReducer = (state, action) => {
-    //console.log("reducer");
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value.length > 0 };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value.length > 0 };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [nombreState, dispatchNombre] = useReducer(nombreReducer, {
     value: "",
     isValid: false,
   });
 
-  const [cuitIsValid, setCUITIsValid] = useState(false);
-  const cuitReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: ValidarCUIT(action.value) };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: ValidarCUIT(state.value) };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [cuitState, dispatchCUIT] = useReducer(cuitReducer, {
     value: "",
     isValid: false,
   });
 
-  const [emailIsValid, setEmailIsValid] = useState(false);
-  const emailReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: ValidarEmail(action.value) };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: ValidarEmail(state.value) };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: "",
     isValid: false,
   });
-
-  const [nacionalidadIsValid, setNacionalidadIsValid] = useState(false);
-  const nacionalidadReducer = (state, action) => {
-    console.log("nacionalidad", action.value);
-    if (action.type === "USER_INPUT") {
-      return {
-        value: action.value,
-        isValid: action.value !== "" ? true : false,
-      };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [nacionalidadState, dispatchNacionalidad] = useReducer(
     nacionalidadReducer,
@@ -253,17 +454,6 @@ const AfiliadoAgregar = (props) => {
     }
   );
 
-  const [fechaNacimientoIsValid, setFechaNacimientoIsValid] = useState(false);
-  const fechaNacimientoReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [fechaNacimientoState, dispatchFechaNacimiento] = useReducer(
     fechaNacimientoReducer,
     {
@@ -271,17 +461,6 @@ const AfiliadoAgregar = (props) => {
       isValid: false,
     }
   );
-
-  const [estadoCivilIsValid, setEstadoCivilIsValid] = useState(false);
-  const estadoCivilReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [estadoCivilState, dispatchEstadoCivil] = useReducer(
     estadoCivilReducer,
@@ -291,32 +470,10 @@ const AfiliadoAgregar = (props) => {
     }
   );
 
-  const [generoIsValid, sertGeneroIsValid] = useState(false);
-  const generoReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
-  const [generoState, dispatchGenero] = useReducer(generoReducer, {
+  const [sexoState, dispatchSexo] = useReducer(sexoReducer, {
     value: "",
     isValid: false,
   });
-
-  const [tipoDocumentoIsValid, setTipoDocumentoIsValid] = useState(false);
-  const tipoDocumentoReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [tipoDocumentoState, dispatchTipoDocumento] = useReducer(
     tipoDocumentoReducer,
@@ -326,17 +483,6 @@ const AfiliadoAgregar = (props) => {
     }
   );
 
-  const [numeroDocumentoIsValid, setNumeroDocumentoIsValid] = useState(false);
-  const numeroDocumentoReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [numeroDocumentoState, dispatchNumeroDocumento] = useReducer(
     numeroDocumentoReducer,
     {
@@ -345,98 +491,37 @@ const AfiliadoAgregar = (props) => {
     }
   );
 
-  const [domicilioIsValid, setDomicilioIsValid] = useState(false);
-  const domicilioReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [domicilioState, dispatchDomicilio] = useReducer(domicilioReducer, {
     value: "",
     isValid: false,
   });
-
-  const [provinciaIsValid, setProvinciaIsValid] = useState(false);
-  const provinciaReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [provinciaState, dispatchProvincia] = useReducer(provinciaReducer, {
     value: "",
     isValid: false,
   });
 
-  const [localidadIsValid, setLocalidadIsValid] = useState(false);
-  const localidadReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [localidadState, dispatchLocalidad] = useReducer(localidadReducer, {
     value: "",
     isValid: false,
   });
-
-  const [seccionalIsValid, setSeccionalIsValid] = useState(false);
-  const seccionalReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
 
   const [seccionalState, dispatchSeccional] = useReducer(seccionalReducer, {
     value: "",
     isValid: false,
   });
 
-  const [oficioIsValid, setOficioIsValid] = useState(false);
-  const oficioReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
-  const [oficioState, dispatchOficio] = useReducer(oficioReducer, {
+  const [puestoState, dispatchPuesto] = useReducer(puestoReducer, {
     value: "",
     isValid: false,
   });
 
-  const [actividadIsValid, setActividadIsValid] = useState(false);
-  const actividadReducer = (state, action) => {
-    if (action.type === "USER_INPUT") {
-      return { value: action.value, isValid: action.value ? true : false };
-    }
-    if (action.type === "USER_BLUR") {
-      return { value: state.value, isValid: state.value ? true : false };
-    }
-    return { value: "", isValid: false };
-  };
-
   const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
+    value: "",
+    isValid: false,
+  });
+
+  const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
     value: "",
     isValid: false,
   });
@@ -445,21 +530,22 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     const identifier = setTimeout(() => {
       //setAfiliadoExiste(false);
-      setCUILIsValid(cuilState.isValid);
-      setNombreIsValid(nombreState.isValid);
-      setNacionalidadIsValid(nacionalidadState.isValid);
-      setFechaNacimientoIsValid(fechaNacimientoState.isValid);
-      setEstadoCivilIsValid(estadoCivilState.isValid);
-      sertGeneroIsValid(generoState.isValid);
-      setTipoDocumentoIsValid(tipoDocumentoState.isValid);
-      setNumeroDocumentoIsValid(numeroDocumentoState.isValid);
-      setDomicilioIsValid(domicilioState.isValid);
-      setProvinciaIsValid(provinciaState.isValid);
-      setLocalidadIsValid(localidadState.isValid);
-      setSeccionalIsValid(seccionalState.isValid);
-      setOficioIsValid(oficioState.isValid);
-      setActividadIsValid(actividadState.isValid);
-      setEmailIsValid(emailState.isValid);
+      //console.log("cuilState.isValid", cuilState.isValid);
+      // console.log("nombreState.isValid", nombreState.isValid);
+      // console.log("nacionalidadState.isValid", nacionalidadState.isValid);
+      // console.log("estadoCivilState.isValid", estadoCivilState.isValid);
+      // console.log("fechaNacimiento.isValid", fechaNacimientoState.isValid);
+      // console.log("sexoState.isValid", sexoState.isValid);
+      // console.log("tipoDocumentoState.isValid", tipoDocumentoState.isValid);
+      // console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid);
+      // console.log("domicilioState.isValid", domicilioState.isValid);
+      // console.log("provinciaState.isValid", provinciaState.isValid);
+
+      // console.log("localidadState.isValid", localidadState.isValid);
+      // console.log("seccionalState.isValid", seccionalState.isValid);
+      // console.log("puestoState.isValid", puestoState.isValid);
+      // console.log("actividadState.isValid", actividadState.isValid);
+      //console.log("emailState.isValid", emailState.isValid);
 
       if (
         cuilState.isValid &&
@@ -467,18 +553,18 @@ const AfiliadoAgregar = (props) => {
         nacionalidadState.isValid &&
         fechaNacimientoState.isValid &&
         estadoCivilState.isValid &&
-        generoState.isValid &&
+        sexoState.isValid &&
         tipoDocumentoState.isValid &&
         numeroDocumentoState.isValid &&
         domicilioState.isValid &&
         provinciaState.isValid &&
         localidadState.isValid &&
         seccionalState.isValid &&
-        oficioState.isValid &&
-        actividadState.isValid &&
-        (correo !== "" ? emailState.isValid : true)
+        puestoState.isValid
       ) {
         setFormularioIsValid(true);
+      } else {
+        setFormularioIsValid(false);
       }
     }, 400);
 
@@ -487,30 +573,26 @@ const AfiliadoAgregar = (props) => {
       //console.log("cleanup");
     };
   }, [
-    cuilState.isValid,
-    nombreState.isValid,
-    estadoCivilState.isValid,
-    generoState.isValid,
-    tipoDocumentoState.isValid,
-    numeroDocumentoState.isValid,
-    domicilioState.isValid,
-    provinciaState.isValid,
-    localidadState.isValid,
-    seccionalState.isValid,
-    oficioState.isValid,
-    actividadState.isValid,
-    emailState.isValid,
-    fechaNacimientoState.isValid,
-    nacionalidadState.isValid,
-    correo,
+    cuilState,
+    nombreState,
+    estadoCivilState,
+    sexoState,
+    tipoDocumentoState,
+    numeroDocumentoState,
+    domicilioState,
+    provinciaState,
+    localidadState,
+    seccionalState,
+    puestoState,
+    fechaNacimientoState,
+    nacionalidadState,
   ]);
 
   useEffect(() => {
     const identifier = setTimeout(() => {
       console.log("checking empresa.", cuitState.isValid);
-      setCUITIsValid(cuitState.isValid);
       if (cuitState.isValid) {
-        setFormularioEmpleadorIsValid(true)
+        setFormularioEmpleadorIsValid(true);
       }
     }, 200);
 
@@ -521,36 +603,25 @@ const AfiliadoAgregar = (props) => {
   }, [cuitState.isValid]);
   //#endregion
 
+  //#region variables de estado por touched
+  const [inputsTouched, setInputsTouched] = useState(false);
+  //#endregion
+
   //#region Manejo de notificaciones y alert
-  useEffect(() => {
-    const identifier = setTimeout(() => {
-      //console.log("checking showAlert...", showAlert);
-      //if (showAlert) {
-      setShowAlert(false);
-      setTextAlert("");
-      setSeverityAlert("");
-      //}
-    }, 8000);
+  // useEffect(() => {
+  //   const identifier = setTimeout(() => {
+  //     //console.log("checking showAlert...", showAlert);
+  //     if (resolverSolicitudAfiliadoResponse) {
+  //       //handleCerrarModal();
+  //       props.onClose(resolverSolicitudAfiliadoResponse === 0 ? false : true);
+  //     }
+  //   }, 5000);
 
-    return () => {
-      clearTimeout(identifier);
-      //console.log("alert");
-    };
-  }, [showAlert]);
-
-  useEffect(() => {
-    const identifier = setTimeout(() => {
-      //console.log("checking showAlert...", showAlert);
-      if (resolverSolicitudAfiliadoResponse) {
-        handleCerrarModal();
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(identifier);
-      console.log("alert");
-    };
-  }, [resolverSolicitudAfiliadoResponse]);
+  //   return () => {
+  //     clearTimeout(identifier);
+  //     console.log("alert");
+  //   };
+  // }, [resolverSolicitudAfiliadoResponse]);
 
   //#endregion
 
@@ -562,90 +633,89 @@ const AfiliadoAgregar = (props) => {
     console.log("props.accion", props.accion);
     if (props.accion === "Modifica" || props.accion === "Resuelve") {
       setAfiliadoExiste(true);
+      setInputsTouched(true);
       if (cuilParam > 0) {
-        setCUIL(cuilParam);
+        //setCUIL(cuilParam);
         dispatchCUIL({ type: "USER_INPUT", value: cuilParam });
       }
     }
   }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuil && cuilIsValid) {
+    if (cuilState.value && cuilState.isValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);        
+        console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj.id);
         setAfiliadoExiste(true);
-        setPadronRespuesta(true);
-        setNombre(afiliadoObj.nombre);
-        setNacionalidad(afiliadoObj.nacionalidadId);
-        setFechaNacimiento(
-          moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
-        );
-        setEstadoCivil(afiliadoObj.estadoCivilId);
-        setSexo(afiliadoObj.sexoId);
-        setProvincia(afiliadoObj.provinciaId);
-        setSeccional(afiliadoObj.seccionalId);
-        setTipoDocumento(afiliadoObj.tipoDocumentoId);
-        setNumeroDocumento(afiliadoObj.documento);
-        setTelefono(afiliadoObj.telefono);
-        if (afiliadoObj.correo !== null) {
-          setCorreo(afiliadoObj.correo);
-        }
-        setActividad(afiliadoObj.actividadId);
-        setPuesto(afiliadoObj.puestoId);
-        setDomicilio(afiliadoObj.domicilio);
-        setLocalidad(afiliadoObj.refLocalidadId);
-        setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
+        //setPadronRespuesta(true);
+        //setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
         setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
         //dispatches para validar los campos
         dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
         dispatchActividad({
           type: "USER_INPUT",
-          value: afiliadoObj.actividadId,
+          value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
         });
-        dispatchOficio({ type: "USER_INPUT", value: afiliadoObj.puestoId });
+        dispatchPuesto({
+          type: "USER_INPUT",
+          value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
+        });
         dispatchNacionalidad({
           type: "USER_INPUT",
-          value: afiliadoObj.nacionalidadId,
+          value:
+            afiliadoObj.nacionalidadId === 0 ? "" : afiliadoObj.nacionalidadId,
         });
-        dispatchGenero({ type: "USER_INPUT", value: afiliadoObj.sexoId });
+        dispatchSexo({
+          type: "USER_INPUT",
+          value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
+        });
         dispatchSeccional({
           type: "USER_INPUT",
-          value: afiliadoObj.seccionalId,
+          value:
+            afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0
+              ? ""
+              : afiliadoObj.seccionalId,
         });
         dispatchEstadoCivil({
           type: "USER_INPUT",
-          value: afiliadoObj.estadoCivilId,
+          value:
+            afiliadoObj.estadoCivilId === 0 ? "" : afiliadoObj.estadoCivilId,
         });
         dispatchTipoDocumento({
           type: "USER_INPUT",
-          value: afiliadoObj.tipoDocumentoId,
+          value:
+            afiliadoObj.tipoDocumentoId === 0
+              ? ""
+              : afiliadoObj.tipoDocumentoId,
         });
         dispatchProvincia({
           type: "USER_INPUT",
-          value: afiliadoObj.provinciaId,
+          value: afiliadoObj.provinciaId === 0 ? "" : afiliadoObj.provinciaId,
         });
         dispatchLocalidad({
           type: "USER_INPUT",
-          value: afiliadoObj.refLocalidadId,
-        });
-        dispatchSeccional({
-          type: "USER_INPUT",
-          value: afiliadoObj.seccionalId,
+          value:
+            afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.refLocalidadId,
         });
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
-          value: afiliadoObj.fechaNacimiento,
+          value:
+            afiliadoObj.fechaNacimiento !== null
+              ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
+              : "",
         });
         dispatchNumeroDocumento({
           type: "USER_INPUT",
-          value: afiliadoObj.documento,
+          value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
         });
-        dispatchDomicilio({ type: "USER_INPUT", value: afiliadoObj.domicilio });
+        dispatchDomicilio({
+          type: "USER_INPUT",
+          value: afiliadoObj.domicilio ?? "",
+        });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
         //datos empleador
@@ -655,19 +725,6 @@ const AfiliadoAgregar = (props) => {
         setRazonSocialEmpresa(afiliadoObj.empresa);
         setEmpresaIdExiste(afiliadoObj.empresaId);
 
-        //traer datos de afip
-        setNombreAFIP(
-          `${afiliadoObj.afipApellido} ${afiliadoObj.afipNombre ?? ""}`
-        );
-        setFechaNacimientoAFIP(
-          moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
-        );
-        setCUILAFIP(cuil);
-        setTipoDocumentoAFIP(afiliadoObj.afipTipoDocumento);
-        setNumeroDocumentoAFIP(afiliadoObj.afipNumeroDocumento);
-        setEstadoClaveAFIP(afiliadoObj.afipEstadoClave);
-        setDomicilioRealAFIP(afiliadoObj.afipDomicilioDireccion);
-
         if (afiliadoObj.estadoSolicitudId === 1) {
           const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
             (estado) =>
@@ -676,24 +733,26 @@ const AfiliadoAgregar = (props) => {
               estado.label === "Observado" ||
               estado.label === "Rechazado"
           );
-          console.log("estados", estadosSolicitudesPendientes);
+          //console.log("estados", estadosSolicitudesPendientes);
           setEstadosSolicitudes(estadosSolicitudesPendientes);
+          setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
         } else if (afiliadoObj.estadoSolicitudId === 4) {
           const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
             (estado) =>
               estado.label === "Observado" || estado.label === "Rechazado"
           );
-          console.log("estados", estadosSolicitudesObservado);
+          //console.log("estados", estadosSolicitudesObservado);
           setEstadosSolicitudes(estadosSolicitudesObservado);
+          setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
         }
 
         //alert
         if (props.accion === "Agrega") {
-          setShowAlert(true);
-          setTextAlert(
+          setDialogTexto(
             `El afiliado ya está cargado para la seccional ${afiliadoObj.seccional}`
           );
-          setSeverityAlert("info");
+          setOpenDialog(true);
+          return;
         } else if (props.accion === "Resuelve") {
           console.log("a resolver");
           setSelectedTab(3);
@@ -703,20 +762,20 @@ const AfiliadoAgregar = (props) => {
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuil}`,
+          endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuilState.value}`,
           method: "GET",
         },
         processGetAfiliado
       );
     }
-  }, [request, cuil, cuilIsValid]);
+  }, [request, cuilState.value, cuilState.isValid]);
 
   useEffect(() => {
-    if (afiliadoExiste) {
+    if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
         //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
-        setEmpresaId(empresaObj.id);
+        //setEmpresaId(empresaObj.id);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -853,7 +912,7 @@ const AfiliadoAgregar = (props) => {
   }, [request]);
 
   useEffect(() => {
-    if (provincia !== "") {
+    if (provinciaState.value !== "") {
       const processLocalidades = async (localidadesObj) => {
         const localidadesSelect = localidadesObj
           .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
@@ -867,16 +926,16 @@ const AfiliadoAgregar = (props) => {
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/RefLocalidad?ProvinciaId=${provincia}`,
+          endpoint: `/RefLocalidad?ProvinciaId=${provinciaState.value}`,
           method: "GET",
         },
         processLocalidades
       );
     }
-  }, [request, provincia]);
+  }, [request, provinciaState]);
 
   useEffect(() => {
-    if (localidad) {
+    if (localidadState.value !== "") {
       const processSeccionales = async (seccionalesObj) => {
         const seccionalesSelect = seccionalesObj
           .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
@@ -896,13 +955,13 @@ const AfiliadoAgregar = (props) => {
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/Seccional/GetSeccionalesSpecs?LocalidadId=${localidad}`,
+          endpoint: `/Seccional/GetSeccionalesSpecs?LocalidadId=${localidadState.value}`,
           method: "GET",
         },
         processSeccionales
       );
     }
-  }, [request, localidad]);
+  }, [request, localidadState]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
@@ -944,119 +1003,420 @@ const AfiliadoAgregar = (props) => {
 
   //#endregion
 
+  //#region submit afiliado
+  const afiliadoAgregarHandler = async (event) => {
+    event.preventDefault();
+    setInputsTouched(true);
+    if (!formularioIsValid || !formularioEmpleadorIsValid) {
+      //console.log("formularioIsValid", formularioIsValid);
+      setOpenDialog(true);
+      TextCompletarCampos();
+      return;
+    }
+    setAfiliadoProcesando(true);
+    //#region Insertar Sol
+    if (props.accion === "Agrega" && !afiliadoExiste) {
+      const empresa = {
+        cuit: cuitEmpresa,
+        razonSocial: padronEmpresaRespuesta
+          ? padronEmpresaRespuesta?.razonSocial ??
+            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          : "",
+        claveTipo: padronEmpresaRespuesta.tipoClave,
+        claveEstado: padronEmpresaRespuesta.estadoClave,
+        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+        actividadPrincipalDescripcion:
+          padronEmpresaRespuesta.descripcionActividadPrincipal,
+        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+        actividadPrincipalPeriodo:
+          padronEmpresaRespuesta.periodoActividadPrincipal,
+        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+        cierreMes: padronEmpresaRespuesta.mesCierre,
+        email: correoEmpresa,
+        telefono: telefonoEmpresa,
+        domicilioCalle: "string",
+        domicilioNumero: 0,
+        domicilioPiso: "string",
+        domicilioDpto: "string",
+        domicilioSector: "string",
+        domicilioTorre: "string",
+        domicilioManzana: "string",
+        domicilioProvinciasId: 0,
+        domicilioLocalidadesId: 0,
+        domicilioCodigoPostal: 0,
+        domicilioCPA: "string",
+        domicilioTipo: "string",
+        domicilioEstado: "string",
+        domicilioDatoAdicional: "string",
+        domicilioDatoAdicionalTipo: "string",
+        ciiU1: padronEmpresaRespuesta.ciiU1,
+        ciiU2: padronEmpresaRespuesta.ciiU2,
+        ciiU3: padronEmpresaRespuesta.ciiU3,
+      };
+
+      const domicilioRealAFIP = padronRespuesta.domicilios.find(
+        (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+      );
+      const nuevoAfiliado = {
+        cuil: +cuilState.value,
+        nombre: `${padronRespuesta?.apellido ?? ""} ${
+          padronRespuesta?.nombre ?? ""
+        }`,
+        puestoId: +puestoState.value,
+        fechaIngreso: null,
+        fechaEgreso: null,
+        nacionalidadId: +nacionalidadState.value,
+        //empresaId: +empresaId,
+        seccionalId: +seccionalState.value,
+        sexoId: +sexoState.value,
+        tipoDocumentoId: +tipoDocumentoState.value,
+        documento: +numeroDocumentoState.value,
+        actividadId: +actividadState.value,
+        estadoSolicitudId:
+          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
+            ? 2
+            : 1,
+        estadoSolicitudObservaciones:
+          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
+            ? "Validación Automática"
+            : null,
+        estadoCivilId: +estadoCivilState.value,
+        refLocalidadId: +localidadState.value,
+        domicilio: domicilioState.value,
+        telefono: telefonoState.value,
+        correo: emailState.value,
+        celular: "",
+        fechaNacimiento: fechaNacimientoState.value,
+        afipcuil: +cuilState.value,
+        afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
+        afipNombre: padronRespuesta?.nombre ?? "",
+        afipApellido: padronRespuesta?.apellido ?? "",
+        afipRazonSocial: "",
+        afipTipoDocumento: padronRespuesta?.tipoDocumento,
+        afipNumeroDocumento: padronRespuesta?.numeroDocumento,
+        afipTipoPersona: padronRespuesta?.tipoPersona,
+        afipTipoClave: padronRespuesta?.tipoClave,
+        afipEstadoClave: padronRespuesta?.estadoClave,
+        afipClaveInactivaAsociada: 0,
+        afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+        afipFormaJuridica: padronRespuesta?.formaJuridica,
+        afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
+        afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
+        afipPeriodoActividadPrincipal:
+          padronRespuesta?.periodoActividadPrincipal,
+        afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
+        afipMesCierre: padronRespuesta?.mesCierre,
+        afipDomicilioDireccion: domicilioRealAFIP?.direccion,
+        afipDomicilioCalle: domicilioRealAFIP?.calle,
+        afipDomicilioNumero: domicilioRealAFIP?.numero,
+        afipDomicilioPiso: domicilioRealAFIP?.piso,
+        afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
+        afipDomicilioSector: domicilioRealAFIP?.sector,
+        afipDomicilioTorre: domicilioRealAFIP?.torre,
+        afipDomicilioManzana: domicilioRealAFIP?.manzana,
+        afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
+        afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
+        afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
+        afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
+        afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
+        afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
+        afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
+        afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
+        empresa: empresa,
+      };
+
+      console.log("POST", nuevoAfiliado);
+      const afiliadoAgregar = async (afiliadoResponseObj) => {
+        // console.log({
+        // 	afiliadosObj: afiliadoResponseObj,
+        // 	documentacionList: documentacionList,
+        // });
+
+        // Envío documentación enlazada al nuevo afiliado
+        documentacionList?.data?.forEach((doc) => {
+          if (!doc.refTipoDocumentacionId) return;
+          if (!doc.archivoBase64) return;
+          const body = {
+            entidadTipo: "A",
+            entidadId: afiliadoResponseObj,
+            refTipoDocumentacionId: doc.refTipoDocumentacionId,
+            archivo: doc.archivoBase64,
+            observaciones: doc.observaciones,
+          };
+
+          request(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "POST",
+              body: body,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            async (res) =>
+              console.log({
+                "[Comunes/DocumentacionEntidad] POST OK": body,
+                res: res,
+              }),
+            async (err) =>
+              console.log({
+                "[Comunes/DocumentacionEntidad] POST Error": body,
+                err: err,
+              })
+          );
+        });
+
+        setNuevoAfiliadoResponse(afiliadoResponseObj);
+        setOpenDialog(true);
+
+        //Si se incorpora automaticamente
+        if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
+          //setResolverSolicitudAfiliadoResponse(1);
+          setDialogTexto(AFILIADO_AGREGADO_ACTIVO);
+        }
+        //pasa a resolver solicitud
+        else {
+          setDialogTexto(AFILIADO_AGREGADO);
+          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+            (estado) =>
+              estado.label === "Pendiente" ||
+              estado.label === "Activo" ||
+              estado.label === "Observado" ||
+              estado.label === "Rechazado"
+          );
+
+          setEstadoSolicitudResolver(2);
+          setEstadosSolicitudes(estadosSolicitudesPendientes);
+          setSelectedTab(3);
+        }
+      };
+
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado`,
+          method: "POST",
+          body: nuevoAfiliado,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+        afiliadoAgregar
+      );
+      //#endregion
+
+      //#region Update Solicitud
+    } else if (
+      props.accion === "Modifica" ||
+      (props.accion === "Agrega" && afiliadoExiste)
+    ) {
+      ActualizaDatosAfiliado();
+    }
+    setAfiliadoProcesando(false);
+    //#endregion
+  };
+  //#endregion
+
+  //#region Resolver Solciitud Afiliado
+  const resolverSolicitudHandler = (event) => {
+    //console.log("id", nuevoAfiliadoObservadoResponse);
+    event.preventDefault();
+
+    //Estados Observado y Rechazado llevan comentario obligatorio
+    if (
+      (afiliado?.estadoSolicitudId === 4 || afiliado?.estadoSolicitud === 5) &&
+      resolverSolicitudObs === ""
+    ) {
+      setDialogTexto("Debe completar el campo Observaciones");
+      setOpenDialog(true);
+      return;
+    }
+
+    //Controles
+    console.log("afiliado", afiliado);
+    console.log("estadoSolicitudResolver", estadoSolicitudResolver);
+    if (afiliado?.estadoSolicitudId === estadoSolicitudResolver) {
+      setDialogTexto(
+        `El estado seleccionado es el mismo que posee actualmente el afiliado`
+      );
+      setOpenDialog(true);
+
+      return;
+    }
+
+    const patchAfiliado = [
+      {
+        path: "EstadoSolicitudId",
+        op: "replace",
+        value: estadoSolicitudResolver,
+      },
+      {
+        path: "FechaIngreso",
+        op: "replace",
+        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+      },
+      {
+        path: "NroAfiliado",
+        op: "replace",
+        value: "0",
+      },
+      {
+        path: "EstadoSolicitudObservaciones",
+        op: "replace",
+        value: resolverSolicitudObs,
+      },
+      {
+        path: "FechaEgreso",
+        op: "replace",
+        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+      },
+    ];
+
+    const resolverSolicitudAfiliado = async (
+      resolverSolicitudAfiliadoResponse
+    ) => {
+      if (resolverSolicitudAfiliadoResponse) {
+        console.log("props.estadosSolicitudes", props.estadosSolicitudes);
+        const estadoSolicitudSel = props.estadosSolicitudes.find(
+          (estadoSolicitudSel) =>
+            estadoSolicitudSel.value === +estadoSolicitudResolver
+        );
+        console.log("estadoSolicitudSel", estadoSolicitudSel);
+        setDialogTexto(
+          `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
+        );
+        setOpenDialog(true);
+        //setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
+        if (+estadoSolicitudResolver === 2) {
+          setShowImprimirLiquidacion(true);
+        }
+      }
+    };
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse}`,
+        method: "PATCH",
+        body: patchAfiliado,
+        headers: {
+          "Content-Type": "application/json-patch+json",
+        },
+      },
+      resolverSolicitudAfiliado
+    );
+  };
+  //#endregion
+
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
 
     const processConsultaPadron = async (padronObj) => {
+      console.log("padronObj", padronObj);
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
-        setShowAlert(true);
-        setSeverityAlert("error");
-        setTextAlert(`Error validando CUIL - Persona fallecida`);
+        setDialogTexto(`Error validando CUIL - Persona fallecida`);
+        setOpenDialog(true);
 
         return;
       }
 
       setCuilValidado(true);
       setPadronRespuesta(padronObj);
-      dispatchNombre({
-        type: "USER_INPUT",
-        value: `${padronObj.apellido} ${padronObj.nombre ?? ""}`,
-      });
-      setNombre(`${padronObj.apellido} ${padronObj.nombre ?? ""}`);
-      setFechaNacimiento(
-        moment(padronObj.fechaNacimiento).format("yyyy-MM-DD")
-      );
-      dispatchFechaNacimiento({
-        type: "USER_INPUT",
-        value: padronObj.fechaNacimiento,
-      });
-
-      //tipo doc
-      const tipoDoc = tiposDocumentos.filter(
-        (tipoDoc) => tipoDoc.label === padronObj.tipoDocumento
-      );
-      setTipoDocumento(tipoDoc[0].value);
-      dispatchTipoDocumento({ type: "USER_INPUT", value: tipoDoc[0].value });
-      setNumeroDocumento(padronObj.numeroDocumento);
-      dispatchNumeroDocumento({
-        type: "USER_INPUT",
-        value: padronObj.numeroDocumento,
-      });
-      const domicilioReal = padronObj.domicilios.find(
-        (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
-      );
-      setDomicilio(domicilioReal.direccion);
-      dispatchDomicilio({ type: "USER_INPUT", value: domicilioReal.direccion });
-      //console.log("nacionalidad", nacionalidades[5].label);
-      // setNacionalidad({
-      //   value: nacionalidades[5].value,
-      //   label: nacionalidades[5].label,
-      // });
-      setNacionalidad(nacionalidades[5].value);
-      dispatchNacionalidad({
-        type: "USER_INPUT",
-        value: nacionalidades[5].value,
-      });
-
-      //provincia
-      const provincia = provincias.find(
-        (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
-      );
-      setProvincia(provincia.value);
-      dispatchProvincia({ type: "USER_INPUT", value: provincia.value });
-
-      //localidad
-      const processLocalidades = async (localidadesObj) => {
-        //console.log("localidades", localidadesObj);
-        //console.log("localidad", localidadesObj[0].id);
-        const localidad = localidadesObj.find(
-          (localidad) =>
-            localidad.codPostal === parseInt(domicilioReal.codigoPostal)
-        );
-        //console.log("localidad", localidad)
-        setLocalidad(localidad ? localidad.id : "");
-        dispatchLocalidad({
+      //Solo actualizo los datos principales si estoy agregando solicitud
+      let domicilioReal = "";
+      if (props.accion === "Agrega") {
+        dispatchNombre({
           type: "USER_INPUT",
-          value: localidadesObj[0].id ?? "",
+          value: `${padronObj.apellido} ${padronObj.nombre ?? ""}`,
         });
-      };
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value: moment(padronObj.fechaNacimiento).format("yyyy-MM-DD"),
+        });
 
-      //datos afip
-      setNombreAFIP(`${padronObj.apellido} ${padronObj.nombre ?? ""}`);
-      setFechaNacimientoAFIP(
-        moment(padronObj.fechaNacimiento).format("yyyy-MM-DD")
-      );
-      setCUILAFIP(padronObj.idPersona);
-      setTipoDocumentoAFIP(padronObj.tipoDocumento);
-      setNumeroDocumentoAFIP(padronObj.numeroDocumento);
-      setEstadoClaveAFIP(padronObj.estadoClave);
-      setDomicilioRealAFIP(domicilioReal.direccion);
+        //tipo doc
+        const tipoDoc = tiposDocumentos.filter(
+          (tipoDoc) => tipoDoc.label === padronObj.tipoDocumento
+        );
+        dispatchTipoDocumento({
+          type: "USER_INPUT",
+          value: tipoDoc[0]?.value ?? "",
+        });
+        dispatchNumeroDocumento({
+          type: "USER_INPUT",
+          value: padronObj.numeroDocumento,
+        });
+        domicilioReal = padronObj.domicilios.find(
+          (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+        );
 
-      //Resolver solicitud
-      setEstadoSolicitud(padronObj.estadoSolicitudId);
-      setResolverSolicitudObs(padronObj.estadoSolicitudObservaciones);
+        dispatchDomicilio({
+          type: "USER_INPUT",
+          value: domicilioReal.direccion,
+        });
+        dispatchNacionalidad({
+          type: "USER_INPUT",
+          value: nacionalidades[5].value,
+        });
 
-      //Cargo los estados posibles
+        //provincia
+        const provincia = provincias.find(
+          (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
+        );
+        dispatchProvincia({ type: "USER_INPUT", value: provincia.value });
+
+        //localidad
+        const processLocalidades = async (localidadesObj) => {
+          //console.log("localidades", localidadesObj);
+          //console.log("localidad", localidadesObj[0].id);
+          const localidad = localidadesObj.find(
+            (localidad) =>
+              localidad.codPostal === parseInt(domicilioReal.codigoPostal)
+          );
+          //console.log("localidad", localidad)
+          dispatchLocalidad({
+            type: "USER_INPUT",
+            value: localidadesObj[0].id ?? "",
+          });
+          dispatchLocalidad({ type: "USER_INPUT", value: localidad.value });
+        };
+
+        request(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/RefLocalidad?CodigoPostal=${parseInt(
+              domicilioReal?.codigoPostal
+            )}`,
+            method: "GET",
+          },
+          processLocalidades
+        );
+      }
+
+      if (props.accion === "Modifica") {
+        //console.log("va a mandar padron", padronObj)
+        if (!fechaNacimientoState.isValid) {
+          dispatchFechaNacimiento({
+            type: "USER_INPUT",
+            value: moment(padronObj.fechaNacimiento).format("yyyy-MM-DD"),
+          });
+        }
+
+        ActualizaDatosAfip(padronObj);
+      }
+
       setCUILLoading(false);
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/RefLocalidad?CodigoPostal=${parseInt(
-            domicilioReal?.codigoPostal
-          )}`,
-          method: "GET",
-        },
-        processLocalidades
-      );
     };
 
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuil}&VerificarHistorico=${false}`,
+        endpoint: `/AFIPConsulta?CUIT=${
+          cuilState.value
+        }&VerificarHistorico=${false}`,
         method: "GET",
       },
       processConsultaPadron
@@ -1101,589 +1461,40 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
-  //#region submit afiliado
-  const [clickAgregar, setClickAgregar] = useState(false);
-  const afiliadoAgregarHandler = async (event) => {
-    event.preventDefault();
-    setClickAgregar(true);
-    //console.log("domicilioRealAFIP", domicilioRealAFIP);
-    if (!formularioIsValid) {
-      setShowAlert(true);
-      setTextAlert("Debe completar todos los campos");
-      setSeverityAlert("error");
-      return;
-    }
-    if (props.accion === "Agrega" && !afiliadoExiste) {
-      const empresa = {
-        cuit: cuitEmpresa,
-        razonSocial: padronEmpresaRespuesta
-          ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-          : "",
-        claveTipo: padronEmpresaRespuesta.tipoClave,
-        claveEstado: padronEmpresaRespuesta.estadoClave,
-        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
-        actividadPrincipalDescripcion:
-          padronEmpresaRespuesta.descripcionActividadPrincipal,
-        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
-        actividadPrincipalPeriodo:
-          padronEmpresaRespuesta.periodoActividadPrincipal,
-        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
-        cierreMes: padronEmpresaRespuesta.mesCierre,
-        email: correoEmpresa,
-        telefono: telefonoEmpresa,
-        domicilioCalle: "string",
-        domicilioNumero: 0,
-        domicilioPiso: "string",
-        domicilioDpto: "string",
-        domicilioSector: "string",
-        domicilioTorre: "string",
-        domicilioManzana: "string",
-        domicilioProvinciasId: 0,
-        domicilioLocalidadesId: 0,
-        domicilioCodigoPostal: 0,
-        domicilioCPA: "string",
-        domicilioTipo: "string",
-        domicilioEstado: "string",
-        domicilioDatoAdicional: "string",
-        domicilioDatoAdicionalTipo: "string",
-        ciiU1: padronEmpresaRespuesta.ciiU1,
-        ciiU2: padronEmpresaRespuesta.ciiU2,
-        ciiU3: padronEmpresaRespuesta.ciiU3,
-      };
-
-      const nuevoAfiliado = {
-        cuil: +cuil,
-        nombre: `${padronRespuesta?.apellido ?? ""} ${
-          padronRespuesta?.nombre ?? ""
-        }`,
-        puestoId: +puesto,
-        fechaIngreso: null,
-        fechaEgreso: null,
-        nacionalidadId: +nacionalidad,
-        //empresaId: +empresaId,
-        seccionalId: +seccional,
-        sexoId: +sexo,
-        tipoDocumentoId: +tipoDocumento,
-        documento: +numeroDocumento,
-        actividadId: +actividad,
-        estadoSolicitudId: 1,
-        estadoCivilId: +estadoCivil,
-        refLocalidadId: +localidad,
-        domicilio: domicilio,
-        telefono: telefono,
-        correo: correo,
-        celular: "",
-        fechaNacimiento: fechaNacimiento,
-        afipcuil: +cuil,
-        afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
-        afipNombre: padronRespuesta?.nombre ?? "",
-        afipApellido: padronRespuesta?.apellido ?? "",
-        afipRazonSocial: "",
-        afipTipoDocumento: padronRespuesta?.tipoDocumento,
-        afipNumeroDocumento: padronRespuesta?.numeroDocumento,
-        afipTipoPersona: padronRespuesta?.tipoPersona,
-        afipTipoClave: padronRespuesta?.tipoClave,
-        afipEstadoClave: padronRespuesta?.estadoClave,
-        afipClaveInactivaAsociada: 0,
-        afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
-        afipFormaJuridica: padronRespuesta?.formaJuridica,
-        afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
-        afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
-        afipPeriodoActividadPrincipal: 0,
-        afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
-        afipMesCierre: padronRespuesta?.mesCierre,
-        afipDomicilioDireccion: domicilioRealAFIP?.direccion,
-        afipDomicilioCalle: domicilioRealAFIP?.calle,
-        afipDomicilioNumero: domicilioRealAFIP?.numero,
-        afipDomicilioPiso: domicilioRealAFIP?.piso,
-        afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
-        afipDomicilioSector: domicilioRealAFIP?.sector,
-        afipDomicilioTorre: domicilioRealAFIP?.torre,
-        afipDomicilioManzana: domicilioRealAFIP?.manzana,
-        afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
-        afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
-        afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
-        afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
-        afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
-        afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
-        afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
-        afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
-        empresa: empresa,
-      };
-
-      console.log("POST", nuevoAfiliado);
-      const afiliadoAgregar = async (afiliadoResponseObj) => {
-        console.log("afiliadosObj", afiliadoResponseObj);
-
-        // Envío documentación enlazada al nuevo afiliado
-        documentacionList?.data?.forEach((doc) => {
-          if (!doc.refTipoDocumentacionId) return;
-          if (!doc.archivoBase64) return;
-          const body = {
-            entidadTipo: "A",
-            entidadId: afiliadoResponseObj,
-            refTipoDocumentacionId: doc.refTipoDocumentacionId,
-            archivo: doc.archivoBase64,
-            observaciones: doc.observaciones,
-          };
-          request(
-            {
-              baseURL: "Comunes",
-              endpoint: `/DocumentacionEntidad`,
-              method: "POST",
-              body: body,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            },
-            async (res) => console.log("OK", body, "res", res),
-            async (err) => console.log("Error", body, "err", err)
-          );
-        });
-
-        setNuevoAfiliadoResponse(afiliadoResponseObj);
-        //alert("Afiliado creado con éxito!");
-        //Alert
-        setShowAlert(true);
-        setSeverityAlert("success");
-        setTextAlert("Afiliado creado con éxito!");
-
-        //handleCerrarModal();
-
-        const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-          (estado) =>
-            estado.label === "Pendiente" ||
-            estado.label === "Activo" ||
-            estado.label === "Observado" ||
-            estado.label === "Rechazado"
-        );
-
-        setEstadoSolicitud(1);
-        setEstadosSolicitudes(estadosSolicitudesPendientes);
-        setSelectedTab(3);
-        setClickAgregar(false);
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado`,
-          method: "POST",
-          body: nuevoAfiliado,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        afiliadoAgregar
-      );
-    } else if (props.accion === "Modifica" || (props.accion === "Agrega" && afiliadoExiste)) {
-      const empresa = {
-        cuit: cuitEmpresa,
-        razonSocial: padronEmpresaRespuesta
-          ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-          : "",
-        claveTipo: padronEmpresaRespuesta.tipoClave,
-        claveEstado: padronEmpresaRespuesta.estadoClave,
-        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
-        actividadPrincipalDescripcion:
-          padronEmpresaRespuesta.descripcionActividadPrincipal,
-        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
-        actividadPrincipalPeriodo:
-          padronEmpresaRespuesta.periodoActividadPrincipal,
-        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
-        cierreMes: padronEmpresaRespuesta.mesCierre,
-        email: correoEmpresa,
-        telefono: telefonoEmpresa,
-        domicilioCalle: "string",
-        domicilioNumero: 0,
-        domicilioPiso: "string",
-        domicilioDpto: "string",
-        domicilioSector: "string",
-        domicilioTorre: "string",
-        domicilioManzana: "string",
-        domicilioProvinciasId: 0,
-        domicilioLocalidadesId: 0,
-        domicilioCodigoPostal: 0,
-        domicilioCPA: "string",
-        domicilioTipo: "string",
-        domicilioEstado: "string",
-        domicilioDatoAdicional: "string",
-        domicilioDatoAdicionalTipo: "string",
-        ciiU1: padronEmpresaRespuesta.ciiU1,
-        ciiU2: padronEmpresaRespuesta.ciiU2,
-        ciiU3: padronEmpresaRespuesta.ciiU3,
-      };
-
-      const afiliadoModificado = {
-        id: nuevoAfiliadoResponse,
-        cuil: +cuil,
-        nombre: nombre,
-        puestoId: +puesto,
-        fechaIngreso: null,
-        fechaEgreso: null,
-        nacionalidadId: +nacionalidad,
-        //empresaCUIT: +cuitEmpresa,
-        seccionalId: +seccional,
-        sexoId: +sexo,
-        tipoDocumentoId: +tipoDocumento,
-        documento: +numeroDocumento,
-        actividadId: +actividad,
-        estadoSolicitudId: +estadoSolicitud,
-        estadoCivilId: +estadoCivil,
-        refLocalidadId: +localidad,
-        domicilio: domicilio,
-        telefono: telefono,
-        correo: correo,
-        celular: "",
-        fechaNacimiento: fechaNacimiento,
-        afipcuil: +cuil,
-        afipFechaNacimiento: afiliado.afipFechaNacimiento,
-        afipNombre: afiliado.afipNombre,
-        afipApellido: afiliado.afipApellido,
-        afipRazonSocial: "",
-        afipTipoDocumento: afiliado.afipTipoDocumento,
-        afipNumeroDocumento: afiliado.afipNumeroDocumento,
-        afipTipoPersona: afiliado.afipTipoPersona,
-        afipTipoClave: afiliado.afipTipoClave,
-        afipEstadoClave: afiliado.afipEstadoClave,
-        afipClaveInactivaAsociada: afiliado.afipClaveInactivaAsociada,
-        afipFechaFallecimiento: afiliado.afipFechaFallecimiento,
-        afipFormaJuridica: afiliado.afipFormaJuridica,
-        afipActividadPrincipal: afiliado.afipActividadPrincipal,
-        afipIdActividadPrincipal: afiliado.afipIdActividadPrincipal,
-        afipPeriodoActividadPrincipal: afiliado.afipPeriodoActividadPrincipal,
-        afipFechaContratoSocial: afiliado.afipFechaContratoSocial,
-        afipMesCierre: afiliado.afipMesCierre,
-        afipDomicilioDireccion: afiliado.afipDomicilioDireccion,
-        afipDomicilioCalle: afiliado.afipDomicilioCalle,
-        afipDomicilioNumero: afiliado.afipDomicilioNumero,
-        afipDomicilioPiso: afiliado.afipDomicilioPiso,
-        afipDomicilioDepto: afiliado.afipDomicilioDepto,
-        afipDomicilioSector: afiliado.afipDomicilioSector,
-        afipDomicilioTorre: afiliado.afipDomicilioTorre,
-        afipDomicilioManzana: afiliado.afipDomicilioManzana,
-        afipDomicilioLocalidad: afiliado.afipDomicilioLocalidad,
-        afipDomicilioProvincia: afiliado.afipDomicilioProvincia,
-        afipDomicilioIdProvincia: afiliado.afipDomicilioIdProvincia,
-        afipDomicilioCodigoPostal: afiliado.afipDomicilioCodigoPostal,
-        afipDomicilioTipo: afiliado.afipDomicilioTipo,
-        afipDomicilioEstado: afiliado.afipDomicilioEstado,
-        afipDomicilioDatoAdicional: afiliado.afipDomicilioDatoAdicional,
-        afipDomicilioTipoDatoAdicional: afiliado.afipDomicilioTipoDatoAdicional,
-        empresa: empresa,
-      };
-
-      const afiliadoModificar = async (afiliadoModificarResponseObj) => {
-        console.log(
-          "afiliadoModificarResponseObj",
-          afiliadoModificarResponseObj
-        );
-
-        //Alert
-        setShowAlert(true);
-        setSeverityAlert("success");
-        setTextAlert("Afiliado actualizado con éxito!");
-
-        //handleCerrarModal();
-
-        // const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-        //   (estado) =>
-        //     estado.label === "Pendiente" ||
-        //     estado.label === "Activo" ||
-        //     estado.label === "Observado" ||
-        //     estado.label === "Rechazado"
-        // );
-
-        // setEstadoSolicitud(1);
-        // setEstadosSolicitudes(estadosSolicitudesPendientes);
-        // setSelectedTab(3);
-        setClickAgregar(false);
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado`,
-          method: "PUT",
-          body: afiliadoModificado,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        afiliadoModificar
-      );
-    }
-  };
-  //#endregion
-
-  //#region Observar afiliado
-  //const [clickAgregar, setClickAgregar] = useState(false);
-  const afiliadoObservarHandler = async (event) => {
-    event.preventDefault();
-
-    const empresa = {
-      cuit: cuitValidado ? cuitEmpresa : 99999999999,
-      razonSocial: cuitValidado
-        ? padronEmpresaRespuesta
-          ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-          : ""
-        : "Sin Asignar",
-      claveTipo: padronEmpresaRespuesta?.tipoClave,
-      claveEstado: padronEmpresaRespuesta?.estadoClave,
-      claveInactivaAsociada: padronEmpresaRespuesta?.claveInactivaAsociada,
-      actividadPrincipalDescripcion:
-        padronEmpresaRespuesta?.descripcionActividadPrincipal,
-      actividadPrincipalId: padronEmpresaRespuesta?.idActividadPrincipal,
-      actividadPrincipalPeriodo:
-        padronEmpresaRespuesta?.periodoActividadPrincipal,
-      contratoSocialFecha: padronEmpresaRespuesta?.fechaContratoSocial,
-      cierreMes: padronEmpresaRespuesta?.mesCierre,
-      email: correoEmpresa,
-      telefono: telefonoEmpresa,
-      domicilioCalle: "string",
-      domicilioNumero: 0,
-      domicilioPiso: "string",
-      domicilioDpto: "string",
-      domicilioSector: "string",
-      domicilioTorre: "string",
-      domicilioManzana: "string",
-      domicilioProvinciasId: 0,
-      domicilioLocalidadesId: 0,
-      domicilioCodigoPostal: 0,
-      domicilioCPA: "string",
-      domicilioTipo: "string",
-      domicilioEstado: "string",
-      domicilioDatoAdicional: "string",
-      domicilioDatoAdicionalTipo: "string",
-      ciiU1: padronEmpresaRespuesta?.ciiU1,
-      ciiU2: padronEmpresaRespuesta?.ciiU2,
-      ciiU3: padronEmpresaRespuesta?.ciiU3,
-    };
-
-    const nuevoAfiliadoObservado = {
-      cuil: +cuil,
-      nombre: nombre !== "" ? nombre : "Sin Asignar",
-      puestoId: puesto !== "" ? +puesto : 99999,
-      fechaIngreso: null,
-      fechaEgreso: null,
-      nacionalidadId: nacionalidad !== "" ? +nacionalidad : 99999,
-      //empresaId: +empresaId,
-      seccionalId: seccional !== "" ? +seccional : 99999,
-      sexoId: sexo !== "" ? +sexo : 99999,
-      tipoDocumentoId: tipoDocumento !== "" ? +tipoDocumento : 99999,
-      documento: numeroDocumento !== "" ? +numeroDocumento : 0,
-      actividadId: actividad !== "" ? +actividad : 99999,
-      estadoSolicitudId: 4,
-      estadoCivilId: estadoCivil !== "" ? +estadoCivil : 99999,
-      refLocalidadId: localidad !== "" ? +localidad : 99999,
-      domicilio: domicilio,
-      telefono: telefono,
-      correo: correo,
-      celular: "",
-      fechaNacimiento: fechaNacimiento !== "" ? fechaNacimiento : null,
-      afipcuil: +cuil,
-      // afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
-      // afipNombre: padronRespuesta?.nombre ?? "",
-      // afipApellido: padronRespuesta?.apellido ?? "",
-      // afipRazonSocial: "",
-      // afipTipoDocumento: padronRespuesta?.tipoDocumento,
-      // afipNumeroDocumento: padronRespuesta?.numeroDocumento,
-      // afipTipoPersona: padronRespuesta?.tipoPersona,
-      // afipTipoClave: padronRespuesta?.tipoClave,
-      // afipEstadoClave: padronRespuesta?.estadoClave,
-      // afipClaveInactivaAsociada: 0,
-      // afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
-      // afipFormaJuridica: padronRespuesta?.formaJuridica,
-      // afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
-      // afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
-      // afipPeriodoActividadPrincipal: 0,
-      // afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
-      // afipMesCierre: padronRespuesta?.mesCierre,
-      // afipDomicilioDireccion: domicilioRealAFIP?.direccion,
-      // afipDomicilioCalle: domicilioRealAFIP?.calle,
-      // afipDomicilioNumero: domicilioRealAFIP?.numero,
-      // afipDomicilioPiso: domicilioRealAFIP?.piso,
-      // afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
-      // afipDomicilioSector: domicilioRealAFIP?.sector,
-      // afipDomicilioTorre: domicilioRealAFIP?.torre,
-      // afipDomicilioManzana: domicilioRealAFIP?.manzana,
-      // afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
-      // afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
-      // afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
-      // afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
-      // afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
-      // afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
-      // afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
-      // afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
-      empresa: empresa,
-    };
-
-    console.log("POST", nuevoAfiliadoObservado);
-    const afiliadoObservadoAgregar = async (afiliadoObservadoResponseObj) => {
-      console.log("afiliadoObservadoResponseObj", afiliadoObservadoResponseObj);
-
-      setNuevoAfiliadoObservadoResponse(afiliadoObservadoResponseObj);
-      //alert("Afiliado creado con éxito!");
-      //Alert
-      setShowAlert(true);
-      setSeverityAlert("success");
-      setTextAlert(
-        `Afiliado Observado con Id ${afiliadoObservadoResponseObj} creado con éxito!`
-      );
-
-      //handleCerrarModal();
-      console.log("props.estadosSolicitudes", props.estadosSolicitudes);
-      const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
-        (estado) => estado.label === "Observado"
-      );
-      setEstadoSolicitud(estadosSolicitudesObservado[0].value);
-      setEstadosSolicitudes(estadosSolicitudesObservado);
-      setSelectedTab(3);
-    };
-
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Afiliado`,
-        method: "POST",
-        body: nuevoAfiliadoObservado,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-      afiliadoObservadoAgregar
-    );
-  };
-
-  //#endregion
-
-  //#region Resolver Solciitud Afiliado
-  const resolverSolicitudHandler = (event) => {
-    console.log("id", nuevoAfiliadoObservadoResponse);
-    event.preventDefault();
-
-    //Controles
-    if (afiliado.estadoSolicitudId === estadoSolicitud) {
-      setShowAlert(true);
-      setSeverityAlert("info");
-      setTextAlert(
-        `El estado seleccionado es el mismo que posee actualmente el afiliado`
-      );
-
-      return;
-    }
-
-    const patchAfiliado = [
-      {
-        path: "EstadoSolicitudId",
-        op: "replace",
-        value: estadoSolicitud,
-      },
-      {
-        path: "FechaIngreso",
-        op: "replace",
-        value: null,
-      },
-      {
-        path: "NroAfiliado",
-        op: "replace",
-        value: "0",
-      },
-      {
-        path: "EstadoSolicitudObservaciones",
-        op: "replace",
-        value: resolverSolicitudObs,
-      },
-    ];
-
-    const resolverSolicitudAfiliado = async (
-      resolverSolicitudAfiliadoResponse
-    ) => {
-      if (resolverSolicitudAfiliadoResponse) {
-        console.log("props.estadosSolicitudes", props.estadosSolicitudes);
-        const estadoSolicitudSel = props.estadosSolicitudes.find(
-          (estadoSolicitudSel) => estadoSolicitudSel.value === +estadoSolicitud
-        );
-        console.log("estadoSolicitudSel", estadoSolicitudSel);
-        setShowAlert(true);
-        setSeverityAlert("success");
-        setTextAlert(
-          `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
-        );
-        setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
-        if (+estadoSolicitud === 2) {
-          setShowImprimirLiquidacion(true);
-        }
-      }
-    };
-
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${
-          nuevoAfiliadoResponse !== null
-            ? nuevoAfiliadoResponse
-            : nuevoAfiliadoObservadoResponse
-        }`,
-        method: "PATCH",
-        body: patchAfiliado,
-        headers: {
-          "Content-Type": "application/json-patch+json",
-        },
-      },
-      resolverSolicitudAfiliado
-    );
-  };
-  //#endregion
-
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
     //console.log("objetoSeleccionadp", value);
     //console.log("id", name);
     switch (name) {
       case "actividadSelect":
-        setActividad(value);
         dispatchActividad({ type: "USER_INPUT", value: value });
         break;
 
       case "puestoSelect":
-        setPuesto(value);
-        dispatchOficio({ type: "USER_INPUT", value: value });
+        dispatchPuesto({ type: "USER_INPUT", value: value });
         break;
 
       case "nacionalidadSelect":
-        setNacionalidad(value);
         dispatchNacionalidad({ type: "USER_INPUT", value: value });
         break;
 
       case "sexoSelect":
-        setSexo(value);
-        dispatchGenero({ type: "USER_INPUT", value: value });
+        dispatchSexo({ type: "USER_INPUT", value: value });
         break;
 
       case "seccionalSelect":
-        //console.log("seccionalValue", value);
-        setSeccional(value);
         dispatchSeccional({ type: "USER_INPUT", value: value });
         break;
 
       case "estadoCivilSelect":
-        setEstadoCivil(value);
         dispatchEstadoCivil({ type: "USER_INPUT", value: value });
         break;
 
       case "tipoDocumentoSelect":
-        setTipoDocumento(value);
         dispatchTipoDocumento({ type: "USER_INPUT", value: value });
         break;
 
       case "provinciaSelect":
-        setProvincia(value);
-        setLocalidad("");
-        setSeccional("");
         dispatchProvincia({ type: "USER_INPUT", value: value });
         dispatchLocalidad({ type: "USER_INPUT", value: "" });
         dispatchSeccional({ type: "USER_INPUT", value: "" });
@@ -1691,12 +1502,12 @@ const AfiliadoAgregar = (props) => {
 
       case "localidadSelect":
         //console.log("selectLocalidad", value);
-        setLocalidad(value);
         dispatchLocalidad({ type: "USER_INPUT", value: value });
         break;
 
       case "estadoSolicitudSelect":
-        setEstadoSolicitud(value);
+        console.log("estadoSolicitudElegido", value);
+        setEstadoSolicitudResolver(value);
         break;
 
       default:
@@ -1712,59 +1523,51 @@ const AfiliadoAgregar = (props) => {
         setCuilValidado(false);
         setAfiliadoExiste(false);
         setNuevoAfiliadoResponse(null);
-        setClickAgregar(false);
-        setTextAlert("");
-        setSeverityAlert("");
+        setDialogTexto("");
         setPadronRespuesta(null);
         setCUITEmpresa("");
-
         dispatchCUIL({ type: "USER_INPUT", value: value });
-        setCUIL(value);
-        setNombre("");
-        setNacionalidad("");
-        setFechaNacimiento("");
-        setEstadoCivil("");
-        setSexo("");
-        setTipoDocumento("");
-        setNumeroDocumento("");
-        setDomicilio("");
-        setProvincia("");
-        setLocalidad("");
-        setSeccional("");
-        setTelefono("");
-        setCorreo("");
-        setPuesto("");
-        setActividad("");
+
+        dispatchNombre({ type: "USER_INPUT", value: "" });
+        dispatchNacionalidad({ type: "USER_INPUT", value: "" });
+        dispatchFechaNacimiento({ type: "USER_INPUT", value: "" });
+        dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
+        dispatchSexo({ type: "USER_INPUT", value: "" });
+        dispatchTipoDocumento({ type: "USER_INPUT", value: "" });
+        dispatchNumeroDocumento({ type: "USER_INPUT", value: "" });
+        dispatchDomicilio({ type: "USER_INPUT", value: "" });
+        dispatchProvincia({ type: "USER_INPUT", value: "" });
+        dispatchLocalidad({ type: "USER_INPUT", value: "" });
+        dispatchSeccional({ type: "USER_INPUT", value: "" });
+        dispatchTelefono({ type: "USER_INPUT", value: "" });
+        dispatchEmail({ type: "USER_INPUT", value: "" });
+        dispatchPuesto({ type: "USER_INPUT", value: "" });
         dispatchActividad({ type: "USER_INPUT", value: "" });
+
         break;
 
       case "nombre":
         dispatchNombre({ type: "USER_INPUT", value: value });
-        setNombre(value);
         break;
 
       case "fechaNacimiento":
         //console.log('fecha', value)
-        setFechaNacimiento(value);
         dispatchFechaNacimiento({ type: "USER_INPUT", value: value });
         break;
 
       case "numeroDocumento":
-        setNumeroDocumento(value);
         dispatchNumeroDocumento({ type: "USER_INPUT", value: value });
         break;
 
       case "domicilio":
-        setDomicilio(value);
         dispatchDomicilio({ type: "USER_INPUT", value: value });
         break;
 
       case "telefono":
-        setTelefono(value);
+        dispatchTelefono({ type: "USER_INPUT", value });
         break;
 
       case "correo":
-        setCorreo(value);
         dispatchEmail({ type: "USER_INPUT", value: value });
         break;
 
@@ -1795,15 +1598,42 @@ const AfiliadoAgregar = (props) => {
         setResolverSolicitudObs(value);
         break;
 
+      case "resolverSolicitudFechaIngreso":
+        setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
+        break;
+
       default:
         break;
     }
   };
   //#endregion
 
+  //#region handle Focus
+  const handleOnFocus = (id) => {
+    console.log("foco en", id);
+    // switch (id) {
+    //   case "cuil":
+    //     setCuilTouched(true);
+    //     break;
+
+    //   case "numeroDocumento":
+    //     setNumeroDocumentoTouched(true);
+    //     break;
+
+    //   case "cuit":
+    //     setCuitTouched(true);
+    //     break;
+
+    //   default:
+    //     break;
+    // }
+  };
+  //#endregion
+
   //#region handle Close
-  const handleCerrarModal = () => {
-    props.onClose(nuevoAfiliadoResponse === 0 ? false : true);
+  const handleCerrarModal = (refresh) => {
+    console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
+    props.onClose(nuevoAfiliadoResponse ?? false); //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
   };
   //#endregion
 
@@ -1822,57 +1652,58 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Functions
+  const deshabilitarBotonValidarCUIL = () => {
+    //console.log("cuilIsValid",cuilIsValid)
+    if (!cuilState.isValid) {
+      return true;
+    }
+
+    return false;
+  };
+
   const InputDisabled = (input) => {
     //console.log("InputDisable")
-    if (input !== "cuil" && cuil === "") {
+    if (input !== "cuil" && cuilState.value === "") {
       return true;
     }
 
     if (
       afiliadoExiste &&
-      estadoSolicitud !== 1 &&
-      estadoSolicitud !== 4 &&
-      estadoSolicitud !== 2
+      afiliado?.estadoSolicitudId !== 1 &&
+      afiliado?.estadoSolicitudId !== 4 &&
+      afiliado?.estadoSolicitudId !== 2
     ) {
       return true;
     }
 
-    // if (padronRespuesta !== null) {
-
-    //   return true;
-    // }
+    if (props.accion === "Modifica" && input === "cuil") {
+      return true;
+    }
 
     return false;
   };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
     if (props.accion === "Agrega") {
-      if (        
-        afiliadoExiste ||
-        !cuilValidado ||
-        !cuitValidado
-      ) {
-        return false;
+      if (afiliadoExiste) {
+        return true;
       }
-
     } else if (props.accion === "Modifica") {
-      if (cuilValidado && cuitValidado) {
-        return false;
+      if (!cuilValidado || !cuitValidado) {
+        return true;
       }
-      return false;
     }
 
-    return true;
+    return false;
   };
 
   const AgregarModificarAfiliadoTitulo = () => {
     if (props.accion === "Agrega") {
       if (afiliadoExiste) {
-        return "Modifica Afiliado"
+        return "Modifica Afiliado";
       }
 
-      return "Agrega Afiliado";
-
+      return "Agrega Solicitud";
     } else if (props.accion === "Modifica") {
       return "Modifica Afiliado";
     }
@@ -1880,133 +1711,386 @@ const AfiliadoAgregar = (props) => {
 
   const handleResuelveSolicitudDisable = () => {
     if (props.accion === "Resuelve") {
-      console.log("estadoSolicitud", estadoSolicitud);
-      if (estadoSolicitud !== 1 || estadoSolicitud !== 4) {
+      //console.log("estadoSolicitud", afiliado?.estadoSolicitudId);
+      if (
+        afiliado?.estadoSolicitudId !== 1 ||
+        afiliado?.estadoSolicitudId !== 4
+      ) {
         return false;
       }
-    } 
-    else if (props.accion === "Agrega") {
+    } else if (props.accion === "Agrega") {
       if (nuevoAfiliadoResponse) {
         return false;
       }
     }
     return true;
-  }
+  };
+
+  const handleOnDeclaracionesGeneradas = (ddjjs) => {
+    if (ddjjs?.length) {
+      setUltimaDDJJ(ddjjs[0]);
+    }
+    const ultimaDDJJ = ddjjs[0];
+    console.log("ultimaDDJJ", ultimaDDJJ);
+  };
   //#endregion
-console.log("cuitIsValid", cuitIsValid);
+
+  //#region Funciones actualizacion
+  const ActualizaDatosAfiliado = () => {
+    const empresa = {
+      cuit: cuitEmpresa,
+      razonSocial: padronEmpresaRespuesta
+        ? padronEmpresaRespuesta?.razonSocial ??
+          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        : "",
+      claveTipo: padronEmpresaRespuesta.tipoClave,
+      claveEstado: padronEmpresaRespuesta.estadoClave,
+      claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+      actividadPrincipalDescripcion:
+        padronEmpresaRespuesta.descripcionActividadPrincipal,
+      actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+      actividadPrincipalPeriodo:
+        padronEmpresaRespuesta.periodoActividadPrincipal,
+      contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+      cierreMes: padronEmpresaRespuesta.mesCierre,
+      email: correoEmpresa,
+      telefono: telefonoEmpresa,
+      domicilioCalle: "string",
+      domicilioNumero: 0,
+      domicilioPiso: "string",
+      domicilioDpto: "string",
+      domicilioSector: "string",
+      domicilioTorre: "string",
+      domicilioManzana: "string",
+      domicilioProvinciasId: 0,
+      domicilioLocalidadesId: 0,
+      domicilioCodigoPostal: 0,
+      domicilioCPA: "string",
+      domicilioTipo: "string",
+      domicilioEstado: "string",
+      domicilioDatoAdicional: "string",
+      domicilioDatoAdicionalTipo: "string",
+      ciiU1: padronEmpresaRespuesta.ciiU1,
+      ciiU2: padronEmpresaRespuesta.ciiU2,
+      ciiU3: padronEmpresaRespuesta.ciiU3,
+    };
+
+    const domicilioRealAFIP = padronRespuesta.domicilios.find(
+      (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+    );
+    const afiliadoModificado = {
+      id: nuevoAfiliadoResponse,
+      cuil: +cuilState.value,
+      nroAfiliado: +afiliado.nroAfiliado,
+      nombre: nombreState.value,
+      puestoId: +puestoState.value,
+      fechaIngreso: afiliado.fechaIngreso,
+      fechaEgreso: afiliado.fechaEgreso,
+      nacionalidadId: +nacionalidadState.value,
+      //empresaCUIT: +cuitEmpresa,
+      seccionalId: +seccionalState.value,
+      sexoId: +sexoState.value,
+      tipoDocumentoId: +tipoDocumentoState.value,
+      documento: +numeroDocumentoState.value,
+      actividadId: +actividadState.value,
+      estadoSolicitudId: +afiliado.estadoSolicitudId,
+      estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
+      estadoCivilId: +estadoCivilState.value,
+      refLocalidadId: +localidadState.value,
+      domicilio: domicilioState.value,
+      telefono: telefonoState.value,
+      correo: emailState.value,
+      celular: "",
+      fechaNacimiento: fechaNacimientoState.value,
+      afipcuil: +cuilState.value,
+      afipFechaNacimiento: padronRespuesta.fechaNacimiento,
+      afipNombre: padronRespuesta.nombre,
+      afipApellido: padronRespuesta.apellido,
+      afipRazonSocial: "",
+      afipTipoDocumento: padronRespuesta.tipoDocumento,
+      afipNumeroDocumento: padronRespuesta.numeroDocumento,
+      afipTipoPersona: padronRespuesta.tipoPersona,
+      afipTipoClave: padronRespuesta.tipoClave,
+      afipEstadoClave: padronRespuesta.estadoClave,
+      afipClaveInactivaAsociada: padronRespuesta.claveInactivaAsociada,
+      afipFechaFallecimiento: padronRespuesta.fechaFallecimiento,
+      afipFormaJuridica: padronRespuesta.formaJuridica,
+      afipActividadPrincipal: padronRespuesta.descripcionActividadPrincipal,
+      afipIdActividadPrincipal: padronRespuesta.idActividadPrincipal,
+      afipPeriodoActividadPrincipal: padronRespuesta.periodoActividadPrincipal,
+      afipFechaContratoSocial: padronRespuesta.afipFechaContratoSocial,
+      afipMesCierre: padronRespuesta.mesCierre,
+      afipDomicilioDireccion: `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`,
+      afipDomicilioCalle: domicilioRealAFIP.calle,
+      afipDomicilioNumero: domicilioRealAFIP.numero,
+      afipDomicilioPiso: domicilioRealAFIP.piso,
+      afipDomicilioDepto: domicilioRealAFIP.depto,
+      afipDomicilioSector: domicilioRealAFIP.sector,
+      afipDomicilioTorre: domicilioRealAFIP.torre,
+      afipDomicilioManzana: domicilioRealAFIP.manzana,
+      afipDomicilioLocalidad: domicilioRealAFIP.localidad,
+      afipDomicilioProvincia: domicilioRealAFIP.provincia,
+      afipDomicilioIdProvincia: domicilioRealAFIP.idProvincia,
+      afipDomicilioCodigoPostal: domicilioRealAFIP.codigoPostal,
+      afipDomicilioTipo: domicilioRealAFIP.tipo,
+      afipDomicilioEstado: domicilioRealAFIP.estado,
+      afipDomicilioDatoAdicional: domicilioRealAFIP.datoAdicional,
+      afipDomicilioTipoDatoAdicional: domicilioRealAFIP.tipoDatoAdicional,
+      empresa: empresa,
+    };
+    console.log("afiliado modificado", afiliadoModificado);
+    // console.log("padronRespuesta", padronRespuesta);
+    // console.log("afiliado", afiliado)
+    const afiliadoModificar = async (afiliadoModificarResponseObj) => {
+      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
+      setDialogTexto(AFILIADO_ACTUALIZADO);
+      setOpenDialog(true);
+      // }
+    };
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado`,
+        method: "PUT",
+        body: afiliadoModificado,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      afiliadoModificar
+    );
+  };
+
+  const ActualizaDatosAfip = (padronObj) => {
+    const patchModelo = ActualizarDatosAfip(padronObj);
+    console.log("patchModelo", patchModelo);
+    const actualizarDatosAfip = async () => {
+      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
+      setDialogTexto(AFILIADO_DATOSAFIPACTUALIZADO);
+      setOpenDialog(true);
+      // }
+    };
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado/ActualizarDatosAfip?Id=${afiliado?.id}`,
+        method: "PATCH",
+        body: patchModelo,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      actualizarDatosAfip
+    );
+  };
+  //#endregion
+
+  //#region Dialog or alert
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setDialogTexto("");
+    if (
+      dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
+      dialogTexto === AFILIADO_ACTUALIZADO ||
+      dialogTexto === AFILIADO_AGREGADO_ACTIVO
+    ) {
+      handleCerrarModal(true);
+    }
+  };
+  //#endregion
+
   return (
-    <Modal onClose={props.onClose}>
-      <div className={classes.div}>
-        <div className={classes.alert}>
-          <Alert severity={severityAlert} variant="filled">
-            {textAlert}
-          </Alert>
-        </div>
+    <>
+      <div>
+        <Dialog onClose={handleCloseDialog} open={openDialog}>
+          <DialogContent dividers>
+            <Typography gutterBottom>{dialogTexto}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cierra</Button>
+          </DialogActions>
+        </Dialog>
       </div>
-      <h5 className={classes.titulo}>
-        {props.accion === "Modifica"
-          ? `Modifica Afiliado de UATRE: ${cuil} ${nombre}`
-          : afiliadoExiste
-          ? `Modifica/Consulta Afiliado de UATRE: ${cuil} ${nombre}`
-          : padronRespuesta
-          ? `Agrega Afiliado a UATRE: ${cuil} ${nombre}`
-          : "Agrega Afiliado a UATRE"}
-      </h5>
-      <h6 className={classes.titulo}>
-        {afiliadoExiste || estadoSolicitud === 4
-          ? `Estado Solicitud del Afiliado: ${estadoSolicitudDescripcion}`
-          : null}
-      </h6>
-      <div className={classes.div}>
-        <Tabs
-          value={selectedTab}
-          onChange={handleChangeTab}
-          aria-label="basic tabs example"
-        >
-          <Tab
-            label="Datos Personales"
-            //disabled={nuevoAfiliadoResponse ? true : false}
-          />
-          <Tab label="Datos Empleador" disabled={formularioIsValid ? false : true} />
-          <Tab
-            label={
-              padronRespuesta ? `DDJJ UATRE de ${cuil} ${nombre}` : "DDJJ UATRE"
-            }
-            disabled={cuitIsValid ? false : true}
-          />
-          <Tab
-            label="Resuelve Solicitud"
-            disabled={handleResuelveSolicitudDisable()}
-            hidden={props.accion === "Agrega" || props.accion === "Resuelve"
-                ? false : true}
-          />
-          <Tab label="Documentacion" disabled={cuitIsValid ? false : true} />
-        </Tabs>
-      </div>
-      {selectedTab === 0 && (
+      <Modal onClose={props.onClose}>
+        <CabeceraABMAfiliado
+          cuilState={cuilState}
+          nombreState={nombreState}
+          afiliadoExiste={afiliadoExiste}
+          padronRespuesta={padronRespuesta}
+          afiliado={afiliado}
+          estadoSolicitudDescripcion={estadoSolicitudDescripcion}
+        />
+
         <div className={classes.div}>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuil"
-                value={cuil}
-                label="CUIL"
-                disabled={InputDisabled("cuil") || estadoSolicitud === 2}
-                width={98}
-                onChange={handleInputChange}
-                helperText={
-                  !cuilState.isValid && cuil !== ""
-                    ? "CUIL con formato incorrecto"
-                    : ""
-                }
-                error={
-                  (!cuilState.isValid && cuil !== "") ||
-                  (!formularioIsValid && clickAgregar)
-                    ? true
-                    : false
-                }
-              />
+          <Tabs
+            value={selectedTab}
+            onChange={handleChangeTab}
+            aria-label="basic tabs example"
+          >
+            <Tab
+              label="Datos Personales"
+              //disabled={nuevoAfiliadoResponse ? true : false}
+            />
+            <Tab
+              label="Datos Empleador"
+              disabled={formularioIsValid ? false : true}
+            />
+            <Tab
+              label={
+                /*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
+              }
+              disabled={cuilState.isValid ? false : true}
+            />
+            <Tab
+              label="Resuelve Solicitud"
+              disabled={handleResuelveSolicitudDisable()}
+              hidden={
+                props.accion === "Agrega" || props.accion === "Resuelve"
+                  ? false
+                  : true
+              }
+            />
+            <Tab
+              label="Documentacion"
+              disabled={cuitState.isValid ? false : true}
+            />
+          </Tabs>
+        </div>
+        {selectedTab === 0 && (
+          <div className={classes.div}>
+            {/* region Datos Principales */}
+            <div className={classes.renglon}>
+              <div className={classes.input25}>
+                <InputMaterialMask
+                  id="cuil"
+                  onFocus={handleOnFocus}
+                  value={cuilState.value.toString()}
+                  label="CUIL"
+                  disabled={
+                    InputDisabled("cuil") || afiliado?.estadoSolicitudId === 2
+                  }
+                  width={98}
+                  onChange={handleInputChange}
+                  helperText={
+                    !cuilState.isValid && cuilState.value !== ""
+                      ? "CUIL con formato incorrecto"
+                      : ""
+                  }
+                  error={
+                    !cuilState.isValid &&
+                    cuilState.value !== "" &&
+                    inputsTouched
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <LoadingButtonCustom
+                  width={80}
+                  heigth={70}
+                  disabled={deshabilitarBotonValidarCUIL()}
+                  onClick={validarAfiliadoCUILHandler}
+                  loading={cuilLoading}
+                >
+                  {!cuilLoading ? `Valida CUIL` : `Validando...`}
+                </LoadingButtonCustom>
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="nroAfiliado"
+                  value={afiliado?.nroAfiliado}
+                  label="Nro Afiliado"
+                  onChange={handleInputChange}
+                  readOnly={true}
+                />
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="fechaIngreso"
+                  value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+                  label="Fecha Ingreso"
+                  onChange={handleInputChange}
+                  readOnly={true}
+                />
+              </div>
             </div>
-            <LoadingButtonCustom
-              width={20}
-              heigth={80}
-              disabled={deshabilitarBotonValidarCUIL({
-                cuilIsValid: cuilIsValid,
-                afiliadoExiste: afiliadoExiste,
-                padronRespuesta: padronRespuesta ?? null,
-              })}
-              onClick={validarAfiliadoCUILHandler}
-              loading={cuilLoading}
-            >
-              {!cuilLoading ? `Validar CUIL` : `Validando...`}
-            </LoadingButtonCustom>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="nombre"
-                value={nombre ?? ""}
-                label="Apellido y Nombre"
-                width={100}
-                onChange={handleInputChange}
-                disabled={InputDisabled()}
-                error={!nombreState.isValid && clickAgregar ? true : false}
-              />
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="nombre"
+                  value={nombreState.value ?? ""}
+                  label="Apellido y Nombre"
+                  width={100}
+                  onChange={handleInputChange}
+                  disabled={InputDisabled()}
+                  error={!nombreState.isValid && inputsTouched ? true : false}
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="tipoDocumentoSelect"
+                  value={tipoDocumentoState.value}
+                  options={tiposDocumentos}
+                  label="Tipo Documento"
+                  disabled={InputDisabled()}
+                  onChange={handleChangeSelect}
+                  //width={98}
+                  error={
+                    !tipoDocumentoState.isValid && inputsTouched ? true : false
+                  }
+                  helperText
+                />
+              </div>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="numeroDocumento"
+                  onFocus={handleOnFocus}
+                  value={numeroDocumentoState.value}
+                  label="Numero Documento"
+                  disabled={InputDisabled()}
+                  //width={96}
+                  onChange={handleInputChange}
+                  error={
+                    !numeroDocumentoState.isValid && inputsTouched
+                      ? true
+                      : false
+                  }
+                />
+              </div>
             </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="nacionalidadSelect"
-                label="Nacionalidad"
-                options={nacionalidades}
-                value={nacionalidad}
-                defaultValue={nacionalidades[0]}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={
-                  !nacionalidadState.isValid && clickAgregar ? true : false
-                }
-              />
-              {/* <SearchSelectMaterial
+            <div className={classes.renglon}>
+              <div className={classes.input25}>
+                <InputMaterial
+                  id="fechaNacimiento"
+                  value={fechaNacimientoState.value}
+                  label="Fecha de Nacimiento"
+                  type="date"
+                  onChange={handleInputChange}
+                  disabled={InputDisabled()}
+                  error={
+                    !fechaNacimientoState.isValid && inputsTouched
+                      ? true
+                      : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="nacionalidadSelect"
+                  label="Nacionalidad"
+                  options={nacionalidades}
+                  value={nacionalidadState.value}
+                  defaultValue={nacionalidades[0]}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !nacionalidadState.isValid && inputsTouched ? true : false
+                  }
+                />
+                {/* <SearchSelectMaterial
                 name="nacionalidadSelect"
                 label="Nacionalidad"
                 options={nacionalidades}
@@ -2015,110 +2099,74 @@ console.log("cuitIsValid", cuitIsValid);
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
             />*/}
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="estadoCivilSelect"
+                  label="Estado Civil"
+                  options={estadosCiviles}
+                  value={estadoCivilState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  //width={100}
+                  error={
+                    !estadoCivilState.isValid && inputsTouched ? true : false
+                  }
+                />
+              </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="sexoSelect"
+                  label="Genero"
+                  options={sexos}
+                  value={sexoState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  //width={100}
+                  error={!sexoState.isValid && inputsTouched ? true : false}
+                />
+              </div>
             </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="fechaNacimiento"
-                value={fechaNacimiento}
-                label="Fecha de Nacimiento"
-                type="date"
-                onChange={handleInputChange}
-                disabled={InputDisabled()}
-                error={
-                  !fechaNacimientoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="estadoCivilSelect"
-                label="Estado Civil"
-                options={estadosCiviles}
-                value={estadoCivil}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                //width={100}
-                error={!estadoCivilState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="sexoSelect"
-                label="Genero"
-                options={sexos}
-                value={sexo}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                //width={100}
-                error={!generoState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input25}>
-              <SelectMaterial
-                name="tipoDocumentoSelect"
-                value={tipoDocumento}
-                options={tiposDocumentos}
-                label="Tipo Documento"
-                disabled={InputDisabled()}
-                onChange={handleChangeSelect}
-                //width={98}
-                error={
-                  !tipoDocumentoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input25}>
-              <InputMaterial
-                id="numeroDocumento"
-                value={numeroDocumento}
-                label="Numero Documento"
-                disabled={InputDisabled()}
-                //width={96}
-                onChange={handleInputChange}
-                error={
-                  !numeroDocumentoState.isValid && clickAgregar ? true : false
-                }
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilio"
-                value={domicilio}
-                label="Domicilio"
-                disabled={InputDisabled()}
-                onChange={handleInputChange}
-                error={!domicilioState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="domicilio"
+                  value={domicilioState.value}
+                  label="Domicilio"
+                  disabled={InputDisabled()}
+                  onChange={handleInputChange}
+                  error={
+                    !domicilioState.isValid && inputsTouched ? true : false
+                  }
+                />
+              </div>
 
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="provinciaSelect"
-                label="Provincia"
-                options={provincias}
-                value={provincia}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!provinciaState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="localidadSelect"
-                label="Localidad"
-                options={localidades}
-                value={localidad}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!localidadState.isValid && clickAgregar ? true : false}
-              />
-              {/* <SearchSelectMaterial
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="provinciaSelect"
+                  label="Provincia"
+                  options={provincias}
+                  value={provinciaState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !provinciaState.isValid && inputsTouched ? true : false
+                  }
+                />
+              </div>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="localidadSelect"
+                  label="Localidad"
+                  options={localidades}
+                  value={localidadState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !localidadState.isValid && inputsTouched ? true : false
+                  }
+                />
+                {/* <SearchSelectMaterial
                 name="localidadSelect"
                 label="Localidad"
                 options={localidades}
@@ -2127,21 +2175,23 @@ console.log("cuitIsValid", cuitIsValid);
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
+              </div>
             </div>
-          </div>
 
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <SelectMaterial
-                name="seccionalSelect"
-                label="Seccional"
-                options={seccionales}
-                value={seccional}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!seccionalState.isValid && clickAgregar ? true : false}
-              />
-              {/* <SearchSelectMaterial
+            <div className={classes.renglon}>
+              <div className={classes.input}>
+                <SelectMaterial
+                  name="seccionalSelect"
+                  label="Seccional"
+                  options={seccionales}
+                  value={seccionalState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !seccionalState.isValid && inputsTouched ? true : false
+                  }
+                />
+                {/* <SearchSelectMaterial
                 name="seccionalSelect"
                 label="Seccional"
                 options={seccionales}
@@ -2149,611 +2199,282 @@ console.log("cuitIsValid", cuitIsValid);
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="telefono"
-                value={telefono}
-                label="Telefono/Celular"
-                disabled={InputDisabled()}
-                width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="correo"
-                value={correo}
-                label="Correo"
-                disabled={InputDisabled()}
-                width={100}
-                onChange={handleInputChange}
-                helperText={
-                  !emailState.isValid && correo !== "" && correo !== null
-                    ? "Email inválido"
-                    : ""
-                }
-                error={
-                  !emailIsValid && correo !== "" && correo !== null
-                    ? true
-                    : false
-                }
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="puestoSelect"
-                label="Oficio"
-                options={puestos}
-                value={puesto}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!oficioState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-            <div className={classes.input}>
-              <SelectMaterial
-                name="actividadSelect"
-                label="Actividad"
-                options={actividades}
-                value={actividad}
-                onChange={handleChangeSelect}
-                disabled={InputDisabled()}
-                error={!actividadState.isValid && clickAgregar ? true : false}
-              />
-            </div>
-          </div>
-          <div className={classes.renglon}>
-            <h4>Datos AFIP</h4>
-          </div>
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="nombreYApellidoAFIP"
-                value={nombreAFIP}
-                label="Apellido y Nombre"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="fechaNacimientoAFIP"
-                type="date"
-                value={fechaNacimientoAFIP}
-                label="Fecha de Nacimiento"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuilAFIP"
-                value={cuilAFIP}
-                label="CUIL"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="tipoDocumentoAFIP"
-                value={tipoDocumentoAFIP}
-                label="Tipo Documento"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="numeroDocumentoAFIP"
-                value={numeroDocumentoAFIP}
-                label="Documento"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="estadoClaveAFIP"
-                value={estadoClaveAFIP}
-                label="Estado Clave"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilioAFIP"
-                value={domicilioRealAFIP}
-                label="Domicilio"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      {selectedTab === 1 && (
-        <div className={classes.div}>
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="cuit"
-                value={cuitEmpresa}
-                label="CUIT"
-                disabled={InputDisabled()}
-                width={98}
-                onChange={handleInputChange}
-                helperText={
-                  !cuitIsValid && cuitEmpresa.length === 11
-                    ? "CUIT inválido"
-                    : ""
-                }
-                error={
-                  (!cuitState.isValid && cuitEmpresa !== "") ||
-                  (!formularioEmpleadorIsValid && clickAgregar)
-                    ? true
-                    : false
-                }
-              />
-            </div>
-            <LoadingButtonCustom
-              width={20}
-              heigth={80}
-              disabled={!cuitIsValid ? true : false}
-              onClick={validarEmpresaCUITHandler}
-              loading={cuitLoading}
-            >
-              {!cuitLoading ? `Validar CUIT` : `Validando...`}
-            </LoadingButtonCustom>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="razonSocialEmpresa"
-                value={razonSocialEmpresa}
-                label="Razón Social"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="actividadEmpresa"
-                value={actividadEmpresa}
-                label="Actividad"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="domicilioEmpresa"
-                value={domicilioEmpresa}
-                label="Domicilio"
-                disabled={true}
-                width={100}
-              />
-            </div>
-            <div className={classes.input}>
-              <InputMaterial
-                id="localidadEmpresa"
-                value={localidadEmpresa}
-                label="Localidad"
-                disabled={true}
-                width={100}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input}>
-              <InputMaterial
-                id="telefonoEmpresa"
-                value={telefonoEmpresa}
-                label="Telefono"
-                disabled={false}
-                width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className={classes.input}>
-              <InputMaterial
-                id="correoEmpresa"
-                value={correoEmpresa}
-                label="Correo"
-                disabled={false}
-                width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="lugarTrabajoEmpresa"
-                value={lugarTrabajoEmpresa}
-                label="Lugar de Trabajo"
-                disabled={false}
-                //width={100}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU1"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1
-                    ? `${padronEmpresaRespuesta.ciiU1} - ${padronEmpresaRespuesta.ciiU1Descripcion}`
-                    : ""
-                }
-                label="Actividad Principal"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU2"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2
-                    ? `${padronEmpresaRespuesta.ciiU2} - ${padronEmpresaRespuesta.ciiU2Descripcion}`
-                    : ""
-                }
-                label="Actividad Secundaria"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={classes.renglon}>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="CIIU3"
-                value={
-                  padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU3
-                    ? `${padronEmpresaRespuesta.ciiU3} - ${padronEmpresaRespuesta.ciiU3Descripcion}`
-                    : ""
-                }
-                label="Actividad Terciaria"
-                disabled={true}
-              />
-              {padronEmpresaRespuesta &&
-              padronEmpresaRespuesta?.ciiU3EsRural ? (
-                <div className={classes.input100}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
-      {selectedTab === 2 && (
-        <DeclaracionesJuradas
-          cuil={cuil}
-          onSeleccionRegistro={handleSeleccionDDJJ}
-          infoCompleta={true}
-        />
-      )}
-      {selectedTab === 3 && (
-        <>
-          <div className={classes.div}>
-            <h4>
-              {padronRespuesta ? `DDJJ UATRE ${cuil} ${nombre}` : "DDJJ UATRE"}
-            </h4>
-            <div className={classes.renglon}>
-              <DeclaracionesJuradas
-                cuil={cuil}
-                //onSeleccionRegistro={handleSeleccionDDJJ}
-                infoCompleta={true}
-                mostrarBuscar={false}
-                registros={3}
-              />
-            </div>
-          </div>
-          <div className={classes.div}>
-            <h4>Actividades del Empleador</h4>
-            <div className={classes.renglon}>
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU1"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1
-                      ? `${padronEmpresaRespuesta.ciiU1} - ${padronEmpresaRespuesta.ciiU1Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Principal"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU1EsRural ? (
-                <div className={classes.input33}>
-                  <label className={classes.labelEsRural}>
-                    Es Actividad Rural
-                  </label>
-                </div>
-              ) : null} */}
               </div>
-
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU2"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2
-                      ? `${padronEmpresaRespuesta.ciiU2} - ${padronEmpresaRespuesta.ciiU2Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Secundaria"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU2EsRural ? (
-              <div className={classes.input33}>
-                <label className={classes.labelEsRural}>
-                  Es Actividad Rural
-                </label>
-              </div>
-            ) : null} */}
-              </div>
-
-              <div className={classes.input33}>
-                <InputMaterial
-                  id="CIIU3"
-                  value={
-                    padronEmpresaRespuesta && padronEmpresaRespuesta.ciiU3
-                      ? `${padronEmpresaRespuesta.ciiU3} - ${padronEmpresaRespuesta.ciiU3Descripcion}`
-                      : ""
-                  }
-                  label="Actividad Terciaria"
-                  disabled={true}
-                  showToolTip={true}
-                />
-                {/* {padronEmpresaRespuesta && padronEmpresaRespuesta?.ciiU3EsRural ? (
-              <div className={classes.input33}>
-                <label className={classes.labelEsRural}>
-                  Es Actividad Rural
-                </label>
-              </div>
-            ) : null} */}
-              </div>
-            </div>
-          </div>
-          <div className={classes.div}>
-            <h4>Afiliados en ultima DDJJ del Empleador</h4>
-            <AfiliadosUltimaDDJJ cuit={cuitEmpresa} mostrarBuscar={false} />
-
-            <div className={classes.renglon}>
               <div className={classes.input25}>
                 <SelectMaterial
-                  name="estadoSolicitudSelect"
-                  label="Estado Solciitud:"
-                  options={estadosSolicitudes}
-                  value={estadoSolicitud}
-                  //defaultValue={nacionalidades[0]}
+                  name="puestoSelect"
+                  label="Oficio"
+                  options={puestos}
+                  value={puestoState.value}
                   onChange={handleChangeSelect}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
+                  disabled={InputDisabled()}
+                  error={!puestoState.isValid && inputsTouched ? true : false}
                 />
               </div>
+              <div className={classes.input25}>
+                <SelectMaterial
+                  name="actividadSelect"
+                  label="Actividad"
+                  options={actividades}
+                  value={actividadState.value}
+                  onChange={handleChangeSelect}
+                  disabled={InputDisabled()}
+                  error={
+                    !actividadState.isValid && inputsTouched ? true : false
+                  }
+                />
+              </div>
+            </div>
 
-              <div className={classes.input75}>
+            <div className={classes.renglon}>
+              <div className={classes.input}>
                 <InputMaterial
-                  id="resolverSolicitudObs"
-                  value={resolverSolicitudObs}
-                  label="Observaciones"
+                  id="telefono"
+                  value={telefonoState.value}
+                  label="Telefono/Celular"
+                  disabled={InputDisabled()}
                   width={100}
                   onChange={handleInputChange}
-                  //disabled={!padronRespuesta?.idPersona ? true : false}
+                />
+              </div>
+              <div className={classes.input}>
+                <InputMaterial
+                  id="correo"
+                  value={emailState.value}
+                  label="Correo"
+                  disabled={InputDisabled()}
+                  width={100}
+                  onChange={handleInputChange}
+                  helperText={
+                    !emailState.isValid &&
+                    emailState.value !== "" &&
+                    emailState.value !== null
+                      ? "Email inválido"
+                      : ""
+                  }
+                  error={
+                    !emailState.isValid &&
+                    emailState.value !== "" &&
+                    emailState.value !== null
+                      ? true
+                      : false
+                  }
                 />
               </div>
             </div>
 
-            <div className={classes.botonesResolverSolicitud}>
-              <div className={classes.botonResolverSolicitud}>
-                <Button
-                  className={classes.button}
-                  width={100}
-                  onClick={resolverSolicitudHandler}
-                  disabled={showImprimirLiquidacion}
-                >
-                  Resolver Solicitud
-                </Button>
+            <DatosAfip afiliado={afiliado} padronRespuesta={padronRespuesta} />
+          </div>
+        )}
+        {selectedTab === 1 && (
+          <TabEmpleador
+            padronEmpresaRespuesta={padronEmpresaRespuesta}
+            cuitEmpresa={cuitEmpresa}
+            cuitState={cuitState}
+            cuitValidado={cuitValidado}
+            cuitLoading={cuitLoading}
+            razonSocialEmpresa={razonSocialEmpresa}
+            actividadEmpresa={actividadEmpresa}
+            domicilioEmpresa={domicilioEmpresa}
+            localidadEmpresa={localidadEmpresa}
+            telefonoEmpresa={telefonoEmpresa}
+            correoEmpresa={correoEmpresa}
+            lugarTrabajoEmpresa={lugarTrabajoEmpresa}
+            inputsTouched={inputsTouched}
+            onHandleInputChange={handleInputChange}
+            onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
+            onFocus={handleOnFocus}
+          />
+        )}
+        {selectedTab === 2 && (
+          <>
+            <DeclaracionesJuradas
+              cuil={cuilState.value}
+              onSeleccionRegistro={handleSeleccionDDJJ}
+              infoCompleta={true}
+              onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+              registros={12}
+            />
+            <div
+              className={classes.div}
+              hidden={
+                ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
+              }
+            >
+              <div className={classes.renglon}>
+                <h6>
+                  El afiliado {nombreState.value} de la Empresa{" "}
+                  {razonSocialEmpresa} está en condiciones de ser incorporado al
+                  Padrón.
+                </h6>
               </div>
-              <div className={classes.botonResolverSolicitud}>
-                <Button
-                  className={classes.button}
-                  width={100}
-                  disabled={!showImprimirLiquidacion}
-                  //onClick={imprimirLiquidacionHandler}
-                >
-                  Imprimir Certificado Afiliación
-                </Button>
+              <div className={classes.renglon}>
+                <div className={classes.boton}>
+                  <Button
+                    className={classes.button}
+                    width={80}
+                    onClick={afiliadoAgregarHandler}
+                  >
+                    Incorporar al Padrón
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
-      {selectedTab === 4 && (
-        <Grid col full="width" gap="10px">
-          <Grid full="width" gap="5px">
-            <DocumentacionList
-              config={{
-                data: documentacionList.data,
-                onSelect: (r) => {
-                  setDocumentacionItem({
-                    data: { ...r },
-                    hisotry: { ...r },
-                    req: null,
-                  });
-                },
+          </>
+        )}
+        {selectedTab === 3 && (
+          <ResolverSolicitud
+            padronRespuesta={padronRespuesta}
+            cuilState={cuilState}
+            nombreState={nombreState}
+            cuitEmpresa={cuitEmpresa}
+            resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
+            resolverSolicitudObs={resolverSolicitudObs}
+            estadoSolicitud={estadoSolicitudResolver}
+            estadosSolicitudes={estadosSolicitudes}
+            showImprimirLiquidacion={showImprimirLiquidacion}
+            onHandleChangeSelect={handleChangeSelect}
+            onHandleInputChange={handleInputChange}
+            onResolverSolicitudHandler={resolverSolicitudHandler}
+          />
+        )}
+        {selectedTab === 4 && (
+          <Grid col full="width" gap="10px">
+            <Grid full="width" gap="5px">
+              <DocumentacionList
+                config={{
+                  data: documentacionList.data,
+                  onSelect: (r) => {
+                    setDocumentacionItem({
+                      data: { ...r },
+                      hisotry: { ...r },
+                      req: null,
+                    });
+                  },
+                }}
+              />
+            </Grid>
+            <Grid full="width" gap="5px">
+              <Grid grow>
+                <Button
+                  onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
+                >
+                  Agrega documentación
+                </Button>
+              </Grid>
+              <Grid grow>
+                <Button
+                  disabled={documentacionItem.req != null}
+                  onClick={() =>
+                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
+                  }
+                >
+                  Modifica documentación
+                </Button>
+              </Grid>
+              <Grid grow>
+                <Button
+                  disabled={documentacionItem.req != null}
+                  onClick={() =>
+                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
+                  }
+                >
+                  Borra documentación
+                </Button>
+              </Grid>
+            </Grid>
+            <Grid
+              col
+              full="width"
+              gap="20px"
+              style={{
+                marginTop: "10px",
+                border: "1px solid #186090",
+                padding: "15px",
               }}
-            />
-          </Grid>
-          <Grid full="width" gap="5px">
-            <Grid grow>
-              <Button
-                onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
-              >
-                Agregar documentación
-              </Button>
-            </Grid>
-            <Grid grow>
-              <Button
-                disabled={documentacionItem.req != null}
-                onClick={() =>
-                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
-                }
-              >
-                Modificar documentación
-              </Button>
-            </Grid>
-            <Grid grow>
-              <Button
-                disabled={documentacionItem.req != null}
-                onClick={() =>
-                  setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
-                }
-              >
-                Borrar documentación
-              </Button>
-            </Grid>
-          </Grid>
-          <Grid col full="width" gap="20px" style={{ marginTop: "10px" }}>
-            <DocumentacionForm
-              config={{
-                data: documentacionItem.data,
-                disabled: documentacionItem.req == null,
-                onChange: (dataChanges) =>
-                  setDocumentacionItem((oldValue) => ({
-                    ...oldValue,
-                    data: { ...oldValue.data, ...dataChanges },
-                  })),
-                onCancel: () =>
-                  setDocumentacionItem((oldValue) => ({
-                    data: oldValue.history,
-                    history: oldValue.history,
-                    req: null,
-                  })),
-                onConfirm: () => {
-                  let data;
-                  let index = null;
-                  switch (documentacionItem.req) {
-                    case 1: // Agrega
-                      data = { ...documentacionItem.data, id: null };
-                      index = documentacionList.data.length;
-                      break;
-                    case 2: // Modifica
-                      data = { ...documentacionItem.data };
-                      break;
-                    case 3: // Borra
-                      data = null;
-                      break;
-                    default:
-                      return;
-                  }
-                  if (index == null) {
-                    // Modifica o Borra
-                    index = documentacionList.data.findIndex(
-                      (r) => r.id === documentacionItem.data?.id
-                    );
-                  }
-                  setDocumentacionList((oldValue) => {
-                    const newValue = { ...oldValue, data: [...oldValue.data] };
-                    if (data == null) {
-                      // Borra
-                      newValue.data.splice(index, 1);
-                    } else {
-                      // Agrega o Modifica
-                      if (data.id == null) {
-                        // Agrega
-                        newValue.idGen += 1;
-                        data.id = newValue.idGen;
-                      }
-                      newValue.data.splice(index, 1, { ...data });
+            >
+              <DocumentacionForm
+                config={{
+                  data: documentacionItem.data,
+                  disabled: documentacionItem.req == null,
+                  onChange: (dataChanges) =>
+                    setDocumentacionItem((oldValue) => ({
+                      ...oldValue,
+                      data: { ...oldValue.data, ...dataChanges },
+                    })),
+                  onCancel: () =>
+                    setDocumentacionItem((oldValue) => ({
+                      data: oldValue.history,
+                      history: oldValue.history,
+                      req: null,
+                    })),
+                  onConfirm: () => {
+                    let data;
+                    let index = null;
+                    switch (documentacionItem.req) {
+                      case 1: // Agrega
+                        data = { ...documentacionItem.data, id: null };
+                        index = documentacionList.data.length;
+                        break;
+                      case 2: // Modifica
+                        data = { ...documentacionItem.data };
+                        break;
+                      case 3: // Borra
+                        data = null;
+                        break;
+                      default:
+                        return;
                     }
-                    return newValue;
-                  });
-                  setDocumentacionItem({ req: null });
-                },
-              }}
-            />
+                    if (index == null) {
+                      // Modifica o Borra
+                      index = documentacionList.data.findIndex(
+                        (r) => r.id === documentacionItem.data?.id
+                      );
+                    }
+                    setDocumentacionList((oldValue) => {
+                      const newValue = {
+                        ...oldValue,
+                        data: [...oldValue.data],
+                      };
+                      if (data == null) {
+                        // Borra
+                        newValue.data.splice(index, 1);
+                      } else {
+                        // Agrega o Modifica
+                        if (data.id == null) {
+                          // Agrega
+                          newValue.idGen += 1;
+                          data.id = newValue.idGen;
+                        }
+                        newValue.data.splice(index, 1, { ...data });
+                      }
+                      return newValue;
+                    });
+                    setDocumentacionItem({ req: null });
+                  },
+                }}
+              />
+            </Grid>
           </Grid>
-        </Grid>
-      )}
-      <div className={classes.botones}>
-        <div className={classes.boton}>
-          <Button
-            className={classes.button}
-            width={100}
+        )}
+        <div className={classes.footer}>
+          <LoadingButtonCustom
+            /*className={classes.button}*/
+            hidden={props.accion === "Resuelve" ? true : false}
+            loading={afiliadoProcesando}
+            width={25}
             onClick={afiliadoAgregarHandler}
             disabled={AgregarModificarAfiliadoDisableHandler()}
           >
             {AgregarModificarAfiliadoTitulo()}
+          </LoadingButtonCustom>
+
+          <Button type="submit" width={25} onClick={handleCerrarModal}>
+            CIERRA
           </Button>
         </div>
-        <div className={classes.boton}>
-          <Button
-            className={classes.button}
-            width={100}
-            onClick={afiliadoObservarHandler}
-            disabled={
-              cuil === "" ||
-              nuevoAfiliadoObservadoResponse ||
-              afiliadoExiste ||
-              estadoSolicitud === 4
-            }
-          >
-            Observar Afiliado
-          </Button>
-        </div>
-        <div className={classes.boton}>
-          <Button type="submit" width={100} onClick={handleCerrarModal}>
-            Cerrar
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
+    </>
   );
 };
 

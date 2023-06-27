@@ -25,22 +25,17 @@ const TableRemote = (props) => {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
-    selected: props.rowSelectedIndex ?? null,
+    selected: [props.primerRegistroDelGrid.id] ?? null,
     style: {
-      backgroundColor: "rgb(194 194 194 / 70%)",
+      backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
     },
+    onSelect: (row, isSelect, rowIndex, e) => props.onSelected(row, isSelect, rowIndex, e),
+	  //onSelectAll: (isSelect, rows, e) => {},
   };
 
-  const rowEvents = {
-    onClick: (e, row) => {
-      props.onSelected(row);
-    },
-  };
-
-
-  const rowStyle2 = (row, cell) => {
+  const rowStyle = (row, cell) => {
     //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
     const rowStyle = {
       backgroundColor: "#ffffff99",
@@ -55,13 +50,11 @@ const TableRemote = (props) => {
     console.log('Seleccionó:',event.target.value)
     setSelectValue(event.target.value);
     setEntryValue('');
-    //props.handleSelectFilter(event.target.value);
+
   };
 
   const handleChangeSearchEntry = (event) => {
     setEntryValue(event.target.value);
-    
-      //props.handleSelectFilter(event.target.value);
   };
 
   const accionLimpiarFiltros = () =>{
@@ -72,11 +65,11 @@ const TableRemote = (props) => {
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: 'auto' }}>
+       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
-          
+            style={{position: 'unset'}}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             value={selectValue.dataField}
@@ -117,9 +110,10 @@ const TableRemote = (props) => {
         >Buscar</Button>
         <Button
               className="botonBorder"
-              width={70}
+              //width={70}
+              style={{'min-width': 'fit-content'}}
               onClick={()=>accionLimpiarFiltros()}
-        >Limpiar</Button>
+        >Limpiar Busqueda</Button>
       </Box>
     
       }
@@ -140,12 +134,12 @@ const TableRemote = (props) => {
           noDataIndication={
             props.noDataIndication ?? "No existen datos para mostrar"
           }
-          rowEvents = {rowEvents}
+          //rowEvents = {rowEvents} //No es necesario a menos que se declare algo especial en rowEvents
           defaultSorted={props.defaultSorted ?? false}
-          //defaultSortDirection="asc"
+          //defaultSortDirection={props.defaultSortDirection}
           overlay = {props.overlay}
           selectRow={selectRow}
-          rowStyle={props.rowStyle ? props.rowStyle : rowStyle2}
+          rowStyle={props.rowStyle ? props.rowStyle : rowStyle}
       />
     </div>
   );
