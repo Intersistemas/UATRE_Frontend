@@ -100,7 +100,7 @@ const nacionalidadReducer = (state, action) => {
   return { value: "", isValid: false };
 };
 
-const fechaNacimientoReducer = (state, action) => {  
+const fechaNacimientoReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return { value: action.value, isValid: action.value !== "" ? true : false };
   }
@@ -164,7 +164,8 @@ const numeroDocumentoReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
-      isValid: parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
     };
   }
   if (action.type === "USER_BLUR") {
@@ -528,8 +529,8 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //setAfiliadoExiste(false);      
-      // console.log("cuilState.isValid", cuilState.isValid);
+      //setAfiliadoExiste(false);
+      //console.log("cuilState.isValid", cuilState.isValid);
       // console.log("nombreState.isValid", nombreState.isValid);
       // console.log("nacionalidadState.isValid", nacionalidadState.isValid);
       // console.log("estadoCivilState.isValid", estadoCivilState.isValid);
@@ -559,12 +560,10 @@ const AfiliadoAgregar = (props) => {
         provinciaState.isValid &&
         localidadState.isValid &&
         seccionalState.isValid &&
-        puestoState.isValid &&
-        actividadState.isValid        
+        puestoState.isValid
       ) {
-        setFormularioIsValid(true);        
-      }
-      else {
+        setFormularioIsValid(true);
+      } else {
         setFormularioIsValid(false);
       }
     }, 400);
@@ -585,7 +584,6 @@ const AfiliadoAgregar = (props) => {
     localidadState,
     seccionalState,
     puestoState,
-    actividadState,
     fechaNacimientoState,
     nacionalidadState,
   ]);
@@ -651,7 +649,7 @@ const AfiliadoAgregar = (props) => {
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj.id);
         setAfiliadoExiste(true);
-        setPadronRespuesta(true);
+        //setPadronRespuesta(true);
         //setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
         setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
@@ -676,7 +674,10 @@ const AfiliadoAgregar = (props) => {
         });
         dispatchSeccional({
           type: "USER_INPUT",
-          value: afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.seccionalId,
+          value:
+            afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0
+              ? ""
+              : afiliadoObj.seccionalId,
         });
         dispatchEstadoCivil({
           type: "USER_INPUT",
@@ -702,13 +703,19 @@ const AfiliadoAgregar = (props) => {
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
-          value: afiliadoObj.fechaNacimiento !== null ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD") : "",
+          value:
+            afiliadoObj.fechaNacimiento !== null
+              ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
+              : "",
         });
         dispatchNumeroDocumento({
           type: "USER_INPUT",
           value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
         });
-        dispatchDomicilio({ type: "USER_INPUT", value: afiliadoObj.domicilio ?? "" });
+        dispatchDomicilio({
+          type: "USER_INPUT",
+          value: afiliadoObj.domicilio ?? "",
+        });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
         //datos empleador
@@ -1121,46 +1128,46 @@ const AfiliadoAgregar = (props) => {
       console.log("POST", nuevoAfiliado);
       const afiliadoAgregar = async (afiliadoResponseObj) => {
         // console.log({
-				// 	afiliadosObj: afiliadoResponseObj,
-				// 	documentacionList: documentacionList,
-				// });
+        // 	afiliadosObj: afiliadoResponseObj,
+        // 	documentacionList: documentacionList,
+        // });
 
         // Envío documentación enlazada al nuevo afiliado
-				documentacionList?.data?.forEach((doc) => {
-					if (!doc.refTipoDocumentacionId) return;
-					if (!doc.archivoBase64) return;
-					const body = {
-						entidadTipo: "A",
-						entidadId: afiliadoResponseObj,
-						refTipoDocumentacionId: doc.refTipoDocumentacionId,
-						archivo: doc.archivoBase64,
-						observaciones: doc.observaciones,
-					};
+        documentacionList?.data?.forEach((doc) => {
+          if (!doc.refTipoDocumentacionId) return;
+          if (!doc.archivoBase64) return;
+          const body = {
+            entidadTipo: "A",
+            entidadId: afiliadoResponseObj,
+            refTipoDocumentacionId: doc.refTipoDocumentacionId,
+            archivo: doc.archivoBase64,
+            observaciones: doc.observaciones,
+          };
 
-					request(
-						{
-							baseURL: "Comunes",
-							endpoint: `/DocumentacionEntidad`,
-							method: "POST",
-							body: body,
-							headers: {
-								"Content-Type": "application/json",
-							},
-						},
-						async (res) =>
-							console.log({
-								"[Comunes/DocumentacionEntidad] POST OK": body,
-								res: res,
-							}),
-						async (err) =>
-							console.log({
-								"[Comunes/DocumentacionEntidad] POST Error": body,
-								err: err,
-							})
-					);
-				});
+          request(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "POST",
+              body: body,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            async (res) =>
+              console.log({
+                "[Comunes/DocumentacionEntidad] POST OK": body,
+                res: res,
+              }),
+            async (err) =>
+              console.log({
+                "[Comunes/DocumentacionEntidad] POST Error": body,
+                err: err,
+              })
+          );
+        });
 
-        setNuevoAfiliadoResponse(afiliadoResponseObj);        
+        setNuevoAfiliadoResponse(afiliadoResponseObj);
         setOpenDialog(true);
 
         //Si se incorpora automaticamente
@@ -1204,7 +1211,7 @@ const AfiliadoAgregar = (props) => {
       props.accion === "Modifica" ||
       (props.accion === "Agrega" && afiliadoExiste)
     ) {
-      ActualizaDatosAfiliado(afiliado);
+      ActualizaDatosAfiliado();
     }
     setAfiliadoProcesando(false);
     //#endregion
@@ -1334,7 +1341,10 @@ const AfiliadoAgregar = (props) => {
         const tipoDoc = tiposDocumentos.filter(
           (tipoDoc) => tipoDoc.label === padronObj.tipoDocumento
         );
-        dispatchTipoDocumento({ type: "USER_INPUT", value: tipoDoc[0].value });
+        dispatchTipoDocumento({
+          type: "USER_INPUT",
+          value: tipoDoc[0]?.value ?? "",
+        });
         dispatchNumeroDocumento({
           type: "USER_INPUT",
           value: padronObj.numeroDocumento,
@@ -1387,6 +1397,14 @@ const AfiliadoAgregar = (props) => {
       }
 
       if (props.accion === "Modifica") {
+        //console.log("va a mandar padron", padronObj)
+        if (!fechaNacimientoState.isValid) {
+          dispatchFechaNacimiento({
+            type: "USER_INPUT",
+            value: moment(padronObj.fechaNacimiento).format("yyyy-MM-DD"),
+          });
+        }
+
         ActualizaDatosAfip(padronObj);
       }
 
@@ -1546,7 +1564,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "telefono":
-        dispatchTelefono({ type: "USER_INPUT", value })
+        dispatchTelefono({ type: "USER_INPUT", value });
         break;
 
       case "correo":
@@ -1614,7 +1632,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle Close
   const handleCerrarModal = (refresh) => {
-    console.log('nuevoAfiliadoResponse*',nuevoAfiliadoResponse)
+    console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
     props.onClose(nuevoAfiliadoResponse ?? false); //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
   };
   //#endregion
@@ -1635,12 +1653,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Functions
   const deshabilitarBotonValidarCUIL = () => {
-    // if (
-    //   afiliado?.estadoSolicitudId !== 1 &&
-    //   afiliado?.estadoSolicitudId !== 4
-    // ) {
-    //   return true;
-    // }
     //console.log("cuilIsValid",cuilIsValid)
     if (!cuilState.isValid) {
       return true;
@@ -1724,7 +1736,7 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Funciones actualizacion
-  const ActualizaDatosAfiliado = (datosAFIP) => {
+  const ActualizaDatosAfiliado = () => {
     const empresa = {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
@@ -1763,6 +1775,9 @@ const AfiliadoAgregar = (props) => {
       ciiU3: padronEmpresaRespuesta.ciiU3,
     };
 
+    const domicilioRealAFIP = padronRespuesta.domicilios.find(
+      (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+    );
     const afiliadoModificado = {
       id: nuevoAfiliadoResponse,
       cuil: +cuilState.value,
@@ -1788,45 +1803,39 @@ const AfiliadoAgregar = (props) => {
       celular: "",
       fechaNacimiento: fechaNacimientoState.value,
       afipcuil: +cuilState.value,
-      afipFechaNacimiento: afiliado.afipFechaNacimiento,
-      afipNombre: datosAFIP.nombre ?? afiliado.afipNombre,
-      afipApellido: datosAFIP.apellido ?? afiliado.afipApellido,
+      afipFechaNacimiento: padronRespuesta.fechaNacimiento,
+      afipNombre: padronRespuesta.nombre,
+      afipApellido: padronRespuesta.apellido,
       afipRazonSocial: "",
-      afipTipoDocumento: datosAFIP.tipoDocumento ?? afiliado.afipTipoDocumento,
-      afipNumeroDocumento:
-        datosAFIP.numeroDocumento ?? afiliado.afipNumeroDocumento,
-      afipTipoPersona: datosAFIP.tipoPersona ?? afiliado.afipTipoPersona,
-      afipTipoClave: datosAFIP.tipoClave ?? afiliado.afipTipoClave,
-      afipEstadoClave: datosAFIP.estadoClave ?? afiliado.afipEstadoClave,
-      afipClaveInactivaAsociada: afiliado.afipClaveInactivaAsociada,
-      afipFechaFallecimiento: afiliado.afipFechaFallecimiento,
-      afipFormaJuridica: datosAFIP.formaJuridica ?? afiliado.afipFormaJuridica,
-      afipActividadPrincipal:
-        datosAFIP.descripcionActividadPrincipal ??
-        afiliado.afipActividadPrincipal,
-      afipIdActividadPrincipal:
-        datosAFIP.idActividadPrincipal ?? afiliado.afipIdActividadPrincipal,
-      afipPeriodoActividadPrincipal:
-        datosAFIP.periodoActividadPrincipal ??
-        afiliado.afipPeriodoActividadPrincipal,
-      afipFechaContratoSocial: afiliado.afipFechaContratoSocial,
-      afipMesCierre: datosAFIP.meCierre ?? afiliado.afipMesCierre,
-      afipDomicilioDireccion: afiliado.afipDomicilioDireccion,
-      afipDomicilioCalle: afiliado.afipDomicilioCalle,
-      afipDomicilioNumero: afiliado.afipDomicilioNumero,
-      afipDomicilioPiso: afiliado.afipDomicilioPiso,
-      afipDomicilioDepto: afiliado.afipDomicilioDepto,
-      afipDomicilioSector: afiliado.afipDomicilioSector,
-      afipDomicilioTorre: afiliado.afipDomicilioTorre,
-      afipDomicilioManzana: afiliado.afipDomicilioManzana,
-      afipDomicilioLocalidad: afiliado.afipDomicilioLocalidad,
-      afipDomicilioProvincia: afiliado.afipDomicilioProvincia,
-      afipDomicilioIdProvincia: afiliado.afipDomicilioIdProvincia,
-      afipDomicilioCodigoPostal: afiliado.afipDomicilioCodigoPostal,
-      afipDomicilioTipo: afiliado.afipDomicilioTipo,
-      afipDomicilioEstado: afiliado.afipDomicilioEstado,
-      afipDomicilioDatoAdicional: afiliado.afipDomicilioDatoAdicional,
-      afipDomicilioTipoDatoAdicional: afiliado.afipDomicilioTipoDatoAdicional,
+      afipTipoDocumento: padronRespuesta.tipoDocumento,
+      afipNumeroDocumento: padronRespuesta.numeroDocumento,
+      afipTipoPersona: padronRespuesta.tipoPersona,
+      afipTipoClave: padronRespuesta.tipoClave,
+      afipEstadoClave: padronRespuesta.estadoClave,
+      afipClaveInactivaAsociada: padronRespuesta.claveInactivaAsociada,
+      afipFechaFallecimiento: padronRespuesta.fechaFallecimiento,
+      afipFormaJuridica: padronRespuesta.formaJuridica,
+      afipActividadPrincipal: padronRespuesta.descripcionActividadPrincipal,
+      afipIdActividadPrincipal: padronRespuesta.idActividadPrincipal,
+      afipPeriodoActividadPrincipal: padronRespuesta.periodoActividadPrincipal,
+      afipFechaContratoSocial: padronRespuesta.afipFechaContratoSocial,
+      afipMesCierre: padronRespuesta.mesCierre,
+      afipDomicilioDireccion: `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`,
+      afipDomicilioCalle: domicilioRealAFIP.calle,
+      afipDomicilioNumero: domicilioRealAFIP.numero,
+      afipDomicilioPiso: domicilioRealAFIP.piso,
+      afipDomicilioDepto: domicilioRealAFIP.depto,
+      afipDomicilioSector: domicilioRealAFIP.sector,
+      afipDomicilioTorre: domicilioRealAFIP.torre,
+      afipDomicilioManzana: domicilioRealAFIP.manzana,
+      afipDomicilioLocalidad: domicilioRealAFIP.localidad,
+      afipDomicilioProvincia: domicilioRealAFIP.provincia,
+      afipDomicilioIdProvincia: domicilioRealAFIP.idProvincia,
+      afipDomicilioCodigoPostal: domicilioRealAFIP.codigoPostal,
+      afipDomicilioTipo: domicilioRealAFIP.tipo,
+      afipDomicilioEstado: domicilioRealAFIP.estado,
+      afipDomicilioDatoAdicional: domicilioRealAFIP.datoAdicional,
+      afipDomicilioTipoDatoAdicional: domicilioRealAFIP.tipoDatoAdicional,
       empresa: empresa,
     };
     console.log("afiliado modificado", afiliadoModificado);
@@ -1853,8 +1862,8 @@ const AfiliadoAgregar = (props) => {
     );
   };
 
-  const ActualizaDatosAfip = () => {
-    const patchModelo = ActualizarDatosAfip(afiliado);
+  const ActualizaDatosAfip = (padronObj) => {
+    const patchModelo = ActualizarDatosAfip(padronObj);
     console.log("patchModelo", patchModelo);
     const actualizarDatosAfip = async () => {
       //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
@@ -1875,13 +1884,13 @@ const AfiliadoAgregar = (props) => {
       },
       actualizarDatosAfip
     );
-  }
+  };
   //#endregion
 
   //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDialogTexto("")
+    setDialogTexto("");
     if (
       dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
       dialogTexto === AFILIADO_ACTUALIZADO ||
@@ -1896,10 +1905,10 @@ const AfiliadoAgregar = (props) => {
     <>
       <div>
         <Dialog onClose={handleCloseDialog} open={openDialog}>
-          <DialogContent>
+          <DialogContent dividers>
             <Typography gutterBottom>{dialogTexto}</Typography>
           </DialogContent>
-          <DialogActions dividers>
+          <DialogActions>
             <Button onClick={handleCloseDialog}>Cierra</Button>
           </DialogActions>
         </Dialog>
@@ -1965,11 +1974,17 @@ const AfiliadoAgregar = (props) => {
                   width={98}
                   onChange={handleInputChange}
                   helperText={
-                    !cuilState.isValid && inputsTouched
+                    !cuilState.isValid && cuilState.value !== ""
                       ? "CUIL con formato incorrecto"
                       : ""
                   }
-                  error={!cuilState.isValid && inputsTouched ? true : false}
+                  error={
+                    !cuilState.isValid &&
+                    cuilState.value !== "" &&
+                    inputsTouched
+                      ? true
+                      : false
+                  }
                 />
               </div>
               <div className={classes.input25}>
@@ -2060,7 +2075,7 @@ const AfiliadoAgregar = (props) => {
                       ? true
                       : false
                   }
-                />             
+                />
               </div>
               <div className={classes.input25}>
                 <SelectMaterial

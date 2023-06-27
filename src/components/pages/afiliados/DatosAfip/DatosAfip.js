@@ -24,32 +24,10 @@ const DatosAfip = (props) => {
   const [periodoActividadPrincipalAFIP, setPeriodoActividadPrincipalAFIP] =
     useState("");
   const [mesCierreAFIP, setMesCierreAFIP] = useState("");
-
+  
   useEffect(() => {
-    if (props.afiliado) {
-      setNombreAFIP(
-        `${props.afiliado?.afipApellido} ${props.afiliado?.afipNombre ?? ""}`
-      );
-      setFechaNacimientoAFIP(
-        moment(props.afiliado?.fechaNacimiento).format("yyyy-MM-DD")
-      );
-      setCUILAFIP(props.afiliado?.cuil);
-      setTipoDocumentoAFIP(props.afiliado?.afipTipoDocumento);
-      setNumeroDocumentoAFIP(props.afiliado?.afipNumeroDocumento);
-      setEstadoClaveAFIP(props.afiliado?.afipEstadoClave);
-      setDomicilioRealAFIP(props.afiliado?.afipDomicilioDireccion);
-      setTipoPersonaAFIP(props.afiliado?.afipTipoPersona);
-      setTipoClaveAFIP(props.afiliado?.afipTipoClave);
-      setDescripcionActividadPrincipalAFIP(
-        props.afiliado?.afipActividadPrincipal
-      );
-      setIdActividadPrincipalAFIP(props.afiliado?.afipIdActividadPrincipal);
-      setPeriodoActividadPrincipalAFIP(
-        props.afiliado?.afipPeriodoActividadPrincipal
-      );
-      setMesCierreAFIP(props.afiliado?.afipMesCierre);
-    } else if (props.padronRespuesta) {
-      const domicilioReal = props.padronRespuesta.domicilios.find(
+     if (props.padronRespuesta !== null) {
+      const domicilioReal = props.padronRespuesta?.domicilios?.find(
         (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
       );
       setNombreAFIP(
@@ -76,6 +54,30 @@ const DatosAfip = (props) => {
       );
       setMesCierreAFIP(props.padronRespuesta?.mesCierre);
     }
+
+    else if (props.afiliado) {
+      setNombreAFIP(
+        `${props.afiliado?.afipApellido} ${props.afiliado?.afipNombre ?? ""}`
+      );
+      setFechaNacimientoAFIP(
+        moment(props.afiliado?.afipFechaNacimiento).format("yyyy-MM-DD")
+      );
+      setCUILAFIP(props.afiliado?.cuil);
+      setTipoDocumentoAFIP(props.afiliado?.afipTipoDocumento);
+      setNumeroDocumentoAFIP(props.afiliado?.afipNumeroDocumento);
+      setEstadoClaveAFIP(props.afiliado?.afipEstadoClave);
+      setDomicilioRealAFIP(props.afiliado?.afipDomicilioDireccion);
+      setTipoPersonaAFIP(props.afiliado?.afipTipoPersona);
+      setTipoClaveAFIP(props.afiliado?.afipTipoClave);
+      setDescripcionActividadPrincipalAFIP(
+        props.afiliado?.afipActividadPrincipal
+      );
+      setIdActividadPrincipalAFIP(props.afiliado?.afipIdActividadPrincipal);
+      setPeriodoActividadPrincipalAFIP(
+        props.afiliado?.afipPeriodoActividadPrincipal
+      );
+      setMesCierreAFIP(props.afiliado?.afipMesCierre);
+    } 
   }, [props.padronRespuesta, props.afiliado]);
 
   return (

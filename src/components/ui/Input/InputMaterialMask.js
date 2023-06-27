@@ -83,7 +83,7 @@ const InputMaterialMask = (props) => {
           inputComponent: cuilMask,
         }}
         helperText={props.helperText ?? ""}
-        FormHelperTextProps={{ style: { marginTop: "0px" } }}
+        FormHelperTextProps={{ style: { marginTop: "0px", color: "red" } }}
         error={props.error ?? false}
         color={props.color}
         focused={props.focused || false}
