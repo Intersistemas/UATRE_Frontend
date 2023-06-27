@@ -129,6 +129,7 @@ const LiquidacionesList = (props) => {
 			pagination={bootstrapPagination}
 			noDataIndication={config.noData}
 			onSelected={onSelect}
+			primerRegistroDelGrid={{ id: data.length > 0 ? data[0].id : 0 }}
 		/>
 	);
 };
