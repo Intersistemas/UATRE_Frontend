@@ -44,7 +44,7 @@ const TabEmpleador = (props) => {
           onClick={props.onValidarEmpresaCUITHandler}
           loading={props.cuitLoading}
         >
-          {!props.cuitLoading ? `Validar CUIT` : `Validando...`}
+          {!props.cuitLoading ? `Valida CUIT` : `Validando...`}
         </LoadingButtonCustom>
       </div>
 

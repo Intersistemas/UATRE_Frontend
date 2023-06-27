@@ -127,7 +127,7 @@ const ResolverSolicitud = (props) => {
               onClick={props.onResolverSolicitudHandler}
               disabled={props.showImprimirLiquidacion}
             >
-              Resolver Solicitud
+              Resuelve Solicitud
             </Button>
           </div>
           <div className={classes.botonResolverSolicitud}>
