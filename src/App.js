@@ -12,6 +12,7 @@ import Afiliado from './components/pages/afiliados/Afiliado';
 import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
 import AdministracionHandler from './components/pages/administracion/Handler';
 import fondo from './media/Background/color3.png';
 /*import "./components/fonts/SantanderLight.ttf";
@@ -46,6 +47,7 @@ const App = () => {
 						<Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+						<Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/administracion" element={<AdministracionHandler />} />
             <Route path="/inicio" element={<InicioHandler />} />
