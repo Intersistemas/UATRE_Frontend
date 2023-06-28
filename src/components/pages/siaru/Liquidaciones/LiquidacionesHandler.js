@@ -130,6 +130,7 @@ const LiquidacionesHandler = () => {
 				},
 				async (res) => {
 					setLiquidaciones({ data: res.data });
+					if (res.data.length > 0) setLiquidacion(res.data[0]);
 					setPagination({
 						index: res.index,
 						size: res.size,
