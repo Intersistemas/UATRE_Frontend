@@ -283,6 +283,7 @@ const LiquidacionesHandler = () => {
 									}));
 									setRefreshLiquidaciones(true);
 								},
+								seleccionado: liquidacion
 							}}
 						/>
 					</Grid>

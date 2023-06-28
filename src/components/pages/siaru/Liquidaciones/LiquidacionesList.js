@@ -7,6 +7,7 @@ import TableRemote from "../../../ui/Table/TableRemote";
 const LiquidacionesList = (props) => {
 	const config = { ...props.config };
 	const data = config.data ? [...config.data] : [];
+	const seleccionado = config.seleccionado;
 	const pagination = { ...config.pagination };
 	const onSelect = config.onSelect ?? ((registro) => {});
 	const onPaginationChange =
@@ -119,6 +120,13 @@ const LiquidacionesList = (props) => {
 	if (isLoading) return <h4>Cargando...</h4>;
 	if (error) return <h4>{error}</h4>;
 
+	let primerRegistro = 0;
+	if (data.length > 0 && seleccionado != null) {
+		primerRegistro = data.findIndex(r => r.id === seleccionado.id);
+		if (primerRegistro < 0) primerRegistro = 0;
+	}
+
+	console.log({ primerRegistro: primerRegistro });
 	return (
 		<TableRemote
 			remote
@@ -129,7 +137,7 @@ const LiquidacionesList = (props) => {
 			pagination={bootstrapPagination}
 			noDataIndication={config.noData}
 			onSelected={onSelect}
-			primerRegistroDelGrid={{ id: data.length > 0 ? data[0].id : 0 }}
+			primerRegistroDelGrid={{ id: primerRegistro }}
 		/>
 	);
 };
