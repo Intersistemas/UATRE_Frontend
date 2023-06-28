@@ -42,6 +42,8 @@ const useHttp = () => {
                 break;
 
         }
+
+				configRequest.bodyToJSON ??= true;
         
         //Agrego Token
         let headers = {...configRequest.headers}
@@ -59,7 +61,11 @@ const useHttp = () => {
                 {
                     method: configRequest.method ? configRequest.method : 'GET',
                     headers: headers,
-                    body: configRequest.body ? JSON.stringify(configRequest.body) : null
+                    body: configRequest.body
+											? configRequest.bodyToJSON
+												? JSON.stringify(configRequest.body)
+												: configRequest.body
+											: null,
                 }
             )
             
