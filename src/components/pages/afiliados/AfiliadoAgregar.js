@@ -1775,8 +1775,7 @@ const AfiliadoAgregar = (props) => {
       ciiU3: padronEmpresaRespuesta.ciiU3,
     };
 
-    const domicilioRealAFIP = padronRespuesta.domicilios.find(
-      (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+    const domicilioRealAFIP = padronRespuesta?.domicilios.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
     );
     const afiliadoModificado = {
       id: nuevoAfiliadoResponse,
@@ -1803,39 +1802,131 @@ const AfiliadoAgregar = (props) => {
       celular: "",
       fechaNacimiento: fechaNacimientoState.value,
       afipcuil: +cuilState.value,
-      afipFechaNacimiento: padronRespuesta.fechaNacimiento,
-      afipNombre: padronRespuesta.nombre,
-      afipApellido: padronRespuesta.apellido,
+      afipFechaNacimiento:
+        padronRespuesta !== null
+          ? padronRespuesta.fechaNacimiento
+          : afiliado.afipFechaFallecimiento,
+      afipNombre:
+        padronRespuesta !== null ? padronRespuesta.nombre : afiliado.afipNombre,
+      afipApellido:
+        padronRespuesta !== null
+          ? padronRespuesta.apellido
+          : afiliado.afipApellido,
       afipRazonSocial: "",
-      afipTipoDocumento: padronRespuesta.tipoDocumento,
-      afipNumeroDocumento: padronRespuesta.numeroDocumento,
-      afipTipoPersona: padronRespuesta.tipoPersona,
-      afipTipoClave: padronRespuesta.tipoClave,
-      afipEstadoClave: padronRespuesta.estadoClave,
-      afipClaveInactivaAsociada: padronRespuesta.claveInactivaAsociada,
-      afipFechaFallecimiento: padronRespuesta.fechaFallecimiento,
-      afipFormaJuridica: padronRespuesta.formaJuridica,
-      afipActividadPrincipal: padronRespuesta.descripcionActividadPrincipal,
-      afipIdActividadPrincipal: padronRespuesta.idActividadPrincipal,
-      afipPeriodoActividadPrincipal: padronRespuesta.periodoActividadPrincipal,
-      afipFechaContratoSocial: padronRespuesta.afipFechaContratoSocial,
-      afipMesCierre: padronRespuesta.mesCierre,
-      afipDomicilioDireccion: `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`,
-      afipDomicilioCalle: domicilioRealAFIP.calle,
-      afipDomicilioNumero: domicilioRealAFIP.numero,
-      afipDomicilioPiso: domicilioRealAFIP.piso,
-      afipDomicilioDepto: domicilioRealAFIP.depto,
-      afipDomicilioSector: domicilioRealAFIP.sector,
-      afipDomicilioTorre: domicilioRealAFIP.torre,
-      afipDomicilioManzana: domicilioRealAFIP.manzana,
-      afipDomicilioLocalidad: domicilioRealAFIP.localidad,
-      afipDomicilioProvincia: domicilioRealAFIP.provincia,
-      afipDomicilioIdProvincia: domicilioRealAFIP.idProvincia,
-      afipDomicilioCodigoPostal: domicilioRealAFIP.codigoPostal,
-      afipDomicilioTipo: domicilioRealAFIP.tipo,
-      afipDomicilioEstado: domicilioRealAFIP.estado,
-      afipDomicilioDatoAdicional: domicilioRealAFIP.datoAdicional,
-      afipDomicilioTipoDatoAdicional: domicilioRealAFIP.tipoDatoAdicional,
+      afipTipoDocumento:
+        padronRespuesta !== null
+          ? padronRespuesta.tipoDocumento
+          : afiliado.afipTipoDocumento,
+      afipNumeroDocumento:
+        padronRespuesta !== null
+          ? padronRespuesta.numeroDocumento
+          : afiliado.afipNumeroDocumento,
+      afipTipoPersona:
+        padronRespuesta !== null
+          ? padronRespuesta.tipoPersona
+          : afiliado.afipTipoPersona,
+      afipTipoClave:
+        padronRespuesta !== null
+          ? padronRespuesta.tipoClave
+          : afiliado.afipTipoClave,
+      afipEstadoClave:
+        padronRespuesta !== null
+          ? padronRespuesta.estadoClave
+          : afiliado.afipEstadoClave,
+      afipClaveInactivaAsociada:
+        padronRespuesta !== null
+          ? padronRespuesta.claveInactivaAsociada
+          : afiliado.afipClaveInactivaAsociada,
+      afipFechaFallecimiento:
+        padronRespuesta !== null
+          ? padronRespuesta.fechaFallecimiento
+          : afiliado.afipFechaFallecimiento,
+      afipFormaJuridica:
+        padronRespuesta !== null
+          ? padronRespuesta.formaJuridica
+          : afiliado.afip,
+      afipActividadPrincipal:
+        padronRespuesta !== null
+          ? padronRespuesta.descripcionActividadPrincipal
+          : afiliado.afip,
+      afipIdActividadPrincipal:
+        padronRespuesta !== null
+          ? padronRespuesta.idActividadPrincipal
+          : afiliado.afip,
+      afipPeriodoActividadPrincipal:
+        padronRespuesta !== null
+          ? padronRespuesta.periodoActividadPrincipal
+          : afiliado.afip,
+      afipFechaContratoSocial:
+        padronRespuesta !== null
+          ? padronRespuesta.afipFechaContratoSocial
+          : afiliado.afip,
+      afipMesCierre:
+        padronRespuesta !== null ? padronRespuesta.mesCierre : afiliado.afip,
+      afipDomicilioDireccion:
+        padronRespuesta !== null
+          ? `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`
+          : afiliado.afipDomicilioDireccion,
+      afipDomicilioCalle:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.calle
+          : afiliado.afipDomicilioCalle,
+      afipDomicilioNumero:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.numero
+          : afiliado.afipDomicilioNumero,
+      afipDomicilioPiso:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.piso
+          : afiliado.afipDomicilioPiso,
+      afipDomicilioDepto:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.depto
+          : afiliado.afipDomicilioDepto,
+      afipDomicilioSector:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.sector
+          : afiliado.afipDomicilioSector,
+      afipDomicilioTorre:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.torre
+          : afiliado.afipDomicilioTorre,
+      afipDomicilioManzana:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.manzana
+          : afiliado.afipDomicilioManzana,
+      afipDomicilioLocalidad:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.localidad
+          : afiliado.afipDomicilioLocalidad,
+      afipDomicilioProvincia:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.provincia
+          : afiliado.afipDomicilioProvincia,
+      afipDomicilioIdProvincia:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.idProvincia
+          : afiliado.afipDomicilioIdProvincia,
+      afipDomicilioCodigoPostal:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.codigoPostal
+          : afiliado.afipDomicilioCodigoPostal,
+      afipDomicilioTipo:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.tipo
+          : afiliado.afipDomicilioTipo,
+      afipDomicilioEstado:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.estado
+          : afiliado.afipDomicilioEstado,
+      afipDomicilioDatoAdicional:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.datoAdicional
+          : afiliado.afipDomicilioDatoAdicional,
+      afipDomicilioTipoDatoAdicional:
+        padronRespuesta !== null
+          ? domicilioRealAFIP.tipoDatoAdicional
+          : afiliado.afipDomicilioTipoDatoAdicional,
       empresa: empresa,
     };
     console.log("afiliado modificado", afiliadoModificado);
