@@ -46,10 +46,10 @@ const DDJJList = ({
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "condicionRural",
+			dataField: "esRural",
 			text: "Es Rural",
 			sort: true,
-			formatter: (v) => Formato.Booleano(v === "RU"),
+			formatter: (v) => Formato.Booleano(v ?? false),
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			style: { ...cs },
 		},

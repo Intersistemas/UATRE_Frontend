@@ -154,8 +154,8 @@ const LiquidacionesHandler = () => {
 	// Información si ocurrió algún error durante la carga de liquidaciones
 	let liqNoData = <h4>No hay informacion a mostrar</h4>;
 	if (liquidaciones.error) {
-		switch (liquidaciones.error.type) {
-			case "Body":
+		switch (liquidaciones.error.code ?? 0) {
+			case 0:
 				liqNoData = <h4>{liquidaciones.error.message}</h4>;
 				break;
 			default:

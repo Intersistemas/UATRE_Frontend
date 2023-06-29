@@ -20,7 +20,7 @@ const DDJJForm = ({
 					nombre: null,
 					remuneracionImponible: null,
 					empresaEstablecimientoId: null,
-					condicionRural: null,
+					esRural: null,
 			  };
 	records.forEach((ddjj, ix) => {
 		Object.keys(joined).forEach((k) => {
@@ -38,9 +38,9 @@ const DDJJForm = ({
 		establecimientosOptions.push({ label: est.nombre, value: est.id })
 	);
 	if (disabled) onChange = (_records, _changes) => {};
-	const condicionesRural = [
-		{ label: "Rural", value: "RU" },
-		{ label: "No Rural", value: "NR" },
+	const opcionesRural = [
+		{ label: "Rural", value: true },
+		{ label: "No Rural", value: false },
 	];
 	const inputLabelStyles = { color: "#186090" };
 
@@ -102,11 +102,11 @@ const DDJJForm = ({
 				</Grid>
 				<Grid width="50%">
 					<Select
-						name="condicionRural"
-						label="Condición Rural"
-						value={joined.condicionRural}
-						options={condicionesRural}
-						onChange={(v) => onChange(records, { condicionRural: v })}
+						name="esRural"
+						label="Ruralidad"
+						value={joined.esRural}
+						options={opcionesRural}
+						onChange={(v) => onChange(records, { esRural: v })}
 					/>
 				</Grid>
 			</Grid>

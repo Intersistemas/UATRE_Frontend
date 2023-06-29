@@ -65,8 +65,8 @@ const Handler = () => {
 		contenido = <h1>Cargando tentativas...</h1>;
 	} else if (tentativas.error) {
 		contenido = <h1>Ocurrió un error cargando tentativas..</h1>;
-		switch (tentativas.error.type) {
-			case "Body":
+		switch (tentativas.error.code ?? 0) {
+			case 0:
 				contenido = (
 					<>
 						{contenido}

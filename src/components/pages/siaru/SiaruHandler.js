@@ -4,8 +4,7 @@ import Grid from "../../ui/Grid/Grid";
 import Formato from "../../helpers/Formato";
 import EmpresaDetails from "./Empresas/EmpresaDetails";
 import EmpresasList from "./Empresas/EmpresasList";
-import styles from "./SiaruHandler.module.css";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   handleModuloEjecutarAccion,
@@ -110,8 +109,8 @@ const SiaruHandler = (props) => {
 										if (rq?.loading) return <h4>Cargando...</h4>;
 										if (!rq?.error)
 											return <h4>No hay informacion a mostrar</h4>;
-										switch (rq.error.type) {
-											case "Body":
+										switch (rq.error.code ?? 0) {
+											case 0:
 												return <h4>{rq.error.message}</h4>;
 											default:
 												return (

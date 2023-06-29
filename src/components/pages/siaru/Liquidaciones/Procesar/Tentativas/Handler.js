@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import Formato from '../../../../../helpers/Formato';
-// import { useDispatch } from 'react-redux';
 import useHttp from '../../../../../hooks/useHttp';
 import Grid from '../../../../../ui/Grid/Grid';
 import DDJJList from './DDJJList';
@@ -69,6 +68,9 @@ const Handler = ({
 						liq.nominas.push({
 							cuil: nomina.cuil,
 							nombre: nomina.nombre,
+							condicionRural: nomina.condicionRural,
+							remuneracionImponible: nomina.remuneracionImponible,
+							esRural: nomina.esRural ?? false,
 						})
 					);
 				}
@@ -77,6 +79,7 @@ const Handler = ({
 			nominas.forEach((nom) => {
 				newDDJJ.push({
 					...nom,
+					esRural: nom.esRural ?? false,
 					empresaEstablecimientoId: tent.empresaEstablecimientoId,
 					empresaEstablecimiento_Nombre: tent.empresaEstablecimiento_Nombre,
 				});
@@ -91,8 +94,8 @@ const Handler = ({
 	const getNoData = (rq) => {
 		if (rq?.loading) return <h4>Cargando...</h4>;
 		if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
-		switch (rq.error.type) {
-			case "Body":
+		switch (rq.error.code ?? 0) {
+			case 0:
 				return <h4>{rq.error.message}</h4>;
 			default:
 				return (
@@ -149,7 +152,7 @@ const Handler = ({
 
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
-		if (ddjjRecord.condicionRural !== "RU") return null;
+		if (!ddjjRecord.esRural) return null;
 		const ret = {
 			index: index,
 			empresaEstablecimientoId: ddjjRecord.empresaEstablecimientoId,
@@ -161,7 +164,15 @@ const Handler = ({
 			refMotivoBajaId: 0,
 			liquidacionTipoPagoId: ddjjRecord.afiliadoId ? 1 : 3, ///ToDo: Parametrizar tipos de pago Sindical y Solidario
 			empresaEstablecimiento_Nombre: ddjjRecord.empresaEstablecimiento_Nombre,
-			nominas: [{ cuil: ddjjRecord.cuil, nombre: ddjjRecord.nombre }],
+			nominas: [
+				{
+					cuil: ddjjRecord.cuil,
+					nombre: ddjjRecord.nombre,
+					condicionRural: ddjjRecord.condicionRural,
+					remuneracionImponible: ddjjRecord.remuneracionImponible,
+					esRural: ddjjRecord.esRural ?? false,
+				},
+			],
 		};
 		ret.interesPorcentaje =
 			tiposPagos.data?.find((r) => r.id === ret.liquidacionTipoPagoId)
@@ -175,7 +186,7 @@ const Handler = ({
 		if (!ddjjList.data) return setLiqList({ data: newLiqList });
 		ddjjList.data.forEach((ddjj) => {
 			if (ddjj.empresaEstablecimientoId === 0) return;
-			if (ddjj.condicionRural !== "RU") return;
+			if (!ddjj.esRural) return;
 			const estab = establecimientos.data?.find(
 				(r) => r.id === ddjj.empresaEstablecimientoId
 			);
