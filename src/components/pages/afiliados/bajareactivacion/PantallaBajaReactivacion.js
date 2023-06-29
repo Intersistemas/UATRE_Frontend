@@ -18,7 +18,6 @@ import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const PantallaBajaReactivacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
-  //console.log(props.afiliado)
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
   const [fecha, setFecha] = useState(moment(new Date()).format("yyyy-MM-DD"));
@@ -30,8 +29,10 @@ const PantallaBajaReactivacion = (props) => {
     handleCerrarModal();
   };
 
-  const handleCerrarModal = () => {
-    props.onClose();
+  const handleCerrarModal = () => {  
+    
+    const regMdificado = resolverSolicitudAfiliadoResponse ? {...props.afiliado, estadoSolicitud: "No Activo", estadoSolicitudId: 3} : null; //ENVIO TODA LA DATA, PREVIAMENTE MODIFICO EL ESTADO DEL AFILIADO.
+    props.onClose( regMdificado ?? false); //SI SE ACTUALIZO EL AFILIADO, PASO EL OBJETO ENTRO  para poder seleccionarlo en la grilla luego del refresh.
   };
 
   const handleInputChange = (value, id) => {

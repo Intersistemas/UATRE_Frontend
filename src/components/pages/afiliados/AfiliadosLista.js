@@ -32,15 +32,19 @@ const AfiliadosLista = (props ) => {
 
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(0);
-  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(props.primerRegistroDelGrid);
+  const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(props.afiliadoSeleccionado);
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null)
-  const { isLoading, error, sendRequest: request } = useHttp();
-  const [rowSelectedIndex, setRowSelectedIndex] = useState([props.primerRegistroDelGrid.id]);
-  const handleSelectFilter = async (select,entry) => {
-    console.log('evento select y entry: ',select,entry);
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
+  const {isLoading, error, sendRequest: request } = useHttp();
+  const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
+
+  const handleSelectFilter = async (select,entry,obj) => {
+    console.log('evento select y entry: ',select,entry,obj);
     //BUSQUEDA Y FILTRO
 
+    props.setEntrySelected(obj);
+    props.setEntryValue(entry);
+    
     switch (select){
       case 'CUIT':
         fetchEmpresa(entry,'Afiliados');
@@ -53,8 +57,8 @@ const AfiliadosLista = (props ) => {
 
   //llamo para que se refresquen los datos del primer registro seleccionado
   useEffect(() => {
-    rowEvents(props.primerRegistroDelGrid);
-  }, [props.primerRegistroDelGrid]);
+    rowEvents(props.afiliadoSeleccionado);
+  }, [props.afiliadoSeleccionado]);
   
   const afiliados = {
     data: props.afiliados.data,
@@ -268,29 +272,45 @@ const AfiliadosLista = (props ) => {
   
   const selectores = [
     {
+      id: 1,
       dataField: "NroAfiliado",
-      text:"Nro.Afiliado"
+      text:"Nro.Afiliado",
+      dataType: "number"
     },{
+      id: 2,
       dataField: "CUIL",
-      text:"CUIL"
+      text:"CUIL",
+      dataType: "number"
     },{
+      id: 3,
       dataField: "Documento",
-      text:"Documento"
+      text:"Documento",
+      dataType: "number"
     },{
+      id: 4,
       dataField: "Nombre",
-      text:"Nombre"
+      text:"Nombre",
+      dataType: "text"
     },{
+      id: 5,
       dataField: "CUIT",
-      text:"CUIT Empresa"
+      text:"CUIT Empresa",
+      dataType: "number"
     },{
+      id: 6,
       dataField: "Seccional.Descripcion",
-      text:"Seccional"
+      text:"Seccional",
+      dataType: "text"
     },{
+      id: 7,
       dataField: "FechaIngreso",
-      text:"Fecha Ingreso"
+      text:"Fecha Ingreso",
+      dataType: "date"
     },{
+      id: 8,
       dataField: "FechaEgreso",
-      text:"Fecha Egreso"
+      text:"Fecha Egreso",
+      dataType: "date"
     }
   ]
 
@@ -304,10 +324,9 @@ const AfiliadosLista = (props ) => {
 
   //manejo la seleccion de cualquier registro de cualquiera de los TABs de AfiliadosLista
   const rowEvents  = (row, isSelect) => {
-  setRowSelectedIndex([row.id]);
+  setRowSelectedIndex([row?.id]);
    switch(selectedTab){
      case 0:
-        props.setPrimerRegistroDelGrid(row);
         setAfiliadoSeleccionado(row);
         props.onAfiliadoSeleccionado(row);
         break;
@@ -407,7 +426,10 @@ const AfiliadosLista = (props ) => {
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
       rowSelectedIndex: rowSelectedIndex,
-      primerRegistroDelGrid: props.primerRegistroDelGrid
+      afiliadoSeleccionado: props.afiliadoSeleccionado,
+
+      entrySelected: props.entrySelected,
+      entryValue: props.entryValue,
   }
 
 

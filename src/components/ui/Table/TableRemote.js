@@ -18,14 +18,14 @@ import Button from "../Button/Button";
 
 const TableRemote = (props) => {
 
-  const [selectValue, setSelectValue] = React.useState('');
-  const [entryValue, setEntryValue] = React.useState('');
+  const [selectValue, setSelectValue] = React.useState(props.entrySelected ?? '');
+  const [entryValue, setEntryValue] = React.useState(props.entryValue ?? '');
   
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
-    selected: [props.primerRegistroDelGrid.id] ?? null,
+    selected: [props.afiliadoSeleccionado?.id],
     style: {
       backgroundColor: "#EEC85E",
       color: "black",
@@ -58,39 +58,48 @@ const TableRemote = (props) => {
   };
 
   const accionLimpiarFiltros = () =>{
-    props.accionBuscar('','');
+    props.accionBuscar('','',null);
   };
   
+  const getSelectorIndex=(id,all)=>{
+    for(let i=0; i<all.length; i++){
+      if (all[i].id === id){
+        return i;
+      }
+    }
+    return "";
+  }
+
   return (
 
     <div className={classes.tabla}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 600}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
+       <Box sx={{ maxWidth: 700}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <Select
             style={{position: 'unset'}}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={selectValue.dataField}
+            value={props.selectoresBuscar[getSelectorIndex(selectValue.id, props.selectoresBuscar)]}
             label="Buscar por:"
             onChange={handleChangeSearchSelect}
           >
             {props.selectoresBuscar.map((valores)=>{
-                  return <MenuItem value={valores}>{valores.text}</MenuItem>
+                  return <MenuItem key={valores.id} value={valores}>{valores.text}</MenuItem>
                   })
             }
           </Select>
         </FormControl>
         <TextField 
-            fullWidth id="outlined-basic" label={selectValue?.text?.includes('Fecha') ? '':`Ingrese ${selectValue.text ?? ''}`} 
-            variant="outlined"  onChange={handleChangeSearchEntry}
-            type={selectValue?.text?.includes('Fecha') ? 'date':'text'}
+            style={{width: '53rem'}}
+            id="outlined-basic" label={selectValue?.text?.includes('Fecha') ? '':`Ingrese ${selectValue.text ?? ''}`} 
+            variant="outlined" onChange={handleChangeSearchEntry}
+            type={selectValue.dataType}
             value={entryValue}
             onKeyPress={(ev) => {
-              
               if (ev.key === 'Enter' && entryValue) {
-                props.accionBuscar(selectValue.dataField,entryValue)
+                props.accionBuscar(selectValue.dataField,entryValue,selectValue)
                 ev.preventDefault();
               }
             }}
@@ -105,7 +114,7 @@ const TableRemote = (props) => {
         <Button
             className="botonBorder"
               width={70}
-              onClick={()=>props.accionBuscar(selectValue.dataField,entryValue)}
+              onClick={()=>props.accionBuscar(selectValue.dataField, entryValue, selectValue)}
               disabled={!entryValue ?? true}
         >Buscar</Button>
         <Button

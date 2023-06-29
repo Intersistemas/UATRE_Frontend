@@ -153,7 +153,7 @@ const DeclaracionesJuradas = (props) => {
     onClick: (e, row, rowIndex) => {
       //console.log(`row: ${row.cuit}`);
       props.onSeleccionRegistro(row);
-      setIdPrimerRegistroDelGrid(row.id);
+      setIdPrimerRegistroDelGrid(row?.id);
     },
   };
 
