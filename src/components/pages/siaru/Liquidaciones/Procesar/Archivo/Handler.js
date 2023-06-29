@@ -99,7 +99,7 @@ const Handler = () => {
 		contenido = (
 			<Tentativas
 				empresa={empresa}
-				peirodo={periodo}
+				periodo={periodo}
 				tentativas={tentativas.data}
 			/>
 		);
