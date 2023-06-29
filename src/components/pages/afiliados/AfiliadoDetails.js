@@ -110,16 +110,16 @@ const AfiliadoDetails = (props) => {
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Actividad" value={ddjj.actividad ?? " "}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={ddjj.actividadDescripcion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Cond.CUIL" value={ddjj.cuilCondicion ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicion ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={ddjj.cuilCondicionDescripcion ?? " "}/>
 					</Grid>
 
 					<Grid style={{ padding: "0rem 1rem"}}>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={" "} />
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={ddjj.cuilSituacionDescripcion ?? " "} />
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Siniestro" value={" "}/>	
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Reducción" value={ddjj.reduccion?? " "}/>							
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Importes" value={" "}/>
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Reducción" value={ddjj.reduccion ?? " "}/>							
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Importes" value={ddjj.remuneracionImponible ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Cantidad Hs Extras" value={ddjj.hsExtrasCantidad ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Dias Trabajados" value={ddjj.diasTrabajados ?? " "}/>
 					</Grid>

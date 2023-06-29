@@ -27,9 +27,13 @@ const AfiliadosHandler = () => {
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
   const { isLoading, error, sendRequest: request } = useHttp();
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState({});
+  const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
-  const [primerRegistroDelGrid, setPrimerRegistroDelGrid] = useState({});
+  
+  const [entrySelected, setEntrySelected] = useState();
+  const [entryValue, setEntryValue] = useState();
+  
   const moduloInfoDefoult = {
     nombre: "Afiliados",
     acciones: [
@@ -85,8 +89,61 @@ const AfiliadosHandler = () => {
   dispatch(handleModuloSeleccionar(moduloInfo));
   //#endregion
 
-  //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones (por esto me veo  obligado a hacer un dispatch)
+  //#region Cargar Tablas
   useEffect(() => {
+    const processAfiliados = async (afiliadosObj) => {
+      console.log("afiliadosObj", afiliadosObj);
+      const index = (page == totalPageIndex ? afiliadosObj.data.length-1 : 0); //Esta variable me define que registor quedará seleccionado
+      setAfiliadoSeleccionado(afiliadoModificado ? afiliadoModificado : afiliadosObj.data[index]);
+
+      setTotalPageIndex(afiliadosObj.pages);
+      setAfiliadosRespuesta(afiliadosObj);
+      if (refresh) setRefresh(false);
+      
+    };
+
+    let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
+    if (estadoSolicitud > 0) {
+      //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
+    }
+    if (sortColumn) {
+      //ORDENAMIENTO
+      sortOrder == "desc"
+        ? (endpoint = `${endpoint}&Sort=${sortColumn}Desc`)
+        : (endpoint = `${endpoint}&Sort=${sortColumn}`);
+    }
+
+    if (filter) {
+      //BUSQUEDA
+      endpoint = `${endpoint}&${filterColumn}=${filter}`;
+    }
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: endpoint,
+        method: "GET",
+      },
+      processAfiliados
+    );
+  }, [
+    request,
+    page,
+    sizePerPage,
+    refresh,
+    afiliadoModificado,
+    estadoSolicitud,
+    filter,
+    filterColumn,
+    sortColumn,
+    sortOrder,
+  ]);
+
+
+  //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones del SIDEBAR (por esto me veo  obligado a hacer un dispatch)
+  useEffect(() => {
+    console.log('afiliadoModificado:',afiliadoModificado);
     switch (afiliadoSeleccionado?.estadoSolicitud) {
       case "Observado":
         const accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
@@ -128,60 +185,8 @@ const AfiliadosHandler = () => {
     }
     console.log("moduloInfo3", moduloInfo);
     dispatch(handleModuloSeleccionar(moduloInfo));
-  }, [afiliadoSeleccionado]);
+  }, [afiliadoSeleccionado,afiliadosRespuesta]);
   //#endregion
-
-  //#region Cargar Tablas
-  useEffect(() => {
-    const processAfiliados = async (afiliadosObj) => {
-      console.log("afiliadosObj", afiliadosObj);
-      const cantRegPerPage = (afiliadosObj.data.length-1) ?? 0
-      setPrimerRegistroDelGrid(page == totalPageIndex ? afiliadosObj.data[cantRegPerPage] : afiliadosObj.data[0]);
-      setAfiliadoSeleccionado(afiliadosObj.data[0]);
-      setTotalPageIndex(afiliadosObj.pages);
-      setAfiliadosRespuesta(afiliadosObj);
-      if (refresh) setRefresh(false);
-    };
-
-    let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
-    if (estadoSolicitud > 0) {
-      //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-    }
-    if (sortColumn) {
-      //ORDENAMIENTO
-      sortOrder == "desc"
-        ? (endpoint = `${endpoint}&Sort=${sortColumn}Desc`)
-        : (endpoint = `${endpoint}&Sort=${sortColumn}`);
-    }
-
-    if (filter) {
-      //BUSQUEDA
-      endpoint = `${endpoint}&${filterColumn}=${filter}`;
-    }
-    /* if (filterColumn) { //COLUMNA DE BUSUQUEDA
-        endpoint = `${endpoint}&FilterBy=${filterColumn}`;
-    }*/
-
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: endpoint,
-        method: "GET",
-      },
-      processAfiliados
-    );
-  }, [
-    request,
-    page,
-    sizePerPage,
-    refresh,
-    estadoSolicitud,
-    filter,
-    filterColumn,
-    sortColumn,
-    sortOrder,
-  ]);
 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
@@ -275,18 +280,19 @@ const AfiliadosHandler = () => {
     //console.log('idAgregado',idAgregado);
     if (idAgregado){
       setPage(totalPageIndex); //seteo el indice en la ultima pagina (para que vaya a la ultima pagina de la grilla)
-      //setRefresh(true);
     } 
   };
 
   const onClosePantallaEnDesarrolloHandler = () => {
     setPantallaEnDesarrolloShow(false);
-    //if (refresh === true) setRefresh(true);
   };
 
-  const onClosePantallaBajaReactivacion = () => {
+  const onClosePantallaBajaReactivacion = (regUpdated) => {
     setPantallaBajaReactivacion(false);
-    //if (refresh === true) setRefresh(true);
+    if (regUpdated){
+      console.log('regUpdated*:',regUpdated);
+      setAfiliadoModificado(regUpdated);
+    } 
   };
 
   const handlePageChange = (page, sizePerPage) => {
@@ -367,9 +373,19 @@ const AfiliadosHandler = () => {
           onPageChange={handlePageChange}
           onSizePerPageChange={handleSizePerPageChange}
           onFilterChange={handleFilterChange}
+
+
           onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
-          primerRegistroDelGrid={primerRegistroDelGrid}
-          setPrimerRegistroDelGrid={setPrimerRegistroDelGrid}
+          afiliadoSeleccionado={afiliadoSeleccionado}
+
+          //primerRegistroDelGrid={primerRegistroDelGrid}
+          //setPrimerRegistroDelGrid={setPrimerRegistroDelGrid}
+
+          setEntrySelected={setEntrySelected}
+          setEntryValue={setEntryValue}
+
+          entrySelected={entrySelected}
+          entryValue={entryValue}
         />
       </Fragment>
     );

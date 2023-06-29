@@ -71,8 +71,32 @@ EmpCtaPres:EsPresunta = 1 =
 23311800019,
 27396995609,
 20290262756,
-20259459126)
+20259459126
 
+-------
+    text:"Nro.Afiliado",
+    dataType: "number"
+-------
+    text:"CUIL",
+    dataType: "number"
+-------
+    text:"Documento",
+    dataType: "number"
+-------
+    text:"Nombre",
+    dataType: "text"
+-------
+    text:"CUIT Empresa",
+    dataType: "number"
+-------
+    text:"Seccional",
+    dataType: "text"
+-------
+    text:"Fecha Ingreso",
+    dataType: "date"
+-------
+    text:"Fecha Egreso",
+    dataType: "date"
 
 
 
