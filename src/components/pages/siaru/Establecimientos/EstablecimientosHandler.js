@@ -65,17 +65,17 @@ const EstablecimientosHandler = (props) => {
 	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Agregar Establecimiento` }],
+		acciones: [{ name: `Empresas` }, { name: `Agrega Establecimiento` }],
 	};
 	if (establecimiento) {
 		moduloInfo.acciones.push({
-			name: `Consultar Establecimiento ${estabDesc}`,
+			name: `Consulta Establecimiento ${estabDesc}`,
 		});
 		moduloInfo.acciones.push({
-			name: `Modificar Establecimiento ${estabDesc}`,
+			name: `Modifica Establecimiento ${estabDesc}`,
 		});
 		moduloInfo.acciones.push({
-			name: `Dar de baja Establecimiento ${estabDesc}`,
+			name: `Baja Establecimiento ${estabDesc}`,
 		});
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
@@ -96,20 +96,20 @@ const EstablecimientosHandler = (props) => {
 			case `Empresas`:
 				navigate("/siaru");
 				break;
-			case `Agregar Establecimiento`:
+			case `Agrega Establecimiento`:
 				configForm.record = { empresaId: empresaId };
 				configForm.request = "A";
 				setForm(<Form {...configForm} />);
 				break;
-			case `Consultar Establecimiento ${estabDesc}`:
+			case `Consulta Establecimiento ${estabDesc}`:
 				configForm.request = "C";
 				setForm(<Form {...configForm} />);
 				break;
-			case `Modificar Establecimiento ${estabDesc}`:
+			case `Modifica Establecimiento ${estabDesc}`:
 				configForm.request = "M";
 				setForm(<Form {...configForm} />);
 				break;
-			case `Dar de baja Establecimiento ${estabDesc}`:
+			case `Baja Establecimiento ${estabDesc}`:
 				configForm.request = "B";
 				setForm(<Form {...configForm} />);
 				break;
@@ -125,23 +125,25 @@ const EstablecimientosHandler = (props) => {
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
 			<div className="contenido">
-				<Grid col full>
+				<Grid
+					col
+					full
+					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
+				>
 					<Grid full="width">
 						<h2 className="subtitulo">
-							Establecimientos de {Formato.Cuit(empresa.cuitEmpresa)}{" "}
+							Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
 							{empresa.razonSocial ?? ""}
 						</h2>
 					</Grid>
-					<Grid full="width" grow gap="5px">
-						<Grid width="50%">
+					<Grid full="width" col grow gap="5px">
+						<Grid grow>
 							<EstablecimientosList
 								data={establecimientos}
 								onSelect={setEstablecimiento}
 							/>
 						</Grid>
-						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							<EstablecimientoDetails data={establecimiento} />
-						</Grid>
+						<EstablecimientoDetails data={establecimiento} />
 						{form}
 					</Grid>
 				</Grid>

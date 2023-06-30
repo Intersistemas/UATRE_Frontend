@@ -5,28 +5,38 @@ import useHttp from "../../../hooks/useHttp";
 import Button from "../../../ui/Button/Button";
 import Modal from "../../../ui/Modal/Modal";
 import Grid from "../../../ui/Grid/Grid";
-import TextField from "@mui/material/TextField";
-import Select from "../../../ui/Select/Select";
+import InputMaterial from "../../../ui/Input/InputMaterial";
+import SelectMaterial from "../../../ui/Select/SelectMaterial";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import dayjs from "dayjs";
+
+const onConfirmDef = (_request, _record) => {};
+const onCancelDef = (_request) => {};
 
 const Form = ({
 	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	record = {}, // Registro de establecimiento a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
-	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
-	onConfirm = (_request, _record) => {}, // Acción a realizar al confirmar
-	onCancel = (_request) => {}, // Accion a realizar al cancelar
+	disabled: disabledInit = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
+	onConfirm = onConfirmDef, // Acción a realizar al confirmar
+	onCancel = onCancelDef, // Accion a realizar al cancelar
 }) => {
+	record ??= {};
+	disabledInit ??= {};
+	onConfirm ??= onConfirmDef;
+	onCancel ??= onCancelDef;
 	record = { ...record };
 	if (requestParam === "A") record.id = 0;
 
 	const [establecimiento, setEstablecimiento] = useState(record);
+	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	const [disabled, setDisabled] = useState(disabledInit);
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
 
 	const [motivosBaja, setMotivosBaja] = useState([]);
 	const { sendRequest: request } = useHttp();
-
+	
 	let actionMsg;
 	switch (requestParam) {
 		case "A":
@@ -89,7 +99,22 @@ const Form = ({
 		setAlerts((old) => [...old, ...newAlerts]);
 		if (noValida) return;
 
-		const method = requestParam === "A" ? "POST" : "PUT";
+		let method;
+		switch (requestParam) {
+			case "A":
+				method = "POST"
+				break;
+			case "M":
+				method = "PUT"
+				break;
+			case "B":
+				method = "PUT"
+				if (establecimiento.refMotivosBajaId) {
+					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
+				}
+				break;
+		}
+
 		request(
 			{
 				baseURL: "Comunes",
@@ -173,38 +198,32 @@ const Form = ({
 				</Grid>
 				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="25%">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							type="number"
 							label="Nro. sucursal"
-							required
 							error={errores.nroSucursal ?? ""}
 							helperText={errores.nroSucursal ?? ""}
 							value={establecimiento.nroSucursal}
 							disabled={disabled.nroSucursal ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									nroSucursal: Formato.Entero(e.target.value),
+									nroSucursal: Formato.Entero(value),
 								}))
 							}
 						/>
 					</Grid>
 					<Grid width="75%">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							label="Nombre"
-							required
 							error={errores.nombre ?? ""}
 							helperText={errores.nombre ?? ""}
 							value={establecimiento.nombre}
 							disabled={disabled.nombre ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									nombre: `${e.target.value}`,
+									nombre: `${value}`,
 								}))
 							}
 						/>
@@ -212,9 +231,7 @@ const Form = ({
 				</Grid>
 				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="50%">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							label="Teléfono"
 							value={establecimiento.telefono}
 							disabled={disabled.telefono ?? false}
@@ -227,16 +244,14 @@ const Form = ({
 						/>
 					</Grid>
 					<Grid width="50%">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							label="Correo"
 							value={establecimiento.email}
 							disabled={disabled.email ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									email: `${e.target.value}`,
+									email: `${value}`,
 								}))
 							}
 						/>
@@ -256,66 +271,54 @@ const Form = ({
 						<h4>Domicilio</h4>
 					</Grid>
 					<Grid full="width">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							label="Calle"
 							value={establecimiento.domicilioCalle}
 							disabled={disabled.domicilioCalle ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									domicilioCalle: `${e.target.value}`,
+									domicilioCalle: `${value}`,
 								}))
 							}
 						/>
 					</Grid>
 					<Grid full="width">
-						<TextField
-							size="small"
-							style={{ width: "100%" }}
+						<InputMaterial
 							label="Número"
-							value={
-								establecimiento.domicilioNumero
-									? establecimiento.domicilioNumero
-									: ""
-							}
+							value={establecimiento.domicilioNumero}
 							disabled={disabled.domicilioNumero ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									domicilioNumero: `${e.target.value}`,
+									domicilioNumero: `${value}`,
 								}))
 							}
 						/>
 					</Grid>
 					<Grid full="width" gap={`${gap}px`}>
 						<Grid block basis="180px" className={styles.label}>
-							<TextField
-								size="small"
-								style={{ width: "100%" }}
+							<InputMaterial
 								label="Piso"
 								value={establecimiento.domicilioPiso}
 								disabled={disabled.domicilioPiso ?? false}
-								onChange={(e) =>
+								onChange={(value, _id) =>
 									setEstablecimiento((old) => ({
 										...old,
-										domicilioPiso: `${e.target.value}`,
+										domicilioPiso: `${value}`,
 									}))
 								}
 							/>
 						</Grid>
 						<Grid block basis="calc(100% - 180px)" className={styles.data}>
-							<TextField
-								size="small"
-								style={{ width: "100%" }}
+							<InputMaterial
 								label="Dpto"
 								value={establecimiento.domicilioDpto}
 								disabled={disabled.domicilioDpto ?? false}
-								onChange={(e) =>
+								onChange={(value, _id) =>
 									setEstablecimiento((old) => ({
 										...old,
-										domicilioDpto: `${e.target.value}`,
+										domicilioDpto: `${value}`,
 									}))
 								}
 							/>
@@ -323,30 +326,41 @@ const Form = ({
 					</Grid>
 				</Grid>
 				<Grid col full="width" gap={`${gap}`}>
-					<Grid full="width">
-						<Select
-							name="refMotivosBajaId"
-							label="Motivo de baja"
-							required={requestParam === "B"}
-							error={errores.refMotivosBajaId ?? ""}
-							value={
-								establecimiento.refMotivosBajaId
-									? establecimiento.refMotivosBajaId
-									: 0
-							}
-							disabled={disabled.refMotivosBajaId ?? false}
-							options={motivosBaja.map((r) => ({
-								label: r.descripcion,
-								value: r.id,
-							}))}
-							onChange={(v) =>
+					<SelectMaterial
+						name="refMotivosBajaId"
+						label="Motivo de baja"
+						value={establecimiento.refMotivosBajaId ?? 0}
+						error={errores.refMotivosBajaId ?? ""}
+						disabled={disabled.refMotivosBajaId ?? false}
+						options={motivosBaja.map((r) => ({
+							label: r.descripcion,
+							value: r.id,
+						}))}
+						onChange={(value, _id) => {
 								setEstablecimiento((old) => ({
 									...old,
-									refMotivosBajaId: v,
+									refMotivosBajaId: value,
+								}));
+								setDisabled((old) => ({
+									...old,
+									bajaObservaciones: value === 0,
+								}));
+							}
+						}
+					/>
+				</Grid>
+				<Grid col full="width" gap={`${gap}`}>
+						<InputMaterial
+							label="Observaciones de baja"
+							value={establecimiento.bajaObservaciones}
+							disabled={disabled.bajaObservaciones ?? false}
+							onChange={(value, _id) =>
+								setEstablecimiento((old) => ({
+									...old,
+									bajaObservaciones: `${value}`,
 								}))
 							}
 						/>
-					</Grid>
 				</Grid>
 				<Grid col grow justify="end">
 					<Grid gap={`${gap * 2}px`}>

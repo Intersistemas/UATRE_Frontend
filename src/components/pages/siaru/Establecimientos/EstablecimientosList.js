@@ -10,11 +10,6 @@ const EstablecimientosList = ({
 	onSelect = (_registro) => {},
 	onPaginationChange = (_pageIndex, _pageSize) => {},
 }) => {
-	if (!data) data = [];
-	if (!pagination) pagination = {};
-	if (!onSelect) onSelect = (_registro) => {};
-	if (!onPaginationChange) onPaginationChange = (_pageIndex, _pageSize) => {};
-	
 	const cs = {
 		overflow: "hidden",
 		textOverflow: "ellipsis",
@@ -22,17 +17,32 @@ const EstablecimientosList = ({
 	};
 	const columns = [
 		{
-			dataField: "nombre",
-			text: "Nombre",
+			dataField: "nroSucursal",
+			text: "Nro.",
 			sort: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "80px" }),
+			formatter: Formato.Entero,
 			style: { ...cs },
 		},
 		{
-			dataField: "nroSucursal",
-			text: "Nro. Sucursal",
+			dataField: "nombre",
+			text: "Nombre",
 			sort: true,
-			formatter: Formato.Entero,
-			style: { ...cs },
+			style: { ...cs, textAlign: "left" },
+		},
+		{
+			dataField: "domicilioLocalidad",
+			text: "Localidad",
+			sort: true,
+      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+			style: {...cs, textAlign: "left"}
+		},
+		{
+			dataField: "domicilioProvincia",
+			text: "Provincia",
+			sort: true,
+      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+			style: {...cs, textAlign: "left"}
 		},
 	];
 

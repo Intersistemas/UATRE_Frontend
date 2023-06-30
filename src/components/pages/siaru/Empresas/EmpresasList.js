@@ -3,16 +3,14 @@ import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import Table from "../../../ui/Table/Table";
 
-const EmpresasList = ({config}) => {
-	const data = config.data ? [...config.data] : [];
-	const pagination = { ...config.pagination };
-	//const onSelect = config.onSelect ?? ((registro) => {});
-	const onPaginationChange =
-		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
-
-		const handlerOnSelect = (registro) => {
-			config.onSelect(registro)
-		}
+const EmpresasList = ({
+	data = [],
+	loading,
+	noData,
+	pagination = {},
+	onPaginationChange = ((_pageIndex, _pageSize) => {}),
+	onSelect = (_registro) => {},
+}) => {
 	const cs = {
 		overflow: "hidden",
 		textOverflow: "ellipsis",
@@ -24,13 +22,27 @@ const EmpresasList = ({config}) => {
 			text: "CUIT",
 			sort: true,
 			formatter: Formato.Cuit,
-      headerStyle: (colum, colIndex) => ({ width: "150px" }),
+      headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			style: {...cs}
 		},
 		{
 			dataField: "razonSocial",
 			text: "Razon Social",
 			sort: true,
+			style: {...cs, textAlign: "left"}
+		},
+		{
+			dataField: "domicilioLocalidad",
+			text: "Localidad",
+			sort: true,
+      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+			style: {...cs, textAlign: "left"}
+		},
+		{
+			dataField: "domicilioProvincia",
+			text: "Provincia",
+			sort: true,
+      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
 			style: {...cs, textAlign: "left"}
 		},
 	];
@@ -56,12 +68,12 @@ const EmpresasList = ({config}) => {
 		<Table
 			remote
 			keyField="cuitEmpresa"
-			loading={config.loading}
+			loading={loading}
 			data={data}
 			columns={columns}
 			pagination={bootstrapPagination}
-			noDataIndication={config.noData}
-			onSelected={handlerOnSelect}
+			noDataIndication={noData}
+			onSelected={onSelect}
 		/>
 	);
 };

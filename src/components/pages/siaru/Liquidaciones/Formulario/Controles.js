@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
+import dayjs from "dayjs";
 import styles from "./Controles.module.css";
 import useHttp from "../../../../hooks/useHttp";
 import Formato from "../../../../helpers/Formato";
 import Grid from "../../../../ui/Grid/Grid";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
-import Select from "../../../../ui/Select/Select";
+import SelectMaterial from "../../../../ui/Select/SelectMaterial";
+import InputMaterial from "../../../../ui/Input/InputMaterial";
 import Table from "../../../../ui/Table/Table";
-import dayjs from "dayjs";
-import { TextField, Collapse, IconButton, Tabs, Tab } from "@mui/material";
+import { Collapse, IconButton, Tabs, Tab } from "@mui/material";
 import { Alert, AlertTitle } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -272,10 +273,9 @@ const Controles = ({
 			content = (
 				<>
 					<Grid full="width">
-						<Select
-							label="Establecimiento"
+						<SelectMaterial
 							name="empresaEstablecimientoId"
-							required
+							label="Establecimiento"
 							value={establecimientos.find(
 								(r) => r.id === record.empresaEstablecimientoId
 							)}
@@ -285,14 +285,13 @@ const Controles = ({
 								label: r.nombre,
 								value: r,
 							}))}
-							onChange={(v) => handleChange({ empresaEstablecimientoId: v.id })}
+							onChange={(value, _id) => handleChange({ empresaEstablecimientoId: value.id })}
 						/>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<Select
-							label="Tipo de liquidacion"
+						<SelectMaterial
 							name="tipoLiquidacion"
-							required
+							label="Tipo de liquidacion"
 							value={tiposLiquidaciones.find(
 								(r) => r.id === record.tipoLiquidacion
 							)}
@@ -302,13 +301,11 @@ const Controles = ({
 								label: r.nombre,
 								value: r,
 							}))}
-							onChange={(v) => handleChange({ tipoLiquidacion: v.id })}
-							style={{ width: "100%" }}
+							onChange={(value, _id) => handleChange({ tipoLiquidacion: value.id })}
 						/>
-						<Select
+						<SelectMaterial
 							name="liquidacionTipoPagoId"
 							label="Tipo de pago"
-							required
 							value={tiposPagos.data.find(
 								(r) => r.id === record.liquidacionTipoPagoId
 							)}
@@ -323,7 +320,6 @@ const Controles = ({
 									liquidacionTipoPagoId: v.id,
 								})
 							}
-							style={{ width: "100%" }}
 						/>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
@@ -369,39 +365,32 @@ const Controles = ({
 							InputLabelProps={{ shrink: true }}
 							style={{ width: "100%" }}
 						/>
-						<TextField
-							size="small"
+						<InputMaterial
 							type="number"
 							label="Cant. trabajadores"
-							required
 							value={record.cantidadTrabajadores}
 							error={error.cantidadTrabajadores ?? ""}
 							disabled={disabled.cantidadTrabajadores ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								handleChange({
-									cantidadTrabajadores: Formato.Entero(e.target.value),
+									cantidadTrabajadores: Formato.Entero(value),
 								})
 							}
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "100%" }}
 						/>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<TextField
-							size="small"
+						<InputMaterial
 							type="number"
 							label="Total remuneraciones"
-							required
 							value={record.totalRemuneraciones}
 							error={error.totalRemuneraciones ?? ""}
 							disabled={disabled.totalRemuneraciones ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								handleChange({
-									totalRemuneraciones: Formato.Decimal(e.target.value),
+									totalRemuneraciones: Formato.Decimal(value),
 								})
 							}
-							InputLabelProps={{ shrink: true }}
-							style={{ width: `calc(25% - ${gap}px)` }}
+							width="25"
 						/>
 					</Grid>
 					<Grid full="width">
@@ -410,14 +399,12 @@ const Controles = ({
 						</div>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<TextField
-							size="small"
+						<InputMaterial
 							type="number"
 							label="Aporte"
 							value={calculados.interesNeto}
 							disabled
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "50%" }}
+							width="25"
 						/>
 					</Grid>
 					<Grid full="width">
@@ -426,14 +413,12 @@ const Controles = ({
 						</div>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<TextField
-							size="small"
+						<InputMaterial
 							type="number"
 							label="Importe interes"
 							value={calculados.interesImporte}
 							disabled
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "50%" }}
+							width="25"
 						/>
 					</Grid>
 					<Grid full="width">
@@ -442,14 +427,12 @@ const Controles = ({
 						</div>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<TextField
-							size="small"
+						<InputMaterial
 							type="number"
 							label="Importe"
-							disabled
 							value={calculados.importeTotal}
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "50%" }}
+							disabled
+							width="25"
 						/>
 					</Grid>
 				</>

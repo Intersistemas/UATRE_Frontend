@@ -2,14 +2,17 @@ import React from "react";
 import styles from "./EstablecimientoDetails.module.css";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
-import { TextField } from "@mui/material";
+import InputMaterial from "../../../ui/Input/InputMaterial";
 
-const EstablecimientoDetails = ({
-	data = {},
-}) => {
-	if (!data) data = {};
-	
-	const inputLabelStyles = { color: "#186090" };
+const EstablecimientoDetails = ({ data = {} }) => {
+	data ??= {};
+
+	const im = {
+		variant: "standard",
+		padding: "0rem 0.5rem",
+	};
+
+	const valor = (valor) => (valor ? valor : " ");
 
 	return (
 		<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
@@ -19,21 +22,28 @@ const EstablecimientoDetails = ({
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Nro. Sucursal"
-					value={Formato.Entero(data.nroSucursal) ?? ""}
-					style={{ width: "25%" }}
+					value={valor(Formato.Entero(data.nroSucursal))}
+					width="25"
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Nombre"
-					value={data.nombre ?? ""}
-					style={{ width: "100%" }}
+					value={valor(data.nombre)}
+					{...im}
+				/>
+			</Grid>
+			<Grid full="width" gap="5px">
+				<InputMaterial
+					label="Telefono"
+					value={valor(data.telefono)}
+					{...im}
+				/>
+				<InputMaterial
+					label="Correo"
+					value={valor(data.email)}
+					{...im}
 				/>
 			</Grid>
 			<Grid full="width">
@@ -44,55 +54,54 @@ const EstablecimientoDetails = ({
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="5px">
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
+						<InputMaterial
 							label="Calle"
-							value={data.domicilioCalle ?? ""}
-							style={{ width: "100%" }}
+							value={valor(data.domicilioCalle)}
+							{...im}
 						/>
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
-							label="Nro"
-							value={data.domicilioNumero ?? ""}
-							style={{ width: "100%" }}
-						/>
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
-							label="Piso"
-							value={data.domicilioPiso ?? ""}
-							style={{ width: "100%" }}
-						/>
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
-							label="Dpto"
-							value={data.domicilioDpto ?? ""}
-							style={{ width: "100%" }}
-						/>
+						<Grid full="width" gap="5px">
+							<InputMaterial
+								label="Nro"
+								value={valor(data.domicilioNumero)}
+								{...im}
+							/>
+							<InputMaterial
+								label="Piso"
+								value={valor(data.domicilioPiso)}
+								{...im}
+							/>
+							<InputMaterial
+								label="Dpto"
+								value={valor(data.domicilioDpto)}
+								{...im}
+							/>
+							<InputMaterial
+								label="Sector"
+								value={valor(data.domicilioSector)}
+								{...im}
+							/>
+							<InputMaterial
+								label="Torre"
+								value={valor(data.domicilioTorre)}
+								{...im}
+							/>
+							<InputMaterial
+								label="Manzana"
+								value={valor(data.domicilioManzana)}
+								{...im}
+							/>
+						</Grid>
 					</Grid>
 					<Grid full="width" gap="5px">
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
-							label="Provincia"
-							value={data.domicilioProvincia ?? ""}
-							style={{ width: "100%" }}
-						/>
-						<TextField
-							InputLabelProps={{ style: inputLabelStyles }}
-							variant="standard"
-							size="small"
+						<InputMaterial
 							label="Localidad"
-							value={data.domicilioLocalidad ?? ""}
-							style={{ width: "100%" }}
+							value={valor(data.domicilioLocalidad)}
+							{...im}
+						/>
+						<InputMaterial
+							label="Provincia"
+							value={valor(data.domicilioProvincia)}
+							{...im}
 						/>
 					</Grid>
 				</Grid>

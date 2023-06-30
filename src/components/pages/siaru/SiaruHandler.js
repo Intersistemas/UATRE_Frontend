@@ -7,8 +7,8 @@ import EmpresasList from "./Empresas/EmpresasList";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  handleModuloEjecutarAccion,
-  handleModuloSeleccionar,
+	handleModuloEjecutarAccion,
+	handleModuloSeleccionar,
 } from "../../../redux/actions";
 import AuthContext from "../../../store/authContext";
 
@@ -21,18 +21,18 @@ const SiaruHandler = (props) => {
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
-  // const location = useLocation();
+	// const location = useLocation();
 
-  // useEffect(() => {    
-  //   if (location.state.empresas?.length) {
-  //     setEmpresaList({ data: location.state.empresas });
-  //   }
-  // }, [location.state.empresas]);
-  useEffect(() => {
-    if (authContext.usuario?.empresas) {
-      setEmpresaList({ data: authContext.usuario.empresas });
-    }
-  }, [authContext.usuario]);
+	// useEffect(() => {
+	//   if (location.state.empresas?.length) {
+	//     setEmpresaList({ data: location.state.empresas });
+	//   }
+	// }, [location.state.empresas]);
+	useEffect(() => {
+		if (authContext.usuario?.empresas) {
+			setEmpresaList({ data: authContext.usuario.empresas });
+		}
+	}, [authContext.usuario]);
 	//#endregion
 
 	//#region declaración y carga de detalles de empresa
@@ -94,41 +94,41 @@ const SiaruHandler = (props) => {
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
 			<div className="contenido">
-				<Grid col full>
+				<Grid
+					col
+					full
+					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
+				>
 					<Grid full="width">
 						<h2 className="subtitulo">Empresas</h2>
 					</Grid>
-					<Grid full="width" grow gap="5px">
-						<Grid width="50%">
+					<Grid full="width" col grow gap="5px">
+						<Grid grow>
 							<EmpresasList
-								config={{
-									loading: empresaList.loading,
-									data: empresaList.data,
-									noData: (() => {
-										const rq = empresaList;
-										if (rq?.loading) return <h4>Cargando...</h4>;
-										if (!rq?.error)
-											return <h4>No hay informacion a mostrar</h4>;
-										switch (rq.error.code ?? 0) {
-											case 0:
-												return <h4>{rq.error.message}</h4>;
-											default:
-												return (
-													<h4 style={{ color: "red" }}>
-														{"Error "}
-														{rq.error.code ? `${rq.error.code} - ` : ""}
-														{rq.error.message}
-													</h4>
-												);
-										}
-									})(),
-									onSelect: (r) => setEmpresaRecord(r),
-								}}
+								loading={empresaList.loading}
+								data={empresaList.data}
+								noData={(() => {
+									const rq = empresaList;
+									if (rq?.loading) return <h4>Cargando...</h4>;
+									if (!rq?.error)
+										return <h4>No hay informacion a mostrar</h4>;
+									switch (rq.error.code ?? 0) {
+										case 0:
+											return <h4>{rq.error.message}</h4>;
+										default:
+											return (
+												<h4 style={{ color: "red" }}>
+													{"Error "}
+													{rq.error.code ? `${rq.error.code} - ` : ""}
+													{rq.error.message}
+												</h4>
+											);
+									}
+								})()}
+								onSelect={setEmpresaRecord}
 							/>
 						</Grid>
-						<Grid block width="50%" style={{ paddingTop: "75px" }}>
-							 <EmpresaDetails config={{ data: empresa.data }} />
-						</Grid>
+						<EmpresaDetails data={empresa.data} />
 					</Grid>
 				</Grid>
 			</div>
