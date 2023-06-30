@@ -1,41 +1,43 @@
 import React from "react";
-import { DateTimePicker as DTPicker, DatePicker, TimePicker } from "@mui/x-date-pickers";
+import {
+	DateTimePicker as DTPicker,
+	DatePicker,
+	TimePicker,
+} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import "dayjs/locale/es-mx";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { TextField } from "@mui/material";
 
-const DateTimePicker = (props) => {
-	const {
-		type = "fechahora",
-		value = "",
-		views,
-		error = "",
-		required,
-		renderInput = null,
-		InputLabelProps,
-		...resto
-	} = props;
-
-	const configRenderInput = (p) => {
-		const r = {...p};
-		r.size = "small";
-		r.style = { ...r.style, width: "100%" };
-		r.error = error;
-		r.required = required;
-		r.InputLabelProps = InputLabelProps;
-		return r
-	}
-
-	let myRenderInput = renderInput
-	if (myRenderInput == null) {
-		myRenderInput = (p) => {
-			p = configRenderInput(p);
-			return <TextField {...p} />;
-		};
-	}
-
+const DateTimePicker = ({
+	type = "fechahora",
+	value = "",
+	views,
+	error,
+	required,
+	InputLabelProps = {},
+	renderInput = (props) => (
+		<TextField
+			{...props}
+			error={error}
+			required={required}
+			size="small"
+			style={{
+				...props.style,
+				width: "100%",
+				background: "white",
+			}}
+			InputLabelProps={{
+				...props.InputLabelProps,
+				...InputLabelProps,
+				shrink: true,
+			}}
+			helperText={error ? error : null }
+		/>
+	),
+	...resto
+}) => {
 	let pViews, Picker;
 	switch (`${type}`.toLowerCase()) {
 		case "datetime":
@@ -80,7 +82,7 @@ const DateTimePicker = (props) => {
 			<Picker
 				views={pViews}
 				value={dayjs(value)}
-				renderInput={myRenderInput}
+				renderInput={renderInput}
 				{...resto}
 			/>
 		</LocalizationProvider>

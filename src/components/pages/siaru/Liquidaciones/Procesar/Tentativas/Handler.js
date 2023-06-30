@@ -307,12 +307,11 @@ const Handler = ({
 							loading={ddjjList.loading}
 							noData={getNoData(ddjjList)}
 							onSelect={handleDDJJOnSelect}
+							onSelectAll={handleDDJJOnSelect}
 							pagination={{ index: 1, size: 5 }}
 						/>
 					</Grid>
-					<Grid full="width">
-						{liquidacionListRender}
-					</Grid>
+					<Grid full="width">{liquidacionListRender}</Grid>
 					<Grid full="width">
 						<DDJJForm
 							records={ddjjSelected}

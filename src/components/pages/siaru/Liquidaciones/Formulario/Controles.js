@@ -25,7 +25,7 @@ const Controles = ({
 	const [currentTab, setCurrentTab] = useState(0);
 
 	// Cargo establecimientos
-	const [establecimientos, setEstablecimientos] = useState([]);
+	const [establecimientos, setEstablecimientos] = useState({ loading: true });
 	useEffect(() => {
 		request(
 			{
@@ -34,9 +34,10 @@ const Controles = ({
 				method: "GET",
 			},
 			async (res) => {
-				setEstablecimientos(res.data);
+				setEstablecimientos({ data: res.data });
 			},
-			async (err) =>
+			async (err) => {
+				setEstablecimientos({ error: err });
 				setAlerts((old) => [
 					...old,
 					{
@@ -44,7 +45,8 @@ const Controles = ({
 						title: `${err.type} cargando establecimientos`,
 						message: err.message,
 					},
-				])
+				]);
+			}
 		);
 	}, [request, empresaId]);
 
@@ -54,7 +56,7 @@ const Controles = ({
 	];
 
 	// Cargo tipos de pago
-	const [tiposPagos, setTiposPagos] = useState({ loading: true, data: [] });
+	const [tiposPagos, setTiposPagos] = useState({ loading: true });
 	useEffect(() => {
 		request(
 			{
@@ -66,7 +68,7 @@ const Controles = ({
 				setTiposPagos({ data: res });
 			},
 			async (err) => {
-				setTiposPagos({ error: err, data: [] });
+				setTiposPagos({ error: err });
 				setAlerts((old) => [
 					...old,
 					{
@@ -270,24 +272,57 @@ const Controles = ({
 			);
 			break;
 		default:
+			let controlEmpresaEstablecimientoId;
+			if (establecimientos.loading) {
+				controlEmpresaEstablecimientoId = <h6>Cargando establecimientos...</h6>;
+			} else {
+				controlEmpresaEstablecimientoId = (
+					<SelectMaterial
+						name="empresaEstablecimientoId"
+						label="Establecimiento"
+						value={establecimientos.data.find(
+							(r) => r.id === record.empresaEstablecimientoId
+						)}
+						error={error.empresaEstablecimientoId ?? ""}
+						disabled={disabled.empresaEstablecimientoId ?? false}
+						options={establecimientos.data.map((r) => ({
+							label: r.nombre,
+							value: r,
+						}))}
+						onChange={(value, _id) =>
+							handleChange({ empresaEstablecimientoId: value.id })
+						}
+					/>
+				);
+			}
+			let controlLiquidacionTipoPagoId;
+			if (tiposPagos.loading) {
+				controlLiquidacionTipoPagoId = <h6>Cargando tipos de pago...</h6>;
+			} else {
+				controlLiquidacionTipoPagoId = (
+					<SelectMaterial
+						name="liquidacionTipoPagoId"
+						label="Tipo de pago"
+						value={tiposPagos.data.find(
+							(r) => r.id === record.liquidacionTipoPagoId
+						)}
+						error={error.liquidacionTipoPagoId ?? ""}
+						disabled={disabled.liquidacionTipoPagoId ?? false}
+						options={tiposPagos.data.map((r) => ({
+							label: r.descripcion,
+							value: r,
+						}))}
+						onChange={(value, _id) =>
+							handleChange({
+								liquidacionTipoPagoId: value.id,
+							})
+						}
+					/>
+				);
+			}
 			content = (
 				<>
-					<Grid full="width">
-						<SelectMaterial
-							name="empresaEstablecimientoId"
-							label="Establecimiento"
-							value={establecimientos.find(
-								(r) => r.id === record.empresaEstablecimientoId
-							)}
-							error={error.empresaEstablecimientoId ?? ""}
-							disabled={disabled.empresaEstablecimientoId ?? false}
-							options={establecimientos.map((r) => ({
-								label: r.nombre,
-								value: r,
-							}))}
-							onChange={(value, _id) => handleChange({ empresaEstablecimientoId: value.id })}
-						/>
-					</Grid>
+					<Grid full="width">{controlEmpresaEstablecimientoId}</Grid>
 					<Grid gap={`${gap}px`} full="width">
 						<SelectMaterial
 							name="tipoLiquidacion"
@@ -301,70 +336,58 @@ const Controles = ({
 								label: r.nombre,
 								value: r,
 							}))}
-							onChange={(value, _id) => handleChange({ tipoLiquidacion: value.id })}
-						/>
-						<SelectMaterial
-							name="liquidacionTipoPagoId"
-							label="Tipo de pago"
-							value={tiposPagos.data.find(
-								(r) => r.id === record.liquidacionTipoPagoId
-							)}
-							error={error.liquidacionTipoPagoId ?? ""}
-							disabled={disabled.liquidacionTipoPagoId ?? false}
-							options={tiposPagos.data.map((r) => ({
-								label: r.descripcion,
-								value: r,
-							}))}
-							onChange={(v) =>
-								handleChange({
-									liquidacionTipoPagoId: v.id,
-								})
+							onChange={(value, _id) =>
+								handleChange({ tipoLiquidacion: value.id })
 							}
 						/>
+						{controlLiquidacionTipoPagoId}
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<DateTimePicker
-							type="month"
-							label="Periodo"
-							disableFuture
-							minDate="1994-01-01"
-							maxDate={dayjs().format("YYYY-MM-DD")}
-							value={calculados.periodo ?? ""}
-							error={error.periodo ?? ""}
-							disabled={disabled.periodo ?? false}
-							required
-							onChange={(f) =>
-								handleChange({
-									periodo: Formato.Entero(f?.format("YYYYMM") ?? 0),
-								})
-							}
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "100%" }}
-						/>
-						<DateTimePicker
-							type="date"
-							label="Fecha de vencimiento"
-							InputLabelProps={{ shrink: true }}
-							disabled
-							value={calculados.vencimientoFecha ?? ""}
-							style={{ width: "100%" }}
-						/>
-						<DateTimePicker
-							type="date"
-							label="Fecha pago estimada"
-							minDate={dayjs().format("YYYY-MM-DD")}
-							value={calculados.fechaPagoEstimada ?? ""}
-							error={error.fechaPagoEstimada ?? ""}
-							disabled={disabled.fechaPagoEstimada ?? false}
-							required
-							onChange={(f) =>
-								handleChange({
-									fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
-								})
-							}
-							InputLabelProps={{ shrink: true }}
-							style={{ width: "100%" }}
-						/>
+						<Grid full col>
+							<DateTimePicker
+								type="month"
+								label="Periodo"
+								disableFuture
+								minDate="1994-01-01"
+								maxDate={dayjs().format("YYYY-MM-DD")}
+								value={calculados.periodo ?? ""}
+								disabled={disabled.periodo ?? false}
+								error={error.periodo ?? ""}
+								required
+								onChange={(f) =>
+									handleChange({
+										periodo: Formato.Entero(f?.format("YYYYMM") ?? 0),
+									})
+								}
+								style={{ width: "100%" }}
+							/>
+						</Grid>
+						<Grid full col>
+							<DateTimePicker
+								type="date"
+								label="Fecha de vencimiento"
+								disabled
+								value={calculados.vencimientoFecha ?? ""}
+								style={{ width: "100%" }}
+							/>
+						</Grid>
+						<Grid full col>
+							<DateTimePicker
+								type="date"
+								label="Fecha pago estimada"
+								minDate={dayjs().format("YYYY-MM-DD")}
+								value={calculados.fechaPagoEstimada ?? ""}
+								disabled={disabled.fechaPagoEstimada ?? false}
+								error={error.fechaPagoEstimada ?? ""}
+								required
+								onChange={(f) =>
+									handleChange({
+										fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
+									})
+								}
+								style={{ width: "100%" }}
+							/>
+						</Grid>
 						<InputMaterial
 							type="number"
 							label="Cant. trabajadores"
