@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Tipos from "./Tipos";
 import styles from "./Controles.module.css";
 import useHttp from "../../../../hooks/useHttp";
 import Formato from "../../../../helpers/Formato";
@@ -14,7 +13,6 @@ import CloseIcon from "@mui/icons-material/Close";
 
 const Controles = ({
 	record = {}, // Registro liquidacion.
-	tipo = Tipos.Liquidacion,
 	empresaId = 0,
 	error = {}, // Descripciones de errores. Cada uno debe tener el mismo nombre del campo al que refiere.
 	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
@@ -233,20 +231,6 @@ const Controles = ({
 					))}
 				</Grid>
 			</Grid>
-		);
-	}
-
-	let tabsRender;
-	if (tipo === Tipos.Tentativa) {
-		tabsRender = (
-			<Tabs
-				value={currentTab}
-				onChange={(_event, newValue) => setCurrentTab(newValue)}
-				aria-label="basic tabs example"
-			>
-				<Tab label="Datos generales" />
-				<Tab label="Nomina" />
-			</Tabs>
 		);
 	}
 
@@ -475,7 +459,14 @@ const Controles = ({
 
 	return (
 		<Grid col gap={`${gap}px`} full="width">
-			{tabsRender}
+			<Tabs
+				value={currentTab}
+				onChange={(_event, newValue) => setCurrentTab(newValue)}
+				aria-label="basic tabs example"
+			>
+				<Tab label="Datos generales" />
+				<Tab label="Nomina" />
+			</Tabs>
 			{content}
 			{alertsRender}
 		</Grid>

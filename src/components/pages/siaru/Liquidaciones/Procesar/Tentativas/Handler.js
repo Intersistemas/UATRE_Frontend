@@ -5,7 +5,6 @@ import useHttp from '../../../../../hooks/useHttp';
 import Grid from '../../../../../ui/Grid/Grid';
 import DDJJList from './DDJJList';
 import LiquidacionList from './LiquidacionList';
-import LiquidacionesTipos from "../../Formulario/Tipos";
 import LiquidacionesForm from "../../Formulario/Form";
 import DDJJForm from './DDJJForm';
 
@@ -244,6 +243,54 @@ const Handler = ({
 	};
 	const [ddjjFormDisabled, setDDJJFormDisabled] = useState(false);
 
+	let liquidacionListRender
+	if (tiposPagos.loading) {
+		liquidacionListRender = (<h4>Cargando tipos de pagos</h4>);
+	} else {
+		liquidacionListRender = (<LiquidacionList
+			records={filtrarLiqList()}
+			tiposPagos={tiposPagos.data ?? []}
+			loading={liqList.loading || tiposPagos.loading}
+			noData={getNoData(liqList)}
+			onOpenForm={(record) => {
+				// Deshabilitar controles de datos que ya se cargaron.
+				const disabled = {};
+				Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+				disabled.totalRemuneraciones = false;
+				setFormRender(
+					<LiquidacionesForm
+						request={record.id ? "C" : "A"}
+						record={record}
+						empresa={empresa}
+						titulo={
+							<span>
+								{record.id ? "Consultando" : "Generando"} liqudacion
+							</span>
+						}
+						disabled={disabled}
+						onConfirm={(newRecord, request) => {
+							// Actualizo lista
+							setLiqList((old) => {
+								const data = [...old.data];
+								data[record.index] = {
+									...newRecord,
+									index: record.index,
+								};
+								return { ...old, data: data };
+							});
+							// Inhabilitar cambio en DDJJList
+							setDDJJFormDisabled(true);
+							// Oculto formulario
+							setFormRender(null);
+						}}
+						onCancel={() => setFormRender(null)}
+					/>
+				);
+			}}
+			pagination={{ index: 1, size: 5 }}
+		/>);
+	}
+
 	return (
 		<>
 			<Grid col full gap="5px">
@@ -264,49 +311,7 @@ const Handler = ({
 						/>
 					</Grid>
 					<Grid full="width">
-						<LiquidacionList
-							records={filtrarLiqList()}
-							tiposPagos={tiposPagos.data}
-							loading={liqList.loading}
-							noData={getNoData(liqList)}
-							onOpenForm={(record) => {
-								// Deshabilitar controles de datos que ya se cargaron.
-								const disabled = {};
-								Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
-								disabled.totalRemuneraciones = false;
-								setFormRender(
-									<LiquidacionesForm
-										request={record.id ? "C" : "A"}
-										tipo={LiquidacionesTipos.Tentativa}
-										record={record}
-										empresa={empresa}
-										titulo={
-											<span>
-												{record.id ? "Consultando" : "Generando"} liqudacion
-											</span>
-										}
-										disabled={disabled}
-										onConfirm={(newRecord, request) => {
-											// Actualizo lista
-											setLiqList((old) => {
-												const data = [...old.data];
-												data[record.index] = {
-													...newRecord,
-													index: record.index,
-												};
-												return { ...old, data: data };
-											});
-											// Inhabilitar cambio en DDJJList
-											setDDJJFormDisabled(true);
-											// Oculto formulario
-											setFormRender(null);
-										}}
-										onCancel={() => setFormRender(null)}
-									/>
-								);
-							}}
-							pagination={{ index: 1, size: 5 }}
-						/>
+						{liquidacionListRender}
 					</Grid>
 					<Grid full="width">
 						<DDJJForm

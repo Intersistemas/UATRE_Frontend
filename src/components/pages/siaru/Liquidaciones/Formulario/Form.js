@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Form.module.css";
-import Tipos from "./Tipos";
 import Controles from "./Controles";
 import Formato from "../../../../helpers/Formato";
 import useHttp from "../../../../hooks/useHttp";
@@ -14,7 +13,6 @@ import { IconButton, Collapse } from "@mui/material";
 
 const Form = ({
 	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
-	tipo = Tipos.Liquidacion,
 	titulo = null,
 	subtitulo = null,
 	record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
@@ -79,23 +77,33 @@ const Form = ({
 
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
-		const method = requestParam === "A" ? "POST" : "PATCH";
-		const endpoint =
-			tipo === Tipos.Tentativa ? `/Liquidaciones/Tentativas` : `/Liquidaciones`;
 		if (data.refMotivosBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
+
+		const endpoint = `/Liquidaciones`;
+		const { nominas, ...liq } = data;
+		let method;
+		let body;
+		if (requestParam === "A") {
+			method = "POST";
+			body = data;
+		} else {
+			method = "PATCH";
+			body = liq;
+		}
+		
 		request(
 			{
 				baseURL: "SIARU",
 				endpoint: endpoint,
 				method: method,
-				body: data,
+				body: body,
 				headers: { "Content-Type": "application/json" },
 			},
 			async (res) => onConfirm(res, requestParam),
 			async (err) => {
 				setAlerts((old) => [
 					...old,
-					{ severity: "error", title: err.type, message: err.message },
+					{ severity: "error", title: "Error", message: err.message },
 				]);
 				setModalExistente(null);
 			}
@@ -239,26 +247,19 @@ const Form = ({
 
 		setErrores((old) => ({ ...old, ...newErrores }));
 
-		switch (tipo) {
-			case Tipos.Tentativa:
-				if (!liquidacion.nominas?.length) {
-					noValida = true;
-					newAlerts.push({
-						severity: "error",
-						title: "Sin nominas",
-						message: "Debe especificar nominas",
-					});
-				}
-				break;
-			default:
-				break;
+		if (!liquidacion.nominas?.length) {
+			noValida = true;
+			newAlerts.push({
+				severity: "error",
+				title: "Sin nominas",
+				message: "Debe especificar nominas",
+			});
 		}
 
 		setAlerts((old) => [...old, ...newAlerts]);
 
 		if (noValida) return;
 
-		console.log("liquidacion", liquidacion);
 		if (liquidacion.refMotivosBajaId) {
 			// Si se agrega o modifica con información de baja,
 			// no hace falta controlar si exite anterior activo
@@ -331,16 +332,16 @@ const Form = ({
 	if (titulo == null) {
 		switch (requestParam) {
 			case "A":
-				titulo = <span>Agregando {tipo}</span>;
+				titulo = <span>Agregando Liquidación</span>;
 				break;
 			case "B":
-				titulo = <span>Dando de baja {tipo}</span>;
+				titulo = <span>Dando de baja Liquidación</span>;
 				break;
 			case "M":
-				titulo = <span>Modificando {tipo}</span>;
+				titulo = <span>Modificando Liquidación</span>;
 				break;
 			default:
-				titulo = <span>Consultando {tipo}</span>;
+				titulo = <span>Consultando Liquidación</span>;
 				break;
 		}
 	}
@@ -366,7 +367,6 @@ const Form = ({
 				<Grid full="width">{subtitulo}</Grid>
 				<Controles
 					record={liquidacion} // Registro liquidacion.
-					tipo={tipo}
 					empresaId={empresa.id}
 					error={errores} // Descripciones de errores. Cada uno debe tener el mimo nombre del campo al que refiere.
 					disabled={disabled}

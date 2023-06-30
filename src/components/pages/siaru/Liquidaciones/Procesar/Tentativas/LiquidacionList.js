@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Formato from "../../../../../helpers/Formato";
 import Button from "../../../../../ui/Button/Button";
 import Table from "../../../../../ui/Table/Table";
