@@ -1,65 +1,93 @@
 import React from "react";
 
-// representa un div con atajos a propiedades de estilos comunes.
-export const Grid = (props) => {
-	let {
-		// Se espera recibir una propiedad de estilos, si no la recibe, inicializo con un objeto vacío.
-		style = {},
-		// Por defecto el display es flex, pero puede especificarse otro.
-		display = "flex",
-		// Por defecto la dirección del flex es fila.
-		// Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
-		direction = "row",
-		// Abreviatura para direction="column".
-		// Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+/**
+ * Representa un div con atajos a propiedades de estilos comunes.
+ * @param {object} props 
+ * @param {object} [props.style] Se espera recibir una propiedad de estilos, si no la recibe, inicializo con un objeto vacío.
+ * @param {string} [props.display] Se espera recibir una propiedad de estilos, si no la recibe, inicializo con un objeto vacío.
+ * @param {string} [props.direction] Por defecto la dirección del flex es fila.
+ * 
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.col] Abreviatura para direction="column".
+ * 
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.gap] Espacio entre componentes hijos.
+ * 
+ * 	column-gap si direction="row", row-gap si direction="column"
+ * 
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.grow] Permite expandir el div hasta ocupar el resto del espacio del componente padre.
+ * 
+ * 	Si hay componentes hermanos con esta propiedad, el espacio restante se promedia entre ellos.
+ * 
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.justify] Especifica el alineado de los comonentes hijos.
+ * 
+ * Posibles valores:
+ * * "start": alineados al inicio del componente. (flex-start)
+ * * "end": alineados al final del componente.	(flex-end)
+ * * "center": alineados al centro del componente.
+ * * "around": espaciado alrededor. (space-around)
+ * * "between": espaciado entre componentes. (space-between)
+ * * "evenly": espaciado equitativamente. (space-evenly)
+ * 
+ * Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.block] Abreviatura para display="block".
+ * @param {string} [props.width] Especifica el ancho que tendrá el componente.
+ * 
+ * Se puede indicar "full" para ocupar el 100% del componente padre. o un tamaño específico.
+ * @param {string} [props.height] Especifica el alto que tendrá el componente.
+ * 
+ * Se puede indicar "full" para ocupar el 100% del componente padre. o un tamaño específico.
+ * @param {string} [props.full] Abreviatura.
+ * * Si full="width" ocupará el ancho que se especifique en la propiedad width. Si no se especifica la propiedad width, ocupa el 100% del ancho.
+ * * Si full="height" ocupará el alto que se especifique en la propiedad height. Si no se especifica la propiedad height, ocupa el 100% del alto.
+ * * Si full=string se puede especificar en cualquier unidad y ocupará esa medida en ancho y alto. (%, px, vh, etc.). ej: full="50px".
+ * * Si full=numero, ocupará n% de ancho y alto.
+ * * Si full="full" o no se especifica medida, ocupará el 100% de ancho y alto.
+ * @param {string} [props.basis] Tamaño inicial. (flex-basis)
+ * 
+ * Posibles valores:
+ * * "width": Ocupar la misma cantidad que la propiedad width.
+ * * "height": Ocupar la misma cantidad que la propiedad height.
+ * * "full": Ocupar la misma cantidad que la propiedad full.
+ * * Cualquier otro valor: Asume unidad con medida.
+ * @returns div
+ **/
+export const Grid = ({
+	style = {},
+	display = "flex",
+	direction = "row",
+	col,
+	gap,
+	grow,
+	justify,
+	block,
+	width,
+	height,
+	full,
+	basis,
+	// Todos los componentes hijos.
+	children,
+	// Otras propiedades que se pasarán directamente al div.
+	...otherProps
+}) => {
+	const props = {
+		style,
+		display,
+		direction,
 		col,
-		// Espacio entre componentes hijos.
-		// column-gap si direction="row", row-gap si direction="column"
-		// Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
 		gap,
-		// Permite expandir el div hasta ocupar el resto del espacio del componente padre.
-		// Si hay componentes hermanos con esta propiedad, el espacio restante se promedia entre ellos.
-		// Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
 		grow,
-		// Especifica el alineado de los comonentes hijos.
-		// Posibles valores:
-		//	"start": alineados al inicio del componente. (flex-start)
-		//	"end": alineados al final del componente.	(flex-end)
-		//	"center": alineados al centro del componente.
-		//	"around": espaciado alrededor. (space-around)
-		//	"between": espaciado entre componentes. (space-between)
-		//	"evenly": espaciado equitativamente. (space-evenly)
-		// Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
 		justify,
-
-		// Abreviatura para display="block".
 		block,
-		// Especifica el ancho que tendrá el componente.
-		// Se puede indicar "full" para ocupar el 100% del componente padre. o un tamaño específico.
 		width,
-		// Especifica el alto que tendrá el componente.
-		// Se puede indicar "full" para ocupar el 100% del componente padre. o un tamaño específico.
 		height,
-		// Abreviatura.
-		// Si full="width" ocupará el ancho que se especifique en la propiedad width. Si no se especifica la propiedad width, ocupa el 100% del ancho.
-		// Si full="height" ocupará el alto que se especifique en la propiedad height. Si no se especifica la propiedad height, ocupa el 100% del alto.
-		// Si full se puede especificar en cualquier unidad y ocupará esa medida en ancho y alto. (%, px, vh, etc.). ej: full="50px".
-		// Si full=n, ocupará n% de ancho y alto.
-		// Si full="full" o no se especifica medida, ocupará el 100% de ancho y alto.
 		full,
-		// Tamaño inicial. (flex-basis)
-		// Posibles valores:
-		//	"width": Ocupar la misma cantidad que la propiedad width.
-		//	"height": Ocupar la misma cantidad que la propiedad height.
-		//	"full": Ocupar la misma cantidad que la propiedad full.
-		//	Cualquier otro valor: Asume unidad con medida.
 		basis,
-		// Todos los componentes hijos.
 		children,
-		// Otras propiedades que se pasarán directamente al div.
-		...otherProps
-	} = props;
-
+		...otherProps,
+	};
 	if (width) {
 		if (parseInt(width) === width)
 			width = `${width}%`; // Especifica unidad sin medida, significa %.
