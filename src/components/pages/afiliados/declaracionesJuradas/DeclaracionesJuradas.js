@@ -89,18 +89,18 @@ const DeclaracionesJuradas = (props) => {
       },
       {
         headerTitle: (colum, colIndex) => `Código de Modalidad de Contratación`,
-        dataField: "modalidad",
-        text: "Cod.Mod.Contrat.",
+        dataField: "modalidadDescripcion",
+        text: "Mod.Contrat.",
       },
       {
         headerTitle: (colum, colIndex) => `Código de Actividad`,
-        dataField: "actividad",
-        text: "Cod.Actividad",
+        dataField: "actividadDescripcion",
+        text: "Actividad",
       },
       {
         headerTitle: (colum, colIndex) => `Código de Zona`,
-        dataField: "zona",
-        text: "Cod.Zona",
+        dataField: "zonaDescripcion",
+        text: "Zona",
       },
       {
         dataField: "remuneracionImponible",
