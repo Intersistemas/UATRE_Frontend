@@ -298,7 +298,7 @@ const AfiliadosLista = (props ) => {
       dataType: "number"
     },{
       id: 6,
-      dataField: "Seccional.Descripcion",
+      dataField: "Seccional",
       text:"Seccional",
       dataType: "text"
     },{
