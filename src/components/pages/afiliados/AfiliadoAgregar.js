@@ -386,6 +386,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region variables para respuestas de servicios
   const [nuevoAfiliadoResponse, setNuevoAfiliadoResponse] = useState(null);
+  const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [padronRespuesta, setPadronRespuesta] = useState(null);
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [actividades, setActividades] = useState([]);
@@ -1072,6 +1073,7 @@ const AfiliadoAgregar = (props) => {
         tipoDocumentoId: +tipoDocumentoState.value,
         documento: +numeroDocumentoState.value,
         actividadId: +actividadState.value,
+        estadoSolicitud: afiliado.estadoSolicitud,
         estadoSolicitudId:
           ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
             ? 2
@@ -1169,7 +1171,6 @@ const AfiliadoAgregar = (props) => {
 
         setNuevoAfiliadoResponse(afiliadoResponseObj);
         setOpenDialog(true);
-
         //Si se incorpora automaticamente
         if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
           //setResolverSolicitudAfiliadoResponse(1);
@@ -1633,7 +1634,11 @@ const AfiliadoAgregar = (props) => {
   //#region handle Close
   const handleCerrarModal = (refresh) => {
     console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
-    props.onClose(nuevoAfiliadoResponse ?? false); //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
+    
+    //dialogTexto === AFILIADO_ACTUALIZADO ||
+    //  dialogTexto === AFILIADO_AGREGADO_ACTIVO
+    dialogTexto == "" ? props.onClose(false, "cancela") :  props.onClose(dialogTexto === AFILIADO_ACTUALIZADO ? afiliadoModificado : nuevoAfiliadoResponse, props.accion);
+    //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
   };
   //#endregion
 
@@ -1792,6 +1797,7 @@ const AfiliadoAgregar = (props) => {
       tipoDocumentoId: +tipoDocumentoState.value,
       documento: +numeroDocumentoState.value,
       actividadId: +actividadState.value,
+      estadoSolicitud: afiliado.estadoSolicitud,
       estadoSolicitudId: +afiliado.estadoSolicitudId,
       estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
       estadoCivilId: +estadoCivilState.value,
@@ -1934,6 +1940,7 @@ const AfiliadoAgregar = (props) => {
     // console.log("afiliado", afiliado)
     const afiliadoModificar = async (afiliadoModificarResponseObj) => {
       //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
+      setAfiliadoModificado(afiliadoModificado);
       setDialogTexto(AFILIADO_ACTUALIZADO);
       setOpenDialog(true);
       // }

@@ -143,7 +143,8 @@ const AfiliadosHandler = () => {
 
   //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones del SIDEBAR (por esto me veo  obligado a hacer un dispatch)
   useEffect(() => {
-    console.log('afiliadoModificado:',afiliadoModificado);
+    console.log('afiliadoModificado*',afiliadoModificado);
+    console.log('afiliadoSeleccionado*',afiliadoSeleccionado)
     switch (afiliadoSeleccionado?.estadoSolicitud) {
       case "Observado":
         const accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
@@ -185,7 +186,7 @@ const AfiliadosHandler = () => {
     }
     console.log("moduloInfo3", moduloInfo);
     dispatch(handleModuloSeleccionar(moduloInfo));
-  }, [afiliadoSeleccionado,afiliadosRespuesta]);
+  }, [afiliadoSeleccionado,afiliadosRespuesta,afiliadoModificado]);
   //#endregion
 
   useEffect(() => {
@@ -275,16 +276,14 @@ const AfiliadosHandler = () => {
     alert("Funcionalidad en desarrollo");
   };
 
-  const onCloseAfiliadoAgregarHandler = (idAgregado) => {
+  const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION TAMBIEN SE USA PARA LA MODIFICACION DEL AFILIADO
     setAfiliadoAgregarShow(false);
-    //console.log('idAgregado',idAgregado);
-    if (idAgregado){
-      setPage(totalPageIndex); //seteo el indice en la ultima pagina (para que vaya a la ultima pagina de la grilla)
-    } 
-  };
 
-  const onClosePantallaEnDesarrolloHandler = () => {
-    setPantallaEnDesarrolloShow(false);
+    accion === "cancela" ?
+    setAfiliadoAgregarShow(false) :
+    regUpdated.nroAfiliado ? 
+      (accion === "Agrega" ? setPage(1) : setAfiliadoModificado(regUpdated)) :
+      setPage(totalPageIndex); //El afiliado insertado no tiene NroAfiliado,---> (para que vaya a la ultima pagina de la grilla) 
   };
 
   const onClosePantallaBajaReactivacion = (regUpdated) => {
@@ -293,6 +292,10 @@ const AfiliadosHandler = () => {
       console.log('regUpdated*:',regUpdated);
       setAfiliadoModificado(regUpdated);
     } 
+  };
+
+  const onClosePantallaEnDesarrolloHandler = () => {
+    setPantallaEnDesarrolloShow(false);
   };
 
   const handlePageChange = (page, sizePerPage) => {
@@ -358,7 +361,7 @@ const AfiliadosHandler = () => {
             estadosSolicitudes={estadosSolicitudes}
             accion={accionSeleccionada}
             cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
-
+            afiliadoSeleccionado = {afiliadoSeleccionado}
           />
         )}
 
