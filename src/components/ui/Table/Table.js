@@ -21,6 +21,7 @@ const { SearchBar } = Search;
 const paginationDef = {
 	index: 1,
 	size: 12,
+	count: 0,
 	onChange: ({ index, size }) => {},
 };
 
@@ -93,7 +94,10 @@ const Table = ({
 	} else {
 		pagination = { ...paginationDef };
 	}
-	// Estado de paginación propio, por si no especifica mediante props
+	// Si pagination.count es 0 o no especifica, tomar la cantidad de registros en data
+	if ((pagination.count ?? 0) < 1) pagination.count = data.length;
+
+		// Estado de paginación propio, por si no especifica mediante props
 	const [myPagination, setMyPagination] = useState({
 		// Usar valores especificados o por defecto
 		...pagination,
@@ -111,7 +115,7 @@ const Table = ({
 	if (pagination.onChange === paginationDef.onChange)
 		pagination.onChange = undefined;
 	if (!pagination.onChange) pagination = myPagination;
-	console.log("pagination", pagination)
+	// console.log({ pagination: pagination });
 	// Normalizo selectRow que pasa por props
 	if (selection) {
 		selection = { ...selectionDef, ...selection };
@@ -136,7 +140,7 @@ const Table = ({
 			<PaginationProvider
 				pagination={paginationFactory({
 					custom: true,
-					totalSize: data.length,
+					totalSize: pagination.count,
 					page: pagination.index,
 					sizePerPage: pagination.size,
 					onPageChange: (page, sizePerPage) =>
