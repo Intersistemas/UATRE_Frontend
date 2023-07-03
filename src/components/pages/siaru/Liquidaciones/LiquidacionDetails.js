@@ -4,14 +4,26 @@ import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import dayjs from "dayjs";
 import { TextField } from "@mui/material";
+import InputMaterial from "../../../ui/Input/InputMaterial";
 
-const LiquidacionDetails = ({ config }) => {
-	const data = config.data ?? {};
-	const tiposPago = config.tiposPagos ? [...config.tiposPagos] : [];
+const LiquidacionDetails = ({
+	data = {},
+	tiposPago = [],
+}) => {
+	data ??= {};
+	tiposPago ??= [];
+
 	const tiposLiquidacion = [
 		{ codigo: 0, descripcion: "Periodo" },
 		{ codigo: 1, descripcion: "Acta" },
 	];
+
+	const im = {
+		variant: "standard",
+		padding: "0rem 0.5rem",
+	};
+
+	const valor = (valor) => (valor ? valor : " ");
 
 	const calc = {
 		vencimientoFecha: null,
@@ -48,145 +60,93 @@ const LiquidacionDetails = ({ config }) => {
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Fecha"
-					value={Formato.Fecha(data.fecha) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Entero(data.fecha))}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Tipo de liquidación"
-					value={
-						tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
-							?.descripcion ?? ""
-					}
-					style={{ width: "100%" }}
+					value={valor(tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
+						?.descripcion ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Tipo de pago"
-					value={
-						tiposPago.find((r) => r.codigo === data.liquidacionTipoPagoId)
-							?.descripcion ?? ""
-					}
-					style={{ width: "100%" }}
+					value={valor(tiposPago.find((r) => r.codigo === data.liquidacionTipoPagoId)
+						?.descripcion ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Establecimiento"
-					value={`${data.empresaEstablecimientoId ?? ""} ${
+					value={valor(`${data.empresaEstablecimientoId ?? ""} ${
 						data.empresaEstablecimiento_Nombre ?? ""
-					}`}
-					style={{ width: "100%" }}
+					}`)}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Periodo"
-					value={Formato.Periodo(data.periodo) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Periodo(data.periodo) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Fecha de Vencimiento"
-					value={Formato.Fecha(calc.vencimientoFecha) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Fecha(calc.vencimientoFecha) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Fecha de pago estimada"
-					value={Formato.Fecha(data.fechaPagoEstimada) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Fecha(data.fechaPagoEstimada) ?? "")}
+					{...im}
 				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Cantidad de trabajadores"
-					value={Formato.Entero(data.cantidadTrabajadores) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Entero(data.cantidadTrabajadores) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Total de remuneraciones"
-					value={Formato.Moneda(data.totalRemuneraciones) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Moneda(data.totalRemuneraciones) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Aporte"
-					value={Formato.Moneda(data.interesNeto) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Moneda(data.interesNeto) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Importe intereses"
-					value={Formato.Moneda(data.interesImporte) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Moneda(data.interesImporte) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Total a pagar"
-					value={Formato.Moneda(importeTotal) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Moneda(importeTotal) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Secuencia rectificacion"
-					value={Formato.Entero(data.rectificativa) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Entero(data.rectificativa) ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Fecha de baja"
-					value={Formato.Fecha(data.bajaFecha) ?? ""}
-					style={{ width: "100%" }}
+					value={valor(Formato.Fecha(data.bajaFecha) ?? "")}
+					{...im}
 				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Motivo de baja"
-					value={data.refMotivoBaja_Descripcion ?? ""}
-					style={{ width: "100%" }}
+					value={valor(data.refMotivoBaja_Descripcion ?? "")}
+					{...im}
 				/>
-				<TextField
-					InputLabelProps={{ style: inputLabelStyles }}
-					variant="standard"
-					size="small"
+				<InputMaterial
 					label="Observaciones de baja"
-					value={data.bajaObservaciones ?? ""}
-					style={{ width: "100%" }}
+					value={valor(data.bajaObservaciones ?? "")}
+					{...im}
 				/>
 			</Grid>
 		</Grid>

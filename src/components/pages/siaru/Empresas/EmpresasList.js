@@ -1,5 +1,4 @@
 import React from "react";
-import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import Table from "../../../ui/Table/Table";
 
@@ -8,9 +7,12 @@ const EmpresasList = ({
 	loading,
 	noData,
 	pagination = {},
-	onPaginationChange = ((_pageIndex, _pageSize) => {}),
-	onSelect = (_registro) => {},
+	selection = {},
 }) => {
+	data ??= [];
+	pagination ??= {};
+	selection ??= {};
+
 	const cs = {
 		overflow: "hidden",
 		textOverflow: "ellipsis",
@@ -47,23 +49,6 @@ const EmpresasList = ({
 		},
 	];
 
-	let bootstrapPagination;
-	if (pagination) {
-		bootstrapPagination = paginationFactory({
-			page: pagination.index,
-			sizePerPage: pagination.size,
-			totalSize: pagination.count,
-			lastPageText: ">>",
-			firstPageText: "<<",
-			nextPageText: ">",
-			prePageText: "<",
-			hideSizePerPage: true,
-			paginationShowsTotal: false,
-			onPageChange: onPaginationChange,
-			onSizePerPageChange: onPaginationChange,
-		});
-	}
-
 	return (
 		<Table
 			remote
@@ -71,9 +56,9 @@ const EmpresasList = ({
 			loading={loading}
 			data={data}
 			columns={columns}
-			pagination={bootstrapPagination}
+			pagination={pagination}
+			selection={selection}
 			noDataIndication={noData}
-			onSelected={onSelect}
 		/>
 	);
 };

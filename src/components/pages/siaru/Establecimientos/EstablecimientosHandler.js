@@ -5,7 +5,6 @@ import Formato from "../../../helpers/Formato";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import Form from "./EstablecimientoForm";
-// import styles from "./EstablecimientosHandler.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -20,54 +19,60 @@ const EstablecimientosHandler = (props) => {
 	if (empresa?.id == null) navigate("/");
 
 	const empresaId = empresa ? empresa.id : 0;
-	const [establecimientos, setEstablecimientos] = useState([]);
+	const [form, setForm] = useState(null);
+	const { sendRequest } = useHttp();
+	const dispatch = useDispatch();
+	
+	//#region carga inicial de establecimientos
+	const [refresh, setRefresh] = useState({ origen: "inicio" });
+	const [establecimientos, setEstablecimientos] = useState({ loading: true });
 	const [pagination, setPagination] = useState({
 		index: 1,
-		size: 2,
-		count: 0,
-		pages: 0,
+		size: 10,
+		onChange: (changes) => setPagination((old) => ({ ...old, ...changes })),
 	});
-	const [establecimiento, setEstablecimiento] = useState(null);
-	const [form, setForm] = useState(null);
-	const { sendRequest: request } = useHttp();
-	const dispatch = useDispatch();
+	const [seleccionado, setSeleccionado] = useState(null);
+	useEffect(() => {
+		if (!refresh) return;
 
-	const recargarEstablecimientos = (despliega = null) => {
-		request(
+		const finalAction = () => {
+			if (refresh) setRefresh(null);
+		}
+
+		sendRequest(
 			{
 				baseURL: "Comunes",
 				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}`,
 				method: "GET",
 			},
 			async (res) => {
-				setEstablecimientos(res.data);
-				setPagination({
+				const data = [...res.data];
+				setEstablecimientos({ data: data });
+				setPagination((old) => ({
+					...old,
 					index: res.index,
 					size: res.size,
 					count: res.count,
 					pages: res.pages,
-				});
-				setEstablecimiento(despliega);
+				}));
+				if (data.length > 0) setSeleccionado(data[0]);
+				finalAction();
 			},
 			async (err) => {
-				setEstablecimientos([]);
-				setEstablecimiento(despliega);
-			}
+				setEstablecimientos({ error: err.error });
+				setSeleccionado(null);
+				finalAction();
+			},
 		);
-	};
-
-	//#region carga inicial de establecimientos
-	useEffect(() => {
-		recargarEstablecimientos(establecimiento);
-	}, []);
+	}, [sendRequest, refresh, empresaId, pagination.index, pagination.size]);
 
 	//#region despachar Informar Modulo
-	const estabDesc = establecimiento ? `${establecimiento.nombre}` : ``;
+	const estabDesc = seleccionado ? `${seleccionado.nombre}` : ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [{ name: `Empresas` }, { name: `Agrega Establecimiento` }],
 	};
-	if (establecimiento) {
+	if (seleccionado) {
 		moduloInfo.acciones.push({
 			name: `Consulta Establecimiento ${estabDesc}`,
 		});
@@ -85,11 +90,11 @@ const EstablecimientosHandler = (props) => {
 	useEffect(() => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
-			record: establecimiento,
+			record: seleccionado,
 			onCancel: (_request) => setForm(null),
-			onConfirm: (_request, _record) => {
-				recargarEstablecimientos();
+			onConfirm: (request, record) => {
 				setForm(null);
+				setRefresh({ origen: "formulario" });
 			},
 		};
 		switch (moduloAccion) {
@@ -117,7 +122,14 @@ const EstablecimientosHandler = (props) => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresaId, estabDesc, establecimiento, recargarEstablecimientos, navigate, dispatch]);
+	}, [moduloAccion, empresaId, estabDesc, seleccionado, navigate, dispatch]);
+
+	const selection = {
+		onSelect: (row, isSelect, rowIndex, e) => setSeleccionado(row),
+	}
+	if (seleccionado) {
+		selection.selected = [seleccionado.id]
+	}
 
 	return (
 		<>
@@ -139,11 +151,13 @@ const EstablecimientosHandler = (props) => {
 					<Grid full="width" col grow gap="5px">
 						<Grid grow>
 							<EstablecimientosList
-								data={establecimientos}
-								onSelect={setEstablecimiento}
+								loading={establecimientos.loading}
+								data={establecimientos.data}
+								pagination={pagination}
+								selection={selection}
 							/>
 						</Grid>
-						<EstablecimientoDetails data={establecimiento} />
+						<EstablecimientoDetails data={seleccionado} />
 						{form}
 					</Grid>
 				</Grid>

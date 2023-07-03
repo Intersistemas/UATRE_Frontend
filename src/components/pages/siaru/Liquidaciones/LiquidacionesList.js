@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
-import paginationFactory from "react-bootstrap-table2-paginator";
 import Formato from "../../../helpers/Formato";
 import useHttp from "../../../hooks/useHttp";
-import TableRemote from "../../../ui/Table/TableRemote";
+import Table from "../../../ui/Table/Table";
 
-const LiquidacionesList = (props) => {
-	const config = { ...props.config };
-	const data = config.data ? [...config.data] : [];
-	const seleccionado = config.seleccionado ?? {};
-	const pagination = { ...config.pagination };
-	const onSelect = config.onSelect ?? ((registro) => {});
-	const onPaginationChange =
-		config.onPaginationChange ?? ((pageIndex, pageSize) => {});
+const LiquidacionesList = ({
+	data = [],
+	selection = {},
+	pagination = {},
+	loading = false,
+	noData,
+}) => {
+	data ??= [];
+	selection ??= {};
+	pagination ??= {};
+
 	const tiposLiquidacion = [
 		{ codigo: 0, descripcion: "Periodo"},
 		{ codigo: 1, descripcion: "Acta"},
 	];
+
 	const [tiposPago, setTiposPago] = useState([]);
-	const { isLoading, error, sendRequest } = useHttp();
+	const { sendRequest } = useHttp();
 
 	const cs = {
 		overflow: "hidden",
@@ -87,23 +90,6 @@ const LiquidacionesList = (props) => {
 		},
 	];
 
-	let bootstrapPagination;
-	if (pagination) {
-		bootstrapPagination = paginationFactory({
-			page: pagination.index,
-			sizePerPage: pagination.size,
-			totalSize: pagination.count,
-			lastPageText: ">>",
-			firstPageText: "<<",
-			nextPageText: ">",
-			prePageText: "<",
-			hideSizePerPage: true,
-			paginationShowsTotal: false,
-			onPageChange: onPaginationChange,
-			onSizePerPageChange: onPaginationChange,
-		});
-	}
-
 	useEffect(() => {
 		if (tiposPago.length === 0) {
 			sendRequest(
@@ -117,27 +103,16 @@ const LiquidacionesList = (props) => {
 		}
 	}, [tiposPago.length, sendRequest]);
 
-	if (isLoading) return <h4>Cargando...</h4>;
-	if (error) return <h4>{error}</h4>;
-
-	let rowSelectedIndex = 0;
-	if (data.length > 0 && seleccionado != null) {
-		rowSelectedIndex = data.findIndex(r => r.id === seleccionado.id);
-		if (rowSelectedIndex < 0) rowSelectedIndex = 0;
-	}
-
 	return (
-		<TableRemote
+		<Table
 			remote
 			keyField="id"
-			loading={config.loading}
+			loading={loading}
 			data={data}
 			columns={columns}
-			pagination={bootstrapPagination}
-			noDataIndication={config.noData}
-			onSelected={onSelect}
-			rowSelectedIndex={rowSelectedIndex}
-			primerRegistroDelGrid={seleccionado}
+			pagination={pagination}
+			selection={selection}
+			noDataIndication={noData}
 		/>
 	);
 };

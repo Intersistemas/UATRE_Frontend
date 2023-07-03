@@ -68,13 +68,6 @@ const Form = ({
 				newErrores.empresaId = "Dato requerido";
 			}
 
-			if (establecimiento.nroSucursal) {
-				newErrores.nroSucursal = "";
-			} else {
-				noValida = true;
-				newErrores.nroSucursal = "Dato requerido";
-			}
-
 			if (establecimiento.nombre) {
 				newErrores.nombre = "";
 			} else {
@@ -112,6 +105,8 @@ const Form = ({
 				if (establecimiento.refMotivosBajaId) {
 					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
 				}
+				break;
+			default:
 				break;
 		}
 
@@ -204,7 +199,7 @@ const Form = ({
 							error={errores.nroSucursal ?? ""}
 							helperText={errores.nroSucursal ?? ""}
 							value={establecimiento.nroSucursal}
-							disabled={disabled.nroSucursal ?? false}
+							disabled
 							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import styles from "./LiquidacionesHandler.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import useHttp from "../../../hooks/useHttp";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,7 +22,7 @@ const LiquidacionesHandler = () => {
 	);
 	if (empresa?.id == null) navigate("/");
 
-	const { sendRequest: request } = useHttp();
+	const { sendRequest } = useHttp();
 
 	//#region declaración y carga de periodos
 	const [periodos, setPeriodos] = useState({
@@ -32,7 +31,7 @@ const LiquidacionesHandler = () => {
 	});
 	const [periodo, setPeriodo] = useState(0);
 	useEffect(() => {
-		request(
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: `/Liquidaciones/Periodos?EmpresaId=${empresa.id ?? 0}`,
@@ -51,7 +50,7 @@ const LiquidacionesHandler = () => {
 			async (err) =>
 				setPeriodos({ data: [{ valor: 0, descipcion: "Todos" }], error: err })
 		);
-	}, [empresa.id, request]);
+	}, [empresa.id, sendRequest]);
 	//#endregion
 
 	//#region declaracion y carga de establecimientos
@@ -61,7 +60,7 @@ const LiquidacionesHandler = () => {
 	});
 	const [establecimiento, setEstablecimiento] = useState({ id: 0 });
 	useEffect(() => {
-		request(
+		sendRequest(
 			{
 				baseURL: "Comunes",
 				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${
@@ -84,7 +83,7 @@ const LiquidacionesHandler = () => {
 				});
 			}
 		);
-	}, [empresa.id, request]);
+	}, [empresa.id, sendRequest]);
 	//#endregion
 
 	//#region declaracion y carga de tipos de pago
@@ -92,7 +91,7 @@ const LiquidacionesHandler = () => {
 		loading: true,
 	});
 	useEffect(() => {
-		request(
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: `/LiquidacionesTiposPagos`,
@@ -101,47 +100,50 @@ const LiquidacionesHandler = () => {
 			async (res) => setLiquidacionesTiposPagos({ data: res }),
 			async (err) => setLiquidacionesTiposPagos({ error: err })
 		);
-	}, [request]);
+	}, [sendRequest]);
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
+	const [refreshLiqudaciones, setRefreshLiquidaciones] = useState(true);
 	const [liquidaciones, setLiquidaciones] = useState({ loading: true });
 	const [pagination, setPagination] = useState({
 		index: 1,
 		size: 10,
-		count: 0,
-		pages: 0,
+		onChange: (changes) => {
+			setPagination((old) => ({ ...old, ...changes }));
+			setRefreshLiquidaciones(true);
+		},
 	});
-	const [refreshLiqudaciones, setRefreshLiquidaciones] = useState(true);
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
-		if (refreshLiqudaciones) {
-			let params = `EmpresaId=${empresa.id}`;
-			params = `${params}&Page=${pagination.index},${pagination.size}`;
-			params = `${params}&Sort=-Id`;
-			if (periodo) params = `${params}&Periodo=${periodo}`;
-			if (establecimiento?.id)
-				params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
-			request(
-				{
-					baseURL: "SIARU",
-					endpoint: `/Liquidaciones?${params}`,
-					method: "GET",
-				},
-				async (res) => {
-					setLiquidaciones({ data: res.data });
-					if (res.data.length > 0) setLiquidacion(res.data[0]);
-					setPagination({
-						index: res.index,
-						size: res.size,
-						count: res.count,
-						pages: res.pages,
-					});
-					if (refreshLiqudaciones) setRefreshLiquidaciones(false);
-				},
-				async (err) => setLiquidaciones({ error: err })
-			);
-		}
+		if (!refreshLiqudaciones) return;
+
+		let params = `EmpresaId=${empresa.id}`;
+		params = `${params}&Page=${pagination.index},${pagination.size}`;
+		params = `${params}&Sort=-Id`;
+		if (periodo) params = `${params}&Periodo=${periodo}`;
+		if (establecimiento?.id)
+			params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
+			sendRequest(
+			{
+				baseURL: "SIARU",
+				endpoint: `/Liquidaciones?${params}`,
+				method: "GET",
+			},
+			async (res) => {
+				setLiquidaciones({ data: res.data });
+				if (res.data.length > 0) setLiquidacion(res.data[0]);
+				setPagination((old) => ({
+					...old,
+					index: res.index,
+					size: res.size,
+					count: res.count,
+					pages: res.pages,
+				}));
+				if (refreshLiqudaciones) setRefreshLiquidaciones(false);
+			},
+			async (err) => setLiquidaciones({ error: err })
+		);
 	}, [
 		refreshLiqudaciones,
 		pagination.index,
@@ -149,8 +151,9 @@ const LiquidacionesHandler = () => {
 		periodo,
 		establecimiento.id,
 		empresa.id,
-		request,
+		sendRequest,
 	]);
+	
 	// Información si ocurrió algún error durante la carga de liquidaciones
 	let liqNoData = <h4>No hay informacion a mostrar</h4>;
 	if (liquidaciones.error) {
@@ -208,13 +211,24 @@ const LiquidacionesHandler = () => {
 	}, [moduloAccion, liquidacionDesc, empresa, navigate, dispatch]);
 	// #endregion
 
+	const selection = {
+		onSelect: (row, isSelect, rowIndex, e) => setLiquidacion(row),
+	}
+	if (liquidacion) {
+		selection.selected = [liquidacion.id]
+	}
+
 	return (
 		<>
 			<div className="titulo">
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
 			<div className="contenido">
-				<Grid col full gap="5px">
+				<Grid
+					col
+					full
+					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
+				>
 					<Grid full="width">
 						<h2 className="subtitulo">
 							Liquidaciones de
@@ -268,32 +282,19 @@ const LiquidacionesHandler = () => {
 							/>
 						</Grid>
 					</Grid>
-					<Grid full="width">
+					<Grid full="width" grow>
 						<LiquidacionesList
-							config={{
-								loading: liquidaciones.loading,
-								data: liquidaciones.data,
-								noData: liqNoData,
-								pagination: pagination,
-								onSelect: (r) => setLiquidacion(r),
-								onPaginationChange: (pageIndex, pageSize) => {
-									setPagination((p) => ({
-										...p,
-										index: pageIndex,
-										size: pageSize,
-									}));
-									setRefreshLiquidaciones(true);
-								},
-								seleccionado: liquidacion
-							}}
+							loading={liquidaciones.loading}
+							data={liquidaciones.data}
+							noData={liqNoData}
+							pagination={pagination}
+							selection={selection}
 						/>
 					</Grid>
 					<Grid full="width">
 						<LiquidacionDetails
-							config={{
-								data: liquidacion,
-								tiposPagos: liquidacionesTiposPagos.data,
-							}}
+							data={liquidacion}
+							tiposPagos={liquidacionesTiposPagos.data}
 						/>
 					</Grid>
 				</Grid>

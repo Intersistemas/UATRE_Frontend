@@ -21,16 +21,12 @@ const SiaruHandler = (props) => {
 	//#region declaración y carga de lista de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
 	const [empresaRecord, setEmpresaRecord] = useState();
-	// const location = useLocation();
 
-	// useEffect(() => {
-	//   if (location.state.empresas?.length) {
-	//     setEmpresaList({ data: location.state.empresas });
-	//   }
-	// }, [location.state.empresas]);
 	useEffect(() => {
 		if (authContext.usuario?.empresas) {
-			setEmpresaList({ data: authContext.usuario.empresas });
+			const empresas = [...authContext.usuario.empresas];
+			setEmpresaList({ data: empresas });
+			if (empresas.length > 0) setEmpresaRecord(empresas[0]);
 		}
 	}, [authContext.usuario]);
 	//#endregion
@@ -88,6 +84,13 @@ const SiaruHandler = (props) => {
 	}, [moduloAccion, descEmpresa, empresa.data, navigate, dispatch]);
 	//#endregion
 
+	const selection = {
+		onSelect: (row, isSelect, rowIndex, e) => setEmpresaRecord(row),
+	}
+	if (empresaRecord) {
+		selection.selected = [empresaRecord.cuitEmpresa]
+	}
+
 	return (
 		<>
 			<div className="titulo">
@@ -107,6 +110,7 @@ const SiaruHandler = (props) => {
 							<EmpresasList
 								loading={empresaList.loading}
 								data={empresaList.data}
+								selection={selection}
 								noData={(() => {
 									const rq = empresaList;
 									if (rq?.loading) return <h4>Cargando...</h4>;
@@ -125,7 +129,6 @@ const SiaruHandler = (props) => {
 											);
 									}
 								})()}
-								onSelect={setEmpresaRecord}
 							/>
 						</Grid>
 						<EmpresaDetails data={empresa.data} />
