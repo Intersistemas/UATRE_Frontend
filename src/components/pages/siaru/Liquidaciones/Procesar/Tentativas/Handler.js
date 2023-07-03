@@ -264,7 +264,7 @@ const Handler = ({
 						empresa={empresa}
 						titulo={
 							<span>
-								{record.id ? "Consultando" : "Generando"} liqudacion
+								{record.id ? "Consultando" : "Generando"} liquidación
 							</span>
 						}
 						disabled={disabled}
