@@ -606,23 +606,6 @@ const AfiliadoAgregar = (props) => {
   const [inputsTouched, setInputsTouched] = useState(false);
   //#endregion
 
-  //#region Manejo de notificaciones y alert
-  // useEffect(() => {
-  //   const identifier = setTimeout(() => {
-  //     //console.log("checking showAlert...", showAlert);
-  //     if (resolverSolicitudAfiliadoResponse) {
-  //       //handleCerrarModal();
-  //       props.onClose(resolverSolicitudAfiliadoResponse === 0 ? false : true);
-  //     }
-  //   }, 5000);
-
-  //   return () => {
-  //     clearTimeout(identifier);
-  //     console.log("alert");
-  //   };
-  // }, [resolverSolicitudAfiliadoResponse]);
-
-  //#endregion
 
   //#region manejo si el afiliado existe
   const [afiliadoExiste, setAfiliadoExiste] = useState(false);
@@ -646,7 +629,7 @@ const AfiliadoAgregar = (props) => {
         console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
-        setNuevoAfiliadoResponse(afiliadoObj.id);
+        setNuevoAfiliadoResponse(afiliadoObj);
         setAfiliadoExiste(true);
         //setPadronRespuesta(true);
         //setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
@@ -1071,7 +1054,7 @@ const AfiliadoAgregar = (props) => {
         tipoDocumentoId: +tipoDocumentoState.value,
         documento: +numeroDocumentoState.value,
         actividadId: +actividadState.value,
-        estadoSolicitud: afiliado.estadoSolicitud,
+        //estadoSolicitud: afiliado.estadoSolicitud,
         estadoSolicitudId:
           ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
             ? 2
@@ -1283,9 +1266,10 @@ const AfiliadoAgregar = (props) => {
         );
         console.log("estadoSolicitudSel", estadoSolicitudSel);
         setDialogTexto(
-          `Solicitud resuelta en estado ${estadoSolicitudSel.label}!`
+          `${AFILIADO_SOLICITUDRESUELTA} ${estadoSolicitudSel.label}!`
         );
         setOpenDialog(true);
+        setAfiliadoModificado({...props.afiliadoSeleccionado,  estadoSolicitud:  estadoSolicitudSel.label})
         //setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
         if (+estadoSolicitudResolver === 2) {
           setShowImprimirLiquidacion(true);
@@ -1296,7 +1280,7 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse}`,
+        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse.id}`,
         method: "PATCH",
         body: patchAfiliado,
         headers: {
@@ -1630,11 +1614,19 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handle Close
-    const handleCerrarModal = (refresh) => {
+  const handleCerrarModal = (refresh) => {
     console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
+    console.log('props.accion:',props.accion);
+    console.log('dialogTexto',dialogTexto);
 
-    dialogTexto == "" ? props.onClose(false, "Cancela") :  props.onClose(dialogTexto === AFILIADO_ACTUALIZADO ? afiliadoModificado : nuevoAfiliadoResponse, props.accion);
-    //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
+    if (dialogTexto == "") 
+      props.onClose(false, "Cancela");
+    else{
+      (props.accion == "Resuelve") || (props.accion == "Modifica") ?
+      props.onClose(afiliadoModificado, props.accion) //SI RESUELVE SOLICIT O MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
+      : 
+      props.onClose(nuevoAfiliadoResponse, props.accion) //SI EL AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
+    }
   };
   //#endregion
 
@@ -1984,7 +1976,7 @@ const AfiliadoAgregar = (props) => {
   //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setDialogTexto("");
+    //setDialogTexto("");
     if (
       dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
       dialogTexto === AFILIADO_ACTUALIZADO ||

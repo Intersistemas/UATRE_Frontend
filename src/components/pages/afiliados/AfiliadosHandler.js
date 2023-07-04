@@ -34,7 +34,7 @@ const AfiliadosHandler = () => {
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
   
-  const moduloInfoDefoult = {
+  const moduloInfoDefault = {
     nombre: "Afiliados",
     acciones: [
       {
@@ -75,7 +75,7 @@ const AfiliadosHandler = () => {
       },
     ],
   };
-  const [moduloInfo, setModuloInfo] = useState(moduloInfoDefoult);
+  const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
 
   const navigate = useNavigate();
   //#region Tablas para el form
@@ -99,7 +99,6 @@ const AfiliadosHandler = () => {
       setTotalPageIndex(afiliadosObj.pages);
       setAfiliadosRespuesta(afiliadosObj);
       if (refresh) setRefresh(false);
-      
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
@@ -143,17 +142,17 @@ const AfiliadosHandler = () => {
 
   //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones del SIDEBAR (por esto me veo  obligado a hacer un dispatch)
   useEffect(() => {
-    console.log('afiliadoModificado*',afiliadoModificado);
-    console.log('afiliadoSeleccionado*',afiliadoSeleccionado)
+    //console.log('afiliadoModificado*',afiliadoModificado);
+    //console.log('afiliadoSeleccionado*',afiliadoSeleccionado)
     switch (afiliadoSeleccionado?.estadoSolicitud) {
       case "Observado":
-        const accionesAux0 = moduloInfoDefoult.acciones.map((accion) =>
+        const accionesAux0 = moduloInfoDefault.acciones.map((accion) =>
           accion.id === 2 ? { ...accion, disabled: false } : accion
         );
         setModuloInfo({ ...moduloInfo, acciones: accionesAux0 });
         break;
       case "Activo":
-        const accionesAux1 = moduloInfoDefoult.acciones.map((accion) =>
+        const accionesAux1 = moduloInfoDefault.acciones.map((accion) =>
           accion.id === 2 ||
           accion.id === 4 ||
           accion.id === 5 
@@ -163,8 +162,8 @@ const AfiliadosHandler = () => {
         setModuloInfo({ ...moduloInfo, acciones: accionesAux1 });
         break;
       case "Pendiente":
-        setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
-        const accionesAux2 = moduloInfoDefoult.acciones.map((accion) =>
+        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
+        const accionesAux2 = moduloInfoDefault.acciones.map((accion) =>
           accion.id === 2 || accion.id === 3
             ? { ...accion, disabled: false }
             : accion
@@ -172,8 +171,8 @@ const AfiliadosHandler = () => {
         setModuloInfo({ ...moduloInfo, acciones: accionesAux2 });
         break;
       case "No Activo":
-        setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
-        const accionesAux3 = moduloInfoDefoult.acciones.map((accion) =>
+        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
+        const accionesAux3 = moduloInfoDefault.acciones.map((accion) =>
           accion.id === 6
            ? { ...accion, disabled: false } 
            : accion
@@ -181,7 +180,7 @@ const AfiliadosHandler = () => {
         setModuloInfo({ ...moduloInfo, acciones: accionesAux3 });
         break;
       default:
-        setModuloInfo(moduloInfoDefoult); //seteo por defecto primero
+        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
         break;
     }
     console.log("moduloInfo3", moduloInfo);
@@ -224,11 +223,6 @@ const AfiliadosHandler = () => {
   //#endregion
 
   const moduloAccion = useSelector((state) => state.moduloAccion);
-  const { id } = 0;
-
-  /*const afiliadoSeleccionado = useSelector(state => state.afiliado)
-  const {id} = afiliadoSeleccionado
-*/
 
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
@@ -278,15 +272,19 @@ const AfiliadosHandler = () => {
 
   const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION TAMBIEN SE USA PARA LA MODIFICACION DEL AFILIADO
       setAfiliadoAgregarShow(false);
-
+      console.log('onCloseAfiliadoAgregarHandler: ',regUpdated, accion)
       if (regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
-        
-        setAfiliadoModificado(regUpdated)
+          setAfiliadoModificado(regUpdated)
 
-          regUpdated.nroAfiliado == 0 ? //SI NO TENGO NRO.AFILIADO quiere decir que agregue un afiliado
-            setPage(totalPageIndex) //El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
-            : 
-            accion === "Agrega" && setPage(1) //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+          accion === "Resuelve" && setPage(1); //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+
+          accion === "Agrega" ? 
+          (regUpdated.nroAfiliado) ? 
+            setPage(1)//El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+            :
+            setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
+          :
+          console.log('No es Agrega');
       }
   };
 
