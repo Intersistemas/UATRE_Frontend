@@ -286,7 +286,7 @@ const AfiliadosHandler = () => {
           regUpdated.nroAfiliado == 0 ? //SI NO TENGO NRO.AFILIADO quiere decir que agregue un afiliado
             setPage(totalPageIndex) //El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
             : 
-            accion === "Agrega" ?? setPage(1) //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+            accion === "Agrega" && setPage(1) //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
       }
   };
 
