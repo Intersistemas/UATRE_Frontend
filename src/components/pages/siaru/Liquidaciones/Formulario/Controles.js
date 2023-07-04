@@ -127,7 +127,7 @@ const Controles = ({
 	const calcularOtros = (data) => {
 		const r = {
 			periodo: "",
-			vencimientoFecha: null,
+			vencimientoFecha: data.vencimientoFecha ?? null,
 			fechaPagoEstimada: data.fechaPagoEstimada ?? null,
 			vencimientoDias: 0,
 			interesImporte: data.interesImporte ?? 0,
@@ -189,6 +189,9 @@ const Controles = ({
 		// Verifico si cambiaron los campos calculados
 		if (record.interesImporte !== recordCambios.interesImporte) {
 			cambios.interesImporte = recordCambios.interesImporte;
+		}
+		if (record.vencimientoFecha !== recordCambios.vencimientoFecha) {
+			cambios.vencimientoFecha = recordCambios.vencimientoFecha;
 		}
 		onChange(cambios);
 	};
