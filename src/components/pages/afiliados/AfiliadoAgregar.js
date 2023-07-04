@@ -27,8 +27,6 @@ import InputMaterialMask from "../../ui/Input/InputMaterialMask";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
-  //AFILIADO_REACTIVADO,
-  //AFILIADO_BAJA,
   AFILIADO_SOLICITUDRESUELTA,
   AFILIADO_DATOSAFIPACTUALIZADO,
   AFILIADO_AGREGADO_ACTIVO,
@@ -1632,12 +1630,10 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handle Close
-  const handleCerrarModal = (refresh) => {
+    const handleCerrarModal = (refresh) => {
     console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
-    
-    //dialogTexto === AFILIADO_ACTUALIZADO ||
-    //  dialogTexto === AFILIADO_AGREGADO_ACTIVO
-    dialogTexto == "" ? props.onClose(false, "cancela") :  props.onClose(dialogTexto === AFILIADO_ACTUALIZADO ? afiliadoModificado : nuevoAfiliadoResponse, props.accion);
+
+    dialogTexto == "" ? props.onClose(false, "Cancela") :  props.onClose(dialogTexto === AFILIADO_ACTUALIZADO ? afiliadoModificado : nuevoAfiliadoResponse, props.accion);
     //PASO EL ID (nuevoAfiliadoResponse) para poder calcular en qué pagina me debo posicionar.
   };
   //#endregion
