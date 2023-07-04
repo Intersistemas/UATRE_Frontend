@@ -368,7 +368,7 @@ const Form = ({
 				<Controles
 					record={liquidacion} // Registro liquidacion.
 					empresaId={empresa.id}
-					error={errores} // Descripciones de errores. Cada uno debe tener el mimo nombre del campo al que refiere.
+					error={errores} // Descripciones de errores. Cada uno debe tener el mismo nombre del campo al que refiere.
 					disabled={disabled}
 					onChange={(cambios) => {
 						setLiquidacion((old) => ({ ...old, ...cambios }));
