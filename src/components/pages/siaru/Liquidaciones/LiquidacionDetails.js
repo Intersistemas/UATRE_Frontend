@@ -3,15 +3,14 @@ import styles from "./LiquidacionDetails.module.css";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import dayjs from "dayjs";
-import { TextField } from "@mui/material";
-import InputMaterial from "../../../ui/Input/InputMaterial";
+ import InputMaterial from "../../../ui/Input/InputMaterial";
 
 const LiquidacionDetails = ({
 	data = {},
-	tiposPago = [],
+	tiposPagos = [],
 }) => {
 	data ??= {};
-	tiposPago ??= [];
+	tiposPagos ??= [];
 
 	const tiposLiquidacion = [
 		{ codigo: 0, descripcion: "Periodo" },
@@ -37,7 +36,6 @@ const LiquidacionDetails = ({
 			.add(1, "month")
 			.format("YYYY-MM-DD");
 	}
-	const inputLabelStyles = { color: "#186090" };
 
 	let importeTotal;
 	if (data.interesImporte != null || data.interesNeto != null) {
@@ -56,13 +54,13 @@ const LiquidacionDetails = ({
 		>
 			<Grid full="width">
 				<Grid className={styles.titulo} grow>
-					Datos de la liquidacion
+					Datos de la liquidacion {data.id}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
 				<InputMaterial
 					label="Fecha"
-					value={valor(Formato.Entero(data.fecha))}
+					value={valor(Formato.Fecha(data.fecha))}
 					{...im}
 				/>
 				<InputMaterial
@@ -73,7 +71,7 @@ const LiquidacionDetails = ({
 				/>
 				<InputMaterial
 					label="Tipo de pago"
-					value={valor(tiposPago.find((r) => r.codigo === data.liquidacionTipoPagoId)
+					value={valor(tiposPagos.find((r) => r.codigo === data.liquidacionTipoPagoId)
 						?.descripcion ?? "")}
 					{...im}
 				/>
