@@ -3,12 +3,9 @@ import styles from "./LiquidacionDetails.module.css";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
 import dayjs from "dayjs";
- import InputMaterial from "../../../ui/Input/InputMaterial";
+import InputMaterial from "../../../ui/Input/InputMaterial";
 
-const LiquidacionDetails = ({
-	data = {},
-	tiposPagos = [],
-}) => {
+const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 	data ??= {};
 	tiposPagos ??= [];
 
@@ -65,21 +62,27 @@ const LiquidacionDetails = ({
 				/>
 				<InputMaterial
 					label="Tipo de liquidación"
-					value={valor(tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
-						?.descripcion ?? "")}
+					value={valor(
+						tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
+							?.descripcion ?? ""
+					)}
 					{...im}
 				/>
 				<InputMaterial
 					label="Tipo de pago"
-					value={valor(tiposPagos.find((r) => r.codigo === data.liquidacionTipoPagoId)
-						?.descripcion ?? "")}
+					value={valor(
+						tiposPagos.find((r) => r.codigo === data.liquidacionTipoPagoId)
+							?.descripcion ?? ""
+					)}
 					{...im}
 				/>
 				<InputMaterial
 					label="Establecimiento"
-					value={valor(`${data.empresaEstablecimientoId ?? ""} ${
-						data.empresaEstablecimiento_Nombre ?? ""
-					}`)}
+					value={valor(
+						`${data.empresaEstablecimientoId ?? ""} ${
+							data.empresaEstablecimiento_Nombre ?? ""
+						}`
+					)}
 					{...im}
 				/>
 				<InputMaterial
