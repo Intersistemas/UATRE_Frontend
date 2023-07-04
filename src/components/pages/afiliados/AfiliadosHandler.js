@@ -277,13 +277,17 @@ const AfiliadosHandler = () => {
   };
 
   const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION TAMBIEN SE USA PARA LA MODIFICACION DEL AFILIADO
-    setAfiliadoAgregarShow(false);
+      setAfiliadoAgregarShow(false);
 
-    accion === "cancela" ?
-    setAfiliadoAgregarShow(false) :
-    regUpdated.nroAfiliado ? 
-      (accion === "Agrega" ? setPage(1) : setAfiliadoModificado(regUpdated)) :
-      setPage(totalPageIndex); //El afiliado insertado no tiene NroAfiliado,---> (para que vaya a la ultima pagina de la grilla) 
+      if (regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
+        
+        setAfiliadoModificado(regUpdated)
+
+          regUpdated.nroAfiliado == 0 ? //SI NO TENGO NRO.AFILIADO quiere decir que agregue un afiliado
+            setPage(totalPageIndex) //El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
+            : 
+            accion === "Agrega" && setPage(1) //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+      }
   };
 
   const onClosePantallaBajaReactivacion = (regUpdated) => {
@@ -377,12 +381,8 @@ const AfiliadosHandler = () => {
           onSizePerPageChange={handleSizePerPageChange}
           onFilterChange={handleFilterChange}
 
-
           onAfiliadoSeleccionado={handleOnAfiliadoSeleccionado}
           afiliadoSeleccionado={afiliadoSeleccionado}
-
-          //primerRegistroDelGrid={primerRegistroDelGrid}
-          //setPrimerRegistroDelGrid={setPrimerRegistroDelGrid}
 
           setEntrySelected={setEntrySelected}
           setEntryValue={setEntryValue}
