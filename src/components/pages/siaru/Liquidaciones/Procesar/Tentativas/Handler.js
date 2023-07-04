@@ -269,7 +269,7 @@ const Handler = ({
 							</span>
 						}
 						disabled={disabled}
-						onConfirm={(newRecord, request) => {
+						onConfirm={(newRecord, _request) => {
 							// Actualizo lista
 							setLiqList((old) => {
 								const data = [...old.data];
@@ -307,8 +307,9 @@ const Handler = ({
 							records={filtrarDDJJList()}
 							loading={ddjjList.loading}
 							noData={getNoData(ddjjList)}
+							selected={ddjjSelected}
 							onSelect={handleDDJJOnSelect}
-							onSelectAll={handleDDJJOnSelect}
+							onSelectAll={(isSelect) => handleDDJJOnSelect(isSelect, ddjjList.data ?? [])}
 							pagination={{ index: 1, size: 5 }}
 						/>
 					</Grid>

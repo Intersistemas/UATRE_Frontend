@@ -6,10 +6,14 @@ const DDJJList = ({
 	records = [],	// Lista de Nominas
 	loading = true,
 	noData = <h4>No hay informacion a mostrar</h4>,
+	selected = [],
 	onSelect = (_isSelect, _records) => {},
+	onSelectAll = (_isSelect) => {},
 	...otherProps
 }) => {
 	records ??= [];
+	const selectedKeys = [];
+	(selected ?? []).forEach(r => selectedKeys.push(r.cuil));
 
 	const cs = {
 		overflow: "hidden",
@@ -81,8 +85,9 @@ const DDJJList = ({
 			selection={{
 				mode: "checkbox",
 				hideSelectColumn: false,
-				onSelect: (row, isSelect, index, e) => onSelect(isSelect, [row]),
-				onSelectAll: (isSelect, rows, e) => onSelect(isSelect, rows),
+				selected: selectedKeys,
+				onSelect: (row, isSelect, _index, _e) => onSelect(isSelect, [row]),
+				onSelectAll: (isSelect, _rows, _e) => onSelectAll(isSelect),
 			}}
 			{...otherProps}
 		/>
