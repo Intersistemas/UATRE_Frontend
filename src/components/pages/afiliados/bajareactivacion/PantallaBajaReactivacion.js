@@ -31,8 +31,12 @@ const PantallaBajaReactivacion = (props) => {
 
   const handleCerrarModal = () => {  
     
-    const regMdificado = resolverSolicitudAfiliadoResponse ? {...props.afiliado, estadoSolicitud: "No Activo", estadoSolicitudId: 3} : null; //ENVIO TODA LA DATA, PREVIAMENTE MODIFICO EL ESTADO DEL AFILIADO.
-    props.onClose( regMdificado ?? false); //SI SE ACTUALIZO EL AFILIADO, PASO EL OBJETO ENTRO  para poder seleccionarlo en la grilla luego del refresh.
+    if (dialogTexto !== "") { // SI SE MODIFICÓ... entonces actualizo el estado del registro
+      const regUpdated = dialogTexto == AFILIADO_BAJA ? {...props.afiliado, estadoSolicitud: "No Activo"} : {...props.afiliado, estadoSolicitud: "Activo"}; //ENVIO TODA LA DATA, PREVIAMENTE MODIFICO EL ESTADO DEL AFILIADO.
+      props.onClose( regUpdated ?? false); //SI SE ACTUALIZO EL AFILIADO, PASO EL OBJETO ENTRO  para poder seleccionarlo en la grilla luego del refresh.
+    }else{
+      props.onClose(false);
+    }
   };
 
   const handleInputChange = (value, id) => {
@@ -94,8 +98,7 @@ const PantallaBajaReactivacion = (props) => {
     const resolverSolicitudAfiliado = async (
       resolverSolicitudAfiliadoResponse
     ) => {
-      if (resolverSolicitudAfiliadoResponse) {
-        console.log("props.estadosSolicitudes", props.estadosSolicitudes);        
+      if (resolverSolicitudAfiliadoResponse) {  
         setDialogTexto(props.accion === "Baja" ? AFILIADO_BAJA : AFILIADO_REACTIVADO);
         setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);        
       }

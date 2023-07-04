@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import classes from "./TableRemote.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
@@ -17,6 +17,12 @@ import TextField from '@mui/material/TextField';
 import Button from "../Button/Button";
 
 const TableRemote = (props) => {
+
+  useEffect(() => {
+    
+  
+  },[])
+
 
   const [selectValue, setSelectValue] = React.useState(props.entrySelected ?? '');
   const [entryValue, setEntryValue] = React.useState(props.entryValue ?? '');

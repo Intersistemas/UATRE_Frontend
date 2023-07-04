@@ -57,7 +57,9 @@ const AfiliadosLista = (props ) => {
 
   //llamo para que se refresquen los datos del primer registro seleccionado
   useEffect(() => {
+    console.log('props.afiliadoSeleccionado',props.afiliadoSeleccionado)
     rowEvents(props.afiliadoSeleccionado);
+
   }, [props.afiliadoSeleccionado]);
   
   const afiliados = {
@@ -324,7 +326,8 @@ const AfiliadosLista = (props ) => {
 
   //manejo la seleccion de cualquier registro de cualquiera de los TABs de AfiliadosLista
   const rowEvents  = (row, isSelect) => {
-  setRowSelectedIndex([row?.id]);
+   console.log('_AfiliadosLista_rowEvents',row);
+   setRowSelectedIndex([row?.id]);
    switch(selectedTab){
      case 0:
         setAfiliadoSeleccionado(row);
@@ -338,7 +341,6 @@ const AfiliadosLista = (props ) => {
          break;
     default: break;
    }
-
    dispatch(handleAfiliadoSeleccionar(row));
 };
 
