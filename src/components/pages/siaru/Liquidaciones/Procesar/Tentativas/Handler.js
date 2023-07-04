@@ -256,6 +256,7 @@ const Handler = ({
 				// Deshabilitar controles de datos que ya se cargaron.
 				const disabled = {};
 				Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+				disabled.cantidadTrabajadores = false;
 				disabled.totalRemuneraciones = false;
 				setFormRender(
 					<LiquidacionesForm
