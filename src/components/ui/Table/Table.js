@@ -94,10 +94,7 @@ const Table = ({
 	} else {
 		pagination = { ...paginationDef };
 	}
-	// Si pagination.count es 0 o no especifica, tomar la cantidad de registros en data
-	if ((pagination.count ?? 0) < 1) pagination.count = data.length;
-
-		// Estado de paginación propio, por si no especifica mediante props
+	// Estado de paginación propio, por si no especifica mediante props
 	const [myPagination, setMyPagination] = useState({
 		// Usar valores especificados o por defecto
 		...pagination,
@@ -115,7 +112,9 @@ const Table = ({
 	if (pagination.onChange === paginationDef.onChange)
 		pagination.onChange = undefined;
 	if (!pagination.onChange) pagination = myPagination;
-	// console.log({ pagination: pagination });
+	// Si pagination.count es 0 o no especifica, tomar la cantidad de registros en data
+	if ((pagination.count ?? 0) < 1) pagination.count = data.length;
+
 	// Normalizo selectRow que pasa por props
 	if (selection) {
 		selection = { ...selectionDef, ...selection };
