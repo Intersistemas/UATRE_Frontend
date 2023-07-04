@@ -18,12 +18,16 @@ const SelectMaterial = (props) => {
     props.onChange(event.target.value, event.target.name);
   };
 
+	let helperTextRender;
+	if (props.error && props.error !== true) {
+		helperTextRender = <FormHelperText>{props.error}</FormHelperText>
+	}
+
   return (
     <FormControl
       size="small"
       style={{ width: props.width != null ? `${props.width}%` : "100%" }}
       error={props.error ?? false}
-      
     >
       <InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
       <Select
@@ -49,6 +53,7 @@ const SelectMaterial = (props) => {
           </MenuItem>
         ))}
       </Select>
+			{helperTextRender}
     </FormControl>
   );
 };
