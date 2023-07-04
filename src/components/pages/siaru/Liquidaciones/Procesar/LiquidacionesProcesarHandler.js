@@ -9,11 +9,8 @@ import {
 } from "../../../../../redux/actions";
 import Formato from "../../../../helpers/Formato";
 import Grid from "../../../../ui/Grid/Grid";
-import SelectMaterial from "../../../../ui/Select/SelectMaterial";
 import Button from "../../../../ui/Button/Button";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
-// import LiquidacionForm from "./Manual/Form";
-import LiquidacionForm from "../Formulario/Form";
 import dayjs from "dayjs";
 
 const LiquidacionesProcesarHandler = () => {
@@ -25,16 +22,9 @@ const LiquidacionesProcesarHandler = () => {
 
 	const archivoRef = useRef(null);
 
-	const [periodoSelect, setPeriodoSelect] = useState();
-	const [periodoSelectErr, setPeriodoSelectErr] = useState("");
-	const [periodoAnterior, setPeriodoAnterior] = useState();
-	const [periodoAnteriorErr, setPeriodoAnteriorErr] = useState("");
-	const [periodoNuevo, setPeriodoNuevo] = useState();
-	const [periodoNuevoErr, setPeriodoNuevoErr] = useState("");
 	const [archivoF931, setArchivoF931] = useState(null);
 	const [periodoF931, setPeriodoF931] = useState();
 	const [archivoF931Err, setArchivoF931Err] = useState("");
-	const [liquidacionForm, setLiquidacionForm] = useState();
 	const { sendRequest: request } = useHttp();
 
 	//#region cargar Periodos
@@ -109,131 +99,6 @@ const LiquidacionesProcesarHandler = () => {
 						</h2>
 					</Grid>
 					<Grid col gap="5px">
-						{/* Grupo "Seleccione un periodo existente a liquidar" */}
-						<Grid
-							className={`${styles.fondo} ${styles.grupo}`}
-							col
-							full="width"
-							style={{ minWidth: "310px" }}
-							gap="10px"
-						>
-							<Grid full="width">
-								<Grid className={styles.cabecera} grow>
-									Seleccione un periodo existente a liquidar
-								</Grid>
-							</Grid>
-							<Grid full="width" gap="10px">
-								<Grid grow>
-									<SelectMaterial
-										name="periodo"
-										label="Periodo"
-										value={periodoSelect}
-										error={periodos.loading ? "Cargando" : periodos.error ?? ""}
-										options={
-											periodos.data?.map((r) => ({
-												label: `${Formato.Periodo(r.periodo)} - Periodo ${
-													r.tieneLiquidacion ? "con" : "sin"
-												} liquidaciones asociadas`,
-												value: r.periodo,
-											})) ?? []
-										}
-										onChange={(value, _id) => {
-											setPeriodoSelect(value);
-											setPeriodoSelectErr("");
-										}}
-									/>
-								</Grid>
-								<Grid block basis="200px">
-									<Button
-										onClick={() => {
-											if (periodoSelect == null) {
-												setPeriodoSelectErr("Debe seleccionar un periodo");
-											} else {
-												setPeriodoSelectErr("");
-												navigate("/siaru/liquidaciones/procesar/existente", {
-													state: { empresa: empresa, periodo: periodoSelect },
-												});
-											}
-										}}
-									>
-										Iniciar
-									</Button>
-								</Grid>
-							</Grid>
-							<Grid full="width" style={{ color: "red" }}>
-								{periodoSelectErr}
-							</Grid>
-						</Grid>
-
-						{/* Grupo "Copiar liquidación de un período anterior" */}
-						<Grid
-							className={`${styles.fondo} ${styles.grupo}`}
-							col
-							full="width"
-							style={{ minWidth: "310px" }}
-							gap="10px"
-						>
-							<Grid full="width">
-								<Grid className={styles.cabecera} grow>
-									Copiar liquidación de un período anterior
-								</Grid>
-							</Grid>
-							<Grid full="width" gap="10px">
-								<Grid grow>
-									<SelectMaterial
-										name="periodo"
-										label="Periodo anterior"
-										value={periodoAnterior}
-										error={periodos.loading ? "Cargando" : periodos.error ?? ""}
-										options={
-											periodos.data?.map((r) => ({
-												label: `${Formato.Periodo(r.periodo)} - Periodo ${
-													r.tieneLiquidacion ? "con" : "sin"
-												} liquidaciones asociadas`,
-												value: r.periodo,
-											})) ?? []
-										}
-										onChange={(value, _id) => {
-											setPeriodoAnterior(value);
-											setPeriodoAnteriorErr("");
-										}}
-									/>
-								</Grid>
-								<Grid block basis="250px">
-									<DateTimePicker
-										type="month"
-										label="Ingrese período a liquidar"
-										value={Formato.Mascara(periodoNuevo, "####-##-01") ?? ""}
-										disableFuture
-										minDate="1994-01-01"
-										maxDate={dayjs().format("YYYY-MM-DD")}
-										onChange={(fecha) => {
-											setPeriodoNuevo(Formato.Entero(fecha?.format("YYYYMM")));
-											setPeriodoNuevoErr("");
-										}}
-									/>
-								</Grid>
-								<Grid block basis="200px">
-									<Button
-										onClick={() => {
-											if (periodoNuevo == null) {
-												setPeriodoNuevoErr(
-													"Debe ingresar un periodo a liquidar"
-												);
-											} else {
-												setPeriodoNuevoErr("");
-											}
-										}}
-									>
-										Iniciar
-									</Button>
-								</Grid>
-							</Grid>
-							<Grid full="width" style={{ color: "red" }}>
-								{periodoNuevoErr}
-							</Grid>
-						</Grid>
-
 						{/* Grupo "Liquidar desde archivo" */}
 						<Grid
 							className={`${styles.fondo} ${styles.grupo}`}
