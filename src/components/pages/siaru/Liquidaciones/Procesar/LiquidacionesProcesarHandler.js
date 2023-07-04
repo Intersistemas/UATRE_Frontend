@@ -9,7 +9,7 @@ import {
 } from "../../../../../redux/actions";
 import Formato from "../../../../helpers/Formato";
 import Grid from "../../../../ui/Grid/Grid";
-import Select from "../../../../ui/Select/Select";
+import SelectMaterial from "../../../../ui/Select/SelectMaterial";
 import Button from "../../../../ui/Button/Button";
 import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
 // import LiquidacionForm from "./Manual/Form";
@@ -124,7 +124,7 @@ const LiquidacionesProcesarHandler = () => {
 							</Grid>
 							<Grid full="width" gap="10px">
 								<Grid grow>
-									<Select
+									<SelectMaterial
 										name="periodo"
 										label="Periodo"
 										value={periodoSelect}
@@ -137,8 +137,8 @@ const LiquidacionesProcesarHandler = () => {
 												value: r.periodo,
 											})) ?? []
 										}
-										onChange={(v) => {
-											setPeriodoSelect(v);
+										onChange={(value, _id) => {
+											setPeriodoSelect(value);
 											setPeriodoSelectErr("");
 										}}
 									/>
@@ -180,7 +180,7 @@ const LiquidacionesProcesarHandler = () => {
 							</Grid>
 							<Grid full="width" gap="10px">
 								<Grid grow>
-									<Select
+									<SelectMaterial
 										name="periodo"
 										label="Periodo anterior"
 										value={periodoAnterior}
@@ -193,8 +193,8 @@ const LiquidacionesProcesarHandler = () => {
 												value: r.periodo,
 											})) ?? []
 										}
-										onChange={(v) => {
-											setPeriodoAnterior(v);
+										onChange={(value, _id) => {
+											setPeriodoAnterior(value);
 											setPeriodoAnteriorErr("");
 										}}
 									/>

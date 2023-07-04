@@ -8,7 +8,7 @@ import {
 } from "../../../../redux/actions";
 import Grid from "../../../ui/Grid/Grid";
 import Formato from "../../../helpers/Formato";
-import Select from "../../../ui/Select/Select";
+import SelectMaterial from "../../../ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
 
@@ -241,7 +241,7 @@ const LiquidacionesHandler = () => {
 						style={{ background: "#ffffffe0", padding: "5px" }}
 					>
 						<Grid width="50%">
-							<Select
+							<SelectMaterial
 								name="periodo"
 								label="Periodo"
 								error={
@@ -252,14 +252,14 @@ const LiquidacionesHandler = () => {
 									label: r.descipcion,
 									value: r.valor,
 								}))}
-								onChange={(value) => {
+								onChange={(value, _id) => {
 									setPeriodo(value);
 									setRefreshLiquidaciones(true);
 								}}
 							/>
 						</Grid>
 						<Grid width="50%">
-							<Select
+							<SelectMaterial
 								name="establecimiento"
 								label="Establecimiento"
 								error={
@@ -272,7 +272,7 @@ const LiquidacionesHandler = () => {
 									label: r.descipcion,
 									value: r.valor?.id,
 								}))}
-								onChange={(value) => {
+								onChange={(value, _id) => {
 									setEstablecimiento(
 										establecimientos.data.find((r) => r.valor.id === value)
 											.valor
