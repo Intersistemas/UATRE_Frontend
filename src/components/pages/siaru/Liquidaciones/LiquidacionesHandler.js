@@ -124,7 +124,7 @@ const LiquidacionesHandler = () => {
 		if (periodo) params = `${params}&Periodo=${periodo}`;
 		if (establecimiento?.id)
 			params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
-			sendRequest(
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: `/Liquidaciones?${params}`,
@@ -153,7 +153,7 @@ const LiquidacionesHandler = () => {
 		empresa.id,
 		sendRequest,
 	]);
-	
+
 	// Información si ocurrió algún error durante la carga de liquidaciones
 	let liqNoData = <h4>No hay informacion a mostrar</h4>;
 	if (liquidaciones.error) {
@@ -182,7 +182,7 @@ const LiquidacionesHandler = () => {
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
 		: ``;
-	if (liquidacion) {
+	if (liquidacion && !liquidacion.refMotivoBajaId) {
 		moduloInfo.acciones.push({ name: `Imprimir ${liquidacionDesc}` });
 		moduloInfo.acciones.push({ name: `Pagar ${liquidacionDesc}` });
 	}
@@ -213,9 +213,9 @@ const LiquidacionesHandler = () => {
 
 	const selection = {
 		onSelect: (row, isSelect, rowIndex, e) => setLiquidacion(row),
-	}
+	};
 	if (liquidacion) {
-		selection.selected = [liquidacion.id]
+		selection.selected = [liquidacion.id];
 	}
 
 	return (
