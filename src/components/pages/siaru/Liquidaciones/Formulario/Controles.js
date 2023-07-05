@@ -20,6 +20,10 @@ const Controles = ({
 	onChange = (_cambios) => {}, // Evento cuando cambia de valor un campo { campoNombre: valor }.
 	forzarCalculos: forzarCalculosParam = false,
 }) => {
+	record ??= {};
+	error ??= {};
+	disabled ??= {};
+
 	const [alerts, setAlerts] = useState([]);
 	const { sendRequest: request } = useHttp();
 	const [currentTab, setCurrentTab] = useState(0);
@@ -329,7 +333,7 @@ const Controles = ({
 					<Grid gap={`${gap}px`} full="width">
 						<SelectMaterial
 							name="tipoLiquidacion"
-							label="Tipo de liquidacion"
+							label="Tipo de liquidación"
 							value={tiposLiquidaciones.find(
 								(r) => r.id === record.tipoLiquidacion
 							)}
@@ -346,54 +350,45 @@ const Controles = ({
 						{controlLiquidacionTipoPagoId}
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<Grid full col>
-							<DateTimePicker
-								type="month"
-								label="Periodo"
-								disableFuture
-								minDate="1994-01-01"
-								maxDate={dayjs().format("YYYY-MM-DD")}
-								value={calculados.periodo ?? ""}
-								disabled={disabled.periodo ?? false}
-								error={error.periodo ?? ""}
-								required
-								onChange={(f) =>
-									handleChange({
-										periodo: Formato.Entero(f?.format("YYYYMM") ?? 0),
-									})
-								}
-								style={{ width: "100%" }}
-							/>
-						</Grid>
-						<Grid full col>
-							<DateTimePicker
-								type="date"
-								label="Fecha de vencimiento"
-								disabled
-								value={calculados.vencimientoFecha ?? ""}
-								style={{ width: "100%" }}
-							/>
-						</Grid>
-						<Grid full col>
-							<DateTimePicker
-								type="date"
-								label="Fecha pago estimada"
-								minDate={dayjs().format("YYYY-MM-DD")}
-								value={calculados.fechaPagoEstimada ?? ""}
-								disabled={disabled.fechaPagoEstimada ?? false}
-								error={error.fechaPagoEstimada ?? ""}
-								required
-								onChange={(f) =>
-									handleChange({
-										fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
-									})
-								}
-								style={{ width: "100%" }}
-							/>
-						</Grid>
+						<DateTimePicker
+							type="month"
+							label="Período"
+							disableFuture
+							minDate="1994-01-01"
+							maxDate={dayjs().format("YYYY-MM-DD")}
+							value={calculados.periodo ?? ""}
+							disabled={disabled.periodo ?? false}
+							error={error.periodo ?? ""}
+							required
+							onChange={(f) =>
+								handleChange({
+									periodo: Formato.Entero(f?.format("YYYYMM") ?? 0),
+								})
+							}
+						/>
+						<DateTimePicker
+							type="date"
+							label="Fecha de vencimiento"
+							disabled
+							value={calculados.vencimientoFecha ?? ""}
+						/>
+						<DateTimePicker
+							type="date"
+							label="Fecha pago estimada"
+							minDate={dayjs().format("YYYY-MM-DD")}
+							value={calculados.fechaPagoEstimada ?? ""}
+							disabled={disabled.fechaPagoEstimada ?? false}
+							error={error.fechaPagoEstimada}
+							required
+							onChange={(f) =>
+								handleChange({
+									fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
+								})
+							}
+						/>
 						<InputMaterial
 							type="number"
-							label="Cant. trabajadores"
+							label="Cantidad de trabajadores"
 							value={record.cantidadTrabajadores}
 							error={error.cantidadTrabajadores ?? ""}
 							disabled={disabled.cantidadTrabajadores ?? false}
@@ -405,19 +400,21 @@ const Controles = ({
 						/>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
-						<InputMaterial
-							type="number"
-							label="Total remuneraciones"
-							value={record.totalRemuneraciones}
-							error={error.totalRemuneraciones ?? ""}
-							disabled={disabled.totalRemuneraciones ?? false}
-							onChange={(value, _id) =>
-								handleChange({
-									totalRemuneraciones: Formato.Decimal(value),
-								})
-							}
-							width="25"
-						/>
+						<Grid width="25">
+							<InputMaterial
+								type="number"
+								label="Total remuneraciones"
+								value={record.totalRemuneraciones}
+								error={!!error.totalRemuneraciones}
+								helperText={error.totalRemuneraciones ?? ""}
+								disabled={disabled.totalRemuneraciones ?? false}
+								onChange={(value, _id) =>
+									handleChange({
+										totalRemuneraciones: Formato.Decimal(value),
+									})
+								}
+								/>
+						</Grid>
 					</Grid>
 					<Grid full="width">
 						<div className={styles.subtitulo}>
@@ -426,39 +423,19 @@ const Controles = ({
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
-							type="number"
 							label="Aporte"
-							value={calculados.interesNeto}
+							value={Formato.Moneda(calculados.interesNeto)}
 							disabled
-							width="25"
 						/>
-					</Grid>
-					<Grid full="width">
-						<div className={styles.subtitulo}>
-							<span>Intereses</span>
-						</div>
-					</Grid>
-					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
-							type="number"
-							label="Importe interes"
-							value={calculados.interesImporte}
+							label="Intereses"
+							value={Formato.Moneda(calculados.interesImporte)}
 							disabled
-							width="25"
 						/>
-					</Grid>
-					<Grid full="width">
-						<div className={styles.subtitulo}>
-							<span>Total a pagar</span>
-						</div>
-					</Grid>
-					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
-							type="number"
-							label="Importe"
-							value={calculados.importeTotal}
+							label="Total a pagar"
+							value={Formato.Moneda(calculados.importeTotal)}
 							disabled
-							width="25"
 						/>
 					</Grid>
 				</>

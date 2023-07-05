@@ -38,7 +38,7 @@ const LiquidacionList = ({
 		},
 		{
 			dataField: "tipoLiquidacion",
-			text: "Tipo de liquidacion",
+			text: "Tipo de liquidación",
 			sort: true,
 			headerStyle: (colum, colIndex) => ({ width: "150px" }),
 			formatter: (v) => tiposLiquidaciones[v],
@@ -60,7 +60,7 @@ const LiquidacionList = ({
 		},
 		{
 			dataField: "totalRemuneraciones",
-			text: "Total Remuneraciones",
+			text: "Total remuneraciones",
 			sort: true,
 			formatter: Formato.Moneda,
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
@@ -68,7 +68,7 @@ const LiquidacionList = ({
 		},
 		{
 			dataField: "interesNeto",
-			text: "Total Aporte",
+			text: "Total aporte",
 			formatter: Formato.Moneda,
 			headerStyle: (colum, colIndex) => ({ width: "120px" }),
 		},

@@ -264,9 +264,9 @@ const Handler = ({
 						record={record}
 						empresa={empresa}
 						titulo={
-							<span>
+							<h3>
 								{record.id ? "Consultando" : "Generando"} liquidación
-							</span>
+							</h3>
 						}
 						disabled={disabled}
 						onConfirm={(newRecord, _request) => {

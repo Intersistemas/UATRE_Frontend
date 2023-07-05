@@ -129,12 +129,12 @@ const EmpresaDetails = ({ data }) => {
 					<Grid full="width" gap="5px">
 						<InputMaterial
 							label="Localidad"
-							value={valor(data.domicilioLocalidad)}
+							value={valor(data.localidadDescripcion)}
 							{...im}
 						/>
 						<InputMaterial
 							label="Provincia"
-							value={valor(data.domicilioProvincia)}
+							value={valor(data.provinciaDescripcion)}
 							{...im}
 						/>
 					</Grid>

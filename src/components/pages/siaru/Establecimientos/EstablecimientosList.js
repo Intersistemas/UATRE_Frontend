@@ -29,14 +29,14 @@ const EstablecimientosList = ({
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "domicilioLocalidad",
+			dataField: "localidadDescripcion",
 			text: "Localidad",
 			sort: true,
       headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
 			style: {...cs, textAlign: "left"}
 		},
 		{
-			dataField: "domicilioProvincia",
+			dataField: "provinciaDescripcion",
 			text: "Provincia",
 			sort: true,
       headerStyle: (_colum, _colIndex) => ({ width: "25%" }),

@@ -6,6 +6,7 @@ import useHttp from "../../../../hooks/useHttp";
 import Button from "../../../../ui/Button/Button";
 import Grid from "../../../../ui/Grid/Grid";
 import Modal from "../../../../ui/Modal/Modal";
+import modalStyles from "../../../../ui/Modal/Modal.module.css";
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { Alert, AlertTitle } from "@mui/lab";
@@ -332,18 +333,29 @@ const Form = ({
 	if (titulo == null) {
 		switch (requestParam) {
 			case "A":
-				titulo = <span>Agregando Liquidación</span>;
+				titulo = <h3>Agregando Liquidación</h3>;
 				break;
 			case "B":
-				titulo = <span>Dando de baja Liquidación</span>;
+				titulo = <h3>Dando de baja Liquidación</h3>;
 				break;
 			case "M":
-				titulo = <span>Modificando Liquidación</span>;
+				titulo = <h3>Modificando Liquidación</h3>;
 				break;
 			default:
-				titulo = <span>Consultando Liquidación</span>;
+				titulo = <h3>Consultando Liquidación</h3>;
 				break;
 		}
+		if (requestParam !== "A") {
+			titulo = (
+				<>
+					{titulo}
+					<h5>Nro. {record.id}</h5>
+					<h5>Fecha {Formato.Fecha(record.fecha)}</h5>
+				</>
+			);
+		}
+	} else if (!React.isValidElement(titulo)) {
+		titulo = <h3>{titulo}</h3>
 	}
 
 	if (subtitulo == null) {
@@ -361,7 +373,7 @@ const Form = ({
 	return (
 		<Modal onClose={() => onCancel(requestParam)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
-				<Grid full="width" className={styles.titulo} justify="center">
+				<Grid full="width" className={modalStyles.modalCabecera} justify="center">
 					{titulo}
 				</Grid>
 				<Grid full="width">{subtitulo}</Grid>

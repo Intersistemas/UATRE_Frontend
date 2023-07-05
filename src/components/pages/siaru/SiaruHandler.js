@@ -52,15 +52,15 @@ const SiaruHandler = (props) => {
 
 	//#region despachar Informar Modulo
 	const descEmpresa = empresa.data
-		? `${Formato.Cuit(empresa.data.cuitEmpresa)} - ${empresa.data.razonSocial}`
+		? `${Formato.Cuit(empresa.data.cuit)} - ${empresa.data.razonSocial}`
 		: ``;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
 	};
 	if (empresa.data) {
-		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
 		moduloInfo.acciones.push({ name: `Liquidaciones de ${descEmpresa}` });
+		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
