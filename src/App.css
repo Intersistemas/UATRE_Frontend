@@ -127,7 +127,7 @@ border: 1.5px solid rgb(53, 149, 210);
   padding: 0.5%;
   position: relative;
   min-height: -webkit-fill-available;
-  margin: 0.5rem 0%;
+  /*margin: 0.5rem 0%;*/
 }
 
 @media (max-width: 2570px) {

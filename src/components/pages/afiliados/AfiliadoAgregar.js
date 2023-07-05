@@ -1623,10 +1623,10 @@ const AfiliadoAgregar = (props) => {
     if (dialogTexto == "") 
       props.onClose(false, "Cancela");
     else{
-      (props.accion == "Resuelve") || (props.accion == "Modifica") ?
-      props.onClose(afiliadoModificado, props.accion) //SI RESUELVE SOLICIT O MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
+      (props.accion == "Modifica") ?
+        props.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
       : 
-      props.onClose(nuevoAfiliadoResponse, props.accion) //SI EL AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
+        props.onClose(nuevoAfiliadoResponse, props.accion) //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
     }
   };
   //#endregion
