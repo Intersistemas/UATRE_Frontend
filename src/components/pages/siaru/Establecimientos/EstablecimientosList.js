@@ -32,15 +32,33 @@ const EstablecimientosList = ({
 			dataField: "localidadDescripcion",
 			text: "Localidad",
 			sort: true,
-      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
-			style: {...cs, textAlign: "left"}
+			headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+			style: { ...cs, textAlign: "left" },
 		},
 		{
 			dataField: "provinciaDescripcion",
 			text: "Provincia",
 			sort: true,
-      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
-			style: {...cs, textAlign: "left"}
+			headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+			style: { ...cs, textAlign: "left" },
+		},
+		{
+			dataField: "_bajaFecha",
+			text: "Fecha de baja",
+			isDummyField: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
+				const style = {};
+				let valor = Formato.Fecha(row.bajaFecha);
+				if (row.refMotivosBajaId) {
+					if (!valor) valor = <>&nbsp;</>;
+					style.background = "#ff6464cc";
+					style.color = "#FFF";
+				}
+				console.log({ valor: valor, style: style });
+				return <div style={style}>{valor}</div>;
+			},
+			style: { ...cs, textAlign: "center" },
 		},
 	];
 
