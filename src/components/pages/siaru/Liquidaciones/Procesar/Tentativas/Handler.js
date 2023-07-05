@@ -1,18 +1,14 @@
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
-import Formato from '../../../../../helpers/Formato';
-import useHttp from '../../../../../hooks/useHttp';
-import Grid from '../../../../../ui/Grid/Grid';
-import DDJJList from './DDJJList';
-import LiquidacionList from './LiquidacionList';
+import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
+import Formato from "../../../../../helpers/Formato";
+import useHttp from "../../../../../hooks/useHttp";
+import Grid from "../../../../../ui/Grid/Grid";
+import DDJJList from "./DDJJList";
+import LiquidacionList from "./LiquidacionList";
 import LiquidacionesForm from "../../Formulario/Form";
-import DDJJForm from './DDJJForm';
+import DDJJForm from "./DDJJForm";
 
-const Handler = ({
-	empresa,
-	periodo,
-	tentativas = [],
-}) => {
+const Handler = ({ empresa, periodo, tentativas = [] }) => {
 	// const dispatch = useDispatch();
 	const [formRender, setFormRender] = useState();
 	const { sendRequest: request } = useHttp();
@@ -125,30 +121,6 @@ const Handler = ({
 		return ret;
 	};
 
-	// //#region despachar Informar Modulo
-	// const moduloInfo = {
-	// 	nombre: "SIARU",
-	// 	acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
-	// };
-	// dispatch(handleModuloSeleccionar(moduloInfo));
-	// const moduloAccion = useSelector((state) => state.moduloAccion);
-	// useEffect(() => {
-	// 	switch (moduloAccion) {
-	// 		case `Empresas`:
-	// 			navigate("/siaru", { state: { empresa: empresa } });
-	// 			break;
-	// 		case `Procesar liquidaciones`:
-	// 			navigate("/siaru/liquidaciones/procesar", {
-	// 				state: { empresa: empresa },
-	// 			});
-	// 			break;
-	// 		default:
-	// 			break;
-	// 	}
-	// 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	// }, [moduloAccion, empresa, navigate, dispatch]);
-	// // #endregion
-
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (!ddjjRecord.esRural) return null;
@@ -243,53 +215,67 @@ const Handler = ({
 	};
 	const [ddjjFormDisabled, setDDJJFormDisabled] = useState(false);
 
-	let liquidacionListRender
+	let liquidacionListRender;
 	if (tiposPagos.loading) {
-		liquidacionListRender = (<h4>Cargando tipos de pagos</h4>);
+		liquidacionListRender = <h4>Cargando tipos de pagos</h4>;
 	} else {
-		liquidacionListRender = (<LiquidacionList
-			records={filtrarLiqList()}
-			tiposPagos={tiposPagos.data ?? []}
-			loading={liqList.loading || tiposPagos.loading}
-			noData={getNoData(liqList)}
-			onOpenForm={(record) => {
-				// Deshabilitar controles de datos que ya se cargaron.
-				const disabled = {};
-				Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
-				disabled.cantidadTrabajadores = false;
-				disabled.totalRemuneraciones = false;
-				setFormRender(
-					<LiquidacionesForm
-						request={record.id ? "C" : "A"}
-						record={record}
-						empresa={empresa}
-						titulo={
-							<h3>
-								{record.id ? "Consultando" : "Generando"} liquidación
-							</h3>
-						}
-						disabled={disabled}
-						onConfirm={(newRecord, _request) => {
-							// Actualizo lista
-							setLiqList((old) => {
-								const data = [...old.data];
-								data[record.index] = {
-									...newRecord,
-									index: record.index,
-								};
-								return { ...old, data: data };
-							});
-							// Inhabilitar cambio en DDJJList
-							setDDJJFormDisabled(true);
-							// Oculto formulario
-							setFormRender(null);
-						}}
-						onCancel={() => setFormRender(null)}
-					/>
-				);
-			}}
-			pagination={{ index: 1, size: 5 }}
-		/>);
+		liquidacionListRender = (
+			<LiquidacionList
+				records={filtrarLiqList()}
+				tiposPagos={tiposPagos.data ?? []}
+				loading={liqList.loading || tiposPagos.loading}
+				noData={getNoData(liqList)}
+				onOpenForm={(record) => {
+					// Deshabilitar controles de datos que ya se cargaron.
+					const disabled = {};
+					Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+					const request = record.id ? "C" : "A";
+					let titulo;
+					switch (request) {
+						case "A":
+							disabled.cantidadTrabajadores = false;
+							disabled.totalRemuneraciones = false;
+							titulo = <h3>Generando liquidación</h3>;
+							break;
+						default:
+							titulo = (
+								<h3>
+									{`Consultando liqidación Nro. ${record.id} - ${Formato.Fecha(
+										record.fecha
+									)}`}
+								</h3>
+							);
+							break;
+					}
+					setFormRender(
+						<LiquidacionesForm
+							request={record.id ? "C" : "A"}
+							record={record}
+							empresa={empresa}
+							titulo={titulo}
+							disabled={disabled}
+							onConfirm={(newRecord, _request) => {
+								// Actualizo lista
+								setLiqList((old) => {
+									const data = [...old.data];
+									data[record.index] = {
+										...newRecord,
+										index: record.index,
+									};
+									return { ...old, data: data };
+								});
+								// Inhabilitar cambio en DDJJList
+								setDDJJFormDisabled(true);
+								// Oculto formulario
+								setFormRender(null);
+							}}
+							onCancel={() => setFormRender(null)}
+						/>
+					);
+				}}
+				pagination={{ index: 1, size: 5 }}
+			/>
+		);
 	}
 
 	return (
@@ -309,7 +295,9 @@ const Handler = ({
 							noData={getNoData(ddjjList)}
 							selected={ddjjSelected}
 							onSelect={handleDDJJOnSelect}
-							onSelectAll={(isSelect) => handleDDJJOnSelect(isSelect, ddjjList.data ?? [])}
+							onSelectAll={(isSelect) =>
+								handleDDJJOnSelect(isSelect, ddjjList.data ?? [])
+							}
 							pagination={{ index: 1, size: 5 }}
 						/>
 					</Grid>

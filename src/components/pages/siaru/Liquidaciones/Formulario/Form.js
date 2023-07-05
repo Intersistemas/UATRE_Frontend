@@ -91,7 +91,7 @@ const Form = ({
 			method = "PATCH";
 			body = liq;
 		}
-		
+
 		request(
 			{
 				baseURL: "SIARU",
@@ -333,29 +333,24 @@ const Form = ({
 	if (titulo == null) {
 		switch (requestParam) {
 			case "A":
-				titulo = <h3>Agregando Liquidación</h3>;
+				titulo = "Agregando Liquidación";
 				break;
 			case "B":
-				titulo = <h3>Dando de baja Liquidación</h3>;
+				titulo = "Dando de baja Liquidación";
 				break;
 			case "M":
-				titulo = <h3>Modificando Liquidación</h3>;
+				titulo = "Modificando Liquidación";
 				break;
 			default:
-				titulo = <h3>Consultando Liquidación</h3>;
+				titulo = "Consultando Liquidación";
 				break;
 		}
 		if (requestParam !== "A") {
-			titulo = (
-				<>
-					{titulo}
-					<h5>Nro. {record.id}</h5>
-					<h5>Fecha {Formato.Fecha(record.fecha)}</h5>
-				</>
-			);
+			titulo = `${titulo} Nro. ${record.id} - ${Formato.Fecha(record.fecha)}`;
 		}
-	} else if (!React.isValidElement(titulo)) {
-		titulo = <h3>{titulo}</h3>
+	} 
+	if (!React.isValidElement(titulo)) {
+		titulo = <h3>{titulo}</h3>;
 	}
 
 	if (subtitulo == null) {
@@ -373,7 +368,11 @@ const Form = ({
 	return (
 		<Modal onClose={() => onCancel(requestParam)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
-				<Grid full="width" className={modalStyles.modalCabecera} justify="center">
+				<Grid
+					className={modalStyles.modalCabecera}
+					full="width"
+					justify="center"
+				>
 					{titulo}
 				</Grid>
 				<Grid full="width">{subtitulo}</Grid>
