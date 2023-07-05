@@ -1150,7 +1150,8 @@ const AfiliadoAgregar = (props) => {
           );
         });
 
-        setNuevoAfiliadoResponse(afiliadoResponseObj);
+        setNuevoAfiliadoResponse({...nuevoAfiliado,id:afiliadoResponseObj,estadoSolicitud: "Pendiente"});
+        console.log('Afiliado agregado',nuevoAfiliadoResponse);
         setOpenDialog(true);
         //Si se incorpora automaticamente
         if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
@@ -1269,8 +1270,8 @@ const AfiliadoAgregar = (props) => {
           `${AFILIADO_SOLICITUDRESUELTA} ${estadoSolicitudSel.label}!`
         );
         setOpenDialog(true);
-        setAfiliadoModificado({...props.afiliadoSeleccionado,  estadoSolicitud:  estadoSolicitudSel.label})
-        //setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);
+        setNuevoAfiliadoResponse({...nuevoAfiliadoResponse,  estadoSolicitud:  estadoSolicitudSel.label})
+
         if (+estadoSolicitudResolver === 2) {
           setShowImprimirLiquidacion(true);
         }
@@ -1771,7 +1772,7 @@ const AfiliadoAgregar = (props) => {
     const domicilioRealAFIP = padronRespuesta?.domicilios.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
     );
     const afiliadoModificado = {
-      id: nuevoAfiliadoResponse,
+      id: nuevoAfiliadoResponse.id,
       cuil: +cuilState.value,
       nroAfiliado: +afiliado.nroAfiliado,
       nombre: nombreState.value,

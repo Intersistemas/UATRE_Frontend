@@ -20,8 +20,7 @@ const AfiliadosHandler = () => {
   const [filter, setFilter] = useState("");
   const [filterColumn, setFilterColumn] = useState("");
   const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
-  const [pantallaEnDesarrolloShow, setPantallaEnDesarrolloShow] =
-    useState(false);
+  const [pantallaEnDesarrolloShow, setPantallaEnDesarrolloShow] = useState(false);
   const [pantallaBajaReactivacion, setPantallaBajaReactivacion] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [estadoSolicitud, setEstadoSolcitud] = useState(0);
@@ -279,7 +278,7 @@ const AfiliadosHandler = () => {
           accion === "Resuelve" && setPage(1); //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
 
           accion === "Agrega" ? 
-          (regUpdated.nroAfiliado) ? 
+          (regUpdated.estadoSolicitud == "Activo") ? 
             setPage(1)//El afiliado insertado tiene NroAfiliado Voy a la pagina 1
             :
             setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
