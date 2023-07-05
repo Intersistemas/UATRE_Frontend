@@ -269,22 +269,28 @@ const AfiliadosHandler = () => {
     alert("Funcionalidad en desarrollo");
   };
 
-  const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION TAMBIEN SE USA PARA LA MODIFICACION DEL AFILIADO
+  const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION CIERRA EL MODAL DE ALTA/MODIFICACION/RESUELVE.SOLICIT.
       setAfiliadoAgregarShow(false);
-      console.log('onCloseAfiliadoAgregarHandler: ',regUpdated, accion)
-      if (regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
+
+      console.log('onCloseAfiliadoAgregarHandler: ',regUpdated, accion);
+      
+      if(regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
+          setRefresh(true); //Agrego el refresh para que se actualice el registro 
           setAfiliadoModificado(regUpdated)
 
-          accion === "Resuelve" && setPage(1); //El afiliado insertado tiene NroAfiliado Voy a la pagina 1
-
-          accion === "Agrega" ? 
-          (regUpdated.estadoSolicitud == "Activo") ? 
-            setPage(1)//El afiliado insertado tiene NroAfiliado Voy a la pagina 1
+          if (accion === "Resuelve"){
+            regUpdated.estadoSolicitud == "Activo" && setPage(1); //Si fue resuelto (tiene NroAfiliado) y no hay filtro, el registro va a parar a la primer pagina, entonces lo busco allí
+          }else{
+            accion === "Agrega" ? 
+            (regUpdated.estadoSolicitud == "Activo") ? 
+              setPage(1)//El afiliado insertado tiene NroAfiliado y se agregó con estado ATIVO, Voy a la pagina 1
+              :
+              setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
             :
-            setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
-          :
-          console.log('No es Agrega');
+            console.log('No es Agrega');
+          }
       }
+      
   };
 
   const onClosePantallaBajaReactivacion = (regUpdated) => {

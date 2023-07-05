@@ -111,6 +111,7 @@ const AfiliadosLista = (props ) => {
         return { textAlign: "left" };
       },
     },
+    /*
     {
       headerTitle: true,
       dataField: "sexo",
@@ -119,7 +120,6 @@ const AfiliadosLista = (props ) => {
         return { width: "7%", textAlign: "center" };
       },
     },
-    
     {
       headerTitle: (column, colIndex) => `Estado Civil`,
       dataField: "estadoCivil",
@@ -137,8 +137,8 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "8%", textAlign: "center" };
       },
-    },
-    { //ME GENERA ERROR CON EL SEARCH TAB
+    },*/
+    {
       headerTitle: (colum, colIndex) => (`Situación del Afiliado`),
       dataField: "estadoSolicitud",
       //text: "Situación",
