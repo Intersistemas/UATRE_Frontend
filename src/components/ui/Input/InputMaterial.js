@@ -3,6 +3,8 @@ import styles from "./InputMaterial.module.css";
 
 const InputMaterial = (props) => {
   //Validaciones
+	props = { ...props };
+	props.onChange ??= ((_value, _id) => {});
   
   const handleChange = (event) => { 
     switch (props.id) {
