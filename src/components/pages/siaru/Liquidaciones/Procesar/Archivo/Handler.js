@@ -35,7 +35,7 @@ const Handler = () => {
 				body: data,
 				bodyToJSON: false,
 				headers: {
-					"Accept": "*/*",
+					Accept: "*/*",
 				},
 			},
 			async (res) => setTentativas({ data: res }),
@@ -47,7 +47,11 @@ const Handler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
+		acciones: [
+			{ name: `Empresas` },
+			{ name: `Liquidaciones` },
+			{ name: `Procesar liquidaciones` },
+		],
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
@@ -55,6 +59,9 @@ const Handler = () => {
 		switch (moduloAccion) {
 			case `Empresas`:
 				navigate("/siaru", { state: { empresa: empresa } });
+				break;
+			case `Liquidaciones`:
+				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
 				break;
 			case `Procesar liquidaciones`:
 				navigate("/siaru/liquidaciones/procesar", {
@@ -66,7 +73,7 @@ const Handler = () => {
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 	}, [moduloAccion, empresa, navigate, dispatch]);
-	// #endregion
+	//#endregion
 
 	let contenido = null;
 	if (tentativas.loading) {
