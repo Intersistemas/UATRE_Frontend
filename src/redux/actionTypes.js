@@ -5,3 +5,5 @@ export const MODULO_EJECUTARACCION = "MODULO_EJECUTARACCION";
 
 //Usuario Logueado
 export const USUARIO_LOGUEADO = "USUARIO_LOGUEADO"
+
+//Administracion - Menu
