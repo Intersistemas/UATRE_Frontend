@@ -107,7 +107,7 @@ const DeclaracionesJuradas = (props) => {
         text: "Remuneración",
         formatter: (value, row) => (
          
-          row.condicionRural == "RU" ? value :
+          row.esEmpresaRural == "No" ? Formato.Moneda(value) :
           " "
         ),
       },

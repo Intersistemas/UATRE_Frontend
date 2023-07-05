@@ -13,7 +13,7 @@ import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/Liquida
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
 import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
-import AdministracionHandler from './components/pages/administracion/Handler';
+import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
 import fondo from './media/Background/color3.png';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
