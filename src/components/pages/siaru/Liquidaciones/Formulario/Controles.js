@@ -282,7 +282,7 @@ const Controles = ({
 			let controlEmpresaEstablecimientoId;
 			if (establecimientos.loading) {
 				controlEmpresaEstablecimientoId = <h6>Cargando establecimientos...</h6>;
-			} else {
+			} else if (!establecimientos.error) {
 				controlEmpresaEstablecimientoId = (
 					<SelectMaterial
 						name="empresaEstablecimientoId"
