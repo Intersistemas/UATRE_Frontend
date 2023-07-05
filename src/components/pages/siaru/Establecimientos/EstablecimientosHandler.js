@@ -12,7 +12,7 @@ import {
 	handleModuloSeleccionar,
 } from "../../../../redux/actions";
 
-const EstablecimientosHandler = (props) => {
+const EstablecimientosHandler = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const empresa = location.state?.empresa;
@@ -76,12 +76,14 @@ const EstablecimientosHandler = (props) => {
 		moduloInfo.acciones.push({
 			name: `Consulta Establecimiento ${estabDesc}`,
 		});
-		moduloInfo.acciones.push({
-			name: `Modifica Establecimiento ${estabDesc}`,
-		});
-		moduloInfo.acciones.push({
-			name: `Baja Establecimiento ${estabDesc}`,
-		});
+		if (!seleccionado.refMotivosBajaId) {
+			moduloInfo.acciones.push({
+				name: `Modifica Establecimiento ${estabDesc}`,
+			});
+			moduloInfo.acciones.push({
+				name: `Baja Establecimiento ${estabDesc}`,
+			});
+		}
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	//#endregion
@@ -92,7 +94,7 @@ const EstablecimientosHandler = (props) => {
 		const configForm = {
 			record: seleccionado,
 			onCancel: (_request) => setForm(null),
-			onConfirm: (request, record) => {
+			onConfirm: (_request, _record) => {
 				setForm(null);
 				setRefresh({ origen: "formulario" });
 			},
@@ -125,7 +127,7 @@ const EstablecimientosHandler = (props) => {
 	}, [moduloAccion, empresaId, estabDesc, seleccionado, navigate, dispatch]);
 
 	const selection = {
-		onSelect: (row, isSelect, rowIndex, e) => setSeleccionado(row),
+		onSelect: (row, _isSelect, _rowIndex, _e) => setSeleccionado(row),
 	}
 	if (seleccionado) {
 		selection.selected = [seleccionado.id]
