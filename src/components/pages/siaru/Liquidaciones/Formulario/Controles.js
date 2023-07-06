@@ -16,32 +16,41 @@ const Controles = ({
 	record = {}, // Registro liquidacion.
 	empresaId = 0,
 	error = {}, // Descripciones de errores. Cada uno debe tener el mismo nombre del campo al que refiere.
-	disabled = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
+	disabled: disabledInit = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onChange = (_cambios) => {}, // Evento cuando cambia de valor un campo { campoNombre: valor }.
 	forzarCalculos: forzarCalculosParam = false,
 }) => {
 	record ??= {};
 	error ??= {};
-	disabled ??= {};
+	disabledInit ??= {};
+	disabledInit.bajaObservaciones =
+		disabledInit.refMotivoBajaId || !record.refMotivoBajaId;
+	const [disabled, setDisabled] = useState(disabledInit);
 
 	const [alerts, setAlerts] = useState([]);
-	const { sendRequest: request } = useHttp();
+	const { sendRequest } = useHttp();
 	const [currentTab, setCurrentTab] = useState(0);
 
-	// Cargo establecimientos
-	const [establecimientos, setEstablecimientos] = useState({ loading: true });
+	//#region Cargo establecimientos
+	const [establecimientos, setEstablecimientos] = useState({
+		loading: "Cargando...",
+		data: [],
+	});
 	useEffect(() => {
-		request(
+		sendRequest(
 			{
 				baseURL: "Comunes",
 				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageSize=5000`,
 				method: "GET",
 			},
 			async (res) => {
-				setEstablecimientos({ data: res.data });
+				setEstablecimientos({ data: [...res.data] });
 			},
 			async (err) => {
-				setEstablecimientos({ error: err });
+				setEstablecimientos({
+					error: err.message ?? "Ocurrió un error.",
+					data: [],
+				});
 				setAlerts((old) => [
 					...old,
 					{
@@ -52,27 +61,31 @@ const Controles = ({
 				]);
 			}
 		);
-	}, [request, empresaId]);
+	}, [sendRequest, empresaId]);
+	//#endregion
 
 	const tiposLiquidaciones = [
 		{ id: 0, nombre: "Periodo" },
 		{ id: 1, nombre: "Acta" },
 	];
 
-	// Cargo tipos de pago
-	const [tiposPagos, setTiposPagos] = useState({ loading: true });
+	//#region Cargo tipos de pago
+	const [tiposPagos, setTiposPagos] = useState({
+		loading: "Cargando...",
+		data: [],
+	});
 	useEffect(() => {
-		request(
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: `/LiquidacionesTiposPagos`,
 				method: "GET",
 			},
 			async (res) => {
-				setTiposPagos({ data: res });
+				setTiposPagos({ data: [...res] });
 			},
 			async (err) => {
-				setTiposPagos({ error: err });
+				setTiposPagos({ error: err.message ?? "Ocurrió un error." });
 				setAlerts((old) => [
 					...old,
 					{
@@ -83,9 +96,10 @@ const Controles = ({
 				]);
 			}
 		);
-	}, [request]);
+	}, [sendRequest]);
+	//#endregion
 
-	// Cargo parametros
+	//#region Cargo parametros
 	const [pendingParams, setPendingParams] = useState([
 		"InteresesDiariosPosteriorVencimiento",
 	]);
@@ -99,7 +113,7 @@ const Controles = ({
 				return newPendingParams;
 			});
 		const requestParam = (param) => {
-			request(
+			sendRequest(
 				{
 					baseURL: "Comunes",
 					endpoint: `/Parametros/${param}`,
@@ -126,7 +140,8 @@ const Controles = ({
 			);
 		};
 		if (!params) pendingParams.forEach((param) => requestParam(param));
-	}, [request, params, pendingParams]);
+	}, [sendRequest, params, pendingParams]);
+	//#endregion
 
 	const calcularOtros = (data) => {
 		const r = {
@@ -207,6 +222,7 @@ const Controles = ({
 	}
 
 	const gap = 10;
+	const valor = (value) => (value ? value : " ");
 
 	let alertsRender;
 	if (alerts.length > 0) {
@@ -244,6 +260,35 @@ const Controles = ({
 		);
 	}
 
+	//#region carga de motivos de baja
+	//ToDo: cargar desde api
+	const [motivosBaja, setMotivosBaja] = useState({
+		loading: "Cargando...",
+		data: [],
+	});
+	useEffect(() => {
+		sendRequest(
+			{
+				baseURL: "Comunes",
+				// endpoint: `/RefMotivoBaja/GetByTipo?Tipo=L`,
+				endpoint: `/RefMotivoBaja/GetAll`, //Por ahora utilizo GetAll hasta que GetByTipo retorne una lista en vez de un solo registro
+				method: "GET",
+			},
+			async (res) => {
+				//Una vez que GetByTipo retorne una lista, quitar el bloque hasta ---FIN HACK---
+				res = [...res].filter((r) => (r?.tipo ?? "") === "L");
+				//---FIN HACK---
+				setMotivosBaja({
+					data: [{ id: 0, tipo: "L", descripcion: "Activo" }, ...res],
+				});
+			},
+			async (err) => {
+				setMotivosBaja({ error: err.message ?? "Ocurrió un error", data: [] });
+			}
+		);
+	}, [sendRequest]);
+	//#endregion
+
 	let content;
 	switch (currentTab) {
 		case 1:
@@ -257,7 +302,7 @@ const Controles = ({
 					dataField: "cuil",
 					text: "CUIL",
 					sort: true,
-					headerStyle: (colum, colIndex) => ({ width: "150px" }),
+					headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 					formatter: Formato.Cuit,
 					style: { ...cs },
 				},
@@ -279,57 +324,30 @@ const Controles = ({
 			);
 			break;
 		default:
-			let controlEmpresaEstablecimientoId;
-			if (establecimientos.loading) {
-				controlEmpresaEstablecimientoId = <h6>Cargando establecimientos...</h6>;
-			} else if (!establecimientos.error) {
-				controlEmpresaEstablecimientoId = (
-					<SelectMaterial
-						name="empresaEstablecimientoId"
-						label="Establecimiento"
-						value={establecimientos.data.find(
-							(r) => r.id === record.empresaEstablecimientoId
-						)}
-						error={error.empresaEstablecimientoId ?? ""}
-						disabled={disabled.empresaEstablecimientoId ?? false}
-						options={establecimientos.data.map((r) => ({
-							label: r.nombre,
-							value: r,
-						}))}
-						onChange={(value, _id) =>
-							handleChange({ empresaEstablecimientoId: value.id })
-						}
-					/>
-				);
-			}
-			let controlLiquidacionTipoPagoId;
-			if (tiposPagos.loading) {
-				controlLiquidacionTipoPagoId = <h6>Cargando tipos de pago...</h6>;
-			} else {
-				controlLiquidacionTipoPagoId = (
-					<SelectMaterial
-						name="liquidacionTipoPagoId"
-						label="Tipo de pago"
-						value={tiposPagos.data.find(
-							(r) => r.id === record.liquidacionTipoPagoId
-						)}
-						error={error.liquidacionTipoPagoId ?? ""}
-						disabled={disabled.liquidacionTipoPagoId ?? false}
-						options={tiposPagos.data.map((r) => ({
-							label: r.descripcion,
-							value: r,
-						}))}
-						onChange={(value, _id) =>
-							handleChange({
-								liquidacionTipoPagoId: value.id,
-							})
-						}
-					/>
-				);
-			}
 			content = (
 				<>
-					<Grid full="width">{controlEmpresaEstablecimientoId}</Grid>
+					<Grid full="width">
+						<SelectMaterial
+							name="empresaEstablecimientoId"
+							label="Establecimiento"
+							value={record.empresaEstablecimientoId ?? 0}
+							error={[
+								error.empresaEstablecimientoId,
+								establecimientos.loading,
+								establecimientos.error,
+							]
+								.filter((r) => r)
+								.join(" ")}
+							disabled={!!disabled.empresaEstablecimientoId}
+							options={establecimientos.data.map((r) => ({
+								label: r.nombre,
+								value: r.id,
+							}))}
+							onChange={(value, _id) =>
+								handleChange({ empresaEstablecimientoId: value })
+							}
+						/>
+					</Grid>
 					<Grid gap={`${gap}px`} full="width">
 						<SelectMaterial
 							name="tipoLiquidacion"
@@ -338,7 +356,7 @@ const Controles = ({
 								(r) => r.id === record.tipoLiquidacion
 							)}
 							error={error.tipoLiquidacion ?? ""}
-							disabled={disabled.tipoLiquidacion ?? false}
+							disabled={!!disabled.tipoLiquidacion}
 							options={tiposLiquidaciones.map((r) => ({
 								label: r.nombre,
 								value: r,
@@ -347,7 +365,28 @@ const Controles = ({
 								handleChange({ tipoLiquidacion: value.id })
 							}
 						/>
-						{controlLiquidacionTipoPagoId}
+						<SelectMaterial
+							name="liquidacionTipoPagoId"
+							label="Tipo de pago"
+							value={record.liquidacionTipoPagoId ?? 0}
+							error={[
+								error.liquidacionTipoPagoId,
+								tiposPagos.loading,
+								tiposPagos.error,
+							]
+								.filter((r) => r)
+								.join(" ")}
+							disabled={!!disabled.liquidacionTipoPagoId}
+							options={tiposPagos.data.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(value, _id) =>
+								handleChange({
+									liquidacionTipoPagoId: value,
+								})
+							}
+						/>
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
 						<DateTimePicker
@@ -377,8 +416,8 @@ const Controles = ({
 							label="Fecha pago estimada"
 							minDate={dayjs().format("YYYY-MM-DD")}
 							value={calculados.fechaPagoEstimada ?? ""}
-							disabled={disabled.fechaPagoEstimada ?? false}
-							error={error.fechaPagoEstimada}
+							disabled={!!disabled.fechaPagoEstimada}
+							error={error.fechaPagoEstimada ?? ""}
 							required
 							onChange={(f) =>
 								handleChange({
@@ -389,9 +428,10 @@ const Controles = ({
 						<InputMaterial
 							type="number"
 							label="Cantidad de trabajadores"
-							value={record.cantidadTrabajadores}
-							error={error.cantidadTrabajadores ?? ""}
-							disabled={disabled.cantidadTrabajadores ?? false}
+							value={valor(record.cantidadTrabajadores)}
+							error={!!error.cantidadTrabajadores}
+							helperText={error.cantidadTrabajadores ?? ""}
+							disabled={!!disabled.cantidadTrabajadores}
 							onChange={(value, _id) =>
 								handleChange({
 									cantidadTrabajadores: Formato.Entero(value),
@@ -404,17 +444,53 @@ const Controles = ({
 							<InputMaterial
 								type="number"
 								label="Total remuneraciones"
-								value={record.totalRemuneraciones}
+								value={valor(record.totalRemuneraciones)}
 								error={!!error.totalRemuneraciones}
 								helperText={error.totalRemuneraciones ?? ""}
-								disabled={disabled.totalRemuneraciones ?? false}
+								disabled={!!disabled.totalRemuneraciones}
 								onChange={(value, _id) =>
 									handleChange({
 										totalRemuneraciones: Formato.Decimal(value),
 									})
 								}
-								/>
+							/>
 						</Grid>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<SelectMaterial
+							name="refMotivoBajaId"
+							label="Motivo de baja"
+							value={record.refMotivoBajaId ?? 0}
+							error={[
+								error.refMotivoBajaId,
+								motivosBaja.loading,
+								motivosBaja.error,
+							]
+								.filter((r) => r)
+								.join(" ")}
+							disabled={!!disabled.refMotivoBajaId}
+							options={motivosBaja.data.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(value, _id) => {
+								handleChange({ refMotivoBajaId: value });
+								setDisabled((old) => ({
+									...old,
+									bajaObservaciones: value === 0,
+								}));
+							}}
+						/>
+					</Grid>
+					<Grid gap={`${gap}px`} full="width">
+						<InputMaterial
+							label="Observaciones de baja"
+							value={valor(record.bajaObservaciones)}
+							disabled={!!disabled.bajaObservaciones}
+							onChange={(value, _id) =>
+								handleChange({ bajaObservaciones: `${value}` })
+							}
+						/>
 					</Grid>
 					<Grid full="width">
 						<div className={styles.subtitulo}>
@@ -424,17 +500,17 @@ const Controles = ({
 					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
 							label="Aporte"
-							value={Formato.Moneda(calculados.interesNeto)}
+							value={valor(Formato.Moneda(calculados.interesNeto))}
 							disabled
 						/>
 						<InputMaterial
 							label="Intereses"
-							value={Formato.Moneda(calculados.interesImporte)}
+							value={valor(Formato.Moneda(calculados.interesImporte))}
 							disabled
 						/>
 						<InputMaterial
 							label="Total a pagar"
-							value={Formato.Moneda(calculados.importeTotal)}
+							value={valor(Formato.Moneda(calculados.importeTotal))}
 							disabled
 						/>
 					</Grid>

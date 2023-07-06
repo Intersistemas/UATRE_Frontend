@@ -13,7 +13,7 @@ import { Alert, AlertTitle } from "@mui/lab";
 import { IconButton, Collapse } from "@mui/material";
 
 const Form = ({
-	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	titulo = null,
 	subtitulo = null,
 	record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
@@ -23,13 +23,18 @@ const Form = ({
 	onCancel = (_request) => {}, // Accion a realizar al cancelar
 }) => {
 	record = { ...record };
-	if (requestParam === "A") record.id = 0;
+	disabled ??= {};
+	if (!["M", "B"].includes(request)) {
+		if (request === "A") record.id = 0;
+		disabled.refMotivoBajaId = true;
+		disabled.bajaObservaciones = true;
+	}
 	if (record.tipoLiquidacion === undefined) record.tipoLiquidacion = 0;
 
 	const [liquidacion, setLiquidacion] = useState(record);
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
-	const { sendRequest: request } = useHttp();
+	const { sendRequest } = useHttp();
 
 	// Cargo parametros
 	const [pendingParams, setPendingParams] = useState([
@@ -45,7 +50,7 @@ const Form = ({
 				return newPendingParams;
 			});
 		const requestParam = (param) => {
-			request(
+			sendRequest(
 				{
 					baseURL: "Comunes",
 					endpoint: `/Parametros/${param}`,
@@ -72,19 +77,19 @@ const Form = ({
 			);
 		};
 		if (!params) pendingParams.forEach((param) => requestParam(param));
-	}, [request, params, pendingParams]);
+	}, [sendRequest, params, pendingParams]);
 
 	const gap = 10;
 
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
-		if (data.refMotivosBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
+		if (data.refMotivoBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
 
 		const endpoint = `/Liquidaciones`;
 		const { nominas, ...liq } = data;
 		let method;
 		let body;
-		if (requestParam === "A") {
+		if (request === "A") {
 			method = "POST";
 			body = data;
 		} else {
@@ -92,7 +97,7 @@ const Form = ({
 			body = liq;
 		}
 
-		request(
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: endpoint,
@@ -100,7 +105,7 @@ const Form = ({
 				body: body,
 				headers: { "Content-Type": "application/json" },
 			},
-			async (res) => onConfirm(res, requestParam),
+			async (res) => onConfirm(res, request),
 			async (err) => {
 				setAlerts((old) => [
 					...old,
@@ -116,10 +121,10 @@ const Form = ({
 	const handleExistente = (anterior) => {
 		const handleCancelar = () => setModalExistente(null);
 		const handleBajaContinuar = () => {
-			anterior.refMotivosBajaId = params.RefMotivosBajaIdRectificaLiquidacion;
+			anterior.refMotivoBajaId = params.RefMotivosBajaIdRectificaLiquidacion;
 			anterior.bajaObservaciones = "Rectificación de liquidación";
 			anterior.bajaFecha = dayjs().format("YYYY-MM-DD");
-			request(
+			sendRequest(
 				{
 					baseURL: "SIARU",
 					endpoint: `/Liquidaciones`,
@@ -131,7 +136,7 @@ const Form = ({
 					const datosEnvio = { ...liquidacion };
 					datosEnvio.rectificativa =
 						Formato.Entero(anterior.rectificativa ?? 0) + 1;
-					datosEnvio.refMotivosBajaId = 0;
+					datosEnvio.refMotivoBajaId = 0;
 					datosEnvio.bajaObservaciones = "";
 					applyRequest(datosEnvio);
 				},
@@ -227,28 +232,28 @@ const Form = ({
 		}
 
 		switch (
-			requestParam // Validaciones específicas segun request
+			request // Validaciones específicas segun request
 		) {
 			case "A": // Alta
 				break;
 			case "B": // Baja
-				if (liquidacion.refMotivosBajaId) {
-					newErrores.refMotivosBajaId = "";
+				if (liquidacion.refMotivoBajaId) {
+					newErrores.refMotivoBajaId = "";
 				} else {
 					noValida = true;
-					newErrores.refMotivosBajaId = "Dato requerido cuando es una baja";
+					newErrores.refMotivoBajaId = "Dato requerido cuando es una baja";
 				}
 				break;
 			case "M": // Modificaicon
 				break;
 			default: // No se reconoce request
-				onCancel(requestParam);
+				onCancel(request);
 				return;
 		}
 
 		setErrores((old) => ({ ...old, ...newErrores }));
 
-		if (!liquidacion.nominas?.length) {
+		if (request !== "B" && !liquidacion.nominas?.length) {
 			noValida = true;
 			newAlerts.push({
 				severity: "error",
@@ -261,7 +266,7 @@ const Form = ({
 
 		if (noValida) return;
 
-		if (liquidacion.refMotivosBajaId) {
+		if (liquidacion.refMotivoBajaId) {
 			// Si se agrega o modifica con información de baja,
 			// no hace falta controlar si exite anterior activo
 			applyRequest(liquidacion);
@@ -273,8 +278,8 @@ const Form = ({
 		pars = `${pars}&EmpresaEstablecimientoId=${liquidacion.empresaEstablecimientoId}`;
 		pars = `${pars}&LiquidacionTipoPagoId=${liquidacion.liquidacionTipoPagoId}`;
 		pars = `${pars}&Periodo=${liquidacion.periodo}`;
-		pars = `${pars}&RefMotivosBajaId=0`;
-		request(
+		pars = `${pars}&RefMotivoBajaId=0`;
+		sendRequest(
 			{
 				baseURL: "SIARU",
 				endpoint: `/Liquidaciones?${pars}`,
@@ -331,24 +336,24 @@ const Form = ({
 	}
 
 	if (titulo == null) {
-		switch (requestParam) {
+		switch (request) {
 			case "A":
-				titulo = "Agregando Liquidación";
+				titulo = "Agregando liquidación";
 				break;
 			case "B":
-				titulo = "Dando de baja Liquidación";
+				titulo = "Dando de baja liquidación";
 				break;
 			case "M":
-				titulo = "Modificando Liquidación";
+				titulo = "Modificando liquidación";
 				break;
 			default:
-				titulo = "Consultando Liquidación";
+				titulo = "Consultando liquidación";
 				break;
 		}
-		if (requestParam !== "A") {
+		if (request !== "A") {
 			titulo = `${titulo} Nro. ${record.id} - ${Formato.Fecha(record.fecha)}`;
 		}
-	} 
+	}
 	if (!React.isValidElement(titulo)) {
 		titulo = <h3>{titulo}</h3>;
 	}
@@ -362,11 +367,11 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(requestParam) ? (
+	const renderConfirmaButton = ["A", "B", "M"].includes(request) ? (
 		<Button onClick={validar}>Confirma</Button>
 	) : null;
 	return (
-		<Modal onClose={() => onCancel(requestParam)}>
+		<Modal onClose={() => onCancel(request)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
 				<Grid
 					className={modalStyles.modalCabecera}
@@ -384,16 +389,13 @@ const Form = ({
 					onChange={(cambios) => {
 						setLiquidacion((old) => ({ ...old, ...cambios }));
 					}}
-					forzarCalculos={requestParam === "A"}
+					forzarCalculos={request === "A"}
 				/>
 				<Grid gap={`${gap}px`} grow full="width">
 					<Grid grow />
 					<Grid col width="30%" justify="end">
 						<Grid gap={`${gap}px`}>
-							<Button
-								className="botonBlanco"
-								onClick={() => onCancel(requestParam)}
-							>
+							<Button className="botonBlanco" onClick={() => onCancel(request)}>
 								Cancela
 							</Button>
 							{renderConfirmaButton}

@@ -11,6 +11,7 @@ import Formato from "../../../helpers/Formato";
 import SelectMaterial from "../../../ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
+import LiquidacionForm from "./Formulario/Form";
 
 const LiquidacionesHandler = () => {
 	const location = useLocation();
@@ -174,17 +175,47 @@ const LiquidacionesHandler = () => {
 	}
 	//#endregion
 
+	//#region declaracion y carga de formulario de liquidacion
+	const [formRequest, setFormRequest] = useState();
+	let liquidacionForm;
+	if (formRequest) {
+		const disabled = {};
+		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
+		if (formRequest === "B") {
+			disabled.refMotivoBajaId = false;
+			disabled.bajaObservaciones = false;
+		}
+		liquidacionForm = (
+			<LiquidacionForm
+				request={formRequest}
+				record={liquidacion}
+				empresa={empresa}
+				disabled={disabled}
+				onConfirm={(_record, _request) => {
+					setFormRequest(null);
+					setRefreshLiquidaciones(true);
+				}}
+				onCancel={(_request) => setFormRequest(null)}
+			/>
+		);
+	}
+	//#endregion
+
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
+		acciones: [{ name: `Empresas` }, { name: `Procesa liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
 		: ``;
-	if (liquidacion && !liquidacion.refMotivoBajaId) {
-		moduloInfo.acciones.push({ name: `Imprimir ${liquidacionDesc}` });
-		moduloInfo.acciones.push({ name: `Pagar ${liquidacionDesc}` });
+	if (liquidacion) {
+		moduloInfo.acciones.push({ name: `Consulta ${liquidacionDesc}` });
+		if (!liquidacion.refMotivoBajaId) {
+			moduloInfo.acciones.push({ name: `Baja ${liquidacionDesc}` });
+			moduloInfo.acciones.push({ name: `Imprime ${liquidacionDesc}` });
+			moduloInfo.acciones.push({ name: `Paga ${liquidacionDesc}` });
+		}
 	}
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
@@ -193,15 +224,21 @@ const LiquidacionesHandler = () => {
 			case `Empresas`:
 				navigate("/siaru");
 				break;
-			case `Procesar liquidaciones`:
+			case `Procesa liquidaciones`:
 				navigate("/siaru/liquidaciones/procesar", {
 					state: { empresa: empresa },
 				});
 				break;
-			case `Imprimir ${liquidacionDesc}`:
+			case `Consulta ${liquidacionDesc}`:
+				setFormRequest("C");
+				break;
+			case `Baja ${liquidacionDesc}`:
+				setFormRequest("B");
+				break;
+			case `Imprime ${liquidacionDesc}`:
 				alert("Proximamente");
 				break;
-			case `Pagar ${liquidacionDesc}`:
+			case `Paga ${liquidacionDesc}`:
 				alert("Proximamente");
 				break;
 			default:
@@ -212,7 +249,7 @@ const LiquidacionesHandler = () => {
 	// #endregion
 
 	const selection = {
-		onSelect: (row, isSelect, rowIndex, e) => setLiquidacion(row),
+		onSelect: (row, _isSelect, _rowIndex, _e) => setLiquidacion(row),
 	};
 	if (liquidacion) {
 		selection.selected = [liquidacion.id];
@@ -298,6 +335,7 @@ const LiquidacionesHandler = () => {
 						/>
 					</Grid>
 				</Grid>
+				{liquidacionForm}
 			</div>
 		</>
 	);
