@@ -338,6 +338,7 @@ const AfiliadoAgregar = (props) => {
       if (error.code === 500) {
         setCUILLoading(false);
         setDialogTexto(`Error - ${error.message}`);
+        setOpenDialog(true);
       }
 
       if (error.code === 404 && cuilLoading) {
@@ -345,6 +346,7 @@ const AfiliadoAgregar = (props) => {
         setDialogTexto(
           `Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
         );
+        setOpenDialog(true);
       }
 
       if (error.code === 404 && cuitLoading) {
@@ -352,15 +354,12 @@ const AfiliadoAgregar = (props) => {
         setDialogTexto(
           `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
         );
+        setOpenDialog(true);
       }
 
+      
       return;
-    }
-
-    //console.log("dialogTexto", dialogTexto);
-    if (dialogTexto !== "") {
-      setOpenDialog(true);
-    }
+    }    
   }, [error]);
   //#endregion
 
@@ -1296,7 +1295,7 @@ const AfiliadoAgregar = (props) => {
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
-
+    console.log("afiliado", afiliado);
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
@@ -1394,12 +1393,12 @@ const AfiliadoAgregar = (props) => {
 
       setCUILLoading(false);
     };
-
-    request(
-      {
+    
+    request(      
+      {        
         baseURL: "Comunes",
         endpoint: `/AFIPConsulta?CUIT=${
-          cuilState.value
+          afiliado !== null ? afiliado.cuilValidado : cuilState.value
         }&VerificarHistorico=${false}`,
         method: "GET",
       },
@@ -1623,10 +1622,10 @@ const AfiliadoAgregar = (props) => {
     if (dialogTexto == "") 
       props.onClose(false, "Cancela");
     else{
-      (props.accion == "Resuelve") || (props.accion == "Modifica") ?
-      props.onClose(afiliadoModificado, props.accion) //SI RESUELVE SOLICIT O MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
+      (props.accion == "Modifica") ?
+        props.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
       : 
-      props.onClose(nuevoAfiliadoResponse, props.accion) //SI EL AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
+        props.onClose(nuevoAfiliadoResponse, props.accion) //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
     }
   };
   //#endregion
@@ -2376,7 +2375,11 @@ const AfiliadoAgregar = (props) => {
         {selectedTab === 2 && (
           <>
             <DeclaracionesJuradas
-              cuil={cuilState.value}
+              cuil={
+                afiliado !== null
+                  ? afiliado.cuilValidado
+                  : cuilState.value
+              }
               onSeleccionRegistro={handleSeleccionDDJJ}
               infoCompleta={true}
               onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
@@ -2412,7 +2415,11 @@ const AfiliadoAgregar = (props) => {
         {selectedTab === 3 && (
           <ResolverSolicitud
             padronRespuesta={padronRespuesta}
-            cuilState={cuilState}
+            cuilState={
+              afiliado !== null
+                ? afiliado.cuilValidado
+                : cuilState.value
+            }
             nombreState={nombreState}
             cuitEmpresa={cuitEmpresa}
             resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}

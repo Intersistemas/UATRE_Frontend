@@ -35,12 +35,29 @@ const AfiliadoDetails = (props) => {
 			//case 0: break;
 			case 0:
 				{//#region  Tab 0 AFILIADOS
-				setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
+				setHotField(
+				<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 				<Grid full="width">
 					<Grid className={styles.titulo} grow>
 						Información Detallada del Afiliado: ({Formato.Cuit(data.cuil) ?? " "}) {data.nombre ?? " "} 
 					</Grid>
 				</Grid>
+			
+						<Grid className={styles.grupo} col full>
+							
+							<Grid className={styles.titulo} grow>
+								Datos UATRE:
+						
+								<Grid style={{ padding: "0rem 1rem"}}>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado == 0 ? 'N' : data.cuilValidado == data.cuil ? 'V':'D'} /> 	
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={data.sexo ?? " "} /> 													
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={data.estadoCivil ?? " "}/>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={data.nacionalidad ?? " "}/>
+								</Grid>		
+							</Grid>
+						</Grid>
+				
+
 				<Grid full="width">
 					<Grid className={styles.grupo} col full>
 						<Grid full="width">
@@ -116,7 +133,7 @@ const AfiliadoDetails = (props) => {
 					<Grid style={{ padding: "0rem 1rem"}}>
 						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Situación de CUIL" value={ddjj.cuilSituacion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={ddjj.cuilSituacionDescripcion ?? " "} />
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Siniestro" value={" "}/>	
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Reducción" value={ddjj.reduccion ?? " "}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Importes" value={ddjj.remuneracionImponible ?? " "}/>
