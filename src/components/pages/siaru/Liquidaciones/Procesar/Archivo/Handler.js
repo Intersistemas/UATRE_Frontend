@@ -89,6 +89,7 @@ const Handler = () => {
 						<h4>{tentativas.error.message}</h4>
 					</>
 				);
+				break;
 			default:
 				contenido = (
 					<>

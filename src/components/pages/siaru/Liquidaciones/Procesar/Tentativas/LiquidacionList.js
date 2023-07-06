@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Formato from "../../../../../helpers/Formato";
 import Button from "../../../../../ui/Button/Button";
 import Table from "../../../../../ui/Table/Table";
@@ -26,21 +26,21 @@ const LiquidacionList = ({
 			dataField: "empresaEstablecimientoId",
 			text: "Estab. Nro.",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "150px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			style: { ...cs },
 		},
 		{
 			dataField: "empresaEstablecimiento_Nombre",
 			text: "Estab. nombre",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "250px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
 			style: { ...cs, textAlign: "left" },
 		},
 		{
 			dataField: "tipoLiquidacion",
 			text: "Tipo de liquidación",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "150px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			formatter: (v) => tiposLiquidaciones[v],
 			style: { ...cs },
 		},
@@ -55,7 +55,7 @@ const LiquidacionList = ({
 			dataField: "cantidadTrabajadores",
 			text: "Cant. Trabajadores",
 			sort: true,
-			headerStyle: (colum, colIndex) => ({ width: "100px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			style: { ...cs },
 		},
 		{
@@ -63,27 +63,27 @@ const LiquidacionList = ({
 			text: "Total remuneraciones",
 			sort: true,
 			formatter: Formato.Moneda,
-			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
 			style: { ...cs },
 		},
 		{
 			dataField: "interesNeto",
 			text: "Total aporte",
 			formatter: Formato.Moneda,
-			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
 		},
 		{
 			dataField: "acciones",
 			text: "Acciones",
 			isDummyField: true,
-			formatter: (cell, row, rowIndex, formatExtraDatas) => {
+			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
 				return (
 					<Button onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>
 						{row.id ? "Consulta" : "Genera"}
 					</Button>
 				);
 			},
-			headerStyle: (colum, colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
 			style: { padding: 0 },
 		},
 	];

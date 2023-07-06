@@ -55,7 +55,6 @@ const EstablecimientosList = ({
 					style.background = "#ff6464cc";
 					style.color = "#FFF";
 				}
-				console.log({ valor: valor, style: style });
 				return <div style={style}>{valor}</div>;
 			},
 			style: { ...cs, textAlign: "center" },
