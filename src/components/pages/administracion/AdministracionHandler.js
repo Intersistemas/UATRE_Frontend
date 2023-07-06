@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
 import {useState, useEffect} from 'react';
-import Seccional from "../afiliados/seccional/Seccional";
+import SeccionalesHandler from "../seccionales/SeccionalesHandler";
 
 const AdministracionHandler = () => {
 
@@ -52,7 +52,7 @@ const AdministracionHandler = () => {
 			</div>
 			<div className="contenido">
 			{seccionalesShow && (
-				<Seccional
+				<SeccionalesHandler
 					onClose={onCloseSeccionalHandler}
 				/>
 				)}
