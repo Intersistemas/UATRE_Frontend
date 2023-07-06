@@ -1,10 +1,26 @@
-import React from 'react'
-import classes from "../AfiliadoAgregar.module.css"
+import React from "react";
+import classes from "../AfiliadoAgregar.module.css";
 import modalCss from "../../../ui/Modal/Modal.module.css";
-import Formato from '../../../helpers/Formato';
-import FormatearFecha from '../../../helpers/FormatearFecha';
+import Formato from "../../../helpers/Formato";
+import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const CabeceraABMAfiliado = (props) => {
+  const cuilValidado = () => {
+    if (props.afiliado !== null) {
+      if (props.afiliado?.cuilValidado === 0) {
+        return "- CUIL No Validado";
+      } else {
+        if (props.afiliado?.cuilValidado === props.afiliado?.cuil) {
+          return "- CUIL Validado";
+        } else {
+          return `- Diferencia en CUIL Validado (${Formato.Cuit(
+            props.afiliado?.cuilValidado
+          )})`;
+        }
+      }
+    }
+  };
+  
   return (
     <div className={modalCss.modalCabecera}>
       <div className={classes.div}>
@@ -38,9 +54,10 @@ const CabeceraABMAfiliado = (props) => {
               )} - Nro Afiliado: ${props.afiliado?.nroAfiliado}`
             : null}
         </h5>
+        <h5 className={classes.titulo}>{cuilValidado()}</h5>
       </div>
     </div>
   );
-}
+};
 
-export default CabeceraABMAfiliado
+export default CabeceraABMAfiliado;
