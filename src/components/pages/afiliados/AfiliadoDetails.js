@@ -49,6 +49,7 @@ const AfiliadoDetails = (props) => {
 								Datos UATRE:
 						
 								<Grid style={{ padding: "0rem 1rem"}}>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado == 0 ? 'N' : data.cuilValidado == data.cuil ? 'V':'D'} /> 	
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={data.sexo ?? " "} /> 													
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={data.estadoCivil ?? " "}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={data.nacionalidad ?? " "}/>
