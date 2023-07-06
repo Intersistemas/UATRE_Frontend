@@ -90,6 +90,23 @@ const AfiliadosLista = (props ) => {
       formatter: Formato.Cuit,
     },
     {
+      headerTitle: true,
+      dataField: "cuilValidado",
+      text: "Val,.",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "5rem", textAlign: "center" };
+      },
+  
+      formatter: (row) => ( 
+        row.cuilValidado == 0 ?
+         'N' 
+         :
+          row.cuilValidado == row.cuil ? 'V' : 'D'
+      ),
+    },
+    
+    {
       headerTitle: (colum, colIndex) => (`Documento número`),
       dataField: "documento",
       text: "Doc.Nro.",
