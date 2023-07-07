@@ -49,7 +49,7 @@ const AfiliadoDetails = (props) => {
 								Datos UATRE:
 						
 								<Grid style={{ padding: "0rem 1rem"}}>
-									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado == 0 ? 'N' : data.cuilValidado == data.cuil ? 'V':'D'} /> 	
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado} /> 	
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={data.sexo ?? " "} /> 													
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={data.estadoCivil ?? " "}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={data.nacionalidad ?? " "}/>
@@ -108,10 +108,10 @@ const AfiliadoDetails = (props) => {
 				  </Grid>
 
 				  <Grid style={{ padding: "0rem 1rem"}}>
-						<InputMaterial padding="0rem 0.5rem"  width= "90"  variant="standard" size="small" label="CUIT" value={empresa.cuit ? Formato.Cuit(empresa.cuit) : " "} />
-						<InputMaterial padding="0rem 0.5rem"  width= "150" variant="standard" size="small" label="Razón Social" value={empresa.razonSocial ?? " "} />
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Localidad" value={empresa.localidad ?? " "}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Provincia" value={empresa.provincia ?? " "}/>	
+						<InputMaterial padding="0rem 0.5rem"  width= "90"  variant="standard" size="small" label="CUIT" value={Formato.Cuit(ddjj.cuit) ?? " "} />
+						<InputMaterial padding="0rem 0.5rem"  width= "150" variant="standard" size="small" label="Razón Social" value={ddjj.empresa ?? " "} />
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Localidad" value={empresa.localidadDescripcion ?? " "}/>
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Provincia" value={empresa.provinciaDescripcion ?? " "}/>	
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CIIU1" value={empresa.ciiU1Descripcion ?? " "}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CIIU2" value={empresa.ciiU2Descripcion ?? " "}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CIIU2" value={empresa.ciiU3Descripcion ?? " "}/>

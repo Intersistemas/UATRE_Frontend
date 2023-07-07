@@ -92,7 +92,7 @@ const AfiliadosLista = (props ) => {
     {
       headerTitle: true,
       dataField: "cuilValidado",
-      text: "Val,.",
+      text: "Val.",
       headerStyle: (colum, colIndex) => {
         return { width: "5rem", textAlign: "center" };
       },
@@ -346,8 +346,8 @@ const AfiliadosLista = (props ) => {
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
-        
          setddjjUatreSeleccionado(row);
+         console.log('ddjj_UatreSeleccionado',row);
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
@@ -512,15 +512,15 @@ const AfiliadosLista = (props ) => {
                   />                 
               </Tabs>
               </div>
-          {selectedTab === 0 && (
+          {selectedTab === 0 && ( //AFILIADOS
             <div>
               <TableSegmentado {...tableProps}/>
             </div> 
           )}
 
-          {selectedTab === 1 && (
+          {selectedTab === 1 && ( //DDJJ
             <DeclaracionesJuradas
-              cuil={afiliadoSeleccionado.cuil}
+              cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
               infoCompleta={true}
               onSeleccionRegistro={rowEvents}
               onDeclaracionesGeneradas={null}

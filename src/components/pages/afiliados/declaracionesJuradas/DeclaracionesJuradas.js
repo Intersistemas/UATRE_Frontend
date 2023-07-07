@@ -16,7 +16,7 @@ const DeclaracionesJuradas = (props) => {
 
   useEffect(() => {
     if (cuil > 0) {
-
+      console.log('DeclaracionesJuradas_cuil',cuil);
       const processDDJJUatre = async (ddJJUatreObj) => {
         setIdPrimerRegistroDelGrid(ddJJUatreObj[0]?.id ?? 0);
         props.onSeleccionRegistro(ddJJUatreObj[0]);
@@ -26,7 +26,7 @@ const DeclaracionesJuradas = (props) => {
       request(
         {
           baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}&PageSize=1`,
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
           method: "GET",
         },
         processDDJJUatre
