@@ -791,6 +791,7 @@ const AfiliadoAgregar = (props) => {
         });
       //console.log("actividades", actividadesSelect);
       setActividades(actividadesSelect);
+      dispatchActividad({ type: "USER_INPUT", value: actividadesSelect[0].value });
     };
 
     request(
@@ -915,7 +916,7 @@ const AfiliadoAgregar = (props) => {
   }, [request, provinciaState]);
 
   useEffect(() => {
-    if (localidadState.value !== "") {
+    if (localidadState.value !== "") {           
       const processSeccionales = async (seccionalesObj) => {
         const seccionalesSelect = seccionalesObj
           .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
@@ -925,6 +926,7 @@ const AfiliadoAgregar = (props) => {
               label: `${seccional.codigo} ${seccional.descripcion}`,
             };
           });
+          console.log("localidadState", localidadState)
         console.log("seccionalesSelect", seccionalesSelect);
         console.log("seccionalSinAsignar", seccionalSinAsignar);
         setSeccionales(
