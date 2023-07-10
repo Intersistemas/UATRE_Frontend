@@ -12,6 +12,7 @@ import SelectMaterial from "../../../ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
 import LiquidacionForm from "./Formulario/Form";
+import LiquidacionPDF from "./Impresion/Handler";
 
 const LiquidacionesHandler = () => {
 	const location = useLocation();
@@ -201,6 +202,20 @@ const LiquidacionesHandler = () => {
 	}
 	//#endregion
 
+	//#region ImprimePDF
+	const [despliegaPDF, setDespliegaPDF] = useState(false);
+	let liquidacionPDFRender;
+	if (despliegaPDF) {
+		liquidacionPDFRender = (
+			<LiquidacionPDF
+				liquidacion={liquidacion}
+				empresa={empresa}
+				onClose={() => setDespliegaPDF(false)}
+			/>
+		);
+	}
+	//#endregion
+
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
@@ -236,7 +251,8 @@ const LiquidacionesHandler = () => {
 				setFormRequest("B");
 				break;
 			case `Imprime ${liquidacionDesc}`:
-				alert("Proximamente");
+				// alert("Proximamente");
+				setDespliegaPDF(true);
 				break;
 			case `Paga ${liquidacionDesc}`:
 				alert("Proximamente");
@@ -336,6 +352,7 @@ const LiquidacionesHandler = () => {
 					</Grid>
 				</Grid>
 				{liquidacionForm}
+				{liquidacionPDFRender}
 			</div>
 		</>
 	);
