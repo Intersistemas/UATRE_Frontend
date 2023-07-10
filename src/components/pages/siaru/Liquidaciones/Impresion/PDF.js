@@ -16,7 +16,7 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 			importeTotal += liquidacion.interesNeto;
 		importeTotal = Math.round((importeTotal + Number.EPSILON) * 100) / 100;
 	}
-	
+
 	const descriptor = new Descriptor({
 		entero: {
 			singular: "peso",
@@ -290,13 +290,18 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 									<Text>{Formato.Moneda(importeTotal ?? 0)}</Text>
 								</View>
 							</View>
-							<View style={{ ...styles.row }}>
+							<View style={{ ...styles.row, ...styles.grow }}>
 								<View style={{ ...styles.paddingRight }}>
 									<Text>Son</Text>
 								</View>
 								<View>
 									<Text>{importeTotalDescipcion}</Text>
 								</View>
+							</View>
+							<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<Text style={{ fontSize: "22pt" }}>
+									Vencimiento {Formato.Fecha(liquidacion.vencimientoFecha)}
+								</Text>
 							</View>
 						</View>
 						<View
