@@ -1,10 +1,11 @@
 import React from "react";
-import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import styles from "./PDF.styles.js";
 import JsBarcode from "jsbarcode";
 import logo1 from "../../../../../media/Logo1_sidebar.png";
 import Formato from "../../../../helpers/Formato.js";
 import Descriptor from "../../../../helpers/Descriptor";
+import Grid from "../../../../ui/Grid/Grid.js";
 
 const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 	let importeTotal;
@@ -39,290 +40,214 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 		barcode = canvas.toDataURL();
 	}
 
+	const GridView = ({ style, ...p }) => (
+		<Grid render={View} style={{ ...style, ...styles.border }} {...p} />
+	);
+
 	return (
 		<Document style={styles.grow}>
 			<Page style={styles.page} size="A4">
-				<View
-					style={{
-						...styles.col,
-						...styles.gap,
-						...styles.grow,
-						...styles.borderBox,
-						...styles.marginBox,
-						...styles.paddingBox,
-					}}
+				<GridView
+					gap="10px"
+					col
+					grow
+					style={{ ...styles.borderBox, ...styles.paddingBox }}
 				>
-					<View style={{ ...styles.row, ...styles.gap }}>
-						<Image src={logo1} style={{ width: "70", height: "70" }} />
-						<View style={{ ...styles.col, ...styles.justifyCenter }}>
-							<Text style={{ fontSize: "55pt" }}>UATRE</Text>
-						</View>
-					</View>
-					<View
-						style={{
-							...styles.col,
-							...styles.grow,
-							...styles.borderBox,
-						}}
-					>
-						<View style={{ ...styles.row }}>
-							<View
-								style={{
-									...styles.col,
-									...styles.flex,
-									...styles.grow,
-									...styles.border,
-									...styles.paddingBox,
-									...styles.borderRight,
-								}}
+					<GridView col>
+						<GridView gap="10px">
+							<Image src={logo1} style={{ width: "70", height: "70" }} />
+							<Text style={{ ...styles.titulo, fontSize: "60pt", marginTop: "10px" }}>UATRE</Text>
+						</GridView>
+						<GridView col style={{ ...styles.titulo, fontSize: "12pt" }}>
+							<Text>Union Argentina de Trabajadores</Text>
+							<Text>Rurales y Estibadores</Text>
+						</GridView>
+					</GridView>
+					<GridView col grow style={styles.borderBox}>
+						<GridView>
+							<GridView
+								col
+								width
+								style={{ ...styles.borderRight, ...styles.paddingBox }}
 							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>C.U.I.T.</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>C.U.I.T.</Text>
+								</GridView>
+								<GridView justify="center">
 									<Text>{Formato.Cuit(empresa.cuit)}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.border,
-									...styles.paddingBox,
-									...styles.borderRight,
-								}}
+								</GridView>
+							</GridView>
+							<GridView
+								col
+								width
+								style={{ ...styles.borderRight, ...styles.paddingBox }}
 							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Periodo (Año-Mes)</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Periodo (Año-Mes)</Text>
+								</GridView>
+								<GridView justify="center">
 									<Text>{Formato.Periodo(liquidacion.periodo)}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.paddingBox,
-								}}
-							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Número de Acta</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								</GridView>
+							</GridView>
+							<GridView col width style={styles.paddingBox}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Número de Acta</Text>
+								</GridView>
+								<GridView justify="center">
 									<Text>000000</Text>
-								</View>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.col,
-								...styles.borderTop,
-								...styles.paddingBox,
-							}}
-						>
-							<View style={{ ...styles.row }}>
-								<Text style={{ ...styles.titulo }}>Razón Social</Text>
-							</View>
-							<View style={{ ...styles.row }}>
+								</GridView>
+							</GridView>
+						</GridView>
+						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+							<GridView>
+								<Text style={styles.titulo}>Razón Social</Text>
+							</GridView>
+							<GridView>
 								<Text>{empresa.razonSocial}</Text>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.col,
-								...styles.borderTop,
-								...styles.paddingBox,
-							}}
-						>
-							<View style={{ ...styles.row }}>
-								<Text style={{ ...styles.titulo }}>Provincia Laboral</Text>
-							</View>
-							<View style={{ ...styles.row }}>
+							</GridView>
+						</GridView>
+						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+							<GridView>
+								<Text style={styles.titulo}>Provincia Laboral</Text>
+							</GridView>
+							<GridView>
 								<Text>{establecimiento.provinciaDescripcion ?? ""}&nbsp;</Text>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.col,
-								...styles.borderTop,
-								...styles.paddingBox,
-							}}
-						>
-							<View style={{ ...styles.row }}>
-								<Text style={{ ...styles.titulo }}>Localidad Laboral</Text>
-							</View>
-							<View style={{ ...styles.row }}>
+							</GridView>
+						</GridView>
+						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+							<GridView>
+								<Text style={styles.titulo}>Localidad Laboral</Text>
+							</GridView>
+							<GridView>
 								<Text>{establecimiento.localidadDescripcion ?? ""}&nbsp;</Text>
-							</View>
-						</View>
-						<View style={{ ...styles.row, ...styles.borderTop }}>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.border,
-									...styles.borderRight,
-									...styles.paddingBox,
-								}}
+							</GridView>
+						</GridView>
+						<GridView style={styles.borderTop}>
+							<GridView
+								col
+								width
+								style={{ ...styles.borderRight, ...styles.paddingBox }}
 							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Seccional</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Seccional</Text>
+								</GridView>
+								<GridView justify="center">
 									<Text>{0 /* ToDo */}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.border,
-									...styles.borderRight,
-									...styles.paddingBox,
-								}}
+								</GridView>
+							</GridView>
+							<GridView
+								col
+								width
+								style={{ ...styles.borderRight, ...styles.paddingBox }}
 							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Trabajadores</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Trabajadores</Text>
+								</GridView>
+								<GridView justify="center">
 									<Text>{liquidacion.cantidadTrabajadores ?? 0}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.paddingBox,
-								}}
+								</GridView>
+							</GridView>
+							<GridView
+								col
+								width
+								style={{ ...styles.paddingBox, ...styles.paddingBox }}
 							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Remuneraciones</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Remuneraciones</Text>
+								</GridView>
+								<GridView justify="end">
 									<Text>
 										{Formato.Moneda(liquidacion.totalRemuneraciones ?? 0)}
 									</Text>
-								</View>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.row,
-								...styles.borderTop,
-								...styles.paddingBox,
-								...styles.grow,
-							}}
+								</GridView>
+							</GridView>
+						</GridView>
+						<GridView
+							grow
+							style={{ ...styles.borderTop, ...styles.paddingBox }}
 						>
 							<Text>Banco...</Text>
-						</View>
-						<View style={{ ...styles.row, ...styles.borderTop }}>
-							<View
-								style={{
-									...styles.col,
-									...styles.grow,
-									...styles.border,
-									...styles.paddingBox,
-								}}
-							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Liquidación Nº</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text>{Formato.Entero(liquidacion.id ?? 0)}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.grow,
-									...styles.border,
-									...styles.paddingBox,
-								}}
-							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Capital</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+						</GridView>
+						<GridView style={{ ...styles.borderTop, ...styles.paddingBox }}>
+							<GridView col width>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Liquidación Nº</Text>
+								</GridView>
+								<GridView justify="center">
+									<Text>{Formato.Mascara(liquidacion.id ?? 0, "##########")}</Text>
+								</GridView>
+							</GridView>
+							<GridView col width>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Capital</Text>
+								</GridView>
+								<GridView justify="end">
 									<Text>{Formato.Moneda(liquidacion.interesNeto ?? 0)}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.grow,
-									...styles.paddingBox,
-								}}
-							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Intereses</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								</GridView>
+							</GridView>
+							<GridView col width>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Intereses</Text>
+								</GridView>
+								<GridView justify="end">
 									<Text>{Formato.Moneda(liquidacion.interesImporte ?? 0)}</Text>
-								</View>
-							</View>
-							<View
-								style={{
-									...styles.grow,
-									...styles.paddingBox,
-								}}
-							>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
-									<Text style={{ ...styles.titulo }}>Total</Text>
-								</View>
-								<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								</GridView>
+							</GridView>
+							<GridView col width>
+								<GridView justify="center">
+									<Text style={styles.titulo}>Total</Text>
+								</GridView>
+								<GridView justify="end">
 									<Text>{Formato.Moneda(importeTotal ?? 0)}</Text>
-								</View>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.col,
-								...styles.gap,
-								...styles.grow,
-								...styles.borderTop,
-								...styles.paddingBox,
-							}}
+								</GridView>
+							</GridView>
+						</GridView>
+						<GridView
+							gap="10px"
+							col
+							grow
+							style={{ ...styles.borderTop, ...styles.paddingBox }}
 						>
-							<View style={{ ...styles.row }}>
-								<View style={{ ...styles.grow }}>
+							<GridView>
+								<GridView grow>
 									<Text>TOTAL PAGADO</Text>
-								</View>
-								<View>
+								</GridView>
+								<GridView>
 									<Text>{Formato.Moneda(importeTotal ?? 0)}</Text>
-								</View>
-							</View>
-							<View style={{ ...styles.row, ...styles.grow }}>
-								<View style={{ ...styles.paddingRight }}>
+								</GridView>
+							</GridView>
+							<GridView grow>
+								<GridView style={styles.paddingRight}>
 									<Text>Son</Text>
-								</View>
-								<View>
+								</GridView>
+								<GridView style={{ maxWidth: "500px" }}>
 									<Text>{importeTotalDescipcion}</Text>
-								</View>
-							</View>
-							<View style={{ ...styles.row, ...styles.justifyCenter }}>
+								</GridView>
+							</GridView>
+							<GridView justify="center">
 								<Text style={{ fontSize: "22pt" }}>
 									Vencimiento {Formato.Fecha(liquidacion.vencimientoFecha)}
 								</Text>
-							</View>
-						</View>
-						<View
-							style={{
-								...styles.col,
-								...styles.borderTop,
-								...styles.paddingBox,
-							}}
-						>
-							<View style={{ ...styles.row }}>
-								<Text style={{ ...styles.titulo }}>Cheque Nº:</Text>
-							</View>
-							<View style={{ ...styles.row }}>
-								<Text style={{ ...styles.titulo }}>Banco:</Text>
-							</View>
-						</View>
-					</View>
-					<View style={{ ...styles.row }}>
+							</GridView>
+							<GridView justify="center">
+								<Text style={{ fontSize: "10pt" }}>
+									Posterior a esta fecha el banco no aceptará el pago, debiendo reliquidar el período
+								</Text>
+							</GridView>
+						</GridView>
+						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+							<GridView>
+								<Text style={styles.titulo}>Cheque Nº:</Text>
+							</GridView>
+							<GridView>
+								<Text style={styles.titulo}>Banco:</Text>
+							</GridView>
+						</GridView>
+					</GridView>
+					<GridView>
 						<Image src={barcode} />
-					</View>
-				</View>
+					</GridView>
+				</GridView>
 			</Page>
 		</Document>
 	);

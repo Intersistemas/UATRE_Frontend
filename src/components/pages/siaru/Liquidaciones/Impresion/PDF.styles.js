@@ -10,14 +10,6 @@ const margin = 10;
 const padding = 10;
 
 const styles = StyleSheet.create({
-	page: {
-		display: "flex",
-		position: "absolute",
-		left: 0,
-		right: 0,
-		width: "100%",
-		height: "100%",
-	},
 	flex: { display: "flex" },
 	row: { flexDirection: "row" },
 	col: { flexDirection: "column" },
@@ -63,15 +55,27 @@ const styles = StyleSheet.create({
 	borderTop: { borderTop: border.size },
 	borderBottom: { borderBottom: border.size },
 	borderBox: {
-		borderColor: border.color,
-		borderStyle: border.style,
 		borderLeft: border.size,
 		borderRight: border.size,
 		borderTop: border.size,
 		borderBottom: border.size,
 	},
 	titulo: {
-		fontWeight: "900",
+		fontFamily: "Helvetica-Bold",
+	},
+	page: {
+		paddingLeft: padding,
+		paddingRight: padding,
+		paddingTop: padding,
+		paddingBottom: padding,
+		display: "flex",
+		position: "absolute",
+		left: 0,
+		right: 0,
+		width: "100%",
+		height: "100%",
+		fontFamily: "Helvetica",
+		fontSize: "12pt",
 	},
 });
 
