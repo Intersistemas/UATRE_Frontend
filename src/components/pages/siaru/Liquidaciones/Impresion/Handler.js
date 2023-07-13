@@ -30,8 +30,24 @@ const Handler = ({
 	}, [establecimientoId, sendRequest]);
 	//#endregion
 
+	//#region declaracion e inicializacion de tipo de pago
+	const tipoPagoId = liquidacion?.liquidacionTipoPagoId ?? 0;
+	const [tipoPago, setTipoPago] = useState({ loading: true, data: {}});
+	useEffect(() => {
+		sendRequest(
+			{
+				baseURL: "SIARU",
+				endpoint: `/LiquidacionesTiposPagos/${tipoPagoId}`,
+				method: "GET",
+			},
+			async (res) => setTipoPago({ data: { ...res } }),
+			async (err) => setTipoPago({ error: { ...err }, data: {} })
+		);
+	}, [tipoPagoId, sendRequest]);
+	//#endregion
+
 	let pdfRender;
-	if (establecimiento.loading) {
+	if (establecimiento.loading || tipoPago.loading) {
 		pdfRender = <h4>Cargando datos...</h4>;
 	} else if (establecimiento.error) {
 		pdfRender = (
@@ -46,6 +62,7 @@ const Handler = ({
 					liquidacion={liquidacion}
 					empresa={empresa}
 					establecimiento={establecimiento.data}
+					tipoPago={tipoPago.data}
 				/>
 			</PDFViewer>
 		);

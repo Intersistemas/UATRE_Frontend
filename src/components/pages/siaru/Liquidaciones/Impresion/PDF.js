@@ -7,7 +7,7 @@ import Formato from "../../../../helpers/Formato.js";
 import Descriptor from "../../../../helpers/Descriptor";
 import Grid from "../../../../ui/Grid/Grid.js";
 
-const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
+const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 	let importeTotal;
 	if (liquidacion.interesImporte != null || liquidacion.interesNeto != null) {
 		importeTotal = 0;
@@ -44,6 +44,56 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 		<Grid render={View} style={{ ...style, ...styles.border }} {...p} />
 	);
 
+	const Casillas = ({
+		width = 12,
+		height = 14,
+		border = {
+			color: "black",
+			style: "solid",
+			size: 1,
+		},
+		cantidad = 32,
+		style,
+		...p
+	}) => {
+		if (cantidad < 1) cantidad = 1;
+		style = {
+			...style,
+			borderStyle: border.style,
+			borderColor: border.color,
+			borderLeft: `${border.size}px`,
+			borderBottom: `${border.size}px`,
+		};
+		cantidad -= 1;
+		const casillas = [];
+		for (let n = 0; n < cantidad; n++) {
+			casillas.push(
+				<Grid
+					render={View}
+					block
+					width={`${width}px`}
+					height={`${height}px`}
+					style={style}
+					{...p}
+				/>
+			);
+		}
+		casillas.push(
+			<Grid
+				render={View}
+				block
+				width={`${width + border.size}px`}
+				height={`${height}px`}
+				style={{
+					...style,
+					borderRight: `${border.size}px`,
+				}}
+				{...p}
+			/>
+		);
+		return casillas;
+	};
+
 	return (
 		<Document style={styles.grow}>
 			<Page style={styles.page} size="A4">
@@ -51,12 +101,21 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 					gap="10px"
 					col
 					grow
-					style={{ ...styles.borderBox, ...styles.paddingBox }}
+					style={{ ...styles.paddingBox, ...styles.borderBox }}
 				>
 					<GridView col>
 						<GridView gap="10px">
-							<Image src={logo1} style={{ width: "70", height: "70" }} />
-							<Text style={{ ...styles.titulo, fontSize: "60pt", marginTop: "10px" }}>UATRE</Text>
+							<Image src={logo1} style={{ width: "70", height: "75" }} />
+							<GridView col justify="end">
+								<Text
+									style={{
+										...styles.titulo,
+										fontSize: "60pt",
+									}}
+								>
+									UATRE
+								</Text>
+							</GridView>
 						</GridView>
 						<GridView col style={{ ...styles.titulo, fontSize: "12pt" }}>
 							<Text>Union Argentina de Trabajadores</Text>
@@ -68,7 +127,7 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 							<GridView
 								col
 								width
-								style={{ ...styles.borderRight, ...styles.paddingBox }}
+								style={{ ...styles.paddingBox, ...styles.borderRight }}
 							>
 								<GridView justify="center">
 									<Text style={styles.titulo}>C.U.I.T.</Text>
@@ -80,7 +139,7 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 							<GridView
 								col
 								width
-								style={{ ...styles.borderRight, ...styles.paddingBox }}
+								style={{ ...styles.paddingBox, ...styles.borderRight }}
 							>
 								<GridView justify="center">
 									<Text style={styles.titulo}>Periodo (Año-Mes)</Text>
@@ -98,7 +157,7 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 								</GridView>
 							</GridView>
 						</GridView>
-						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+						<GridView col style={{ ...styles.paddingBox, ...styles.borderTop }}>
 							<GridView>
 								<Text style={styles.titulo}>Razón Social</Text>
 							</GridView>
@@ -106,39 +165,39 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 								<Text>{empresa.razonSocial}</Text>
 							</GridView>
 						</GridView>
-						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+						<GridView col style={{ ...styles.paddingBox, ...styles.borderTop }}>
 							<GridView>
 								<Text style={styles.titulo}>Provincia Laboral</Text>
 							</GridView>
 							<GridView>
-								<Text>{establecimiento.provinciaDescripcion ?? ""}&nbsp;</Text>
+								<Text>{establecimiento.provinciaDescripcion ?? "NO ESPECIFICA"}&nbsp;</Text>
 							</GridView>
 						</GridView>
-						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
+						<GridView col style={{ ...styles.paddingBox, ...styles.borderTop }}>
 							<GridView>
 								<Text style={styles.titulo}>Localidad Laboral</Text>
 							</GridView>
 							<GridView>
-								<Text>{establecimiento.localidadDescripcion ?? ""}&nbsp;</Text>
+								<Text>{establecimiento.localidadDescripcion ?? "NO ESPECIFICA"}&nbsp;</Text>
 							</GridView>
 						</GridView>
 						<GridView style={styles.borderTop}>
 							<GridView
 								col
 								width
-								style={{ ...styles.borderRight, ...styles.paddingBox }}
+								style={{ ...styles.paddingBox, ...styles.borderRight }}
 							>
 								<GridView justify="center">
 									<Text style={styles.titulo}>Seccional</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>{0 /* ToDo */}</Text>
+									<Text>0000</Text>
 								</GridView>
 							</GridView>
 							<GridView
 								col
 								width
-								style={{ ...styles.borderRight, ...styles.paddingBox }}
+								style={{ ...styles.paddingBox, ...styles.borderRight }}
 							>
 								<GridView justify="center">
 									<Text style={styles.titulo}>Trabajadores</Text>
@@ -147,11 +206,7 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 									<Text>{liquidacion.cantidadTrabajadores ?? 0}</Text>
 								</GridView>
 							</GridView>
-							<GridView
-								col
-								width
-								style={{ ...styles.paddingBox, ...styles.paddingBox }}
-							>
+							<GridView col width style={styles.paddingBox}>
 								<GridView justify="center">
 									<Text style={styles.titulo}>Remuneraciones</Text>
 								</GridView>
@@ -163,18 +218,29 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 							</GridView>
 						</GridView>
 						<GridView
+							justify="center"
 							grow
-							style={{ ...styles.borderTop, ...styles.paddingBox }}
+							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
-							<Text>Banco...</Text>
+							<GridView gap="10px" col grow justify="center">
+								<Text>Banco...</Text>
+								<GridView gap="5px" justify="center">
+									<Text>(UATRE)</Text>
+									<Text style={styles.titulo}>
+										{(tipoPago.descripcion ?? "").toUpperCase()}
+									</Text>
+								</GridView>
+							</GridView>
 						</GridView>
-						<GridView style={{ ...styles.borderTop, ...styles.paddingBox }}>
+						<GridView style={{ ...styles.paddingBox, ...styles.borderTop }}>
 							<GridView col width>
 								<GridView justify="center">
 									<Text style={styles.titulo}>Liquidación Nº</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>{Formato.Mascara(liquidacion.id ?? 0, "##########")}</Text>
+									<Text>
+										{Formato.Mascara(liquidacion.id ?? 0, "##########")}
+									</Text>
 								</GridView>
 							</GridView>
 							<GridView col width>
@@ -206,19 +272,19 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 							gap="10px"
 							col
 							grow
-							style={{ ...styles.borderTop, ...styles.paddingBox }}
+							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
 							<GridView>
-								<GridView grow>
-									<Text>TOTAL PAGADO</Text>
-								</GridView>
 								<GridView>
-									<Text>{Formato.Moneda(importeTotal ?? 0)}</Text>
+									<Text style={styles.titulo}>TOTAL PAGADO</Text>
+								</GridView>
+								<GridView justify="end" grow>
+									<Text style={{...styles.titulo, fontSize: "22pt"}}>{Formato.Moneda(importeTotal ?? 0)}</Text>
 								</GridView>
 							</GridView>
 							<GridView grow>
 								<GridView style={styles.paddingRight}>
-									<Text>Son</Text>
+									<Text style={styles.titulo}>Son</Text>
 								</GridView>
 								<GridView style={{ maxWidth: "500px" }}>
 									<Text>{importeTotalDescipcion}</Text>
@@ -231,16 +297,31 @@ const PDF = ({ liquidacion, empresa, establecimiento } = {}) => {
 							</GridView>
 							<GridView justify="center">
 								<Text style={{ fontSize: "10pt" }}>
-									Posterior a esta fecha el banco no aceptará el pago, debiendo reliquidar el período
+									Posterior a esta fecha el banco no aceptará el pago, debiendo
+									reliquidar el período
 								</Text>
 							</GridView>
 						</GridView>
-						<GridView col style={{ ...styles.borderTop, ...styles.paddingBox }}>
-							<GridView>
-								<Text style={styles.titulo}>Cheque Nº:</Text>
+						<GridView
+							col
+							gap="5px"
+							style={{ ...styles.paddingBox, ...styles.borderTop }}
+						>
+							<GridView gap="5px">
+								<GridView width="70px">
+									<Text style={styles.titulo}>Cheque Nº:</Text>
+								</GridView>
+								<GridView justify="center" grow>
+									<Casillas cantidad={32} />
+								</GridView>
 							</GridView>
-							<GridView>
-								<Text style={styles.titulo}>Banco:</Text>
+							<GridView gap="5px">
+								<GridView width="70px">
+									<Text style={styles.titulo}>Banco:</Text>
+								</GridView>
+								<GridView justify="center" grow>
+									<Casillas cantidad={32} />
+								</GridView>
 							</GridView>
 						</GridView>
 					</GridView>
