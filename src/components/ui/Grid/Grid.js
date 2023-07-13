@@ -1,6 +1,6 @@
 import React from "react";
 
-const renderDef = ({ children, ...props }) => <div {...props}>{children}</div>;
+const renderDef = (p) => <div {...p}/>;
 
 /**
  * Representa un div con atajos a propiedades de estilos comunes.
