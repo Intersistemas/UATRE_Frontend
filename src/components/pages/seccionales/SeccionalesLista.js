@@ -1,8 +1,16 @@
 import React from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import Table from "../../ui/Table/Table";
-import SelectMaterial from "../../ui/Select/SelectMaterial";
-import classes from './SeccionalesLista.module.css'
+import classes from "./SeccionalesLista.module.css";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
+import Button from "../../ui/Button/Button";
 
 const SeccionalesLista = (props) => {
   //#region Tabla
@@ -69,26 +77,89 @@ const SeccionalesLista = (props) => {
     selection: selectRow,
     rowEvents: rowEvents,
     loading: props.isLoading,
-    noDataIndication: (
-      <h4>No existen DDJJ relacionadas al Afiliado seleccionado.</h4>
-    ),
+    noDataIndication: <h4>No existen Seccionales.</h4>,
     overlay: overlayFactory({ spinner: true }),
     pagination: pagination,
+    mostrarBuscar: false
   };
   //#endregion
 
-  //#region Buscadores
-  const buscarPor = [
-    { value: 0, label: "SELECCIONE UNA OPCION" },
-    { value: 1, label: "POR PROVINCIA" }
-  ]
-  //#endregion
+  const handleChangeSelect = (event) => {
+    console.log("Seleccionó:", event.target.value);
+    props.onSelectorSelected(event.target.value);
+  };
+
+  const handleChangeSearchEntry = (event) => {
+    props.onSelectorValor(event.target.value);
+  };
+
   return (
     <div>
-      <div className={classes.div}>
-        <SelectMaterial value={0} options={buscarPor} />
-        {/* <InputMaterial /> */}
-      </div>
+      <Box
+        sx={{ maxWidth: 700 }}
+        style={{
+          display: "flex",
+          float: "right",
+          width: "-webkit-fill-available",
+          "column-gap": "1rem",
+        }}
+      >
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
+          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
+          <Select
+            style={{ position: "unset" }}
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={props.selector.value}
+            label="Buscar por:"
+            onChange={handleChangeSelect}
+          >
+            {props.selectores.map((valores) => {
+              return (
+                <MenuItem key={valores.id} value={valores}>
+                  {valores.label}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+        <TextField
+          style={{ width: "53rem" }}
+          id="outlined-basic"
+          label={
+            props.selectorValor?.text?.includes("Fecha")
+              ? ""
+              : `Ingrese ${props.selectorValor?.text ?? ""}`
+          }
+          variant="outlined"
+          onChange={handleChangeSearchEntry}
+          // type={props.selectorValor.dataType}
+          value={props.selectorValor}
+          /*helperText={
+              props.error
+                ? "Error buscando datos"
+                : ""
+            }*/
+          error={props.error}
+        />
+        <Button
+          className="botonBorder"
+          width={70}
+          onClick={props.onBuscarClick}
+          disabled={!props.selectorValor ?? true}
+        >
+          Buscar
+        </Button>
+        <Button
+          className="botonBorder"
+          //width={70}
+          style={{ "min-width": "fit-content" }}
+          onClick={props.onLimpiarClick}
+        >
+          Limpiar Busqueda
+        </Button>
+      </Box>
 
       <Table {...tableProps} />
     </div>

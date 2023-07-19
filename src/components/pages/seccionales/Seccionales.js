@@ -46,6 +46,13 @@ const Seccionales = (props) => {
           <SeccionalesLista
             seccionales={props.seccionales}
             onSeccionalSeleccionada={props.onSeccionalSeleccionada}
+            selectores={props.selectores}
+            selector={props.selector}
+            selectorValor={props.selectorValor}
+            onSelectorSelected={props.onSelectorSelected}
+            onSelectorValor={props.onSelectorValor}
+            onBuscarClick={props.onBuscarClick}
+            onLimpiarClick={props.onLimpiarClick}
           />
         </div>
       )}
