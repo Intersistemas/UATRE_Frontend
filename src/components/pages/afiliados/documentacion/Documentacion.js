@@ -9,105 +9,56 @@ import Formato from "../../../helpers/Formato";
 
 const Documentacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
-  const [ddJJUatreList, setDDJJUatreList] = useState([]);
-  const { cuil, infoCompleta } = props.cuil === null ? 0 : props;
+  const [documentacion, setDocumentacion] = useState([]);
 
   useEffect(() => {
-    if (cuil > 0) {
-      const processDDJJUatre = async (ddJJUatreObj) => {
-        setDDJJUatreList(ddJJUatreObj);
+    
+      const processDocumentacion = async (documentacionObj) => {
+        console.log('documentacionObj: ',documentacionObj)
+        setDocumentacion([documentacionObj]);
       };
       request(
         {
-          baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
+          baseURL: "Comunes",
+          endpoint: `/DocumentacionEntidad/GetBySpec?EntidadId=${props.idUsuario}&EntidadTipo=A`,
           method: "GET",
         },
-        processDDJJUatre
+        processDocumentacion
       );
-    }
-  }, [request, cuil]);
+    
+  }, [request, props.idUsuario]);
 
-  let columns = null
-  if (infoCompleta) {
-    columns = [
-      
+  let columns = [
       {
-        dataField: "cuit",
-        text: "CUIT",
-        formatter: Formato.Cuit,
+        dataField: "id",
+        text: "id",
+        hidden: true
       },
       {
-        dataField: "empresa",
-        text: "Razón Social",
-        headerStyle: (colum, colIndex) => {
-          return { width: "20%", textAlign: "center" };
+        dataField: "createdDate",
+        text: "Fecha de Creación",
+        formatter: (value)=>{
+          return _.split(value, 'T', 1 );
+        }
+        
+      },
+      {
+        dataField: "refTipoDocumentacion",
+        text: "Tipo de Documentación",
+      },
+      {
+        dataField: "nombreArchivo",
+        text: "Nombre Archivo",
+        formatter: (value)=>{
+          return value ?? " "
         }
       },
       {
-        dataField: "periodo",
-        text: "Periodo",
-        sort: true,
-        formatter: Formato.Periodo,
-      },
-      {
-        dataField: "presentacionFecha",
-        text: "Fecha Presentación",
-        formatter: FormatearFecha,
-      },
-      {
-        dataField: "procesoFecha",
-        text: "Fecha Proceso",
-        formatter: FormatearFecha,
-      },
-      {
-        dataField: "remuneracionImponible",
-        text: "Remuneración Imponible",
-      },
-      {
-        dataField: "segurosepelio",
-        text: "Seguro Sepelio",
-      },
-      {
-        dataField: "version",
-        text: "Versión",
-      },
-      {
-        dataField: "codigodezona",
-        text: "Código de Zona",
-      },
-      {
-        dataField: "codigodemodalidadcontratacion",
-        text: "Código de Modalidad de Contratación",
-      },
-      {
-        dataField: "codigoactividad",
-        text: "Código de Actividad",
+        dataField: "observaciones",
+        text: "Observaciones",
       }
-      
     ];
-  } else {
-    columns = [
-      {
-        dataField: "periodo",
-        text: "Periodo",
-        sort: true,
-      },
-      {
-        dataField: "cuit",
-        text: "CUIT",
-      },
-      {
-        dataField: "empresa",
-        text: "Empresa",
-      },
-      {
-        dataField: "remuneracionImponible",
-        text: "Remuneracion Imponible",
-      },
-    ];
-  }
-
+  
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
@@ -120,20 +71,24 @@ const Documentacion = (props) => {
     },
   };
 
+  let pagination = {};
+
+  const _ = require('lodash');
+
   let tableProps = {
-    promptBuscar:"Buscar en DDJJ:",
-    keyField: "remuneracionImponible",
-    data: ddJJUatreList,
+   // mostrarBuscar: false,
+    promptBuscar:"Buscar en Documentación:",
+    keyField: "id",
+    data: documentacion,
     columns: columns,
     selectRow: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
     noDataIndication: <h4>No se registran Documentos del Afiliado: </h4>,
     overlay: overlayFactory({ spinner: true }),
-    onSelected: props.onSeleccionRegistro
+    //onSelected: props.onSeleccionRegistro
+    pagination: pagination
   }
-
-
 
   return (
     <div className={styles.container}>
