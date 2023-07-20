@@ -26,6 +26,7 @@ import Formato from "../../helpers/Formato";
 import Seccional from "./seccional/Seccional";
 import useHttp from "../../hooks/useHttp";
 import { styled } from '@mui/material/styles';
+import Documentacion from "./documentacion/Documentacion";
 
 
 const AfiliadosLista = (props ) => {
@@ -527,8 +528,9 @@ const AfiliadosLista = (props ) => {
             />        
           )}
           {selectedTab === 2 && (
-            
-            <Table  {...tablePropsVacia0}/>
+            <Documentacion
+            idUsuario={afiliadoSeleccionado.id}
+            />
           )}
 
           {selectedTab === 3 && (
