@@ -318,7 +318,6 @@ const AfiliadoAgregar = (props) => {
       ${!localidadState.isValid ? "*Localidad\n" : ""}
       ${!seccionalState.isValid ? "*Seccional\n" : ""}
       ${!puestoState.isValid ? "*Puesto\n" : ""}
-      ${!actividadState.isValid ? "*Actividad\n" : ""}
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
   };
@@ -792,6 +791,7 @@ const AfiliadoAgregar = (props) => {
         });
       //console.log("actividades", actividadesSelect);
       setActividades(actividadesSelect);
+      dispatchActividad({ type: "USER_INPUT", value: actividadesSelect[0].value });
     };
 
     request(
@@ -916,7 +916,7 @@ const AfiliadoAgregar = (props) => {
   }, [request, provinciaState]);
 
   useEffect(() => {
-    if (localidadState.value !== "") {
+    if (localidadState.value !== "") {           
       const processSeccionales = async (seccionalesObj) => {
         const seccionalesSelect = seccionalesObj
           .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
@@ -926,6 +926,7 @@ const AfiliadoAgregar = (props) => {
               label: `${seccional.codigo} ${seccional.descripcion}`,
             };
           });
+          console.log("localidadState", localidadState)
         console.log("seccionalesSelect", seccionalesSelect);
         console.log("seccionalSinAsignar", seccionalSinAsignar);
         setSeccionales(
@@ -1345,6 +1346,11 @@ const AfiliadoAgregar = (props) => {
           value: nacionalidades[5].value,
         });
 
+        dispatchActividad({
+          type: "USER_INPUT",
+          value: 1,
+        })
+
         //provincia
         const provincia = provincias.find(
           (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
@@ -1491,6 +1497,7 @@ const AfiliadoAgregar = (props) => {
       case "estadoSolicitudSelect":
         console.log("estadoSolicitudElegido", value);
         setEstadoSolicitudResolver(value);
+        setResolverSolicitudFechaIngreso(value === 2 ? moment(new Date()).format("yyyy-MM-DD") : "")
         break;
 
       default:
@@ -1686,8 +1693,10 @@ const AfiliadoAgregar = (props) => {
         return true;
       }
     }
-
-    return false;
+    console.log("selectedTab", selectedTab)
+    if (selectedTab === 3){
+      return true;
+    } 
   };
 
   const AgregarModificarAfiliadoTitulo = () => {
@@ -1700,18 +1709,20 @@ const AfiliadoAgregar = (props) => {
     } else if (props.accion === "Modifica") {
       return "Modifica Afiliado";
     }
+
+    return "Agrega Solicitud"
   };
 
   const handleResuelveSolicitudDisable = () => {
     if (props.accion === "Resuelve") {
       //console.log("estadoSolicitud", afiliado?.estadoSolicitudId);
-      if (
-        afiliado?.estadoSolicitudId !== 1 ||
-        afiliado?.estadoSolicitudId !== 4
-      ) {
+      if (afiliado?.estadoSolicitudId !== 1 || afiliado?.estadoSolicitudId !== 4){
         return false;
       }
     } else if (props.accion === "Agrega") {
+      if (afiliadoExiste) {
+        return true;
+      }
       if (nuevoAfiliadoResponse) {
         return false;
       }

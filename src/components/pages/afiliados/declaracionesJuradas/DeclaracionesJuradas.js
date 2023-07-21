@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import BootstrapTable from "react-bootstrap-table-next";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./DeclaracionesJuradas.module.css";
 import Formato from "../../../helpers/Formato";
-import paginationFactory from "react-bootstrap-table2-paginator";
 
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
