@@ -1,0 +1,25 @@
+/*#region --ENTRY/INPUT/SELECT--*/
+    /*ENTRY/INPUT/SELECT - DEFECTO*/
+  .select div{
+    background: white !important;
+    font-family: var(--fuente)!important;
+    font-size: 1.1rem!important;
+    color: var(--color1) !important;
+    font-weight: 500!important;
+  }
+
+   /*ENTRY/INPUT/SELECT - DESHABILITADO*/
+  .select [aria-disabled="true"]{
+    color: var(--disableFont) !important;
+    background-color: white !important;
+    font-weight: 500!important;
+  }
+
+  /*LABEL DEL SELECT*/
+  [data-shrink="true"]{
+    font-family: var(--fuente)!important;
+    color: black !important;
+    font-size: 1.2rem !important;
+    border: 1px solid gris1 !important;
+  }
+/*#endregion --ENTRY/INPUT--*/

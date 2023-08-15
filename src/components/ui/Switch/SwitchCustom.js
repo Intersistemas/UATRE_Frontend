@@ -1,4 +1,4 @@
-import { Switch } from "@mui/material";
+import { FormControlLabel, Switch } from "@mui/material";
 import React from "react";
 
 const SwitchCustom = (props) => {
@@ -10,10 +10,11 @@ const SwitchCustom = (props) => {
   };
 
   return (
-    <Switch
-      checked={checked}
-      onChange={handleChange}
-      label={props.label}
+    <FormControlLabel
+      control={
+        <Switch checked={checked} onChange={handleChange} label={props.label} />
+      }
+      label="Solo vigentes"
     />
   );
 };

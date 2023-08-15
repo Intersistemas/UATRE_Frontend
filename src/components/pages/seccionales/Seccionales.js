@@ -1,8 +1,9 @@
 import React, { Fragment, useState } from "react";
-import SeccionalesLista from "./SeccionalesLista";
+import SeccionalesLista from "./lista/SeccionalesLista";
 import { Tab, Tabs } from "@mui/material";
 import styles from "./Seccionales.module.css";
-import SeccionalAutoridades from "./SeccionalAutoridades";
+import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
+import SeccionalDocumentos from "./documentos/SeccionalDocumentos";
 
 const Seccionales = (props) => {
     const [selectedTab, setSelectedTab] = useState(0)
@@ -53,6 +54,7 @@ const Seccionales = (props) => {
             onSelectorValor={props.onSelectorValor}
             onBuscarClick={props.onBuscarClick}
             onLimpiarClick={props.onLimpiarClick}
+            onAgregarClick={props.onAgregarClick}
           />
         </div>
       )}
@@ -64,11 +66,11 @@ const Seccionales = (props) => {
         />
       )}
 
-      {/* {selectedTab === 2 && (
+      {selectedTab === 2 && (
         <SeccionalDocumentos
           seccionalDocumentos={props.seccionalDocumentos}          
         />
-      )} */}
+      )}
     </>
   );
 };

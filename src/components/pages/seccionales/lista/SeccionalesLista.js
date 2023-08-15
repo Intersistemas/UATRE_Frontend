@@ -1,6 +1,6 @@
 import React from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
-import Table from "../../ui/Table/Table";
+import Table from "../../../ui/Table/Table";
 import classes from "./SeccionalesLista.module.css";
 import {
   Box,
@@ -10,7 +10,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import Button from "../../ui/Button/Button";
+import Button from "../../../ui/Button/Button";
 
 const SeccionalesLista = (props) => {
   //#region Tabla
@@ -37,6 +37,33 @@ const SeccionalesLista = (props) => {
       headerTitle: (column, colIndex) => `Descripción`,
       dataField: "descripcion",
       text: "Descripción",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Estado`,
+      dataField: "estado",
+      text: "Estado",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Dirección`,
+      dataField: "domicilio",
+      text: "Dirección",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Observaciones`,
+      dataField: "observaciones",
+      text: "Observaciones",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -69,6 +96,7 @@ const SeccionalesLista = (props) => {
     size: 20,
   };
 
+  console.log("props.seccionales", props.seccionales);
   const tableProps = {
     keyField: "id",
     data: props.seccionales,
@@ -104,6 +132,9 @@ const SeccionalesLista = (props) => {
           "column-gap": "1rem",
         }}
       >
+        <div>
+          <Button onClick={props.onAgregarClick}>Agregar</Button>
+        </div>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
           <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
