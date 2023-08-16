@@ -1,9 +1,9 @@
 import React from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
-import Table from "../../ui/Table/Table";
-import { FormControlLabel, Switch } from "@mui/material";
-import SwitchCustom from "../../ui/Switch/SwitchCustom";
+import Table from "../../../ui/Table/Table";
+import SwitchCustom from "../../../ui/Switch/SwitchCustom";
 import classes from "./SeccionalAutoridades.module.css";
+import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const SeccionalAutoridades = (props) => {
   const columns = [
@@ -39,6 +39,7 @@ const SeccionalAutoridades = (props) => {
       dataField: "fechaVigenciaDesde",
       text: "Vigencia Desde",
       sort: true,
+      formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
@@ -48,6 +49,7 @@ const SeccionalAutoridades = (props) => {
       dataField: "fechaVigenciaHasta",
       text: "Vigencia Hasta",
       sort: true,
+      formatter: FormatearFecha,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },

@@ -1,16 +1,8 @@
 import { FormControl, Autocomplete, TextField } from "@mui/material";
-import styles from "./SelectMaterial.module.css";
+import styles from "./SearchSelectMaterial.module.css";
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 9.2 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
+// const ITEM_HEIGHT = 48;
+// const ITEM_PADDING_TOP = 8;
 
 const SearchSelectMaterial = (props) => {
   const handleChange = (event, newValue) => {   
@@ -25,6 +17,7 @@ const SearchSelectMaterial = (props) => {
     >
       {/* <InputLabel id={props.label + "-label"}>{props.label}</InputLabel> */}
       <Autocomplete
+        className={styles.select}
         disablePortal
         freeSolo
         renderOption={(props, option) => {
@@ -40,11 +33,16 @@ const SearchSelectMaterial = (props) => {
         //MenuProps={MenuProps}
         size="small"
         value={props.value}
-        onChange={handleChange}        
-        getOptionLabel={(option) => option.label}
+        onChange={handleChange}
+        getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
-          <TextField {...params} label={props.label} key={props.value} />
+          <TextField
+            {...params}
+            label={props.label}
+            key={props.value}
+            onChange={props.onTextChange}
+          />
         )}
       />
     </FormControl>

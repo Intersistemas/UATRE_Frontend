@@ -1,23 +1,43 @@
 import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
-import SeccionalAgregar from "./SeccionalAgregar";
-import SeccionalesLista from "./SeccionalesLista";
+import SeccionalAgregar from "./abm/SeccionalAgregar";
+//import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Seccionales";
+
+const selectores = [
+  { value: 1, label: "NOMBRE" },
+  { value: 2, label: "LOCALIDAD" },
+  { value: 3, label: "CP" },
+];
 
 const SeccionalesHandler = () => {
   const { isLoading, error, sendRequest: request } = useHttp();
+
+  //#region variables de estado
   const [seccionales, setSeccionales] = useState([]);
+  const [seccionalesTodas, setSeccionalesTodas] = useState([]);
   const [seccionalAutoridades, setSeccionalAutoridades] = useState([]);
   const [seccionalSeleccionada, setSeccionalSeleccionada] = useState(null);
   const [seccionalDocumentos, setSeccionalDocumentos] = useState([]);
+  const [refCargos, setRefCargos] = useState([]);
+  const [autoridadAfiliado, setAutoridadAfiliado] = useState(null);
   const [soloAutoridadesVigentes, setSoloAutoridadesVigentes] = useState(true);
   const [localidades, setLocalidades] = useState([]);
   const [seccionalAgregarShow, setSeccionalAgregarShow] = useState(false);
+  const [selector, setSelector] = useState(0);
+  const [selectorValor, setSelectorValor] = useState("");
+  //#endregion
 
+  //#region api calls
   useEffect(() => {
     const processSeccionales = async (seccionalesObj) => {
-      console.log("seccionales", seccionalesObj);
-      setSeccionales(seccionalesObj);
+      //console.log("seccionales", seccionalesObj);
+      const seccionalesConDescripcion = seccionalesObj.filter(
+        (seccional) =>
+          seccional.descripcion !== "" && seccional.descripcion !== null
+      );
+      setSeccionalesTodas(seccionalesConDescripcion);
+      setSeccionales(seccionalesConDescripcion);
     };
 
     request(
@@ -30,7 +50,7 @@ const SeccionalesHandler = () => {
     );
 
     const processLocalidades = async (localidadesObj) => {
-      console.log("localidades", localidadesObj);
+      //console.log("localidades", localidadesObj);
       setLocalidades(localidadesObj);
     };
 
@@ -42,11 +62,24 @@ const SeccionalesHandler = () => {
       },
       processLocalidades
     );
-  }, [request]);
 
-  const onCloseSeccionalAgregarHandler = (idAgregado) => {
-    setSeccionalAgregarShow(false);
-  };
+    const processRefCargos = async (refCargosObj) => {
+      console.log("refCargosObj", refCargosObj);
+      const refCargosSelect = refCargosObj.map((refCargo) => {
+        return { value: refCargo.id, label: refCargo.cargo };
+      });
+      setRefCargos(refCargosSelect);
+    };
+
+    request(
+      {
+        baseURL: "Comunes",
+        endpoint: "/RefCargo/GetAll",
+        method: "GET",
+      },
+      processRefCargos
+    );
+  }, [request]);
 
   const handlerOnSeccionalSeleccionada = (seccional) => {
     setSeccionalAutoridades([]);
@@ -84,26 +117,167 @@ const SeccionalesHandler = () => {
     );
   };
 
-  if (seccionales.length !== 0)
-    return (
-      <Fragment>
-        {seccionalAgregarShow && (
-          <SeccionalAgregar
-            onClose={onCloseSeccionalAgregarHandler}
-            localidades={localidades}
-          />
-        )}
+  const handlerOnValidaAfiliadoclick = (numeroAfiliado) => {
+    console.log("numeroAfiliado", +numeroAfiliado);
+    if (+numeroAfiliado !== 0) {
+      const processAfiliado = async (afiliadoObj) => {
+        console.log("afiliadoObj", afiliadoObj);
+        setAutoridadAfiliado(afiliadoObj.data[0]);
+      };
 
-        <Seccionales
-          seccionales={seccionales}
-          seccionalSeleccionada={seccionalSeleccionada}
-          seccionalAutoridades={seccionalAutoridades}
-          seccionalDocumentos={seccionalDocumentos}
-          onSeccionalSeleccionada={handlerOnSeccionalSeleccionada}
-          onSoloAutoridadesVigentes={handlerOnSoloAutoridadesVigentes}
-        />
-      </Fragment>
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado/GetAfiliadosWithSpec?NroAfiliado=${+numeroAfiliado}`,
+          method: "GET",
+        },
+        processAfiliado
+      );
+    }
+  };
+
+  const handlerOnConfirmaClick = (seccional) => {
+    console.log("seccionalcrear", seccional);
+    const processCrearSeccional = async (seccionalObj) => {
+      //console.log("seccionalObj", seccionalObj);
+
+      setSeccionalAgregarShow(false);
+      setSeccionales((current) => [...current, seccionalObj]);
+    };
+
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional`,
+        method: "POST",
+        body: seccional,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      processCrearSeccional
     );
+  };
+
+  //#endregion
+
+  const onCloseSeccionalAgregarHandler = () => {
+    console.log("limpia");
+    setSeccionalAutoridades([]);
+    setAutoridadAfiliado(null);
+    setSeccionalAgregarShow(false);
+  };
+
+  //#region Buscar
+  const handlerOnSelectorSelected = (selector) => {
+    //console.log("selector", selector)
+    setSelector(selector);
+    setSelectorValor("");
+  };
+
+  const handlerOnSelectorValor = (selectorValor) => {
+    setSelectorValor(selectorValor);
+  };
+
+  const handlerOnBuscarClick = () => {
+    console.log("params", selector, selectorValor);
+    //console.log("seccionales", seccionales)
+    switch (selector.value) {
+      case 1:
+        const seccionalesNombre = seccionales.filter((seccional) =>
+          seccional.descripcion
+            .toUpperCase()
+            .includes(selectorValor.toUpperCase())
+        );
+        console.log("seccionalesNombre", seccionalesNombre);
+        setSeccionales(seccionalesNombre ?? []);
+        break;
+
+      case 2:
+        const processSeccionalLocalidad = async (seccionalLocalidadObj) => {
+          //console.log("seccionalAut", seccionalAutoridadesObj);
+          setSeccionales(seccionalLocalidadObj);
+        };
+
+        request(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/Seccional/GetSeccionalesSpecs?Localidad=${selectorValor}`,
+            method: "GET",
+          },
+          processSeccionalLocalidad
+        );
+        break;
+
+      case 3:
+        const processSeccionalCP = async (seccionalLocalidadObj) => {
+          //console.log("seccionalAut", seccionalAutoridadesObj);
+          setSeccionales(seccionalLocalidadObj);
+        };
+
+        request(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/Seccional/GetSeccionalesSpecs?CodigoPostal=${selectorValor}`,
+            method: "GET",
+          },
+          processSeccionalCP
+        );
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const handlerOnLimpiarClick = () => {
+    setSelector(0);
+    setSelectorValor("");
+    setSeccionales(seccionalesTodas);
+  };
+  //#endregion
+
+  const handlerOnAgregarClick = () => {
+    setSeccionalAgregarShow(true);
+  };
+
+  const handlerOnAgregaAutoridad = (autoridad) => {
+    setSeccionalAutoridades((current) => [...current, autoridad]);
+  };
+
+  return (
+    <Fragment>
+      {seccionalAgregarShow && (
+        <SeccionalAgregar
+          refCargos={refCargos}
+          localidades={localidades}
+          seccionalAutoridades={seccionalAutoridades}
+          autoridadAfiliado={autoridadAfiliado}
+          onClose={onCloseSeccionalAgregarHandler}
+          onConfirmaClick={handlerOnConfirmaClick}
+          onAgregaAutoridad={handlerOnAgregaAutoridad}
+          onValidaAfiliadoClick={handlerOnValidaAfiliadoclick}
+        />
+      )}
+
+      <Seccionales
+        seccionales={seccionales}
+        seccionalSeleccionada={seccionalSeleccionada}
+        seccionalAutoridades={seccionalAutoridades}
+        seccionalDocumentos={seccionalDocumentos}
+        onSeccionalSeleccionada={handlerOnSeccionalSeleccionada}
+        onSoloAutoridadesVigentes={handlerOnSoloAutoridadesVigentes}
+        selectores={selectores}
+        selector={selector}
+        selectorValor={selectorValor}
+        onSelectorSelected={handlerOnSelectorSelected}
+        onSelectorValor={handlerOnSelectorValor}
+        onBuscarClick={handlerOnBuscarClick}
+        onLimpiarClick={handlerOnLimpiarClick}
+        onAgregarClick={handlerOnAgregarClick}
+      />
+    </Fragment>
+  );
 };
 
 export default SeccionalesHandler;

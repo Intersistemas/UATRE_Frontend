@@ -8,11 +8,25 @@
     background-color: rgba(0, 0, 0, 0.75);
   }
   
+  .modalseccionales {
+    position: fixed;
+    width: 60rem;
+    height: 50rem;
+    left: calc(50% - 30rem);
+    top: calc(50% - 25rem);
+    background-color: #d1dfe9; /*#e7effd;*/
+    padding: 1rem;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    z-index: 30;
+    animation: slide-down 300ms ease-out forwards;
+  }
+
   .modal {
     position: fixed;
     top: 5vh;
     left: 5%;
-    width: 90%;
+    width: 50%;
     background-color: #d1dfe9; /*#e7effd;*/
     padding: 1rem;
     border-radius: 14px;
