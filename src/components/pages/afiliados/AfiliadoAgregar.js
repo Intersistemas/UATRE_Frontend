@@ -1,7 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
-import Grid from "../../ui/Grid/Grid";
 import classes from "./AfiliadoAgregar.module.css";
 import useHttp from "../../hooks/useHttp";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
@@ -19,9 +18,6 @@ import moment from "moment";
 import ValidarCUIT from "../../validators/ValidarCUIT";
 import ValidarEmail from "../../validators/ValidarEmail";
 import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
-//import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
-import DocumentacionList from "./documentacion/DocumentacionList";
-import DocumentacionForm from "./documentacion/DocumentacionForm";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
 import {
@@ -36,7 +32,7 @@ import TabEmpleador from "./TabEmpleador/TabEmpleador";
 import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
-import DatePickerMaterial from "../../ui/Input/DatePickerMaterial";
+import Documentacion from "../../Documentacion/Documentacion";
 
 //#region Reducers
 const cuilReducer = (state, action) => {
@@ -394,12 +390,10 @@ const AfiliadoAgregar = (props) => {
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
+  //#endregion
 
-  const [documentacionList, setDocumentacionList] = useState({
-    data: [],
-    idGen: 0,
-  });
-  const [documentacionItem, setDocumentacionItem] = useState({});
+  //#region Documentación
+	const [documentacionList, setDocumentacionList] = useState([]);
   //#endregion
 
   //#region Datos Personales Formulario
@@ -1106,6 +1100,7 @@ const AfiliadoAgregar = (props) => {
         afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
         afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
         empresa: empresa,
+				documentacion: documentacionList,
       };
 
       console.log("POST", nuevoAfiliado);
@@ -1114,41 +1109,6 @@ const AfiliadoAgregar = (props) => {
         // 	afiliadosObj: afiliadoResponseObj,
         // 	documentacionList: documentacionList,
         // });
-
-        // Envío documentación enlazada al nuevo afiliado
-        documentacionList?.data?.forEach((doc) => {
-          if (!doc.refTipoDocumentacionId) return;
-          if (!doc.archivoBase64) return;
-          const body = {
-            entidadTipo: "A",
-            entidadId: afiliadoResponseObj,
-            refTipoDocumentacionId: doc.refTipoDocumentacionId,
-            archivo: doc.archivoBase64,
-            observaciones: doc.observaciones,
-          };
-
-          request(
-            {
-              baseURL: "Comunes",
-              endpoint: `/DocumentacionEntidad`,
-              method: "POST",
-              body: body,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            },
-            async (res) =>
-              console.log({
-                "[Comunes/DocumentacionEntidad] POST OK": body,
-                res: res,
-              }),
-            async (err) =>
-              console.log({
-                "[Comunes/DocumentacionEntidad] POST Error": body,
-                err: err,
-              })
-          );
-        });
 
         setNuevoAfiliadoResponse({...nuevoAfiliado,id:afiliadoResponseObj,estadoSolicitud: "Pendiente"});
         console.log('Afiliado agregado',nuevoAfiliadoResponse);
@@ -1933,6 +1893,7 @@ const AfiliadoAgregar = (props) => {
           ? domicilioRealAFIP.tipoDatoAdicional
           : afiliado.afipDomicilioTipoDatoAdicional,
       empresa: empresa,
+			documentacion: documentacionList,
     };
     console.log("afiliado modificado", afiliadoModificado);
     // console.log("padronRespuesta", padronRespuesta);
@@ -1999,195 +1960,195 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   return (
-    <>
-      <div>
-        <Dialog onClose={handleCloseDialog} open={openDialog}>
-          <DialogContent dividers>
-            <Typography gutterBottom>{dialogTexto}</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cierra</Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-      <Modal onClose={props.onClose}>
-        <CabeceraABMAfiliado
-          cuilState={cuilState}
-          nombreState={nombreState}
-          afiliadoExiste={afiliadoExiste}
-          padronRespuesta={padronRespuesta}
-          afiliado={afiliado}
-          estadoSolicitudDescripcion={estadoSolicitudDescripcion}
-        />
+		<>
+			<div>
+				<Dialog onClose={handleCloseDialog} open={openDialog}>
+					<DialogContent dividers>
+						<Typography gutterBottom>{dialogTexto}</Typography>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={handleCloseDialog}>Cierra</Button>
+					</DialogActions>
+				</Dialog>
+			</div>
+			<Modal onClose={props.onClose}>
+				<CabeceraABMAfiliado
+					cuilState={cuilState}
+					nombreState={nombreState}
+					afiliadoExiste={afiliadoExiste}
+					padronRespuesta={padronRespuesta}
+					afiliado={afiliado}
+					estadoSolicitudDescripcion={estadoSolicitudDescripcion}
+				/>
 
-        <div className={classes.div}>
-          <Tabs
-            value={selectedTab}
-            onChange={handleChangeTab}
-            aria-label="basic tabs example"
-          >
-            <Tab
-              label="Datos Personales"
-              //disabled={nuevoAfiliadoResponse ? true : false}
-            />
-            <Tab
-              label="Datos Empleador"
-              disabled={formularioIsValid ? false : true}
-            />
-            <Tab
-              label={
-                /*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
-              }
-              disabled={cuilState.isValid ? false : true}
-            />
-            <Tab
-              label="Resuelve Solicitud"
-              disabled={handleResuelveSolicitudDisable()}
-              hidden={
-                props.accion === "Agrega" || props.accion === "Resuelve"
-                  ? false
-                  : true
-              }
-            />
-            <Tab
-              label="Documentacion"
-              disabled={cuitState.isValid ? false : true}
-            />
-          </Tabs>
-        </div>
-        {selectedTab === 0 && (
-          <div className={classes.div}>
-            {/* region Datos Principales */}
-            <div className={classes.renglon}>
-              <div className={classes.input25}>
-                <InputMaterialMask
-                  id="cuil"
-                  onFocus={handleOnFocus}
-                  value={cuilState.value.toString()}
-                  label="CUIL"
-                  disabled={
-                    InputDisabled("cuil") || afiliado?.estadoSolicitudId === 2
-                  }
-                  width={98}
-                  onChange={handleInputChange}
-                  helperText={
-                    !cuilState.isValid && cuilState.value !== ""
-                      ? "CUIL con formato incorrecto"
-                      : ""
-                  }
-                  error={
-                    !cuilState.isValid &&
-                    cuilState.value !== "" &&
-                    inputsTouched
-                      ? true
-                      : false
-                  }
-                />
-              </div>
-              <div className={classes.input25}>
-                <LoadingButtonCustom
-                  width={80}
-                  heigth={70}
-                  disabled={deshabilitarBotonValidarCUIL()}
-                  onClick={validarAfiliadoCUILHandler}
-                  loading={cuilLoading}
-                >
-                  {!cuilLoading ? `Valida CUIL` : `Validando...`}
-                </LoadingButtonCustom>
-              </div>
-              <div className={classes.input25}>
-                <InputMaterial
-                  id="nroAfiliado"
-                  value={afiliado?.nroAfiliado}
-                  label="Nro Afiliado"
-                  onChange={handleInputChange}
-                  readOnly={true}
-                />
-              </div>
-              <div className={classes.input25}>
-                <InputMaterial
-                  id="fechaIngreso"
-                  value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
-                  label="Fecha Ingreso"
-                  onChange={handleInputChange}
-                  readOnly={true}
-                />
-              </div>
-            </div>
-            <div className={classes.renglon}>
-              <div className={classes.input}>
-                <InputMaterial
-                  id="nombre"
-                  value={nombreState.value ?? ""}
-                  label="Apellido y Nombre"
-                  width={100}
-                  onChange={handleInputChange}
-                  disabled={InputDisabled()}
-                  error={!nombreState.isValid && inputsTouched ? true : false}
-                />
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="tipoDocumentoSelect"
-                  value={tipoDocumentoState.value}
-                  options={tiposDocumentos}
-                  label="Tipo Documento"
-                  disabled={InputDisabled()}
-                  onChange={handleChangeSelect}
-                  //width={98}
-                  error={
-                    !tipoDocumentoState.isValid && inputsTouched ? true : false
-                  }
-                  helperText
-                />
-              </div>
-              <div className={classes.input25}>
-                <InputMaterial
-                  id="numeroDocumento"
-                  onFocus={handleOnFocus}
-                  value={numeroDocumentoState.value}
-                  label="Numero Documento"
-                  disabled={InputDisabled()}
-                  //width={96}
-                  onChange={handleInputChange}
-                  error={
-                    !numeroDocumentoState.isValid && inputsTouched
-                      ? true
-                      : false
-                  }
-                />
-              </div>
-            </div>
-            <div className={classes.renglon}>
-              <div className={classes.input25}>
-                <InputMaterial
-                  id="fechaNacimiento"
-                  value={fechaNacimientoState.value}
-                  label="Fecha de Nacimiento"
-                  type="date"
-                  onChange={handleInputChange}
-                  disabled={InputDisabled()}
-                  error={
-                    !fechaNacimientoState.isValid && inputsTouched
-                      ? true
-                      : false
-                  }
-                />
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="nacionalidadSelect"
-                  label="Nacionalidad"
-                  options={nacionalidades}
-                  value={nacionalidadState.value}
-                  defaultValue={nacionalidades[0]}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={
-                    !nacionalidadState.isValid && inputsTouched ? true : false
-                  }
-                />
-                {/* <SearchSelectMaterial
+				<div className={classes.div}>
+					<Tabs
+						value={selectedTab}
+						onChange={handleChangeTab}
+						aria-label="basic tabs example"
+					>
+						<Tab
+							label="Datos Personales"
+							//disabled={nuevoAfiliadoResponse ? true : false}
+						/>
+						<Tab
+							label="Datos Empleador"
+							disabled={formularioIsValid ? false : true}
+						/>
+						<Tab
+							label={
+								/*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
+							}
+							disabled={cuilState.isValid ? false : true}
+						/>
+						<Tab
+							label="Resuelve Solicitud"
+							disabled={handleResuelveSolicitudDisable()}
+							hidden={
+								props.accion === "Agrega" || props.accion === "Resuelve"
+									? false
+									: true
+							}
+						/>
+						<Tab
+							label="Documentacion"
+							disabled={cuitState.isValid ? false : true}
+						/>
+					</Tabs>
+				</div>
+				{selectedTab === 0 && (
+					<div className={classes.div}>
+						{/* region Datos Principales */}
+						<div className={classes.renglon}>
+							<div className={classes.input25}>
+								<InputMaterialMask
+									id="cuil"
+									onFocus={handleOnFocus}
+									value={cuilState.value.toString()}
+									label="CUIL"
+									disabled={
+										InputDisabled("cuil") || afiliado?.estadoSolicitudId === 2
+									}
+									width={98}
+									onChange={handleInputChange}
+									helperText={
+										!cuilState.isValid && cuilState.value !== ""
+											? "CUIL con formato incorrecto"
+											: ""
+									}
+									error={
+										!cuilState.isValid &&
+										cuilState.value !== "" &&
+										inputsTouched
+											? true
+											: false
+									}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<LoadingButtonCustom
+									width={80}
+									heigth={70}
+									disabled={deshabilitarBotonValidarCUIL()}
+									onClick={validarAfiliadoCUILHandler}
+									loading={cuilLoading}
+								>
+									{!cuilLoading ? `Valida CUIL` : `Validando...`}
+								</LoadingButtonCustom>
+							</div>
+							<div className={classes.input25}>
+								<InputMaterial
+									id="nroAfiliado"
+									value={afiliado?.nroAfiliado}
+									label="Nro Afiliado"
+									onChange={handleInputChange}
+									readOnly={true}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<InputMaterial
+									id="fechaIngreso"
+									value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+									label="Fecha Ingreso"
+									onChange={handleInputChange}
+									readOnly={true}
+								/>
+							</div>
+						</div>
+						<div className={classes.renglon}>
+							<div className={classes.input}>
+								<InputMaterial
+									id="nombre"
+									value={nombreState.value ?? ""}
+									label="Apellido y Nombre"
+									width={100}
+									onChange={handleInputChange}
+									disabled={InputDisabled()}
+									error={!nombreState.isValid && inputsTouched ? true : false}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="tipoDocumentoSelect"
+									value={tipoDocumentoState.value}
+									options={tiposDocumentos}
+									label="Tipo Documento"
+									disabled={InputDisabled()}
+									onChange={handleChangeSelect}
+									//width={98}
+									error={
+										!tipoDocumentoState.isValid && inputsTouched ? true : false
+									}
+									helperText
+								/>
+							</div>
+							<div className={classes.input25}>
+								<InputMaterial
+									id="numeroDocumento"
+									onFocus={handleOnFocus}
+									value={numeroDocumentoState.value}
+									label="Numero Documento"
+									disabled={InputDisabled()}
+									//width={96}
+									onChange={handleInputChange}
+									error={
+										!numeroDocumentoState.isValid && inputsTouched
+											? true
+											: false
+									}
+								/>
+							</div>
+						</div>
+						<div className={classes.renglon}>
+							<div className={classes.input25}>
+								<InputMaterial
+									id="fechaNacimiento"
+									value={fechaNacimientoState.value}
+									label="Fecha de Nacimiento"
+									type="date"
+									onChange={handleInputChange}
+									disabled={InputDisabled()}
+									error={
+										!fechaNacimientoState.isValid && inputsTouched
+											? true
+											: false
+									}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="nacionalidadSelect"
+									label="Nacionalidad"
+									options={nacionalidades}
+									value={nacionalidadState.value}
+									defaultValue={nacionalidades[0]}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!nacionalidadState.isValid && inputsTouched ? true : false
+									}
+								/>
+								{/* <SearchSelectMaterial
                 name="nacionalidadSelect"
                 label="Nacionalidad"
                 options={nacionalidades}
@@ -2196,74 +2157,74 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
             />*/}
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="estadoCivilSelect"
-                  label="Estado Civil"
-                  options={estadosCiviles}
-                  value={estadoCivilState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  //width={100}
-                  error={
-                    !estadoCivilState.isValid && inputsTouched ? true : false
-                  }
-                />
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="sexoSelect"
-                  label="Genero"
-                  options={sexos}
-                  value={sexoState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  //width={100}
-                  error={!sexoState.isValid && inputsTouched ? true : false}
-                />
-              </div>
-            </div>
-            <div className={classes.renglon}>
-              <div className={classes.input}>
-                <InputMaterial
-                  id="domicilio"
-                  value={domicilioState.value}
-                  label="Domicilio"
-                  disabled={InputDisabled()}
-                  onChange={handleInputChange}
-                  error={
-                    !domicilioState.isValid && inputsTouched ? true : false
-                  }
-                />
-              </div>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="estadoCivilSelect"
+									label="Estado Civil"
+									options={estadosCiviles}
+									value={estadoCivilState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									//width={100}
+									error={
+										!estadoCivilState.isValid && inputsTouched ? true : false
+									}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="sexoSelect"
+									label="Genero"
+									options={sexos}
+									value={sexoState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									//width={100}
+									error={!sexoState.isValid && inputsTouched ? true : false}
+								/>
+							</div>
+						</div>
+						<div className={classes.renglon}>
+							<div className={classes.input}>
+								<InputMaterial
+									id="domicilio"
+									value={domicilioState.value}
+									label="Domicilio"
+									disabled={InputDisabled()}
+									onChange={handleInputChange}
+									error={
+										!domicilioState.isValid && inputsTouched ? true : false
+									}
+								/>
+							</div>
 
-              <div className={classes.input}>
-                <SelectMaterial
-                  name="provinciaSelect"
-                  label="Provincia"
-                  options={provincias}
-                  value={provinciaState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={
-                    !provinciaState.isValid && inputsTouched ? true : false
-                  }
-                />
-              </div>
-              <div className={classes.input}>
-                <SelectMaterial
-                  name="localidadSelect"
-                  label="Localidad"
-                  options={localidades}
-                  value={localidadState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={
-                    !localidadState.isValid && inputsTouched ? true : false
-                  }
-                />
-                {/* <SearchSelectMaterial
+							<div className={classes.input}>
+								<SelectMaterial
+									name="provinciaSelect"
+									label="Provincia"
+									options={provincias}
+									value={provinciaState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!provinciaState.isValid && inputsTouched ? true : false
+									}
+								/>
+							</div>
+							<div className={classes.input}>
+								<SelectMaterial
+									name="localidadSelect"
+									label="Localidad"
+									options={localidades}
+									value={localidadState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!localidadState.isValid && inputsTouched ? true : false
+									}
+								/>
+								{/* <SearchSelectMaterial
                 name="localidadSelect"
                 label="Localidad"
                 options={localidades}
@@ -2272,23 +2233,23 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
-              </div>
-            </div>
+							</div>
+						</div>
 
-            <div className={classes.renglon}>
-              <div className={classes.input}>
-                <SelectMaterial
-                  name="seccionalSelect"
-                  label="Seccional"
-                  options={seccionales}
-                  value={seccionalState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={
-                    !seccionalState.isValid && inputsTouched ? true : false
-                  }
-                />
-                {/* <SearchSelectMaterial
+						<div className={classes.renglon}>
+							<div className={classes.input}>
+								<SelectMaterial
+									name="seccionalSelect"
+									label="Seccional"
+									options={seccionales}
+									value={seccionalState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!seccionalState.isValid && inputsTouched ? true : false
+									}
+								/>
+								{/* <SearchSelectMaterial
                 name="seccionalSelect"
                 label="Seccional"
                 options={seccionales}
@@ -2296,291 +2257,185 @@ const AfiliadoAgregar = (props) => {
                 onChange={handleChangeSelect}
                 disabled={!padronRespuesta?.idPersona ? true : false}
               /> */}
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="puestoSelect"
-                  label="Oficio"
-                  options={puestos}
-                  value={puestoState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={!puestoState.isValid && inputsTouched ? true : false}
-                />
-              </div>
-              <div className={classes.input25}>
-                <SelectMaterial
-                  name="actividadSelect"
-                  label="Actividad"
-                  options={actividades}
-                  value={actividadState.value}
-                  onChange={handleChangeSelect}
-                  disabled={InputDisabled()}
-                  error={
-                    !actividadState.isValid && inputsTouched ? true : false
-                  }
-                />
-              </div>
-            </div>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="puestoSelect"
+									label="Oficio"
+									options={puestos}
+									value={puestoState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={!puestoState.isValid && inputsTouched ? true : false}
+								/>
+							</div>
+							<div className={classes.input25}>
+								<SelectMaterial
+									name="actividadSelect"
+									label="Actividad"
+									options={actividades}
+									value={actividadState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!actividadState.isValid && inputsTouched ? true : false
+									}
+								/>
+							</div>
+						</div>
 
-            <div className={classes.renglon}>
-              <div className={classes.input}>
-                <InputMaterial
-                  id="telefono"
-                  value={telefonoState.value}
-                  label="Telefono/Celular"
-                  disabled={InputDisabled()}
-                  width={100}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className={classes.input}>
-                <InputMaterial
-                  id="correo"
-                  value={emailState.value}
-                  label="Correo"
-                  disabled={InputDisabled()}
-                  width={100}
-                  onChange={handleInputChange}
-                  helperText={
-                    !emailState.isValid &&
-                    emailState.value !== "" &&
-                    emailState.value !== null
-                      ? "Email inválido"
-                      : ""
-                  }
-                  error={
-                    !emailState.isValid &&
-                    emailState.value !== "" &&
-                    emailState.value !== null
-                      ? true
-                      : false
-                  }
-                />
-              </div>
-            </div>
+						<div className={classes.renglon}>
+							<div className={classes.input}>
+								<InputMaterial
+									id="telefono"
+									value={telefonoState.value}
+									label="Telefono/Celular"
+									disabled={InputDisabled()}
+									width={100}
+									onChange={handleInputChange}
+								/>
+							</div>
+							<div className={classes.input}>
+								<InputMaterial
+									id="correo"
+									value={emailState.value}
+									label="Correo"
+									disabled={InputDisabled()}
+									width={100}
+									onChange={handleInputChange}
+									helperText={
+										!emailState.isValid &&
+										emailState.value !== "" &&
+										emailState.value !== null
+											? "Email inválido"
+											: ""
+									}
+									error={
+										!emailState.isValid &&
+										emailState.value !== "" &&
+										emailState.value !== null
+											? true
+											: false
+									}
+								/>
+							</div>
+						</div>
 
-            <DatosAfip afiliado={afiliado} padronRespuesta={padronRespuesta} />
-          </div>
-        )}
-        {selectedTab === 1 && (
-          <TabEmpleador
-            padronEmpresaRespuesta={padronEmpresaRespuesta}
-            cuitEmpresa={cuitEmpresa}
-            cuitState={cuitState}
-            cuitValidado={cuitValidado}
-            cuitLoading={cuitLoading}
-            razonSocialEmpresa={razonSocialEmpresa}
-            actividadEmpresa={actividadEmpresa}
-            domicilioEmpresa={domicilioEmpresa}
-            localidadEmpresa={localidadEmpresa}
-            telefonoEmpresa={telefonoEmpresa}
-            correoEmpresa={correoEmpresa}
-            lugarTrabajoEmpresa={lugarTrabajoEmpresa}
-            inputsTouched={inputsTouched}
-            onHandleInputChange={handleInputChange}
-            onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
-            onFocus={handleOnFocus}
-          />
-        )}
-        {selectedTab === 2 && (
-          <>
-            <DeclaracionesJuradas
-              cuil={
-                afiliado !== null
-                  ? afiliado.cuilValidado
-                  : cuilState.value
-              }
-              onSeleccionRegistro={handleSeleccionDDJJ}
-              infoCompleta={true}
-              onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
-              registros={12}
-            />
-            <div
-              className={classes.div}
-              hidden={
-                ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
-              }
-            >
-              <div className={classes.renglon}>
-                <h6>
-                  El afiliado {nombreState.value} de la Empresa{" "}
-                  {razonSocialEmpresa} está en condiciones de ser incorporado al
-                  Padrón.
-                </h6>
-              </div>
-              <div className={classes.renglon}>
-                <div className={classes.boton}>
-                  <Button
-                    className={classes.button}
-                    width={80}
-                    onClick={afiliadoAgregarHandler}
-                  >
-                    Incorporar al Padrón
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        {selectedTab === 3 && (
-          <ResolverSolicitud
-            padronRespuesta={padronRespuesta}
-            cuilState={
-              afiliado !== null
-                ? afiliado.cuilValidado
-                : cuilState.value
-            }
-            nombreState={nombreState}
-            cuitEmpresa={cuitEmpresa}
-            resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
-            resolverSolicitudObs={resolverSolicitudObs}
-            estadoSolicitud={estadoSolicitudResolver}
-            estadosSolicitudes={estadosSolicitudes}
-            showImprimirLiquidacion={showImprimirLiquidacion}
-            onHandleChangeSelect={handleChangeSelect}
-            onHandleInputChange={handleInputChange}
-            onResolverSolicitudHandler={resolverSolicitudHandler}
-          />
-        )}
-        {selectedTab === 4 && (
-          <Grid col full="width" gap="10px">
-            <Grid full="width" gap="5px">
-              <DocumentacionList
-                config={{
-                  data: documentacionList.data,
-                  onSelect: (r) => {
-                    setDocumentacionItem({
-                      data: { ...r },
-                      hisotry: { ...r },
-                      req: null,
-                    });
-                  },
-                }}
-              />
-            </Grid>
-            <Grid full="width" gap="5px">
-              <Grid grow>
-                <Button
-                  onClick={() => setDocumentacionItem({ data: {}, req: 1 })}
-                >
-                  Agrega documentación
-                </Button>
-              </Grid>
-              <Grid grow>
-                <Button
-                  disabled={documentacionItem.req != null}
-                  onClick={() =>
-                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
-                  }
-                >
-                  Modifica documentación
-                </Button>
-              </Grid>
-              <Grid grow>
-                <Button
-                  disabled={documentacionItem.req != null}
-                  onClick={() =>
-                    setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))
-                  }
-                >
-                  Borra documentación
-                </Button>
-              </Grid>
-            </Grid>
-            <Grid
-              col
-              full="width"
-              gap="20px"
-              style={{
-                marginTop: "10px",
-                border: "1px solid #186090",
-                padding: "15px",
-              }}
-            >
-              <DocumentacionForm
-                config={{
-                  data: documentacionItem.data,
-                  disabled: documentacionItem.req == null,
-                  onChange: (dataChanges) =>
-                    setDocumentacionItem((oldValue) => ({
-                      ...oldValue,
-                      data: { ...oldValue.data, ...dataChanges },
-                    })),
-                  onCancel: () =>
-                    setDocumentacionItem((oldValue) => ({
-                      data: oldValue.history,
-                      history: oldValue.history,
-                      req: null,
-                    })),
-                  onConfirm: () => {
-                    let data;
-                    let index = null;
-                    switch (documentacionItem.req) {
-                      case 1: // Agrega
-                        data = { ...documentacionItem.data, id: null };
-                        index = documentacionList.data.length;
-                        break;
-                      case 2: // Modifica
-                        data = { ...documentacionItem.data };
-                        break;
-                      case 3: // Borra
-                        data = null;
-                        break;
-                      default:
-                        return;
-                    }
-                    if (index == null) {
-                      // Modifica o Borra
-                      index = documentacionList.data.findIndex(
-                        (r) => r.id === documentacionItem.data?.id
-                      );
-                    }
-                    setDocumentacionList((oldValue) => {
-                      const newValue = {
-                        ...oldValue,
-                        data: [...oldValue.data],
-                      };
-                      if (data == null) {
-                        // Borra
-                        newValue.data.splice(index, 1);
-                      } else {
-                        // Agrega o Modifica
-                        if (data.id == null) {
-                          // Agrega
-                          newValue.idGen += 1;
-                          data.id = newValue.idGen;
-                        }
-                        newValue.data.splice(index, 1, { ...data });
-                      }
-                      return newValue;
-                    });
-                    setDocumentacionItem({ req: null });
-                  },
-                }}
-              />
-            </Grid>
-          </Grid>
-        )}
-        <div className={classes.footer}>
-          <LoadingButtonCustom
-            /*className={classes.button}*/
-            hidden={props.accion === "Resuelve" ? true : false}
-            loading={afiliadoProcesando}
-            width={25}
-            onClick={afiliadoAgregarHandler}
-            disabled={AgregarModificarAfiliadoDisableHandler()}
-          >
-            {AgregarModificarAfiliadoTitulo()}
-          </LoadingButtonCustom>
+						<DatosAfip afiliado={afiliado} padronRespuesta={padronRespuesta} />
+					</div>
+				)}
+				{selectedTab === 1 && (
+					<TabEmpleador
+						padronEmpresaRespuesta={padronEmpresaRespuesta}
+						cuitEmpresa={cuitEmpresa}
+						cuitState={cuitState}
+						cuitValidado={cuitValidado}
+						cuitLoading={cuitLoading}
+						razonSocialEmpresa={razonSocialEmpresa}
+						actividadEmpresa={actividadEmpresa}
+						domicilioEmpresa={domicilioEmpresa}
+						localidadEmpresa={localidadEmpresa}
+						telefonoEmpresa={telefonoEmpresa}
+						correoEmpresa={correoEmpresa}
+						lugarTrabajoEmpresa={lugarTrabajoEmpresa}
+						inputsTouched={inputsTouched}
+						onHandleInputChange={handleInputChange}
+						onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
+						onFocus={handleOnFocus}
+					/>
+				)}
+				{selectedTab === 2 && (
+					<>
+						<DeclaracionesJuradas
+							cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
+							onSeleccionRegistro={handleSeleccionDDJJ}
+							infoCompleta={true}
+							onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+							registros={12}
+						/>
+						<div
+							className={classes.div}
+							hidden={
+								ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
+							}
+						>
+							<div className={classes.renglon}>
+								<h6>
+									El afiliado {nombreState.value} de la Empresa{" "}
+									{razonSocialEmpresa} está en condiciones de ser incorporado al
+									Padrón.
+								</h6>
+							</div>
+							<div className={classes.renglon}>
+								<div className={classes.boton}>
+									<Button
+										className={classes.button}
+										width={80}
+										onClick={afiliadoAgregarHandler}
+									>
+										Incorporar al Padrón
+									</Button>
+								</div>
+							</div>
+						</div>
+					</>
+				)}
+				{selectedTab === 3 && (
+					<ResolverSolicitud
+						padronRespuesta={padronRespuesta}
+						cuilState={
+							afiliado !== null ? afiliado.cuilValidado : cuilState.value
+						}
+						nombreState={nombreState}
+						cuitEmpresa={cuitEmpresa}
+						resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
+						resolverSolicitudObs={resolverSolicitudObs}
+						estadoSolicitud={estadoSolicitudResolver}
+						estadosSolicitudes={estadosSolicitudes}
+						showImprimirLiquidacion={showImprimirLiquidacion}
+						onHandleChangeSelect={handleChangeSelect}
+						onHandleInputChange={handleInputChange}
+						onResolverSolicitudHandler={resolverSolicitudHandler}
+					/>
+				)}
+				{selectedTab === 4 && (
+					<Documentacion
+						data={documentacionList}
+						onChange={({ index, item }) => {
+							const newDocList = [...documentacionList];
+							if (index == null) {
+								// Create
+								newDocList.push(item);
+							} else if (item == null) {
+								// Delete
+								newDocList.splice(index, 1);
+							} else {
+								// Update
+								newDocList.splice(index, 1, item);
+							}
+							setDocumentacionList(newDocList);
+						}}
+					/>
+				)}
+				<div className={classes.footer}>
+					<LoadingButtonCustom
+						/*className={classes.button}*/
+						hidden={props.accion === "Resuelve" ? true : false}
+						loading={afiliadoProcesando}
+						width={25}
+						onClick={afiliadoAgregarHandler}
+						disabled={AgregarModificarAfiliadoDisableHandler()}
+					>
+						{AgregarModificarAfiliadoTitulo()}
+					</LoadingButtonCustom>
 
-          <Button type="submit" width={25} onClick={handleCerrarModal}>
-            CIERRA
-          </Button>
-        </div>
-      </Modal>
-    </>
-  );
+					<Button type="submit" width={25} onClick={handleCerrarModal}>
+						CIERRA
+					</Button>
+				</div>
+			</Modal>
+		</>
+	);
 };
 
 export default AfiliadoAgregar;
