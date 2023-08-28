@@ -17,7 +17,7 @@ const Seccionales = (props) => {
         <h1 className="titulo">Seccionales</h1>
       </div>
 
-      <div className="contenido">
+      <div>
         <Tabs
           value={selectedTab}
           onChange={handleChangeTab}

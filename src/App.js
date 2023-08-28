@@ -4,16 +4,27 @@ import Login from './components/auth/Login';
 import SideBar from './components/sidebar/sidebar'
 import {Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
+
 import InicioHandler from './components/pages/inicio/InicioHandler';
-import  AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
+
+//---SIARU---
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
-import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
-import Afiliado from './components/pages/afiliados/Afiliado';
 import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
 import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
+
+//---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
+import SeccionalesHandler from "./components/pages/seccionales/SeccionalesHandler";
+import EmpresasHandler from "./components/pages/empresas/EmpresasHandler";
+
+
+//---AFILIADOS---
+import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
+import Afiliado from './components/pages/afiliados/Afiliado';
+import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
+
 import fondo from './media/Background/color3.png';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
@@ -50,8 +61,8 @@ const App = () => {
 						<Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/administracion" element={<AdministracionHandler />} />
-            <Route path="/inicio" element={<InicioHandler />} />
-            <Route path="/inicio" element={<InicioHandler />} />
+            <Route path="/seccionales" element={<SeccionalesHandler />} />
+            <Route path="/empresas" element={<EmpresasHandler />} />
           </Routes>
          
         </SideBar>

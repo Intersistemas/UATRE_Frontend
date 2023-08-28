@@ -3,6 +3,9 @@ import useHttp from "../../hooks/useHttp";
 import SeccionalAgregar from "./abm/SeccionalAgregar";
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Seccionales";
+import { useDispatch, useSelector } from "react-redux";
+import { handleModuloSeleccionar } from "../../../redux/actions";
+import { handleModuloEjecutarAccion } from "../../../redux/actions";
 
 const selectores = [
   { value: 1, label: "NOMBRE" },
@@ -26,6 +29,54 @@ const SeccionalesHandler = () => {
   const [seccionalAgregarShow, setSeccionalAgregarShow] = useState(false);
   const [selector, setSelector] = useState(0);
   const [selectorValor, setSelectorValor] = useState("");
+  
+  const moduloInfoDefault = {
+		nombre: "Seccionales",
+		acciones: [
+		  {
+        id: 1,
+        name: "Agrega Seccional",
+        icon: "",
+        disabled: false,
+		  },
+      {
+        id: 2,
+        name: "Modifica Seccional",
+        icon: "",
+        disabled: false,
+      },
+      {
+        id: 3,
+        name: "Borra Seccional",
+        icon: "",
+        disabled: false,
+      }
+		],
+	};
+	const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
+
+	//#region despachar Informar Modulo
+	const dispatch = useDispatch();
+	dispatch(handleModuloSeleccionar(moduloInfo));
+	//#endregion
+
+	const moduloAccion = useSelector((state) => state.moduloAccion);
+	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
+	useEffect(() => {
+	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
+	switch (moduloAccion) {
+		case "Agrega Seccional":
+		  alert('Agrega - Funcionalida en Desarrollo');
+		  break;
+    case "Modifica Seccional":
+      alert('Modifica - Funcionalida en Desarrollo');
+    case "Borra Seccional":
+      alert('Borra - Funcionalida en Desarrollo');
+		default:
+		break;
+	}
+	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	}, [moduloAccion]);
   //#endregion
 
   //#region api calls
