@@ -230,11 +230,11 @@ const Form = ({
 							label="Teléfono"
 							value={establecimiento.telefono}
 							disabled={disabled.telefono ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
-									...old,
-									telefono: `${e.target.value}`,
-								}))
+										...old,
+										telefono: `${value}`,
+									}))
 							}
 						/>
 					</Grid>
