@@ -195,7 +195,7 @@ const Form = ({
 					<Grid width="25%">
 						<InputMaterial
 							type="number"
-							label="Nro. sucursal"
+							label="Nro. de Estab."
 							error={errores.nroSucursal ?? ""}
 							helperText={errores.nroSucursal ?? ""}
 							value={establecimiento.nroSucursal}
