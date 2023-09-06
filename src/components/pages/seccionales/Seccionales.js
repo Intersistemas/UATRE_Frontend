@@ -11,7 +11,7 @@ const Seccionales = (props) => {
     const handleChangeTab = (event, newValue) => {
       setSelectedTab(newValue);
     };
-  return (
+  return ( 
     <>
       <div>
         <h1 className="titulo">Seccionales</h1>

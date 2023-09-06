@@ -298,6 +298,7 @@ const SeccionalesHandler = () => {
 
   return (
     <Fragment>
+      <div>
       {seccionalAgregarShow && (
         <SeccionalAgregar
           refCargos={refCargos}
@@ -327,6 +328,7 @@ const SeccionalesHandler = () => {
         onLimpiarClick={handlerOnLimpiarClick}
         onAgregarClick={handlerOnAgregarClick}
       />
+      </div>
     </Fragment>
   );
 };

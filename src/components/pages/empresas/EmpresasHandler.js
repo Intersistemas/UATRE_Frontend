@@ -85,6 +85,7 @@ const EmpresasHandler = () => {
 
   return (
     <Fragment>
+      <div>
       <Empresas
         loading={empresaList.loading}
         data={empresaList.data}
@@ -108,6 +109,7 @@ const EmpresasHandler = () => {
           }
         })()}
         />
+        </div>
     </Fragment>
   );
 };
