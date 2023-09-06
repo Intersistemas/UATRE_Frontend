@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Button from "../../ui/Button/Button";
-import Grid from "../../ui/Grid/Grid";
+import Grid from "../../ui/Grid/Grid"; 
 import { useNavigate } from "react-router-dom";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useEffect } from "react";
@@ -25,6 +25,10 @@ const Inicio = ({ modulos = [] }) => {
 				case "Administracion de Datos":
 					acceso.nombre = <>Administración de Datos</>;
 					acceso.accion = () => navigate("/administracion");
+					break;
+				case "Expedientes":
+					acceso.nombre = <>Expedientes</>;
+					acceso.accion = () => navigate("/expedientes");
 					break;
 				default:
 					return;
