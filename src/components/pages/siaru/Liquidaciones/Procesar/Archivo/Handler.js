@@ -30,7 +30,7 @@ const Handler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Liquidaciones/TentativasArchivo?CUIT=${empresa.cuit}&Periodo=${periodo}`,
+				endpoint: `/Liquidaciones/TentativasLSD?CUIT=${empresa.cuit}&Periodo=${periodo}`,
 				method: "POST",
 				body: data,
 				bodyToJSON: false,
