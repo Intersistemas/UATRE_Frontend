@@ -76,7 +76,7 @@ const AfiliadoDetails = (props) => {
 								Datos UATRE:
 						
 								<Grid style={{ padding: "0rem 1rem"}}>
-									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={Formato.Cuit(data.cuilValidado)} /> 	
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado == 0 ? " ":Formato.Cuit(data.cuilValidado)} /> 	
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={validar(data.sexo)} /> 													
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={validar(data.estadoCivil)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={validar(data.nacionalidad)}/>
@@ -233,7 +233,7 @@ const AfiliadoDetails = (props) => {
 
 	
 	return (
-		<div className={styles.contenedor}>
+		<div className={styles.afiliadoDetalle}>
 			{hotField}
 		</div>
 
