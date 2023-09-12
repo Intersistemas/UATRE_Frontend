@@ -85,7 +85,6 @@ const Handler = () => {
 		],
 	};
 
-	let iniciarLiquidacionButton = null;
 	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
 	if (tentativas == null) {
 			moduloInfo.acciones.push({ name: `Agregar trabajador` });
@@ -94,7 +93,6 @@ const Handler = () => {
 				name: `Modificar trabajador ${descTrabajador}`,
 			});
 			moduloInfo.acciones.push({ name: `Borrar trabajador ${descTrabajador}` });
-			iniciarLiquidacionButton = <Button>Iniciar</Button>;
 		}
 	}
 
@@ -176,7 +174,7 @@ const Handler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa, navigate, dispatch]);
+	}, [moduloAccion, empresa, descTrabajador, navigate, dispatch]);
 	//#endregion
 
 	//#region requests a APIs
@@ -219,7 +217,7 @@ const Handler = () => {
 			default:
 				break;
 		}
-	}, [apiQuery]);
+	}, [apiQuery, sendRequest]);
 	//#endregion
 
 	let contenido = null;
