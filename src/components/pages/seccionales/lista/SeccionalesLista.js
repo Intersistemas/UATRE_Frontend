@@ -15,15 +15,7 @@ import Button from "../../../ui/Button/Button";
 const SeccionalesLista = (props) => {
   //#region Tabla
   const columns = [
-    {
-      headerTitle: (column, colIndex) => `Id`,
-      dataField: "id",
-      text: "Id",
-      sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "7rem", textAlign: "center" };
-      },
-    },
+    
     {
       headerTitle: (column, colIndex) => `Codigo`,
       dataField: "codigo",
@@ -65,6 +57,16 @@ const SeccionalesLista = (props) => {
       dataField: "observaciones",
       text: "Observaciones",
       sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Id`,
+      dataField: "id",
+      text: "Id",
+      sort: true,
+      hidden: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
@@ -133,11 +135,11 @@ const SeccionalesLista = (props) => {
         }}
       >
         <div>
-          <Button onClick={props.onAgregarClick}>Agregar</Button>
+          <Button onClick={props.onAgregarClick}>Agrega</Button>
         </div>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
-          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
+          <InputLabel id="demo-simple-select-label">Busca </InputLabel>
+          <InputLabel id="demo-simple-select-label">Busca </InputLabel>
           <Select
             style={{ position: "unset" }}
             labelId="demo-simple-select-label"
