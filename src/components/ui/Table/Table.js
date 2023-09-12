@@ -167,7 +167,7 @@ const Table = ({
 										<SearchBar
 											{...toolkitprops.searchProps}
 											srText=""
-											placeholder="Ingrese datos a buscar"
+											placeholder="Ingrese datos de busqueda"
 										/>
 									</div>
 								)}

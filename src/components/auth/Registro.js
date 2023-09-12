@@ -14,7 +14,7 @@ import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
 import { handleUsuarioLogueado } from "../../redux/actions";
 
-const Login = () => {
+const Registro = () => {
   console.log("Login");
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
@@ -24,6 +24,7 @@ const Login = () => {
   const [enteredCUIT, setEnteredCUIT] = useState("");
   const [cuitIsValid, setCUITIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState("");
+  const [enteredRepeatPassword, setEnteredRepeatPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [mensajeError, setMensajeError] = useState("");
 
@@ -53,6 +54,10 @@ const Login = () => {
     setEnteredPassword(event.target.value);
   };
 
+  const repeatPasswordChangeHandler = (event) => {
+    setEnteredRepeatPassword(event.target.value);
+  };
+  
   const validateCUITHandler = () => {
     setCUITIsValid(enteredCUIT.trim().length === 11);
   };
@@ -113,18 +118,31 @@ const Login = () => {
         <Form onSubmit={submitHandler}>
           <Form.Group className="mb-3" controlId="formCUIT">
             <Form.Label style={{ color: "#555555" }}>
-              <strong>Usuario</strong>
+              <strong>CUIT</strong>
             </Form.Label>
 
             <Form.Control
               type="text"
-              placeholder="Cuit/Cuil/Email"
+              placeholder="Cuit/Cuil"
               id="cuit"
               value={enteredCUIT}
               onChange={cuitChangeHandler}
               onBlur={validateCUITHandler}
             />
           </Form.Group>
+
+          <Form.Label style={{ color: "#555555" }}>
+              <strong>Email</strong>
+            </Form.Label>
+
+            <Form.Control
+              type="email"
+              placeholder="Email"
+              id="email"
+              value={enteredCUIT}
+              onChange={cuitChangeHandler}
+              onBlur={validateCUITHandler}
+            />
 
           <Form.Label style={{ color: "#555555" }}>
             <strong>Clave</strong>
@@ -138,7 +156,29 @@ const Login = () => {
               onChange={passwordChangeHandler}
               onBlur={validatePasswordHandler}
             />
+            <InputGroup.Text>
+              <img
+                width={20}
+                height={20}
+                title={verClave ? "Ocultar clave" : "Ver Clave"}
+                src={verClave ? ocultarClaveImg : verClaveImg}
+                onClick={() => setVerClave((prevState) => !prevState)}
+              />
+            </InputGroup.Text>
+          </InputGroup>
 
+          <Form.Label style={{ color: "#555555" }}>
+            <strong>Repetir Clave</strong>
+          </Form.Label>
+          <InputGroup className="mb-3">
+            <Form.Control
+              type={verClave ? "text" : "password"}
+              placeholder="Repetir Clave"
+              id="repeat-password"
+              value={enteredRepeatPassword}
+              onChange={repeatPasswordChangeHandler}
+              onBlur={validatePasswordHandler}
+            />
             <InputGroup.Text>
               <img
                 width={20}
@@ -154,11 +194,9 @@ const Login = () => {
             {!isLoading ? (
               <div>
                 <Button type="submit" className="botonAzul">
-                  Ingresar
+                  Registrar
                 </Button>
-                <p />
-                
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco">Registrar</Button>
+
               </div>
             ) : (
               <p>Cargando...</p>
@@ -173,4 +211,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Registro;
