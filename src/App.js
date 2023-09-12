@@ -13,6 +13,7 @@ import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/Liquida
 import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
 import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/siaru/Liquidaciones/Procesar/Manual/Handler';
 
 //---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
@@ -59,6 +60,7 @@ const App = () => {
 						<Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
+						<Route path="/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
             <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/administracion" element={<AdministracionHandler />} />
             <Route path="/seccionales" element={<SeccionalesHandler />} />
