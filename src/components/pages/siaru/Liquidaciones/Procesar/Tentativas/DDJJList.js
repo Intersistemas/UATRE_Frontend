@@ -22,20 +22,6 @@ const DDJJList = ({
 	};
 	const columns = [
 		{
-			dataField: "empresaEstablecimientoId",
-			text: "Estab. Nro.",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
-			style: { ...cs },
-		},
-		{
-			dataField: "empresaEstablecimiento_Nombre",
-			text: "Estab. nombre",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
-			style: { ...cs, textAlign: "left" },
-		},
-		{
 			dataField: "cuil",
 			text: "CUIL",
 			sort: true,
@@ -48,6 +34,14 @@ const DDJJList = ({
 			text: "Nombre",
 			sort: true,
 			style: { ...cs, textAlign: "left" },
+		},
+		{
+			dataField: "remuneracionImponible",
+			text: "Remuneración imponible",
+			sort: true,
+			formatter: Formato.Moneda,
+			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
+			style: { ...cs },
 		},
 		{
 			dataField: "esRural",
@@ -66,12 +60,18 @@ const DDJJList = ({
 			style: { ...cs },
 		},
 		{
-			dataField: "remuneracionImponible",
-			text: "Remuneración imponible",
+			dataField: "empresaEstablecimientoId",
+			text: "Estab. Nro.",
 			sort: true,
-			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			style: { ...cs },
+		},
+		{
+			dataField: "empresaEstablecimiento_Nombre",
+			text: "Estab. nombre",
+			sort: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
+			style: { ...cs, textAlign: "left" },
 		},
 	];
 
