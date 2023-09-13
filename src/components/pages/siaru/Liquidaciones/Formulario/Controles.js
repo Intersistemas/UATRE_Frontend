@@ -324,6 +324,50 @@ const Controles = ({
 			);
 			break;
 		default:
+			let renderMotvoBaja = null;
+			if (!disabled.refMotivoBajaId)
+				renderMotvoBaja = (
+					<Grid gap={`${gap}px`} full="width">
+						<SelectMaterial
+							name="refMotivoBajaId"
+							label="Motivo de baja"
+							value={record.refMotivoBajaId ?? 0}
+							error={[
+								error.refMotivoBajaId,
+								motivosBaja.loading,
+								motivosBaja.error,
+							]
+								.filter((r) => r)
+								.join(" ")}
+							disabled={!!disabled.refMotivoBajaId}
+							options={motivosBaja.data.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(value, _id) => {
+								handleChange({ refMotivoBajaId: value });
+								setDisabled((old) => ({
+									...old,
+									bajaObservaciones: value === 0,
+								}));
+							}}
+						/>
+					</Grid>
+				);
+			let renderObservaciones = null;
+			if (!disabled.bajaObservaciones)
+				renderObservaciones = (
+					<Grid gap={`${gap}px`} full="width">
+						<InputMaterial
+							label="Observaciones de baja"
+							value={valor(record.bajaObservaciones)}
+							disabled={!!disabled.bajaObservaciones}
+							onChange={(value, _id) =>
+								handleChange({ bajaObservaciones: `${value}` })
+							}
+						/>
+					</Grid>
+				);
 			content = (
 				<>
 					<Grid full="width">
@@ -456,42 +500,8 @@ const Controles = ({
 							/>
 						</Grid>
 					</Grid>
-					<Grid gap={`${gap}px`} full="width">
-						<SelectMaterial
-							name="refMotivoBajaId"
-							label="Motivo de baja"
-							value={record.refMotivoBajaId ?? 0}
-							error={[
-								error.refMotivoBajaId,
-								motivosBaja.loading,
-								motivosBaja.error,
-							]
-								.filter((r) => r)
-								.join(" ")}
-							disabled={!!disabled.refMotivoBajaId}
-							options={motivosBaja.data.map((r) => ({
-								label: r.descripcion,
-								value: r.id,
-							}))}
-							onChange={(value, _id) => {
-								handleChange({ refMotivoBajaId: value });
-								setDisabled((old) => ({
-									...old,
-									bajaObservaciones: value === 0,
-								}));
-							}}
-						/>
-					</Grid>
-					<Grid gap={`${gap}px`} full="width">
-						<InputMaterial
-							label="Observaciones de baja"
-							value={valor(record.bajaObservaciones)}
-							disabled={!!disabled.bajaObservaciones}
-							onChange={(value, _id) =>
-								handleChange({ bajaObservaciones: `${value}` })
-							}
-						/>
-					</Grid>
+					{renderMotvoBaja}
+					{renderObservaciones}
 					<Grid full="width">
 						<div className={styles.subtitulo}>
 							<span>Subtotales</span>
