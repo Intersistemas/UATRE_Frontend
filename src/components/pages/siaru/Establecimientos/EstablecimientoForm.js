@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import styles from "./EstablecimientoForm.module.css";
-import Formato from "../../../helpers/Formato";
-import useHttp from "../../../hooks/useHttp";
-import Button from "../../../ui/Button/Button";
-import Modal from "../../../ui/Modal/Modal";
-import Grid from "../../../ui/Grid/Grid";
-import InputMaterial from "../../../ui/Input/InputMaterial";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import Button from "components/ui/Button/Button";
+import ValidarEmail from "components/validators/ValidarEmail";
+import Modal from "components/ui/Modal/Modal";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
@@ -15,7 +16,7 @@ const onConfirmDef = (_request, _record) => {};
 const onCancelDef = (_request) => {};
 
 const Form = ({
-	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	record = {}, // Registro de establecimiento a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
 	disabled: disabledInit = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onConfirm = onConfirmDef, // Acción a realizar al confirmar
@@ -26,19 +27,31 @@ const Form = ({
 	onConfirm ??= onConfirmDef;
 	onCancel ??= onCancelDef;
 	record = { ...record };
-	if (requestParam === "A") record.id = 0;
+	if (request === "A") record.id = 0;
 
 	const [establecimiento, setEstablecimiento] = useState(record);
 	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	if (request === "B") {
+		disabledInit = {
+			...disabledInit,
+			nombre: true,
+			telefono: true,
+			email: true,
+			domicilioCalle: true,
+			domicilioNumero: true,
+			domicilioPiso: true,
+			domicilioDpto: true,
+		};
+	}
 	const [disabled, setDisabled] = useState(disabledInit);
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
 
 	const [motivosBaja, setMotivosBaja] = useState([]);
-	const { sendRequest: request } = useHttp();
+	const { sendRequest } = useHttp();
 	
 	let actionMsg;
-	switch (requestParam) {
+	switch (request) {
 		case "A":
 			actionMsg = "Agregando";
 			break;
@@ -59,7 +72,7 @@ const Form = ({
 		const newErrores = {};
 		const newAlerts = [];
 
-		if (["A", "M"].includes(requestParam)) {
+		if (["A", "M"].includes(request)) {
 			// Alta / Modificacion
 			if (establecimiento.empresaId) {
 				newErrores.empresaId = "";
@@ -74,7 +87,14 @@ const Form = ({
 				noValida = true;
 				newErrores.nombre = "Dato requerido";
 			}
-		} else if (requestParam === "B") {
+
+			if (!!establecimiento.email && !ValidarEmail(establecimiento.email)) {
+				noValida = true;
+				newErrores.email = "El correo ingresado tiene un formato incorrecto."
+			} else {
+				newErrores.email = ""
+			}
+		} else if (request === "B") {
 			// Baja
 			if (establecimiento.refMotivosBajaId) {
 				newErrores.refMotivosBajaId = "";
@@ -84,7 +104,7 @@ const Form = ({
 			}
 		} else {
 			// No se reconoce request
-			onCancel(requestParam);
+			onCancel(request);
 			return;
 		}
 
@@ -93,7 +113,7 @@ const Form = ({
 		if (noValida) return;
 
 		let method;
-		switch (requestParam) {
+		switch (request) {
 			case "A":
 				method = "POST"
 				break;
@@ -110,7 +130,7 @@ const Form = ({
 				break;
 		}
 
-		request(
+		sendRequest(
 			{
 				baseURL: "Comunes",
 				endpoint: `/EmpresaEstablecimientos`,
@@ -118,7 +138,7 @@ const Form = ({
 				body: establecimiento,
 				headers: { "Content-Type": "application/json" },
 			},
-			async (res) => onConfirm(requestParam, res),
+			async (res) => onConfirm(request, res),
 			async (err) => {
 				setAlerts((old) => [
 					...old,
@@ -143,7 +163,7 @@ const Form = ({
 			<Grid gap={`${gap}px`} full="width">
 				<Grid col grow>
 					{alerts?.map((r, ix) => (
-						<Collapse in={true} style={{ width: "100%" }}>
+						<Collapse key={ix} in={true} style={{ width: "100%" }}>
 							<Alert
 								severity={r.severity}
 								action={
@@ -173,12 +193,12 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(requestParam) ? (
+	const renderConfirmaButton = ["A", "B", "M"].includes(request) ? (
 		<Button onClick={validar}>Confirma</Button>
 	) : null;
 
 	return (
-		<Modal onClose={() => onCancel(requestParam)}>
+		<Modal onClose={() => onCancel(request)}>
 			<Grid col full gap={`${gap}px`}>
 				<Grid full="width" gap={`${gap}px`}>
 					<Grid grow>
@@ -196,7 +216,7 @@ const Form = ({
 						<InputMaterial
 							type="number"
 							label="Nro. de Estab."
-							error={errores.nroSucursal ?? ""}
+							error={!!errores.nroSucursal}
 							helperText={errores.nroSucursal ?? ""}
 							value={establecimiento.nroSucursal}
 							disabled
@@ -211,7 +231,7 @@ const Form = ({
 					<Grid width="75%">
 						<InputMaterial
 							label="Nombre"
-							error={errores.nombre ?? ""}
+							error={!!errores.nombre}
 							helperText={errores.nombre ?? ""}
 							value={establecimiento.nombre}
 							disabled={disabled.nombre ?? false}
@@ -242,6 +262,8 @@ const Form = ({
 						<InputMaterial
 							label="Correo"
 							value={establecimiento.email}
+							error={!!errores.email}
+							helperText={errores.email ?? ""}
 							disabled={disabled.email ?? false}
 							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
@@ -364,7 +386,7 @@ const Form = ({
 							<Grid gap={`${gap}px`}>
 								<Button
 									className="botonBlanco"
-									onClick={() => onCancel(requestParam)}
+									onClick={() => onCancel(request)}
 								>
 									Cancela
 								</Button>
