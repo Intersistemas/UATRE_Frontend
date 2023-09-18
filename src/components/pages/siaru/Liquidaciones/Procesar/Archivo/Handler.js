@@ -18,7 +18,7 @@ const Handler = () => {
 	);
 	const periodo = location.state?.periodo;
 	const archivo = location.state?.archivo;
-	if (empresa.id == null || periodo == null || archivo == null) navigate("/");
+	if (empresa.id == null || periodo == null || archivo == null) navigate("/ingreso");
 
 	const { sendRequest: request } = useHttp();
 
