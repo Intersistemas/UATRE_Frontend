@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./EstablecimientoForm.module.css";
 import Formato from "components/helpers/Formato";
-import useHttp from "components/hooks/useHttp";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import ValidarEmail from "components/validators/ValidarEmail";
 import Modal from "components/ui/Modal/Modal";
@@ -31,6 +31,7 @@ const Form = ({
 
 	const [establecimiento, setEstablecimiento] = useState(record);
 	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	disabledInit.domicilioLocalidadesId = !establecimiento.domicilioProvinciasId;
 	if (request === "B") {
 		disabledInit = {
 			...disabledInit,
@@ -47,9 +48,123 @@ const Form = ({
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
 
-	const [motivosBaja, setMotivosBaja] = useState([]);
-	const { sendRequest } = useHttp();
-	
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetMotivosBaja":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
+			case "CreateEmpresaEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "POST",
+						endpoint: `/EmpresaEstablecimientos`,
+					},
+				};
+			case "UpdateEmpresaEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "PUT",
+						endpoint: `/EmpresaEstablecimientos`,
+					},
+				};
+			case "GetProvincias":
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/Provincia`,
+					},
+				};
+			case "GetLocalidades":
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/RefLocalidad`,
+					},
+				};
+			default:
+				return null;
+		}
+	});
+
+	//#region Carga de motivos de baja
+	const [motivosBaja, setMotivosBaja] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: { tipo: "E" },
+			onOk: async (res) => {
+				const newData = [
+					{ label: "Activo", value: 0 },
+					...res.map((r) => ({ label: r.descripcion, value: r.id })),
+				];
+				setMotivosBaja({ data: newData });
+			},
+			onError: async (err) => setMotivosBaja({ data: [], error: err }),
+		});
+	}, [pushQuery]);
+	//#endregion
+
+	//#region Carga de provincias
+	const [provincias, setProvincias] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		pushQuery({
+			action: "GetProvincias",
+			onOk: async (res) =>
+				setProvincias({
+					data: [...res]
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (err) => setProvincias({ data: [], error: err }),
+		});
+	}, [pushQuery]);
+	//#endregion
+
+	//#region Carga de localidades
+	const [localidades, setLocalidades] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		if (!establecimiento.domicilioProvinciasId) {
+			setLocalidades({
+				data: [],
+				error: { message: "Debe seleccionar una provincia." },
+			});
+			return;
+		}
+		pushQuery({
+			action: "GetLocalidades",
+			params: { provinciasId: establecimiento.domicilioProvinciasId },
+			onOk: async (res) =>
+				setLocalidades({
+					data: [...res]
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (err) => setLocalidades({ data: [], error: err }),
+		});
+	}, [pushQuery, establecimiento.domicilioProvinciasId]);
+	//#endregion
+
 	let actionMsg;
 	switch (request) {
 		case "A":
@@ -90,9 +205,9 @@ const Form = ({
 
 			if (!!establecimiento.email && !ValidarEmail(establecimiento.email)) {
 				noValida = true;
-				newErrores.email = "El correo ingresado tiene un formato incorrecto."
+				newErrores.email = "El correo ingresado tiene un formato incorrecto.";
 			} else {
-				newErrores.email = ""
+				newErrores.email = "";
 			}
 		} else if (request === "B") {
 			// Baja
@@ -112,16 +227,24 @@ const Form = ({
 		setAlerts((old) => [...old, ...newAlerts]);
 		if (noValida) return;
 
-		let method;
+		const query = {
+			onOk: async (res) => onConfirm(request, res),
+			onError: async (err) => {
+				setAlerts((old) => [
+					...old,
+					{ severity: "error", title: err.type, message: err.message },
+				]);
+			},
+		};
 		switch (request) {
 			case "A":
-				method = "POST"
+				query.action = "CreateEmpresaEstablecimientos";
 				break;
 			case "M":
-				method = "PUT"
+				query.action = "UpdateEmpresaEstablecimientos";
 				break;
 			case "B":
-				method = "PUT"
+				query.action = "UpdateEmpresaEstablecimientos";
 				if (establecimiento.refMotivosBajaId) {
 					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
 				}
@@ -129,31 +252,9 @@ const Form = ({
 			default:
 				break;
 		}
-
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos`,
-				method: method,
-				body: establecimiento,
-				headers: { "Content-Type": "application/json" },
-			},
-			async (res) => onConfirm(request, res),
-			async (err) => {
-				setAlerts((old) => [
-					...old,
-					{ severity: "error", title: err.type, message: err.message },
-				]);
-			}
-		);
+		query.config = { body: establecimiento };
+		pushQuery(query);
 	};
-
-	useEffect(() => {
-		setMotivosBaja([
-			{ id: 0, tipo: "E", descripcion: "Activo" },
-			{ id: 1, tipo: "E", descripcion: "Otro" },
-		]);
-	}, []);
 
 	const gap = 15;
 
@@ -252,9 +353,9 @@ const Form = ({
 							disabled={disabled.telefono ?? false}
 							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
-										...old,
-										telefono: `${value}`,
-									}))
+									...old,
+									telefono: `${value}`,
+								}))
 							}
 						/>
 					</Grid>
@@ -341,43 +442,94 @@ const Form = ({
 							/>
 						</Grid>
 					</Grid>
+					<Grid width="full" gap={`${gap}px`}>
+						<Grid width="50%">
+							<SelectMaterial
+								name="domicilioProvinciasId"
+								label="Provincia"
+								value={establecimiento.domicilioProvinciasId ?? 0}
+								error={
+									provincias.loading ??
+									provincias.error?.message ??
+									errores.domicilioProvinciasId ??
+									""
+								}
+								disabled={disabled.domicilioProvinciasId ?? false}
+								options={provincias.data}
+								onChange={(value, _id) => {
+									const cambios = { domicilioProvinciasId: value };
+									if (establecimiento.domicilioProvinciasId !== value) {
+										cambios.domicilioLocalidadesId = 0;
+										setLocalidades({ data: [], loading: "Cargando..." });
+									}
+									setEstablecimiento((old) => ({ ...old, ...cambios }));
+									setDisabled((old) => ({
+										...old,
+										domicilioLocalidadesId: value === 0,
+									}));
+								}}
+							/>
+						</Grid>
+						<Grid width="50%">
+							<SelectMaterial
+								name="domicilioLocalidadesId"
+								label="Localidad"
+								value={establecimiento.domicilioLocalidadesId ?? 0}
+								error={
+									localidades.loading ??
+									localidades.error?.message ??
+									errores.domicilioLocalidadesId ??
+									""
+								}
+								disabled={disabled.domicilioLocalidadesId ?? false}
+								options={localidades.data}
+								onChange={(value, _id) => {
+									setEstablecimiento((old) => ({
+										...old,
+										domicilioLocalidadesId: value,
+									}));
+								}}
+							/>
+						</Grid>
+					</Grid>
 				</Grid>
 				<Grid col full="width" gap={`${gap}`}>
 					<SelectMaterial
 						name="refMotivosBajaId"
 						label="Motivo de baja"
 						value={establecimiento.refMotivosBajaId ?? 0}
-						error={errores.refMotivosBajaId ?? ""}
-						disabled={disabled.refMotivosBajaId ?? false}
-						options={motivosBaja.map((r) => ({
-							label: r.descripcion,
-							value: r.id,
-						}))}
-						onChange={(value, _id) => {
-								setEstablecimiento((old) => ({
-									...old,
-									refMotivosBajaId: value,
-								}));
-								setDisabled((old) => ({
-									...old,
-									bajaObservaciones: value === 0,
-								}));
-							}
+						error={
+							motivosBaja.loading ??
+							motivosBaja.error?.message ??
+							errores.refMotivosBajaId ??
+							""
 						}
+						disabled={disabled.refMotivosBajaId ?? false}
+						options={motivosBaja.data}
+						onChange={(value, _id) => {
+							setEstablecimiento((old) => ({
+								...old,
+								refMotivosBajaId: value,
+							}));
+							setDisabled((old) => ({
+								...old,
+								bajaObservaciones: value === 0,
+							}));
+						}}
 					/>
 				</Grid>
 				<Grid col full="width" gap={`${gap}`}>
-						<InputMaterial
-							label="Observaciones de baja"
-							value={establecimiento.bajaObservaciones}
-							disabled={disabled.bajaObservaciones ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									bajaObservaciones: `${value}`,
-								}))
-							}
-						/>
+					<InputMaterial
+						label="Observaciones de baja"
+						value={establecimiento.bajaObservaciones}
+						disabled={disabled.bajaObservaciones ?? false}
+						onChange={(value, _id) =>
+							setEstablecimiento((old) => ({
+								...old,
+								bajaObservaciones: `${value}`,
+							}))
+						}
+					/>
 				</Grid>
 				<Grid col grow justify="end">
 					<Grid gap={`${gap * 2}px`}>
