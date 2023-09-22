@@ -74,13 +74,13 @@ const useHttp = () => {
 					});
 
 					const data = await response.json();
-					if (!response.ok)
-						throw {
+					if (!response.ok) {
+						throw Object.assign(new Error(data.Message || data.Mensaje), {
 							type: data.StatusCode === 500 ? "Internal Server Error" : "Error",
 							code: data.StatusCode,
-							message: data.Message || data.Mensaje,
 							data: data,
-						};
+						});
+					}
 					takeOk(data);
 				} catch (error) {
 					error.type ??= "Error";
