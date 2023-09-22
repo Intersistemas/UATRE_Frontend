@@ -182,7 +182,7 @@ const SeccionalesLista = (props) => {
           onClick={props.onBuscarClick}
           disabled={!props.selectorValor ?? true}
         >
-          Buscar
+          Busca
         </Button>
         <Button
           className="botonBorder"
@@ -190,7 +190,7 @@ const SeccionalesLista = (props) => {
           style={{ "min-width": "fit-content" }}
           onClick={props.onLimpiarClick}
         >
-          Limpiar Busqueda
+          Limpia Busqueda
         </Button>
       </Box>
 

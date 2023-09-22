@@ -82,7 +82,7 @@ const TableRemote = (props) => {
       {props.selectoresBuscar &&
        <Box sx={{ maxWidth: 700}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Buscar </InputLabel>
+          <InputLabel id="demo-simple-select-label">Busca</InputLabel>
           <Select
             style={{position: 'unset'}}
             labelId="demo-simple-select-label"
@@ -122,13 +122,13 @@ const TableRemote = (props) => {
               width={70}
               onClick={()=>props.accionBuscar(selectValue.dataField, entryValue, selectValue)}
               disabled={!entryValue ?? true}
-        >Buscar</Button>
+        >Busca</Button>
         <Button
               className="botonBorder"
               //width={70}
               style={{'min-width': 'fit-content'}}
               onClick={()=>accionLimpiarFiltros()}
-        >Limpiar Busqueda</Button>
+        >Limpia Busqueda</Button>
       </Box>
     
       }
