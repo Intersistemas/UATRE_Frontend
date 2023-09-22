@@ -40,7 +40,7 @@ const DDJJList = ({
 			text: "Remuneración imponible",
 			sort: true,
 			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
 			style: { ...cs },
 		},
 		{

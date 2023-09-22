@@ -1,0 +1,28 @@
+.fondo {
+	background-color: #ffffffb3;
+}
+
+.grupo {
+	padding: 10px;
+	color: #186090;
+	text-align: left;
+	border: solid 1px;
+	border-radius: 20px;
+}
+
+.cabecera {
+	font-weight: bold;
+	text-align: left;
+	border-bottom: dashed 1px;
+}
+
+.label {
+	font-weight: bold;
+	text-align: right;
+}
+
+.data {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
