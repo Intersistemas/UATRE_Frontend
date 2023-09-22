@@ -301,6 +301,30 @@ const Controles = ({
 					sort: true,
 					style: { ...cs, textAlign: "left" },
 				},
+				{
+					dataField: "afiliadoId",
+					text: "Es Afiliado",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "110px" }),
+					formatter: (value) => Formato.Booleano(value != null ? value != 0 : null),
+					style: { ...cs, textAlign: "center" },
+				},
+				{
+					dataField: "esRural",
+					text: "Es Rural",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "90px" }),
+					formatter: Formato.Booleano,
+					style: { ...cs, textAlign: "center" },
+				},
+				{
+					dataField: "remuneracionImponible",
+					text: "Remuneración",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "140px" }),
+					formatter: Formato.Moneda,
+					style: { ...cs, textAlign: "right" },
+				},
 			];
 			content = (
 				<Table
