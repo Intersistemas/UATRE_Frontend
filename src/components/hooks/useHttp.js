@@ -44,6 +44,7 @@ const useHttp = () => {
         }
 
 				configRequest.bodyToJSON ??= true;
+        
         //Agrego Token
         let headers = {...configRequest.headers}
         if(headers.Authorization === true)
@@ -52,9 +53,6 @@ const useHttp = () => {
                 Authorization: "Bearer " + storedTokenData.token
             }
         }
-        
-				if (configRequest.body && configRequest.bodyToJSON)
-					headers["Content-Type"] ??= "application/json";
         
 				let err;
         try {

@@ -1,8 +1,8 @@
 import React from "react";
 import styles from "./DDJJForm.module.css";
-import Grid from "../../../../../ui/Grid/Grid";
-import Select from "../../../../../ui/Select/Select";
-import Formato from "../../../../../helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
+import Select from "components/ui/Select/Select";
+import Formato from "components/helpers/Formato";
 import { TextField } from "@mui/material";
 
 const DDJJForm = ({
