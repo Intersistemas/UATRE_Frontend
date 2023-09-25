@@ -22,7 +22,7 @@ const LiquidacionesHandler = () => {
 		() => (location.state?.empresa ? location.state.empresa : {}),
 		[location.state?.empresa]
 	);
-	if (empresa?.id == null) navigate("/");
+	if (empresa?.id == null) navigate("/ingreso");
 
 	const { sendRequest } = useHttp();
 

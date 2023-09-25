@@ -77,11 +77,11 @@ const useHttp = () => {
                 console.log("response not ok", errorResponse);  
                 err = {
                   type:
-                    errorResponse.StatusCode === 500
+                    errorResponse.StatusCode === 500 || errorResponse.status === 500
                       ? "Internal Server Error"
                       : "Error",
-                  code: errorResponse.StatusCode,
-                  message: errorResponse.Message || errorResponse.Mensaje,
+                  code: errorResponse.status ?? errorResponse.statusCode,
+                  message: errorResponse.message ?? errorResponse.mensaje ?? errorResponse.errors,
                 };
 
                 setError(err)

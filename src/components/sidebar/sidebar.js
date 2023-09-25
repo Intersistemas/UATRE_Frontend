@@ -84,7 +84,7 @@ const Sidebar = ({children}) => {
                             }
                         </div>
                     <div>
-                        <NavLink to="/login" className={clases.link} activeClassName={clases.active} onClick={logoutHandler}>
+                        <NavLink to="/ingreso" className={clases.link} activeClassName={clases.active} onClick={logoutHandler}>
                             <div onClick={logoutHandler} className={clases.icon}><BsFillXCircleFill/></div>
                             {(isOpen && <div onClick={logoutHandler} className={clases.link_text}>Cerrar Sesión</div>)}
                         </NavLink>

@@ -16,7 +16,7 @@ const EstablecimientosHandler = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const empresa = location.state?.empresa;
-	if (empresa?.id == null) navigate("/");
+	if (empresa?.id == null) navigate("/ingreso");
 
 	const empresaId = empresa ? empresa.id : 0;
 	const [form, setForm] = useState(null);
