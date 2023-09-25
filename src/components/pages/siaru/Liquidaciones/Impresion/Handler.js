@@ -1,68 +1,102 @@
 import { PDFViewer } from "@react-pdf/renderer";
 import React, { useEffect, useState } from "react";
-import Grid from "../../../../ui/Grid/Grid";
-import Modal from "../../../../ui/Modal/Modal";
-import Button from "../../../../ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
+import Modal from "components/ui/Modal/Modal";
+import Button from "components/ui/Button/Button";
 import PDF from "./PDF";
 import styles from "./Handler.module.css";
-import useHttp from "../../../../hooks/useHttp";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
 const Handler = ({
-	liquidacion,
-	empresa,
+	empresa = {},
+	liquidaciones = [],
 	onClose = () => {},
 } = {}) => {
-	const { sendRequest } = useHttp();
+	empresa ??= {};
+	liquidaciones ??= [];
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetLiquidacionesTiposPagos":
+				return {
+					config: {
+						baseURL: "SIARU",
+						endpoint: `/LiquidacionesTiposPagos`,
+						method: "GET",
+					},
+				};
+			case "GetEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+						method: "GET",
+					},
+				};
+			default:
+				return null;
+		}
+	});
 
-	//#region declaracion e inicializacion de establecimiento
-	const establecimientoId = liquidacion?.empresaEstablecimientoId ?? 0;
-	const [establecimiento, setEstablecimiento] = useState({ loading: true, data: {}});
+	//#region declaracion y carga de establecimientos
+	const [establecimientos, setEstablecimientos] = useState({
+		loading: true,
+		data: [],
+	});
 	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetById?Id=${establecimientoId}`,
-				method: "GET",
-			},
-			async (res) => setEstablecimiento({ data: { ...res } }),
-			async (err) => setEstablecimiento({ error: { ...err } })
-		);
-	}, [establecimientoId, sendRequest]);
-	//#endregion
+		const newData = [];
+		const query = {
+			action: "GetEstablecimientos",
+			params: { empresaId: empresa.id, pageIndex: 1 },
+		};
+		query.onOk = async (res) => {
+			let { index, pages, data } = res;
+			data.forEach((r) => newData.push(r));
+			if (index < pages) {
+				query.params = { ...query.params, pageIndex: index + 1 };
+				pushQuery(query);
+			} else {
+				setEstablecimientos({ data: newData });
+			}
+		};
+		query.onError = async (err) => setEstablecimientos({ error: err });
+		pushQuery(query);
+	}, [pushQuery, empresa]);
 
-	//#region declaracion e inicializacion de tipo de pago
-	const tipoPagoId = liquidacion?.liquidacionTipoPagoId ?? 0;
-	const [tipoPago, setTipoPago] = useState({ loading: true, data: {}});
+	//#region declaracion y carga de tiposPago
+	const [tiposPago, setTiposPago] = useState({ loading: true, data: [] });
 	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "SIARU",
-				endpoint: `/LiquidacionesTiposPagos/${tipoPagoId}`,
-				method: "GET",
-			},
-			async (res) => setTipoPago({ data: { ...res } }),
-			async (err) => setTipoPago({ error: { ...err }, data: {} })
-		);
-	}, [tipoPagoId, sendRequest]);
-	//#endregion
+		pushQuery({
+			action: "GetLiquidacionesTiposPagos",
+			onOk: async (res) => setTiposPago({ data: res }),
+			onError: async (err) => setTiposPago({ error: { ...err }, data: [] }),
+		});
+	}, [pushQuery]);
 
 	let pdfRender;
-	if (establecimiento.loading || tipoPago.loading) {
+	if (establecimientos.loading || tiposPago.loading) {
 		pdfRender = <h4>Cargando datos...</h4>;
-	} else if (establecimiento.error) {
+	} else if (establecimientos.error) {
 		pdfRender = (
 			<h4 style={{ color: "red" }}>
-				Error cargando datos... {establecimiento?.error?.Mensaje ?? ""}
+				Error cargando datos... {establecimientos?.error?.Mensaje ?? ""}
 			</h4>
 		);
 	} else {
 		pdfRender = (
 			<PDFViewer style={{ flexGrow: "1" }}>
 				<PDF
-					liquidacion={liquidacion}
 					empresa={empresa}
-					establecimiento={establecimiento.data}
-					tipoPago={tipoPago.data}
+					data={liquidaciones.map((liquidacion) => ({
+						liquidacion: liquidacion,
+						establecimiento: establecimientos.data.find(
+							(establecimiento) =>
+								establecimiento.id === liquidacion.empresaEstablecimientoId ?? 0
+						) ?? {},
+						tipoPago: tiposPago.data.find(
+							(tipoPago) =>
+								tipoPago.id === liquidacion?.liquidacionTipoPagoId ?? 0
+						) ?? {},
+					}))}
 				/>
 			</PDFViewer>
 		);
