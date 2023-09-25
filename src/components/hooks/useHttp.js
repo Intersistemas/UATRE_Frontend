@@ -5,13 +5,7 @@ const useHttp = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
 
-    const sendRequest = useCallback(
-			async (
-				configRequest,
-				takeOk = (data) => {},
-				takeError = (error) => {},
-				takeFinally = () => {}
-			) => {
+    const sendRequest = useCallback(async (configRequest, applyData, takeError = (error) => {}) => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
@@ -50,6 +44,7 @@ const useHttp = () => {
         }
 
 				configRequest.bodyToJSON ??= true;
+        
         //Agrego Token
         let headers = {...configRequest.headers}
         if(headers.Authorization === true)
@@ -59,42 +54,58 @@ const useHttp = () => {
             }
         }
         
-				if (configRequest.body && configRequest.bodyToJSON)
-					headers["Content-Type"] ??= "application/json";
+				let err;
+        try {
+            const response = await fetch(
+                url + configRequest.endpoint,
+                {
+                    method: configRequest.method ? configRequest.method : 'GET',
+                    headers: headers,
+                    body: configRequest.body
+											? configRequest.bodyToJSON
+												? JSON.stringify(configRequest.body)
+												: configRequest.body
+											: null,
+                }
+            )
+            
+            if(!response.ok)
+            {                            
+                const errorResponse = await response.json();
+                console.log("response not ok", errorResponse);  
+                err = {
+                  type:
+                    errorResponse.StatusCode === 500 || errorResponse.status === 500
+                      ? "Internal Server Error"
+                      : "Error",
+                  code: errorResponse.status ?? errorResponse.statusCode,
+                  message: errorResponse.message ?? errorResponse.mensaje ?? errorResponse.errors,
+                };
 
-				try {
-					const response = await fetch(url + configRequest.endpoint, {
-						method: configRequest.method ? configRequest.method : "GET",
-						headers: headers,
-						body: configRequest.body
-							? configRequest.bodyToJSON
-								? JSON.stringify(configRequest.body)
-								: configRequest.body
-							: null,
-					});
+                setError(err)
+                takeError(err)
+                
+                return //caputo el error en el componente
+            }
 
-					const data = await response.json();
-					if (!response.ok) {
-						throw Object.assign(new Error(data.Message || data.Mensaje), {
-							type: data.StatusCode === 500 ? "Internal Server Error" : "Error",
-							code: data.StatusCode,
-							data: data,
-						});
+            const data = await response.json();
+            applyData(data);  
+            
+
+        } catch (error) {
+					if (!err) {
+						err = {
+							type: "Error",
+              code: 0,
+							message: error.message,
+						};
 					}
-					takeOk(data);
-				} catch (error) {
-					error.type ??= "Error";
-					error.code ??= 0;
-					error.message ??= "Error";
-					takeError(error);
-					setError(error.message);
-				} finally {
-					takeFinally();
-					setIsLoading(false);
-				}
-			},
-			[]
-		);
+					takeError(err);
+					setError(error.message || "Error");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     return {
         isLoading, 

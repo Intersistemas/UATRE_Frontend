@@ -26,7 +26,8 @@ const Handler = () => {
 		[location.state?.empresa]
 	);
 	const periodo = location.state?.periodo;
-	if (empresa.id == null || periodo == null) navigate("/");
+  if (empresa.id == null || periodo == null) navigate("/ingreso");
+
 
 	const { sendRequest } = useHttp();
 
