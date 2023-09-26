@@ -55,6 +55,13 @@ const rowStyleDef = (_row, _cell) => ({
 
 const noDataIndicationDef = "No existen datos para mostrar";
 
+
+const columnStyleDef = {
+	overflow: "hidden",
+	textOverflow: "ellipsis",
+	whiteSpace: "nowrap",
+};
+
 const Table = ({
 	data = [],
 	keyField = "",
@@ -72,11 +79,14 @@ const Table = ({
 	filter = undefined,
 	overlay = undefined,
 	baseProps = {},
-	...otherProps
+	...x
 }) => {
 	data ??= [];
 	keyField ??= "";
 	columns ??= [];
+	columns.forEach((r) => {
+		r.style = { ...columnStyleDef, ...r.style };
+	});
 	onSelected ??= onSelectedDef;
 	onTableChange ??= onTableChangeDef;
 	rowStyle ??= rowStyleDef;
@@ -84,7 +94,7 @@ const Table = ({
 	defaultSorted ??= false;
 	noDataIndication ??= noDataIndicationDef;
 	baseProps ??= {};
-	baseProps = { ...baseProps, ...otherProps };
+	baseProps = { ...baseProps, ...x };
 
 	// Normalizo la paginación que pasa por props
 	if (pagination) {
