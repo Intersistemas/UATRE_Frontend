@@ -13,7 +13,7 @@ import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
 import { handleUsuarioLogueado } from "../../redux/actions";
-
+ 
 const Login = () => {
   console.log("Login");
   const authContext = useContext(AuthContext);
@@ -108,10 +108,10 @@ const Login = () => {
 
   return (
     <div className={classes.container}>
-      <LoginCard className={classes.login}>
+      <LoginCard>
         <img src={logo} width="200" height="200" />
-        <Form onSubmit={submitHandler}>
-          <Form.Group className="mb-3" controlId="formCUIT">
+        <Form className="text-start" onSubmit={submitHandler}>
+          <Form.Group className="mt-3" controlId="formCUIT">
             <Form.Label style={{ color: "#555555" }}>
               <strong>Usuario</strong>
             </Form.Label>
@@ -126,31 +126,32 @@ const Login = () => {
             />
           </Form.Group>
 
-          <Form.Label style={{ color: "#555555" }}>
-            <strong>Clave</strong>
-          </Form.Label>
-          <InputGroup className="mb-3">
-            <Form.Control
-              type={verClave ? "text" : "password"}
-              placeholder="Clave"
-              id="password"
-              value={enteredPassword}
-              onChange={passwordChangeHandler}
-              onBlur={validatePasswordHandler}
-            />
-
-            <InputGroup.Text>
-              <img
-                width={20}
-                height={20}
-                title={verClave ? "Ocultar clave" : "Ver Clave"}
-                src={verClave ? ocultarClaveImg : verClaveImg}
-                onClick={() => setVerClave((prevState) => !prevState)}
+          <Form.Group className="mt-3">
+            <Form.Label style={{ color: "#555555" }}>
+              <strong>Clave</strong>
+            </Form.Label>
+            <InputGroup > 
+              <Form.Control
+                type={verClave ? "text" : "password"}
+                placeholder="Clave"
+                id="password"
+                value={enteredPassword}
+                onChange={passwordChangeHandler}
+                onBlur={validatePasswordHandler}
               />
-            </InputGroup.Text>
-          </InputGroup>
+                <InputGroup.Text>
+                  <img
+                    width={20}
+                    height={20}
+                    title={verClave ? "Ocultar Clave" : "Ver Clave"}
+                    src={verClave ? ocultarClaveImg : verClaveImg}
+                    onClick={() => setVerClave((prevState) => !prevState)}
+                  />
+                </InputGroup.Text>
+            </InputGroup>
+          </Form.Group>
           
-          <div className={classes.actions}>
+          <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
                 <Button type="submit" className="botonAzul">
@@ -158,7 +159,7 @@ const Login = () => {
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco">Registrar</Button>
+                <Button onClick={()=>navigate("/registro")} className="botonBlanco">Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>
@@ -168,6 +169,9 @@ const Login = () => {
             {error ? <p>Error: {mensajeError}</p> : null}
           </div>
         </Form>
+        <div className="mt-3">
+          <a>¿Olvidaste tu <Link to="/recuperarClave">Clave</Link>?</a>
+        </div>      
       </LoginCard>
     </div>
   );

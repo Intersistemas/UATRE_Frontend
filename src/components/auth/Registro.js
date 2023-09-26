@@ -12,7 +12,13 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
-import { handleUsuarioLogueado } from "../../redux/actions";
+
+import Tooltip from '@mui/material/Tooltip';
+import Alert from '@mui/material/Alert';
+import IconButton from '@mui/material/IconButton';
+import Collapse from '@mui/material/Collapse';
+import AlertTitle from '@mui/material/AlertTitle';
+import CloseIcon from '@mui/icons-material/Close';
 
 const Registro = () => {
   console.log("Login");
@@ -21,23 +27,38 @@ const Registro = () => {
   const dispatch = useDispatch();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
 
-  const [enteredCUIT, setEnteredCUIT] = useState("");
+  const [enteredCUIT, setEnteredCUIT] = useState();
   const [cuitIsValid, setCUITIsValid] = useState();
+
+  const [enteredEmail, setEnteredEmail] = useState("");
+  const [emailIsValid, setEmailIsValid] = useState();
+  
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredRepeatPassword, setEnteredRepeatPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
-  const [mensajeError, setMensajeError] = useState("");
+
+  const [message, setMessage] = React.useState("");
 
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
+      setMessage("❌ Error registrando el usuario - "+error.message);
       console.log("capturo error", error);
+      console.log("capturo error2", {error});
+
+
       if(error.code === 401){
-        setMensajeError(error.message);
+        setMessage("❌ "+error.message);
       }
+      if(error.statusCode === 405){
+        setMessage("❌ Endpoint no encontrado.");
+      }
+      
       if(error.statusCode === 500){
-        setMensajeError("Error al conectar con el servidor");
+        setMessage("❌ Error al conectar con el servidor.");
       }
+
+      
       return;
     }
   }, [error]);
@@ -48,6 +69,10 @@ const Registro = () => {
 
   const cuitChangeHandler = (event) => {
     setEnteredCUIT(event.target.value);
+  };
+
+  const emailChangeHandler = (event) => {
+    setEnteredEmail(event.target.value);
   };
 
   const passwordChangeHandler = (event) => {
@@ -62,67 +87,77 @@ const Registro = () => {
     setCUITIsValid(enteredCUIT.trim().length === 11);
   };
 
+  const validateEmailHandler = () => {
+    
+  };
+
   const validatePasswordHandler = () => {
     setPasswordIsValid(enteredPassword.trim().length > 6);
   };
 
-  const processLogIn = async (userObject) => {
-    console.log("userObject1", userObject);
-    await authContext.login(
+
+  //Se debe procesar el registro (envio de email)
+  const processRegistro = async (userObject) => {
+    console.log("userObject_Registro", userObject);
+    setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail);
+
+    //await
+    
+    /*await authContext.login(
       userObject.token.tokenId,
       userObject.token.validTo.toString(),
       userObject.rol,
       userObject
-    );
-    console.log("logged");
-    //pasar al authcontext el usuario
-
-    console.log("enteredCUIT", enteredCUIT);
-    dispatch(handleUsuarioLogueado(userObject));
-    navigate("/inicio");
+    );*/
+    console.log("Registrado");
+    
   };
 
-  const sendLoginHandler = async () => {
+  const sendRegistrarHandler = async () => {
+    setMessage("");
     sendLoginRequest(
       {
         baseURL: "Seguridad",
-        endpoint: "/Usuario/loginEmailCuit",
+        endpoint: "/Usuario/registrarViaEmail",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "*/*",
         },
         body: {
-          Usuario: enteredCUIT,
-          Password: enteredPassword,
-          Rol: null,
+          cuit: enteredCUIT,
+          email: enteredEmail,
+          password: enteredPassword,
+          confirmPassword: enteredRepeatPassword,
         },
       },
-      processLogIn
+      processRegistro
     );
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    //props.onLogin(enteredCUIT, enteredPassword);
-    sendLoginHandler();
-    console.log("submitHandler");
+    sendRegistrarHandler();
   };
 
   const [verClave, setVerClave] = useState(false);
 
   return (
     <div className={classes.container}>
-      <LoginCard className={classes.login}>
-        <img src={logo} width="200" height="200" />
-        <Form onSubmit={submitHandler}>
-          <Form.Group className="mb-3" controlId="formCUIT">
+      <LoginCard>
+        <img src={logo} width="175" height="175" />
+
+        {/**/}
+        { (message && !error) ?  <div>{message}</div> : 
+         <Form className="text-start" onSubmit={submitHandler}>
+          <Form.Group className="mt-3" controlId="formCUIT">
             <Form.Label style={{ color: "#555555" }}>
               <strong>CUIT</strong>
             </Form.Label>
 
             <Form.Control
-              type="text"
+              required
+              type="number"
               placeholder="Cuit/Cuil"
               id="cuit"
               value={enteredCUIT}
@@ -131,47 +166,56 @@ const Registro = () => {
             />
           </Form.Group>
 
-          <Form.Label style={{ color: "#555555" }}>
-              <strong>Email</strong>
-            </Form.Label>
+          <Form.Group className="mt-3" controlId="formEmail">
+            <Form.Label style={{ color: "#555555" }}>
+                <strong>Email</strong>
+              </Form.Label>
 
-            <Form.Control
-              type="email"
-              placeholder="Email"
-              id="email"
-              value={enteredCUIT}
-              onChange={cuitChangeHandler}
-              onBlur={validateCUITHandler}
-            />
-
-          <Form.Label style={{ color: "#555555" }}>
-            <strong>Clave</strong>
-          </Form.Label>
-          <InputGroup className="mb-3">
-            <Form.Control
-              type={verClave ? "text" : "password"}
-              placeholder="Clave"
-              id="password"
-              value={enteredPassword}
-              onChange={passwordChangeHandler}
-              onBlur={validatePasswordHandler}
-            />
-            <InputGroup.Text>
-              <img
-                width={20}
-                height={20}
-                title={verClave ? "Ocultar clave" : "Ver Clave"}
-                src={verClave ? ocultarClaveImg : verClaveImg}
-                onClick={() => setVerClave((prevState) => !prevState)}
+              <Form.Control
+                required
+                type="email"
+                placeholder="Email"
+                id="email"
+                value={enteredEmail}
+                onChange={emailChangeHandler}
+                onBlur={validateEmailHandler}
               />
-            </InputGroup.Text>
-          </InputGroup>
+          </Form.Group>
 
+          <Form.Group className="mt-3" controlId="formClave">
+            <Form.Label style={{ color: "#555555" }}>
+              <strong>Clave</strong>
+            </Form.Label>
+            
+            <InputGroup>
+              <Form.Control
+                required
+                type={verClave ? "text" : "password"}
+                placeholder="Clave"
+                id="password"
+                value={enteredPassword}
+                onChange={passwordChangeHandler}
+                onBlur={validatePasswordHandler}
+              />
+              <InputGroup.Text>
+                <img
+                  width={20}
+                  height={20}
+                  title={verClave ? "Ocultar clave" : "Ver Clave"}
+                  src={verClave ? ocultarClaveImg : verClaveImg}
+                  onClick={() => setVerClave((prevState) => !prevState)}
+                />
+              </InputGroup.Text>
+            </InputGroup>
+          </Form.Group>
+
+          <Form.Group className="mt-3" controlId="formRepetirClave">
           <Form.Label style={{ color: "#555555" }}>
             <strong>Repetir Clave</strong>
           </Form.Label>
-          <InputGroup className="mb-3">
+          <InputGroup>
             <Form.Control
+              required
               type={verClave ? "text" : "password"}
               placeholder="Repetir Clave"
               id="repeat-password"
@@ -189,8 +233,9 @@ const Registro = () => {
               />
             </InputGroup.Text>
           </InputGroup>
-          
-          <div className={classes.actions}>
+          </Form.Group>
+
+          <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
                 <Button type="submit" className="botonAzul">
@@ -199,14 +244,38 @@ const Registro = () => {
 
               </div>
             ) : (
-              <p>Cargando...</p>
+              <p>Registrando...</p>
             )}
+           
           </div>
-          <div>
-            {error ? <p>Error: {mensajeError}</p> : null}
-          </div>
-        </Form>
+          <Collapse in={error && message}>
+                <Alert severity="error"
+                      action={
+                            <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                            setMessage("");
+                            }}
+                            >
+                            <CloseIcon fontSize="inherit" />
+                            </IconButton>
+                      }
+                      sx={{ mb: 2 }}>
+                      <AlertTitle><strong>Error!</strong></AlertTitle>
+                      {message}
+                </Alert>
+          </Collapse>  
+        </Form>}
+
+        <div className={`mt-3`}>
+            <Button onClick={()=>navigate("/ingreso")} type="submit" className="botonBlanco">
+              Inicio
+            </Button>
+        </div>
       </LoginCard>
+      
     </div>
   );
 };

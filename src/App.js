@@ -29,6 +29,8 @@ import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
 import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
+import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
+
 import fondo from './media/Background/color3.png';
 import DelegacionesHandler from 'components/pages/delegaciones/DelegacionesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
@@ -45,14 +47,24 @@ const App = () => {
     <div className="App">
         
         <Routes>
+        
               {
                   !isLoggedIn 
-                  && (<Route path="/*" element={<Login/>} />)
+                  && (<Route path="/ingreso" element={<Login/>} />)
+              }
+              {
+                  !isLoggedIn 
+                  && (<Route path="/" element={<Login/>} />)
               }
               {
                   !isLoggedIn 
                   && (<Route path="/registro" element={<Registro/>} />)
               }
+              {
+                  !isLoggedIn 
+                  && (<Route path="/*" element={<PantallaEnDesarrollo/>} />)
+              }
+              
         </Routes> 
         <img src={fondo} alt="fondo" class="bg-image" />
         <SideBar>
@@ -70,11 +82,11 @@ const App = () => {
 						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
 						<Route path="/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
-            <Route path="/inicio" element={<InicioHandler />} />
             <Route path="/administracion" element={<AdministracionHandler />} />
             <Route path="/seccionales" element={<SeccionalesHandler />} />
             <Route path="/empresas" element={<EmpresasHandler />} />
             <Route path="/delegaciones" element={<DelegacionesHandler />} />
+            <Route path="/*" element={<PantallaEnDesarrollo/>} />
           </Routes>
          
         </SideBar>

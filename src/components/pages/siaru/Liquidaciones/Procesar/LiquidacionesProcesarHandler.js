@@ -17,7 +17,7 @@ const LiquidacionesProcesarHandler = () => {
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const empresa = location.state?.empresa ? location.state.empresa : {};
-	if (empresa.id == null) navigate("/");
+	if (empresa.id == null) navigate("/ingreso");
 
 	const archivoRef = useRef(null);
 
