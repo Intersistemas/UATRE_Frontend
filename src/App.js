@@ -30,6 +30,7 @@ import Afiliado from './components/pages/afiliados/Afiliado';
 import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
 import fondo from './media/Background/color3.png';
+import DelegacionesHandler from 'components/pages/delegaciones/DelegacionesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/
@@ -73,6 +74,7 @@ const App = () => {
             <Route path="/administracion" element={<AdministracionHandler />} />
             <Route path="/seccionales" element={<SeccionalesHandler />} />
             <Route path="/empresas" element={<EmpresasHandler />} />
+            <Route path="/delegaciones" element={<DelegacionesHandler />} />
           </Routes>
          
         </SideBar>

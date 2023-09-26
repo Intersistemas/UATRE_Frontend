@@ -17,6 +17,7 @@ const AdministracionHandler = () => {
 		const newAccesos = [];
 		newAccesos.push(<Button onClick={() => navigate("/seccionales")}>Seccionales</Button>)
 		newAccesos.push(<Button onClick={() => navigate("/empresas")}>Empresas</Button>)
+		newAccesos.push(<Button onClick={() => navigate("/delegaciones")}>Delegaciones</Button>)
 		newAccesos.push(<Button onClick={() => navigate("/administracionDeAccesos")}>Administracion De Accesos</Button>)
 		setAccesos(newAccesos);	
 
