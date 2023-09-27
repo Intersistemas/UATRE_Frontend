@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { handleModuloSeleccionar } from "redux/actions";
+import {
+	handleModuloEjecutarAccion,
+	handleModuloSeleccionar,
+} from "redux/actions";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import DelegacionesTable from "./DelegacionesTable";
 import Grid from "components/ui/Grid/Grid";
+import DelegacionesForm from "./DelegacionesForm";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -13,7 +17,7 @@ const DelegacionesHandler = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetRefDelegacionList":
+			case "GetDelegacionList":
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -21,6 +25,38 @@ const DelegacionesHandler = () => {
 						method: "GET",
 					},
 				};
+			case "CreateDelegacion":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefDelegacion`,
+						method: "POST",
+					},
+				};
+			case "UpdateDelegacion":
+				return (() => {
+					const { id, ...otherParams } = params;
+					return {
+						config: {
+							baseURL: "Comunes",
+							endpoint: `/RefDelegacion/${id}`,
+							method: "PUT",
+						},
+						params: otherParams,
+					};
+				})();
+			case "DeleteDelegacion":
+				return (() => {
+					const { id, ...otherParams } = params;
+					return {
+						config: {
+							baseURL: "Comunes",
+							endpoint: `/RefDelegacion/${id}`,
+							method: "DELETE",
+						},
+						params: otherParams,
+					};
+				})();
 			default:
 				return null;
 		}
@@ -36,81 +72,182 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		if (!delegacionesList.loading) return;
 		pushQuery({
-			action: "GetRefDelegacionList",
+			action: "GetDelegacionList",
 			onOk: async (res) => setDelegacionesList({ data: res }),
-			onError: async (err) => setDelegacionesList({ data: [], error: err }),
+			onError: async (err) => {
+				const newDelegacionesList = { data: [] };
+				if (err.code !== 404) newDelegacionesList.error = err;
+				setDelegacionesList(newDelegacionesList);
+			},
 		});
 	}, [pushQuery, delegacionesList.loading]);
 	//#endregion
 
 	//#region declaracion registro seleccionado
 	const [selected, setSelected] = useState({
-		record: {},
-		history: {},
-		request: null,
+		record: null,
+		index: null,
+		action: "",
+		request: "",
 	});
 	//#endregion
 
 	//#region sidebar
-	const moduloInfo = {
-		nombre: "Delegaciones",
-		acciones: [
+	const [redirect, setRedirect] = useState({ to: "", options: null });	//De esta forma puedo limpiar moduloInfo antes de cambiar de página
+	const moduloInfo = {};
+	if (redirect.to) {
+		navigate(redirect.to, redirect.options);
+	} else {
+		moduloInfo.nombre = "Delegaciones";
+		moduloInfo.acciones = [
 			{ name: "Administración de datos" },
 			{ name: "Agrega Delegación" },
-			{ name: "Consulta Delegación" },
-			{ name: "Modifica Delegación" },
-			{ name: "Borra Delegación" },
-		],
-	};
+		];
+	}
+	const selectedDesc = (() => {
+		if (!moduloInfo.acciones) return "";
+		const selectedDesc = selected.record?.id;
+		if (!selectedDesc) return "";
+		moduloInfo.acciones.push({ name: `Consulta Delegación ${selectedDesc}` });
+		moduloInfo.acciones.push({ name: `Modifica Delegación ${selectedDesc}` });
+		moduloInfo.acciones.push({ name: `Borra Delegación ${selectedDesc}` });
+		return selectedDesc;
+	})();
+
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		switch (moduloAccion) {
 			case "Administración de datos":
-				navigate("/administracion");
+				setRedirect({ to: "/administracion" });
 				break;
 			case "Agrega Delegación":
 				setSelected((old) => ({
 					...old,
-					record: { ...old.history },
+					record: {},
+					action: moduloAccion,
 					request: "A",
 				}));
 				break;
-			case "Consulta Delegación":
+			case `Consulta Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					record: { ...old.history },
+					action: moduloAccion,
 					request: "C",
 				}));
 				break;
-			case "Modifica Delegación":
+			case `Modifica Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					record: { ...old.history },
+					action: moduloAccion,
 					request: "M",
 				}));
 				break;
-			case "Borra Delegación":
+			case `Borra Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					record: { ...old.history },
+					action: moduloAccion,
 					request: "B",
 				}));
 				break;
 			default:
 				break;
 		}
-	}, [navigate, moduloAccion]);
+		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	}, [dispatch, moduloAccion, selectedDesc]);
 	//#endregion
 
-	const [form, setForm] = useState(null);
-	useEffect(() => {
-		if (!selected.request) {
-			setForm(null);
-			return;
-		}
-		setForm(JSON.stringify(selected.record));
-	}, [selected]);
+	let form = null;
+	if (selected.request) {
+		form = (
+			<DelegacionesForm
+				data={selected.record}
+				title={selected.action}
+				errores={selected.errores}
+				onChange={(changes) =>
+					setSelected((old) => ({
+						...old,
+						record: {
+							...old.record,
+							...changes,
+						},
+					}))
+				}
+				onClose={(confirm) => {
+					if (!["A", "B", "M"].includes(selected.request)) confirm = false;
+					if (!confirm) {
+						setSelected({
+							record: { ...delegacionesList.data[selected.index] },
+							index: selected.index,
+						});
+						return;
+					}
+
+					const record = { ...selected.record };
+
+					//Validaciones
+					const errores = {};
+					if (!record.codigoDelegacion)
+						errores.codigoDelegacion = "Dato requerido";
+					if (!record.nombre) errores.nombre = "Dato requerido";
+					if (Object.keys(errores).length) {
+						setSelected((old) => ({ ...old, errores: errores }));
+						return;
+					}
+
+					const query = {
+						config: {},
+						onOk: async (res) =>
+							setDelegacionesList((old) => {
+								let newSelected = {};
+								const data = [...old.data];
+								switch (selected.request) {
+									case "A":
+										newSelected.index = data.length;
+										newSelected.record = {
+											...record,
+											id: res,
+										};
+										data.push({ ...newSelected.record });
+										break;
+									case "M":
+										newSelected.index = selected.index;
+										newSelected.record = { ...record };
+										data.splice(selected.index, 1, record);
+										break;
+									case "B":
+										data.splice(selected.index, 1);
+										break;
+									default:
+										break;
+								}
+								setSelected(newSelected);
+								return { data: data };
+							}),
+						onError: async (err) => alert(err.message),
+					};
+					switch (selected.request) {
+						case "A":
+							query.action = "CreateDelegacion";
+							query.config.body = record;
+							break;
+						case "M":
+							query.action = "UpdateDelegacion";
+							query.params = { id: record.id };
+							query.config.body = record;
+							break;
+						case "B":
+							query.action = "DeleteDelegacion";
+							query.params = { id: record.id };
+							break;
+						default:
+							break;
+					}
+					pushQuery(query);
+				}}
+			/>
+		);
+	}
 
 	return (
 		<Grid full col>
@@ -130,8 +267,8 @@ const DelegacionesHandler = () => {
 						onSelect: (row, isSelect, rowIndex, e) =>
 							setSelected({
 								record: { ...row },
-								history: { ...row },
-								request: null,
+								index: rowIndex,
+								request: "",
 							}),
 					}}
 				/>

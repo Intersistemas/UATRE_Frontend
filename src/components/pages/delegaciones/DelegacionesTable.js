@@ -9,8 +9,9 @@ const DelegacionesTable = ({
 	const columns = [
 		{
 			dataField: "codigoDelegacion",
-			text: "Cód. delegación",
+			text: "Código",
 			sort: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			style: { textAlign: "left" },
 		},
 		{
