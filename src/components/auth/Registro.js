@@ -42,13 +42,13 @@ const Registro = () => {
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
-      setMessage("❌ Error registrando el usuario - "+error.message);
+      setMessage("❌ Error registrando el usuario - "+error);
       console.log("capturo error", error);
       console.log("capturo error2", {error});
 
 
       if(error.code === 401){
-        setMessage("❌ "+error.message);
+        setMessage("❌ "+error);
       }
       if(error.statusCode === 405){
         setMessage("❌ Endpoint no encontrado.");
