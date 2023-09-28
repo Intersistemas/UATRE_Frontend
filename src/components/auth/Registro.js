@@ -129,6 +129,7 @@ const Registro = () => {
           email: enteredEmail,
           password: enteredPassword,
           confirmPassword: enteredRepeatPassword,
+          rol: "Empleador"
         },
       },
       processRegistro
@@ -150,7 +151,7 @@ const Registro = () => {
         {/**/}
         { (message && !error) ?  <div>{message}</div> : 
          <Form className="text-start" onSubmit={submitHandler}>
-          <Form.Group className="mt-3" controlId="formCUIT">
+          <Form.Group className="mt-3" >
             <Form.Label style={{ color: "#555555" }}>
               <strong>CUIT</strong>
             </Form.Label>
@@ -166,7 +167,7 @@ const Registro = () => {
             />
           </Form.Group>
 
-          <Form.Group className="mt-3" controlId="formEmail">
+          <Form.Group className="mt-3">
             <Form.Label style={{ color: "#555555" }}>
                 <strong>Email</strong>
               </Form.Label>
@@ -182,7 +183,7 @@ const Registro = () => {
               />
           </Form.Group>
 
-          <Form.Group className="mt-3" controlId="formClave">
+          <Form.Group className="mt-3">
             <Form.Label style={{ color: "#555555" }}>
               <strong>Clave</strong>
             </Form.Label>
@@ -209,7 +210,7 @@ const Registro = () => {
             </InputGroup>
           </Form.Group>
 
-          <Form.Group className="mt-3" controlId="formRepetirClave">
+          <Form.Group className="mt-3">
           <Form.Label style={{ color: "#555555" }}>
             <strong>Repetir Clave</strong>
           </Form.Label>
