@@ -61,15 +61,14 @@ const Seccionales = (props) => {
 
       {selectedTab === 1 && (
         <SeccionalAutoridades
-          seccionalAutoridades={props.seccionalAutoridades}
+          seccionalAutoridades={props.seccionalAutoridades}          
           onSoloAutoridadesVigentes={props.onSoloAutoridadesVigentes}
+          onSeleccionAutoridad={props.onSeleccionAutoridad}
         />
       )}
 
       {selectedTab === 2 && (
-        <SeccionalDocumentos
-          seccionalDocumentos={props.seccionalDocumentos}          
-        />
+        <SeccionalDocumentos seccionalDocumentos={props.seccionalDocumentos} />
       )}
     </>
   );
