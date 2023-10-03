@@ -1,13 +1,16 @@
 import React from "react";
 import Modal from "components/ui/Modal/Modal";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import InputMaterial from "components/ui/Input/InputMaterial";
 
 const DelegacionesForm = ({
 	data = {},
 	title = "",
 	disabled = {},
+	hide = {},
 	errores = {},
 	onChange = (changes = {}) => {},
 	onClose = (confirm = false) => {},
@@ -17,45 +20,61 @@ const DelegacionesForm = ({
 	data.nombre ??= "";
 
 	disabled ??= {};
+	hide ??= {};
 	errores ??= {};
 
 	return (
 		<Modal onClose={() => onClose(false)}>
 			<Grid col full gap="15px">
-				<Grid width="full"><h3>{title}</h3></Grid>
+				<Grid className={modalCss.modalCabecera} width="full">
+					<h3>{title}</h3>
+				</Grid>
 				<Grid width="full" gap="15px">
 					<Grid width="25%">
-					<InputMaterial
-							label="Cód. delegación"
-							error={!!errores.codigoDelegacion}
-							helperText={errores.codigoDelegacion ?? ""}
-							value={data.codigoDelegacion}
-							disabled={disabled.codigoDelegacion ?? false}
-							onChange={(value, _id) => onChange({ codigoDelegacion: value })}
-						/>
+						{hide.codigoDelegacion ? null : (
+							<InputMaterial
+								label="Cód. delegación"
+								error={!!errores.codigoDelegacion}
+								helperText={errores.codigoDelegacion ?? ""}
+								value={data.codigoDelegacion}
+								disabled={disabled.codigoDelegacion ?? false}
+								onChange={(value, _id) => onChange({ codigoDelegacion: value })}
+							/>
+						)}
 					</Grid>
 					<Grid width="75%">
-						<InputMaterial
-							label="Nombre"
-							error={!!errores.nombre}
-							helperText={errores.nombre ?? ""}
-							value={data.nombre}
-							disabled={disabled.nombre ?? false}
-							onChange={(value, _id) => onChange({ nombre: value })}
-						/>
+						{hide.nombre ? null : (
+							<InputMaterial
+								label="Nombre"
+								error={!!errores.nombre}
+								helperText={errores.nombre ?? ""}
+								value={data.nombre}
+								disabled={disabled.nombre ?? false}
+								onChange={(value, _id) => onChange({ nombre: value })}
+							/>
+						)}
 					</Grid>
 				</Grid>
-				<Grid col grow justify="end">
-					<Grid gap="30px">
-						<Grid grow />
-						<Grid col width="30%" justify="end">
-							<Grid gap="15px">
-								<Button className="botonBlanco" onClick={() => onClose(false)}>
-									Cancela
-								</Button>
-								<Button onClick={() => onClose(true)}>Confirma</Button>
-							</Grid>
-						</Grid>
+				<Grid width="full" gap="15px">
+					{hide.bajaObservacion ? null : (
+						<InputMaterial
+							label="Observaciones de baja"
+							error={!!errores.bajaObservacion}
+							helperText={errores.bajaObservacion ?? ""}
+							value={data.bajaObservacion}
+							disabled={disabled.bajaObservacion ?? false}
+							onChange={(value, _id) => onChange({ bajaObservacion: value })}
+						/>
+					)}
+				</Grid>
+				<Grid width="100%" gap="200px" justify="center">
+					<Grid width="200px">
+						<LoadingButtonCustom onClick={() => onClose(true)}>CONFIRMA</LoadingButtonCustom>
+					</Grid>
+					<Grid width="200px">
+						<Button onClick={() => onClose(false)}>
+							CANCELA
+						</Button>
 					</Grid>
 				</Grid>
 			</Grid>
