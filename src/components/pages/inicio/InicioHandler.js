@@ -13,7 +13,7 @@ const InicioHandler = () => {
   );
   
   let modulos = [];
-  usuarioLogueado.modulosTareas.forEach((mod) => {
+  usuarioLogueado?.modulosTareas.forEach((mod) => {
     if (modulos.includes(mod.nombreModulo)) return;
 		modulos.push(mod.nombreModulo);
   });

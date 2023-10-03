@@ -70,14 +70,14 @@ const App = () => {
                   !isLoggedIn 
                   && (<Route path="/*" element={<PantallaEnDesarrollo/>} />)
               }
+
               
         </Routes> 
         <img src={fondo} alt="fondo" class="bg-image" />
         <SideBar>
           
           <Routes>
-          
-            
+            <Route path="/" element={<InicioHandler/>} />
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
             <Route path="/afiliaciones/:id" element={<Afiliado/>} />

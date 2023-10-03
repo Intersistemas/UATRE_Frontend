@@ -101,14 +101,6 @@ const Registro = () => {
     console.log("userObject_Registro", userObject);
     setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail);
 
-    //await
-    
-    /*await authContext.login(
-      userObject.token.tokenId,
-      userObject.token.validTo.toString(),
-      userObject.rol,
-      userObject
-    );*/
     console.log("Registrado");
     
   };
@@ -129,7 +121,9 @@ const Registro = () => {
           email: enteredEmail,
           password: enteredPassword,
           confirmPassword: enteredRepeatPassword,
-          rol: "Empleador"
+          rol: "Empleador",
+          modulosId: 2, //Se debería selecciona de la lista de tareas
+          tareasId: 1 //Se debería selecciona de la lista de tareas
         },
       },
       processRegistro
