@@ -4,7 +4,7 @@ import classes from './LoginCard.module.css';
 
 const Card = (props) => {
   return (
-    <div className={ `rounded p-5 ${classes.card} ${props.className}`}>{props.children}</div>
+    <div className={ `rounded p-5 pb-3 ${classes.card} ${props.className}`}>{props.children}</div>
   );
 };
   

@@ -21,7 +21,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import CloseIcon from '@mui/icons-material/Close';
 
 const Registro = () => {
-  console.log("Login");
+  console.log("Registro");
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
   const dispatch = useDispatch();
