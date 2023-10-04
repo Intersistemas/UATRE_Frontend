@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { Alert, AlertTitle } from "@mui/lab";
 import { IconButton, Collapse } from "@mui/material";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const Form = ({
 	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
@@ -282,9 +283,6 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(request) ? (
-		<Button onClick={validar}>Confirma</Button>
-	) : null;
 	return (
 		<Modal onClose={() => onCancel(request)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
@@ -306,15 +304,18 @@ const Form = ({
 					}}
 					forzarCalculos={request === "A"}
 				/>
-				<Grid gap={`${gap}px`} grow full="width">
-					<Grid grow />
-					<Grid col width="30%" justify="end">
-						<Grid gap={`${gap}px`}>
-							<Button className="botonBlanco" onClick={() => onCancel(request)}>
-								Cancela
-							</Button>
-							{renderConfirmaButton}
-						</Grid>
+				<Grid width="full" gap="200px" justify="center">
+					<Grid width="150px">
+						{["A", "B", "M"].includes(request) ? (
+							<LoadingButtonCustom onClick={validar}>
+								CONFIRMA
+							</LoadingButtonCustom>
+						) : null}
+					</Grid>
+					<Grid width="150px">
+						<Button onClick={() => onCancel(request)}>
+							CANCELA
+						</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

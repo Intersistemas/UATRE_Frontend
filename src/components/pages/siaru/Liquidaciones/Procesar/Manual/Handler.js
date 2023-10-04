@@ -81,18 +81,18 @@ const Handler = () => {
 		acciones: [
 			{ name: `Empresas` },
 			{ name: `Liquidaciones` },
-			{ name: `Procesar liquidaciones` },
+			{ name: `Procesa liquidaciones` },
 		],
 	};
 
 	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
 	if (tentativas == null) {
-			moduloInfo.acciones.push({ name: `Agregar trabajador` });
+			moduloInfo.acciones.push({ name: `Agrega trabajador` });
 			if (descTrabajador) {
 			moduloInfo.acciones.push({
-				name: `Modificar trabajador ${descTrabajador}`,
+				name: `Modifica trabajador ${descTrabajador}`,
 			});
-			moduloInfo.acciones.push({ name: `Borrar trabajador ${descTrabajador}` });
+			moduloInfo.acciones.push({ name: `Borra trabajador ${descTrabajador}` });
 		}
 	}
 
@@ -156,18 +156,18 @@ const Handler = () => {
 			case `Liquidaciones`:
 				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
 				break;
-			case `Procesar liquidaciones`:
+			case `Procesa liquidaciones`:
 				navigate("/siaru/liquidaciones/procesar", {
 					state: { empresa: empresa },
 				});
 				break;
-			case `Agregar trabajador`:
+			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
 				break;
-			case `Modificar trabajador ${descTrabajador}`:
+			case `Modifica trabajador ${descTrabajador}`:
 				abreFormularioTrabajador("M");
 				break;
-			case `Borrar trabajador ${descTrabajador}`:
+			case `Borra trabajador ${descTrabajador}`:
 				abreFormularioTrabajador("B");
 				break;
 			default:
@@ -271,7 +271,7 @@ const Handler = () => {
 								})
 							}
 						>
-							Iniciar
+							Inicia
 						</Button>
 					</Grid>
 				</Grid>

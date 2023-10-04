@@ -162,16 +162,16 @@ const LiquidacionForm = ({
 		<Grid
 			className={`${styles.fondo} ${styles.grupo}`}
 			col
-			full="width"
+			width="full"
 			style={{ minWidth: "310px" }}
 			gap="10px"
 		>
-			<Grid full="width">
+			<Grid width="full">
 				<Grid className={styles.cabecera} grow>
 					{`Liquidaciones seleccionadas: ${records.length}`}
 				</Grid>
 			</Grid>
-			<Grid full="width" gap="5px">
+			<Grid width="full" gap="5px">
 				<TextField
 					InputLabelProps={{ style: inputLabelStyles }}
 					variant="standard"
@@ -189,7 +189,7 @@ const LiquidacionForm = ({
 					style={{ width: "50%" }}
 				/>
 			</Grid>
-			<Grid full="width">
+			<Grid width="full">
 				<Grid width="200px">
 					<DateTimePicker
 						type="date"
@@ -204,16 +204,15 @@ const LiquidacionForm = ({
 						}
 					/>
 				</Grid>
-			</Grid>
-			<Grid full="width">
-				<Grid col grow style={{ color: "red" }}>
-					{liqErrors}
-				</Grid>
-				<Grid col justify="end">
+				<Grid grow/>
+				<Grid>
 					<Button onClick={generarLiquidacion} disabled={!records?.length}>
 						Genera liquidación
 					</Button>
 				</Grid>
+			</Grid>
+			<Grid width="full" style={{ color: "red" }}>
+				{liqErrors}
 			</Grid>
 		</Grid>
 	);

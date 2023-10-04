@@ -40,7 +40,7 @@ const InputMaterial = (props) => {
   //   props.onFocus(props.id);
   // };
 
-  const shrink = props.type === "date" || props.value !== '' ? true : false  
+  // const shrink = props.type === "date" || props.value !== '' ? true : false  
   //console.log("helperText", props.helperText)
   // if (props.id === "numeroDocumento")
   // {
@@ -66,7 +66,7 @@ const InputMaterial = (props) => {
         type={props.type || "text"}
         inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
         InputLabelProps={{
-          shrink: shrink,
+          shrink: true,
         }}
         InputProps={{
           readOnly: props.readOnly || false,          

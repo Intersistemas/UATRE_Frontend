@@ -74,6 +74,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 
 	//#region declaración y carga de ddjj y liquidaciones
 	const [ddjjList, setDDJJList] = useState({ loading: true });
+	const ddjjListSinEstab = ddjjList.data?.filter((r) => !r.empresaEstablecimientoId) ?? [];
 	const [ddjjSelected, setDDJJSelected] = useState([]);
 	const [liqList, setLiqList] = useState({ loading: true });
 	const [liqSelected, setLiqSelected] = useState([]);
@@ -301,7 +302,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 								/>
 							);
 						}}
-						pagination={{ index: 1, size: 5 }}
+						pagination={{ index: 1, size: 4 }}
 					/>
 				</Grid>
 				<LiquidacionForm
@@ -376,7 +377,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 							onSelectAll={(isSelect) =>
 								handleDDJJOnSelect(isSelect, ddjjList.data ?? [])
 							}
-							pagination={{ index: 1, size: 5 }}
+							pagination={{ index: 1, size: 4 }}
 						/>
 					</Grid>
 					<Grid full="width">
@@ -387,6 +388,12 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 							onChange={handleDDJJFormOnChange}
 						/>
 					</Grid>
+					{ddjjListSinEstab.length ? (
+						<Grid width="full" style={{ color: "red" }}>
+							Trabajadores sin establecimiento asignado que por consecuencia
+							serán excluidos de la liquidación: {ddjjListSinEstab.length}
+						</Grid>
+					) : null}
 					<Grid col full="width">
 						{liquidacionListRender}
 					</Grid>
