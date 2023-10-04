@@ -23,15 +23,19 @@ const NominaForm = ({
 	const [errores, setErrores] = useState({});
 
 	const validar = () => {
+		if (!["A", "M", "B"].includes(request)) return;
+
 		const validData = { ...data };
 		validData.remuneracion = Formato.Decimal(validData.remuneracion);
 
 		const newErrores = {};
-		if (!ValidarCUIT(validData.cuil))
-			newErrores.cuil = "Debe ingresar un CUIL válido";
-		if (validData.remuneracion === 0)
-			newErrores.remuneracion = "Debe ingresar una remuneración";
-
+		if (request !== "B") {
+			if (!ValidarCUIT(validData.cuil))
+				newErrores.cuil = "Debe ingresar un CUIL válido";
+			if (validData.remuneracion === 0)
+				newErrores.remuneracion = "Debe ingresar una remuneración";
+		}
+		
 		setErrores(newErrores);
 		if (Object.keys(newErrores).length > 0) return;
 
@@ -54,18 +58,10 @@ const NominaForm = ({
 			break;
 	}
 
-	const renderConfirmaButton = titulo ? (
-		<LoadingButtonCustom onClick={validar}>CONFIRMA</LoadingButtonCustom>
-	) : null;
-
 	return (
 		<Modal onClose={onClose}>
 			<Grid col full gap="15px">
-				<Grid
-					className={modalCss.modalCabecera}
-					full="width"
-					justify="center"
-				>
+				<Grid className={modalCss.modalCabecera} full="width" justify="center">
 					<h3>{titulo}</h3>
 				</Grid>
 				<Grid width="full" gap="15px">
@@ -104,15 +100,22 @@ const NominaForm = ({
 						error={!!errores.remuneracion}
 						helperText={errores.remuneracion ?? ""}
 						value={data.remuneracion}
-						onChange={(value, _id) =>
-							setData((old) => ({ ...old, remuneracion: value }))
-						}
+						onChange={(value, _id) => {
+							const nuevo = Formato.Decimal(value);
+							if (nuevo < 0) return;
+							setData((old) => ({
+								...old,
+								remuneracion: nuevo,
+							}));
+						}}
 					/>
 				</Grid>
 				{/* Botones Confirma / Cancela */}
 				<Grid gap="200px" justify="center">
 					<Grid width="150px">
-						{renderConfirmaButton}
+						<LoadingButtonCustom onClick={validar}>
+							CONFIRMA
+						</LoadingButtonCustom>
 					</Grid>
 					<Grid width="150px">
 						<Button onClick={onClose}>CANCELA</Button>

@@ -16,6 +16,8 @@ import { Alert } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import { Collapse, IconButton } from "@mui/material";
 import { AlertTitle } from "@mui/lab";
+import Modal from "components/ui/Modal/Modal";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const Handler = () => {
 	const location = useLocation();
@@ -27,7 +29,7 @@ const Handler = () => {
 	);
 	const periodo = location.state?.periodo;
 
-  if (empresa.id == null || periodo == null) navigate("/ingreso");
+	if (empresa.id == null || periodo == null) navigate("/ingreso");
 	const { sendRequest } = useHttp();
 
 	const [tentativas, setTentativas] = useState(null);
@@ -87,8 +89,8 @@ const Handler = () => {
 
 	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
 	if (tentativas == null) {
-			moduloInfo.acciones.push({ name: `Agrega trabajador` });
-			if (descTrabajador) {
+		moduloInfo.acciones.push({ name: `Agrega trabajador` });
+		if (descTrabajador) {
 			moduloInfo.acciones.push({
 				name: `Modifica trabajador ${descTrabajador}`,
 			});
@@ -220,6 +222,8 @@ const Handler = () => {
 	}, [apiQuery, sendRequest]);
 	//#endregion
 
+	const [modal, setModal] = useState();
+
 	let contenido = null;
 	if (tentativas?.data != null) {
 		contenido = (
@@ -259,22 +263,47 @@ const Handler = () => {
 					<Grid>
 						<Button
 							disabled={!descTrabajador}
-							onClick={() =>
-								setApiQuery({
-									action: "SolicitarTentativas",
-									body: {
-										cuit: empresa.cuit,
-										periodo: periodo,
-										nominas: nomina.list,
-									},
-									timeStamp: new Date(),
-								})
-							}
+							onClick={() => {
+								setModal(
+									<Modal onClose={() => setModal(null)}>
+										<Grid col width="full" gap="20px">
+											<Grid width="full" justify="center">
+												<h3>Al continuar no se podrá modificar la lista de trabajadores.</h3>
+											</Grid>
+											<Grid width="full" gap="200px" justify="center">
+												<Grid width="150px">
+													<LoadingButtonCustom
+														onClick={() => {
+															setApiQuery({
+																action: "SolicitarTentativas",
+																body: {
+																	cuit: empresa.cuit,
+																	periodo: periodo,
+																	nominas: nomina.list,
+																},
+																timeStamp: new Date(),
+															});
+														}}
+													>
+														CONTINUA
+													</LoadingButtonCustom>
+												</Grid>
+												<Grid width="150px">
+													<Button onClick={() => setModal(null)}>
+														CANCELA
+													</Button>
+												</Grid>
+											</Grid>
+										</Grid>
+									</Modal>
+								);
+							}}
 						>
 							Inicia
 						</Button>
 					</Grid>
 				</Grid>
+				{modal}
 			</Grid>
 		);
 	}

@@ -164,6 +164,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 					nombre: ddjjRecord.nombre,
 					condicionRural: ddjjRecord.condicionRural,
 					remuneracionImponible: ddjjRecord.remuneracionImponible,
+					afiliadoId: ddjjRecord.afiliadoId,
 					esRural: ddjjRecord.esRural ?? false,
 				},
 			],

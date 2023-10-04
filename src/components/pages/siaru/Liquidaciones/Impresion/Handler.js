@@ -113,8 +113,8 @@ const Handler = ({
 					<Grid grow />
 					<Grid col width="30%" justify="end">
 						<Grid gap={`${gap}px`}>
-							<Button className="botonBlanco" onClick={onClose}>
-								Finaliza
+							<Button onClick={onClose}>
+								FINALIZA
 							</Button>
 						</Grid>
 					</Grid>
