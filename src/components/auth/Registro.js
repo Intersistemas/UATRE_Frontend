@@ -42,13 +42,13 @@ const Registro = () => {
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
-      setMessage("❌ Error registrando el usuario - "+error.message);
+      setMessage("❌ Error registrando el usuario - "+error);
       console.log("capturo error", error);
       console.log("capturo error2", {error});
 
 
       if(error.code === 401){
-        setMessage("❌ "+error.message);
+        setMessage("❌ "+error);
       }
       if(error.statusCode === 405){
         setMessage("❌ Endpoint no encontrado.");
@@ -101,14 +101,6 @@ const Registro = () => {
     console.log("userObject_Registro", userObject);
     setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail);
 
-    //await
-    
-    /*await authContext.login(
-      userObject.token.tokenId,
-      userObject.token.validTo.toString(),
-      userObject.rol,
-      userObject
-    );*/
     console.log("Registrado");
     
   };
@@ -129,7 +121,9 @@ const Registro = () => {
           email: enteredEmail,
           password: enteredPassword,
           confirmPassword: enteredRepeatPassword,
-          rol: "Empleador"
+          rol: "Empleador",
+          modulosId: 2, //Se debería selecciona de la lista de tareas
+          tareasId: 1 //Se debería selecciona de la lista de tareas
         },
       },
       processRegistro

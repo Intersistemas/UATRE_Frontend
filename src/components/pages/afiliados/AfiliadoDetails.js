@@ -147,21 +147,16 @@ const AfiliadoDetails = (props) => {
   
 
 					<Grid style={{ padding: "0rem 1rem"}}>
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Zona" value={validar(ddjj.zona)}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Zona" value={validar(ddjj.zonaDescripcion)} />
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Mod.Contratación" value={validar(ddjj.modalidad)}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Modalidad de Contratación" value={validar(ddjj.modalidadDescripcion)}/>	
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Actividad" value={validar(ddjj.actividad)}/>							
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={validar(ddjj.actividadDescripcion)}/>
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Cond.CUIL" value={validar(ddjj.cuilCondicion)}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={validar(ddjj.cuilCondicionDescripcion)}/>
+						
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Zona" value={validar(ddjj.zona)+" - "+validar(ddjj.zonaDescripcion)} />
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Modalidad de Contratación" value={validar(ddjj.modalidad)+" - "+validar(ddjj.modalidadDescripcion)}/>								
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={validar(ddjj.actividad) +" - "+validar(ddjj.actividadDescripcion)}/>
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Condición de CUIL" value={validar(ddjj.cuilCondicion)+" - "+validar(ddjj.cuilCondicionDescripcion)}/>
 					</Grid>
 
 					<Grid style={{ padding: "0rem 1rem"}}>
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Situación de CUIL" value={validar(ddjj.cuilSituacion)}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={validar(ddjj.cuilSituacionDescripcion)} />
-						<InputMaterial padding="0rem 0.5rem" width= "50" variant="standard" size="small" label="Cód.Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : "-"}/>
-						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Siniestro" value={" "}/>	
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Situación de CUIL" value={validar(ddjj.cuilSituacion)+" - "+validar(ddjj.cuilSituacionDescripcion)} />
+						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : "-"}/>	
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Reducción" value={validar(ddjj.reduccion)}/>							
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Importes" value={validar(ddjj.remuneracionImponible)}/>
 						<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Cantidad Hs Extras" value={validar(ddjj.hsExtrasCantidad)}/>

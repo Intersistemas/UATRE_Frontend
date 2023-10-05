@@ -1947,6 +1947,12 @@ const AfiliadoAgregar = (props) => {
 
   //#region Dialog or alert
   const handleCloseDialog = () => {
+    
+    if (
+      dialogTexto.includes('El afiliado ya está cargado')){
+        setDialogTexto("");//limpio el dialogo para que al cerrar el dialog no recargue el browse
+      }
+   
     setOpenDialog(false);
     //setDialogTexto("");
     if (
