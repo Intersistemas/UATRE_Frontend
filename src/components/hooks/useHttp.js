@@ -87,7 +87,7 @@ const useHttp = () => {
 					error.code ??= 0;
 					error.message ??= "Error";
 					takeError(error);
-					setError(error.message);
+					setError(error);
 				} finally {
 					takeFinally();
 					setIsLoading(false);
