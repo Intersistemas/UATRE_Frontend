@@ -170,11 +170,11 @@ const Login = () => {
             {error ? <p>Error: {mensajeError}</p> : null}
           </div>
         </Form>
-        <div className="mt-5">
+        <div className="mt-4">
           <a>¿Olvidaste tu <Link to="/recuperarClave">Clave</Link>?</a>
         </div>    
 
-        <div className="mt-3">
+        <div className="mt-2">
           <a><Link to="/contacto">Contacto</Link></a>
         </div>  
       </LoginCard>
