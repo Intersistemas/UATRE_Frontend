@@ -170,10 +170,15 @@ const Login = () => {
             {error ? <p>Error: {mensajeError}</p> : null}
           </div>
         </Form>
-        <div className="mt-3">
+        <div className="mt-5">
           <a>¿Olvidaste tu <Link to="/recuperarClave">Clave</Link>?</a>
-        </div>      
+        </div>    
+
+        <div className="mt-3">
+          <a><Link to="/contacto">Contacto</Link></a>
+        </div>  
       </LoginCard>
+     
     </div>
   );
 };
