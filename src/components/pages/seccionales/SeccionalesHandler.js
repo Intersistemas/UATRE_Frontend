@@ -66,7 +66,7 @@ const SeccionalesHandler = () => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 	switch (moduloAccion) {
 		case "Agrega Seccional":
-		  alert('Agrega - Funcionalida en Desarrollo');
+		  handlerOnAgregarClick();
 		  break;
     case "Modifica Seccional":
       alert('Modifica - Funcionalida en Desarrollo');

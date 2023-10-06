@@ -67,6 +67,7 @@ const InputMaterialMask = (props) => {
         id={props.id}
         size="small"
         //error={!props.isValid}
+        placeholder={props.placeholder}
         label={props.label}
         className={styles.input}
         value={props.value || ""}

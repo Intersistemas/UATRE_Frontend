@@ -30,9 +30,10 @@ const Login = () => {
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
+      setMensajeError(error);
       console.log("capturo error", error);
       if(error.code === 401){
-        setMensajeError(error.message);
+        setMensajeError(error);
       }
       if(error.statusCode === 500){
         setMensajeError("Error al conectar con el servidor");
@@ -111,7 +112,7 @@ const Login = () => {
       <LoginCard>
         <img src={logo} width="200" height="200" />
         <Form className="text-start" onSubmit={submitHandler}>
-          <Form.Group className="mt-3" controlId="formCUIT">
+          <Form.Group className="mt-3">
             <Form.Label style={{ color: "#555555" }}>
               <strong>Usuario</strong>
             </Form.Label>
@@ -169,10 +170,15 @@ const Login = () => {
             {error ? <p>Error: {mensajeError}</p> : null}
           </div>
         </Form>
-        <div className="mt-3">
+        <div className="mt-4">
           <a>¿Olvidaste tu <Link to="/recuperarClave">Clave</Link>?</a>
-        </div>      
+        </div>    
+
+        <div className="mt-2">
+          <a><Link to="/contacto">Contacto</Link></a>
+        </div>  
       </LoginCard>
+     
     </div>
   );
 };

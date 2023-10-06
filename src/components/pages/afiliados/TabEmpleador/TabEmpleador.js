@@ -6,7 +6,7 @@ import InputMaterial from "../../../ui/Input/InputMaterial";
 
 const TabEmpleador = (props) => {
   const InputDisabled = (input) => {    
-
+ 
     return false;
   };
 

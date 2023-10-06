@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emailjs/browser": "^3.11.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@material-ui/styles": "^4.11.5",
@@ -30,6 +31,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.7.1",
     "react-imask": "^6.4.3",
+    "react-input-mask": "^2.0.4",
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.8.0",
     "react-scripts": "5.0.1",

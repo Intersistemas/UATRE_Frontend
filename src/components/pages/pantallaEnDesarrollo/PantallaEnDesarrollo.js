@@ -2,12 +2,17 @@ import React from "react";
 import ModalEnDesarrollo from "../../ui/ModalEnDesarrollo/ModalEnDesarrollo";
 import classes from "./PantallaEnDesarrollo.module.css";
 import Button from "../../ui/Button/Button";
-import imagenEnDesarrollo from '../../../media/EnConstruccion/2.png'
+import imagenEnDesarrollo from '../../../media/EnConstruccion/2.png';
+import { useNavigate } from "react-router-dom";
 
 const PantallaEnDesarrollo = (props) => {
   console.log("en desarrollo");
+  const navigate = useNavigate();
+
   const handleCerrarModal = () => {
+    navigate("/");
     props.onClose();
+   
   };
 
   return (
@@ -22,7 +27,8 @@ const PantallaEnDesarrollo = (props) => {
           <Button
             className={classes.button}
             width={100}
-            onClick={handleCerrarModal}
+            onClick={()=>handleCerrarModal()}
+            //onClick={()=>navigate("/")}
           >
             Cierra
           </Button>
