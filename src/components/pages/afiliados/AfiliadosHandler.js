@@ -10,6 +10,7 @@ import { redirect, useNavigate } from "react-router-dom";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
 import { Filter } from "@mui/icons-material";
+import UseKeyPress from '../../helpers/UseKeyPress';
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -39,36 +40,42 @@ const AfiliadosHandler = () => {
       {
         id: 1,
         name: "Agrega Afiliado",
+        underlineindex: 0,
         icon: "",
         disabled: false,
       },
       {
         id: 2,
         name: "Modifica Afiliado",
+        underlineindex: 0,
         icon: "",
         disabled: true,
       },
       {
         id: 3,
         name: "Resuelve Solicitud",
+        underlineindex: 9,
         icon: "",
         disabled: true,
       },
       {
         id: 4,
         name: "Imprime Carnet de Afiliación",
+        underlineindex: 2,
         icon: "",
         disabled: true,
       },
       {
         id: 5,
         name: "Baja Afiliado",
+        underlineindex: 0,
         icon: "",
         disabled: true,
       },
       {
         id: 6,
         name: "Reactiva Afiliado",
+        underlineindex: 0,
         icon: "",
         disabled: true,
       },
@@ -87,6 +94,25 @@ const AfiliadosHandler = () => {
   const dispatch = useDispatch();
   dispatch(handleModuloSeleccionar(moduloInfo));
   //#endregion
+
+
+  const despacharAcciones = (a) =>{
+   //console.log(first)
+
+    let boton = moduloInfo?.acciones.find(element => element.name == a);
+
+    !boton?.disabled && dispatch(handleModuloEjecutarAccion(a));
+  }
+
+    //#region shorcuts
+    UseKeyPress(['a'], () => despacharAcciones("Agrega Afiliado"), 'AltKey');
+    UseKeyPress(['m'], () => despacharAcciones("Modifica Afiliado"), 'AltKey');
+    UseKeyPress(['s'], () => despacharAcciones("Resuelve Solicitud"), 'AltKey');
+    UseKeyPress(['p'], () => despacharAcciones("Imprime Carnet de Afiliación"), 'AltKey');
+    UseKeyPress(['b'], () => despacharAcciones("Baja Afiliado"), 'AltKey');
+    UseKeyPress(['r'], () => despacharAcciones("Reactiva Afiliado"), 'AltKey');
+    //#endregion 
+
 
   //#region Cargar Tablas
   useEffect(() => {
