@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect, useRef  } from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
@@ -19,6 +19,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import CloseIcon from '@mui/icons-material/Close';
 import InputMask from 'react-input-mask';
 import Spinner from 'react-bootstrap/Spinner';
+import UseKeyPress from '../helpers/UseKeyPress';
 
 const Registro = () => {
   console.log("Registro");
@@ -35,19 +36,20 @@ const Registro = () => {
   const [enteredRepeatPassword, setEnteredRepeatPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   
+  const registrarRef = useRef();
 
   const [message, setMessage] = React.useState("");
 
   //#region Capturo errores de Registro
   useEffect(() => {
     if (error) {
-      setMessage("❌ Error registrando el usuario - "+error);
+      setMessage("❌ Error registrando el usuario - "+error.message);
       console.log("capturo error", error);
       console.log("capturo error2", {error});
 
 
       if(error.code === 401){
-        setMessage("❌ "+error);
+        setMessage("❌ "+error.message);
       }
       if(error.statusCode === 405){
         setMessage("❌ Endpoint no encontrado.");
@@ -62,6 +64,12 @@ const Registro = () => {
   }, [error]);
 
   //#endregion
+
+
+  //#region shorcuts
+  UseKeyPress(['r'], ()=>registrarRef.current.requestSubmit(), 'AltKey');
+  UseKeyPress(['i'], ()=>navigate("/ingreso"), 'AltKey');
+//#endregion 
 
 //#region valido CUIT en AFIP
   const validarCUITHandler = () => { /*
@@ -182,11 +190,11 @@ const Registro = () => {
   return (
     <div className={classes.container}>
       <LoginCard>
-        <img src={logo} width="175" height="175" />
+        <img src={logo} width="175" height="175"/>
 
         {/**/}
         { (message && !error) ?  <div>{message}</div> : 
-         <Form className="text-start" onSubmit={submitHandler}>
+         <Form className="text-start" onSubmit={submitHandler} ref={registrarRef}>
           <Form.Group className="mt-3" >
             <Form.Label style={{ color: "#555555" }}>
               <strong>CUIT</strong>
@@ -293,15 +301,13 @@ const Registro = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul">
+                <Button type="submit" className="botonAzul" underlideIndex={0}>
                   Registrar
                 </Button>
-
               </div>
             ) : (
               <p>Registrando...</p>
             )}
-           
           </div>
           <Collapse in={error && message}>
                 <Alert severity="error"
@@ -325,7 +331,7 @@ const Registro = () => {
         </Form>}
 
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} type="submit" className="botonBlanco">
+            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlideIndex={0}>
               Inicio
             </Button>
         </div>
