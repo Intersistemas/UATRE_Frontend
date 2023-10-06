@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef} from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
@@ -13,6 +13,8 @@ import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
 import { handleUsuarioLogueado } from "../../redux/actions";
+import UseKeyPress from '../helpers/UseKeyPress';
+  //#region shorcuts
  
 const Login = () => {
   console.log("Login");
@@ -27,13 +29,15 @@ const Login = () => {
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [mensajeError, setMensajeError] = useState("");
 
+  const ingresarRef = useRef();
+
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
-      setMensajeError(error);
+      setMensajeError(error.message);
       console.log("capturo error", error);
       if(error.code === 401){
-        setMensajeError(error);
+        setMensajeError(error.message);
       }
       if(error.statusCode === 500){
         setMensajeError("Error al conectar con el servidor");
@@ -41,10 +45,16 @@ const Login = () => {
       return;
     }
   }, [error]);
-
   //#endregion
 
   const navigate = useNavigate();
+
+
+    //#region shorcuts
+    UseKeyPress(['i'], ()=>ingresarRef.current.requestSubmit(), 'AltKey');
+    UseKeyPress(['r'], ()=>navigate("/registro"), 'AltKey');
+    UseKeyPress(['c'], ()=>navigate("/contacto"), 'AltKey');
+  //#endregion 
 
   const cuitChangeHandler = (event) => {
     setEnteredCUIT(event.target.value);
@@ -110,8 +120,8 @@ const Login = () => {
   return (
     <div className={classes.container}>
       <LoginCard>
-        <img src={logo} width="200" height="200" />
-        <Form className="text-start" onSubmit={submitHandler}>
+        <img src={logo} width="175" height="175"/>
+        <Form className="text-start" onSubmit={submitHandler} ref={ingresarRef}>
           <Form.Group className="mt-3">
             <Form.Label style={{ color: "#555555" }}>
               <strong>Usuario</strong>
@@ -155,12 +165,12 @@ const Login = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul">
+                <Button type="submit" className="botonAzul" underlideIndex={0}>
                   Ingresar
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco">Registro</Button>
+                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlideIndex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>
@@ -175,7 +185,7 @@ const Login = () => {
         </div>    
 
         <div className="mt-2">
-          <a><Link to="/contacto">Contacto</Link></a>
+          <a><Link to="/contacto"> <text className={classes.underline}>C</text>ontacto</Link></a>
         </div>  
       </LoginCard>
      

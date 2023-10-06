@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import LoginCard from "components/ui/LoginCard/LoginCard.js";
 import classes from "components/auth/Login.module.css";
@@ -15,6 +15,8 @@ import Collapse from '@mui/material/Collapse';
 import AlertTitle from '@mui/material/AlertTitle';
 import CloseIcon from '@mui/icons-material/Close';
 import emailjs from "@emailjs/browser";
+import UseKeyPress from '../../helpers/UseKeyPress';
+
 
 const Contacto = () => {
   console.log("Contacto");
@@ -32,16 +34,16 @@ const Contacto = () => {
 
   const [email,setEmail] = useState({ nombre:'', email:'', mensaje:''});
  
+  const enviarRef = useRef();
+
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
-      setMessage("❌ Error registrando el usuario - "+error);
+      setMessage("❌ Error registrando el usuario - "+error.message);
       console.log("capturo error", error);
-      console.log("capturo error2", {error});
-
 
       if(error.code === 401){
-        setMessage("❌ "+error);
+        setMessage("❌ "+error.message);
       }
       if(error.statusCode === 405){
         setMessage("❌ Endpoint no encontrado.");
@@ -55,10 +57,15 @@ const Contacto = () => {
       return;
     }
   }, [error]);
-
   //#endregion
 
   const navigate = useNavigate();
+
+  //#region shorcuts
+  UseKeyPress(['n'], ()=>enviarRef.current.requestSubmit(), 'AltKey');
+  UseKeyPress(['i'], ()=>navigate("/ingreso"), 'AltKey');
+//#endregion 
+
 
   const nombreChangeHandler = (event) => {
     setEnteredNombre(event.target.value);
@@ -127,7 +134,7 @@ const Contacto = () => {
       <LoginCard>
         <img src={logo} width="175" height="175" />
 
-         <Form className="text-start" onSubmit={submitHandler}>
+         <Form className="text-start" onSubmit={submitHandler} ref={enviarRef}>
           <Form.Group className="mt-3" >
             <Form.Label style={{ color: "#555555" }}>
               <strong>Nombre y Apellido</strong>
@@ -180,7 +187,7 @@ const Contacto = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!enviando ? (
               <div>
-                <Button type="submit" className="botonAzul">
+                <Button type="submit" className="botonAzul" underlideIndex={1}>
                   Enviar
                 </Button>
 
@@ -211,7 +218,7 @@ const Contacto = () => {
           </Collapse>  
         </Form>
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco">
+            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlideIndex={0}>
               Inicio
             </Button>
         </div>

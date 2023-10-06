@@ -62,6 +62,8 @@
   border-radius: 10px !important;
   border: 2px solid #FFF !important;
   /*border: 2px solid var(--color3-80) !important;*/
-  
 }
 
+.underline{
+  text-decoration: underline !important;
+}
