@@ -18,18 +18,20 @@ import UseKeyPress from '../helpers/UseKeyPress';
  
 const Login = () => {
   console.log("Login");
+
+  //#region atributos
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
   const dispatch = useDispatch();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
-
   const [enteredCUIT, setEnteredCUIT] = useState("");
   const [cuitIsValid, setCUITIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [mensajeError, setMensajeError] = useState("");
-
   const ingresarRef = useRef();
+  const navigate = useNavigate();
+//#endregion 
 
   //#region Capturo errores de login
   useEffect(() => {
@@ -46,8 +48,6 @@ const Login = () => {
     }
   }, [error]);
   //#endregion
-
-  const navigate = useNavigate();
 
 
     //#region shorcuts
@@ -165,12 +165,12 @@ const Login = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul" underlideIndex={0}>
+                <Button type="submit" className="botonAzul" underlineindex={0}>
                   Ingresar
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlideIndex={0}>Registro</Button>
+                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlineindex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>

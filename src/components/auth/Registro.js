@@ -45,8 +45,6 @@ const Registro = () => {
     if (error) {
       setMessage("❌ Error registrando el usuario - "+error.message);
       console.log("capturo error", error);
-      console.log("capturo error2", {error});
-
 
       if(error.code === 401){
         setMessage("❌ "+error.message);
@@ -301,7 +299,7 @@ const Registro = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul" underlideIndex={0}>
+                <Button type="submit" className="botonAzul" underlineindex={0}>
                   Registrar
                 </Button>
               </div>
@@ -331,7 +329,7 @@ const Registro = () => {
         </Form>}
 
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlideIndex={0}>
+            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlineindex={0}>
               Inicio
             </Button>
         </div>

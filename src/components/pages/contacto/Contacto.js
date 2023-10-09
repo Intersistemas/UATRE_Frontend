@@ -187,7 +187,7 @@ const Contacto = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!enviando ? (
               <div>
-                <Button type="submit" className="botonAzul" underlideIndex={1}>
+                <Button type="submit" className="botonAzul" underlineindex={1}>
                   Enviar
                 </Button>
 
@@ -218,7 +218,7 @@ const Contacto = () => {
           </Collapse>  
         </Form>
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlideIndex={0}>
+            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlineindex={0}>
               Inicio
             </Button>
         </div>

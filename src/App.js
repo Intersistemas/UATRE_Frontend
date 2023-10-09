@@ -79,28 +79,28 @@ const App = () => {
 
         </Routes> 
         <img src={fondo} alt="fondo" class="bg-image" />
-        <SideBar>
-          
-          <Routes>
-            <Route path="/" element={<InicioHandler/>} />
-            <Route path="/inicio" element={<InicioHandler/>} />
-            <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
-            <Route path="/afiliaciones/:id" element={<Afiliado/>} />
-						<Route path="/siaru" element={<SiaruHandler/>} />
-						<Route path="/siaru/establecimientos" element={<EstablecimientosHandler/>} />
-						<Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
-						<Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
-						<Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
-						<Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
-						<Route path="/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
-            <Route path="/administracion" element={<AdministracionHandler />} />
-            <Route path="/seccionales" element={<SeccionalesHandler />} />
-            <Route path="/empresas" element={<EmpresasHandler />} />
-            <Route path="/delegaciones" element={<DelegacionesHandler />} />
-            <Route path="/*" element={<PantallaEnDesarrollo/>} />
-          </Routes>
+        {isLoggedIn &&
+         (<SideBar>
+            <Routes>
+              <Route path="/" element={<InicioHandler/>} />
+              <Route path="/inicio" element={<InicioHandler/>} />
+              <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
+              <Route path="/afiliaciones/:id" element={<Afiliado/>} />
+              <Route path="/siaru" element={<SiaruHandler/>} />
+              <Route path="/siaru/establecimientos" element={<EstablecimientosHandler/>} />
+              <Route path="/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
+              <Route path="/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
+              <Route path="/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+              <Route path="/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
+              <Route path="/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="/administracion" element={<AdministracionHandler />} />
+              <Route path="/seccionales" element={<SeccionalesHandler />} />
+              <Route path="/empresas" element={<EmpresasHandler />} />
+              <Route path="/delegaciones" element={<DelegacionesHandler />} />
+              <Route path="/*" element={<PantallaEnDesarrollo/>} />
+            </Routes>
          
-        </SideBar>
+        </SideBar>)}
 
     </div>
 
