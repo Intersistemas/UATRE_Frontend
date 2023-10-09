@@ -32,7 +32,7 @@ const Form = ({
 	if (request === "A") record.id = 0;
 
 	const [establecimiento, setEstablecimiento] = useState(record);
-	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	disabledInit.deletedObs = !establecimiento.refMotivosBajaId;
 	disabledInit.domicilioLocalidadesId = !establecimiento.domicilioProvinciasId;
 	if (request === "B") {
 		disabledInit = {
@@ -247,9 +247,7 @@ const Form = ({
 				break;
 			case "B":
 				query.action = "UpdateEmpresaEstablecimientos";
-				if (establecimiento.refMotivosBajaId) {
-					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
-				}
+				establecimiento.deletedDate = dayjs().format("YYYY-MM-DDTHH:mm:ss");
 				break;
 			default:
 				break;
@@ -513,7 +511,7 @@ const Form = ({
 									}));
 									setDisabled((old) => ({
 										...old,
-										bajaObservaciones: value === 0,
+										deletedObs: value === 0,
 									}));
 								}}
 							/>
@@ -521,12 +519,12 @@ const Form = ({
 						<Grid col full="width" gap={`${gap}`}>
 							<InputMaterial
 								label="Observaciones de baja"
-								value={establecimiento.bajaObservaciones}
-								disabled={disabled.bajaObservaciones ?? false}
+								value={establecimiento.deletedObs}
+								disabled={disabled.deletedObs ?? false}
 								onChange={(value, _id) =>
 									setEstablecimiento((old) => ({
 										...old,
-										bajaObservaciones: `${value}`,
+										deletedObs: `${value}`,
 									}))
 								}
 							/>
