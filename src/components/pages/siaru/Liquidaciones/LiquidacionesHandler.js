@@ -177,6 +177,7 @@ const LiquidacionesHandler = () => {
 				empresaId: empresa.id,
 				page: `${pagination.index},${pagination.size}`,
 				sort: `-Id`,
+				todos: true,
 			},
 			onOk: async (res) => {
 				setLiquidaciones({ data: res.data });
