@@ -24,7 +24,7 @@ const Controles = ({
 	record ??= {};
 	error ??= {};
 	disabledInit ??= {};
-	disabledInit.bajaObservaciones =
+	disabledInit.deletedObs =
 		disabledInit.refMotivoBajaId || !record.refMotivoBajaId;
 	const [disabled, setDisabled] = useState(disabledInit);
 
@@ -361,22 +361,22 @@ const Controles = ({
 								handleChange({ refMotivoBajaId: value });
 								setDisabled((old) => ({
 									...old,
-									bajaObservaciones: value === 0,
+									deletedObs: value === 0,
 								}));
 							}}
 						/>
 					</Grid>
 				);
 			let renderObservaciones = null;
-			if (!disabled.bajaObservaciones)
+			if (!disabled.deletedObs)
 				renderObservaciones = (
 					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
 							label="Observaciones de baja"
-							value={valor(record.bajaObservaciones)}
-							disabled={!!disabled.bajaObservaciones}
+							value={valor(record.deletedObs)}
+							disabled={!!disabled.deletedObs}
 							onChange={(value, _id) =>
-								handleChange({ bajaObservaciones: `${value}` })
+								handleChange({ deletedObs: `${value}` })
 							}
 						/>
 					</Grid>

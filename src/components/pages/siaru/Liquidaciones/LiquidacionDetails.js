@@ -134,7 +134,7 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 				/>
 				<InputMaterial
 					label="Fecha de baja"
-					value={valor(Formato.Fecha(data.bajaFecha) ?? "")}
+					value={valor(Formato.Fecha(data.deletedDate) ?? "")}
 					{...im}
 				/>
 			</Grid>
@@ -146,7 +146,7 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 				/>
 				<InputMaterial
 					label="Observaciones de baja"
-					value={valor(data.bajaObservaciones ?? "")}
+					value={valor(data.deletedObs ?? "")}
 					{...im}
 				/>
 			</Grid>

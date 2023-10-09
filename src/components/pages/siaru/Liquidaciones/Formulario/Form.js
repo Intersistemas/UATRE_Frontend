@@ -28,7 +28,7 @@ const Form = ({
 	if (!["M", "B"].includes(request)) {
 		if (request === "A") record.id = 0;
 		disabled.refMotivoBajaId = true;
-		disabled.bajaObservaciones = true;
+		disabled.deletedObs = true;
 	}
 	if (record.tipoLiquidacion === undefined) record.tipoLiquidacion = 0;
 
@@ -57,7 +57,7 @@ const Form = ({
 
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
-		if (data.refMotivoBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
+		if (data.refMotivoBajaId) data.deletedDate = dayjs().format("YYYY-MM-DD");
 		onConfirm(data, request);
 	};
 
@@ -70,7 +70,7 @@ const Form = ({
 				...liquidacion,
 				rectificativa: Formato.Entero(anterior.rectificativa ?? 0) + 1,
 				refMotivoBajaId: 0,
-				bajaObservaciones: "Rectificación de liquidación",
+				deletedObs: "Rectificación de liquidación",
 			});
 		setModalExistente(
 			<Modal onClose={handleCancelar}>
