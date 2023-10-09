@@ -16,6 +16,8 @@ import { Alert } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import { Collapse, IconButton } from "@mui/material";
 import { AlertTitle } from "@mui/lab";
+import Modal from "components/ui/Modal/Modal";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const Handler = () => {
 	const location = useLocation();
@@ -27,7 +29,7 @@ const Handler = () => {
 	);
 	const periodo = location.state?.periodo;
 
-  if (empresa.id == null || periodo == null) navigate("/ingreso");
+	if (empresa.id == null || periodo == null) navigate("/ingreso");
 	const { sendRequest } = useHttp();
 
 	const [tentativas, setTentativas] = useState(null);
@@ -81,18 +83,18 @@ const Handler = () => {
 		acciones: [
 			{ name: `Empresas` },
 			{ name: `Liquidaciones` },
-			{ name: `Procesar liquidaciones` },
+			{ name: `Procesa liquidaciones` },
 		],
 	};
 
 	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
 	if (tentativas == null) {
-			moduloInfo.acciones.push({ name: `Agregar trabajador` });
-			if (descTrabajador) {
+		moduloInfo.acciones.push({ name: `Agrega trabajador` });
+		if (descTrabajador) {
 			moduloInfo.acciones.push({
-				name: `Modificar trabajador ${descTrabajador}`,
+				name: `Modifica trabajador ${descTrabajador}`,
 			});
-			moduloInfo.acciones.push({ name: `Borrar trabajador ${descTrabajador}` });
+			moduloInfo.acciones.push({ name: `Borra trabajador ${descTrabajador}` });
 		}
 	}
 
@@ -156,18 +158,18 @@ const Handler = () => {
 			case `Liquidaciones`:
 				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
 				break;
-			case `Procesar liquidaciones`:
+			case `Procesa liquidaciones`:
 				navigate("/siaru/liquidaciones/procesar", {
 					state: { empresa: empresa },
 				});
 				break;
-			case `Agregar trabajador`:
+			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
 				break;
-			case `Modificar trabajador ${descTrabajador}`:
+			case `Modifica trabajador ${descTrabajador}`:
 				abreFormularioTrabajador("M");
 				break;
-			case `Borrar trabajador ${descTrabajador}`:
+			case `Borra trabajador ${descTrabajador}`:
 				abreFormularioTrabajador("B");
 				break;
 			default:
@@ -220,6 +222,8 @@ const Handler = () => {
 	}, [apiQuery, sendRequest]);
 	//#endregion
 
+	const [modal, setModal] = useState();
+
 	let contenido = null;
 	if (tentativas?.data != null) {
 		contenido = (
@@ -259,22 +263,47 @@ const Handler = () => {
 					<Grid>
 						<Button
 							disabled={!descTrabajador}
-							onClick={() =>
-								setApiQuery({
-									action: "SolicitarTentativas",
-									body: {
-										cuit: empresa.cuit,
-										periodo: periodo,
-										nominas: nomina.list,
-									},
-									timeStamp: new Date(),
-								})
-							}
+							onClick={() => {
+								setModal(
+									<Modal onClose={() => setModal(null)}>
+										<Grid col width="full" gap="20px">
+											<Grid width="full" justify="center">
+												<h3>Al continuar no se podrá modificar la lista de trabajadores.</h3>
+											</Grid>
+											<Grid width="full" gap="200px" justify="center">
+												<Grid width="150px">
+													<LoadingButtonCustom
+														onClick={() => {
+															setApiQuery({
+																action: "SolicitarTentativas",
+																body: {
+																	cuit: empresa.cuit,
+																	periodo: periodo,
+																	nominas: nomina.list,
+																},
+																timeStamp: new Date(),
+															});
+														}}
+													>
+														CONTINUA
+													</LoadingButtonCustom>
+												</Grid>
+												<Grid width="150px">
+													<Button onClick={() => setModal(null)}>
+														CANCELA
+													</Button>
+												</Grid>
+											</Grid>
+										</Grid>
+									</Modal>
+								);
+							}}
 						>
-							Iniciar
+							Inicia
 						</Button>
 					</Grid>
 				</Grid>
+				{modal}
 			</Grid>
 		);
 	}

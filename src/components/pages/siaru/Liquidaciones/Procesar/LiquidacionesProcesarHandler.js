@@ -106,7 +106,7 @@ const LiquidacionesProcesarHandler = () => {
 										}}
 									/>
 									<Button onClick={() => archivoRef.current?.click()}>
-										Seleccionar archivo a liquidar
+										Selecciona archivo a liquidar
 										{/* <input hidden accept=".txt" type="file" /> */}
 									</Button>
 								</Grid>
@@ -131,7 +131,7 @@ const LiquidacionesProcesarHandler = () => {
 											}
 										}}
 									>
-										Iniciar
+										Inicia
 									</Button>
 								</Grid>
 							</Grid>
@@ -190,7 +190,7 @@ const LiquidacionesProcesarHandler = () => {
 											}
 										}}
 									>
-										Iniciar
+										Inicia
 									</Button>
 								</Grid>
 							</Grid>

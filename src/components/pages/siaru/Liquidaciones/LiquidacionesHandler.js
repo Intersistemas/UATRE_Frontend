@@ -177,6 +177,7 @@ const LiquidacionesHandler = () => {
 				empresaId: empresa.id,
 				page: `${pagination.index},${pagination.size}`,
 				sort: `-Id`,
+				todos: true,
 			},
 			onOk: async (res) => {
 				setLiquidaciones({ data: res.data });
@@ -234,7 +235,7 @@ const LiquidacionesHandler = () => {
 		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
 		if (formRequest === "B") {
 			disabled.refMotivoBajaId = false;
-			disabled.bajaObservaciones = false;
+			disabled.deletedObs = false;
 		}
 		liquidacionForm = (
 			<LiquidacionForm

@@ -57,7 +57,7 @@ const InputMaterialMask = (props) => {
     );
   });
 
-  const shrink = props.type === "date" || props.value !== "" ? true : false;
+  // const shrink = props.type === "date" || props.value !== "" ? true : false;
 
   return (
     <Tooltip title={props.showToolTip ? props.value : false} arrow>
@@ -67,6 +67,7 @@ const InputMaterialMask = (props) => {
         id={props.id}
         size="small"
         //error={!props.isValid}
+        placeholder={props.placeholder}
         label={props.label}
         className={styles.input}
         value={props.value || ""}
@@ -76,7 +77,7 @@ const InputMaterialMask = (props) => {
         type={props.type || "text"}
         inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
         InputLabelProps={{
-          shrink: shrink,
+          shrink: true,
         }}
         InputProps={{
           readOnly: props.readOnly || false,

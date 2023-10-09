@@ -62,6 +62,7 @@ const useHttp = () => {
 				if (configRequest.body && configRequest.bodyToJSON)
 					headers["Content-Type"] ??= "application/json";
 
+				const errorBase = {};
 				try {
 					const response = await fetch(url + configRequest.endpoint, {
 						method: configRequest.method ? configRequest.method : "GET",
@@ -75,19 +76,20 @@ const useHttp = () => {
 
 					const data = await response.json();
 					if (!response.ok) {
-						throw Object.assign(new Error(data.Message || data.Mensaje || data.message || data.mensaje || data.errors), {
-							type: response.statusText,
-							code: response.status,
-							data: data,
-						});
+						errorBase.type = response.statusText;
+						errorBase.code = response.status;
+						errorBase.message = data.Message || data.Mensaje || data.message || data.mensaje || data.errors;
+						errorBase.data = data;
+						throw Object.assign(new Error(errorBase.message), errorBase);
 					}
 					takeOk(data);
 				} catch (error) {
+					error = { ...errorBase, ...error };
 					error.type ??= "Error";
 					error.code ??= 0;
 					error.message ??= "Error";
 					takeError(error);
-					setError(error.message);
+					setError(error);
 				} finally {
 					takeFinally();
 					setIsLoading(false);

@@ -1,6 +1,6 @@
 import React from "react";
-import Formato from "../../../helpers/Formato";
-import Table from "../../../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+import Table from "components/ui/Table/Table";
 
 const EstablecimientosList = ({
 	loading = false,
@@ -49,7 +49,7 @@ const EstablecimientosList = ({
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
 				const style = {};
-				let valor = Formato.Fecha(row.bajaFecha);
+				let valor = Formato.Fecha(row.deletedDate);
 				if (row.refMotivosBajaId) {
 					if (!valor) valor = <>&nbsp;</>;
 					style.background = "#ff6464cc";

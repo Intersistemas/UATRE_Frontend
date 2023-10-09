@@ -5,12 +5,14 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import ValidarEmail from "components/validators/ValidarEmail";
 import Modal from "components/ui/Modal/Modal";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const onConfirmDef = (_request, _record) => {};
 const onCancelDef = (_request) => {};
@@ -30,7 +32,7 @@ const Form = ({
 	if (request === "A") record.id = 0;
 
 	const [establecimiento, setEstablecimiento] = useState(record);
-	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	disabledInit.deletedObs = !establecimiento.refMotivosBajaId;
 	disabledInit.domicilioLocalidadesId = !establecimiento.domicilioProvinciasId;
 	if (request === "B") {
 		disabledInit = {
@@ -245,9 +247,7 @@ const Form = ({
 				break;
 			case "B":
 				query.action = "UpdateEmpresaEstablecimientos";
-				if (establecimiento.refMotivosBajaId) {
-					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
-				}
+				establecimiento.deletedDate = dayjs().format("YYYY-MM-DDTHH:mm:ss");
 				break;
 			default:
 				break;
@@ -294,23 +294,19 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(request) ? (
-		<Button onClick={validar}>Confirma</Button>
-	) : null;
-
 	return (
 		<Modal onClose={() => onCancel(request)}>
 			<Grid col full gap={`${gap}px`}>
-				<Grid full="width" gap={`${gap}px`}>
-					<Grid grow>
-						<h3>{actionMsg} Establecimiento</h3>
-					</Grid>
+				<Grid className={modalCss.modalCabecera} full="width" justify="center">
+					<h3>{actionMsg} Establecimiento</h3>
+					{/* 
 					<Grid style={{ color: "transparent" }}>
 						<h3>[empresaId: {establecimiento.empresaId ?? ""}]</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
 						<h3>{establecimiento.id ?? ""}</h3>
 					</Grid>
+					*/}
 				</Grid>
 				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="25%">
@@ -493,58 +489,58 @@ const Form = ({
 						</Grid>
 					</Grid>
 				</Grid>
-				<Grid col full="width" gap={`${gap}`}>
-					<SelectMaterial
-						name="refMotivosBajaId"
-						label="Motivo de baja"
-						value={establecimiento.refMotivosBajaId ?? 0}
-						error={
-							motivosBaja.loading ??
-							motivosBaja.error?.message ??
-							errores.refMotivosBajaId ??
-							""
-						}
-						disabled={disabled.refMotivosBajaId ?? false}
-						options={motivosBaja.data}
-						onChange={(value, _id) => {
-							setEstablecimiento((old) => ({
-								...old,
-								refMotivosBajaId: value,
-							}));
-							setDisabled((old) => ({
-								...old,
-								bajaObservaciones: value === 0,
-							}));
-						}}
-					/>
-				</Grid>
-				<Grid col full="width" gap={`${gap}`}>
-					<InputMaterial
-						label="Observaciones de baja"
-						value={establecimiento.bajaObservaciones}
-						disabled={disabled.bajaObservaciones ?? false}
-						onChange={(value, _id) =>
-							setEstablecimiento((old) => ({
-								...old,
-								bajaObservaciones: `${value}`,
-							}))
-						}
-					/>
-				</Grid>
-				<Grid col grow justify="end">
-					<Grid gap={`${gap * 2}px`}>
-						<Grid grow />
-						<Grid col width="30%" justify="end">
-							<Grid gap={`${gap}px`}>
-								<Button
-									className="botonBlanco"
-									onClick={() => onCancel(request)}
-								>
-									Cancela
-								</Button>
-								{renderConfirmaButton}
-							</Grid>
+				{request === "B" ? (
+					<>
+						<Grid col full="width" gap={`${gap}`}>
+							<SelectMaterial
+								name="refMotivosBajaId"
+								label="Motivo de baja"
+								value={establecimiento.refMotivosBajaId ?? 0}
+								error={
+									motivosBaja.loading ??
+									motivosBaja.error?.message ??
+									errores.refMotivosBajaId ??
+									""
+								}
+								disabled={disabled.refMotivosBajaId ?? false}
+								options={motivosBaja.data}
+								onChange={(value, _id) => {
+									setEstablecimiento((old) => ({
+										...old,
+										refMotivosBajaId: value,
+									}));
+									setDisabled((old) => ({
+										...old,
+										deletedObs: value === 0,
+									}));
+								}}
+							/>
 						</Grid>
+						<Grid col full="width" gap={`${gap}`}>
+							<InputMaterial
+								label="Observaciones de baja"
+								value={establecimiento.deletedObs}
+								disabled={disabled.deletedObs ?? false}
+								onChange={(value, _id) =>
+									setEstablecimiento((old) => ({
+										...old,
+										deletedObs: `${value}`,
+									}))
+								}
+							/>
+						</Grid>
+					</>
+				) : null}
+				<Grid width="full" gap="200px" justify="center">
+					<Grid width="150px">
+						{["A", "B", "M"].includes(request) ? (
+							<LoadingButtonCustom onClick={validar}>
+								CONFIRMA
+							</LoadingButtonCustom>
+						) : null}
+					</Grid>
+					<Grid width="150px">
+						<Button onClick={() => onCancel(request)}>CANCELA</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import { Alert, AlertTitle } from "@mui/lab";
 import { IconButton, Collapse } from "@mui/material";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const Form = ({
 	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
@@ -27,7 +28,7 @@ const Form = ({
 	if (!["M", "B"].includes(request)) {
 		if (request === "A") record.id = 0;
 		disabled.refMotivoBajaId = true;
-		disabled.bajaObservaciones = true;
+		disabled.deletedObs = true;
 	}
 	if (record.tipoLiquidacion === undefined) record.tipoLiquidacion = 0;
 
@@ -56,7 +57,7 @@ const Form = ({
 
 	// Aplicar cambios permanentes
 	const applyRequest = (data) => {
-		if (data.refMotivoBajaId) data.bajaFecha = dayjs().format("YYYY-MM-DD");
+		if (data.refMotivoBajaId) data.deletedDate = dayjs().format("YYYY-MM-DD");
 		onConfirm(data, request);
 	};
 
@@ -69,7 +70,7 @@ const Form = ({
 				...liquidacion,
 				rectificativa: Formato.Entero(anterior.rectificativa ?? 0) + 1,
 				refMotivoBajaId: 0,
-				bajaObservaciones: "Rectificación de liquidación",
+				deletedObs: "Rectificación de liquidación",
 			});
 		setModalExistente(
 			<Modal onClose={handleCancelar}>
@@ -282,9 +283,6 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(request) ? (
-		<Button onClick={validar}>Confirma</Button>
-	) : null;
 	return (
 		<Modal onClose={() => onCancel(request)}>
 			<Grid className={styles.content} col gap={`${gap}px`} full>
@@ -306,15 +304,18 @@ const Form = ({
 					}}
 					forzarCalculos={request === "A"}
 				/>
-				<Grid gap={`${gap}px`} grow full="width">
-					<Grid grow />
-					<Grid col width="30%" justify="end">
-						<Grid gap={`${gap}px`}>
-							<Button className="botonBlanco" onClick={() => onCancel(request)}>
-								Cancela
-							</Button>
-							{renderConfirmaButton}
-						</Grid>
+				<Grid width="full" gap="200px" justify="center">
+					<Grid width="150px">
+						{["A", "B", "M"].includes(request) ? (
+							<LoadingButtonCustom onClick={validar}>
+								CONFIRMA
+							</LoadingButtonCustom>
+						) : null}
+					</Grid>
+					<Grid width="150px">
+						<Button onClick={() => onCancel(request)}>
+							CANCELA
+						</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

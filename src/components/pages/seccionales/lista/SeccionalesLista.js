@@ -134,9 +134,9 @@ const SeccionalesLista = (props) => {
           "column-gap": "1rem",
         }}
       >
-        <div>
+        {/*<div> se quita el boon de aqui para ponerlo en el sidebar
           <Button onClick={props.onAgregarClick}>Agrega</Button>
-        </div>
+        </div>*/}
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>

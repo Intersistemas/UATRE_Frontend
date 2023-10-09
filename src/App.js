@@ -4,6 +4,8 @@ import './App.css';
 import Login from './components/auth/Login';
 import Registro from './components/auth/Registro';
 import ConfirmaEmail from './components/auth/ConfirmaEmail';
+import Contacto from './components/pages/contacto/Contacto';
+
 
 
 import SideBar from './components/sidebar/sidebar'
@@ -70,14 +72,17 @@ const App = () => {
                   !isLoggedIn 
                   && (<Route path="/*" element={<PantallaEnDesarrollo/>} />)
               }
-              
+              {
+                  !isLoggedIn 
+                  && (<Route path="/contacto" element={<Contacto/>} />)
+              }
+
         </Routes> 
         <img src={fondo} alt="fondo" class="bg-image" />
         <SideBar>
           
           <Routes>
-          
-            
+            <Route path="/" element={<InicioHandler/>} />
             <Route path="/inicio" element={<InicioHandler/>} />
             <Route path="/afiliaciones" element={<AfiliadosHandler/>} />
             <Route path="/afiliaciones/:id" element={<Afiliado/>} />

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect, useRef  } from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
@@ -11,35 +11,36 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
-import { useDispatch } from "react-redux";
 
-import Tooltip from '@mui/material/Tooltip';
 import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import AlertTitle from '@mui/material/AlertTitle';
 import CloseIcon from '@mui/icons-material/Close';
+import InputMask from 'react-input-mask';
+import Spinner from 'react-bootstrap/Spinner';
+import UseKeyPress from '../helpers/UseKeyPress';
 
 const Registro = () => {
-  console.log("Login");
-  const authContext = useContext(AuthContext);
-  const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
-  const dispatch = useDispatch();
+  console.log("Registro");
+
+  const { isLoading, error, sendRequest: request } = useHttp();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
 
-  const [enteredCUIT, setEnteredCUIT] = useState();
-  const [cuitIsValid, setCUITIsValid] = useState();
+  const [enteredCUIT, setEnteredCUIT] = useState('');
+  const [cuitIsValid, setCUITIsValid] = useState(false);
 
   const [enteredEmail, setEnteredEmail] = useState("");
-  const [emailIsValid, setEmailIsValid] = useState();
   
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredRepeatPassword, setEnteredRepeatPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
+  
+  const registrarRef = useRef();
 
   const [message, setMessage] = React.useState("");
 
-  //#region Capturo errores de login
+  //#region Capturo errores de Registro
   useEffect(() => {
     if (error) {
       setMessage("❌ Error registrando el usuario - "+error.message);
@@ -58,17 +59,65 @@ const Registro = () => {
         setMessage("❌ Error al conectar con el servidor.");
       }
 
-      
       return;
     }
   }, [error]);
 
   //#endregion
 
+
+  //#region shorcuts
+  UseKeyPress(['r'], ()=>registrarRef.current.requestSubmit(), 'AltKey');
+  UseKeyPress(['i'], ()=>navigate("/ingreso"), 'AltKey');
+//#endregion 
+
+//#region valido CUIT en AFIP
+  const validarCUITHandler = () => { /*
+    setCUITLoading(true);
+    const processConsultaPadron = async (padronObj) => {
+      //console.log("padronObj", padronObj);
+      setCuitValidado(true);
+      setPadronEmpresaRespuesta(padronObj);
+      setCUITEmpresa(padronObj.cuit);
+      setRazonSocialEmpresa(
+        padronObj?.razonSocial ?? `${padronObj?.apellido} ${padronObj?.nombre}`
+      );
+      setActividadEmpresa(padronObj?.descripcionActividadPrincipal ?? "");
+      setDomicilioEmpresa(
+        padronObj ? `${padronObj?.domicilios[1]?.direccion}` : ""
+      );
+      setLocalidadEmpresa(
+        padronObj
+          ? padronObj?.domicilios[1]?.localidad ??
+              padronObj?.domicilios[1]?.descripcionProvincia
+          : ""
+      );
+      // setTelefonoEmpresa()
+      // setCorreoEmpresa()
+      // setLugarTrabajoEmpresa()
+      //ciius
+      setCUITLoading(false);
+    };
+
+    request(
+      {
+        baseURL: "Comunes",
+        endpoint: `/AFIPConsulta?CUIT=${enteredCUIT}&VerificarHistorico=${true}`,
+        method: "GET",
+      },
+      processConsultaPadron
+    );*/
+  };
+//#endregion
+
+//#region Validaciones de INPUTS
   const navigate = useNavigate();
 
   const cuitChangeHandler = (event) => {
-    setEnteredCUIT(event.target.value);
+    setEnteredCUIT(event.target.value.replace(/[^0-9]+/g, "")); //GUARDO SOLO NUMEROS
+   
+    console.log('-enteredCUIT:',enteredCUIT);
+
   };
 
   const emailChangeHandler = (event) => {
@@ -84,7 +133,8 @@ const Registro = () => {
   };
   
   const validateCUITHandler = () => {
-    setCUITIsValid(enteredCUIT.trim().length === 11);
+    console.log('validateCUITHandler',enteredCUIT.length)
+    setCUITIsValid(enteredCUIT.length === 11);
   };
 
   const validateEmailHandler = () => {
@@ -92,30 +142,22 @@ const Registro = () => {
   };
 
   const validatePasswordHandler = () => {
-    setPasswordIsValid(enteredPassword.trim().length > 6);
+    setPasswordIsValid(enteredPassword.trim().length > 7);
   };
-
+//#endregion
 
   //Se debe procesar el registro (envio de email)
   const processRegistro = async (userObject) => {
     console.log("userObject_Registro", userObject);
     setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail);
 
-    //await
-    
-    /*await authContext.login(
-      userObject.token.tokenId,
-      userObject.token.validTo.toString(),
-      userObject.rol,
-      userObject
-    );*/
     console.log("Registrado");
     
   };
 
   const sendRegistrarHandler = async () => {
     setMessage("");
-    sendLoginRequest(
+    request(
       {
         baseURL: "Seguridad",
         endpoint: "/Usuario/registrarViaEmail",
@@ -129,7 +171,9 @@ const Registro = () => {
           email: enteredEmail,
           password: enteredPassword,
           confirmPassword: enteredRepeatPassword,
-          rol: "Empleador"
+          rol: "Empleador",
+          modulosId: 2, //Se debería selecciona de la lista de tareas
+          tareasId: 1 //Se debería selecciona de la lista de tareas
         },
       },
       processRegistro
@@ -146,25 +190,43 @@ const Registro = () => {
   return (
     <div className={classes.container}>
       <LoginCard>
-        <img src={logo} width="175" height="175" />
+        <img src={logo} width="175" height="175"/>
 
         {/**/}
         { (message && !error) ?  <div>{message}</div> : 
-         <Form className="text-start" onSubmit={submitHandler}>
+         <Form className="text-start" onSubmit={submitHandler} ref={registrarRef}>
           <Form.Group className="mt-3" >
             <Form.Label style={{ color: "#555555" }}>
               <strong>CUIT</strong>
             </Form.Label>
 
+          <InputGroup>
             <Form.Control
-              required
-              type="number"
-              placeholder="Cuit/Cuil"
-              id="cuit"
-              value={enteredCUIT}
-              onChange={cuitChangeHandler}
-              onBlur={validateCUITHandler}
-            />
+                required
+                type="text"
+                placeholder="Cuit"
+                id="cuit"
+                as={InputMask}
+                mask="99-99.999.999-9"
+                value={enteredCUIT}
+                onChange={cuitChangeHandler}
+                onBlur={validateCUITHandler}
+                disabled={isLoading}
+              />
+
+              <InputGroup.Text>
+                  {/*cuitIsValid &&
+                  <Spinner
+                    variant="primary"
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />*/}
+                  
+              </InputGroup.Text>
+              </InputGroup>
           </Form.Group>
 
           <Form.Group className="mt-3">
@@ -239,15 +301,13 @@ const Registro = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul">
+                <Button type="submit" className="botonAzul" underlideIndex={0}>
                   Registrar
                 </Button>
-
               </div>
             ) : (
               <p>Registrando...</p>
             )}
-           
           </div>
           <Collapse in={error && message}>
                 <Alert severity="error"
@@ -271,7 +331,7 @@ const Registro = () => {
         </Form>}
 
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} type="submit" className="botonBlanco">
+            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlideIndex={0}>
               Inicio
             </Button>
         </div>

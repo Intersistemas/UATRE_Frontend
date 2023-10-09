@@ -84,6 +84,11 @@ const PDF = ({
 	const pages = data.map((r, i) => {
 		let { liquidacion, establecimiento, tipoPago } = r;
 		liquidacion = CalcularCampos(liquidacion);
+		console.log({
+			liquidacion: liquidacion,
+			establecimiento: establecimiento,
+			tipoPago: tipoPago,
+		});
 
 		let importeTotalDescipcion = `${descriptor.escalaLarga(
 			liquidacion.importeTotal
@@ -151,10 +156,12 @@ const PDF = ({
 							</GridView>
 							<GridView col width style={styles.paddingBox}>
 								<GridView justify="center">
-									<Text style={styles.titulo}>Número de Acta</Text>
+									<Text style={styles.titulo}>
+										{liquidacion.tipoLiquidacion !== 0 ? "Número de Acta" : ""}
+									</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>000000</Text>
+									{/* <Text>000000</Text> */}
 								</GridView>
 							</GridView>
 						</GridView>
@@ -197,9 +204,7 @@ const PDF = ({
 								<GridView justify="center">
 									<Text style={styles.titulo}>Seccional</Text>
 								</GridView>
-								<GridView justify="center">
-									<Text>0000</Text>
-								</GridView>
+								<GridView justify="center">{/* <Text>0000</Text> */}</GridView>
 							</GridView>
 							<GridView
 								col
@@ -214,7 +219,7 @@ const PDF = ({
 								</GridView>
 							</GridView>
 							<GridView col width style={styles.paddingBox}>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Remuneraciones</Text>
 								</GridView>
 								<GridView justify="end">
@@ -245,13 +250,11 @@ const PDF = ({
 									<Text style={styles.titulo}>Liquidación Nº</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>
-										{Formato.Mascara(liquidacion.id ?? 0, "##########")}
-									</Text>
+									<Text>{liquidacion.id ?? 0}</Text>
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Capital</Text>
 								</GridView>
 								<GridView justify="end">
@@ -259,7 +262,7 @@ const PDF = ({
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Intereses</Text>
 								</GridView>
 								<GridView justify="end">
@@ -267,7 +270,7 @@ const PDF = ({
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Total</Text>
 								</GridView>
 								<GridView justify="end">
@@ -282,13 +285,10 @@ const PDF = ({
 							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
 							<GridView>
-								<GridView>
-									<Text style={styles.titulo}>TOTAL PAGADO</Text>
-								</GridView>
-								<GridView justify="end" grow>
-									<Text style={{ ...styles.titulo, fontSize: "22pt" }}>
-										{Formato.Moneda(liquidacion.importeTotal ?? 0)}
-									</Text>
+								<GridView width justify="center">
+									<Text style={styles.titulo}>{`TOTAL A PAGAR ${Formato.Moneda(
+										liquidacion.importeTotal ?? 0
+									)}`}</Text>
 								</GridView>
 							</GridView>
 							<GridView grow>
@@ -306,8 +306,8 @@ const PDF = ({
 							</GridView>
 							<GridView justify="center">
 								<Text style={{ fontSize: "10pt" }}>
-									Posterior a esta fecha el banco no aceptará el pago, debiendo
-									reliquidar el período
+									No se aceptará el pago con posteridad al vencimiento, siendo
+									imprescindible la reliquidación del período
 								</Text>
 							</GridView>
 						</GridView>
@@ -316,6 +316,7 @@ const PDF = ({
 							gap="5px"
 							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
+							{/* 
 							<GridView gap="5px">
 								<GridView width="70px">
 									<Text style={styles.titulo}>Cheque Nº:</Text>
@@ -324,6 +325,7 @@ const PDF = ({
 									<Casillas cantidad={32} />
 								</GridView>
 							</GridView>
+							*/}
 							<GridView gap="5px">
 								<GridView width="70px">
 									<Text style={styles.titulo}>Banco:</Text>
