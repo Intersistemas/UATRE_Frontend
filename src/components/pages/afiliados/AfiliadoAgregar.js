@@ -190,6 +190,7 @@ const domicilioReducer = (state, action) => {
 
 const provinciaReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
+    seccionalSinAsignar.push({ value: 1, label: "" })
     return {
       value: action.value,
       isValid: action.value !== "" ? true : false,
@@ -281,7 +282,7 @@ const telefonoReducer = (state, action) => {
 //#endregion
 
 //#region gloabes
-const seccionalSinAsignar = [
+let seccionalSinAsignar = [
   {
     value: 99999,
     label: "Sin Asignar",
@@ -312,8 +313,7 @@ const AfiliadoAgregar = (props) => {
       ${!domicilioState.isValid ? "*Domicilio\n" : ""}
       ${!provinciaState.isValid ? "*Provincia\n" : ""}
       ${!localidadState.isValid ? "*Localidad\n" : ""}
-      ${!seccionalState.isValid ? "*Seccional\n" : ""}
-      ${!puestoState.isValid ? "*Puesto\n" : ""}
+      ${!seccionalState.isValid ? "*Seccional\n" : ""}      
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
   };
@@ -550,8 +550,7 @@ const AfiliadoAgregar = (props) => {
         domicilioState.isValid &&
         provinciaState.isValid &&
         localidadState.isValid &&
-        seccionalState.isValid &&
-        puestoState.isValid
+        seccionalState.isValid 
       ) {
         setFormularioIsValid(true);
       } else {
@@ -870,9 +869,11 @@ const AfiliadoAgregar = (props) => {
             value: provincia.id,
             label: provincia.nombre,
             idProvinciaAFIP: provincia.idProvinciaAFIP,
+            seccionalIdPorDefecto: provincia.seccionalIdPorDefecto,
+            seccionalDescripcionPorDefecto: provincia.seccionalDescripcionPorDefecto
           };
         });
-      //console.log("seccionalesSelect", seccionalesSelect);
+      //console.log("provinciasSelect", provinciasSelect);      
       setProvincias(provinciasSelect);
     };
 
@@ -896,6 +897,16 @@ const AfiliadoAgregar = (props) => {
           });
         //console.log("seccionalesSelect", seccionalesSelect);
         setLocalidades(localidadesSelect);
+
+        seccionalSinAsignar.splice(0);
+        const provinciaSeleccionada = provincias.find(
+          (e) => e.value === provinciaState.value
+        );
+        //console.log("provinciaSeleccionada", provinciaSeleccionada);
+        seccionalSinAsignar.push({
+          value: provinciaSeleccionada.seccionalIdPorDefecto,
+          label: provinciaSeleccionada.seccionalDescripcionPorDefecto,
+        });
       };
 
       request(
@@ -920,9 +931,10 @@ const AfiliadoAgregar = (props) => {
               label: `${seccional.codigo} ${seccional.descripcion}`,
             };
           });
-          console.log("localidadState", localidadState)
-        console.log("seccionalesSelect", seccionalesSelect);
-        console.log("seccionalSinAsignar", seccionalSinAsignar);
+        //   console.log("localidadState", localidadState)
+        // console.log("seccionalesSelect", seccionalesSelect);        
+        // console.log("seccionalSinAsignar", seccionalSinAsignar);
+        
         setSeccionales(
           seccionalesSelect.length > 0 ? seccionalesSelect : seccionalSinAsignar
         );
@@ -1315,7 +1327,10 @@ const AfiliadoAgregar = (props) => {
         const provincia = provincias.find(
           (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
         );
-        dispatchProvincia({ type: "USER_INPUT", value: provincia.value });
+        dispatchProvincia({ 
+          type: "USER_INPUT", 
+          value: provincia.value, 
+        });
 
         //localidad
         const processLocalidades = async (localidadesObj) => {
@@ -2077,7 +2092,7 @@ const AfiliadoAgregar = (props) => {
 									value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
 									label="Fecha Ingreso"
 									onChange={handleInputChange}
-									readOnly={true}
+                  readOnly={!afiliadoExiste}
 								/>
 							</div>
 						</div>
