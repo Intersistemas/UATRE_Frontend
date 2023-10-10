@@ -6,6 +6,7 @@ import classes from "./SeccionalAutoridades.module.css";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const SeccionalAutoridades = (props) => {
+  console.log("props.seccionalAutoridades", props.seccionalAutoridades);
   const columns = [
     {
       headerTitle: (column, colIndex) => `Id`,
@@ -74,17 +75,18 @@ const SeccionalAutoridades = (props) => {
       color: "black",
       fontWeight: "bold",
     },
-    // onSelect: (row, isSelect, rowIndex, e) =>
-    //   props.onSeccionalSeleccionada(row),
+    onSelect: (row, isSelect, rowIndex, e) => {
+      console.log("row",row)
+      props.onSeleccionAutoridad(row)      
+    }
   };
 
-  const rowEvents = {
-    // onClick: (e, row, rowIndex) => {
-    //   //console.log(`row: ${row.cuit}`);
-    //   props.onSeleccionRegistro(row);
-    //   setIdPrimerRegistroDelGrid(row?.id);
-    // },
-  };
+  // const rowEvents = {
+  //   onClick: (e, row, rowIndex) => {
+  //     console.log('row', row);
+  //     props.onSeleccionAutoridad(row);
+  //   },
+  // };
 
   const pagination = {
     size: 20,
@@ -94,9 +96,9 @@ const SeccionalAutoridades = (props) => {
     keyField: "id",
     data: props.seccionalAutoridades,
     columns: columns,
-    //selectRow: selectRow,
-    selection: selectRow,
-    rowEvents: rowEvents,
+    selectRow: selectRow,
+    //selection: selectRow,
+    //rowEvents: rowEvents,
     loading: props.isLoading,
     noDataIndication: <h4>No existen autoridades para la seccional.</h4>,
     overlay: overlayFactory({ spinner: true }),

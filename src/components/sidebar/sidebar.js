@@ -4,17 +4,18 @@ import {
     FaTh,FaBars,FaRegUser, FaChevronRight
 }from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink,useNavigate } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion } from '../../redux/actions';
+import UseKeyPress from '../helpers/UseKeyPress';
 
 const Sidebar = ({children}) => {
 
-    const  moduloActual = useSelector(state => state.modulo)
+    const moduloActual = useSelector(state => state.modulo)
     const afiliadoSeleccionado = useSelector(state => state.afiliado)
     
     const dispatch = useDispatch();  //Ver acciones a pasar
@@ -31,11 +32,23 @@ const Sidebar = ({children}) => {
     const menuItem=[
         {
             path:"/inicio",
-            name:"Inicio",
+            name: <text><text className={clases.underline}>I</text>nicio</text>,
             icon:<FaTh/>
         }
     ]
+    const navigate = useNavigate();
 
+    
+    console.log('moduloActual: ',moduloActual);
+
+    const logout = () =>{
+         logoutHandler();
+         navigate("/ingreso");
+    }
+
+    UseKeyPress(['i'], ()=>navigate("/inicio"), 'AltKey');
+    UseKeyPress(['c'], ()=>logout(), 'AltKey');
+    
     useEffect(() => {
                 setBotones(moduloActual.acciones ?? '');
 
@@ -76,17 +89,20 @@ const Sidebar = ({children}) => {
                         }
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
-                                botones.map((item, index)=>(                                
-                                    <Button disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
-                                        {(isOpen && <text onClick={ () => despacharAcciones(item.name)}> <FaChevronRight/>{item.name}</text>)}
-                                    </Button>
+                                botones.map((item, index)=>(   
+                                    <div  key={index} className='d-flex align-items-center'>
+                                        <FaChevronRight/>
+                                        <Button underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                            {item.name}
+                                        </Button>
+                                    </div>
                                 ))
                             }
                         </div>
                     <div>
                         <NavLink to="/ingreso" className={clases.link} activeClassName={clases.active} onClick={logoutHandler}>
                             <div onClick={logoutHandler} className={clases.icon}><BsFillXCircleFill/></div>
-                            {(isOpen && <div onClick={logoutHandler} className={clases.link_text}>Cerrar Sesión</div>)}
+                            {(isOpen && <div onClick={logoutHandler} className={clases.link_text}><text className={clases.underline} >C</text>errar Sesión</div>)}
                         </NavLink>
                     </div>
                 </div>
