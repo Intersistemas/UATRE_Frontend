@@ -26,7 +26,7 @@ const DelegacionesForm = ({
 	return (
 		<Modal onClose={() => onClose(false)}>
 			<Grid col full gap="15px">
-				<Grid className={modalCss.modalCabecera} width="full">
+				<Grid className={modalCss.modalCabecera} width="full" justify="center">
 					<h3>{title}</h3>
 				</Grid>
 				<Grid width="full" gap="15px">

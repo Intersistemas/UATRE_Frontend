@@ -158,8 +158,8 @@ const useDelegaciones = () => {
 					//Validaciones
 					const errores = {};
 					if (selected.request === "B") {
-						// if (!record.bajaObservacion)
-						// 	errores.bajaObservacion = "Dato requerido";
+						// if (!record.deletedObs)
+						// 	errores.deletedObs = "Dato requerido";
 					} else {
 						if (!record.codigoDelegacion)
 							errores.codigoDelegacion = "Dato requerido";
@@ -218,7 +218,7 @@ const useDelegaciones = () => {
 						case "B":
 							query.action = "Delete";
 							query.params = { id: record.id };
-							query.config.body = record.bajaObservacion;
+							query.config.body = record.deletedObs;
 							break;
 						default:
 							break;
