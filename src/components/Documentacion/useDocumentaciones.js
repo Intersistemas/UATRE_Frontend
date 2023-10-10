@@ -1,9 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import DocumentacionTable from "components/Documentacion/DocumentacionTable";
-import DocumentacionForm from "components/Documentacion/DocumentacionModal";
+import DocumentacionTable from "./DocumentacionTable";
+import DocumentacionForm from "./DocumentacionModal";
 
-const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
+const selectedDef = {
+	record: null,
+	index: null,
+	action: "",
+	request: "",
+};
+
+const useDocumentaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -68,12 +75,10 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 		error: {},
 	});
 	useEffect(() => {
+		if (!tipoDocumentacionList.loading) return;
 		pushQuery({
 			action: "GetTipoList",
-			onOk: async (res) =>
-				setTipoDocumentacionList({
-					data: res.map((r) => ({ value: r.id, label: r.descripcion })),
-				}),
+			onOk: async (res) => setTipoDocumentacionList({ data: res }),
 			onError: async (err) => {
 				const newList = { data: [] };
 				if (err.code !== 404) newList.error = err;
@@ -86,40 +91,63 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: "Cargando..",
+		params: { entidadTipo: "", entidadId: 0 },
 		data: [],
 		error: {},
 	});
+
+	const [selected, setSelected] = useState({ ...selectedDef });
+
 	useEffect(() => {
+		if (!list.loading) return;
+		if (!list.params.entidadTipo || !list.params.entidadId) {
+			setList({ params: list.params, data: [] });
+			return;
+		}
 		pushQuery({
 			action: "GetList",
-			params: { entidadId: entidadId, entidadTipo: entidadTipo },
-			onOk: async (res) => setList({ data: res }),
+			params: list.params,
+			onOk: async (res) => {
+				const newData = [...res];
+				setList({ params: list.params, data: newData });
+				setSelected((old) => {
+					const newSelected = { ...selectedDef };
+					if (!newData.length) return newSelected;
+					newSelected.index = newData.findIndex(r => r.id === old.record?.id)
+					if (newSelected.index < 0) newSelected.index = 0;
+					newSelected.record = { ...newData[newSelected.index] };
+					return newSelected;
+				});
+			},
 			onError: async (err) => {
-				const newList = { data: [] };
+				const newList = { params: list.params, data: [] };
 				if (err.code !== 404) newList.error = err;
 				setList(newList);
+				setSelected({ ...selectedDef });
 			},
 		});
-	}, [pushQuery, list.loading]);
-
-	const [selected, setSelected] = useState({
-		record: null,
-		index: null,
-		action: "",
-		request: "",
-	});
+	}, [pushQuery, list.loading, list.params]);
 	//#endregion
 
-	const sidebarHandler = useCallback(
-		(request, action) =>
-			setSelected((old) => ({
-				...old,
-				request: request,
-				action: action,
-				record: action === "A" ? {} : old.record,
-			})),
-		[]
-	);
+	const requestChanges = useCallback((changes) => {
+		switch (changes.type) {
+			case "selected":
+				return setSelected((old) => ({
+					...old,
+					request: changes.request,
+					action: changes.action,
+					record: changes.request === "A" ? {} : old.record,
+				}));
+			case "list":
+				return setList({
+					loading: "Cargando...",
+					params: { ...changes.params },
+					data: [],
+				});
+			default:
+				return;
+		}
+	}, []);
 
 	let form = null;
 	if (selected.request) {
@@ -128,15 +156,19 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 				data={selected.record}
 				title={selected.action}
 				errores={selected.errores}
-				dependecies={{ tipoDocumentacionList: tipoDocumentacionList }}
-				disabled={
-					["A", "M"].includes(selected.request)
+				dependecies={{ tipoDocumentacionList: tipoDocumentacionList.data }}
+				disabled={(() => {
+					const r = ["A", "M"].includes(selected.request)
 						? {}
 						: {
-								codigoDelegacion: true,
-								nombre: true,
-						  }
-				}
+								refTipoDocumentacionId: true,
+								archivo: true,
+								observaciones: true,
+						  };
+					if (selected.request !== "B") r.deletedObs = true
+					return r;
+				})()}
+				hide={["A", "M"].includes(selected.request) ? { deletedObs: true } : {}}
 				onChange={(changes) =>
 					setSelected((old) => ({
 						...old,
@@ -159,14 +191,14 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 					}
 
 					const record = { ...selected.record };
-					record.entidadId = entidadId;
-					record.entidadTipo = entidadTipo;
+					record.entidadId = list.params.entidadId;
+					record.entidadTipo = list.params.entidadTipo;
 
 					//Validaciones
 					const errores = {};
 					if (selected.request === "B") {
-						// if (!record.bajaObservacion)
-						// 	errores.bajaObservacion = "Dato requerido";
+						// if (!record.deletedObs)
+						// 	errores.deletedObs = "Dato requerido";
 					} else {
 						if (!record.refTipoDocumentacionId)
 							errores.refTipoDocumentacionId = "Dato requerido";
@@ -184,7 +216,7 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 						config: {},
 						onOk: async (res) =>
 							setList((old) => {
-								let newSelected = {};
+								const newSelected = {};
 								const data = [...old.data];
 								switch (selected.request) {
 									case "A":
@@ -207,7 +239,7 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 										break;
 								}
 								setSelected(newSelected);
-								return { data: data };
+								return { params: old.params, data: data };
 							}),
 						onError: async (err) => alert(err.message),
 					};
@@ -259,7 +291,7 @@ const useDocumentacionesTab = ({ entidadId = 0, entidadTipo = "" }) => {
 		</>
 	);
 
-	return [render, sidebarHandler, selected.record];
+	return [render, requestChanges, selected.record];
 };
 
-export default useDocumentacionesTab;
+export default useDocumentaciones;

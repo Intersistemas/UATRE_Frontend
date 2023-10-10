@@ -8,7 +8,7 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 
 const dependeciesDef = {
-	tipoDocumentacionList: [{ value: 0, label: ""}],
+	tipoDocumentacionList: [{ id: 0, descripcion: ""}],
 };
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -30,8 +30,11 @@ const DocumentacionModal = ({
 	errores ??= {};
 
 	dependecies ??= {}
-	dependecies = dependecies === dependeciesDef ? {} : dependecies;
+	dependecies = dependecies === dependeciesDef ? {} : { ...dependecies };
 	dependecies.tipoDocumentacionList ??= [];
+	dependecies.tipoDocumentacionList = dependecies.tipoDocumentacionList.map(
+		(r) => ({ value: r.id, label: r.descripcion })
+	);
 
 	const archivoRef = useRef(null);
 	const getValue = (v) => data[v] ?? "";
@@ -63,7 +66,7 @@ const DocumentacionModal = ({
 					</Grid>
 					{hide.archivo ? null : (
 						<>
-							<Grid grow>{getValue("archivoNombre")}</Grid>
+							<Grid grow>{getValue("nombreArchivo")}</Grid>
 							<Grid width="150px" col>
 								<Grid width="full">
 									<input
@@ -79,7 +82,7 @@ const DocumentacionModal = ({
 											reader.onload = () => {
 												onChange({
 													archivo: reader.result?.split("base64,")[1],
-													archivoNombre: archivo.name,
+													nombreArchivo: archivo.name,
 												});
 											};
 										}}
@@ -89,7 +92,7 @@ const DocumentacionModal = ({
 									/>
 									<Button
 										onClick={() => archivoRef.current?.click()}
-										disabled={disabled}
+										disabled={disabled.archivo}
 									>
 										Subir archivo
 									</Button>
@@ -116,15 +119,15 @@ const DocumentacionModal = ({
 					)}
 				</Grid>
 				<Grid full="width">
-					{hide.bajaObservacion ? null : (
+					{hide.deletedObs ? null : (
 						<InputMaterial
-							id="bajaObservacion"
+							id="deletedObs"
 							label="Observación de baja"
-							disabled={disabled.bajaObservacion}
-							error={!!errores.bajaObservacion}
-							helperText={errores.bajaObservacion ?? ""}
-							value={getValue("bajaObservacion")}
-							onChange={(v) => onChange({ bajaObservacion: v })}
+							disabled={disabled.deletedObs}
+							error={!!errores.deletedObs}
+							helperText={errores.deletedObs ?? ""}
+							value={getValue("deletedObs")}
+							onChange={(v) => onChange({ deletedObs: v })}
 							width={100}
 						/>
 					)}
