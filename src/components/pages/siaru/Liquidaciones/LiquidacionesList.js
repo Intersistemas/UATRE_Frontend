@@ -75,7 +75,7 @@ const LiquidacionesList = ({
 			style: { ...cs, textAlign: "left" },
 		},
 		{
-			dataField: "bajaFecha",
+			dataField: "deletedDate",
 			text: "Baja fecha",
 			formatter: Formato.Fecha,
 			sort: true,

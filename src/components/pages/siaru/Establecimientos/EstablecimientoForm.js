@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
 import styles from "./EstablecimientoForm.module.css";
-import Formato from "../../../helpers/Formato";
-import useHttp from "../../../hooks/useHttp";
-import Button from "../../../ui/Button/Button";
-import Modal from "../../../ui/Modal/Modal";
-import Grid from "../../../ui/Grid/Grid";
-import InputMaterial from "../../../ui/Input/InputMaterial";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+import Formato from "components/helpers/Formato";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Button from "components/ui/Button/Button";
+import ValidarEmail from "components/validators/ValidarEmail";
+import Modal from "components/ui/Modal/Modal";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
 import { Alert, AlertTitle, Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 
 const onConfirmDef = (_request, _record) => {};
 const onCancelDef = (_request) => {};
 
 const Form = ({
-	request: requestParam = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
+	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	record = {}, // Registro de establecimiento a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
 	disabled: disabledInit = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onConfirm = onConfirmDef, // Acción a realizar al confirmar
@@ -26,19 +29,146 @@ const Form = ({
 	onConfirm ??= onConfirmDef;
 	onCancel ??= onCancelDef;
 	record = { ...record };
-	if (requestParam === "A") record.id = 0;
+	if (request === "A") record.id = 0;
 
 	const [establecimiento, setEstablecimiento] = useState(record);
-	disabledInit.bajaObservaciones = !establecimiento.refMotivosBajaId;
+	disabledInit.deletedObs = !establecimiento.refMotivosBajaId;
+	disabledInit.domicilioLocalidadesId = !establecimiento.domicilioProvinciasId;
+	if (request === "B") {
+		disabledInit = {
+			...disabledInit,
+			nombre: true,
+			telefono: true,
+			email: true,
+			domicilioCalle: true,
+			domicilioNumero: true,
+			domicilioPiso: true,
+			domicilioDpto: true,
+		};
+	}
 	const [disabled, setDisabled] = useState(disabledInit);
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
 
-	const [motivosBaja, setMotivosBaja] = useState([]);
-	const { sendRequest: request } = useHttp();
-	
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetMotivosBaja":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
+			case "CreateEmpresaEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "POST",
+						endpoint: `/EmpresaEstablecimientos`,
+					},
+				};
+			case "UpdateEmpresaEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "PUT",
+						endpoint: `/EmpresaEstablecimientos`,
+					},
+				};
+			case "GetProvincias":
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/Provincia`,
+					},
+				};
+			case "GetLocalidades":
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/RefLocalidad`,
+					},
+				};
+			default:
+				return null;
+		}
+	});
+
+	//#region Carga de motivos de baja
+	const [motivosBaja, setMotivosBaja] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: { tipo: "E" },
+			onOk: async (res) => {
+				const newData = [
+					{ label: "Activo", value: 0 },
+					...res.map((r) => ({ label: r.descripcion, value: r.id })),
+				];
+				setMotivosBaja({ data: newData });
+			},
+			onError: async (err) => setMotivosBaja({ data: [], error: err }),
+		});
+	}, [pushQuery]);
+	//#endregion
+
+	//#region Carga de provincias
+	const [provincias, setProvincias] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		pushQuery({
+			action: "GetProvincias",
+			onOk: async (res) =>
+				setProvincias({
+					data: [...res]
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (err) => setProvincias({ data: [], error: err }),
+		});
+	}, [pushQuery]);
+	//#endregion
+
+	//#region Carga de localidades
+	const [localidades, setLocalidades] = useState({
+		data: [],
+		loading: "Cargando...",
+		error: {},
+	});
+	useEffect(() => {
+		if (!establecimiento.domicilioProvinciasId) {
+			setLocalidades({
+				data: [],
+				error: { message: "Debe seleccionar una provincia." },
+			});
+			return;
+		}
+		pushQuery({
+			action: "GetLocalidades",
+			params: { provinciasId: establecimiento.domicilioProvinciasId },
+			onOk: async (res) =>
+				setLocalidades({
+					data: [...res]
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (err) => setLocalidades({ data: [], error: err }),
+		});
+	}, [pushQuery, establecimiento.domicilioProvinciasId]);
+	//#endregion
+
 	let actionMsg;
-	switch (requestParam) {
+	switch (request) {
 		case "A":
 			actionMsg = "Agregando";
 			break;
@@ -59,7 +189,7 @@ const Form = ({
 		const newErrores = {};
 		const newAlerts = [];
 
-		if (["A", "M"].includes(requestParam)) {
+		if (["A", "M"].includes(request)) {
 			// Alta / Modificacion
 			if (establecimiento.empresaId) {
 				newErrores.empresaId = "";
@@ -74,7 +204,14 @@ const Form = ({
 				noValida = true;
 				newErrores.nombre = "Dato requerido";
 			}
-		} else if (requestParam === "B") {
+
+			if (!!establecimiento.email && !ValidarEmail(establecimiento.email)) {
+				noValida = true;
+				newErrores.email = "El correo ingresado tiene un formato incorrecto.";
+			} else {
+				newErrores.email = "";
+			}
+		} else if (request === "B") {
 			// Baja
 			if (establecimiento.refMotivosBajaId) {
 				newErrores.refMotivosBajaId = "";
@@ -84,7 +221,7 @@ const Form = ({
 			}
 		} else {
 			// No se reconoce request
-			onCancel(requestParam);
+			onCancel(request);
 			return;
 		}
 
@@ -92,48 +229,32 @@ const Form = ({
 		setAlerts((old) => [...old, ...newAlerts]);
 		if (noValida) return;
 
-		let method;
-		switch (requestParam) {
-			case "A":
-				method = "POST"
-				break;
-			case "M":
-				method = "PUT"
-				break;
-			case "B":
-				method = "PUT"
-				if (establecimiento.refMotivosBajaId) {
-					establecimiento.bajaFecha = dayjs().format("YYYY-MM-DDTHH:mm:ss");
-				}
-				break;
-			default:
-				break;
-		}
-
-		request(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos`,
-				method: method,
-				body: establecimiento,
-				headers: { "Content-Type": "application/json" },
-			},
-			async (res) => onConfirm(requestParam, res),
-			async (err) => {
+		const query = {
+			onOk: async (res) => onConfirm(request, res),
+			onError: async (err) => {
 				setAlerts((old) => [
 					...old,
 					{ severity: "error", title: err.type, message: err.message },
 				]);
-			}
-		);
+			},
+		};
+		switch (request) {
+			case "A":
+				query.action = "CreateEmpresaEstablecimientos";
+				break;
+			case "M":
+				query.action = "UpdateEmpresaEstablecimientos";
+				break;
+			case "B":
+				query.action = "UpdateEmpresaEstablecimientos";
+				establecimiento.deletedDate = dayjs().format("YYYY-MM-DDTHH:mm:ss");
+				break;
+			default:
+				break;
+		}
+		query.config = { body: establecimiento };
+		pushQuery(query);
 	};
-
-	useEffect(() => {
-		setMotivosBaja([
-			{ id: 0, tipo: "E", descripcion: "Activo" },
-			{ id: 1, tipo: "E", descripcion: "Otro" },
-		]);
-	}, []);
 
 	const gap = 15;
 
@@ -143,7 +264,7 @@ const Form = ({
 			<Grid gap={`${gap}px`} full="width">
 				<Grid col grow>
 					{alerts?.map((r, ix) => (
-						<Collapse in={true} style={{ width: "100%" }}>
+						<Collapse key={ix} in={true} style={{ width: "100%" }}>
 							<Alert
 								severity={r.severity}
 								action={
@@ -173,30 +294,26 @@ const Form = ({
 		);
 	}
 
-	const renderConfirmaButton = ["A", "B", "M"].includes(requestParam) ? (
-		<Button onClick={validar}>Confirma</Button>
-	) : null;
-
 	return (
-		<Modal onClose={() => onCancel(requestParam)}>
+		<Modal onClose={() => onCancel(request)}>
 			<Grid col full gap={`${gap}px`}>
-				<Grid full="width" gap={`${gap}px`}>
-					<Grid grow>
-						<h3>{actionMsg} Establecimiento</h3>
-					</Grid>
+				<Grid className={modalCss.modalCabecera} full="width" justify="center">
+					<h3>{actionMsg} Establecimiento</h3>
+					{/* 
 					<Grid style={{ color: "transparent" }}>
 						<h3>[empresaId: {establecimiento.empresaId ?? ""}]</h3>
 					</Grid>
 					<Grid style={{ color: "transparent" }}>
 						<h3>{establecimiento.id ?? ""}</h3>
 					</Grid>
+					*/}
 				</Grid>
 				<Grid full="width" gap={`${gap}px`}>
 					<Grid width="25%">
 						<InputMaterial
 							type="number"
-							label="Nro. sucursal"
-							error={errores.nroSucursal ?? ""}
+							label="Nro. de Estab."
+							error={!!errores.nroSucursal}
 							helperText={errores.nroSucursal ?? ""}
 							value={establecimiento.nroSucursal}
 							disabled
@@ -211,7 +328,7 @@ const Form = ({
 					<Grid width="75%">
 						<InputMaterial
 							label="Nombre"
-							error={errores.nombre ?? ""}
+							error={!!errores.nombre}
 							helperText={errores.nombre ?? ""}
 							value={establecimiento.nombre}
 							disabled={disabled.nombre ?? false}
@@ -230,10 +347,10 @@ const Form = ({
 							label="Teléfono"
 							value={establecimiento.telefono}
 							disabled={disabled.telefono ?? false}
-							onChange={(e) =>
+							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
 									...old,
-									telefono: `${e.target.value}`,
+									telefono: `${value}`,
 								}))
 							}
 						/>
@@ -242,6 +359,8 @@ const Form = ({
 						<InputMaterial
 							label="Correo"
 							value={establecimiento.email}
+							error={!!errores.email}
+							helperText={errores.email ?? ""}
 							disabled={disabled.email ?? false}
 							onChange={(value, _id) =>
 								setEstablecimiento((old) => ({
@@ -319,58 +438,109 @@ const Form = ({
 							/>
 						</Grid>
 					</Grid>
-				</Grid>
-				<Grid col full="width" gap={`${gap}`}>
-					<SelectMaterial
-						name="refMotivosBajaId"
-						label="Motivo de baja"
-						value={establecimiento.refMotivosBajaId ?? 0}
-						error={errores.refMotivosBajaId ?? ""}
-						disabled={disabled.refMotivosBajaId ?? false}
-						options={motivosBaja.map((r) => ({
-							label: r.descripcion,
-							value: r.id,
-						}))}
-						onChange={(value, _id) => {
-								setEstablecimiento((old) => ({
-									...old,
-									refMotivosBajaId: value,
-								}));
-								setDisabled((old) => ({
-									...old,
-									bajaObservaciones: value === 0,
-								}));
-							}
-						}
-					/>
-				</Grid>
-				<Grid col full="width" gap={`${gap}`}>
-						<InputMaterial
-							label="Observaciones de baja"
-							value={establecimiento.bajaObservaciones}
-							disabled={disabled.bajaObservaciones ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									bajaObservaciones: `${value}`,
-								}))
-							}
-						/>
-				</Grid>
-				<Grid col grow justify="end">
-					<Grid gap={`${gap * 2}px`}>
-						<Grid grow />
-						<Grid col width="30%" justify="end">
-							<Grid gap={`${gap}px`}>
-								<Button
-									className="botonBlanco"
-									onClick={() => onCancel(requestParam)}
-								>
-									Cancela
-								</Button>
-								{renderConfirmaButton}
-							</Grid>
+					<Grid width="full" gap={`${gap}px`}>
+						<Grid width="50%">
+							<SelectMaterial
+								name="domicilioProvinciasId"
+								label="Provincia"
+								value={establecimiento.domicilioProvinciasId ?? 0}
+								error={
+									provincias.loading ??
+									provincias.error?.message ??
+									errores.domicilioProvinciasId ??
+									""
+								}
+								disabled={disabled.domicilioProvinciasId ?? false}
+								options={provincias.data}
+								onChange={(value, _id) => {
+									const cambios = { domicilioProvinciasId: value };
+									if (establecimiento.domicilioProvinciasId !== value) {
+										cambios.domicilioLocalidadesId = 0;
+										setLocalidades({ data: [], loading: "Cargando..." });
+									}
+									setEstablecimiento((old) => ({ ...old, ...cambios }));
+									setDisabled((old) => ({
+										...old,
+										domicilioLocalidadesId: value === 0,
+									}));
+								}}
+							/>
 						</Grid>
+						<Grid width="50%">
+							<SelectMaterial
+								name="domicilioLocalidadesId"
+								label="Localidad"
+								value={establecimiento.domicilioLocalidadesId ?? 0}
+								error={
+									localidades.loading ??
+									localidades.error?.message ??
+									errores.domicilioLocalidadesId ??
+									""
+								}
+								disabled={disabled.domicilioLocalidadesId ?? false}
+								options={localidades.data}
+								onChange={(value, _id) => {
+									setEstablecimiento((old) => ({
+										...old,
+										domicilioLocalidadesId: value,
+									}));
+								}}
+							/>
+						</Grid>
+					</Grid>
+				</Grid>
+				{request === "B" ? (
+					<>
+						<Grid col full="width" gap={`${gap}`}>
+							<SelectMaterial
+								name="refMotivosBajaId"
+								label="Motivo de baja"
+								value={establecimiento.refMotivosBajaId ?? 0}
+								error={
+									motivosBaja.loading ??
+									motivosBaja.error?.message ??
+									errores.refMotivosBajaId ??
+									""
+								}
+								disabled={disabled.refMotivosBajaId ?? false}
+								options={motivosBaja.data}
+								onChange={(value, _id) => {
+									setEstablecimiento((old) => ({
+										...old,
+										refMotivosBajaId: value,
+									}));
+									setDisabled((old) => ({
+										...old,
+										deletedObs: value === 0,
+									}));
+								}}
+							/>
+						</Grid>
+						<Grid col full="width" gap={`${gap}`}>
+							<InputMaterial
+								label="Observaciones de baja"
+								value={establecimiento.deletedObs}
+								disabled={disabled.deletedObs ?? false}
+								onChange={(value, _id) =>
+									setEstablecimiento((old) => ({
+										...old,
+										deletedObs: `${value}`,
+									}))
+								}
+							/>
+						</Grid>
+					</>
+				) : null}
+				<Grid width="full" gap="200px" justify="center">
+					<Grid width="150px">
+						{["A", "B", "M"].includes(request) ? (
+							<LoadingButtonCustom onClick={validar}>
+								CONFIRMA
+							</LoadingButtonCustom>
+						) : null}
+					</Grid>
+					<Grid width="150px">
+						<Button onClick={() => onCancel(request)}>CANCELA</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

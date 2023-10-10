@@ -51,7 +51,7 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 		>
 			<Grid full="width">
 				<Grid className={styles.titulo} grow>
-					Datos de la liquidacion {data.id}
+					Datos de la liquidación {data.id}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
@@ -128,13 +128,13 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 					{...im}
 				/>
 				<InputMaterial
-					label="Secuencia rectificacion"
+					label="Secuencia rectificación"
 					value={valor(Formato.Entero(data.rectificativa) ?? "")}
 					{...im}
 				/>
 				<InputMaterial
 					label="Fecha de baja"
-					value={valor(Formato.Fecha(data.bajaFecha) ?? "")}
+					value={valor(Formato.Fecha(data.deletedDate) ?? "")}
 					{...im}
 				/>
 			</Grid>
@@ -146,7 +146,7 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 				/>
 				<InputMaterial
 					label="Observaciones de baja"
-					value={valor(data.bajaObservaciones ?? "")}
+					value={valor(data.deletedObs ?? "")}
 					{...im}
 				/>
 			</Grid>

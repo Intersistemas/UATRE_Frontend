@@ -1,62 +1,92 @@
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
-import Formato from "../../../../../helpers/Formato";
-import useHttp from "../../../../../hooks/useHttp";
-import Grid from "../../../../../ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Grid from "components/ui/Grid/Grid";
 import DDJJList from "./DDJJList";
 import LiquidacionList from "./LiquidacionList";
 import LiquidacionesForm from "../../Formulario/Form";
 import DDJJForm from "./DDJJForm";
+import CalcularCampos from "../../Formulario/CalcularCampos";
+import LiquidacionForm from "./LiquidacionForm";
+import LiquidacionPDF from "../../Impresion/Handler";
+import { useNavigate } from "react-router-dom";
 
 const Handler = ({ empresa, periodo, tentativas = [] }) => {
-	// const dispatch = useDispatch();
+	const navigate = useNavigate();
 	const [formRender, setFormRender] = useState();
-	const { sendRequest: request } = useHttp();
+
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action, _params) => {
+		switch (action) {
+			case "GetLiquidacionTipoPago":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/LiquidacionesTiposPagos`,
+					},
+				};
+			case "CreateListLiquidacion":
+				return {
+					config: {
+						baseURL: "SIARU",
+						endpoint: "/Liquidaciones/List",
+						method: "POST",
+					},
+				};
+			case "GetEstablecimientosByEmpresa":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+					},
+				};
+			default:
+				return null;
+		}
+	});
+	//#endregion
 
 	//#region declaracion y carga de tipos de liquidacion
 	const [tiposPagos, setTiposPagos] = useState({ loading: true });
 	useEffect(() => {
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/LiquidacionesTiposPagos`,
-				method: "GET",
-			},
-			async (res) => setTiposPagos({ data: res }),
-			async (err) => setTiposPagos({ error: err })
-		);
-	}, [request]);
+		pushQuery({
+			action: "GetLiquidacionTipoPago",
+			onOk: (res) => setTiposPagos({ data: res }),
+			onError: (err) => setTiposPagos({ error: err }),
+		});
+	}, [pushQuery]);
 	//#endregion
 
 	//#region declaración y carga de esablecimientos
 	const [establecimientos, setEstablecimientos] = useState({ loading: true });
 	useEffect(() => {
-		request(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresa.id}&PageSize=5000`,
-				method: "GET",
-			},
-			async (resp) => setEstablecimientos({ data: resp.data }),
-			async (error) => setEstablecimientos({ error: error })
-		);
-	}, [empresa.id, request]);
+		pushQuery({
+			action: "GetEstablecimientosByEmpresa",
+			params: { empresaId: empresa.id, pageSize: 5000 },
+			onOk: (res) => setEstablecimientos({ data: res.data }),
+			onError: (err) => setEstablecimientos({ error: err }),
+		});
+	}, [pushQuery, empresa.id]);
 	//#endregion
 
 	//#region declaración y carga de ddjj y liquidaciones
 	const [ddjjList, setDDJJList] = useState({ loading: true });
+	const ddjjListSinEstab = ddjjList.data?.filter((r) => !r.empresaEstablecimientoId) ?? [];
 	const [ddjjSelected, setDDJJSelected] = useState([]);
 	const [liqList, setLiqList] = useState({ loading: true });
+	const [liqSelected, setLiqSelected] = useState([]);
 	useEffect(() => {
 		const rta = [...tentativas];
 		let newLiquidaciones = [];
 		let newDDJJ = [];
-		rta.forEach((tent, index) => {
+		rta.forEach((tent) => {
 			// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 			// En caso contrario, es solo a modo informativo de nomina
 			const { nominas, ...liq } = tent;
 			if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
-				liq.id = 0; // El ws me informa el id de liquidacion cuando existe. Este Id lo estoy usando de marca para cuando confirmo una generación.
 				liq.nominas = [];
 				if (nominas?.length) {
 					nominas.forEach((nomina) =>
@@ -69,7 +99,9 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 						})
 					);
 				}
-				newLiquidaciones.push({ index: newLiquidaciones.length, ...liq });
+				const newLiq = CalcularCampos(liq);
+				newLiq.index = newLiquidaciones.length;
+				newLiquidaciones.push(newLiq);
 			}
 			nominas.forEach((nom) => {
 				newDDJJ.push({
@@ -112,15 +144,6 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 		return ret;
 	};
 
-	/** Retorna liqList aplicando filtro */
-	const filtrarLiqList = () => {
-		if (liqList.loading) return [];
-		if (liqList.error) return [];
-		let ret = [...liqList.data];
-		///ToDo: Aplicar filtros;
-		return ret;
-	};
-
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (!ddjjRecord.esRural) return null;
@@ -141,6 +164,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 					nombre: ddjjRecord.nombre,
 					condicionRural: ddjjRecord.condicionRural,
 					remuneracionImponible: ddjjRecord.remuneracionImponible,
+					afiliadoId: ddjjRecord.afiliadoId,
 					esRural: ddjjRecord.esRural ?? false,
 				},
 			],
@@ -149,7 +173,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 			tiposPagos.data?.find((r) => r.id === ret.liquidacionTipoPagoId)
 				?.porcentaje ?? 0;
 		ret.interesNeto = ret.totalRemuneraciones * (ret.interesPorcentaje / 100);
-		return ret;
+		return CalcularCampos(ret);
 	};
 
 	const calcLiqListDesdeDDJJList = () => {
@@ -190,6 +214,19 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 		return setLiqList({ data: newLiqList });
 	};
 
+	const handleLiqOnSelect = (isSelected, records) => {
+		const newLiqSelected = [...liqSelected];
+		records.forEach((record) => {
+			const recordIx = newLiqSelected.findIndex(
+				(r) => r.index === record.index
+			);
+			const isFound = recordIx > -1;
+			if (isSelected && !isFound) newLiqSelected.push(record);
+			else if (!isSelected && isFound) newLiqSelected.splice(recordIx, 1);
+		});
+		setLiqSelected(newLiqSelected);
+	};
+
 	const handleDDJJOnSelect = (isSelected, records) => {
 		const newDDJJSelected = [...ddjjSelected];
 		records.forEach((record) => {
@@ -220,61 +257,104 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 		liquidacionListRender = <h4>Cargando tipos de pagos</h4>;
 	} else {
 		liquidacionListRender = (
-			<LiquidacionList
-				records={filtrarLiqList()}
-				tiposPagos={tiposPagos.data ?? []}
-				loading={liqList.loading || tiposPagos.loading}
-				noData={getNoData(liqList)}
-				onOpenForm={(record) => {
-					// Deshabilitar controles de datos que ya se cargaron.
-					const disabled = {};
-					Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
-					const request = record.id ? "C" : "A";
-					let titulo;
-					switch (request) {
-						case "A":
+			<Grid col full="width">
+				<Grid full="width">
+					<LiquidacionList
+						records={liqList.data}
+						tiposPagos={tiposPagos.data}
+						loading={liqList.loading || tiposPagos.loading}
+						noData={getNoData(liqList)}
+						selected={liqSelected}
+						onSelect={handleLiqOnSelect}
+						onSelectAll={(isSelect) =>
+							handleLiqOnSelect(isSelect, liqList.data ?? [])
+						}
+						onOpenForm={(record) => {
+							// Deshabilitar controles de datos que ya se cargaron.
+							const disabled = {};
+							Object.keys(record).forEach((k) => (disabled[`${k}`] = true));
+							disabled.fechaPagoEstimada = false;
 							disabled.cantidadTrabajadores = false;
 							disabled.totalRemuneraciones = false;
-							titulo = <h3>Generando liquidación</h3>;
-							break;
-						default:
-							titulo = (
-								<h3>
-									{`Consultando liqidación Nro. ${record.id} - ${Formato.Fecha(
-										record.fecha
-									)}`}
-								</h3>
+							setFormRender(
+								<LiquidacionesForm
+									request="M"
+									record={record}
+									empresa={empresa}
+									titulo={<h3>Generando liquidación</h3>}
+									disabled={disabled}
+									onConfirm={(newRecord, _request) => {
+										// Actualizo lista
+										newRecord = CalcularCampos(newRecord);
+										setLiqList((old) => {
+											const data = [...old.data];
+											data[record.index] = {
+												...newRecord,
+												index: record.index,
+											};
+											return { ...old, data: data };
+										});
+										// Inhabilitar cambio en DDJJList
+										setDDJJFormDisabled(true);
+										// Oculto formulario
+										setFormRender(null);
+									}}
+									onCancel={() => setFormRender(null)}
+								/>
 							);
-							break;
+						}}
+						pagination={{ index: 1, size: 4 }}
+					/>
+				</Grid>
+				<LiquidacionForm
+					records={liqSelected}
+					onChange={(changes) => {
+						const newLiqSelected = [];
+						setLiqList((old) => {
+							const data = [...old.data];
+							liqSelected.forEach((r) => {
+								let newRecord = CalcularCampos({ ...r, ...changes });
+								newRecord.index = r.index;
+								data[r.index] = newRecord;
+								newLiqSelected.push(newRecord);
+							});
+							return { ...old, data: data };
+						});
+						setLiqSelected(newLiqSelected);
+					}}
+					onConfirm={() =>
+						pushQuery({
+							action: "CreateListLiquidacion",
+							config: {
+								body: {
+									liquidaciones: liqSelected.map((r) => {
+										let { index, ...liquidacion } = r;
+										return liquidacion;
+									}),
+								},
+							},
+							onOk: async (res) => {
+								console.log({ res: res });
+								setFormRender(
+									<LiquidacionPDF
+										empresa={empresa}
+										liquidaciones={[...res]}
+										onClose={() =>
+											navigate("/siaru/liquidaciones", {
+												state: { empresa: empresa },
+											})
+										}
+									/>
+								);
+							},
+							onError: async (err) => {
+								///ToDo: informe de error
+								console.log({ errores: err });
+							},
+						})
 					}
-					setFormRender(
-						<LiquidacionesForm
-							request={record.id ? "C" : "A"}
-							record={record}
-							empresa={empresa}
-							titulo={titulo}
-							disabled={disabled}
-							onConfirm={(newRecord, _request) => {
-								// Actualizo lista
-								setLiqList((old) => {
-									const data = [...old.data];
-									data[record.index] = {
-										...newRecord,
-										index: record.index,
-									};
-									return { ...old, data: data };
-								});
-								// Inhabilitar cambio en DDJJList
-								setDDJJFormDisabled(true);
-								// Oculto formulario
-								setFormRender(null);
-							}}
-							onCancel={() => setFormRender(null)}
-						/>
-					);
-				}}
-				pagination={{ index: 1, size: 5 }}
-			/>
+				/>
+			</Grid>
 		);
 	}
 
@@ -298,10 +378,9 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 							onSelectAll={(isSelect) =>
 								handleDDJJOnSelect(isSelect, ddjjList.data ?? [])
 							}
-							pagination={{ index: 1, size: 5 }}
+							pagination={{ index: 1, size: 4 }}
 						/>
 					</Grid>
-					<Grid full="width">{liquidacionListRender}</Grid>
 					<Grid full="width">
 						<DDJJForm
 							records={ddjjSelected}
@@ -309,6 +388,15 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 							disabled={ddjjFormDisabled}
 							onChange={handleDDJJFormOnChange}
 						/>
+					</Grid>
+					{ddjjListSinEstab.length ? (
+						<Grid width="full" style={{ color: "red" }}>
+							Trabajadores sin establecimiento asignado que por consecuencia
+							serán excluidos de la liquidación: {ddjjListSinEstab.length}
+						</Grid>
+					) : null}
+					<Grid col full="width">
+						{liquidacionListRender}
 					</Grid>
 				</Grid>
 			</Grid>

@@ -1,7 +1,7 @@
 
 .App {
   text-align: center;
-  position: fixed;
+  /*position: fixed;*/
 }
 
 .App-logo {
@@ -40,9 +40,10 @@
 }
 
 .container{
+  height: 100vh;
   display: grid;
   place-items: center;
-  padding: 0% !important;
+  /*padding: 0% !important;*/
   /*grid-auto-rows: min-content;*/
   grid-row-gap: 1%;
   grid-template-rows: max-content;
@@ -50,7 +51,7 @@
 
 .container > div{
     width: 100%;
-    align-self: flex-start;
+    /*align-self: flex-start;*/
 }
 
 .table{
@@ -121,7 +122,7 @@ border: 1.5px solid rgb(53, 149, 210);
 }
 
 .contenido{
-  width: 98% !important;
+  width: 99% !important;
   background-color: var(--color3-40);
   border-radius: 20px;
   padding: 0.5%;

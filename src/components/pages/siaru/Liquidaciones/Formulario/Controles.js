@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import styles from "./Controles.module.css";
-import useHttp from "../../../../hooks/useHttp";
-import Formato from "../../../../helpers/Formato";
-import Grid from "../../../../ui/Grid/Grid";
-import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
-import SelectMaterial from "../../../../ui/Select/SelectMaterial";
-import InputMaterial from "../../../../ui/Input/InputMaterial";
-import Table from "../../../../ui/Table/Table";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
+import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import Table from "components/ui/Table/Table";
 import { Collapse, IconButton, Tabs, Tab } from "@mui/material";
 import { Alert, AlertTitle } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
+import CalcularCampos from "./CalcularCampos";
 
 const Controles = ({
 	record = {}, // Registro liquidacion.
@@ -23,13 +24,55 @@ const Controles = ({
 	record ??= {};
 	error ??= {};
 	disabledInit ??= {};
-	disabledInit.bajaObservaciones =
+	disabledInit.deletedObs =
 		disabledInit.refMotivoBajaId || !record.refMotivoBajaId;
 	const [disabled, setDisabled] = useState(disabledInit);
 
 	const [alerts, setAlerts] = useState([]);
-	const { sendRequest } = useHttp();
 	const [currentTab, setCurrentTab] = useState(0);
+
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetLiquidacionesTiposPagos":
+				return {
+					config: {
+						baseURL: "SIARU",
+						endpoint: `/LiquidacionesTiposPagos`,
+						method: "GET",
+					},
+				};
+			case "GetEstablecimientosByEmpresa":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+					},
+				};
+			case "GetParameter":
+				const { paramName, ...other } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/Parametros/${paramName}`,
+						method: "GET",
+					},
+					params: other,
+				};
+			case "GetMotivosBaja":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
+			default:
+				return null;
+		}
+	});
+	//#endregion
 
 	//#region Cargo establecimientos
 	const [establecimientos, setEstablecimientos] = useState({
@@ -37,16 +80,14 @@ const Controles = ({
 		data: [],
 	});
 	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageSize=5000`,
-				method: "GET",
+		pushQuery({
+			action: "GetEstablecimientosByEmpresa",
+			params: {
+				empresaId: empresaId,
+				pageSize: 5000,
 			},
-			async (res) => {
-				setEstablecimientos({ data: [...res.data] });
-			},
-			async (err) => {
+			onOk: async (res) => setEstablecimientos({ data: [...res.data] }),
+			onError: async (err) => {
 				setEstablecimientos({
 					error: err.message ?? "Ocurrió un error.",
 					data: [],
@@ -59,9 +100,9 @@ const Controles = ({
 						message: err.message,
 					},
 				]);
-			}
-		);
-	}, [sendRequest, empresaId]);
+			},
+		});
+	}, [empresaId, pushQuery]);
 	//#endregion
 
 	const tiposLiquidaciones = [
@@ -75,16 +116,10 @@ const Controles = ({
 		data: [],
 	});
 	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "SIARU",
-				endpoint: `/LiquidacionesTiposPagos`,
-				method: "GET",
-			},
-			async (res) => {
-				setTiposPagos({ data: [...res] });
-			},
-			async (err) => {
+		pushQuery({
+			action: "GetLiquidacionesTiposPagos",
+			onOk: async (res) => setTiposPagos({ data: [...res] }),
+			onError: async (err) => {
 				setTiposPagos({ error: err.message ?? "Ocurrió un error." });
 				setAlerts((old) => [
 					...old,
@@ -94,39 +129,32 @@ const Controles = ({
 						message: err.message,
 					},
 				]);
-			}
-		);
-	}, [sendRequest]);
+			},
+		});
+	}, [pushQuery]);
 	//#endregion
 
 	//#region Cargo parametros
-	const [pendingParams, setPendingParams] = useState([
-		"InteresesDiariosPosteriorVencimiento",
-	]);
-	const [params, setParams] = useState();
+	const [params, setParams] = useState(null);
 	useEffect(() => {
-		const removePendingParam = (param) =>
-			setPendingParams((old) => {
-				const newPendingParams = [...old];
-				const ix = newPendingParams.indexOf(param);
-				if (ix > -1) newPendingParams.splice(ix, 1);
-				return newPendingParams;
-			});
-		const requestParam = (param) => {
-			sendRequest(
-				{
-					baseURL: "Comunes",
-					endpoint: `/Parametros/${param}`,
-					method: "GET",
+		const pending = ["InteresesDiariosPosteriorVencimiento"];
+		const result = {};
+		const assignParam = (param, value) => {
+			switch (param) {
+				case "InteresesDiariosPosteriorVencimiento":
+					return Formato.Decimal(value ?? 0);
+				default:
+					return value;
+			}
+		};
+		const queryParam = (param) =>
+			pushQuery({
+				action: "GetParameter",
+				params: { paramName: param },
+				onOk: async (res) => {
+					result[param] = assignParam(param, res.valor);
 				},
-				async (res) => {
-					setParams((old) => ({
-						...old,
-						[param]: Formato.Decimal(res.valor ?? 0),
-					}));
-					removePendingParam(param);
-				},
-				async (err) => {
+				onError: async (err) => {
 					setAlerts((old) => [
 						...old,
 						{
@@ -135,44 +163,19 @@ const Controles = ({
 							message: err.message,
 						},
 					]);
-					removePendingParam(param);
-				}
-			);
-		};
-		if (!params) pendingParams.forEach((param) => requestParam(param));
-	}, [sendRequest, params, pendingParams]);
+				},
+				onFinally: async () => {
+					pending.splice(pending.indexOf(param), 1);
+					if (pending.length === 0) setParams(result);
+				},
+			});
+		pending.forEach((param) => queryParam(param));
+	}, [pushQuery]);
 	//#endregion
 
-	const calcularOtros = (data) => {
-		const r = {
-			periodo: "",
-			vencimientoFecha: data.vencimientoFecha ?? null,
-			fechaPagoEstimada: data.fechaPagoEstimada ?? null,
-			vencimientoDias: 0,
-			interesImporte: data.interesImporte ?? 0,
-			interesNeto: data.interesNeto ?? 0,
-			importeTotal: 0,
-		};
-
-		if (data.periodo > 100) {
-			r.periodo = Formato.Mascara(data.periodo, "####-##-01");
-			r.vencimientoFecha = dayjs(Formato.Mascara(data.periodo, "####-##-15"))
-				.add(1, "month")
-				.format("YYYY-MM-DD");
-
-			if (data.fechaPagoEstimada != null) {
-				let d = dayjs(data.fechaPagoEstimada).diff(r.vencimientoFecha, "days");
-				if (d > 0) r.vencimientoDias = d;
-			}
-		}
-
-		r.importeTotal = r.interesImporte + r.interesNeto;
-		r.importeTotal = Math.round((r.importeTotal + Number.EPSILON) * 100) / 100;
-
-		return r;
-	};
-
-	const calculados = calcularOtros(record);
+	const calculados = CalcularCampos(record);
+	if (record.periodo)
+		calculados.periodo = Formato.Mascara(record.periodo, "####-##-01");
 
 	const handleChange = (cambios) => {
 		const recordCambios = { ...record, ...cambios };
@@ -198,7 +201,7 @@ const Controles = ({
 			cambios.interesNeto = recordCambios.interesNeto;
 		}
 		// Calculo los campos calculados
-		const o = calcularOtros(recordCambios);
+		const o = CalcularCampos(recordCambios);
 		recordCambios.interesImporte =
 			recordCambios.totalRemuneraciones *
 			(params.InteresesDiariosPosteriorVencimiento / 100) *
@@ -216,7 +219,7 @@ const Controles = ({
 	};
 
 	const [forzarCalculos, setForzarCalculos] = useState(forzarCalculosParam);
-	if (forzarCalculos && pendingParams.length === 0 && !tiposPagos.loading) {
+	if (forzarCalculos && params != null && !tiposPagos.loading) {
 		setForzarCalculos(false);
 		handleChange(record);
 	}
@@ -261,32 +264,18 @@ const Controles = ({
 	}
 
 	//#region carga de motivos de baja
-	//ToDo: cargar desde api
 	const [motivosBaja, setMotivosBaja] = useState({
 		loading: "Cargando...",
 		data: [],
 	});
 	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				// endpoint: `/RefMotivoBaja/GetByTipo?Tipo=L`,
-				endpoint: `/RefMotivoBaja/GetAll`, //Por ahora utilizo GetAll hasta que GetByTipo retorne una lista en vez de un solo registro
-				method: "GET",
-			},
-			async (res) => {
-				//Una vez que GetByTipo retorne una lista, quitar el bloque hasta ---FIN HACK---
-				res = [...res].filter((r) => (r?.tipo ?? "") === "L");
-				//---FIN HACK---
-				setMotivosBaja({
-					data: [{ id: 0, tipo: "L", descripcion: "Activo" }, ...res],
-				});
-			},
-			async (err) => {
-				setMotivosBaja({ error: err.message ?? "Ocurrió un error", data: [] });
-			}
-		);
-	}, [sendRequest]);
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: { tipo: "L" },
+			onOk: async (res) => setMotivosBaja({ data: [{ id: 0, tipo: "L", descripcion: "Activo" }, ...res] }),
+			onError: async (err) => setMotivosBaja({ error: err.message ?? "Ocurrió un error", data: [] }),
+		});
+	}, [pushQuery]);
 	//#endregion
 
 	let content;
@@ -312,6 +301,30 @@ const Controles = ({
 					sort: true,
 					style: { ...cs, textAlign: "left" },
 				},
+				{
+					dataField: "afiliadoId",
+					text: "Es Afiliado",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "110px" }),
+					formatter: (value) => Formato.Booleano(value != null ? value != 0 : null),
+					style: { ...cs, textAlign: "center" },
+				},
+				{
+					dataField: "esRural",
+					text: "Es Rural",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "90px" }),
+					formatter: Formato.Booleano,
+					style: { ...cs, textAlign: "center" },
+				},
+				{
+					dataField: "remuneracionImponible",
+					text: "Remuneración",
+					sort: true,
+					headerStyle: (_colum, _colIndex) => ({ width: "140px" }),
+					formatter: Formato.Moneda,
+					style: { ...cs, textAlign: "right" },
+				},
 			];
 			content = (
 				<Table
@@ -324,6 +337,50 @@ const Controles = ({
 			);
 			break;
 		default:
+			let renderMotvoBaja = null;
+			if (!disabled.refMotivoBajaId)
+				renderMotvoBaja = (
+					<Grid gap={`${gap}px`} full="width">
+						<SelectMaterial
+							name="refMotivoBajaId"
+							label="Motivo de baja"
+							value={record.refMotivoBajaId ?? 0}
+							error={[
+								error.refMotivoBajaId,
+								motivosBaja.loading,
+								motivosBaja.error,
+							]
+								.filter((r) => r)
+								.join(" ")}
+							disabled={!!disabled.refMotivoBajaId}
+							options={motivosBaja.data.map((r) => ({
+								label: r.descripcion,
+								value: r.id,
+							}))}
+							onChange={(value, _id) => {
+								handleChange({ refMotivoBajaId: value });
+								setDisabled((old) => ({
+									...old,
+									deletedObs: value === 0,
+								}));
+							}}
+						/>
+					</Grid>
+				);
+			let renderObservaciones = null;
+			if (!disabled.deletedObs)
+				renderObservaciones = (
+					<Grid gap={`${gap}px`} full="width">
+						<InputMaterial
+							label="Observaciones de baja"
+							value={valor(record.deletedObs)}
+							disabled={!!disabled.deletedObs}
+							onChange={(value, _id) =>
+								handleChange({ deletedObs: `${value}` })
+							}
+						/>
+					</Grid>
+				);
 			content = (
 				<>
 					<Grid full="width">
@@ -456,42 +513,8 @@ const Controles = ({
 							/>
 						</Grid>
 					</Grid>
-					<Grid gap={`${gap}px`} full="width">
-						<SelectMaterial
-							name="refMotivoBajaId"
-							label="Motivo de baja"
-							value={record.refMotivoBajaId ?? 0}
-							error={[
-								error.refMotivoBajaId,
-								motivosBaja.loading,
-								motivosBaja.error,
-							]
-								.filter((r) => r)
-								.join(" ")}
-							disabled={!!disabled.refMotivoBajaId}
-							options={motivosBaja.data.map((r) => ({
-								label: r.descripcion,
-								value: r.id,
-							}))}
-							onChange={(value, _id) => {
-								handleChange({ refMotivoBajaId: value });
-								setDisabled((old) => ({
-									...old,
-									bajaObservaciones: value === 0,
-								}));
-							}}
-						/>
-					</Grid>
-					<Grid gap={`${gap}px`} full="width">
-						<InputMaterial
-							label="Observaciones de baja"
-							value={valor(record.bajaObservaciones)}
-							disabled={!!disabled.bajaObservaciones}
-							onChange={(value, _id) =>
-								handleChange({ bajaObservaciones: `${value}` })
-							}
-						/>
-					</Grid>
+					{renderMotvoBaja}
+					{renderObservaciones}
 					<Grid full="width">
 						<div className={styles.subtitulo}>
 							<span>Subtotales</span>

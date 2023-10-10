@@ -1,10 +1,3 @@
-.login {
-  width: 20%;
-  /* max-width: 40rem; */
-  margin: auto;
-  padding: 2rem;
-  background-color: rgb(255 255 255 / 80%); 
-}
 
 .control {
   margin: 1rem 0;
@@ -69,12 +62,18 @@
   background-size: cover;
   background-repeat: no-repeat;
 
+  /*
   container-type: inline-size;
   -webkit-font-smoothing: antialiased;
+  width: 100vw;*/
 
-  width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
   
+}
+
+.underline{
+  text-decoration: underline !important;  
 }

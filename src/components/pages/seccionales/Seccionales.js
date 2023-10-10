@@ -11,13 +11,13 @@ const Seccionales = (props) => {
     const handleChangeTab = (event, newValue) => {
       setSelectedTab(newValue);
     };
-  return (
+  return ( 
     <>
       <div>
         <h1 className="titulo">Seccionales</h1>
       </div>
 
-      <div className="contenido">
+      <div>
         <Tabs
           value={selectedTab}
           onChange={handleChangeTab}

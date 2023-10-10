@@ -5,7 +5,13 @@ const useHttp = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
 
-    const sendRequest = useCallback(async (configRequest, applyData, takeError = (error) => {}) => {
+    const sendRequest = useCallback(
+			async (
+				configRequest,
+				takeOk = (data) => {},
+				takeError = (error) => {},
+				takeFinally = () => {}
+			) => {
         setIsLoading(true);
         setError(null)
         const storedTokenData = getStoredToken()
@@ -44,7 +50,6 @@ const useHttp = () => {
         }
 
 				configRequest.bodyToJSON ??= true;
-        
         //Agrego Token
         let headers = {...configRequest.headers}
         if(headers.Authorization === true)
@@ -54,58 +59,44 @@ const useHttp = () => {
             }
         }
         
-				let err;
-        try {
-            const response = await fetch(
-                url + configRequest.endpoint,
-                {
-                    method: configRequest.method ? configRequest.method : 'GET',
-                    headers: headers,
-                    body: configRequest.body
-											? configRequest.bodyToJSON
-												? JSON.stringify(configRequest.body)
-												: configRequest.body
-											: null,
-                }
-            )
-            
-            if(!response.ok)
-            {                            
-                const errorResponse = await response.json();
-                console.log("response not ok", errorResponse);  
-                err = {
-                  type:
-                    errorResponse.StatusCode === 500
-                      ? "Internal Server Error"
-                      : "Error",
-                  code: errorResponse.StatusCode,
-                  message: errorResponse.Message || errorResponse.Mensaje,
-                };
+				if (configRequest.body && configRequest.bodyToJSON)
+					headers["Content-Type"] ??= "application/json";
 
-                setError(err)
-                takeError(err)
-                
-                return //caputo el error en el componente
-            }
+				const errorBase = {};
+				try {
+					const response = await fetch(url + configRequest.endpoint, {
+						method: configRequest.method ? configRequest.method : "GET",
+						headers: headers,
+						body: configRequest.body
+							? configRequest.bodyToJSON
+								? JSON.stringify(configRequest.body)
+								: configRequest.body
+							: null,
+					});
 
-            const data = await response.json();
-            applyData(data);  
-            
-
-        } catch (error) {
-					if (!err) {
-						err = {
-							type: "Error",
-              code: 0,
-							message: error.message,
-						};
+					const data = await response.json();
+					if (!response.ok) {
+						errorBase.type = response.statusText;
+						errorBase.code = response.status;
+						errorBase.message = data.Message || data.Mensaje || data.message || data.mensaje || data.errors;
+						errorBase.data = data;
+						throw Object.assign(new Error(errorBase.message), errorBase);
 					}
-					takeError(err);
-					setError(error.message || "Error");
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+					takeOk(data);
+				} catch (error) {
+					error = { ...errorBase, ...error };
+					error.type ??= "Error";
+					error.code ??= 0;
+					error.message ??= "Error";
+					takeError(error);
+					setError(error);
+				} finally {
+					takeFinally();
+					setIsLoading(false);
+				}
+			},
+			[]
+		);
 
     return {
         isLoading, 

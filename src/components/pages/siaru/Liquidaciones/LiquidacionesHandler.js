@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import useHttp from "../../../hooks/useHttp";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../../redux/actions";
-import Grid from "../../../ui/Grid/Grid";
-import Formato from "../../../helpers/Formato";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+} from "redux/actions";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
 import LiquidacionForm from "./Formulario/Form";
@@ -22,9 +22,64 @@ const LiquidacionesHandler = () => {
 		() => (location.state?.empresa ? location.state.empresa : {}),
 		[location.state?.empresa]
 	);
-	if (empresa?.id == null) navigate("/");
+	if (empresa?.id == null) navigate("/ingreso");
 
-	const { sendRequest } = useHttp();
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetLiquidacionPeriodos":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/Liquidaciones/Periodos`,
+					},
+				};
+			case "GetLiquidacionTipoPagoList":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/LiquidacionesTiposPagos`,
+					},
+				};
+			case "GetLiquidaciones":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/Liquidaciones`,
+					},
+				};
+			case "CreateLiquidacion":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "POST",
+						endpoint: `/Liquidaciones`,
+					},
+				};
+			case "UpdateLiquidacion":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "PATCH",
+						endpoint: `/Liquidaciones`,
+					},
+				};
+			case "GetEstablecimientosByEmpresa":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+					},
+				};
+			default:
+				return null;
+		}
+	});
+	//#endregion
 
 	//#region declaración y carga de periodos
 	const [periodos, setPeriodos] = useState({
@@ -32,27 +87,29 @@ const LiquidacionesHandler = () => {
 		loading: true,
 	});
 	const [periodo, setPeriodo] = useState(0);
-	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Liquidaciones/Periodos?EmpresaId=${empresa.id ?? 0}`,
-				method: "GET",
-			},
-			async (res) =>
-				setPeriodos({
-					data: [
-						{ descipcion: "Todos", valor: 0 },
-						...res.map((r) => ({
-							descipcion: Formato.Periodo(r),
-							valor: r,
-						})),
-					],
-				}),
-			async (err) =>
-				setPeriodos({ data: [{ valor: 0, descipcion: "Todos" }], error: err })
-		);
-	}, [empresa.id, sendRequest]);
+	useEffect(
+		() =>
+			pushQuery({
+				action: "GetLiquidacionPeriodos",
+				params: { empresaId: empresa.id ?? 0 },
+				onOk: async (res) =>
+					setPeriodos({
+						data: [
+							{ descipcion: "Todos", valor: 0 },
+							...res.map((r) => ({
+								descipcion: Formato.Periodo(r),
+								valor: r,
+							})),
+						],
+					}),
+				onError: async (err) =>
+					setPeriodos({
+						data: [{ valor: 0, descipcion: "Todos" }],
+						error: err,
+					}),
+			}),
+		[pushQuery, empresa]
+	);
 	//#endregion
 
 	//#region declaracion y carga de establecimientos
@@ -61,48 +118,43 @@ const LiquidacionesHandler = () => {
 		loading: true,
 	});
 	const [establecimiento, setEstablecimiento] = useState({ id: 0 });
-	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${
-					empresa.id ?? 0
-				}`,
-				method: "GET",
-			},
-			async (res) =>
-				setEstablecimientos({
-					data: [
-						{ descipcion: "Todos", valor: { id: 0 } },
-						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
-					],
-				}),
-			async (err) => {
-				err = err?.code === 404 ? null : err;
-				setEstablecimientos({
-					data: [{ descipcion: "Todos", valor: { id: 0 } }],
-					error: err,
-				});
-			}
-		);
-	}, [empresa.id, sendRequest]);
+	useEffect(
+		() =>
+			pushQuery({
+				action: "GetEstablecimientosByEmpresa",
+				params: { empresaId: empresa.id ?? 0 },
+				onOk: async (res) =>
+					setEstablecimientos({
+						data: [
+							{ descipcion: "Todos", valor: { id: 0 } },
+							...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
+						],
+					}),
+				onError: async (err) => {
+					err = err?.code === 404 ? null : err;
+					setEstablecimientos({
+						data: [{ descipcion: "Todos", valor: { id: 0 } }],
+						error: err,
+					});
+				},
+			}),
+		[pushQuery, empresa]
+	);
 	//#endregion
 
 	//#region declaracion y carga de tipos de pago
 	const [liquidacionesTiposPagos, setLiquidacionesTiposPagos] = useState({
 		loading: true,
 	});
-	useEffect(() => {
-		sendRequest(
-			{
-				baseURL: "SIARU",
-				endpoint: `/LiquidacionesTiposPagos`,
-				method: "GET",
-			},
-			async (res) => setLiquidacionesTiposPagos({ data: res }),
-			async (err) => setLiquidacionesTiposPagos({ error: err })
-		);
-	}, [sendRequest]);
+	useEffect(
+		() =>
+			pushQuery({
+				action: "GetLiquidacionTipoPagoList",
+				onOk: async (res) => setLiquidacionesTiposPagos({ data: res }),
+				onError: async (err) => setLiquidacionesTiposPagos({ error: err }),
+			}),
+		[pushQuery]
+	);
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
@@ -119,20 +171,15 @@ const LiquidacionesHandler = () => {
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
 		if (!refreshLiqudaciones) return;
-
-		let params = `EmpresaId=${empresa.id}`;
-		params = `${params}&Page=${pagination.index},${pagination.size}`;
-		params = `${params}&Sort=-Id`;
-		if (periodo) params = `${params}&Periodo=${periodo}`;
-		if (establecimiento?.id)
-			params = `${params}&EmpresaEstablecimientoId=${establecimiento.id}`;
-		sendRequest(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Liquidaciones?${params}`,
-				method: "GET",
+		const newApiQuery = {
+			action: "GetLiquidaciones",
+			params: {
+				empresaId: empresa.id,
+				page: `${pagination.index},${pagination.size}`,
+				sort: `-Id`,
+				todos: true,
 			},
-			async (res) => {
+			onOk: async (res) => {
 				setLiquidaciones({ data: res.data });
 				if (res.data.length > 0) setLiquidacion(res.data[0]);
 				setPagination((old) => ({
@@ -144,8 +191,12 @@ const LiquidacionesHandler = () => {
 				}));
 				if (refreshLiqudaciones) setRefreshLiquidaciones(false);
 			},
-			async (err) => setLiquidaciones({ error: err })
-		);
+			onError: async (err) => setLiquidaciones({ error: err }),
+		};
+		if (periodo) newApiQuery.params.periodo = periodo;
+		if (establecimiento?.id)
+			newApiQuery.params.empresaEstablecimientoId = establecimiento.id;
+		pushQuery(newApiQuery);
 	}, [
 		refreshLiqudaciones,
 		pagination.index,
@@ -153,7 +204,7 @@ const LiquidacionesHandler = () => {
 		periodo,
 		establecimiento.id,
 		empresa.id,
-		sendRequest,
+		pushQuery
 	]);
 
 	// Información si ocurrió algún error durante la carga de liquidaciones
@@ -184,7 +235,7 @@ const LiquidacionesHandler = () => {
 		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
 		if (formRequest === "B") {
 			disabled.refMotivoBajaId = false;
-			disabled.bajaObservaciones = false;
+			disabled.deletedObs = false;
 		}
 		liquidacionForm = (
 			<LiquidacionForm
@@ -192,9 +243,17 @@ const LiquidacionesHandler = () => {
 				record={liquidacion}
 				empresa={empresa}
 				disabled={disabled}
-				onConfirm={(_record, _request) => {
-					setFormRequest(null);
-					setRefreshLiquidaciones(true);
+				onConfirm={(record, request) => {
+					pushQuery({
+						action: request === "A" ? "CreateLiquidacion" : "UpdateLiquidacion",
+						config: { body: record },
+						onOk: (_res) => {
+							setFormRequest(null);
+							setRefreshLiquidaciones(true);
+						},
+						onError: (error) =>
+							console.log({ tag: "LiquidacionForm.onConfirm", error: error }),
+					});
 				}}
 				onCancel={(_request) => setFormRequest(null)}
 			/>
@@ -208,8 +267,8 @@ const LiquidacionesHandler = () => {
 	if (despliegaPDF) {
 		liquidacionPDFRender = (
 			<LiquidacionPDF
-				liquidacion={liquidacion}
 				empresa={empresa}
+				liquidaciones={[liquidacion]}
 				onClose={() => setDespliegaPDF(false)}
 			/>
 		);

@@ -18,7 +18,7 @@ const Handler = () => {
 	);
 	const periodo = location.state?.periodo;
 	const archivo = location.state?.archivo;
-	if (empresa.id == null || periodo == null || archivo == null) navigate("/");
+	if (empresa.id == null || periodo == null || archivo == null) navigate("/ingreso");
 
 	const { sendRequest: request } = useHttp();
 
@@ -30,7 +30,7 @@ const Handler = () => {
 		request(
 			{
 				baseURL: "SIARU",
-				endpoint: `/Liquidaciones/TentativasArchivo?CUIT=${empresa.cuit}&Periodo=${periodo}`,
+				endpoint: `/Liquidaciones/TentativasLSD?CUIT=${empresa.cuit}&Periodo=${periodo}`,
 				method: "POST",
 				body: data,
 				bodyToJSON: false,

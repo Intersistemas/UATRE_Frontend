@@ -23,7 +23,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 			</Grid>
 			<Grid full="width" gap="5px">
 				<InputMaterial
-					label="Nro. Sucursal"
+					label="Nro. de Estab."
 					value={valor(Formato.Entero(data.nroSucursal))}
 					width="25"
 					{...im}

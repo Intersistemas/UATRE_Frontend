@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import useHttp from "../../../hooks/useHttp";
-import Grid from "../../../ui/Grid/Grid";
-import Formato from "../../../helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import Form from "./EstablecimientoForm";
@@ -10,13 +10,13 @@ import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../../redux/actions";
+} from "redux/actions";
 
 const EstablecimientosHandler = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const empresa = location.state?.empresa;
-	if (empresa?.id == null) navigate("/");
+	if (empresa?.id == null) navigate("/ingreso");
 
 	const empresaId = empresa ? empresa.id : 0;
 	const [form, setForm] = useState(null);
@@ -42,7 +42,7 @@ const EstablecimientosHandler = () => {
 		sendRequest(
 			{
 				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}`,
+				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}&SoloActivos=false`,
 				method: "GET",
 			},
 			async (res) => {

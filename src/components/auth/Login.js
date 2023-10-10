@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef} from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
 import Button from "../ui/Button/Button";
 import useHttp from "../hooks/useHttp";
 import AuthContext from "../../store/authContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../media/Logo1.png";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
@@ -13,23 +13,30 @@ import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
 import { handleUsuarioLogueado } from "../../redux/actions";
-
+import UseKeyPress from '../helpers/UseKeyPress';
+  //#region shorcuts
+ 
 const Login = () => {
   console.log("Login");
+
+  //#region atributos
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
   const dispatch = useDispatch();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
-
   const [enteredCUIT, setEnteredCUIT] = useState("");
   const [cuitIsValid, setCUITIsValid] = useState();
   const [enteredPassword, setEnteredPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [mensajeError, setMensajeError] = useState("");
+  const ingresarRef = useRef();
+  const navigate = useNavigate();
+//#endregion 
 
   //#region Capturo errores de login
   useEffect(() => {
     if (error) {
+      setMensajeError(error.message);
       console.log("capturo error", error);
       if(error.code === 401){
         setMensajeError(error.message);
@@ -40,10 +47,14 @@ const Login = () => {
       return;
     }
   }, [error]);
-
   //#endregion
 
-  const navigate = useNavigate();
+
+    //#region shorcuts
+    UseKeyPress(['i'], ()=>ingresarRef.current.requestSubmit(), 'AltKey');
+    UseKeyPress(['r'], ()=>navigate("/registro"), 'AltKey');
+    UseKeyPress(['c'], ()=>navigate("/contacto"), 'AltKey');
+  //#endregion 
 
   const cuitChangeHandler = (event) => {
     setEnteredCUIT(event.target.value);
@@ -108,10 +119,10 @@ const Login = () => {
 
   return (
     <div className={classes.container}>
-      <LoginCard className={classes.login}>
-        <img src={logo} width="200" height="200" />
-        <Form onSubmit={submitHandler}>
-          <Form.Group className="mb-3" controlId="formCUIT">
+      <LoginCard>
+        <img src={logo} width="175" height="175"/>
+        <Form className="text-start" onSubmit={submitHandler} ref={ingresarRef}>
+          <Form.Group className="mt-3">
             <Form.Label style={{ color: "#555555" }}>
               <strong>Usuario</strong>
             </Form.Label>
@@ -126,38 +137,40 @@ const Login = () => {
             />
           </Form.Group>
 
-          <Form.Label style={{ color: "#555555" }}>
-            <strong>Clave</strong>
-          </Form.Label>
-          <InputGroup className="mb-3">
-            <Form.Control
-              type={verClave ? "text" : "password"}
-              placeholder="Clave"
-              id="password"
-              value={enteredPassword}
-              onChange={passwordChangeHandler}
-              onBlur={validatePasswordHandler}
-            />
-
-            <InputGroup.Text>
-              <img
-                width={20}
-                height={20}
-                title={verClave ? "Ocultar clave" : "Ver Clave"}
-                src={verClave ? ocultarClaveImg : verClaveImg}
-                onClick={() => setVerClave((prevState) => !prevState)}
+          <Form.Group className="mt-3">
+            <Form.Label style={{ color: "#555555" }}>
+              <strong>Clave</strong>
+            </Form.Label>
+            <InputGroup > 
+              <Form.Control
+                type={verClave ? "text" : "password"}
+                placeholder="Clave"
+                id="password"
+                value={enteredPassword}
+                onChange={passwordChangeHandler}
+                onBlur={validatePasswordHandler}
               />
-            </InputGroup.Text>
-          </InputGroup>
+                <InputGroup.Text>
+                  <img
+                    width={20}
+                    height={20}
+                    title={verClave ? "Ocultar Clave" : "Ver Clave"}
+                    src={verClave ? ocultarClaveImg : verClaveImg}
+                    onClick={() => setVerClave((prevState) => !prevState)}
+                  />
+                </InputGroup.Text>
+            </InputGroup>
+          </Form.Group>
           
-          <div className={classes.actions}>
+          <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul">
+                <Button type="submit" className="botonAzul" underlineindex={0}>
                   Ingresar
                 </Button>
                 <p />
-                <Button className="botonBlanco">Registrar</Button>
+                
+                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlineindex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>
@@ -167,7 +180,15 @@ const Login = () => {
             {error ? <p>Error: {mensajeError}</p> : null}
           </div>
         </Form>
+        <div className="mt-4">
+          <a>¿Olvidaste tu <Link to="/recuperarClave">Clave</Link>?</a>
+        </div>    
+
+        <div className="mt-2">
+          <a><Link to="/contacto"> <text className={classes.underline}>C</text>ontacto</Link></a>
+        </div>  
       </LoginCard>
+     
     </div>
   );
 };

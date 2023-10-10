@@ -3,21 +3,17 @@ import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import styles from "./PDF.styles.js";
 import JsBarcode from "jsbarcode";
 import logo1 from "../../../../../media/Logo1_sidebar.png";
-import Formato from "../../../../helpers/Formato.js";
-import Descriptor from "../../../../helpers/Descriptor";
-import Grid from "../../../../ui/Grid/Grid.js";
+import Formato from "components/helpers/Formato.js";
+import Descriptor from "components/helpers/Descriptor";
+import Grid from "components/ui/Grid/Grid.js";
+import CalcularCampos from "../Formulario/CalcularCampos.js";
 
-const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
-	let importeTotal;
-	if (liquidacion.interesImporte != null || liquidacion.interesNeto != null) {
-		importeTotal = 0;
-		if (liquidacion.interesImporte != null)
-			importeTotal += liquidacion.interesImporte;
-		if (liquidacion.interesNeto != null)
-			importeTotal += liquidacion.interesNeto;
-		importeTotal = Math.round((importeTotal + Number.EPSILON) * 100) / 100;
-	}
-
+const PDF = ({
+	empresa = {},
+	data = [{ liquidacion: {}, establecimiento: {}, tipoPago: {} }],
+} = {}) => {
+	data ??= [];
+	empresa ??= {};
 	const descriptor = new Descriptor({
 		entero: {
 			singular: "peso",
@@ -29,16 +25,6 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 			plural: "centavos",
 		},
 	});
-	const importeTotalDescipcion = `${descriptor.escalaLarga(
-		importeTotal
-	)}`.toUpperCase();
-
-	let barcode;
-	if (liquidacion.codigoBarra) {
-		let canvas = document.createElement("canvas");
-		JsBarcode(canvas, liquidacion.codigoBarra);
-		barcode = canvas.toDataURL();
-	}
 
 	const GridView = ({ style, ...p }) => (
 		<Grid render={View} style={{ ...style, ...styles.border }} {...p} />
@@ -94,9 +80,29 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 		return casillas;
 	};
 
-	return (
-		<Document style={styles.grow}>
-			<Page style={styles.page} size="A4">
+	let canvas = document.createElement("canvas");
+	const pages = data.map((r, i) => {
+		let { liquidacion, establecimiento, tipoPago } = r;
+		liquidacion = CalcularCampos(liquidacion);
+		console.log({
+			liquidacion: liquidacion,
+			establecimiento: establecimiento,
+			tipoPago: tipoPago,
+		});
+
+		let importeTotalDescipcion = `${descriptor.escalaLarga(
+			liquidacion.importeTotal
+		)}`.toUpperCase();
+
+		let barcode;
+		if (liquidacion.codigoBarra) {
+			JsBarcode(canvas, liquidacion.codigoBarra);
+			barcode = canvas.toDataURL();
+		}
+		if (barcode) barcode = <Image src={barcode} />;
+
+		return (
+			<Page key={i} style={styles.page} size="A4">
 				<GridView
 					gap="10px"
 					col
@@ -150,10 +156,12 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 							</GridView>
 							<GridView col width style={styles.paddingBox}>
 								<GridView justify="center">
-									<Text style={styles.titulo}>Número de Acta</Text>
+									<Text style={styles.titulo}>
+										{liquidacion.tipoLiquidacion !== 0 ? "Número de Acta" : ""}
+									</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>000000</Text>
+									{/* <Text>000000</Text> */}
 								</GridView>
 							</GridView>
 						</GridView>
@@ -170,7 +178,10 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								<Text style={styles.titulo}>Provincia Laboral</Text>
 							</GridView>
 							<GridView>
-								<Text>{establecimiento.provinciaDescripcion ?? "NO ESPECIFICA"}&nbsp;</Text>
+								<Text>
+									{establecimiento.provinciaDescripcion ?? "NO ESPECIFICA"}
+									&nbsp;
+								</Text>
 							</GridView>
 						</GridView>
 						<GridView col style={{ ...styles.paddingBox, ...styles.borderTop }}>
@@ -178,7 +189,10 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								<Text style={styles.titulo}>Localidad Laboral</Text>
 							</GridView>
 							<GridView>
-								<Text>{establecimiento.localidadDescripcion ?? "NO ESPECIFICA"}&nbsp;</Text>
+								<Text>
+									{establecimiento.localidadDescripcion ?? "NO ESPECIFICA"}
+									&nbsp;
+								</Text>
 							</GridView>
 						</GridView>
 						<GridView style={styles.borderTop}>
@@ -190,9 +204,7 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								<GridView justify="center">
 									<Text style={styles.titulo}>Seccional</Text>
 								</GridView>
-								<GridView justify="center">
-									<Text>0000</Text>
-								</GridView>
+								<GridView justify="center">{/* <Text>0000</Text> */}</GridView>
 							</GridView>
 							<GridView
 								col
@@ -207,7 +219,7 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								</GridView>
 							</GridView>
 							<GridView col width style={styles.paddingBox}>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Remuneraciones</Text>
 								</GridView>
 								<GridView justify="end">
@@ -238,13 +250,11 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 									<Text style={styles.titulo}>Liquidación Nº</Text>
 								</GridView>
 								<GridView justify="center">
-									<Text>
-										{Formato.Mascara(liquidacion.id ?? 0, "##########")}
-									</Text>
+									<Text>{liquidacion.id ?? 0}</Text>
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Capital</Text>
 								</GridView>
 								<GridView justify="end">
@@ -252,7 +262,7 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Intereses</Text>
 								</GridView>
 								<GridView justify="end">
@@ -260,11 +270,11 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 								</GridView>
 							</GridView>
 							<GridView col width>
-								<GridView justify="center">
+								<GridView justify="end">
 									<Text style={styles.titulo}>Total</Text>
 								</GridView>
 								<GridView justify="end">
-									<Text>{Formato.Moneda(importeTotal ?? 0)}</Text>
+									<Text>{Formato.Moneda(liquidacion.importeTotal ?? 0)}</Text>
 								</GridView>
 							</GridView>
 						</GridView>
@@ -275,11 +285,10 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
 							<GridView>
-								<GridView>
-									<Text style={styles.titulo}>TOTAL PAGADO</Text>
-								</GridView>
-								<GridView justify="end" grow>
-									<Text style={{...styles.titulo, fontSize: "22pt"}}>{Formato.Moneda(importeTotal ?? 0)}</Text>
+								<GridView width justify="center">
+									<Text style={styles.titulo}>{`TOTAL A PAGAR ${Formato.Moneda(
+										liquidacion.importeTotal ?? 0
+									)}`}</Text>
 								</GridView>
 							</GridView>
 							<GridView grow>
@@ -297,8 +306,8 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 							</GridView>
 							<GridView justify="center">
 								<Text style={{ fontSize: "10pt" }}>
-									Posterior a esta fecha el banco no aceptará el pago, debiendo
-									reliquidar el período
+									No se aceptará el pago con posteridad al vencimiento, siendo
+									imprescindible la reliquidación del período
 								</Text>
 							</GridView>
 						</GridView>
@@ -307,6 +316,7 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 							gap="5px"
 							style={{ ...styles.paddingBox, ...styles.borderTop }}
 						>
+							{/* 
 							<GridView gap="5px">
 								<GridView width="70px">
 									<Text style={styles.titulo}>Cheque Nº:</Text>
@@ -315,6 +325,7 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 									<Casillas cantidad={32} />
 								</GridView>
 							</GridView>
+							*/}
 							<GridView gap="5px">
 								<GridView width="70px">
 									<Text style={styles.titulo}>Banco:</Text>
@@ -325,13 +336,13 @@ const PDF = ({ liquidacion, empresa, establecimiento, tipoPago } = {}) => {
 							</GridView>
 						</GridView>
 					</GridView>
-					<GridView>
-						<Image src={barcode} />
-					</GridView>
+					<GridView>{barcode}</GridView>
 				</GridView>
 			</Page>
-		</Document>
-	);
+		);
+	});
+
+	return <Document style={styles.grow}>{pages}</Document>;
 };
 
 export default PDF;

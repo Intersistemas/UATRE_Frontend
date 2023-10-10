@@ -4,7 +4,7 @@
   .input input{
     background: white !important;
     font-family: var(--fuente)!important;
-    font-size: 1.1rem!important;
+    /*font-size: 1.1rem!important;*/
     color: var(--color1) !important;
     font-weight: 500!important;
   }
@@ -13,7 +13,7 @@
   .input input:read-only, input:disabled{
     -webkit-text-fill-color: var(--disableFont) !important;
     color: var(--disableFont) !important;
-    background-color: white !important;
+    background-color: var(--disableFont); /* modificado 231005 white !important;*/
     font-weight: 500!important;
   }
   /*#endregion --ENTRY/INPUT--*/

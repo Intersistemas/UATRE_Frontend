@@ -1,18 +1,23 @@
 import React from "react";
-import Formato from "../../../../../helpers/Formato";
-import Button from "../../../../../ui/Button/Button";
-import Table from "../../../../../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+import Button from "components/ui/Button/Button";
+import Table from "components/ui/Table/Table";
 
 const LiquidacionList = ({
 	records = [], // Lista de liquidaciones
 	tiposPagos = [], // Lista de tipos de pagos
 	loading = true,
 	noData = <h4>No hay informacion a mostrar</h4>,
-	onSelect = (_record) => {},
+	selected = [],
+	onSelect = (_isSelect, _record) => {},
+	onSelectAll = (_isSelect) => {},
 	onOpenForm = (_record) => {},
 	...otherProps
 }) => {
 	records ??= [];
+	const selectedKeys = [];
+	(selected ?? [])
+		.forEach((r) => selectedKeys.push(r.index));
 	tiposPagos ??= [];
 	const tiposLiquidaciones = ["Periodo", "Acta"];
 
@@ -33,21 +38,21 @@ const LiquidacionList = ({
 			dataField: "empresaEstablecimiento_Nombre",
 			text: "Estab. nombre",
 			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "250px" }),
 			style: { ...cs, textAlign: "left" },
 		},
 		{
 			dataField: "tipoLiquidacion",
-			text: "Tipo de liquidación",
+			text: "T. liquidación",
 			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			formatter: (v) => tiposLiquidaciones[v],
 			style: { ...cs },
 		},
 		{
 			dataField: "liquidacionTipoPagoId",
-			text: "Tipo de pago",
+			text: "T. pago",
 			sort: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			formatter: (v) => tiposPagos.find((r) => r.id === v)?.descripcion ?? "",
 			style: { ...cs, textAlign: "left" },
 		},
@@ -63,14 +68,14 @@ const LiquidacionList = ({
 			text: "Total remuneraciones",
 			sort: true,
 			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "220px" }),
 			style: { ...cs },
 		},
 		{
 			dataField: "interesNeto",
 			text: "Total aporte",
 			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
+			headerStyle: (_colum, _colIndex) => ({ width: "220px" }),
 		},
 		{
 			dataField: "acciones",
@@ -78,9 +83,7 @@ const LiquidacionList = ({
 			isDummyField: true,
 			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
 				return (
-					<Button onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>
-						{row.id ? "Consulta" : "Genera"}
-					</Button>
+					<Button onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>Modifica</Button>
 				);
 			},
 			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),
@@ -95,7 +98,14 @@ const LiquidacionList = ({
 			data={records}
 			columns={columns}
 			noDataIndication={noData}
-			onSelected={onSelect}
+			mostrarBuscar={false}
+			selection={{
+				mode: "checkbox",
+				hideSelectColumn: false,
+				selected: selectedKeys,
+				onSelect: (row, isSelect, _index, _e) => onSelect(isSelect, [row]),
+				onSelectAll: (isSelect, _rows, _e) => onSelectAll(isSelect),
+			}}
 			{...otherProps}
 	/>
 	);
