@@ -56,14 +56,14 @@ const DelegacionesForm = ({
 					</Grid>
 				</Grid>
 				<Grid width="full" gap="15px">
-					{hide.bajaObservacion ? null : (
+					{hide.deletedObs ? null : (
 						<InputMaterial
 							label="Observaciones de baja"
-							error={!!errores.bajaObservacion}
-							helperText={errores.bajaObservacion ?? ""}
-							value={data.bajaObservacion}
-							disabled={disabled.bajaObservacion ?? false}
-							onChange={(value, _id) => onChange({ bajaObservacion: value })}
+							error={!!errores.deletedObs}
+							helperText={errores.deletedObs ?? ""}
+							value={data.deletedObs}
+							disabled={disabled.deletedObs ?? false}
+							onChange={(value, _id) => onChange({ deletedObs: value })}
 						/>
 					)}
 				</Grid>
