@@ -37,7 +37,7 @@ const DocumentacionForm = ({
 						onChange={(v) => onChange({ refTipoDocumentacionId: v })}
 					/>
 				</Grid>
-				<Grid grow>{getValue("archivoNombre")}</Grid>
+				<Grid grow>{getValue("nombreArchivo")}</Grid>
 				<Grid width="150px">
 					<input
 						ref={archivoRef}
@@ -51,8 +51,8 @@ const DocumentacionForm = ({
 							reader.readAsDataURL(archivo);
 							reader.onload = () => {
 								onChange({
-									archivoBase64: reader.result?.split("base64,")[1],
-									archivoNombre: archivo.name,
+									archivo: reader.result?.split("base64,")[1],
+									nombreArchivo: archivo.name,
 								});
 							};
 						}}
