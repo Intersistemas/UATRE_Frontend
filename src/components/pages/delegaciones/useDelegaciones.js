@@ -176,33 +176,7 @@ const useDelegaciones = () => {
 
 					const query = {
 						config: {},
-						onOk: async (res) =>
-							setList((old) => {
-								let newSelected = {};
-								const data = [...old.data];
-								switch (selected.request) {
-									case "A":
-										newSelected.index = data.length;
-										newSelected.record = {
-											...record,
-											id: res,
-										};
-										data.push({ ...newSelected.record });
-										break;
-									case "M":
-										newSelected.index = selected.index;
-										newSelected.record = { ...record };
-										data.splice(selected.index, 1, record);
-										break;
-									case "B":
-										data.splice(selected.index, 1);
-										break;
-									default:
-										break;
-								}
-								setSelected(newSelected);
-								return { data: data };
-							}),
+						onOk: async (_res) => setList((old) => ({ ...old, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
 					switch (selected.request) {

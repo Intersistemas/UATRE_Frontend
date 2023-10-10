@@ -24,7 +24,7 @@ const DelegacionesHandler = () => {
 			type: "list",
 			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
 		});
-	}, [delegacionSelected, documentacionChanger]);
+	}, [delegacionSelected?.id, documentacionChanger]);
 	//#endregion
 
 	//#region sidebar
