@@ -3,6 +3,13 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import DelegacionesTable from "./DelegacionesTable";
 import DelegacionesForm from "./DelegacionesForm";
 
+const selectedDef = {
+	record: null,
+	index: null,
+	action: "",
+	request: "",
+};
+
 const useDelegaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
@@ -59,25 +66,33 @@ const useDelegaciones = () => {
 		data: [],
 		error: {},
 	});
+
+	const [selected, setSelected] = useState({ ...selectedDef });
+
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
-			onOk: async (res) => setList({ data: res }),
+			onOk: async (res) => {
+				const newData = [...res];
+				setList({ data: newData });
+				setSelected((old) => {
+					const newSelected = { ...selectedDef };
+					if (!newData.length) return newSelected;
+					newSelected.index = newData.findIndex(r => r.id === old.record?.id)
+					if (newSelected.index < 0) newSelected.index = 0;
+					newSelected.record = { ...newData[newSelected.index] };
+					return newSelected;
+				});
+			},
 			onError: async (err) => {
 				const newList = { data: [] };
 				if (err.code !== 404) newList.error = err;
 				setList(newList);
+				setSelected({ ...selectedDef });
 			},
 		});
 	}, [pushQuery, list.loading]);
-
-	const [selected, setSelected] = useState({
-		record: null,
-		index: null,
-		action: "",
-		request: "",
-	});
 	//#endregion
 
 	const requestChanges = useCallback((changes) => {
@@ -89,6 +104,11 @@ const useDelegaciones = () => {
 					action: changes.action,
 					record: changes.request === "A" ? {} : old.record,
 				}));
+			case "list":
+				return setList({
+					loading: "Cargando...",
+					data: [],
+				});
 			default:
 				return;
 		}
