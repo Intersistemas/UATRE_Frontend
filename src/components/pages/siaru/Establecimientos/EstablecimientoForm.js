@@ -155,7 +155,7 @@ const Form = ({
 		}
 		pushQuery({
 			action: "GetLocalidades",
-			params: { provinciasId: establecimiento.domicilioProvinciasId },
+			params: { provinciaId: establecimiento.domicilioProvinciasId },
 			onOk: async (res) =>
 				setLocalidades({
 					data: [...res]
