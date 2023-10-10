@@ -3,7 +3,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import DelegacionesTable from "./DelegacionesTable";
 import DelegacionesForm from "./DelegacionesForm";
 
-const useDelegacionesTab = () => {
+const useDelegaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -60,6 +60,7 @@ const useDelegacionesTab = () => {
 		error: {},
 	});
 	useEffect(() => {
+		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
 			onOk: async (res) => setList({ data: res }),
@@ -79,15 +80,19 @@ const useDelegacionesTab = () => {
 	});
 	//#endregion
 
-	const sidebarHandler = useCallback(
-		(request, action) => setSelected((old) => ({
-			...old,
-			request: request,
-			action: action,
-			record: action === "A" ? {} : old.record,
-		})),
-		[]
-	);
+	const requestChanges = useCallback((changes) => {
+		switch (changes.type) {
+			case "selected":
+				return setSelected((old) => ({
+					...old,
+					request: changes.request,
+					action: changes.action,
+					record: changes.request === "A" ? {} : old.record,
+				}));
+			default:
+				return;
+		}
+	}, []);
 
 	let form = null;
 	if (selected.request) {
@@ -96,15 +101,17 @@ const useDelegacionesTab = () => {
 				data={selected.record}
 				title={selected.action}
 				errores={selected.errores}
-				disabled={
-					["A", "M"].includes(selected.request)
+				disabled={(() => {
+					const r = ["A", "M"].includes(selected.request)
 						? {}
 						: {
 								codigoDelegacion: true,
 								nombre: true,
-						  }
-				}
-				hide={selected.request === "B" ? {} : { bajaObservacion: true }}
+						  };
+					if (selected.request !== "B") r.deletedObs = true
+					return r;
+				})()}
+				hide={["A", "M"].includes(selected.request) ? { deletedObs: true } : {}}
 				onChange={(changes) =>
 					setSelected((old) => ({
 						...old,
@@ -225,7 +232,7 @@ const useDelegacionesTab = () => {
 		</>
 	);
 
-	return [render, sidebarHandler, selected.record];
+	return [render, requestChanges, selected.record];
 };
 
-export default useDelegacionesTab;
+export default useDelegaciones;

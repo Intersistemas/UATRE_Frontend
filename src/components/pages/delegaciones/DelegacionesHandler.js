@@ -7,19 +7,30 @@ import {
 } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
-import useDelegacionesTab from "./useDelegacionesTab";
+import useDelegaciones from "./useDelegaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
 	const [tab, setTab] = useState(0);
-	const [delegacionesTab, delegacionHandler, delegacionSelected] = useDelegacionesTab();
-	const documentacionSelected = {};	///ToDo cambiar por el use
+	const [delegacionesTab, delegacionChanger, delegacionSelected] = useDelegaciones();
+	const [documentacionesTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
+
+	//#region actualizar por cambio de seleccion de delegacion
+	useEffect(() => {
+		documentacionChanger({
+			type: "list",
+			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+		});
+	}, [delegacionSelected, documentacionChanger]);
+	//#endregion
 
 	//#region sidebar
 	const sidebar = {
-		delegacionHandler: delegacionHandler,
+		delegacionChanger: delegacionChanger,
+		documentacionChanger: documentacionChanger,
 		dispatch: dispatch,
 	};
 
@@ -62,16 +73,61 @@ const DelegacionesHandler = () => {
 				setRedirect({ to: "/administracion" });
 				break;
 			case "Agrega Delegación":
-				sidebar.delegacionHandler("A", sidebar.moduloAccion);
+				sidebar.delegacionChanger({
+					type: "selected",
+					request: "A",
+					action: sidebar.moduloAccion,
+				});
 				break;
 			case `Consulta Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionHandler("C", sidebar.moduloAccion);
+				sidebar.delegacionChanger({
+					type: "selected",
+					request: "C",
+					action: sidebar.moduloAccion,
+				});
 				break;
 			case `Modifica Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionHandler("M", sidebar.moduloAccion);
+				sidebar.delegacionChanger({
+					type: "selected",
+					request: "M",
+					action: sidebar.moduloAccion,
+				});
 				break;
 			case `Baja Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionHandler("B", sidebar.moduloAccion);
+				sidebar.delegacionChanger({
+					type: "selected",
+					request: "B",
+					action: sidebar.moduloAccion,
+				});
+				break;
+				
+			case "Agrega Documentación":
+				sidebar.documentacionChanger({
+					type: "selected",
+					request: "A",
+					action: sidebar.moduloAccion,
+				});
+				break;
+			case `Consulta Documentación ${sidebar.documentacionDesc}`:
+				sidebar.documentacionChanger({
+					type: "selected",
+					request: "C",
+					action: sidebar.moduloAccion,
+				});
+				break;
+			case `Modifica Documentación ${sidebar.documentacionDesc}`:
+				sidebar.documentacionChanger({
+					type: "selected",
+					request: "M",
+					action: sidebar.moduloAccion,
+				});
+				break;
+			case `Baja Documentación ${sidebar.documentacionDesc}`:
+				sidebar.documentacionChanger({
+					type: "selected",
+					request: "B",
+					action: sidebar.moduloAccion,
+				});
 				break;
 			default:
 				break;
@@ -93,10 +149,10 @@ const DelegacionesHandler = () => {
 			</Grid>
 			{(() => {
 				switch (tab) {
-					case 0:
-						return delegacionesTab();
 					default:
-						return null;
+						return delegacionesTab();
+					case 1:
+						return documentacionesTab();
 				}
 			})()}
 		</Grid>
