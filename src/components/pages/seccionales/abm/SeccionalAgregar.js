@@ -149,7 +149,7 @@ const SeccionalAgregar = (props) => {
                     name="localidadSeccional"
                     label="Localidad"
                     options={localidadesSelect}
-                    value={localidadSeccional }
+                    value={localidadSeccional}
                     //defaultValue={localidadSeccional}
                     onChange={handleChangeSelect}
                     onTextChange={handlerOnTextChange}
@@ -181,9 +181,13 @@ const SeccionalAgregar = (props) => {
             <>
               <SeccionalAutoridades
                 seccionalAutoridades={props.seccionalAutoridades}
+                onSeleccionAutoridad={props.onSeleccionAutoridad}
               />
               <SeccionalAutoridadesForm
                 onAgregarAutoridad={handlerOnAgregarAutoridad}
+                onCambiaAutoridad={props.onCambiaAutoridad}
+                onBorraAutoridad={props.onBorraAutoridad}
+                autoridadSeleccionada={props.autoridadSeleccionada}
                 refCargos={props.refCargos}
                 autoridadAfiliado={props.autoridadAfiliado}
                 onValidaAfiliadoClick={props.onValidaAfiliadoClick}

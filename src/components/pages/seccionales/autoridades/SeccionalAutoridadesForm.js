@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import classes from "./SeccionalesAutoridadesForm.module.css";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import SelectMaterial from "../../../ui/Select/SelectMaterial";
@@ -19,8 +19,21 @@ const SeccionalAutoridadesForm = (props) => {
   const [observaciones, setObservaciones] = useState("");
   const [refCargo, setRefCargo] = useState("");
 
-  //console.log("cargos", props.refCargos)
 
+  //Si eleji una autoridad la muestro en el form
+  console.log("SeccionalAutoridadesForm", props);
+  const { autoridadSeleccionada } = props
+    console.log("autoridadSeleccionada", autoridadSeleccionada);
+  useEffect(() => {
+    if(autoridadSeleccionada !== null){
+      setNumeroAfiliado(autoridadSeleccionada?.afiliadoNumero)
+      setVigenciaDesde(autoridadSeleccionada?.fechaVigenciaDesde)
+      setVigenciaHasta(autoridadSeleccionada?.fechaVigenciaHasta)
+      setRefCargo(autoridadSeleccionada?.refCargosId)
+      setObservaciones(autoridadSeleccionada?.observaciones)
+    }
+  }, [autoridadSeleccionada])
+  
   const handleInputChange = (value, id) => {
     //console.log(value, id)
     switch (id) {
@@ -61,11 +74,11 @@ const SeccionalAutoridadesForm = (props) => {
   const handleAgregaAutoridad = (event) => {
     event.preventDefault();
     const refCargoElegido = props.refCargos.find((refCargoElegido) => {
-        return refCargoElegido.value === refCargo
-      });
+      return refCargoElegido.value === refCargo;
+    });
 
     props.onAgregarAutoridad({
-      afiliadoId: 1,
+      afiliadoId: props.autoridadAfiliado?.id,
       afiliadoNombre: props.autoridadAfiliado?.nombre,
       afiliadoNumero: numeroAfiliado,
       fechaVigenciaDesde: vigenciaDesde,
@@ -77,6 +90,31 @@ const SeccionalAutoridadesForm = (props) => {
       seccionalDescripcion: "",
     });
   };
+
+  const handleCambiaAutoridad = (event) => {
+    event.preventDefault();
+    const refCargoElegido = props.refCargos.find((refCargoElegido) => {
+      return refCargoElegido.value === refCargo;
+    });
+
+    props.onCambiaAutoridad({
+      afiliadoId: props.autoridadAfiliado?.id,
+      afiliadoNombre: props.autoridadAfiliado?.nombre,
+      afiliadoNumero: numeroAfiliado,
+      fechaVigenciaDesde: vigenciaDesde,
+      fechaVigenciaHasta: vigenciaHasta,
+      observaciones: observaciones,
+      refCargosId: refCargo,
+      refCargosDescripcion: refCargoElegido.label,
+      seccionalId: 0,
+      seccionalDescripcion: "",
+    });
+  };
+
+  const handleBorraAutoridad = (event) => {
+    event.preventDefault();
+    props.onBorraAutoridad(props.autoridadAfiliado?.id);
+  }
 
   const handleOnValidaAfiliadoClick = (event) => {
     event.preventDefault();
@@ -145,8 +183,23 @@ const SeccionalAutoridadesForm = (props) => {
           />
         </div>
       </div>
-      <Button onClick={handleAgregaAutoridad} disable={props.autoridadAfiliado?.id}>
+      <Button
+        onClick={handleAgregaAutoridad}
+        disable={props.autoridadAfiliado?.id}
+      >
         Agregar
+      </Button>
+      <Button
+        onClick={handleCambiaAutoridad}
+        disable={props.autoridadAfiliado?.id}
+      >
+        Cambiar
+      </Button>
+      <Button
+        onClick={handleBorraAutoridad}
+        disable={props.autoridadAfiliado?.id}
+      >
+        Borrar
       </Button>
     </div>
   );
