@@ -11,11 +11,6 @@ const NominaTable = ({
 	const selected = [];
 	selectedInit.filter((e) => e).forEach((e) => selected.push(e.cuil));
 
-	const cs = {
-		overflow: "hidden",
-		textOverflow: "ellipsis",
-		whiteSpace: "nowrap",
-	};
 	const columns = [
 		{
 			dataField: "cuil",
@@ -23,13 +18,12 @@ const NominaTable = ({
 			sort: true,
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 			formatter: Formato.Cuit,
-			style: { ...cs },
 		},
 		{
 			dataField: "nombre",
 			text: "Nombre",
 			sort: true,
-			style: { ...cs, textAlign: "left" },
+			style: { textAlign: "left" },
 		},
 		{
 			dataField: "remuneracion",
@@ -37,7 +31,7 @@ const NominaTable = ({
 			sort: true,
 			formatter: Formato.Moneda,
 			headerStyle: (_colum, _colIndex) => ({ width: "180px" }),
-			style: { ...cs },
+			style: { textAlign: "right" },
 		},
 	];
 

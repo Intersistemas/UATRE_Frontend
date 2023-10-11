@@ -75,24 +75,22 @@ const Form = ({
 		setModalExistente(
 			<Modal onClose={handleCancelar}>
 				<Grid col gap={`${gap}px`} full>
-					<Grid full="width" justify="center">
+					<Grid width="full" justify="center">
 						<h3>
 							Ya existe una liquidación para el establecimiento y el período
 							indicado
 						</h3>
 					</Grid>
-					<Grid col full justify="end">
-						<Grid gap={`${gap}px`}>
-							<Grid width="50%">
-								<Button className="botonBlanco" onClick={handleCancelar}>
-									Volver para modificar datos
-								</Button>
-							</Grid>
-							<Grid width="50%">
-								<Button onClick={handleBajaContinuar}>
-									Dar de baja liquidación anterior y continuar
-								</Button>
-							</Grid>
+					<Grid width="full" gap="200px" justify="center">
+						<Grid width="150px">
+							<LoadingButtonCustom onClick={handleBajaContinuar}>
+								Dar de baja liquidación anterior y continuar
+							</LoadingButtonCustom>
+						</Grid>
+						<Grid width="150px">
+							<Button onClick={handleCancelar}>
+								Volver para modificar datos
+							</Button>
 						</Grid>
 					</Grid>
 				</Grid>

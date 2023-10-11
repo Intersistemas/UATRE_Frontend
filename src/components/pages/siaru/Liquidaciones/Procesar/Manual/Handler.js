@@ -32,6 +32,8 @@ const Handler = () => {
 	if (empresa.id == null || periodo == null) navigate("/ingreso");
 	const { sendRequest } = useHttp();
 
+	const [modal, setModal] = useState();
+
 	const [tentativas, setTentativas] = useState(null);
 
 	const [alerts, setAlerts] = useState([]);
@@ -145,6 +147,45 @@ const Handler = () => {
 									default:
 										break;
 								}
+								if (
+									["A", "M"].includes(request) &&
+									old.list.filter(
+										(r, i) =>
+											newData.selected.index !== i && r.cuil === data.cuil
+									).length
+								) {
+									setModal(
+										<Modal onClose={() => setModal(null)}>
+											<Grid col width="full" gap="15px">
+												<Grid width="full" justify="evenly">
+													<h3>{`Ya existe trabajador con cuil ${Formato.Cuit(
+														data.cuil
+													)}`}</h3>
+												</Grid>
+												<Grid width="full" justify="evenly">
+													<Grid width="370px">
+														<LoadingButtonCustom
+															onClick={() =>
+																setModal((_old) => {
+																	setNomina(newData);
+																	return null;
+																})
+															}
+														>
+															Agrega trabajador de todas formas
+														</LoadingButtonCustom>
+													</Grid>
+													<Grid width="370px">
+														<Button onClick={() => setModal(null)}>
+															Cancela
+														</Button>
+													</Grid>
+												</Grid>
+											</Grid>
+										</Modal>
+									);
+									return old;
+								}
 								return newData;
 							})
 						}
@@ -222,8 +263,6 @@ const Handler = () => {
 	}, [apiQuery, sendRequest]);
 	//#endregion
 
-	const [modal, setModal] = useState();
-
 	let contenido = null;
 	if (tentativas?.data != null) {
 		contenido = (
@@ -258,9 +297,8 @@ const Handler = () => {
 					{nomina.form}
 				</Grid>
 				{alertsRender}
-				<Grid gap="15px">
-					<Grid grow />
-					<Grid>
+				<Grid justify="center">
+					<Grid width="350px">
 						<Button
 							disabled={!descTrabajador}
 							onClick={() => {
@@ -268,7 +306,10 @@ const Handler = () => {
 									<Modal onClose={() => setModal(null)}>
 										<Grid col width="full" gap="20px">
 											<Grid width="full" justify="center">
-												<h3>Al continuar no se podrá modificar la lista de trabajadores.</h3>
+												<h3>
+													Al continuar no se podrá modificar la lista de
+													trabajadores.
+												</h3>
 											</Grid>
 											<Grid width="full" gap="200px" justify="center">
 												<Grid width="150px">
@@ -285,12 +326,12 @@ const Handler = () => {
 															});
 														}}
 													>
-														CONTINUA
+														Continúa
 													</LoadingButtonCustom>
 												</Grid>
 												<Grid width="150px">
 													<Button onClick={() => setModal(null)}>
-														CANCELA
+														Cancela
 													</Button>
 												</Grid>
 											</Grid>
@@ -299,7 +340,7 @@ const Handler = () => {
 								);
 							}}
 						>
-							Inicia
+							Inicia proceso de liquidación
 						</Button>
 					</Grid>
 				</Grid>

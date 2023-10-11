@@ -158,52 +158,55 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
-	const [refreshLiqudaciones, setRefreshLiquidaciones] = useState(true);
-	const [liquidaciones, setLiquidaciones] = useState({ loading: true });
-	const [pagination, setPagination] = useState({
-		index: 1,
-		size: 10,
-		onChange: (changes) => {
-			setPagination((old) => ({ ...old, ...changes }));
-			setRefreshLiquidaciones(true);
-		},
+	const [liquidaciones, setLiquidaciones] = useState({
+		loading: "Cargando...",
+		filter: { empresaId: empresa.id, todos: true },
+		page: { index: 1, size: 10 },
+		sort: `-Id`,
+		data: [],
+		error: {},
 	});
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
-		if (!refreshLiqudaciones) return;
+		if (!liquidaciones.loading) return;
+		const params = {
+			...liquidaciones.filter,
+			page: `${liquidaciones.page.index},${liquidaciones.page.size}`,
+			sort: liquidaciones.sort,
+		};
+		if (periodo) params.periodo = periodo;
+		if (establecimiento?.id)
+			params.empresaEstablecimientoId = establecimiento.id;
 		const newApiQuery = {
 			action: "GetLiquidaciones",
-			params: {
-				empresaId: empresa.id,
-				page: `${pagination.index},${pagination.size}`,
-				sort: `-Id`,
-				todos: true,
-			},
+			params: params,
 			onOk: async (res) => {
-				setLiquidaciones({ data: res.data });
-				if (res.data.length > 0) setLiquidacion(res.data[0]);
-				setPagination((old) => ({
+				setLiquidaciones((old) => ({
 					...old,
-					index: res.index,
-					size: res.size,
-					count: res.count,
-					pages: res.pages,
+					loading: null,
+					page: {
+						index: res.index,
+						size: res.size,
+						count: res.count,
+					},
+					data: res.data,
+					error: null,
 				}));
-				if (refreshLiqudaciones) setRefreshLiquidaciones(false);
+				if (res.data.length > 0) setLiquidacion(res.data[0]);
 			},
-			onError: async (err) => setLiquidaciones({ error: err }),
+			onError: async (err) =>
+				setLiquidaciones((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error: err,
+				})),
 		};
-		if (periodo) newApiQuery.params.periodo = periodo;
-		if (establecimiento?.id)
-			newApiQuery.params.empresaEstablecimientoId = establecimiento.id;
 		pushQuery(newApiQuery);
 	}, [
-		refreshLiqudaciones,
-		pagination.index,
-		pagination.size,
+		liquidaciones,
 		periodo,
 		establecimiento.id,
-		empresa.id,
 		pushQuery
 	]);
 
@@ -249,7 +252,7 @@ const LiquidacionesHandler = () => {
 						config: { body: record },
 						onOk: (_res) => {
 							setFormRequest(null);
-							setRefreshLiquidaciones(true);
+							setLiquidaciones((old) => ({ ...old, loading: "Cargando..." }));
 						},
 						onError: (error) =>
 							console.log({ tag: "LiquidacionForm.onConfirm", error: error }),
@@ -366,7 +369,10 @@ const LiquidacionesHandler = () => {
 								}))}
 								onChange={(value, _id) => {
 									setPeriodo(value);
-									setRefreshLiquidaciones(true);
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+									}));
 								}}
 							/>
 						</Grid>
@@ -389,18 +395,41 @@ const LiquidacionesHandler = () => {
 										establecimientos.data.find((r) => r.valor.id === value)
 											.valor
 									);
-									setRefreshLiquidaciones(true);
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+									}));
 								}}
 							/>
 						</Grid>
 					</Grid>
 					<Grid full="width" grow>
 						<LiquidacionesList
-							loading={liquidaciones.loading}
+							loading={!!liquidaciones.loading}
 							data={liquidaciones.data}
 							noData={liqNoData}
-							pagination={pagination}
+							pagination={{
+								...liquidaciones.page,
+								onChange: (changes) =>
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+										page: { ...old.page, ...changes },
+									})),
+							}}
 							selection={selection}
+							onTableChange={(type, newState) => {
+								switch (type) {
+									case "sort":
+										return setLiquidaciones((old) => ({
+											...old,
+											loading: "Cargando...",
+											sort: `${newState.sortOrder === "desc" ? "-" : ""}${newState.sortField}`
+										}));
+									default:
+										return;
+								}
+							}}
 						/>
 					</Grid>
 					<Grid full="width">

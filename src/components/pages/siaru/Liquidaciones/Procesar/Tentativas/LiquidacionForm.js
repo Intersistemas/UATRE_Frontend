@@ -7,6 +7,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import dayjs from "dayjs";
 import Button from "components/ui/Button/Button";
+import Modal from "components/ui/Modal/Modal";
 
 const onChangeDef = (_changes = {}) => {};
 const onConfirmDef = () => {};
@@ -116,42 +117,38 @@ const LiquidacionForm = ({
 
 	const generarLiquidacion = () => {
 		// Validaciones primero
-		const newErrores = [];
+		const errores = [];
 
 		if (!records?.length) {
-			newErrores.push(
-				<Grid>Debe seleccionar las liquidaciones a generar.</Grid>
-			);
+			errores.push("Debe seleccionar las liquidaciones a generar.");
 		} else {
 			if (records.find((r) => !r.vencimientoFecha))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene fecha de vencimiento.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene fecha de vencimiento.");
 			if (records.find((r) => !r.fechaPagoEstimada))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene fecha de pago estimada.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene fecha de pago estimada.");
 			if (records.find((r) => !r.cantidadTrabajadores))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene cantidad de
-						trabajadores.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene cantidad de trabajadores.");
 			if (records.find((r) => !r.totalRemuneraciones))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene total de remuneraciones.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene total de remuneraciones.");
 		}
 
-		setliqErrors(newErrores);
-		if (newErrores.length) return;
+		setliqErrors(
+			<Modal onClose={() => setliqErrors(null)}>
+				<Grid col gap="10px" width="full">
+					<Grid col width="full">
+						{errores.map((v, i) => (<Grid id={i}>{v}</Grid>))}
+					</Grid>
+					<Grid width="full" gap="200px" justify="center">
+						<Grid width="150px">
+							<Button onClick={() => setliqErrors(null)}>
+								Volver para modificar datos
+							</Button>
+						</Grid>
+					</Grid>
+				</Grid>
+			</Modal>
+		);
+		if (errores.length) return;
 
 		onConfirm();
 	};
@@ -193,7 +190,7 @@ const LiquidacionForm = ({
 				<Grid width="200px">
 					<DateTimePicker
 						type="date"
-						label="Fecha pago estimada"
+						label="Asigna fecha de pago estimada"
 						minDate={dayjs().format("YYYY-MM-DD")}
 						value={datos.fechaPagoEstimada}
 						InputRenderProps={{ helperText: diferencias.fechaPagoEstimada }}
