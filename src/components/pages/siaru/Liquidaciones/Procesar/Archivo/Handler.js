@@ -1,47 +1,81 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
-import useHttp from "../../../../../hooks/useHttp";
+import { useNavigate } from "react-router-dom";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../../../../redux/actions";
+} from "redux/actions";
 import Tentativas from "../Tentativas/Handler";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
 const Handler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = useMemo(
-		() => (location.state?.empresa ? location.state.empresa : {}),
-		[location.state?.empresa]
-	);
-	const periodo = location.state?.periodo;
-	const archivo = location.state?.archivo;
-	if (empresa.id == null || periodo == null || archivo == null) navigate("/ingreso");
 
-	const { sendRequest: request } = useHttp();
+	const empresa = useSelector((state) => state.empresa);
+	const { periodo, archivo } =
+		useSelector((state) => state.liquidacionProcesar.desdeArchivo) ?? {};
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.cuit) setRedirect({ to: "/siaru" });
+		else if (!(periodo || archivo))
+			setRedirect({ to: "/siaru/liquidaciones/procesar" });
+	}, [empresa, periodo, archivo]);
+
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetTentativas": {
+				const { archivo, ...pars } = params;
+				const data = new FormData();
+				data.append("Archivo", archivo, archivo.name);
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "POST",
+						endpoint: "/Liquidaciones/TentativasLSD",
+						body: data,
+						bodyToJSON: false,
+						headers: { Accept: "*/*" },
+					},
+					params: pars,
+				};
+			}
+			default:
+				return null;
+		}
+	});
 
 	//#region declaración y carga de tentativas
-	const [tentativas, setTentativas] = useState({ loading: true });
+	const [tentativas, setTentativas] = useState({
+		loading: "Cargando...",
+		params: { cuit: empresa.cuit, periodo: periodo, archivo: archivo },
+		data: [],
+		error: {},
+	});
 	useEffect(() => {
-		const data = new FormData();
-		data.append("Archivo", archivo, archivo.name);
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Liquidaciones/TentativasLSD?CUIT=${empresa.cuit}&Periodo=${periodo}`,
-				method: "POST",
-				body: data,
-				bodyToJSON: false,
-				headers: {
-					Accept: "*/*",
-				},
-			},
-			async (res) => setTentativas({ data: res }),
-			async (err) => setTentativas({ error: err })
-		);
-	}, [empresa.cuit, periodo, archivo, request]);
+		if (!tentativas.loading) return;
+		pushQuery({
+			action: "GetTentativas",
+			params: tentativas.params,
+			onOk: (res) =>
+				setTentativas((old) => ({
+					...old,
+					loading: null,
+					data: res,
+					error: null,
+				})),
+			onError: (err) => 
+			setTentativas((old) => ({
+				...old,
+				loading: null,
+				data: null,
+				error: err,
+			})),
+		});
+	}, [tentativas, pushQuery]);
 	//#endregion
 
 	//#region despachar Informar Modulo
@@ -58,21 +92,19 @@ const Handler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
-				navigate("/siaru", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru" });
 				break;
 			case `Liquidaciones`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru/liquidaciones"});
 				break;
 			case `Procesar liquidaciones`:
-				navigate("/siaru/liquidaciones/procesar", {
-					state: { empresa: empresa },
-				});
+				setRedirect({ to: "/siaru/liquidaciones/procesar"});
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa, navigate, dispatch]);
+	}, [moduloAccion, dispatch]);
 	//#endregion
 
 	let contenido = null;
@@ -104,13 +136,7 @@ const Handler = () => {
 				);
 		}
 	} else {
-		contenido = (
-			<Tentativas
-				empresa={empresa}
-				periodo={periodo}
-				tentativas={tentativas.data}
-			/>
-		);
+		contenido = <Tentativas periodo={periodo} tentativas={tentativas.data} />;
 	}
 
 	return (

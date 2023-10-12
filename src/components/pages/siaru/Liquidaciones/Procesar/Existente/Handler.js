@@ -1,39 +1,69 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
-import useHttp from "../../../../../hooks/useHttp";
+import { useNavigate } from "react-router-dom";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../../../../redux/actions";
+} from "redux/actions";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import Tentativas from "../Tentativas/Handler";
 
 const Handler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = useMemo(
-		() => (location.state?.empresa ? location.state.empresa : {}),
-		[location.state?.empresa]
-	);
-	const periodo = location.state?.periodo;
-	if (empresa.id == null || periodo == null) navigate("/ingreso");
 
-	const { sendRequest: request } = useHttp();
+	const empresa = useSelector((state) => state.empresa);
+	const periodo = useSelector((state) => state.liquidacionProcesar?.existente?.peirodo);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		else if (!periodo) setRedirect({ to: "/siaru/liquidaciones/procesar" });
+	}, [empresa, periodo]);
+
+	const pushQuery = useQueryQueue((action, _params) => {
+		switch (action) {
+			case "GetTentativas":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: "/Liquidaciones/Tentativas",
+					}
+				};
+			default:
+				return null;
+		}
+	});
 
 	//#region declaración y carga de tentativas
-	const [tentativas, setTentativas] = useState({ loading: true });
+	const [tentativas, setTentativas] = useState({
+		loading: "Cargando...",
+		params: { cuit: empresa?.cuit, periodo: periodo },
+		data: [],
+		error: {}
+	});
 	useEffect(() => {
-		request(
-			{
-				baseURL: "SIARU",
-				endpoint: `/Liquidaciones/Tentativas?CUIT=${empresa.cuit}&Periodo=${periodo}`,
-				method: "GET",
-			},
-			async (res) => setTentativas({ data: res }),
-			async (err) => setTentativas({ error: err })
-		);
-	}, [periodo, empresa.cuit, request]);
+		if (!tentativas.loading) return;
+		pushQuery({
+			action: "GetTentativas",
+			params: tentativas.params,
+			onOk: (res) => setTentativas((old) => ({
+				...old,
+				loading: null,
+				data: res,
+				error: null,
+			})),
+			onError: (err) => setTentativas((old) => ({
+				...old,
+				loading: null,
+				data: null,
+				error: err,
+			})),
+		})
+	}, [tentativas, pushQuery]);
 	//#endregion
 
 	//#region despachar Informar Modulo
@@ -46,18 +76,16 @@ const Handler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
-				navigate("/siaru", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru" });
 				break;
 			case `Procesar liquidaciones`:
-				navigate("/siaru/liquidaciones/procesar", {
-					state: { empresa: empresa },
-				});
+				setRedirect({ to: "/siaru/liquidaciones/procesar" });
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa, navigate, dispatch]);
+	}, [moduloAccion, dispatch]);
 	// #endregion
 
 	let contenido = null;
@@ -74,6 +102,7 @@ const Handler = () => {
 						<h4>{tentativas.error.message}</h4>
 					</>
 				);
+				break;
 			default:
 				contenido = (
 					<>
@@ -90,7 +119,6 @@ const Handler = () => {
 	} else {
 		contenido = (
 			<Tentativas
-				empresa={empresa}
 				peirodo={periodo}
 				tentativas={tentativas.data}
 			/>

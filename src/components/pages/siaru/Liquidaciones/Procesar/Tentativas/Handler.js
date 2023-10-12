@@ -1,7 +1,9 @@
-import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
-import Formato from "components/helpers/Formato";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import dayjs from "dayjs";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import DDJJList from "./DDJJList";
 import LiquidacionList from "./LiquidacionList";
@@ -10,10 +12,17 @@ import DDJJForm from "./DDJJForm";
 import CalcularCampos from "../../Formulario/CalcularCampos";
 import LiquidacionForm from "./LiquidacionForm";
 import LiquidacionPDF from "../../Impresion/Handler";
-import { useNavigate } from "react-router-dom";
 
-const Handler = ({ empresa, periodo, tentativas = [] }) => {
+const Handler = ({ periodo, tentativas = [] }) => {
 	const navigate = useNavigate();
+
+	const empresa = useSelector((state) => state.empresa);
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "/siaru" });
+	}, [empresa]);
+
 	const [formRender, setFormRender] = useState();
 
 	//#region Trato queries a APIs
@@ -50,26 +59,59 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 	//#endregion
 
 	//#region declaracion y carga de tipos de liquidacion
-	const [tiposPagos, setTiposPagos] = useState({ loading: true });
+	const [tiposPagos, setTiposPagos] = useState({
+		loading: "Cargando...",
+		data: null,
+		error: null,
+	});
 	useEffect(() => {
+		if (!tiposPagos.loading) return;
 		pushQuery({
 			action: "GetLiquidacionTipoPago",
-			onOk: (res) => setTiposPagos({ data: res }),
-			onError: (err) => setTiposPagos({ error: err }),
+			onOk: (res) => setTiposPagos((old) => ({
+				...old,
+				loading: null,
+				data: res,
+				error: null,
+			})),
+			onError: (err) => setTiposPagos((old) => ({
+				...old,
+				loading: null,
+				data: null,
+				error: err,
+			})),
 		});
-	}, [pushQuery]);
+	}, [pushQuery, tiposPagos]);
 	//#endregion
 
 	//#region declaración y carga de esablecimientos
-	const [establecimientos, setEstablecimientos] = useState({ loading: true });
+	const [establecimientos, setEstablecimientos] = useState({
+		loading: "Cargando...",
+		params: { empresaId: empresa.id, pageSize: 5000 },
+		data: null,
+		error: null,
+	});
 	useEffect(() => {
+		if (!establecimientos.loading) return;
 		pushQuery({
 			action: "GetEstablecimientosByEmpresa",
-			params: { empresaId: empresa.id, pageSize: 5000 },
-			onOk: (res) => setEstablecimientos({ data: res.data }),
-			onError: (err) => setEstablecimientos({ error: err }),
+			params: establecimientos.params,
+			onOk: (res) =>
+				setEstablecimientos((old) => ({
+					...old,
+					loading: null,
+					data: res.data,
+					error: null,
+				})),
+			onError: (err) =>
+				setEstablecimientos((old) => ({
+					...old,
+					loading: null,
+					data: null,
+					error: err,
+				})),
 		});
-	}, [pushQuery, empresa.id]);
+	}, [pushQuery, establecimientos]);
 	//#endregion
 
 	//#region declaración y carga de ddjj y liquidaciones
@@ -339,11 +381,7 @@ const Handler = ({ empresa, periodo, tentativas = [] }) => {
 									<LiquidacionPDF
 										empresa={empresa}
 										liquidaciones={[...res]}
-										onClose={() =>
-											navigate("/siaru/liquidaciones", {
-												state: { empresa: empresa },
-											})
-										}
+										onClose={() => setRedirect({ to: "/siaru/liquidaciones"}) }
 									/>
 								);
 							},

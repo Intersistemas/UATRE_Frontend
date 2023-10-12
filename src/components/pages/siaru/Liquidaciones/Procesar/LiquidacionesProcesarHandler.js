@@ -1,35 +1,37 @@
 import React, { useEffect, useRef, useState } from "react";
-import styles from "./LiquidacionesProcesarHandler.module.css";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../../../redux/actions";
-import Formato from "../../../../helpers/Formato";
-import Grid from "../../../../ui/Grid/Grid";
-import Button from "../../../../ui/Button/Button";
-import DateTimePicker from "../../../../ui/DateTimePicker/DateTimePicker";
+	handleLiquidacionProcesarSeleccionar,
+} from "redux/actions";
+import styles from "./LiquidacionesProcesarHandler.module.css";
+import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
+import Button from "components/ui/Button/Button";
+import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import dayjs from "dayjs";
 
 const LiquidacionesProcesarHandler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = location.state?.empresa ? location.state.empresa : {};
-	if (empresa.id == null) navigate("/ingreso");
+
+	const empresa = useSelector((state) => state.empresa);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "/siaru" });
+	}, [empresa]);
+
+	const liquidacionProcesar = useSelector((state) => state.liquidacionProcesar);
+	const { desdeArchivo, manual } = liquidacionProcesar;
 
 	const archivoRef = useRef(null);
 
-	const [liqArchivo, setLiqArchivo] = useState({
-		periodo: null,
-		archivo: null,
-		errores: [],
-	})
-	const [liqManual, setLiqManual] = useState({
-		periodo: null,
-		errores: [],
-	});
+	const [errores, setErrores] = useState({ archivo: [], manual: [] });
 
 	//#region despachar Informar Modulo
 	const moduloInfo = {
@@ -41,16 +43,16 @@ const LiquidacionesProcesarHandler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
-				navigate("/siaru", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru" });
 				break;
 			case `Liquidaciones`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru/liquidaciones" });
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [empresa, moduloAccion, navigate, dispatch]);
+	}, [moduloAccion, dispatch]);
 	//#endregion
 
 	return (
@@ -63,7 +65,7 @@ const LiquidacionesProcesarHandler = () => {
 					<Grid full="width">
 						<h2 className="subtitulo">
 							Procesar liquidaciones de
-							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+							{` ${Formato.Cuit(empresa?.cuit)} ${empresa?.razonSocial ?? ""}`}
 						</h2>
 					</Grid>
 					<Grid col gap="5px">
@@ -85,12 +87,22 @@ const LiquidacionesProcesarHandler = () => {
 									<DateTimePicker
 										type="month"
 										label="Ingrese período a liquidar"
-										value={Formato.Mascara(liqArchivo.periodo, "####-##-01") ?? ""}
+										value={
+											Formato.Mascara(desdeArchivo?.periodo, "####-##-01") ?? ""
+										}
 										disableFuture
 										minDate="1994-01-01"
 										maxDate={dayjs().format("YYYY-MM-DD")}
 										onChange={(fecha) =>
-											setLiqArchivo((old) => ({...old, periodo: Formato.Entero(fecha?.format("YYYYMM"))}))
+											dispatch(
+												handleLiquidacionProcesarSeleccionar({
+													...liquidacionProcesar,
+													desdeArchivo: {
+														...desdeArchivo,
+														periodo: Formato.Entero(fecha?.format("YYYYMM")),
+													},
+												})
+											)
 										}
 									/>
 								</Grid>
@@ -102,7 +114,15 @@ const LiquidacionesProcesarHandler = () => {
 										hidden
 										onChange={(e) => {
 											if (e.target.files.length < 1) return;
-											setLiqArchivo((old) => ({...old, archivo: e.target.files[0]}));
+											dispatch(
+												handleLiquidacionProcesarSeleccionar({
+													...liquidacionProcesar,
+													desdeArchivo: {
+														...desdeArchivo,
+														archivo: e.target.files[0],
+													},
+												})
+											);
 										}}
 									/>
 									<Button onClick={() => archivoRef.current?.click()}>
@@ -110,25 +130,26 @@ const LiquidacionesProcesarHandler = () => {
 										{/* <input hidden accept=".txt" type="file" /> */}
 									</Button>
 								</Grid>
-								<Grid grow>{liqArchivo.archivo != null ? liqArchivo.archivo.name : ""}</Grid>
+								<Grid grow>{desdeArchivo?.archivo?.name ?? ""}</Grid>
 								<Grid block basis="200px">
 									<Button
 										onClick={() => {
-											const errores = [];
-											if (liqArchivo.archivo == null)
-												errores.push(<Grid>Debe ingresar un archivo LSD.</Grid>);
-											if (!liqArchivo.periodo)
-												errores.push(<Grid>Debe ingresar un período para el archivo LSD.</Grid>);
-											setLiqArchivo((old) => ({...old, errores: errores}));
-											if (errores.length === 0) {
-												navigate("/siaru/liquidaciones/procesar/archivo", {
-													state: {
-														empresa: empresa,
-														periodo: liqArchivo.periodo,
-														archivo: liqArchivo.archivo,
-													},
+											const newErrores = [];
+											if (!desdeArchivo?.archivo)
+												newErrores.push(
+													<Grid>Debe ingresar un archivo LSD.</Grid>
+												);
+											if (!desdeArchivo?.periodo)
+												newErrores.push(
+													<Grid>
+														Debe ingresar un período para el archivo LSD.
+													</Grid>
+												);
+											setErrores((old) => ({ ...old, archivo: newErrores }));
+											if (newErrores.length === 0)
+												setRedirect({
+													to: "/siaru/liquidaciones/procesar/archivo",
 												});
-											}
 										}}
 									>
 										Inicia
@@ -136,7 +157,7 @@ const LiquidacionesProcesarHandler = () => {
 								</Grid>
 							</Grid>
 							<Grid col full="width" style={{ color: "red" }}>
-								{liqArchivo.errores}
+								{errores.archivo}
 							</Grid>
 						</Grid>
 
@@ -158,17 +179,20 @@ const LiquidacionesProcesarHandler = () => {
 									<DateTimePicker
 										type="month"
 										label="Ingrese período a liquidar"
-										value={
-											Formato.Mascara(liqManual.periodo, "####-##-01") ?? ""
-										}
+										value={Formato.Mascara(manual?.periodo, "####-##-01") ?? ""}
 										disableFuture
 										minDate="1994-01-01"
 										maxDate={dayjs().format("YYYY-MM-DD")}
 										onChange={(fecha) =>
-											setLiqManual((old) => ({
-												...old,
-												periodo: Formato.Entero(fecha?.format("YYYYMM")),
-											}))
+											dispatch(
+												handleLiquidacionProcesarSeleccionar({
+													...liquidacionProcesar,
+													manual: {
+														...manual,
+														periodo: Formato.Entero(fecha?.format("YYYYMM")),
+													},
+												})
+											)
 										}
 									/>
 								</Grid>
@@ -176,18 +200,18 @@ const LiquidacionesProcesarHandler = () => {
 								<Grid block basis="200px">
 									<Button
 										onClick={() => {
-											const errores = [];
-											if (!liqManual.periodo)
-												errores.push(<Grid>Debe ingresar un período para la liquidación manual.</Grid>);
-											setLiqManual((old) => ({...old, errores: errores}));
-											if (errores.length === 0) {
-												navigate("/siaru/liquidaciones/procesar/manual", {
-													state: {
-														empresa: empresa,
-														periodo: liqManual.periodo,
-													},
+											const newErrores = [];
+											if (!manual?.periodo)
+												newErrores.push(
+													<Grid>
+														Debe ingresar un período para la liquidación manual.
+													</Grid>
+												);
+											setErrores((old) => ({ ...old, manual: newErrores }));
+											if (newErrores.length === 0)
+												setRedirect({
+													to: "/siaru/liquidaciones/procesar/manual",
 												});
-											}
 										}}
 									>
 										Inicia
@@ -195,10 +219,9 @@ const LiquidacionesProcesarHandler = () => {
 								</Grid>
 							</Grid>
 							<Grid col full="width" style={{ color: "red" }}>
-								{liqManual.errores}
+								{errores.manual}
 							</Grid>
 						</Grid>
-
 					</Grid>
 					<Grid full></Grid>
 				</Grid>

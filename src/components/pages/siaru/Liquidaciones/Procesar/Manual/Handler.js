@@ -1,40 +1,56 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 } from "redux/actions";
-import useHttp from "components/hooks/useHttp";
-import Tentativas from "../Tentativas/Handler";
-import Grid from "components/ui/Grid/Grid";
-import NominaTable from "./NominaTable";
-import Formato from "components/helpers/Formato";
-import NominaForm from "./NominaForm";
-import Button from "components/ui/Button/Button";
-import { Alert } from "@mui/lab";
+import { Alert, AlertTitle } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import { Collapse, IconButton } from "@mui/material";
-import { AlertTitle } from "@mui/lab";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
 import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
+import Tentativas from "../Tentativas/Handler";
+import NominaTable from "./NominaTable";
+import NominaForm from "./NominaForm";
 
 const Handler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = useMemo(
-		() => (location.state?.empresa ? location.state.empresa : {}),
-		[location.state?.empresa]
-	);
-	const periodo = location.state?.periodo;
 
-	if (empresa.id == null || periodo == null) navigate("/ingreso");
-	const { sendRequest } = useHttp();
+	const empresa = useSelector((state) => state.empresa);
+	const periodo = useSelector(
+		(state) => state.liquidacionProcesar?.manual?.periodo
+	);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		else if (!periodo) setRedirect({ to: "/siaru/liquidaciones/procesar" });
+	}, [empresa, periodo]);
+
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetTentativas":
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "POST",
+						endpoint: "/Liquidaciones/TentativasManual",
+					},
+				};
+			default:
+				return null;
+		}
+	});
 
 	const [modal, setModal] = useState();
-
-	const [tentativas, setTentativas] = useState(null);
 
 	const [alerts, setAlerts] = useState([]);
 	let alertsRender = null;
@@ -78,6 +94,42 @@ const Handler = () => {
 		selected: {},
 		form: null,
 	});
+	const [tentativas, setTentativas] = useState({
+		loading: null,
+		body: { cuit: empresa?.cuit, periodo: periodo, nominas: nomina.list },
+		data: null,
+		error: null,
+	});
+	useEffect(() => {
+		if (!tentativas.loading) return;
+		pushQuery({
+			action: "GetTentativas",
+			config: { body: tentativas.body },
+			onOk: async (res) =>
+				setTentativas((old) => ({
+					...old,
+					loading: null,
+					data: res,
+					error: null,
+				})),
+			onError: async (err) => {
+				setAlerts((old) => [
+					...old,
+					{
+						severity: "error",
+						title: `${err.type} cargando tentativas de liquidacion`,
+						message: err.message,
+					},
+				]);
+				setTentativas((old) => ({
+					...old,
+					loading: null,
+					data: null,
+					error: err,
+				}));
+			},
+		});
+	}, [tentativas, pushQuery]);
 
 	//#region despachar Informar Modulo
 	const moduloInfo = {
@@ -90,7 +142,7 @@ const Handler = () => {
 	};
 
 	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
-	if (tentativas == null) {
+	if (tentativas.data == null) {
 		moduloInfo.acciones.push({ name: `Agrega trabajador` });
 		if (descTrabajador) {
 			moduloInfo.acciones.push({
@@ -165,12 +217,10 @@ const Handler = () => {
 												<Grid width="full" justify="evenly">
 													<Grid width="370px">
 														<LoadingButtonCustom
-															onClick={() =>
-																setModal((_old) => {
-																	setNomina(newData);
-																	return null;
-																})
-															}
+															onClick={() => {
+																setModal(null);
+																setNomina(newData);
+															}}
 														>
 															Agrega trabajador de todas formas
 														</LoadingButtonCustom>
@@ -194,15 +244,13 @@ const Handler = () => {
 			}));
 		switch (moduloAccion) {
 			case `Empresas`:
-				navigate("/siaru", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru" });
 				break;
 			case `Liquidaciones`:
-				navigate("/siaru/liquidaciones", { state: { empresa: empresa } });
+				setRedirect({ to: "/siaru/liquidaciones" });
 				break;
 			case `Procesa liquidaciones`:
-				navigate("/siaru/liquidaciones/procesar", {
-					state: { empresa: empresa },
-				});
+				setRedirect({ to: "/siaru/liquidaciones/procesar" });
 				break;
 			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
@@ -217,61 +265,14 @@ const Handler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa, descTrabajador, navigate, dispatch]);
-	//#endregion
-
-	//#region requests a APIs
-	const [apiQuery, setApiQuery] = useState({
-		action: "",
-		query: [],
-		body: null,
-		timeStamp: new Date(),
-	});
-	useEffect(() => {
-		switch (apiQuery.action) {
-			case "SolicitarTentativas":
-				setTentativas({ loading: true });
-				sendRequest(
-					{
-						method: "POST",
-						baseURL: "SIARU",
-						endpoint: [
-							`/Liquidaciones/TentativasManual`,
-							apiQuery.query?.filter((e) => e).join("&"),
-						]
-							.filter((e) => e)
-							.join("?"),
-						body: apiQuery.body,
-					},
-					async (res) => setTentativas({ data: res }),
-					async (err) => {
-						setAlerts((old) => [
-							...old,
-							{
-								severity: "error",
-								title: `${err.type} cargando tentativas de liquidacion`,
-								message: err.message,
-							},
-						]);
-						setTentativas({ error: err });
-					}
-				);
-				break;
-			default:
-				break;
-		}
-	}, [apiQuery, sendRequest]);
+	}, [moduloAccion, descTrabajador, dispatch]);
 	//#endregion
 
 	let contenido = null;
-	if (tentativas?.data != null) {
-		contenido = (
-			<Tentativas
-				empresa={empresa}
-				periodo={periodo}
-				tentativas={tentativas.data}
-			/>
-		);
+	if (tentativas.loading) {
+		contenido = <h1>Cargando tentativas...</h1>;
+	} else if (tentativas?.data != null) {
+		contenido = <Tentativas periodo={periodo} tentativas={tentativas.data} />;
 	} else {
 		contenido = (
 			<Grid
@@ -281,7 +282,7 @@ const Handler = () => {
 			>
 				<h2 className="subtitulo">
 					Generación manual de liquidaciones de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""} `}
+					{` ${Formato.Cuit(empresa?.cuit)} ${empresa?.razonSocial ?? ""} `}
 					para el período
 					{` ${Formato.Periodo(periodo)}`}
 				</h2>
@@ -315,15 +316,12 @@ const Handler = () => {
 												<Grid width="150px">
 													<LoadingButtonCustom
 														onClick={() => {
-															setApiQuery({
-																action: "SolicitarTentativas",
-																body: {
-																	cuit: empresa.cuit,
-																	periodo: periodo,
-																	nominas: nomina.list,
-																},
-																timeStamp: new Date(),
-															});
+															setModal(null);
+															setTentativas((old) => ({
+																...old,
+																loading: "Cargando...",
+																body: { ...old.body, nominas: nomina.list },
+															}));
 														}}
 													>
 														Continúa

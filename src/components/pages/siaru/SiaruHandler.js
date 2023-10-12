@@ -1,59 +1,95 @@
 import React, { useState, useEffect, useContext } from "react";
-import useHttp from "../../hooks/useHttp";
-import Grid from "../../ui/Grid/Grid";
-import Formato from "../../helpers/Formato";
-import EmpresaDetails from "./Empresas/EmpresaDetails";
-import EmpresasList from "./Empresas/EmpresasList";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import EmpresaDetails from "./Empresas/EmpresaDetails";
+import EmpresasList from "./Empresas/EmpresasList";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
-} from "../../../redux/actions";
-import AuthContext from "../../../store/authContext";
+	handleEmpresaSeleccionar,
+} from "redux/actions";
+import AuthContext from "store/authContext";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
-const SiaruHandler = (props) => {
+const SiaruHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const { sendRequest: request } = useHttp();
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetEmpresa": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: "/Empresas/GetEmpresaSpecs",
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
 	const authContext = useContext(AuthContext);
 
-	//#region declaración y carga de lista de empresas
+	//#region declaración y carga de lista y detalle de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
-	const [empresaRecord, setEmpresaRecord] = useState();
+	const [empresa, setEmpresa] = useState({
+		loading: null,
+		params: { cuit: 0 },
+		data: {},
+		error: {},
+	});
+	useEffect(() => {
+		if (!empresa.loading) return;
+		pushQuery({
+			action: "GetEmpresa",
+			params: empresa.params,
+			onOk: (res) =>
+				setEmpresa((old) => {
+					const newEmpresa = {
+						...old,
+						loading: null,
+						data: res,
+						error: null,
+					};
+					dispatch(handleEmpresaSeleccionar(newEmpresa.data));
+					return newEmpresa;
+				}),
+			onError: (err) =>
+				setEmpresa((old) => {
+					const newEmpresa = {
+						...old,
+						loading: null,
+						data: {},
+						error: err,
+					};
+					dispatch(handleEmpresaSeleccionar(null));
+					return newEmpresa;
+				}),
+		});
+	}, [empresa, pushQuery, dispatch]);
 
 	useEffect(() => {
 		if (authContext.usuario?.empresas) {
 			const empresas = [...authContext.usuario.empresas];
 			setEmpresaList({ data: empresas });
-			if (empresas.length > 0) setEmpresaRecord(empresas[0]);
+			if (empresas.length > 0)
+				setEmpresa((old) => ({
+					...old,
+					loading: "Cargando...",
+					params: { cuit: empresas[0].cuitEmpresa },
+				}));
 		}
 	}, [authContext.usuario]);
 	//#endregion
 
-	//#region declaración y carga de detalles de empresa
-	const [empresa, setEmpresa] = useState({ loading: true });
-	useEffect(() => {
-		if (!empresaRecord?.cuitEmpresa) {
-			setEmpresa({});
-			return;
-		}
-		request(
-			{
-				baseURL: "Comunes",
-				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${empresaRecord.cuitEmpresa}`,
-				method: "GET",
-			},
-			async (res) => setEmpresa({ data: res }),
-			async (err) => setEmpresa({ error: err })
-		);
-	}, [empresaRecord, request]);
-	//#endregion
-
 	//#region despachar Informar Modulo
-	const descEmpresa = empresa.data
-		? `${Formato.Cuit(empresa.data.cuit)} - ${empresa.data.razonSocial}`
-		: ``;
+	const descEmpresa = [empresa?.data]
+		.map((e) =>
+			[Formato.Cuit(e?.cuit), e?.razonSocial].filter((r) => r).join(" - ")
+		);
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [],
@@ -68,28 +104,27 @@ const SiaruHandler = (props) => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
-				navigate("/siaru/establecimientos", {
-					state: { empresa: empresa.data },
-				});
+				navigate("/siaru/establecimientos");
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones", {
-					state: { empresa: empresa.data },
-				});
+				navigate("/siaru/liquidaciones");
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descEmpresa, empresa.data, navigate, dispatch]);
+	}, [moduloAccion, descEmpresa, navigate, dispatch]);
 	//#endregion
 
 	const selection = {
-		onSelect: (row, isSelect, rowIndex, e) => setEmpresaRecord(row),
-	}
-	if (empresaRecord) {
-		selection.selected = [empresaRecord.cuitEmpresa]
-	}
+		onSelect: (row, _isSelect, _rowIndex, _e) =>
+			setEmpresa((old) => ({
+				...old,
+				loading: "Cargando...",
+				params: { cuit: row.cuitEmpresa },
+			})),
+	};
+	if (empresa.params.cuit) selection.selected = [empresa.params.cuit];
 
 	return (
 		<>
@@ -131,7 +166,7 @@ const SiaruHandler = (props) => {
 								})()}
 							/>
 						</Grid>
-						<EmpresaDetails data={empresa.data} />
+						<EmpresaDetails />
 					</Grid>
 				</Grid>
 			</div>

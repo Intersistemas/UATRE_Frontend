@@ -76,8 +76,8 @@ const NominaForm = ({
 	}
 
 	const [datosAFIP, setDatosAFIP] = useState({
-		loading: data.cuit ? "Cargando..." : null,
-		data: { cuit: data.cuit, nombre: "", documento: "", domicilio: "" },
+		loading: data.cuil ? "Cargando..." : null,
+		data: { cuit: data.cuil, nombre: "", documento: "", domicilio: "" },
 		error: null,
 	});
 	useEffect(() => {
@@ -126,7 +126,7 @@ const NominaForm = ({
 				setDatosAFIP((old) => ({
 					...old,
 					loading: null,
-					data: { cuit: old.cuit },
+					data: { cuit: old.data.cuit },
 					error: err,
 				})),
 		});
