@@ -3,6 +3,7 @@ import useHttp from "../../hooks/useHttp";
 import SeccionalAgregar from "./abm/SeccionalAgregar";
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Seccionales";
+import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
@@ -20,6 +21,7 @@ const SeccionalesHandler = () => {
   const [seccionales, setSeccionales] = useState([]);
   const [seccionalesTodas, setSeccionalesTodas] = useState([]);
   const [seccionalAutoridades, setSeccionalAutoridades] = useState([]);
+  const [autoridadSeleccionada, setAutoridadSeleccionada] = useState(null);
   const [seccionalSeleccionada, setSeccionalSeleccionada] = useState(null);
   const [seccionalDocumentos, setSeccionalDocumentos] = useState([]);
   const [refCargos, setRefCargos] = useState([]);
@@ -215,6 +217,7 @@ const SeccionalesHandler = () => {
   const onCloseSeccionalAgregarHandler = () => {
     console.log("limpia");
     setSeccionalAutoridades([]);
+    setAutoridadSeleccionada(null);
     setAutoridadAfiliado(null);
     setSeccionalAgregarShow(false);
   };
@@ -292,9 +295,38 @@ const SeccionalesHandler = () => {
     setSeccionalAgregarShow(true);
   };
 
+  //#region handler AutoridadesSeccional
   const handlerOnAgregaAutoridad = (autoridad) => {
     setSeccionalAutoridades((current) => [...current, autoridad]);
   };
+
+  const handlerOnCambiaAutoridad = (autoridad) => {
+    console.log("CambiaAutoridad", autoridad)    
+    const index = seccionalAutoridades.indexOf(autoridadSeleccionada);
+    console.log('index cambiar', index)
+    if (index > -1) {
+      const newSeccionalAutoridades = [...seccionalAutoridades];
+      newSeccionalAutoridades[index] = autoridad;
+      setSeccionalAutoridades(newSeccionalAutoridades);
+      setAutoridadSeleccionada(null);
+    }    
+  };
+
+  const handlerOnBorraAutoridad = (autoridad) => {
+    var array = [...seccionalAutoridades]; // make a separate copy of the array
+    var index = array.indexOf(autoridadSeleccionada);
+    if (index !== -1) {
+      array.splice(index, 1);
+      setSeccionalAutoridades(array);
+      setSeccionalSeleccionada(null);
+    }
+  };
+
+  const handlerOnSeleccionAutoridad = (autoridad) => {
+    console.log("AutoridadSeleccionada", autoridadSeleccionada)
+    setAutoridadSeleccionada(autoridad)
+  }
+  //#endregion
 
   return (
     <Fragment>
@@ -305,10 +337,14 @@ const SeccionalesHandler = () => {
           localidades={localidades}
           seccionalAutoridades={seccionalAutoridades}
           autoridadAfiliado={autoridadAfiliado}
+          autoridadSeleccionada={autoridadSeleccionada}
           onClose={onCloseSeccionalAgregarHandler}
           onConfirmaClick={handlerOnConfirmaClick}
           onAgregaAutoridad={handlerOnAgregaAutoridad}
+          onCambiaAutoridad={handlerOnCambiaAutoridad}
+          onBorraAutoridad={handlerOnBorraAutoridad}
           onValidaAfiliadoClick={handlerOnValidaAfiliadoclick}
+          onSeleccionAutoridad={handlerOnSeleccionAutoridad}
         />
       )}
 
@@ -327,6 +363,7 @@ const SeccionalesHandler = () => {
         onBuscarClick={handlerOnBuscarClick}
         onLimpiarClick={handlerOnLimpiarClick}
         onAgregarClick={handlerOnAgregarClick}
+        onSeleccionAutoridad={handlerOnSeleccionAutoridad}
       />
       </div>
     </Fragment>
