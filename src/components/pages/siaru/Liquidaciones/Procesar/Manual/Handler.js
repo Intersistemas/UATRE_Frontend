@@ -117,7 +117,7 @@ const Handler = () => {
 					...old,
 					{
 						severity: "error",
-						title: `${err.type} cargando tentativas de liquidacion`,
+						title: `${err.type} cargando tentativas de liquidación`,
 						message: err.message,
 					},
 				]);
@@ -299,7 +299,7 @@ const Handler = () => {
 				</Grid>
 				{alertsRender}
 				<Grid justify="center">
-					<Grid width="350px">
+					<Grid width="350px" height="50px">
 						<Button
 							disabled={!descTrabajador}
 							onClick={() => {

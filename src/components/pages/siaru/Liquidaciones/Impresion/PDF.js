@@ -327,9 +327,11 @@ const PDF = ({
 							</GridView>
 							*/}
 							<GridView gap="5px">
+								{/* 
 								<GridView width="70px">
 									<Text style={styles.titulo}>Banco:</Text>
 								</GridView>
+								*/}
 								<GridView justify="center" grow>
 									<Casillas cantidad={32} />
 								</GridView>

@@ -25,7 +25,7 @@ const Form = ({
 }) => {
 	record = { ...record };
 	disabled ??= {};
-	if (!["M", "B"].includes(request)) {
+	if (!["M", "B", "C"].includes(request)) {
 		if (request === "A") record.id = 0;
 		disabled.refMotivoBajaId = true;
 		disabled.deletedObs = true;

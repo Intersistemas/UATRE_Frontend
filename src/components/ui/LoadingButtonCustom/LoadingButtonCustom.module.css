@@ -11,6 +11,7 @@
   color: var(--blanco) !important;
   background: var(--color1) !important;
   font-weight: bold !important;
+	text-transform: none !important;
 }
 
 .w50{

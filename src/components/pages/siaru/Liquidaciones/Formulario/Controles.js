@@ -365,6 +365,12 @@ const Controles = ({
 								}));
 							}}
 						/>
+						<DateTimePicker
+							type="date"
+							label="Fecha de baja"
+							disabled
+							value={record.deletedDate ?? ""}
+						/>
 					</Grid>
 				);
 			let renderObservaciones = null;

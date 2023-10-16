@@ -244,7 +244,7 @@ const LiquidacionesHandler = () => {
 	if (formRequest) {
 		const disabled = {};
 		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
-		if (formRequest === "B") {
+		if (formRequest === "B" || (formRequest === "C" && !!liquidacion.refMotivoBajaId)) {
 			disabled.refMotivoBajaId = false;
 			disabled.deletedObs = false;
 		}
