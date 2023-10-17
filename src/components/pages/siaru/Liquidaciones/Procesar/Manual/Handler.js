@@ -27,12 +27,49 @@ const Handler = () => {
 		(state) => state.liquidacionProcesar?.manual?.periodo
 	);
 
-	const [redirect, setRedirect] = useState({ to: "", options: null });
-	if (redirect.to) navigate(redirect.to, redirect.options);
+	const [modal, setModal] = useState();
 
+	const [redirect, setRedirect] = useState({
+		to: "",
+		options: null,
+		unconditional: false,
+	});
+	if (redirect.to) {
+		//navigate(redirect.to, redirect.options);
+		if (redirect.unconditional) {
+			navigate(redirect.to, redirect.options);
+		} else {
+			setModal(
+				<Modal onClose={() => setModal(null)}>
+					<Grid col width="full" gap="15px">
+						<Grid width="full" justify="evenly">
+							<h3>Se perderán los datos cargados</h3>
+						</Grid>
+						<Grid width="full" justify="evenly">
+							<Grid width="370px">
+								<LoadingButtonCustom
+									onClick={() => navigate(redirect.to, redirect.options)}
+								>
+									Continúa
+								</LoadingButtonCustom>
+							</Grid>
+							<Grid width="370px">
+								<Button onClick={() => setModal(null)}>Cancela</Button>
+							</Grid>
+						</Grid>
+					</Grid>
+				</Modal>
+			);
+			setRedirect({});
+		}
+	}
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
-		else if (!periodo) setRedirect({ to: "/siaru/liquidaciones/procesar" });
+		if (!empresa?.id) setRedirect({ to: "/siaru", unconditional: false });
+		else if (!periodo)
+			setRedirect({
+				to: "/siaru/liquidaciones/procesar",
+				unconditional: false,
+			});
 	}, [empresa, periodo]);
 
 	const pushQuery = useQueryQueue((action, params) => {
@@ -49,8 +86,6 @@ const Handler = () => {
 				return null;
 		}
 	});
-
-	const [modal, setModal] = useState();
 
 	const [alerts, setAlerts] = useState([]);
 	let alertsRender = null;
@@ -342,7 +377,6 @@ const Handler = () => {
 						</Button>
 					</Grid>
 				</Grid>
-				{modal}
 			</Grid>
 		);
 	}
@@ -352,7 +386,10 @@ const Handler = () => {
 			<div className="titulo">
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
-			<div className="contenido">{contenido}</div>
+			<div className="contenido">
+				{contenido}
+				{modal}
+			</div>
 		</>
 	);
 };

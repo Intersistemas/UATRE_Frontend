@@ -5,8 +5,12 @@ import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 } from "redux/actions";
-import Tentativas from "../Tentativas/Handler";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import Modal from "components/ui/Modal/Modal";
+import Grid from "components/ui/Grid/Grid";
+import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
+import Button from "components/ui/Button/Button";
+import Tentativas from "../Tentativas/Handler";
 
 const Handler = () => {
 	const navigate = useNavigate();
@@ -16,13 +20,43 @@ const Handler = () => {
 	const { periodo, archivo } =
 		useSelector((state) => state.liquidacionProcesar.desdeArchivo) ?? {};
 
-	const [redirect, setRedirect] = useState({ to: "", options: null });
-	if (redirect.to) navigate(redirect.to, redirect.options);
+	const [modal, setModal] = useState();
+
+	const [redirect, setRedirect] = useState({ to: "", options: null, unconditional: false });
+	if (redirect.to) {
+		//navigate(redirect.to, redirect.options);
+		if (redirect.unconditional) {
+			navigate(redirect.to, redirect.options);
+		} else {
+			setModal(
+				<Modal onClose={() => setModal(null)}>
+					<Grid col width="full" gap="15px">
+						<Grid width="full" justify="evenly">
+							<h3>Se perderán los datos cargados</h3>
+						</Grid>
+						<Grid width="full" justify="evenly">
+							<Grid width="370px">
+								<LoadingButtonCustom
+									onClick={() => navigate(redirect.to, redirect.options)}
+								>
+									Continúa
+								</LoadingButtonCustom>
+							</Grid>
+							<Grid width="370px">
+								<Button onClick={() => setModal(null)}>Cancela</Button>
+							</Grid>
+						</Grid>
+					</Grid>
+				</Modal>
+			);
+			setRedirect({});
+		}
+	}
 
 	useEffect(() => {
-		if (!empresa?.cuit) setRedirect({ to: "/siaru" });
+		if (!empresa?.cuit) setRedirect({ to: "/siaru", unconditional: true });
 		else if (!(periodo || archivo))
-			setRedirect({ to: "/siaru/liquidaciones/procesar" });
+			setRedirect({ to: "/siaru/liquidaciones/procesar", unconditional: true });
 	}, [empresa, periodo, archivo]);
 
 	const pushQuery = useQueryQueue((action, params) => {
@@ -144,7 +178,10 @@ const Handler = () => {
 			<div className="titulo">
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
-			<div className="contenido">{contenido}</div>
+			<div className="contenido">
+				{contenido}
+				{modal}
+			</div>
 		</>
 	);
 };
