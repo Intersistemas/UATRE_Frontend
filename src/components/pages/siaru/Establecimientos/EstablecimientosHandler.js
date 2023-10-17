@@ -49,8 +49,8 @@ const EstablecimientosHandler = () => {
 		filter: { empresaId: empresa?.id, soloActivos: false },
 		sort: "-Id",
 		page: { index: 1, size: 10 },
+		seleccion: null,
 	});
-	const [seleccionado, setSeleccionado] = useState(null);
 	useEffect(() => {
 		if (!establecimientos.loading) return;
 		pushQuery({
@@ -73,8 +73,11 @@ const EstablecimientosHandler = () => {
 						size: res.size,
 						count: res.count,
 					},
+					seleccion:
+						data.find((r) => r.id === old.seleccion?.id) ??
+						data.at(0) ??
+						null,
 				}));
-				setSeleccionado(data.length ? data[0] : null);
 			},
 			onError: async (err) => {
 				setEstablecimientos((old) => ({
@@ -82,23 +85,23 @@ const EstablecimientosHandler = () => {
 					loading: null,
 					data: null,
 					error: err,
+					seleccion: null,
 				}));
-				setSeleccionado(null);
-			}
+			},
 		});
 	}, [establecimientos, pushQuery]);
 
 	//#region despachar Informar Modulo
-	const estabDesc = seleccionado ? `${seleccionado.nombre}` : ``;
+	const estabDesc = `${establecimientos.seleccion?.nombre ?? ""}`;
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [{ name: `Empresas` }, { name: `Agrega Establecimiento` }],
 	};
-	if (seleccionado) {
+	if (establecimientos.seleccion) {
 		moduloInfo.acciones.push({
 			name: `Consulta Establecimiento ${estabDesc}`,
 		});
-		if (!seleccionado.refMotivosBajaId) {
+		if (!establecimientos.seleccion.refMotivosBajaId) {
 			moduloInfo.acciones.push({
 				name: `Modifica Establecimiento ${estabDesc}`,
 			});
@@ -114,11 +117,15 @@ const EstablecimientosHandler = () => {
 	useEffect(() => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
-			record: seleccionado,
+			record: establecimientos.seleccion,
 			onCancel: (_request) => setForm(null),
-			onConfirm: (_request, _record) => {
+			onConfirm: (request, _record) => {
 				setForm(null);
-				setEstablecimientos((old) => ({ ...old, loading: "Cargando..." }));
+				setEstablecimientos((old) => ({
+					...old,
+					loading: "Cargando...",
+					seleccion: request === "A" ? null : old.seleccion,
+				}));
 			},
 		};
 		switch (moduloAccion) {
@@ -146,13 +153,14 @@ const EstablecimientosHandler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresa, estabDesc, seleccionado, dispatch]);
+	}, [moduloAccion, empresa, estabDesc, establecimientos, dispatch]);
 
 	const selection = {
-		onSelect: (row, _isSelect, _rowIndex, _e) => setSeleccionado(row),
-	}
-	if (seleccionado) {
-		selection.selected = [seleccionado.id]
+		onSelect: (row, _isSelect, _rowIndex, _e) =>
+			setEstablecimientos((old) => ({ ...old, seleccion: row })),
+	};
+	if (establecimientos.seleccion) {
+		selection.selected = [establecimientos.seleccion.id]
 	}
 
 	return (
@@ -201,7 +209,7 @@ const EstablecimientosHandler = () => {
 								}}
 							/>
 						</Grid>
-						<EstablecimientoDetails data={seleccionado} />
+						<EstablecimientoDetails data={establecimientos.seleccion} />
 						{form}
 					</Grid>
 				</Grid>
