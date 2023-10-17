@@ -21,11 +21,13 @@ const Form = ({
 	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
 	record = {}, // Registro de establecimiento a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
 	disabled: disabledInit = {}, // Controles deshabilitados. Cada uno debe tener el mismo nombre del campo al que refiere.
+	hide = {}, // Controles ocultos. Cada uno debe tener el mismo nombre del campo al que refiere.
 	onConfirm = onConfirmDef, // Acción a realizar al confirmar
 	onCancel = onCancelDef, // Accion a realizar al cancelar
 }) => {
 	record ??= {};
 	disabledInit ??= {};
+	hide ??= {};
 	onConfirm ??= onConfirmDef;
 	onCancel ??= onCancelDef;
 	record = { ...record };
@@ -47,6 +49,17 @@ const Form = ({
 		};
 	}
 	const [disabled, setDisabled] = useState(disabledInit);
+
+	hide.domicilio ??=
+		!!hide.domicilioCalle &&
+		!!hide.domicilioNumero &&
+		!!hide.domicilioPiso &&
+		!!hide.domicilioDpto &&
+		!!hide.domicilioProvinciasId &&
+		!!hide.domicilioLocalidadesId;
+	hide.refMotivosBajaId ??= (request !== "B" && !(record.refMotivosBajaId || record.deletedObs));
+	hide.deletedObs ??= (request !== "B" && !(record.refMotivosBajaId || record.deletedObs));
+
 	const [errores, setErrores] = useState({});
 	const [alerts, setAlerts] = useState([]);
 
@@ -107,13 +120,10 @@ const Form = ({
 		pushQuery({
 			action: "GetMotivosBaja",
 			params: { tipo: "E" },
-			onOk: async (res) => {
-				const newData = [
-					{ label: "Activo", value: 0 },
-					...res.map((r) => ({ label: r.descripcion, value: r.id })),
-				];
-				setMotivosBaja({ data: newData });
-			},
+			onOk: async (res) =>
+				setMotivosBaja({
+					data: res.map((r) => ({ label: r.descripcion, value: r.id })),
+				}),
 			onError: async (err) => setMotivosBaja({ data: [], error: err }),
 		});
 	}, [pushQuery]);
@@ -261,7 +271,7 @@ const Form = ({
 	let alertsRender = null;
 	if (alerts.length > 0) {
 		alertsRender = (
-			<Grid gap={`${gap}px`} full="width">
+			<Grid gap="inherit" full="width">
 				<Grid col grow>
 					{alerts?.map((r, ix) => (
 						<Collapse key={ix} in={true} style={{ width: "100%" }}>
@@ -308,7 +318,7 @@ const Form = ({
 					</Grid>
 					*/}
 				</Grid>
-				<Grid full="width" gap={`${gap}px`}>
+				<Grid full="width" gap="inherit">
 					<Grid width="25%">
 						<InputMaterial
 							type="number"
@@ -341,206 +351,224 @@ const Form = ({
 						/>
 					</Grid>
 				</Grid>
-				<Grid full="width" gap={`${gap}px`}>
+				<Grid full="width" gap="inherit">
 					<Grid width="50%">
-						<InputMaterial
-							label="Teléfono"
-							value={establecimiento.telefono}
-							disabled={disabled.telefono ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									telefono: `${value}`,
-								}))
-							}
-						/>
+						{hide.telefono ? null : (
+							<InputMaterial
+								label="Teléfono"
+								value={establecimiento.telefono}
+								disabled={disabled.telefono ?? false}
+								onChange={(value, _id) =>
+									setEstablecimiento((old) => ({
+										...old,
+										telefono: `${value}`,
+									}))
+								}
+							/>
+						)}
 					</Grid>
 					<Grid width="50%">
-						<InputMaterial
-							label="Correo"
-							value={establecimiento.email}
-							error={!!errores.email}
-							helperText={errores.email ?? ""}
-							disabled={disabled.email ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									email: `${value}`,
-								}))
-							}
-						/>
+						{hide.email ? null : (
+							<InputMaterial
+								label="Correo"
+								value={establecimiento.email}
+								error={!!errores.email}
+								helperText={errores.email ?? ""}
+								disabled={disabled.email ?? false}
+								onChange={(value, _id) =>
+									setEstablecimiento((old) => ({
+										...old,
+										email: `${value}`,
+									}))
+								}
+							/>
+						)}
 					</Grid>
 				</Grid>
-				<Grid
-					col
-					full="width"
-					style={{
-						border: "solid 1px #cccccc",
-						borderRadius: `${gap}px`,
-						padding: `${gap}px`,
-					}}
-					gap={`${gap}px`}
-				>
-					<Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
-						<h4>Domicilio</h4>
-					</Grid>
-					<Grid full="width">
-						<InputMaterial
-							label="Calle"
-							value={establecimiento.domicilioCalle}
-							disabled={disabled.domicilioCalle ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									domicilioCalle: `${value}`,
-								}))
-							}
-						/>
-					</Grid>
-					<Grid full="width">
-						<InputMaterial
-							label="Número"
-							value={establecimiento.domicilioNumero}
-							disabled={disabled.domicilioNumero ?? false}
-							onChange={(value, _id) =>
-								setEstablecimiento((old) => ({
-									...old,
-									domicilioNumero: `${value}`,
-								}))
-							}
-						/>
-					</Grid>
-					<Grid full="width" gap={`${gap}px`}>
-						<Grid block basis="180px" className={styles.label}>
-							<InputMaterial
-								label="Piso"
-								value={establecimiento.domicilioPiso}
-								disabled={disabled.domicilioPiso ?? false}
-								onChange={(value, _id) =>
-									setEstablecimiento((old) => ({
-										...old,
-										domicilioPiso: `${value}`,
-									}))
-								}
-							/>
+				{hide.domicilio ? null : (
+					<Grid
+						col
+						full="width"
+						style={{
+							border: "solid 1px #cccccc",
+							borderRadius: `${gap}px`,
+							padding: `${gap}px`,
+						}}
+						gap="inherit"
+					>
+						<Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
+							<h4>Domicilio</h4>
 						</Grid>
-						<Grid block basis="calc(100% - 180px)" className={styles.data}>
-							<InputMaterial
-								label="Dpto"
-								value={establecimiento.domicilioDpto}
-								disabled={disabled.domicilioDpto ?? false}
-								onChange={(value, _id) =>
-									setEstablecimiento((old) => ({
-										...old,
-										domicilioDpto: `${value}`,
-									}))
-								}
-							/>
-						</Grid>
-					</Grid>
-					<Grid width="full" gap={`${gap}px`}>
-						<Grid width="50%">
-							<SelectMaterial
-								name="domicilioProvinciasId"
-								label="Provincia"
-								value={establecimiento.domicilioProvinciasId ?? 0}
-								error={
-									provincias.loading ??
-									provincias.error?.message ??
-									errores.domicilioProvinciasId ??
-									""
-								}
-								disabled={disabled.domicilioProvinciasId ?? false}
-								options={provincias.data}
-								onChange={(value, _id) => {
-									const cambios = { domicilioProvinciasId: value };
-									if (establecimiento.domicilioProvinciasId !== value) {
-										cambios.domicilioLocalidadesId = 0;
-										setLocalidades({ data: [], loading: "Cargando..." });
+						<Grid full="width">
+							{hide.domicilioCalle ? null : (
+								<InputMaterial
+									label="Calle"
+									value={establecimiento.domicilioCalle}
+									disabled={disabled.domicilioCalle ?? false}
+									onChange={(value, _id) =>
+										setEstablecimiento((old) => ({
+											...old,
+											domicilioCalle: `${value}`,
+										}))
 									}
-									setEstablecimiento((old) => ({ ...old, ...cambios }));
-									setDisabled((old) => ({
-										...old,
-										domicilioLocalidadesId: value === 0,
-									}));
-								}}
-							/>
+								/>
+							)}
 						</Grid>
-						<Grid width="50%">
-							<SelectMaterial
-								name="domicilioLocalidadesId"
-								label="Localidad"
-								value={establecimiento.domicilioLocalidadesId ?? 0}
-								error={
-									localidades.loading ??
-									localidades.error?.message ??
-									errores.domicilioLocalidadesId ??
-									""
-								}
-								disabled={disabled.domicilioLocalidadesId ?? false}
-								options={localidades.data}
-								onChange={(value, _id) => {
-									setEstablecimiento((old) => ({
-										...old,
-										domicilioLocalidadesId: value,
-									}));
-								}}
-							/>
+						<Grid full="width">
+							{hide.domicilioNumero ? null : (
+								<InputMaterial
+									label="Número"
+									value={establecimiento.domicilioNumero}
+									disabled={disabled.domicilioNumero ?? false}
+									onChange={(value, _id) =>
+										setEstablecimiento((old) => ({
+											...old,
+											domicilioNumero: `${value}`,
+										}))
+									}
+								/>
+							)}
+						</Grid>
+						<Grid full="width" gap="inherit">
+							<Grid block basis="180px" className={styles.label}>
+								{hide.domicilioPiso ? null : (
+									<InputMaterial
+										label="Piso"
+										value={establecimiento.domicilioPiso}
+										disabled={disabled.domicilioPiso ?? false}
+										onChange={(value, _id) =>
+											setEstablecimiento((old) => ({
+												...old,
+												domicilioPiso: `${value}`,
+											}))
+										}
+									/>
+								)}
+							</Grid>
+							<Grid block basis="calc(100% - 180px)" className={styles.data}>
+								{hide.domicilioDpto ? null : (
+									<InputMaterial
+										label="Dpto"
+										value={establecimiento.domicilioDpto}
+										disabled={disabled.domicilioDpto ?? false}
+										onChange={(value, _id) =>
+											setEstablecimiento((old) => ({
+												...old,
+												domicilioDpto: `${value}`,
+											}))
+										}
+									/>
+								)}
+							</Grid>
+						</Grid>
+						<Grid width="full" gap="inherit">
+							<Grid width="50%">
+								{hide.domicilioProvinciasId ? null : (
+									<SelectMaterial
+										name="domicilioProvinciasId"
+										label="Provincia"
+										value={establecimiento.domicilioProvinciasId ?? 0}
+										error={
+											provincias.loading ??
+											provincias.error?.message ??
+											errores.domicilioProvinciasId ??
+											""
+										}
+										disabled={disabled.domicilioProvinciasId ?? false}
+										options={provincias.data}
+										onChange={(value, _id) => {
+											const cambios = { domicilioProvinciasId: value };
+											if (establecimiento.domicilioProvinciasId !== value) {
+												cambios.domicilioLocalidadesId = 0;
+												setLocalidades({ data: [], loading: "Cargando..." });
+											}
+											setEstablecimiento((old) => ({ ...old, ...cambios }));
+											setDisabled((old) => ({
+												...old,
+												domicilioLocalidadesId: value === 0,
+											}));
+										}}
+									/>
+								)}
+							</Grid>
+							<Grid width="50%">
+								{hide.domicilioLocalidadesId ? null : (
+									<SelectMaterial
+										name="domicilioLocalidadesId"
+										label="Localidad"
+										value={establecimiento.domicilioLocalidadesId ?? 0}
+										error={
+											localidades.loading ??
+											localidades.error?.message ??
+											errores.domicilioLocalidadesId ??
+											""
+										}
+										disabled={disabled.domicilioLocalidadesId ?? false}
+										options={localidades.data}
+										onChange={(value, _id) => {
+											setEstablecimiento((old) => ({
+												...old,
+												domicilioLocalidadesId: value,
+											}));
+										}}
+									/>
+								)}
+							</Grid>
 						</Grid>
 					</Grid>
-				</Grid>
-				{request === "B" ? (
-					<>
-						<Grid col full="width" gap={`${gap}`}>
-							<SelectMaterial
-								name="refMotivosBajaId"
-								label="Motivo de baja"
-								value={establecimiento.refMotivosBajaId ?? 0}
-								error={
-									motivosBaja.loading ??
-									motivosBaja.error?.message ??
-									errores.refMotivosBajaId ??
-									""
-								}
-								disabled={disabled.refMotivosBajaId ?? false}
-								options={motivosBaja.data}
-								onChange={(value, _id) => {
-									setEstablecimiento((old) => ({
-										...old,
-										refMotivosBajaId: value,
-									}));
-									setDisabled((old) => ({
-										...old,
-										deletedObs: value === 0,
-									}));
-								}}
-							/>
-						</Grid>
-						<Grid col full="width" gap={`${gap}`}>
-							<InputMaterial
-								label="Observaciones de baja"
-								value={establecimiento.deletedObs}
-								disabled={disabled.deletedObs ?? false}
-								onChange={(value, _id) =>
-									setEstablecimiento((old) => ({
-										...old,
-										deletedObs: `${value}`,
-									}))
-								}
-							/>
-						</Grid>
-					</>
-				) : null}
-				<Grid width="full" gap="200px" justify="center">
+				)}
+				{hide.refMotivosBajaId ? null : (
+					<Grid col full="width" gap="inherit">
+						<SelectMaterial
+							name="refMotivosBajaId"
+							label="Motivo de baja"
+							value={establecimiento.refMotivosBajaId ?? 0}
+							error={
+								motivosBaja.loading ??
+								motivosBaja.error?.message ??
+								errores.refMotivosBajaId ??
+								""
+							}
+							disabled={disabled.refMotivosBajaId ?? false}
+							options={motivosBaja.data}
+							onChange={(value, _id) => {
+								setEstablecimiento((old) => ({
+									...old,
+									refMotivosBajaId: value,
+								}));
+								setDisabled((old) => ({
+									...old,
+									deletedObs: value === 0,
+								}));
+							}}
+						/>
+					</Grid>
+				)}
+				{hide.deletedObs ? null : (
+					<Grid col full="width" gap="inherit">
+						<InputMaterial
+							label="Observaciones de baja"
+							value={establecimiento.deletedObs}
+							disabled={disabled.deletedObs ?? false}
+							onChange={(value, _id) =>
+								setEstablecimiento((old) => ({
+									...old,
+									deletedObs: `${value}`,
+								}))
+							}
+						/>
+					</Grid>
+				)}
+				<Grid width="full" justify="evenly">
 					<Grid width="150px">
 						{["A", "B", "M"].includes(request) ? (
 							<LoadingButtonCustom onClick={validar}>
-								CONFIRMA
+								Confirma
 							</LoadingButtonCustom>
 						) : null}
 					</Grid>
 					<Grid width="150px">
-						<Button onClick={() => onCancel(request)}>CANCELA</Button>
+						<Button onClick={() => onCancel(request)}>Cancela</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

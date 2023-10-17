@@ -15,13 +15,13 @@ const EstablecimientoDetails = ({ data = {} }) => {
 	const valor = (valor) => (valor ? valor : " ");
 
 	return (
-		<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
+		<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width" gap="5px">
 			<Grid full="width">
 				<Grid className={styles.titulo} grow>
 					Datos del Establecimiento
 				</Grid>
 			</Grid>
-			<Grid full="width" gap="5px">
+			<Grid full="width" gap="inherit">
 				<InputMaterial
 					label="Nro. de Estab."
 					value={valor(Formato.Entero(data.nroSucursal))}
@@ -34,7 +34,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 					{...im}
 				/>
 			</Grid>
-			<Grid full="width" gap="5px">
+			<Grid full="width" gap="inherit">
 				<InputMaterial
 					label="Telefono"
 					value={valor(data.telefono)}
@@ -53,13 +53,13 @@ const EstablecimientoDetails = ({ data = {} }) => {
 							Domicilio
 						</Grid>
 					</Grid>
-					<Grid full="width" gap="5px">
+					<Grid full="width" gap="inherit">
 						<InputMaterial
 							label="Calle"
 							value={valor(data.domicilioCalle)}
 							{...im}
 						/>
-						<Grid full="width" gap="5px">
+						<Grid full="width" gap="inherit">
 							<InputMaterial
 								label="Nro"
 								value={valor(data.domicilioNumero)}
@@ -92,7 +92,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 							/>
 						</Grid>
 					</Grid>
-					<Grid full="width" gap="5px">
+					<Grid full="width" gap="inherit">
 						<InputMaterial
 							label="Localidad"
 							value={valor(data.localidadDescripcion)}
