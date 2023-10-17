@@ -136,10 +136,10 @@ const LiquidacionForm = ({
 			<Modal onClose={() => setliqErrors(null)}>
 				<Grid col gap="10px" width="full">
 					<Grid col width="full">
-						{errores.map((v, i) => (<Grid id={i}>{v}</Grid>))}
+						{errores.map((v, i) => (<Grid id={i} justify="center"><h4>{v}</h4></Grid>))}
 					</Grid>
 					<Grid width="full" gap="200px" justify="center">
-						<Grid width="150px">
+						<Grid width="350px">
 							<Button onClick={() => setliqErrors(null)}>
 								Volver para modificar datos
 							</Button>
