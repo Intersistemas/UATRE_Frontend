@@ -4,7 +4,7 @@ import {
     FaTh,FaBars,FaRegUser, FaChevronRight
 }from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
-import { Link, NavLink,useNavigate } from 'react-router-dom';
+import { NavLink,useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
@@ -24,7 +24,6 @@ const Sidebar = ({children}) => {
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
     const Usuario = authContext.usuario;
-
     const[botones ,setBotones] = useState([]);
 
     const[isOpen ,setIsOpen] = useState(true);
@@ -37,16 +36,33 @@ const Sidebar = ({children}) => {
         }
     ]
     const navigate = useNavigate();
-
+    const location = useLocation();
     
+    let currentLink = [];
+
+    const migas = location.pathname.split('/')
+    .filter(miga => miga !== '')
+    .map(miga => {
+        currentLink.push(`/${miga}`)
+
+        return(
+            <NavLink key={miga} to={currentLink.join('')} className={clases.link} activeClassName={clases.active}>
+                <div className={clases.icon}><FaTh/></div>
+                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
+            </NavLink>    
+        ) 
+
+    })
+
+
     console.log('moduloActual: ',moduloActual);
 
     const logout = () =>{
          logoutHandler();
-         navigate("/ingreso");
+         navigate("ingreso");
     }
 
-    UseKeyPress(['i'], ()=>navigate("/inicio"), 'AltKey');
+    UseKeyPress(['i'], ()=>navigate("inicio"), 'AltKey');
     UseKeyPress(['c'], ()=>logout(), 'AltKey');
     
     useEffect(() => {
@@ -79,14 +95,14 @@ const Sidebar = ({children}) => {
                         </div>
                             {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
-                        {
+                        { migas/*
                         menuItem.map((item, index)=>(
                             <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
                                 <div className={clases.icon}>{item.icon}</div>
                                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
                             </NavLink>
                         ))
-                        }
+                        */}
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(   

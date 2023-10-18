@@ -83,7 +83,6 @@ const AfiliadosHandler = () => {
   };
   const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
 
-  const navigate = useNavigate();
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
     { value: 0, label: " Todos" },

@@ -26,8 +26,8 @@ const Handler = () => {
 	const periodo = useSelector(
 		(state) => state.liquidacionProcesar?.manual?.periodo
 	);
-
 	const [modal, setModal] = useState();
+
 
 	const [redirect, setRedirect] = useState({
 		to: "",

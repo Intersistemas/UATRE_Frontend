@@ -40,6 +40,7 @@ const LiquidacionesProcesarHandler = () => {
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
+	
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:

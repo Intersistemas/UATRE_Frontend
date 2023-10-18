@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import Button from "../../ui/Button/Button";
 import Modal from "../../ui/Modal/Modal";
 import classes from "./AfiliadoAgregar.module.css";
@@ -33,6 +33,7 @@ import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
 import Documentacion from "../../Documentacion/Documentacion";
+import UseKeyPress from '../../helpers/UseKeyPress';
 
 //#region Reducers
 const cuilReducer = (state, action) => {
@@ -300,6 +301,15 @@ const AfiliadoAgregar = (props) => {
   const [dialogTexto, setDialogTexto] = useState("");
   //#endregion
 
+
+
+  UseKeyPress(['Escape'], () => handleCerrarModal());
+ // UseKeyPress(['a'], ()=>btnconfirmar(), 'AltKey');
+
+  UseKeyPress(['Enter'], () => afiliadoAgregarHandler(), 'AltKey');
+
+  
+
   //#region Texto completar campos
   const TextCompletarCampos = () => {
     console.log("texto dialog estadocivil", estadoCivilState.isValid);
@@ -516,6 +526,8 @@ const AfiliadoAgregar = (props) => {
     value: "",
     isValid: false,
   });
+
+  //#ENDREGION
 
   //checking
   useEffect(() => {
@@ -992,8 +1004,9 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region submit afiliado
-  const afiliadoAgregarHandler = async (event) => {
-    event.preventDefault();
+  const afiliadoAgregarHandler = async () => {
+    //event.preventDefault();
+    console.log('***')
     setInputsTouched(true);
     if (!formularioIsValid || !formularioEmpleadorIsValid) {
       //console.log("formularioIsValid", formularioIsValid);
@@ -1677,15 +1690,14 @@ const AfiliadoAgregar = (props) => {
   const AgregarModificarAfiliadoTitulo = () => {
     if (props.accion === "Agrega") {
       if (afiliadoExiste) {
-        return "Modifica Afiliado";
+        return "MODIFICA AFILIADO";
       }
-
-      return "Agrega Solicitud";
+      return "AGREGA SOLICITUD";
     } else if (props.accion === "Modifica") {
-      return "Modifica Afiliado";
+      return "MODIFICA AFILIADO";
     }
 
-    return "Agrega Solicitud"
+    return "AGREGA SOLICITUD"
   };
 
   const handleResuelveSolicitudDisable = () => {
@@ -2438,9 +2450,8 @@ const AfiliadoAgregar = (props) => {
 						}}
 					/>
 				)}
-				<div className={classes.footer}>
-					<LoadingButtonCustom
-						/*className={classes.button}*/
+				<div className={classes.footer} >
+					<Button 						/*className={classes.button}*/
 						hidden={props.accion === "Resuelve" ? true : false}
 						loading={afiliadoProcesando}
 						width={25}
@@ -2448,9 +2459,9 @@ const AfiliadoAgregar = (props) => {
 						disabled={AgregarModificarAfiliadoDisableHandler()}
 					>
 						{AgregarModificarAfiliadoTitulo()}
-					</LoadingButtonCustom>
+					</Button>
 
-					<Button type="submit" width={25} onClick={handleCerrarModal}>
+					<Button width={25} onClick={handleCerrarModal} >
 						CIERRA
 					</Button>
 				</div>

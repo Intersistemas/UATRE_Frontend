@@ -1,17 +1,17 @@
 import React from 'react';
 import Boton from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 import classes from './Button.module.css';
+
  
 const Button = (props) => {
 
 
   console.log('props:',props);
 
+  //#region texto de boton
   const texto = () => {
-
       console.log('props',props);
-      console.log('props2',props.underlineindex);
-
       if (props.underlineindex || props.underlineindex === 0) {
 
         console.log('underlineindex',props.underlineindex)
@@ -23,20 +23,31 @@ const Button = (props) => {
       } else {
         return ( props.children )
       }
-     }  
+  }  
+  //#endregion
+
+
 
   return (
-    
-    <Boton
-      type={props.type || 'button'}
-      
-      className={`${classes[`${props.className}`]} ${classes.boton}`}
-      style={{ ...props.style, width: props.width != null ? `${props.width}%`:"100%"}}
-      onClick={props.onClick}
-      disabled={props.disabled || false}
-    >
-      {texto()}
-    </Boton>
+
+      <Boton
+        type={props.type || 'button'}
+        
+        className={`${classes[`${props.className}`]} ${classes.boton}`}
+        style={{ ...props.style, width: props.width != null ? `${props.width}%`:"100%"}}
+        onClick={props.onClick}
+        disabled={props.disabled || false}
+        overlay="asd"
+      >
+          {props.loading && <Spinner
+            as="span"
+            animation="border"
+            size="sm"
+            role="status"
+            aria-hidden="true"
+          />}
+        {texto()}
+      </Boton>
   );
 };
 export default Button;

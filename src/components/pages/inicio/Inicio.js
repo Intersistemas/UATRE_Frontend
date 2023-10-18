@@ -11,9 +11,9 @@ const Inicio = ({ modulos = [] }) => {
 	const [accesos, setAccesos] = useState([]);
 
 
-	UseKeyPress(['a'], ()=>navigate("/afiliaciones"), 'AltKey');
-	UseKeyPress(['s'], ()=>navigate("/siaru"), 'AltKey');
-	UseKeyPress(['t'], ()=>navigate("/administracion"), 'AltKey');
+	UseKeyPress(['a'], ()=>navigate("afiliaciones"), 'AltKey');
+	UseKeyPress(['s'], ()=>navigate("siaru"), 'AltKey');
+	UseKeyPress(['t'], ()=>navigate("administracion"), 'AltKey');
 	
 	useEffect(() => {
 		const newAccesos = [];
@@ -22,19 +22,19 @@ const Inicio = ({ modulos = [] }) => {
 			switch (modulo) {
 				case "Afiliaciones":
 					acceso.nombre = <><text className="underline">A</text>filiaciones</>;
-					acceso.accion = () => navigate("/afiliaciones");
+					acceso.accion = () => navigate("afiliaciones");
 					break;
 				case "Siaru":
 					acceso.nombre = <><text className="underline">S</text>istema de Aportes Rurales</>;
-					acceso.accion = () => navigate("/siaru");
+					acceso.accion = () => navigate("siaru");
 					break;
 				case "Administracion de Datos":
 					acceso.nombre = <>Administración de Da<text className="underline">t</text>os</>;
-					acceso.accion = () => navigate("/administracion");
+					acceso.accion = () => navigate("administracion");
 					break;
 				case "Expedientes":
 					acceso.nombre = <><text className="underline">E</text>xpedientes</>;
-					acceso.accion = () => navigate("/expedientes");
+					acceso.accion = () => navigate("expedientes");
 					break;
 				default:
 					return;
