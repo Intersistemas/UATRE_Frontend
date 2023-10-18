@@ -5,6 +5,7 @@ import {
 	LIQUIDACION_PROCESAR_SELECCIONAR,
 	MODULO_EJECUTARACCION,
 	USUARIO_LOGUEADO,
+	SET_NAV_FUNCTION,
 } from "./actionTypes";
 
 const initialState = {
@@ -24,6 +25,7 @@ const initialState = {
 			periodo: null,
 		},
 	},
+	nav: {},
 };
 const reducer = (state = initialState, action) => {
 	switch (action.type) {
@@ -61,6 +63,11 @@ const reducer = (state = initialState, action) => {
 			return {
 				...state,
 				usuarioLogueado: action.payload,
+			};
+		case SET_NAV_FUNCTION:
+			return {
+				...state,
+				nav: {...state.nav, [`${action.payload.location}`]:action.payload.fn}
 			};
 
 		default:

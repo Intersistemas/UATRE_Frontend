@@ -138,7 +138,7 @@ const ConfirmaEmail = () => {
           </div>
         </div>
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} type="submit" className="botonBlanco">
+            <Button onClick={()=>navigate("/ingreso")} type="submit">
               Inicio
             </Button>
         </div>

@@ -36,14 +36,15 @@ const Handler = () => {
 						</Grid>
 						<Grid width="full" justify="evenly">
 							<Grid width="370px">
-								<LoadingButtonCustom
+								<Button
+									className="botonAzul"
 									onClick={() => navigate(redirect.to, redirect.options)}
 								>
 									Continúa
-								</LoadingButtonCustom>
+								</Button>
 							</Grid>
 							<Grid width="370px">
-								<Button onClick={() => setModal(null)}>Cancela</Button>
+								<Button className="botonAmarillo" onClick={() => setModal(null)}>Cancela</Button>
 							</Grid>
 						</Grid>
 					</Grid>
@@ -56,7 +57,7 @@ const Handler = () => {
 	useEffect(() => {
 		if (!empresa?.cuit) setRedirect({ to: "/siaru", unconditional: true });
 		else if (!(periodo || archivo))
-			setRedirect({ to: "/siaru/liquidaciones/procesar", unconditional: true });
+			setRedirect({ to: "procesar", unconditional: true });
 	}, [empresa, periodo, archivo]);
 
 	const pushQuery = useQueryQueue((action, params) => {

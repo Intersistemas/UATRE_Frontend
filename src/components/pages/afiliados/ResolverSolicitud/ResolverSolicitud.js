@@ -122,7 +122,7 @@ const ResolverSolicitud = (props) => {
         <div className={classes.botonesResolverSolicitud}>
           <div className={classes.botonResolverSolicitud}>
             <Button
-              className={classes.button}
+              className="botonAmarillo"
               width={100}
               onClick={props.onResolverSolicitudHandler}
               disabled={props.showImprimirLiquidacion}
@@ -132,7 +132,7 @@ const ResolverSolicitud = (props) => {
           </div>
           <div className={classes.botonResolverSolicitud}>
             <Button
-              className={classes.button}
+              className="botonAmarillo"
               width={100}
               disabled={!props.showImprimirLiquidacion}
               //onClick={imprimirLiquidacionHandler}

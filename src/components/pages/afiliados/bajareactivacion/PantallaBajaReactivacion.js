@@ -134,7 +134,7 @@ const PantallaBajaReactivacion = (props) => {
             <Typography gutterBottom>{dialogTexto}</Typography>
           </DialogContent>
           <DialogActions dividers>
-            <Button onClick={handleCloseDialog}>Cerrar</Button>
+            <Button className="botonAmarillo" onClick={handleCloseDialog}>Cerrar</Button>
           </DialogActions>
         </Dialog>
       </div>
@@ -186,7 +186,7 @@ const PantallaBajaReactivacion = (props) => {
         </div>
         <div className={classes.footer}>
           <Button
-            /*className={classes.button}*/
+            className="botonAmarillo"
             width={25}
             onClick={handleConfirmar}
             disabled={resolverSolicitudAfiliadoResponse !== 0}
@@ -194,7 +194,7 @@ const PantallaBajaReactivacion = (props) => {
             {props.accion === "Baja" ? "Baja Afiliado" : "Reactiva Afiliado"}
           </Button>
 
-          <Button width={25} onClick={handleCerrarModal}>
+          <Button className="botonAmarillo" width={25} onClick={handleCerrarModal}>
             Cierra
           </Button>
         </div>

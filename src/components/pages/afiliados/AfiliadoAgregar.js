@@ -2000,7 +2000,7 @@ const AfiliadoAgregar = (props) => {
 						<Typography gutterBottom>{dialogTexto}</Typography>
 					</DialogContent>
 					<DialogActions>
-						<Button onClick={handleCloseDialog}>Cierra</Button>
+						<Button className="botonAmarillo" onClick={handleCloseDialog}>Cierra</Button>
 					</DialogActions>
 				</Dialog>
 			</div>
@@ -2402,7 +2402,7 @@ const AfiliadoAgregar = (props) => {
 							<div className={classes.renglon}>
 								<div className={classes.boton}>
 									<Button
-										className={classes.button}
+										className="botonAmarillo"
 										width={80}
 										onClick={afiliadoAgregarHandler}
 									>
@@ -2451,7 +2451,8 @@ const AfiliadoAgregar = (props) => {
 					/>
 				)}
 				<div className={classes.footer} >
-					<Button 						/*className={classes.button}*/
+					<Button 			
+            className="botonAzul"			/*className={classes.button}*/
 						hidden={props.accion === "Resuelve" ? true : false}
 						loading={afiliadoProcesando}
 						width={25}
@@ -2461,7 +2462,7 @@ const AfiliadoAgregar = (props) => {
 						{AgregarModificarAfiliadoTitulo()}
 					</Button>
 
-					<Button width={25} onClick={handleCerrarModal} >
+					<Button className="botonAmarillo" width={25} onClick={handleCerrarModal} >
 						CIERRA
 					</Button>
 				</div>

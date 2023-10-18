@@ -14,11 +14,11 @@ const AdministracionHandler = () => {
 
 	useEffect(() => {
 		const newAccesos = [];
-		newAccesos.push(<Button onClick={() => navigate("seccionales")}>Seccionales</Button>)
-		newAccesos.push(<Button onClick={() => navigate("empresas")}>Empresas</Button>)
-		newAccesos.push(<Button onClick={() => navigate("delegaciones")}>Delegaciones</Button>)
-		newAccesos.push(<Button onClick={() => navigate("localidades")}>Localidades</Button>)
-		newAccesos.push(<Button onClick={() => navigate("administracionDeAccesos")}>Administracion De Accesos</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("seccionales")}>Seccionales</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("empresas")}>Empresas</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("delegaciones")}>Delegaciones</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("localidades")}>Localidades</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("administracionDeAccesos")}>Administracion De Accesos</Button>)
 		setAccesos(newAccesos);	
 
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!

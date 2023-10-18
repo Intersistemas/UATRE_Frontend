@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
+	handleSetNavFunction,
 } from "redux/actions";
 import { Alert, AlertTitle } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -17,6 +18,8 @@ import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButton
 import Tentativas from "../Tentativas/Handler";
 import NominaTable from "./NominaTable";
 import NominaForm from "./NominaForm";
+import { useLocation } from 'react-router-dom';
+
 
 const Handler = () => {
 	const navigate = useNavigate();
@@ -27,50 +30,88 @@ const Handler = () => {
 		(state) => state.liquidacionProcesar?.manual?.periodo
 	);
 	const [modal, setModal] = useState();
+	const location = useLocation();
+	
 
-
-	const [redirect, setRedirect] = useState({
-		to: "",
-		options: null,
-		unconditional: false,
-	});
-	if (redirect.to) {
-		//navigate(redirect.to, redirect.options);
-		if (redirect.unconditional) {
-			navigate(redirect.to, redirect.options);
-		} else {
-			setModal(
-				<Modal onClose={() => setModal(null)}>
-					<Grid col width="full" gap="15px">
-						<Grid width="full" justify="evenly">
-							<h3>Se perderán los datos cargados</h3>
+	//function que llamará antes del nav to
+	const locationFn = (par)=>{
+		setModal(
+			<Modal onClose={() => setModal(null)}>
+				<Grid col width="full" gap="15px">
+					<Grid width="full" justify="evenly">
+						<h3>Se perderán los datos cargados</h3>
+					</Grid>
+					<Grid width="full" justify="evenly">
+						<Grid width="370px">
+							<Button
+							className="botonAzul"
+							onClick={() => navigate(par)}
+							>
+								Continúa
+							</Button>
 						</Grid>
-						<Grid width="full" justify="evenly">
-							<Grid width="370px">
-								<LoadingButtonCustom
-									onClick={() => navigate(redirect.to, redirect.options)}
-								>
-									Continúa
-								</LoadingButtonCustom>
-							</Grid>
-							<Grid width="370px">
-								<Button onClick={() => setModal(null)}>Cancela</Button>
-							</Grid>
+						<Grid width="370px">
+							<Button 
+								className="botonAmarillo"
+								onClick={() => setModal(null)}>Cancela
+							</Button>
 						</Grid>
 					</Grid>
-				</Modal>
-			);
-			setRedirect({});
-		}
+				</Grid>
+			</Modal>
+		);
 	}
-	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru", unconditional: false });
-		else if (!periodo)
-			setRedirect({
-				to: "/siaru/liquidaciones/procesar",
-				unconditional: false,
-			});
-	}, [empresa, periodo]);
+	
+	useEffect(() =>{
+
+		console.log('location?.pathname',location?.pathname)
+		console.log('locationFn',locationFn)
+		dispatch(handleSetNavFunction({location:location?.pathname,fn:locationFn}));
+
+	},[])
+
+	// const [redirect, setRedirect] = useState({
+	// 	to: "",
+	// 	options: null,
+	// 	unconditional: false,
+	// });
+	// if (redirect.to) {
+	// 	//navigate(redirect.to, redirect.options);
+	// 	if (redirect.unconditional) {
+	// 		navigate(redirect.to, redirect.options);
+	// 	} else {
+	// 		setModal(
+	// 			<Modal onClose={() => setModal(null)}>
+	// 				<Grid col width="full" gap="15px">
+	// 					<Grid width="full" justify="evenly">
+	// 						<h3>Se perderán los datos cargados</h3>
+	// 					</Grid>
+	// 					<Grid width="full" justify="evenly">
+	// 						<Grid width="370px">
+	// 							<LoadingButtonCustom
+	// 								onClick={() => navigate(p)}
+	// 							>
+	// 								Continúa
+	// 							</LoadingButtonCustom>
+	// 						</Grid>
+	// 						<Grid width="370px">
+	// 							<Button onClick={() => setModal(null)}>Cancela</Button>
+	// 						</Grid>
+	// 					</Grid>
+	// 				</Grid>
+	// 			</Modal>
+	// 		);
+	// 		setRedirect({});
+	// 	}
+	// }
+	// useEffect(() => {
+	// 	if (!empresa?.id) setRedirect({ to: "/siaru", unconditional: false });
+	// 	else if (!periodo)
+	// 		setRedirect({
+	// 			to: "/siaru/liquidaciones/procesar",
+	// 			unconditional: false,
+	// 		});
+	// }, [empresa, periodo]);
 
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -170,9 +211,9 @@ const Handler = () => {
 	const moduloInfo = {
 		nombre: "SIARU",
 		acciones: [
-			{ name: `Empresas` },
-			{ name: `Liquidaciones` },
-			{ name: `Procesa liquidaciones` },
+			// { name: `Empresas` },
+			// { name: `Liquidaciones` },
+			// { name: `Procesa liquidaciones` },
 		],
 	};
 
@@ -251,17 +292,18 @@ const Handler = () => {
 												</Grid>
 												<Grid width="full" justify="evenly">
 													<Grid width="370px">
-														<LoadingButtonCustom
+														<Button
+															className="botonAzul"
 															onClick={() => {
 																setModal(null);
 																setNomina(newData);
 															}}
 														>
 															Agrega trabajador de todas formas
-														</LoadingButtonCustom>
+														</Button>
 													</Grid>
 													<Grid width="370px">
-														<Button onClick={() => setModal(null)}>
+														<Button className="botonAmarillo" onClick={() => setModal(null)}>
 															Cancela
 														</Button>
 													</Grid>
@@ -278,15 +320,15 @@ const Handler = () => {
 				),
 			}));
 		switch (moduloAccion) {
-			case `Empresas`:
-				setRedirect({ to: "/siaru" });
-				break;
-			case `Liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones" });
-				break;
-			case `Procesa liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones/procesar" });
-				break;
+			// case `Empresas`:
+			// 	setRedirect({ to: "siaru" });
+			// 	break;
+			// case `Liquidaciones`:
+			// 	setRedirect({ to: "liquidaciones" });
+			// 	break;
+			// case `Procesa liquidaciones`:
+			// 	setRedirect({ to: "procesar" });
+			// 	break;
 			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
 				break;
@@ -336,6 +378,7 @@ const Handler = () => {
 				<Grid justify="center">
 					<Grid width="350px" height="50px">
 						<Button
+							className="botonAmarillo"
 							disabled={!descTrabajador}
 							onClick={() => {
 								setModal(
@@ -349,7 +392,8 @@ const Handler = () => {
 											</Grid>
 											<Grid width="full" gap="200px" justify="center">
 												<Grid width="150px">
-													<LoadingButtonCustom
+													<Button
+														className="botonAzul"
 														onClick={() => {
 															setModal(null);
 															setTentativas((old) => ({
@@ -360,10 +404,10 @@ const Handler = () => {
 														}}
 													>
 														Continúa
-													</LoadingButtonCustom>
+													</Button>
 												</Grid>
 												<Grid width="150px">
-													<Button onClick={() => setModal(null)}>
+													<Button className="botonAmarillo" onClick={() => setModal(null)}>
 														Cancela
 													</Button>
 												</Grid>

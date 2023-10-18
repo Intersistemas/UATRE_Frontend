@@ -50,10 +50,10 @@ const DelegacionesForm = ({
 						<Grid grow />
 						<Grid col width="30%" justify="end">
 							<Grid gap="15px">
-								<Button className="botonBlanco" onClick={() => onClose(false)}>
+								<Button className="botonAmarillo" onClick={() => onClose(false)}>
 									Cancela
 								</Button>
-								<Button onClick={() => onClose(true)}>Confirma</Button>
+								<Button className="botonAmarillo" onClick={() => onClose(true)}>Confirma</Button>
 							</Grid>
 						</Grid>
 					</Grid>

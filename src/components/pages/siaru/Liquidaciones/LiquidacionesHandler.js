@@ -309,7 +309,7 @@ const LiquidacionesHandler = () => {
 				setRedirect({ to: "/siaru" }); //navigate("siaru"); 231018
 				break;
 			case `Procesa liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones/procesar" });
+				setRedirect({ to: "procesar" });
 				break;
 			case `Consulta ${liquidacionDesc}`:
 				setFormRequest("C");

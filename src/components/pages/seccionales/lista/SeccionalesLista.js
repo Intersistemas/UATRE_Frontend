@@ -177,7 +177,8 @@ const SeccionalesLista = (props) => {
           error={props.error}
         />
         <Button
-          className="botonBorder"
+          className="botonAmarillo"
+          botonBorder
           width={70}
           onClick={props.onBuscarClick}
           disabled={!props.selectorValor ?? true}
@@ -185,7 +186,8 @@ const SeccionalesLista = (props) => {
           Busca
         </Button>
         <Button
-          className="botonBorder"
+          className="botonAmarillo"
+          botonBorder
           //width={70}
           style={{ "min-width": "fit-content" }}
           onClick={props.onLimpiarClick}

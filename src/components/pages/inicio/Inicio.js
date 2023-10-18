@@ -39,7 +39,7 @@ const Inicio = ({ modulos = [] }) => {
 				default:
 					return;
 			}
-			newAccesos.push(<Button onClick={acceso.accion}>{acceso.nombre}</Button>);
+			newAccesos.push(<Button className="botonAmarillo" onClick={acceso.accion}>{acceso.nombre}</Button>);
 		});
 
 		if (newAccesos.length === 1) newAccesos[0].props.onClick();

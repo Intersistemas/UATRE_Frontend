@@ -15,6 +15,9 @@ import UseKeyPress from '../helpers/UseKeyPress';
 
 const Sidebar = ({children}) => {
 
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const moduloActual = useSelector(state => state.modulo)
     const afiliadoSeleccionado = useSelector(state => state.afiliado)
     
@@ -35,18 +38,44 @@ const Sidebar = ({children}) => {
             icon:<FaTh/>
         }
     ]
-    const navigate = useNavigate();
-    const location = useLocation();
+    
+    const navFunction = useSelector(state => state.nav[location.pathname])
+    
+    console.log('prev_currentLink',location.pathname);
+
+
     
     let currentLink = [];
+
+    const modal = () =>{
+        console.log('NavLink***',location.pathname)
+
+        //location.pathname include "!"
+
+        //showModal
+
+       // setState
+
+    }
 
     const migas = location.pathname.split('/')
     .filter(miga => miga !== '')
     .map(miga => {
         currentLink.push(`/${miga}`)
-
+        
+        const nav = {}
+        const to = currentLink.join('');
+        
+        if (navFunction == null){ 
+            nav.to = to
+            } 
+        else {
+            nav.to = '#'
+            nav.onClick = (()=>navFunction(to))
+        }  
+        console.log('nav',nav)
         return(
-            <NavLink key={miga} to={currentLink.join('')} className={clases.link} activeClassName={clases.active}>
+            <NavLink key={miga} {...nav} className={clases.link} activeClassName={clases.active}>
                 <div className={clases.icon}><FaTh/></div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
             </NavLink>    
@@ -108,7 +137,7 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
                                             {item.name}
                                         </Button>
                                     </div>

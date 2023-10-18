@@ -165,12 +165,12 @@ const Login = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul" underlineindex={0}>
+                <Button active type="submit" className="botonAzul" underlineindex={0}>
                   Ingresar
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlineindex={0}>Registro</Button>
+                <Button onClick={()=>navigate("/registro")}underlineindex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>

@@ -1,17 +1,19 @@
 
 .boton {
+  color: var(--color1) !important;
+  background: transparent !important; /*Transparente*/
   font-family: var(--fuente) !important;
   font-size: 1.1rem !important;
-  color: var(--color1) !important;
-  background: var(--amarillo1) !important;
   font-weight: bold !important;
-
   width: var(--width100); 
   cursor: pointer !important;
-  text-shadow: 2px 2px 8px white;
   border: 0px solid var(--color1) !important;
   border-radius: 5px !important;
-  box-shadow: 0 3px 2px rgb(24 96 144 / 50%) !important;
+  box-shadow: 0 2px 6px rgb(24 96 144 / 70%) !important;
+}
+
+.w75{
+  width: 75% !important; 
 }
 
 .w50{
@@ -32,8 +34,6 @@
     transition: .4s;
     color: white !important;
     background: var(--color2) !important;
-
-    text-shadow: 0px 0px 0px white;
 }
 
 .boton:disabled,
@@ -47,17 +47,29 @@
 }
  
 
-.botonBlanco {
+.botonAmarillo {
   color: var(--color1) !important;
-  background: transparent !important; /*Transparente*/
+  background: var(--amarillo1) !important;
+  text-shadow: 1px 1px 5px white;
 }
 
-.botonBlanco:hover,
-.botonBlanco:active {
+.botonAmarillo:hover,
+.botonAmarillo:active {
   color: white !important;
   background: var(--color2) !important;
+  text-shadow: 0px 0px 0px white;
 }
 
+.botonAzul {
+  color: white !important;
+  background: var(--color1) !important;
+}
+
+.botonAzul:hover,
+.botonAzul:active {
+  color: white !important;
+  background: var(--color2) !important;  
+}
 
 
 .botonBorder{

@@ -195,12 +195,12 @@ const NominaForm = ({
 				/>
 				<Grid gap="200px" justify="center">
 					<Grid width="150px">
-						<LoadingButtonCustom onClick={validar}>
+						<Button className="botonAzul" onClick={validar}>
 							Confirma
-						</LoadingButtonCustom>
+						</Button>
 					</Grid>
 					<Grid width="150px">
-						<Button onClick={onClose}>Cancela</Button>
+						<Button className="botonAmarillo" onClick={onClose}>Cancela</Button>
 					</Grid>
 				</Grid>
 			</Grid>

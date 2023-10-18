@@ -104,10 +104,10 @@ const SiaruHandler = () => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
-				navigate("/siaru/establecimientos");
+				navigate("establecimientos");
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("/siaru/liquidaciones");
+				navigate("liquidaciones");
 				break;
 			default:
 				break;
