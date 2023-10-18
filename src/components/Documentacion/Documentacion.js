@@ -62,6 +62,7 @@ const Documentacion = ({
 			<Grid full="width" gap="5px">
 				<Grid grow>
 					<Button
+						className="botonAmarillo"
 						disabled={disabled || editing.req != null}
 						onClick={() => setEditing((old) => ({ ...old, data: {}, req: 1 }))}
 					>
@@ -70,6 +71,7 @@ const Documentacion = ({
 				</Grid>
 				<Grid grow>
 					<Button
+						className="botonAmarillo"
 						disabled={
 							disabled ||
 							data.length === 0 ||
@@ -83,6 +85,7 @@ const Documentacion = ({
 				</Grid>
 				<Grid grow>
 					<Button
+						className="botonAmarillo"
 						disabled={
 							disabled ||
 							data.length === 0 ||

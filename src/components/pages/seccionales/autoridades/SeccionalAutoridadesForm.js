@@ -132,7 +132,7 @@ const SeccionalAutoridadesForm = (props) => {
             onChange={handleInputChange}
           />
         </div>
-        <Button width={20} onClick={handleOnValidaAfiliadoClick}>
+        <Button className="botonAmarillo" width={20} onClick={handleOnValidaAfiliadoClick}>
           Valida
         </Button>
         <div className={classes.input}>
@@ -184,22 +184,25 @@ const SeccionalAutoridadesForm = (props) => {
         </div>
       </div>
       <Button
+        className="botonAmarillo"
         onClick={handleAgregaAutoridad}
         disable={props.autoridadAfiliado?.id}
       >
-        Agregar
+        Agrega
       </Button>
       <Button
+        className="botonAmarillo"
         onClick={handleCambiaAutoridad}
         disable={props.autoridadAfiliado?.id}
       >
-        Cambiar
+        Cambia
       </Button>
       <Button
+        className="botonAmarillo"
         onClick={handleBorraAutoridad}
         disable={props.autoridadAfiliado?.id}
       >
-        Borrar
+        Borra
       </Button>
     </div>
   );

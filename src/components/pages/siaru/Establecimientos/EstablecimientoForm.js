@@ -534,13 +534,13 @@ const Form = ({
 				<Grid width="full" gap="200px" justify="center">
 					<Grid width="150px">
 						{["A", "B", "M"].includes(request) ? (
-							<LoadingButtonCustom onClick={validar}>
+							<Button className="botonAzul" onClick={validar}>
 								CONFIRMA
-							</LoadingButtonCustom>
+							</Button>
 						) : null}
 					</Grid>
 					<Grid width="150px">
-						<Button onClick={() => onCancel(request)}>CANCELA</Button>
+						<Button className="botonAmarillo" onClick={() => onCancel(request)}>CANCELA</Button>
 					</Grid>
 				</Grid>
 				{alertsRender}

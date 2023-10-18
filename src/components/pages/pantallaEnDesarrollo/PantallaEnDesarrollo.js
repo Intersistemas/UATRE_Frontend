@@ -10,7 +10,7 @@ const PantallaEnDesarrollo = (props) => {
   const navigate = useNavigate();
 
   const handleCerrarModal = () => {
-    navigate("/");
+    navigate("/inicio");
     props.onClose();
    
   };
@@ -25,7 +25,7 @@ const PantallaEnDesarrollo = (props) => {
 
         <div className={classes.boton}>
           <Button
-            className={classes.button}
+            className="botonAmarillo"
             width={100}
             onClick={()=>handleCerrarModal()}
             //onClick={()=>navigate("/")}

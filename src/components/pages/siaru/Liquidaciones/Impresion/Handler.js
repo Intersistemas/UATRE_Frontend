@@ -113,7 +113,7 @@ const Handler = ({
 					<Grid grow />
 					<Grid col width="30%" justify="end">
 						<Grid gap={`${gap}px`}>
-							<Button onClick={onClose}>
+							<Button className="botonAmarillo" onClick={onClose}>
 								FINALIZA
 							</Button>
 						</Grid>

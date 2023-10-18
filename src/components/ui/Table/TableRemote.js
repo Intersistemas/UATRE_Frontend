@@ -118,13 +118,15 @@ const TableRemote = (props) => {
             error={props.error}
         />
         <Button
-            className="botonBorder"
+              botonBorder
+              className="botonAmarillo"
               width={70}
               onClick={()=>props.accionBuscar(selectValue.dataField, entryValue, selectValue)}
               disabled={!entryValue ?? true}
         >Busca</Button>
         <Button
-              className="botonBorder"
+              botonBorder
+              className="botonAmarillo"
               //width={70}
               style={{'min-width': 'fit-content'}}
               onClick={()=>accionLimpiarFiltros()}

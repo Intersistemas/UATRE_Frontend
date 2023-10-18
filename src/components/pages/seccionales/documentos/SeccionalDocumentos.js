@@ -30,12 +30,13 @@ const SeccionalDocumentos = () => {
         </Grid>
         <Grid full="width" gap="5px">
           <Grid grow>
-            <Button onClick={() => setDocumentacionItem({ data: {}, req: 1 })}>
+            <Button className="botonAmarillo" onClick={() => setDocumentacionItem({ data: {}, req: 1 })}>
               Agrega documentación
             </Button>
           </Grid>
           <Grid grow>
             <Button
+              className="botonAmarillo"
               disabled={documentacionItem.req != null}
               onClick={() =>
                 setDocumentacionItem((oldItem) => ({ ...oldItem, req: 2 }))
@@ -46,6 +47,7 @@ const SeccionalDocumentos = () => {
           </Grid>
           <Grid grow>
             <Button
+              className="botonAmarillo"
               disabled={documentacionItem.req != null}
               onClick={() =>
                 setDocumentacionItem((oldItem) => ({ ...oldItem, req: 3 }))

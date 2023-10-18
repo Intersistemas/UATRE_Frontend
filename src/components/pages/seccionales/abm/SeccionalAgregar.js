@@ -196,16 +196,17 @@ const SeccionalAgregar = (props) => {
           )}
         </div>
         <div className={classes.footer}>
-          <LoadingButtonCustom
+          <Button
+            className="botonAzul"
             type="submit"
             loading={props.isLoading}
             width={25}
             onClick={handlerOnConfirmaClick}
           >
             CONFIRMA
-          </LoadingButtonCustom>
+          </Button>
 
-          <Button width={25} onClick={props.onClose}>
+          <Button className="botonAmarillo" width={25} onClick={props.onClose}>
             CIERRA
           </Button>
         </div>
