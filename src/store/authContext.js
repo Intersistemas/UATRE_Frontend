@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { limpiarReducer } from 'redux/reducer';
 import getStoredToken from './getSoredToken';
 
 let logoutTimer;
@@ -64,6 +65,7 @@ export const AuthContextProvider = (props) => {
         setUsuario(null);
         localStorage.removeItem('token')
         localStorage.removeItem('usuario')
+				limpiarReducer();
         if(logoutTimer){
             clearTimeout(logoutTimer)
         }
