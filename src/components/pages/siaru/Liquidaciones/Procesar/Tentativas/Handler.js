@@ -26,7 +26,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [formRender, setFormRender] = useState();
 
 	//#region Trato queries a APIs
-	const pushQuery = useQueryQueue((action, _params) => {
+	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetLiquidacionTipoPago":
 				return {
@@ -52,10 +52,66 @@ const Handler = ({ periodo, tentativas = [] }) => {
 						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
 					},
 				};
+			case "GetParameter": {
+				const { paramName, ...paramOthers } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/Parametros/${paramName}`,
+						method: "GET",
+					},
+					params: paramOthers,
+				};
+			}
 			default:
 				return null;
 		}
 	});
+	//#endregion
+
+	//#region Cargo parametros
+	const [params, setParams] = useState({
+		loading: "Cargando...",
+		data: {
+			InteresesDiariosPosteriorVencimiento: 0,
+		},
+		error: {},
+	});
+	useEffect(() => {
+		if (!params.loading) return;
+		const pending = Object.keys(params.data);
+		const result = {...params.data};
+		const errors = {};
+		const formatParamValue = (param, value) => {
+			switch (param) {
+				case "InteresesDiariosPosteriorVencimiento":
+					return Formato.Decimal(value ?? 0);
+				default:
+					return value;
+			}
+		};
+		const queryParam = (param) =>
+			pushQuery({
+				action: "GetParameter",
+				params: { paramName: param },
+				onOk: async (res) => {
+					result[param] = formatParamValue(param, res.valor);
+				},
+				onError: async (err) => {
+					errors[param] = err;
+				},
+				onFinally: async () => {
+					pending.splice(pending.indexOf(param), 1);
+					if (pending.length === 0) {
+						setParams({
+							data: result,
+							error: Object.keys(errors).length ? errors : null,
+						});
+					}
+				},
+			});
+		pending.forEach((param) => queryParam(param));
+	}, [pushQuery, params]);
 	//#endregion
 
 	//#region declaracion y carga de tipos de liquidacion
@@ -115,36 +171,18 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	//#endregion
 
 	//#region declaración y carga de ddjj y liquidaciones
-	const [ddjjList, setDDJJList] = useState({ loading: true });
+	const [ddjjList, setDDJJList] = useState({ loading: true, data: [] });
 	const ddjjListSinEstab = ddjjList.data?.filter((r) => !r.empresaEstablecimientoId) ?? [];
 	const [ddjjSelected, setDDJJSelected] = useState([]);
-	const [liqList, setLiqList] = useState({ loading: true });
+	const [liqList, setLiqList] = useState({ loading: true, data: [] });
 	const [liqSelected, setLiqSelected] = useState([]);
 	useEffect(() => {
-		const rta = [...tentativas];
-		let newLiquidaciones = [];
-		let newDDJJ = [];
-		rta.forEach((tent) => {
+		if (!ddjjList.loading) return;
+		const newDDJJ = [];
+		tentativas.forEach((tent) => {
 			// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 			// En caso contrario, es solo a modo informativo de nomina
-			const { nominas, ...liq } = tent;
-			if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
-				liq.nominas = [];
-				if (nominas?.length) {
-					nominas.forEach((nomina) =>
-						liq.nominas.push({
-							cuil: nomina.cuil,
-							nombre: nomina.nombre,
-							condicionRural: nomina.condicionRural,
-							remuneracionImponible: nomina.remuneracionImponible,
-							esRural: nomina.esRural ?? false,
-						})
-					);
-				}
-				const newLiq = CalcularCampos(liq);
-				newLiq.index = newLiquidaciones.length;
-				newLiquidaciones.push(newLiq);
-			}
+			const { nominas } = tent;
 			nominas.forEach((nom) => {
 				newDDJJ.push({
 					...nom,
@@ -155,37 +193,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			});
 		});
 		setDDJJList({ data: newDDJJ });
-		setLiqList({ data: newLiquidaciones });
-	}, [tentativas]);
-	//#endregion
-
-	/** Retorna información de error o mensaje "sin datos" */
-	const getNoData = (rq) => {
-		if (rq?.loading) return <h4>Cargando...</h4>;
-		if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
-		switch (rq.error.code ?? 0) {
-			case 0:
-				return <h4>{rq.error.message}</h4>;
-			default:
-				return (
-					<h4 style={{ color: "red" }}>
-						{"Error "}
-						{rq.error.code ? `${rq.error.code} - ` : ""}
-						{rq.error.message}
-					</h4>
-				);
-		}
-	};
-
-	/** Retorna ddjjList aplicando filtro */
-	const filtrarDDJJList = () => {
-		if (ddjjList.loading) return [];
-		if (ddjjList.error) return [];
-		let ret = [...ddjjList.data];
-		///ToDo: Aplicar filtros;
-		return ret;
-	};
-
+	}, [tentativas, ddjjList]);
+	
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (!ddjjRecord.esRural) return null;
@@ -215,12 +224,12 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			tiposPagos.data?.find((r) => r.id === ret.liquidacionTipoPagoId)
 				?.porcentaje ?? 0;
 		ret.interesNeto = ret.totalRemuneraciones * (ret.interesPorcentaje / 100);
-		return CalcularCampos(ret);
+		return CalcularCampos(ret, params.data);
 	};
 
 	const calcLiqListDesdeDDJJList = () => {
 		let newLiqList = [];
-		if (!ddjjList.data) return setLiqList({ data: newLiqList });
+		if (!ddjjList.data.length) return setLiqList({ data: newLiqList });
 		ddjjList.data.forEach((ddjj) => {
 			if (ddjj.empresaEstablecimientoId === 0) return;
 			if (!ddjj.esRural) return;
@@ -256,17 +265,53 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		return setLiqList({ data: newLiqList });
 	};
 
+	useEffect(() => {
+		if (params.loading) return;
+		if (!liqList.loading) return;
+		calcLiqListDesdeDDJJList();
+	}, [liqList, params, calcLiqListDesdeDDJJList])
+	//#endregion
+
+	/** Retorna información de error o mensaje "sin datos" */
+	const getNoData = (rq) => {
+		if (rq?.loading) return <h4>Cargando...</h4>;
+		if (!rq?.error) return <h4>No hay informacion a mostrar</h4>;
+		switch (rq.error.code ?? 0) {
+			case 0:
+				return <h4>{rq.error.message}</h4>;
+			default:
+				return (
+					<h4 style={{ color: "red" }}>
+						{"Error "}
+						{rq.error.code ? `${rq.error.code} - ` : ""}
+						{rq.error.message}
+					</h4>
+				);
+		}
+	};
+
+	/** Retorna ddjjList aplicando filtro */
+	const filtrarDDJJList = () => {
+		if (ddjjList.loading) return [];
+		if (ddjjList.error) return [];
+		let ret = [...ddjjList.data];
+		///ToDo: Aplicar filtros;
+		return ret;
+	};
+
 	const handleLiqOnSelect = (isSelected, records) => {
-		const newLiqSelected = [...liqSelected];
-		records.forEach((record) => {
-			const recordIx = newLiqSelected.findIndex(
-				(r) => r.index === record.index
-			);
-			const isFound = recordIx > -1;
-			if (isSelected && !isFound) newLiqSelected.push(record);
-			else if (!isSelected && isFound) newLiqSelected.splice(recordIx, 1);
+		setLiqSelected((oldLiqSelected) => {
+			const newLiqSelected = [...oldLiqSelected];
+			records.forEach((record) => {
+				const recordIx = newLiqSelected.findIndex(
+					(r) => r.index === record.index
+				);
+				const isFound = recordIx > -1;
+				if (isSelected && !isFound) newLiqSelected.push(record);
+				else if (!isSelected && isFound) newLiqSelected.splice(recordIx, 1);
+			});
+			return newLiqSelected;
 		});
-		setLiqSelected(newLiqSelected);
 	};
 
 	const handleDDJJOnSelect = (isSelected, records) => {
@@ -281,7 +326,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	};
 
 	const handleDDJJFormOnChange = (records, changes) => {
-		if (!ddjjList.data) return; // sin datos a cambiar en origen
+		if (!ddjjList.data.length) return; // sin datos a cambiar en origen
 		records.forEach((record, ix) => {
 			const recordIx = ddjjList.data.findIndex((r) => r.cuil === record.cuil);
 			if (recordIx < 0) return; // No se encuentra el registro seleccionado en origen
@@ -296,7 +341,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
 	let liquidacionListRender;
 	if (tiposPagos.loading) {
-		liquidacionListRender = <h4>Cargando tipos de pagos</h4>;
+		liquidacionListRender = <h4>Cargando tipos de pagos...</h4>;
+	} else if (params.loading) {
+		liquidacionListRender = <h4>Cargando parametros...</h4>;
 	} else {
 		liquidacionListRender = (
 			<Grid col full="width">
@@ -304,12 +351,12 @@ const Handler = ({ periodo, tentativas = [] }) => {
 					<LiquidacionList
 						records={liqList.data}
 						tiposPagos={tiposPagos.data}
-						loading={liqList.loading || tiposPagos.loading}
+						loading={liqList.loading}
 						noData={getNoData(liqList)}
 						selected={liqSelected}
 						onSelect={handleLiqOnSelect}
 						onSelectAll={(isSelect) =>
-							handleLiqOnSelect(isSelect, liqList.data ?? [])
+							handleLiqOnSelect(isSelect, liqList.data)
 						}
 						onOpenForm={(record) => {
 							// Deshabilitar controles de datos que ya se cargaron.
@@ -327,7 +374,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 									disabled={disabled}
 									onConfirm={(newRecord, _request) => {
 										// Actualizo lista
-										newRecord = CalcularCampos(newRecord);
+										newRecord = CalcularCampos(newRecord, params.data);
 										setLiqList((old) => {
 											const data = [...old.data];
 											data[record.index] = {
@@ -351,18 +398,23 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				<LiquidacionForm
 					records={liqSelected}
 					onChange={(changes) => {
-						const newLiqSelected = [];
-						setLiqList((old) => {
-							const data = [...old.data];
-							liqSelected.forEach((r) => {
-								let newRecord = CalcularCampos({ ...r, ...changes });
-								newRecord.index = r.index;
-								data[r.index] = newRecord;
-								newLiqSelected.push(newRecord);
+						setLiqSelected((oldSelected) => {
+							const newLiqSelected = [];
+							setLiqList((oldLiqList) => {
+								const data = [...oldLiqList.data];
+								oldSelected.forEach((r) => {
+									let newRecord = CalcularCampos(
+										{ ...r, ...changes },
+										params.data
+									);
+									newRecord.index = r.index;
+									data[r.index] = newRecord;
+									newLiqSelected.push(newRecord);
+								});
+								return { ...oldLiqList, data: data };
 							});
-							return { ...old, data: data };
+							return newLiqSelected;
 						});
-						setLiqSelected(newLiqSelected);
 					}}
 					onConfirm={() =>
 						pushQuery({
@@ -381,7 +433,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 									<LiquidacionPDF
 										empresa={empresa}
 										liquidaciones={[...res]}
-										onClose={() => setRedirect({ to: "/siaru/liquidaciones"}) }
+										onClose={() => setRedirect({ to: "/siaru/liquidaciones" })}
 									/>
 								);
 							},
@@ -414,7 +466,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 							selected={ddjjSelected}
 							onSelect={handleDDJJOnSelect}
 							onSelectAll={(isSelect) =>
-								handleDDJJOnSelect(isSelect, ddjjList.data ?? [])
+								handleDDJJOnSelect(isSelect, ddjjList.data)
 							}
 							pagination={{ index: 1, size: 4 }}
 						/>

@@ -43,14 +43,20 @@ const LiquidacionForm = ({
 	//#endregion
 
 	//#region Cargo parametros
-	const [params, setParams] = useState(null);
-	useEffect(() => {
-		const pending = {
+	const [params, setParams] = useState({
+		loading: "Cargando...",
+		data: {
 			LiquidacionTipoPagoIdSindical: -1,
 			LiquidacionTipoPagoIdSolidario: -1,
-		};
-		const result = {};
-		const assignParam = (param, value) => {
+		},
+		error: {},
+	});
+	useEffect(() => {
+		if (!params.loading) return;
+		const pending = Object.keys(params.data);
+		const result = {...params.data};
+		const errors = {};
+		const formatParamValue = (param, value) => {
 			switch (param) {
 				case "LiquidacionTipoPagoIdSindical":
 				case "LiquidacionTipoPagoIdSolidario":
@@ -64,18 +70,23 @@ const LiquidacionForm = ({
 				action: "GetParameter",
 				params: { paramName: param },
 				onOk: async (res) => {
-					result[param] = assignParam(param, res.valor);
+					result[param] = formatParamValue(param, res.valor);
 				},
 				onError: async (err) => {
-					result[param] = pending[param];
+					errors[param] = err;
 				},
 				onFinally: async () => {
-					delete pending[param];
-					if (Object.keys(pending).length === 0) setParams(result);
+					pending.splice(pending.indexOf(param), 1);
+					if (pending.length === 0) {
+						setParams({
+							data: result,
+							error: Object.keys(errors).length ? errors : null,
+						});
+					}
 				},
 			});
-		Object.keys(pending).forEach((param) => queryParam(param));
-	}, [pushQuery]);
+		pending.forEach((param) => queryParam(param));
+	}, [pushQuery, params]);
 	//#endregion
 
 	//#region Cargo datos de despliegue
@@ -88,9 +99,9 @@ const LiquidacionForm = ({
 		fechaPagoEstimada: ""
 	};
 	records.forEach((liq, ix) => {
-		if (liq.liquidacionTipoPagoId === params.LiquidacionTipoPagoIdSindical) {
+		if (liq.liquidacionTipoPagoId === params.data.LiquidacionTipoPagoIdSindical) {
 			datos.sindicalTotal += liq.totalRemuneraciones ?? 0;
-		} else if (liq.liquidacionTipoPagoId === params.LiquidacionTipoPagoIdSolidario) {
+		} else if (liq.liquidacionTipoPagoId === params.data.LiquidacionTipoPagoIdSolidario) {
 			datos.solidarioTotal += liq.totalRemuneraciones ?? 0;
 		}
 		Object.keys(datos).forEach((k) => {
@@ -112,7 +123,7 @@ const LiquidacionForm = ({
 	if (datos.fechaPagoEstimada === undefined) {
 		diferencias.fechaPagoEstimada = "Las fechas difieren"
 	}
-	datos.fechaPagoEstimada ??= "";
+	// datos.fechaPagoEstimada ??= "";
 	//#endregion
 
 	const generarLiquidacion = () => {
@@ -196,7 +207,7 @@ const LiquidacionForm = ({
 						InputRenderProps={{ helperText: diferencias.fechaPagoEstimada }}
 						onChange={(f) =>
 							onChange({
-								fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
+								fechaPagoEstimada: f?.format("YYYY-MM-DD"),
 							})
 						}
 					/>

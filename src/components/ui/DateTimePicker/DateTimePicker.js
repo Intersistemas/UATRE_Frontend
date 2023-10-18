@@ -47,6 +47,7 @@ const DateTimePicker = ({
 
 		const inputProps = { ...renderProps.inputProps };
 		if (placeholder) inputProps.placeholder = placeholder;
+		if (!value) inputProps.value = "";
 
 		return (
 			<TextField

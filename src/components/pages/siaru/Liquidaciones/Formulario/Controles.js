@@ -110,12 +110,58 @@ const Controles = ({
 		{ id: 1, nombre: "Acta" },
 	];
 
+	//#region Cargo parametros
+	const [params, setParams] = useState({
+		loading: "Cargando...",
+		data: {
+			InteresesDiariosPosteriorVencimiento: 0
+		},
+		error: {},
+	});
+	useEffect(() => {
+		if (!params.loading) return;
+		const pending = Object.keys(params.data);
+		const result = {...params.data};
+		const errors = {};
+		const formatParamValue = (param, value) => {
+			switch (param) {
+				case "InteresesDiariosPosteriorVencimiento":
+					return Formato.Decimal(value ?? 0);
+				default:
+					return value;
+			}
+		};
+		const queryParam = (param) =>
+			pushQuery({
+				action: "GetParameter",
+				params: { paramName: param },
+				onOk: async (res) => {
+					result[param] = formatParamValue(param, res.valor);
+				},
+				onError: async (err) => {
+					errors[param] = err;
+				},
+				onFinally: async () => {
+					pending.splice(pending.indexOf(param), 1);
+					if (pending.length === 0) {
+						setParams({
+							data: result,
+							error: Object.keys(errors).length ? errors : null,
+						});
+					}
+				},
+			});
+		pending.forEach((param) => queryParam(param));
+	}, [pushQuery, params]);
+	//#endregion
+
 	//#region Cargo tipos de pago
 	const [tiposPagos, setTiposPagos] = useState({
 		loading: "Cargando...",
 		data: [],
 	});
 	useEffect(() => {
+		if (!tiposPagos.loading) return;
 		pushQuery({
 			action: "GetLiquidacionesTiposPagos",
 			onOk: async (res) => setTiposPagos({ data: [...res] }),
@@ -131,58 +177,16 @@ const Controles = ({
 				]);
 			},
 		});
-	}, [pushQuery]);
+	}, [pushQuery, tiposPagos]);
 	//#endregion
 
-	//#region Cargo parametros
-	const [params, setParams] = useState(null);
-	useEffect(() => {
-		const pending = ["InteresesDiariosPosteriorVencimiento"];
-		const result = {};
-		const assignParam = (param, value) => {
-			switch (param) {
-				case "InteresesDiariosPosteriorVencimiento":
-					return Formato.Decimal(value ?? 0);
-				default:
-					return value;
-			}
-		};
-		const queryParam = (param) =>
-			pushQuery({
-				action: "GetParameter",
-				params: { paramName: param },
-				onOk: async (res) => {
-					result[param] = assignParam(param, res.valor);
-				},
-				onError: async (err) => {
-					setAlerts((old) => [
-						...old,
-						{
-							severity: "error",
-							title: `${err.type} cargando parametro "${param}"`,
-							message: err.message,
-						},
-					]);
-				},
-				onFinally: async () => {
-					pending.splice(pending.indexOf(param), 1);
-					if (pending.length === 0) setParams(result);
-				},
-			});
-		pending.forEach((param) => queryParam(param));
-	}, [pushQuery]);
-	//#endregion
-
-	const calculados = CalcularCampos(record);
-	if (record.periodo)
-		calculados.periodo = Formato.Mascara(record.periodo, "####-##-01");
+	const calculados = CalcularCampos(record, params.data);
+	calculados.periodo = record.periodo
+		? (calculados.periodo = Formato.Mascara(record.periodo, "####-##-01"))
+		: null;
 
 	const handleChange = (cambios) => {
 		const recordCambios = { ...record, ...cambios };
-		if (recordCambios.totalRemuneraciones === undefined)
-			recordCambios.totalRemuneraciones = 0;
-		if (recordCambios.interesPorcentaje === undefined)
-			recordCambios.interesPorcentaje = 0;
 
 		if ("liquidacionTipoPagoId" in cambios) {
 			recordCambios.interesPorcentaje =
@@ -192,23 +196,15 @@ const Controles = ({
 			cambios.interesPorcentaje = recordCambios.interesPorcentaje;
 		}
 
+		// Calculo los campos calculados
+		const o = CalcularCampos(recordCambios, params.data);
+		recordCambios.interesNeto = o.interesNeto
+		recordCambios.interesImporte = o.interesImporte
+
+		// Verifico si cambiaron los campos calculados
 		if ("totalRemuneraciones" in cambios || "interesPorcentaje" in cambios) {
-			recordCambios.interesNeto =
-				recordCambios.totalRemuneraciones *
-				(recordCambios.interesPorcentaje / 100);
-			recordCambios.interesNeto =
-				Math.round((recordCambios.interesNeto + Number.EPSILON) * 100) / 100;
 			cambios.interesNeto = recordCambios.interesNeto;
 		}
-		// Calculo los campos calculados
-		const o = CalcularCampos(recordCambios);
-		recordCambios.interesImporte =
-			recordCambios.totalRemuneraciones *
-			(params.InteresesDiariosPosteriorVencimiento / 100) *
-			o.vencimientoDias;
-		recordCambios.interesImporte =
-			Math.round((recordCambios.interesImporte + Number.EPSILON) * 100) / 100;
-		// Verifico si cambiaron los campos calculados
 		if (record.interesImporte !== recordCambios.interesImporte) {
 			cambios.interesImporte = recordCambios.interesImporte;
 		}
