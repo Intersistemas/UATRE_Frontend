@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
-import { handleLiquidacionProcesarSeleccionar } from "redux/actions";
+import {
+	handleLiquidacionProcesarSeleccionar,
+	handleModuloSeleccionar,
+} from "redux/actions";
 import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
@@ -22,10 +25,13 @@ const LiquidacionesProcesarHandler = () => {
 		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
 	}, [empresa]);
 
-	const { desdeArchivo, manual } = useSelector((state) => state.liquidacionProcesar);
+	const { desdeArchivo, manual } = useSelector(
+		(state) => state.liquidacionProcesar
+	);
 	// Limpio el estado al ingresar a esta página
 	useEffect(() => {
-		dispatch(handleLiquidacionProcesarSeleccionar())
+		dispatch(handleLiquidacionProcesarSeleccionar());
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU" }));
 	}, [dispatch]);
 
 	const archivoRef = useRef(null);
