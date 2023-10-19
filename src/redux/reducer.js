@@ -92,7 +92,7 @@ const reducer = (state = initialState, { type, payload }) => {
 				...state,
 				nav: {
 					...state.nav,
-					[`${payload.location}`]: payload.fn,
+					[payload.location]: payload.fn,
 				},
 			};
 		}
