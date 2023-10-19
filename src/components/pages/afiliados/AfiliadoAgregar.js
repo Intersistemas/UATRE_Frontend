@@ -17,7 +17,6 @@ import SelectMaterial from "../../ui/Select/SelectMaterial";
 import moment from "moment";
 import ValidarCUIT from "../../validators/ValidarCUIT";
 import ValidarEmail from "../../validators/ValidarEmail";
-import LoadingButtonCustom from "../../ui/LoadingButtonCustom/LoadingButtonCustom";
 import FormatearFecha from "../../helpers/FormatearFecha";
 import InputMaterialMask from "../../ui/Input/InputMaterialMask";
 import {
@@ -2079,7 +2078,8 @@ const AfiliadoAgregar = (props) => {
 								/>
 							</div>
 							<div className={classes.input25}>
-								<LoadingButtonCustom
+								<Button
+                  className="botonAzul"
 									width={80}
 									heigth={70}
 									disabled={deshabilitarBotonValidarCUIL()}
@@ -2087,7 +2087,7 @@ const AfiliadoAgregar = (props) => {
 									loading={cuilLoading}
 								>
 									{!cuilLoading ? `Valida CUIL` : `Validando...`}
-								</LoadingButtonCustom>
+								</Button>
 							</div>
 							<div className={classes.input25}>
 								<InputMaterial

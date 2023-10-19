@@ -14,7 +14,6 @@ import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
 import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import Tentativas from "../Tentativas/Handler";
 import NominaTable from "./NominaTable";
 import NominaForm from "./NominaForm";

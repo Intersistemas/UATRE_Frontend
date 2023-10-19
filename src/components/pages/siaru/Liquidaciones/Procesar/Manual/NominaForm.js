@@ -3,7 +3,6 @@ import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Button from "components/ui/Button/Button";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import Formato from "components/helpers/Formato";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";

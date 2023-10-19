@@ -1,8 +1,8 @@
 import React from "react";
 import classes from "../AfiliadoAgregar.module.css";
 import InputMaterialMask from "../../../ui/Input/InputMaterialMask";
-import LoadingButtonCustom from "../../../ui/LoadingButtonCustom/LoadingButtonCustom";
 import InputMaterial from "../../../ui/Input/InputMaterial";
+import Button from "components/ui/Button/Button";
 
 const TabEmpleador = (props) => {
   const InputDisabled = (input) => {    
@@ -37,7 +37,8 @@ const TabEmpleador = (props) => {
             }
           />
         </div>
-        <LoadingButtonCustom
+        <Button
+          className="botonAzul"
           width={20}
           heigth={80}
           disabled={!props.cuitState.isValid}
@@ -45,7 +46,7 @@ const TabEmpleador = (props) => {
           loading={props.cuitLoading}
         >
           {!props.cuitLoading ? `Valida CUIT` : `Validando...`}
-        </LoadingButtonCustom>
+        </Button>
       </div>
 
       <div className={classes.renglon}>

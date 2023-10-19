@@ -8,7 +8,6 @@ import {
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Modal from "components/ui/Modal/Modal";
 import Grid from "components/ui/Grid/Grid";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import Button from "components/ui/Button/Button";
 import Tentativas from "../Tentativas/Handler";
 
