@@ -14,6 +14,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 
 const EstablecimientosHandler = () => {
 	const navigate = useNavigate();
+
 	const empresa = useSelector((state) => state.empresa);
 
 	const [redirect, setRedirect] = useState({ to: "", options: null });
@@ -130,7 +131,7 @@ const EstablecimientosHandler = () => {
 		};
 		switch (moduloAccion) {
 			case `Empresas`:
-				setRedirect({ to: "/siaru" });
+				setRedirect({ to: "/siaru" }); //navigate("siaru") 231018
 				break;
 			case `Agrega Establecimiento`:
 				configForm.record = { empresaId: empresa.id };

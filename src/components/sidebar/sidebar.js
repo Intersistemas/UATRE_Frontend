@@ -4,7 +4,7 @@ import {
     FaTh,FaBars,FaRegUser, FaChevronRight
 }from "react-icons/fa";
 import { BsFillXCircleFill } from "react-icons/bs";
-import { Link, NavLink,useNavigate } from 'react-router-dom';
+import { NavLink,useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
@@ -15,6 +15,9 @@ import UseKeyPress from '../helpers/UseKeyPress';
 
 const Sidebar = ({children}) => {
 
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const moduloActual = useSelector(state => state.modulo)
     const afiliadoSeleccionado = useSelector(state => state.afiliado)
     
@@ -24,7 +27,6 @@ const Sidebar = ({children}) => {
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
     const Usuario = authContext.usuario;
-
     const[botones ,setBotones] = useState([]);
 
     const[isOpen ,setIsOpen] = useState(true);
@@ -36,17 +38,60 @@ const Sidebar = ({children}) => {
             icon:<FaTh/>
         }
     ]
-    const navigate = useNavigate();
+    
+    const navFunction = useSelector(state => state.nav[location.pathname])
+    
+    console.log('prev_currentLink',location.pathname);
+
 
     
+    let currentLink = [];
+
+    const modal = () =>{
+        console.log('NavLink***',location.pathname)
+
+        //location.pathname include "!"
+
+        //showModal
+
+       // setState
+
+    }
+
+    const migas = location.pathname.split('/')
+    .filter(miga => miga !== '')
+    .map(miga => {
+        currentLink.push(`/${miga}`)
+        
+        const nav = {}
+        const to = currentLink.join('');
+        
+        if (navFunction == null){ 
+            nav.to = to
+            } 
+        else {
+            nav.to = '#'
+            nav.onClick = (()=>navFunction(to))
+        }  
+        console.log('nav',nav)
+        return(
+            <NavLink key={miga} {...nav} className={clases.link} activeClassName={clases.active}>
+                <div className={clases.icon}><FaTh/></div>
+                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
+            </NavLink>    
+        ) 
+
+    })
+
+
     console.log('moduloActual: ',moduloActual);
 
     const logout = () =>{
          logoutHandler();
-         navigate("/ingreso");
+         navigate("ingreso");
     }
 
-    UseKeyPress(['i'], ()=>navigate("/inicio"), 'AltKey');
+    UseKeyPress(['i'], ()=>navigate("inicio"), 'AltKey');
     UseKeyPress(['c'], ()=>logout(), 'AltKey');
     
     useEffect(() => {
@@ -79,20 +124,20 @@ const Sidebar = ({children}) => {
                         </div>
                             {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
-                        {
+                        { migas/*
                         menuItem.map((item, index)=>(
                             <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
                                 <div className={clases.icon}>{item.icon}</div>
                                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
                             </NavLink>
                         ))
-                        }
+                        */}
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
                                             {item.name}
                                         </Button>
                                     </div>

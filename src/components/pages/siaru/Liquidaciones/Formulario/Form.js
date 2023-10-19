@@ -83,12 +83,12 @@ const Form = ({
 					</Grid>
 					<Grid width="full" gap="200px" justify="center">
 						<Grid width="150px">
-							<LoadingButtonCustom onClick={handleBajaContinuar}>
+							<Button className="botonAzul" onClick={handleBajaContinuar}>
 								Dar de baja liquidación anterior y continuar
-							</LoadingButtonCustom>
+							</Button>
 						</Grid>
 						<Grid width="150px">
-							<Button onClick={handleCancelar}>
+							<Button className="botonAmarillo" onClick={handleCancelar}>
 								Volver para modificar datos
 							</Button>
 						</Grid>
@@ -305,13 +305,13 @@ const Form = ({
 				<Grid width="full" gap="200px" justify="center">
 					<Grid width="150px">
 						{["A", "B", "M"].includes(request) ? (
-							<LoadingButtonCustom onClick={validar}>
+							<Button className="botonAzul" onClick={validar}>
 								CONFIRMA
-							</LoadingButtonCustom>
+							</Button>
 						) : null}
 					</Grid>
 					<Grid width="150px">
-						<Button onClick={() => onCancel(request)}>
+						<Button className="botonAmarillo" onClick={() => onCancel(request)}>
 							CANCELA
 						</Button>
 					</Grid>

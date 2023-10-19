@@ -24,7 +24,6 @@ const LiquidacionesHandler = () => {
 	useEffect(() => {
 		if (!empresa?.id) setRedirect({ to: "/siaru" });
 	}, [empresa]);
-
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -307,10 +306,10 @@ const LiquidacionesHandler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
-				setRedirect({ to: "/siaru" });
+				setRedirect({ to: "/siaru" }); //navigate("siaru"); 231018
 				break;
 			case `Procesa liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones/procesar" });
+				setRedirect({ to: "procesar" });
 				break;
 			case `Consulta ${liquidacionDesc}`:
 				setFormRequest("C");

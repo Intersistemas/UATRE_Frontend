@@ -83,7 +83,7 @@ const LiquidacionList = ({
 			isDummyField: true,
 			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
 				return (
-					<Button onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>Modifica</Button>
+					<Button className="botonAmarillo" onClick={() => onOpenForm(row)} width={95} style={{ padding: 0 }}>Modifica</Button>
 				);
 			},
 			headerStyle: (_colum, _colIndex) => ({ width: "120px" }),

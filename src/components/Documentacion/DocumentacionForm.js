@@ -61,6 +61,7 @@ const DocumentacionForm = ({
 						}}
 					/>
 					<Button
+						className="botonAmarillo"
 						onClick={() => archivoRef.current?.click()}
 						disabled={disabled}
 					>
@@ -88,7 +89,7 @@ const DocumentacionForm = ({
 			</Grid>
 			<Grid full="width" justify="center" gap="50px">
 				<Grid>
-					<Button onClick={() => onConfirm()} disabled={disabled}>
+					<Button className="botonAmarillo" onClick={() => onConfirm()} disabled={disabled}>
 						{(() => {
 							switch (request) {
 								case 1:
@@ -104,7 +105,7 @@ const DocumentacionForm = ({
 					</Button>
 				</Grid>
 				<Grid>
-					<Button onClick={() => onCancel()} disabled={disabled}>
+					<Button className="botonAmarillo" onClick={() => onCancel()} disabled={disabled}>
 						Cancela
 					</Button>
 				</Grid>

@@ -151,7 +151,7 @@ const LiquidacionForm = ({
 					</Grid>
 					<Grid width="full" gap="200px" justify="center">
 						<Grid width="350px">
-							<Button onClick={() => setliqErrors(null)}>
+							<Button className="botonAmarillo" onClick={() => setliqErrors(null)}>
 								Volver para modificar datos
 							</Button>
 						</Grid>
@@ -214,7 +214,7 @@ const LiquidacionForm = ({
 				</Grid>
 				<Grid grow/>
 				<Grid>
-					<Button onClick={generarLiquidacion} disabled={!records?.length}>
+					<Button className="botonAmarillo" onClick={generarLiquidacion} disabled={!records?.length}>
 						Genera liquidación
 					</Button>
 				</Grid>

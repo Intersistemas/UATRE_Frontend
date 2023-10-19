@@ -40,13 +40,14 @@ const LiquidacionesProcesarHandler = () => {
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
+	
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
 				setRedirect({ to: "/siaru" });
 				break;
 			case `Liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones" });
+				setRedirect({ to: "liquidaciones" });
 				break;
 			default:
 				break;
@@ -125,14 +126,15 @@ const LiquidacionesProcesarHandler = () => {
 											);
 										}}
 									/>
-									<Button onClick={() => archivoRef.current?.click()}>
+									<Button className="botonAmarillo" onClick={() => archivoRef.current?.click()}>
 										Selecciona archivo a liquidar
 										{/* <input hidden accept=".txt" type="file" /> */}
 									</Button>
 								</Grid>
 								<Grid grow>{desdeArchivo?.archivo?.name ?? ""}</Grid>
 								<Grid block basis="200px">
-									<Button
+									<Button 
+										className="botonAmarillo"
 										onClick={() => {
 											const newErrores = [];
 											if (!desdeArchivo?.archivo)
@@ -199,6 +201,7 @@ const LiquidacionesProcesarHandler = () => {
 								<Grid grow />
 								<Grid block basis="200px">
 									<Button
+										className="botonAmarillo"
 										onClick={() => {
 											const newErrores = [];
 											if (!manual?.periodo)
@@ -210,7 +213,7 @@ const LiquidacionesProcesarHandler = () => {
 											setErrores((old) => ({ ...old, manual: newErrores }));
 											if (newErrores.length === 0)
 												setRedirect({
-													to: "/siaru/liquidaciones/procesar/manual",
+													to: "manual",
 												});
 										}}
 									>

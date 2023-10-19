@@ -20,6 +20,7 @@ const InicioHandler = () => {
   
   return (
     <div>
+      {console.log('**modulos del usuario**',modulos)}
       <Inicio modulos={modulos} />
     </div>
   );
