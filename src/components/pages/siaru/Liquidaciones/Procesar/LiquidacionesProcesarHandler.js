@@ -33,10 +33,11 @@ const LiquidacionesProcesarHandler = () => {
 
 	const [errores, setErrores] = useState({ archivo: [], manual: [] });
 
-	//#region despachar Informar Modulo
+	
+	//#region despachar Informar Modulo 
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Liquidaciones` }],
+		acciones: [/*{ name: `Empresas` }, { name: `Liquidaciones` }*/],
 	};
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);

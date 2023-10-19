@@ -288,7 +288,7 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesa liquidaciones` }],
+		acciones: [{ name: `Procesa liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
@@ -305,9 +305,9 @@ const LiquidacionesHandler = () => {
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		switch (moduloAccion) {
-			case `Empresas`:
+			/*case `Empresas`:
 				setRedirect({ to: "/siaru" }); //navigate("siaru"); 231018
-				break;
+				break;*/
 			case `Procesa liquidaciones`:
 				setRedirect({ to: "procesar" });
 				break;
