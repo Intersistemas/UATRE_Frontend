@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import Grid from "components/ui/Grid/Grid";
-import Formato from "components/helpers/Formato";
-import EmpresaDetails from "./Empresas/EmpresaDetails";
-import EmpresasList from "./Empresas/EmpresasList";
+import AuthContext from "store/authContext";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 	handleEmpresaSeleccionar,
 } from "redux/actions";
-import AuthContext from "store/authContext";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import EmpresaDetails from "./Empresas/EmpresaDetails";
+import EmpresasList from "./Empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 
 const SiaruHandler = () => {
@@ -32,6 +32,9 @@ const SiaruHandler = () => {
 		}
 	});
 	const authContext = useContext(AuthContext);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	//#region declaración y carga de lista y detalle de empresas
 	const [empresaList, setEmpresaList] = useState({ loading: true });
@@ -104,16 +107,16 @@ const SiaruHandler = () => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
-				navigate("establecimientos");
+				setRedirect({ to: "establecimientos" });
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				navigate("liquidaciones");
+				setRedirect({ to: "liquidaciones" });
 				break;
 			default:
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descEmpresa, navigate, dispatch]);
+	}, [moduloAccion, descEmpresa, dispatch]);
 	//#endregion
 
 	const selection = {

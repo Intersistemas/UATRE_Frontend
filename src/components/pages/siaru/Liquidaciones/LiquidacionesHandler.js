@@ -288,7 +288,7 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesa liquidaciones` }],
+		acciones: [{ name: `Procesa liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
@@ -301,13 +301,11 @@ const LiquidacionesHandler = () => {
 			moduloInfo.acciones.push({ name: `Paga ${liquidacionDesc}` });
 		}
 	}
+	if (redirect.to) moduloInfo.acciones = [];
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		switch (moduloAccion) {
-			case `Empresas`:
-				setRedirect({ to: "/siaru" }); //navigate("siaru"); 231018
-				break;
 			case `Procesa liquidaciones`:
 				setRedirect({ to: "procesar" });
 				break;
@@ -318,7 +316,6 @@ const LiquidacionesHandler = () => {
 				setFormRequest("B");
 				break;
 			case `Imprime ${liquidacionDesc}`:
-				// alert("Proximamente");
 				setDespliegaPDF(true);
 				break;
 			case `Paga ${liquidacionDesc}`:

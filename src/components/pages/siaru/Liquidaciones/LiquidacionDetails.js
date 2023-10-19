@@ -1,9 +1,9 @@
 import React from "react";
-import styles from "./LiquidacionDetails.module.css";
-import Grid from "../../../ui/Grid/Grid";
-import Formato from "../../../helpers/Formato";
 import dayjs from "dayjs";
-import InputMaterial from "../../../ui/Input/InputMaterial";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import styles from "./LiquidacionDetails.module.css";
 
 const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 	data ??= {};

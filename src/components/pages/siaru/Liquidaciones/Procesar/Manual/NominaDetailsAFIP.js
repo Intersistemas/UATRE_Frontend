@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "./NominaDetailsAFIP.module.css";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
+import styles from "./NominaDetailsAFIP.module.css";
 
 const NominaDetailsAFIP = ({
 	data = { cuit: 0, nombre: "", documento: "", domicilio: "" },

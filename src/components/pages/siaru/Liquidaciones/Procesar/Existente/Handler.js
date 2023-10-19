@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
@@ -13,14 +13,17 @@ const Handler = () => {
 	const dispatch = useDispatch();
 
 	const empresa = useSelector((state) => state.empresa);
-	const periodo = useSelector((state) => state.liquidacionProcesar?.existente?.peirodo);
+	const periodo = useSelector(
+		(state) => state.liquidacionProcesar?.existente?.peirodo
+	);
 
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
-		else if (!periodo) setRedirect({ to: "/siaru/liquidaciones/procesar" });
+		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		else if (!periodo)
+			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
 	}, [empresa, periodo]);
 
 	const pushQuery = useQueryQueue((action, _params) => {
@@ -31,7 +34,7 @@ const Handler = () => {
 						baseURL: "SIARU",
 						method: "GET",
 						endpoint: "/Liquidaciones/Tentativas",
-					}
+					},
 				};
 			default:
 				return null;
@@ -43,26 +46,28 @@ const Handler = () => {
 		loading: "Cargando...",
 		params: { cuit: empresa?.cuit, periodo: periodo },
 		data: [],
-		error: {}
+		error: {},
 	});
 	useEffect(() => {
 		if (!tentativas.loading) return;
 		pushQuery({
 			action: "GetTentativas",
 			params: tentativas.params,
-			onOk: (res) => setTentativas((old) => ({
-				...old,
-				loading: null,
-				data: res,
-				error: null,
-			})),
-			onError: (err) => setTentativas((old) => ({
-				...old,
-				loading: null,
-				data: null,
-				error: err,
-			})),
-		})
+			onOk: (res) =>
+				setTentativas((old) => ({
+					...old,
+					loading: null,
+					data: res,
+					error: null,
+				})),
+			onError: (err) =>
+				setTentativas((old) => ({
+					...old,
+					loading: null,
+					data: null,
+					error: err,
+				})),
+		});
 	}, [tentativas, pushQuery]);
 	//#endregion
 
@@ -117,12 +122,7 @@ const Handler = () => {
 				);
 		}
 	} else {
-		contenido = (
-			<Tentativas
-				peirodo={periodo}
-				tentativas={tentativas.data}
-			/>
-		);
+		contenido = <Tentativas peirodo={periodo} tentativas={tentativas.data} />;
 	}
 
 	return (

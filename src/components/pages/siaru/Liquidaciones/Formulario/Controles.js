@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import styles from "./Controles.module.css";
+import { Collapse, IconButton, Tabs, Tab } from "@mui/material";
+import { Alert, AlertTitle } from "@mui/lab";
+import CloseIcon from "@mui/icons-material/Close";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
@@ -8,10 +10,8 @@ import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import Table from "components/ui/Table/Table";
-import { Collapse, IconButton, Tabs, Tab } from "@mui/material";
-import { Alert, AlertTitle } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
 import CalcularCampos from "./CalcularCampos";
+import styles from "./Controles.module.css";
 
 const Controles = ({
 	record = {}, // Registro liquidacion.
@@ -268,7 +268,7 @@ const Controles = ({
 		pushQuery({
 			action: "GetMotivosBaja",
 			params: { tipo: "L" },
-			onOk: async (res) => setMotivosBaja({ data: [{ id: 0, tipo: "L", descripcion: "Activo" }, ...res] }),
+			onOk: async (res) => setMotivosBaja({ data: res }),
 			onError: async (err) => setMotivosBaja({ error: err.message ?? "Ocurrió un error", data: [] }),
 		});
 	}, [pushQuery]);
@@ -302,7 +302,7 @@ const Controles = ({
 					text: "Es Afiliado",
 					sort: true,
 					headerStyle: (_colum, _colIndex) => ({ width: "110px" }),
-					formatter: (value) => Formato.Booleano(value != null ? value != 0 : null),
+					formatter: (value) => Formato.Booleano(value != null ? value !== 0 : null),
 					style: { ...cs, textAlign: "center" },
 				},
 				{

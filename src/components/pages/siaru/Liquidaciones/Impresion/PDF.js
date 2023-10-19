@@ -1,11 +1,11 @@
 import React from "react";
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
-import styles from "./PDF.styles.js";
 import JsBarcode from "jsbarcode";
-import logo1 from "../../../../../media/Logo1_sidebar.png";
+import logo1 from "media/Logo1_sidebar.png";
 import Formato from "components/helpers/Formato.js";
 import Descriptor from "components/helpers/Descriptor";
 import Grid from "components/ui/Grid/Grid.js";
+import styles from "./PDF.styles.js";
 import CalcularCampos from "../Formulario/CalcularCampos.js";
 
 const PDF = ({

@@ -9,8 +9,8 @@ import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
 import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
-import Form from "./EstablecimientoForm";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import Form from "./EstablecimientoForm";
 
 const EstablecimientosHandler = () => {
 	const navigate = useNavigate();

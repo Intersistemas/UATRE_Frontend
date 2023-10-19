@@ -1,17 +1,16 @@
 import React, { useState } from "react";
-import styles from "./Form.module.css";
-import Controles from "./Controles";
+import dayjs from "dayjs";
+import CloseIcon from "@mui/icons-material/Close";
+import { Alert, AlertTitle } from "@mui/lab";
+import { IconButton, Collapse } from "@mui/material";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import modalStyles from "components/ui/Modal/Modal.module.css";
-import dayjs from "dayjs";
-import CloseIcon from "@mui/icons-material/Close";
-import { Alert, AlertTitle } from "@mui/lab";
-import { IconButton, Collapse } from "@mui/material";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
+import styles from "./Form.module.css";
+import Controles from "./Controles";
 
 const Form = ({
 	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
@@ -25,7 +24,7 @@ const Form = ({
 }) => {
 	record = { ...record };
 	disabled ??= {};
-	if (!["M", "B", "C"].includes(request)) {
+	if (!["B", "C"].includes(request)) {
 		if (request === "A") record.id = 0;
 		disabled.refMotivoBajaId = true;
 		disabled.deletedObs = true;
@@ -306,13 +305,13 @@ const Form = ({
 					<Grid width="150px">
 						{["A", "B", "M"].includes(request) ? (
 							<Button className="botonAzul" onClick={validar}>
-								CONFIRMA
+								Confirma
 							</Button>
 						) : null}
 					</Grid>
 					<Grid width="150px">
 						<Button className="botonAmarillo" onClick={() => onCancel(request)}>
-							CANCELA
+							Cancela
 						</Button>
 					</Grid>
 				</Grid>

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertTitle } from "@mui/lab";
+import CloseIcon from "@mui/icons-material/Close";
+import { Collapse, IconButton } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 	handleSetNavFunction,
 } from "redux/actions";
-import { Alert, AlertTitle } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
-import { Collapse, IconButton } from "@mui/material";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
@@ -24,8 +24,18 @@ const Handler = () => {
 
 	const empresa = useSelector((state) => state.empresa);
 	const periodo = useSelector(
-		(state) => state.liquidacionProcesar?.manual?.periodo
+		(state) => state.liquidacionProcesar.manual?.periodo
 	);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.cuit) setRedirect({ to: "/inicio/siaru" });
+		else if (!periodo)
+			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+	}, [empresa, periodo]);
+
 	const [modal, setModal] = useState();
 
 	//function que llamará antes del nav to
@@ -39,7 +49,10 @@ const Handler = () => {
 						</Grid>
 						<Grid width="full" justify="evenly">
 							<Grid width="370px">
-								<Button className="botonAzul" onClick={() => navigate(to)}>
+								<Button
+									className="botonAzul"
+									onClick={() => setRedirect({ to })}
+								>
 									Continúa
 								</Button>
 							</Grid>

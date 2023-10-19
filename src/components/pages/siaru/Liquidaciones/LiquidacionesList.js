@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Formato from "../../../helpers/Formato";
-import useHttp from "../../../hooks/useHttp";
-import Table from "../../../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import Table from "components/ui/Table/Table";
 
 const LiquidacionesList = ({
 	data = [],

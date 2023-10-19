@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import styles from "./LiquidacionForm.module.css";
+import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import { TextField } from "@mui/material";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import dayjs from "dayjs";
 import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
+import styles from "./LiquidacionForm.module.css";
 
 const onChangeDef = (_changes = {}) => {};
 const onConfirmDef = () => {};
@@ -198,7 +198,7 @@ const LiquidacionForm = ({
 				/>
 			</Grid>
 			<Grid width="full">
-				<Grid width="200px">
+				<Grid width="300px">
 					<DateTimePicker
 						type="date"
 						label="Asigna fecha de pago estimada"

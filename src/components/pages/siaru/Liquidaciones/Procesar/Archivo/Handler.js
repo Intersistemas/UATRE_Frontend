@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
-} from "redux/actions";
+import { handleSetNavFunction } from "redux/actions";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Modal from "components/ui/Modal/Modal";
 import Grid from "components/ui/Grid/Grid";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import Button from "components/ui/Button/Button";
 import Tentativas from "../Tentativas/Handler";
 
@@ -20,14 +16,19 @@ const Handler = () => {
 	const { periodo, archivo } =
 		useSelector((state) => state.liquidacionProcesar.desdeArchivo) ?? {};
 
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.cuit) setRedirect({ to: "/inicio/siaru" });
+		else if (!(periodo || archivo))
+			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+	}, [empresa, periodo, archivo]);
+
 	const [modal, setModal] = useState();
 
-	const [redirect, setRedirect] = useState({ to: "", options: null, unconditional: false });
-	if (redirect.to) {
-		//navigate(redirect.to, redirect.options);
-		if (redirect.unconditional) {
-			navigate(redirect.to, redirect.options);
-		} else {
+	dispatch(
+		handleSetNavFunction((to) => {
 			setModal(
 				<Modal onClose={() => setModal(null)}>
 					<Grid col width="full" gap="15px">
@@ -38,27 +39,25 @@ const Handler = () => {
 							<Grid width="370px">
 								<Button
 									className="botonAzul"
-									onClick={() => navigate(redirect.to, redirect.options)}
+									onClick={() => setRedirect({ to })}
 								>
 									Continúa
 								</Button>
 							</Grid>
 							<Grid width="370px">
-								<Button className="botonAmarillo" onClick={() => setModal(null)}>Cancela</Button>
+								<Button
+									className="botonAmarillo"
+									onClick={() => setModal(null)}
+								>
+									Cancela
+								</Button>
 							</Grid>
 						</Grid>
 					</Grid>
 				</Modal>
 			);
-			setRedirect({});
-		}
-	}
-
-	useEffect(() => {
-		if (!empresa?.cuit) setRedirect({ to: "/siaru", unconditional: true });
-		else if (!(periodo || archivo))
-			setRedirect({ to: "procesar", unconditional: true });
-	}, [empresa, periodo, archivo]);
+		})
+	);
 
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -111,35 +110,6 @@ const Handler = () => {
 			})),
 		});
 	}, [tentativas, pushQuery]);
-	//#endregion
-
-	//#region despachar Informar Modulo
-	const moduloInfo = {
-		nombre: "SIARU",
-		acciones: [
-			{ name: `Empresas` },
-			{ name: `Liquidaciones` },
-			{ name: `Procesar liquidaciones` },
-		],
-	};
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	const moduloAccion = useSelector((state) => state.moduloAccion);
-	useEffect(() => {
-		switch (moduloAccion) {
-			case `Empresas`:
-				setRedirect({ to: "/siaru" });
-				break;
-			case `Liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones"});
-				break;
-			case `Procesar liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones/procesar"});
-				break;
-			default:
-				break;
-		}
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, dispatch]);
 	//#endregion
 
 	let contenido = null;

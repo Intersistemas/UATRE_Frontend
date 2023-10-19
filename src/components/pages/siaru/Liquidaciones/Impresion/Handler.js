@@ -1,11 +1,11 @@
-import { PDFViewer } from "@react-pdf/renderer";
 import React, { useEffect, useState } from "react";
+import { PDFViewer } from "@react-pdf/renderer";
 import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import Button from "components/ui/Button/Button";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import PDF from "./PDF";
 import styles from "./Handler.module.css";
-import useQueryQueue from "components/hooks/useQueryQueue";
 
 const Handler = ({
 	empresa = {},

@@ -1,17 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
-	handleLiquidacionProcesarSeleccionar,
-} from "redux/actions";
-import styles from "./LiquidacionesProcesarHandler.module.css";
+import dayjs from "dayjs";
+import { handleLiquidacionProcesarSeleccionar } from "redux/actions";
 import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import dayjs from "dayjs";
+import styles from "./LiquidacionesProcesarHandler.module.css";
 
 const LiquidacionesProcesarHandler = () => {
 	const navigate = useNavigate();
@@ -23,7 +19,7 @@ const LiquidacionesProcesarHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
 	}, [empresa]);
 
 	const liquidacionProcesar = useSelector((state) => state.liquidacionProcesar);
@@ -32,29 +28,6 @@ const LiquidacionesProcesarHandler = () => {
 	const archivoRef = useRef(null);
 
 	const [errores, setErrores] = useState({ archivo: [], manual: [] });
-
-	//#region despachar Informar Modulo
-	const moduloInfo = {
-		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Liquidaciones` }],
-	};
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	const moduloAccion = useSelector((state) => state.moduloAccion);
-	
-	useEffect(() => {
-		switch (moduloAccion) {
-			case `Empresas`:
-				setRedirect({ to: "/siaru" });
-				break;
-			case `Liquidaciones`:
-				setRedirect({ to: "liquidaciones" });
-				break;
-			default:
-				break;
-		}
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, dispatch]);
-	//#endregion
 
 	return (
 		<>
@@ -126,14 +99,16 @@ const LiquidacionesProcesarHandler = () => {
 											);
 										}}
 									/>
-									<Button className="botonAmarillo" onClick={() => archivoRef.current?.click()}>
+									<Button
+										className="botonAmarillo"
+										onClick={() => archivoRef.current?.click()}
+									>
 										Selecciona archivo a liquidar
-										{/* <input hidden accept=".txt" type="file" /> */}
 									</Button>
 								</Grid>
 								<Grid grow>{desdeArchivo?.archivo?.name ?? ""}</Grid>
 								<Grid block basis="200px">
-									<Button 
+									<Button
 										className="botonAmarillo"
 										onClick={() => {
 											const newErrores = [];
@@ -149,9 +124,7 @@ const LiquidacionesProcesarHandler = () => {
 												);
 											setErrores((old) => ({ ...old, archivo: newErrores }));
 											if (newErrores.length === 0)
-												setRedirect({
-													to: "/siaru/liquidaciones/procesar/archivo",
-												});
+												setRedirect({ to: "archivo" });
 										}}
 									>
 										Inicia
@@ -212,9 +185,7 @@ const LiquidacionesProcesarHandler = () => {
 												);
 											setErrores((old) => ({ ...old, manual: newErrores }));
 											if (newErrores.length === 0)
-												setRedirect({
-													to: "manual",
-												});
+												setRedirect({ to: "manual" });
 										}}
 									>
 										Inicia

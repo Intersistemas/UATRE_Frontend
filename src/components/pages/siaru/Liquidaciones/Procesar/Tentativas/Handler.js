@@ -20,7 +20,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
 	}, [empresa]);
 
 	const [formRender, setFormRender] = useState();
@@ -174,15 +174,34 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [ddjjList, setDDJJList] = useState({ loading: true, data: [] });
 	const ddjjListSinEstab = ddjjList.data?.filter((r) => !r.empresaEstablecimientoId) ?? [];
 	const [ddjjSelected, setDDJJSelected] = useState([]);
-	const [liqList, setLiqList] = useState({ loading: true, data: [] });
+	const [liqList, setLiqList] = useState({ loading: true, data: []});
 	const [liqSelected, setLiqSelected] = useState([]);
 	useEffect(() => {
+		if (params.loading) return;
 		if (!ddjjList.loading) return;
+		const newliqList = [];
 		const newDDJJ = [];
 		tentativas.forEach((tent) => {
 			// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
 			// En caso contrario, es solo a modo informativo de nomina
-			const { nominas } = tent;
+			const { nominas, ...liq } = tent;
+			if (liq.empresaEstablecimientoId && liq.liquidacionTipoPagoId) {
+				liq.nominas = [];
+				if (nominas?.length) {
+					nominas.forEach((nomina) =>
+						liq.nominas.push({
+							cuil: nomina.cuil,
+							nombre: nomina.nombre,
+							condicionRural: nomina.condicionRural,
+							remuneracionImponible: nomina.remuneracionImponible,
+							esRural: nomina.esRural ?? false,
+						})
+					);
+				}
+				const newLiq = CalcularCampos(liq, params.data);
+				newLiq.index = newliqList.length;
+				newliqList.push(newLiq);
+			}
 			nominas.forEach((nom) => {
 				newDDJJ.push({
 					...nom,
@@ -193,8 +212,10 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			});
 		});
 		setDDJJList({ data: newDDJJ });
-	}, [tentativas, ddjjList]);
-	
+		setLiqList({ data: newliqList });
+	}, [tentativas, params, ddjjList]);
+	//#endregion
+
 	const newLiq = (ddjjRecord, index) => {
 		if (ddjjRecord.empresaEstablecimientoId === 0) return null;
 		if (!ddjjRecord.esRural) return null;
@@ -264,14 +285,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		});
 		return setLiqList({ data: newLiqList });
 	};
-
-	useEffect(() => {
-		if (params.loading) return;
-		if (!liqList.loading) return;
-		calcLiqListDesdeDDJJList();
-	}, [liqList, params, calcLiqListDesdeDDJJList])
-	//#endregion
-
+	
 	/** Retorna información de error o mensaje "sin datos" */
 	const getNoData = (rq) => {
 		if (rq?.loading) return <h4>Cargando...</h4>;
@@ -375,14 +389,20 @@ const Handler = ({ periodo, tentativas = [] }) => {
 									onConfirm={(newRecord, _request) => {
 										// Actualizo lista
 										newRecord = CalcularCampos(newRecord, params.data);
-										setLiqList((old) => {
-											const data = [...old.data];
+										setLiqList((oldLiqList) => {
+											const data = [...oldLiqList.data];
 											data[record.index] = {
 												...newRecord,
 												index: record.index,
 											};
-											return { ...old, data: data };
+											setLiqSelected((oldLiqSelected) =>
+												data.filter((r) =>
+													oldLiqSelected.find((s) => s.index === r.index)
+												)
+											);
+											return { ...oldLiqList, data: data };
 										});
+
 										// Inhabilitar cambio en DDJJList
 										setDDJJFormDisabled(true);
 										// Oculto formulario
