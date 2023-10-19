@@ -46,6 +46,18 @@ const EstablecimientoDetails = ({ data = {} }) => {
 					{...im}
 				/>
 			</Grid>
+			<Grid full="width" gap="inherit">
+				<InputMaterial
+					label="Motivo de baja"
+					value={valor(data.refMOtivoBajaDescripcion)}
+					{...im}
+				/>
+				<InputMaterial
+					label="Fecha de baja"
+					value={valor(Formato.Fecha(data.deletedDate))}
+					{...im}
+				/>
+			</Grid>
 			<Grid full="width">
 				<Grid className={styles.grupo} col full>
 					<Grid full="width">
