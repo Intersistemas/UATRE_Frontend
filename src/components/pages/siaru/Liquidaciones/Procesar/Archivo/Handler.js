@@ -13,8 +13,9 @@ const Handler = () => {
 	const dispatch = useDispatch();
 
 	const empresa = useSelector((state) => state.empresa);
-	const { periodo, archivo } =
-		useSelector((state) => state.liquidacionProcesar.desdeArchivo) ?? {};
+	const { periodo, archivo } = useSelector(
+		(state) => state.liquidacionProcesar.desdeArchivo
+	);
 
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) {

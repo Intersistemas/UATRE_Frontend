@@ -21,6 +21,18 @@ export const limpiarReducer = () => {
 const escribirReducer = (k, v) =>
 	localStorage.setItem(Item(k), typeof v === "string" ? v : JSON.stringify(v));
 
+const liquidacionProcesarDef = {
+	existente: {
+		periodo: null,
+	},
+	desdeArchivo: {
+		periodo: null,
+		archivo: null,
+	},
+	manual: {
+		periodo: null,
+	},
+};
 const leerReducer = (k) => {
 	const v = localStorage.getItem(Item(k));
 	switch (k) {
@@ -35,18 +47,7 @@ const leerReducer = (k) => {
 		case USUARIO_LOGUEADO: //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
 			return v ? JSON.parse(v) : {};
 		case LIQUIDACION_PROCESAR_SELECCIONAR:
-			return v ? JSON.parse(v) : {
-				existente: {
-					periodo: null,
-				},
-				desdeArchivo: {
-					periodo: null,
-					archivo: null,
-				},
-				manual: {
-					periodo: null,
-				},
-			};
+			return v ? JSON.parse(v) : liquidacionProcesarDef;
 		default:
 			return v;
 	}
@@ -84,8 +85,11 @@ const reducer = (state = initialState, { type, payload }) => {
 			return { ...state, usuarioLogueado: payload };
 		}
 		case LIQUIDACION_PROCESAR_SELECCIONAR: {
-			escribirReducer(LIQUIDACION_PROCESAR_SELECCIONAR, payload);
-			return { ...state, liquidacionProcesar: payload };
+			const liquidacionProcesar = payload
+				? { ...state.liquidacionProcesar, ...payload }
+				: liquidacionProcesarDef;
+			escribirReducer(LIQUIDACION_PROCESAR_SELECCIONAR, liquidacionProcesar);
+			return { ...state, liquidacionProcesar };
 		}
 		case SET_NAV_FUNCTION: {
 			return {

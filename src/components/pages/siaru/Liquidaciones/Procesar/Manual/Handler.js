@@ -23,9 +23,7 @@ const Handler = () => {
 	const dispatch = useDispatch();
 
 	const empresa = useSelector((state) => state.empresa);
-	const periodo = useSelector(
-		(state) => state.liquidacionProcesar.manual?.periodo
-	);
+	const { periodo } = useSelector((state) => state.liquidacionProcesar.manual);
 
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) {

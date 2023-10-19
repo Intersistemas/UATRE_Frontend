@@ -35,19 +35,18 @@ const EstablecimientosList = ({
 			style: { textAlign: "left" },
 		},
 		{
-			dataField: "_bajaFecha",
+			dataField: "deletedDate",
 			text: "Fecha de baja",
-			isDummyField: true,
+			sort: true,
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
-			formatter: (_cell, row, _rowIndex, _formatExtraDatas) => {
+			formatter: (value) => {
 				const style = {};
-				let valor = Formato.Fecha(row.deletedDate);
-				if (row.refMotivosBajaId) {
-					if (!valor) valor = <>&nbsp;</>;
+				value = Formato.Fecha(value);
+				if (value) {
 					style.background = "#ff6464cc";
 					style.color = "#FFF";
 				}
-				return <div style={style}>{valor}</div>;
+				return <div style={style}>{value}</div>;
 			},
 			style: { textAlign: "center" },
 		},

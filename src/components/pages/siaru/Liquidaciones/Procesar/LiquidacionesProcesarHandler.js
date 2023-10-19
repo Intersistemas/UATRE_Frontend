@@ -22,8 +22,11 @@ const LiquidacionesProcesarHandler = () => {
 		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
 	}, [empresa]);
 
-	const liquidacionProcesar = useSelector((state) => state.liquidacionProcesar);
-	const { desdeArchivo, manual } = liquidacionProcesar;
+	const { desdeArchivo, manual } = useSelector((state) => state.liquidacionProcesar);
+	// Limpio el estado al ingresar a esta página
+	useEffect(() => {
+		dispatch(handleLiquidacionProcesarSeleccionar())
+	}, [dispatch]);
 
 	const archivoRef = useRef(null);
 
@@ -70,7 +73,6 @@ const LiquidacionesProcesarHandler = () => {
 										onChange={(fecha) =>
 											dispatch(
 												handleLiquidacionProcesarSeleccionar({
-													...liquidacionProcesar,
 													desdeArchivo: {
 														...desdeArchivo,
 														periodo: Formato.Entero(fecha?.format("YYYYMM")),
@@ -90,7 +92,6 @@ const LiquidacionesProcesarHandler = () => {
 											if (e.target.files.length < 1) return;
 											dispatch(
 												handleLiquidacionProcesarSeleccionar({
-													...liquidacionProcesar,
 													desdeArchivo: {
 														...desdeArchivo,
 														archivo: e.target.files[0],
@@ -161,7 +162,6 @@ const LiquidacionesProcesarHandler = () => {
 										onChange={(fecha) =>
 											dispatch(
 												handleLiquidacionProcesarSeleccionar({
-													...liquidacionProcesar,
 													manual: {
 														...manual,
 														periodo: Formato.Entero(fecha?.format("YYYYMM")),

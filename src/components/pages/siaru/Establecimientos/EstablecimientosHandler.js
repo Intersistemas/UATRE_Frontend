@@ -21,7 +21,7 @@ const EstablecimientosHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
 	}, [empresa]);
 
 	const [form, setForm] = useState(null);
@@ -47,21 +47,24 @@ const EstablecimientosHandler = () => {
 		loading: "Cargando...",
 		data: [],
 		error: {},
-		filter: { empresaId: empresa?.id, soloActivos: false },
+		params: { empresaId: empresa?.id, soloActivos: false },
+		filter: "",
 		sort: "-Id",
 		page: { index: 1, size: 10 },
 		seleccion: null,
 	});
 	useEffect(() => {
 		if (!establecimientos.loading) return;
+		const params = {
+			...establecimientos.params,
+			pageIndex: establecimientos.page.index,
+			pageSize: establecimientos.page.size,
+			sort: establecimientos.sort,
+		};
+		if (establecimientos.filter) params.filtro = establecimientos.filter;
 		pushQuery({
 			action: "GetEstablecimientos",
-			params: {
-				...establecimientos.filter,
-				pageIndex: establecimientos.page.index,
-				pageSize: establecimientos.page.size,
-				sort: establecimientos.sort,
-			},
+			params: params,
 			onOk: async (res) => {
 				const data = [...res.data];
 				setEstablecimientos((old) => ({
@@ -96,7 +99,7 @@ const EstablecimientosHandler = () => {
 	const estabDesc = `${establecimientos.seleccion?.nombre ?? ""}`;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Agrega Establecimiento` }],
+		acciones: [{ name: `Agrega Establecimiento` }],
 	};
 	if (establecimientos.seleccion) {
 		moduloInfo.acciones.push({
@@ -130,9 +133,6 @@ const EstablecimientosHandler = () => {
 			},
 		};
 		switch (moduloAccion) {
-			case `Empresas`:
-				setRedirect({ to: "/siaru" }); //navigate("siaru") 231018
-				break;
 			case `Agrega Establecimiento`:
 				configForm.record = { empresaId: empresa.id };
 				configForm.request = "A";
@@ -196,14 +196,24 @@ const EstablecimientosHandler = () => {
 										})),
 								}}
 								selection={selection}
-								onTableChange={(type, {sortOrder, sortField}) => {
+								onTableChange={(type, newState) => {
 									switch (type) {
-										case "sort":
+										case "sort": {
+											const { sortOrder, sortField } = newState;
 											return setEstablecimientos((old) => ({
 												...old,
 												loading: "Cargando...",
 												sort: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
 											}));
+										}
+										case "search": {
+											const { searchText } = newState;
+											return setEstablecimientos((old) => ({
+												...old,
+												loading: "Cargando...",
+												filter: searchText,
+											}));
+										}
 										default:
 											return;
 									}
