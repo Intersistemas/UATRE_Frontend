@@ -41,22 +41,7 @@ const Sidebar = ({children}) => {
     
     const navFunction = useSelector(state => state.nav[location.pathname])
     
-    console.log('prev_currentLink',location.pathname);
-
-
-    
     let currentLink = [];
-
-    const modal = () =>{
-        console.log('NavLink***',location.pathname)
-
-        //location.pathname include "!"
-
-        //showModal
-
-       // setState
-
-    }
 
     const migas = location.pathname.split('/')
     .filter(miga => miga !== '')
@@ -73,7 +58,6 @@ const Sidebar = ({children}) => {
             nav.to = '#'
             nav.onClick = (()=>navFunction(to))
         }  
-        console.log('nav',nav)
         return(
             <NavLink key={miga} {...nav} className={clases.link} activeClassName={clases.active}>
                 <div className={clases.icon}><FaTh/></div>
@@ -83,8 +67,6 @@ const Sidebar = ({children}) => {
 
     })
 
-
-    console.log('moduloActual: ',moduloActual);
 
     const logout = () =>{
          logoutHandler();
