@@ -17,7 +17,10 @@ const Handler = () => {
 		useSelector((state) => state.liquidacionProcesar.desdeArchivo) ?? {};
 
 	const [redirect, setRedirect] = useState({ to: "", options: null });
-	if (redirect.to) navigate(redirect.to, redirect.options);
+	if (redirect.to) {
+		dispatch(handleSetNavFunction()); // Limpio navFunction
+		navigate(redirect.to, redirect.options);
+	}
 
 	useEffect(() => {
 		if (!empresa?.cuit) setRedirect({ to: "/inicio/siaru" });
@@ -27,37 +30,41 @@ const Handler = () => {
 
 	const [modal, setModal] = useState();
 
-	dispatch(
-		handleSetNavFunction((to) => {
-			setModal(
-				<Modal onClose={() => setModal(null)}>
-					<Grid col width="full" gap="15px">
-						<Grid width="full" justify="evenly">
-							<h3>Se perderán los datos cargados</h3>
-						</Grid>
-						<Grid width="full" justify="evenly">
-							<Grid width="370px">
-								<Button
-									className="botonAzul"
-									onClick={() => setRedirect({ to })}
-								>
-									Continúa
-								</Button>
+	//#region Establezco la navFunction para esta página
+	useEffect(() => {
+		dispatch(
+			handleSetNavFunction((to) => {
+				setModal(
+					<Modal onClose={() => setModal(null)}>
+						<Grid col width="full" gap="15px">
+							<Grid width="full" justify="evenly">
+								<h3>Se perderán los datos cargados</h3>
 							</Grid>
-							<Grid width="370px">
-								<Button
-									className="botonAmarillo"
-									onClick={() => setModal(null)}
-								>
-									Cancela
-								</Button>
+							<Grid width="full" justify="evenly">
+								<Grid width="370px">
+									<Button
+										className="botonAzul"
+										onClick={() => setRedirect({ to })}
+									>
+										Continúa
+									</Button>
+								</Grid>
+								<Grid width="370px">
+									<Button
+										className="botonAmarillo"
+										onClick={() => setModal(null)}
+									>
+										Cancela
+									</Button>
+								</Grid>
 							</Grid>
 						</Grid>
-					</Grid>
-				</Modal>
-			);
-		})
-	);
+					</Modal>
+				);
+			})
+		);
+	}, [dispatch]);
+	//#endregion
 
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
