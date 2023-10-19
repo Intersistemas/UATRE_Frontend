@@ -1,8 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useSelector } from 'react-redux'
 import {
-    FaTh,FaBars,FaRegUser, FaChevronRight
+    FaTh,FaBars,FaRegUser, FaChevronRight, FaAngleUp
 }from "react-icons/fa";
+
 import { BsFillXCircleFill } from "react-icons/bs";
 import { NavLink,useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
@@ -31,32 +32,10 @@ const Sidebar = ({children}) => {
 
     const[isOpen ,setIsOpen] = useState(true);
     const toggle = () => setIsOpen (!isOpen);
-    const menuItem=[
-        {
-            path:"/inicio",
-            name: <text><text className={clases.underline}>I</text>nicio</text>,
-            icon:<FaTh/>
-        }
-    ]
     
     const navFunction = useSelector(state => state.nav[location.pathname])
     
-    console.log('prev_currentLink',location.pathname);
-
-
-    
     let currentLink = [];
-
-    const modal = () =>{
-        console.log('NavLink***',location.pathname)
-
-        //location.pathname include "!"
-
-        //showModal
-
-       // setState
-
-    }
 
     const migas = location.pathname.split('/')
     .filter(miga => miga !== '')
@@ -76,7 +55,7 @@ const Sidebar = ({children}) => {
         console.log('nav',nav)
         return(
             <NavLink key={miga} {...nav} className={clases.link} activeClassName={clases.active}>
-                <div className={clases.icon}><FaTh/></div>
+                <div className={clases.icon}> {miga == "inicio" ? <FaTh/> : <FaAngleUp/>}</div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
             </NavLink>    
         ) 
@@ -112,8 +91,8 @@ const Sidebar = ({children}) => {
                 <div className={clases.sidebar_opciones}>
                     <div className={clases.top_section}>
                         <h1 style={{display: isOpen ? "block" : "none"}} className={clases.logo}>
-                            <img src={logo} width="70" height="70" onClick={toggle}/>
-                            <a> UATRE</a>
+                            <img src={logo} width="100" height="100" onClick={toggle}/>
+                            <a>UATRE</a>
                         </h1>
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
@@ -124,14 +103,16 @@ const Sidebar = ({children}) => {
                         </div>
                             {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
+                        <div>
                         { migas/*
-                        menuItem.map((item, index)=>(
-                            <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
-                                <div className={clases.icon}>{item.icon}</div>
-                                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
-                            </NavLink>
-                        ))
-                        */}
+                            menuItem.map((item, index)=>(
+                                <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
+                                    <div className={clases.icon}>{item.icon}</div>
+                                    <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
+                                </NavLink>
+                            ))
+                            */}
+                        </div>
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(   
