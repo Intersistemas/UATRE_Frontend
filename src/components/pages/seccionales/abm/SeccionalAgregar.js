@@ -5,7 +5,6 @@ import { Tab, Tabs } from "@mui/material";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
 import Button from "../../../ui/Button/Button";
-import LoadingButtonCustom from "../../../ui/LoadingButtonCustom/LoadingButtonCustom";
 import SeccionalDocumentos from "../documentos/SeccionalDocumentos";
 import SeccionalAutoridades from "../autoridades/SeccionalAutoridades";
 import SeccionalAutoridadesForm from "../autoridades/SeccionalAutoridadesForm";
