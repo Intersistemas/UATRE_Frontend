@@ -74,8 +74,10 @@ const Handler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesar liquidaciones` }],
+		acciones: [{ name: `Procesar liquidaciones` }],
 	};
+
+	if (redirect.to) moduloInfo.acciones = [];
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {

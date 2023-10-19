@@ -186,6 +186,7 @@ const Handler = () => {
 		}
 	}
 
+	if (redirect.to) moduloInfo.acciones = [];
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
