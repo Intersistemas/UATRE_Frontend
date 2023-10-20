@@ -53,13 +53,13 @@ const Sidebar = ({children}) => {
 					nav.to = "#";
 					nav.onClick = () =>
 						navFunction({
-							to: path,
 							go: ({ to = path, delta = null, options = null } = {}) =>
 								delta == null && options == null
 									? navigate(to)
 									: options == null
 									? navigate(delta)
 									: navigate(to, options),
+							to: path,
 						});
 				}
         return(
