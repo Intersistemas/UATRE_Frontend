@@ -42,7 +42,7 @@ const Handler = () => {
 	//#region Establezco la navFunction para esta página
 	useEffect(() => {
 		dispatch(
-			handleSetNavFunction((to) => {
+			handleSetNavFunction(({ go }) => {
 				setModal(
 					<Modal onClose={() => setModal(null)}>
 						<Grid col width="full" gap="15px">
@@ -51,10 +51,7 @@ const Handler = () => {
 							</Grid>
 							<Grid width="full" justify="evenly">
 								<Grid width="370px">
-									<Button
-										className="botonAzul"
-										onClick={() => setRedirect({ to })}
-									>
+									<Button className="botonAzul" onClick={() => go()}>
 										Continúa
 									</Button>
 								</Grid>
