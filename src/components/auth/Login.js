@@ -17,8 +17,6 @@ import UseKeyPress from '../helpers/UseKeyPress';
   //#region shorcuts
  
 const Login = () => {
-  console.log("Login");
-
   //#region atributos
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
@@ -37,7 +35,6 @@ const Login = () => {
   useEffect(() => {
     if (error) {
       setMensajeError(error.message);
-      console.log("capturo error", error);
       if(error.code === 401){
         setMensajeError(error.message);
       }
@@ -73,17 +70,14 @@ const Login = () => {
   };
 
   const processLogIn = async (userObject) => {
-    console.log("userObject1", userObject);
     await authContext.login(
       userObject.token.tokenId,
       userObject.token.validTo.toString(),
       userObject.rol,
       userObject
     );
-    console.log("logged");
     //pasar al authcontext el usuario
 
-    console.log("enteredCUIT", enteredCUIT);
     dispatch(handleUsuarioLogueado(userObject));
     navigate("/inicio");
   };
@@ -112,7 +106,6 @@ const Login = () => {
     event.preventDefault();
     //props.onLogin(enteredCUIT, enteredPassword);
     sendLoginHandler();
-    console.log("submitHandler");
   };
 
   const [verClave, setVerClave] = useState(false);
