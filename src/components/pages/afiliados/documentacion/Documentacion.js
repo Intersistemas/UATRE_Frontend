@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import BootstrapTable from "react-bootstrap-table-next";
 import overlayFactory from "react-bootstrap-table2-overlay";
-import FormatearFecha from "../../../helpers/FormatearFecha";
 import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./Documentacion.module.css";
-import Formato from "../../../helpers/Formato";
 
 const Documentacion = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
