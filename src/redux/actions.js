@@ -40,7 +40,10 @@ export const handleUsuarioLogueado = (payload) => ({
 });
 
 //SETEO LA FUNCION QUE PASARÁ EL COMPONENTE ANTES DE NAVEGAR A OTRO COMP.
-const handleSetNavFunctionFnDef = (to) => {};
+const handleSetNavFunctionFnDef = ({
+	go = ({ to = null, delta = null, options = null } = {}) => {},
+	to = null,
+}) => {};
 export const handleSetNavFunction = (
 	fn = handleSetNavFunctionFnDef,
 	location = window.location.pathname

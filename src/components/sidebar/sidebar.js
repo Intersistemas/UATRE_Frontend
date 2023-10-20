@@ -33,7 +33,7 @@ const Sidebar = ({children}) => {
     const[isOpen ,setIsOpen] = useState(true);
     const toggle = () => setIsOpen (!isOpen);
     
-    const navFunction = useSelector(state => state.nav[location.pathname])
+    const navFunction = useSelector(state => state.nav[location.pathname]);
     
     let currentLink = [];
 
@@ -42,18 +42,28 @@ const Sidebar = ({children}) => {
     .map(miga => {
         currentLink.push(`/${miga}`)
         
-        const nav = {}
-        const to = currentLink.join('');
-        
-        if (navFunction == null){ 
-            nav.to = to
-            } 
-        else {
-            nav.to = '#'
-            nav.onClick = (()=>navFunction(to))
-        }  
+        const path = currentLink.join('');
+        const nav = {
+					key: miga,
+					to: path,
+					className: clases.link,
+					activeClassName: clases.active,
+				};
+        if (navFunction != null) {
+					nav.to = "#";
+					nav.onClick = () =>
+						navFunction({
+							go: ({ to = path, delta = null, options = null } = {}) =>
+								delta == null && options == null
+									? navigate(to)
+									: options == null
+									? navigate(delta)
+									: navigate(to, options),
+							to: path,
+						});
+				}
         return(
-            <NavLink key={miga} {...nav} className={clases.link} activeClassName={clases.active}>
+            <NavLink {...nav}>
                 <div className={clases.icon}> {miga == "inicio" ? <FaTh/> : <FaAngleUp/>}</div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
             </NavLink>    
