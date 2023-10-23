@@ -35,6 +35,16 @@ import Documentacion from "../../Documentacion/Documentacion";
 import UseKeyPress from '../../helpers/UseKeyPress';
 
 //#region Reducers
+const fechaIngresoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value !== "" ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: action.value !== "" ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
 const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return { value: action.value, isValid: ValidarCUIT(action.value) };
@@ -426,6 +436,11 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region manejo de validaciones
+  const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
+    value: "",
+    isValid: false,
+  });
+
   const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
     value: "",
     isValid: false,
@@ -638,6 +653,13 @@ const AfiliadoAgregar = (props) => {
         setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
         //dispatches para validar los campos
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value:
+            afiliadoObj.fechaIngreso !== null
+              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+              : "",
+        });
         dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
         dispatchActividad({
           type: "USER_INPUT",
@@ -1063,7 +1085,7 @@ const AfiliadoAgregar = (props) => {
           padronRespuesta?.nombre ?? ""
         }`,
         puestoId: +puestoState.value,
-        fechaIngreso: null,
+        fechaIngreso: fechaIngresoState.value,
         fechaEgreso: null,
         nacionalidadId: +nacionalidadState.value,
         //empresaId: +empresaId,
@@ -1294,7 +1316,19 @@ const AfiliadoAgregar = (props) => {
       setCuilValidado(true);
       setPadronRespuesta(padronObj);
       //Solo actualizo los datos principales si estoy agregando solicitud
+      // fecha ingreso
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const year = today.getFullYear();
+      const day = today.getDate();
+      const fechaIngreso = year + "-" + month + "-" + day;
+      console.log("fechaIngreso", moment(fechaIngreso).format("yyyy-MM-DD"));
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(fechaIngreso).format("yyyy-MM-DD"),
+      });
       let domicilioReal = "";
+      
       if (props.accion === "Agrega") {
         dispatchNombre({
           type: "USER_INPUT",
@@ -1496,6 +1530,9 @@ const AfiliadoAgregar = (props) => {
   //#region handles Inputs
   const handleInputChange = (value, id) => {
     switch (id) {
+      case "fechaIngreso":
+        dispatchFechaIngreso({ type: "USER_INPUT", value: value });
+        break;
       case "cuil":
         setCuilValidado(false);
         setAfiliadoExiste(false);
@@ -1773,7 +1810,7 @@ const AfiliadoAgregar = (props) => {
       nroAfiliado: +afiliado.nroAfiliado,
       nombre: nombreState.value,
       puestoId: +puestoState.value,
-      fechaIngreso: afiliado.fechaIngreso,
+      fechaIngreso: fechaIngresoState.value,
       fechaEgreso: afiliado.fechaEgreso,
       nacionalidadId: +nacionalidadState.value,
       //empresaCUIT: +cuitEmpresa,
@@ -2101,10 +2138,11 @@ const AfiliadoAgregar = (props) => {
 							<div className={classes.input25}>
 								<InputMaterial
 									id="fechaIngreso"
-									value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+									value={fechaIngresoState.value}
 									label="Fecha Ingreso"
 									onChange={handleInputChange}
-                  readOnly={!afiliadoExiste}
+                  type="date"
+                  //readOnly={!afiliadoExiste}
 								/>
 							</div>
 						</div>
@@ -2299,7 +2337,7 @@ const AfiliadoAgregar = (props) => {
 									value={puestoState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
-									error={!puestoState.isValid && inputsTouched ? true : false}
+									//error={!puestoState.isValid && inputsTouched ? true : false}
 								/>
 							</div>
 							<div className={classes.input25}>
