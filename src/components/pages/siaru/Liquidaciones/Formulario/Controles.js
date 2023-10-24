@@ -85,6 +85,7 @@ const Controles = ({
 			params: {
 				empresaId: empresaId,
 				pageSize: 5000,
+				bajas: false,
 			},
 			onOk: async (res) => setEstablecimientos({ data: [...res.data] }),
 			onError: async (err) => {
@@ -399,7 +400,12 @@ const Controles = ({
 								.join(" ")}
 							disabled={!!disabled.empresaEstablecimientoId}
 							options={establecimientos.data.map((r) => ({
-								label: r.nombre,
+								label: [
+									r.nombre,
+									r.deletedDate ? "Establecimiento de baja" : "",
+								]
+									.filter((e) => e)
+									.join(" - "),
 								value: r.id,
 							}))}
 							onChange={(value, _id) =>
