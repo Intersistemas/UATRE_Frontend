@@ -11,6 +11,7 @@ import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
 import { Filter } from "@mui/icons-material";
 import UseKeyPress from '../../helpers/UseKeyPress';
+import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -30,6 +31,7 @@ const AfiliadosHandler = () => {
   const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
+	const [modal, setModal] = useState();
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
@@ -261,7 +263,7 @@ const AfiliadosHandler = () => {
         setAccionSeleccionada("Modifica");
         break;
       case "Resuelve Solicitud":
-        setAfiliadoAgregarShow(true);
+        // setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
       case "Imprime Carnet de Afiliación":
@@ -366,6 +368,24 @@ const AfiliadosHandler = () => {
     setAfiliadoSeleccionado(afiliado);
   };
 
+	useEffect(() => {
+		switch (accionSeleccionada) {
+			case "Resuelve": {
+				setModal(
+					<ResolverSolicitudModal
+						onClose={(confirm) => {
+							setAccionSeleccionada("");
+							setModal(null);
+						}}
+						afiliado={afiliadoSeleccionado}
+					/>
+				);
+				return;
+			}
+			default: return;
+		}
+	}, [accionSeleccionada, afiliadoSeleccionado]);
+
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
@@ -396,6 +416,8 @@ const AfiliadosHandler = () => {
             afiliadoSeleccionado = {afiliadoSeleccionado}
           />
         )}
+
+				{modal}
 
         <AfiliadosLista
           afiliados={afiliadosRespuesta}

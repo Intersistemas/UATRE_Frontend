@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
-import ResolverSolicitud from "./ResolverSolicitud";
+import Formato from "components/helpers/Formato";
+import DeclaracionesJuradas from "../declaracionesJuradas/DeclaracionesJuradas";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
 const ResolverSolicitudModal = ({
 	afiliado,
@@ -19,6 +21,15 @@ const ResolverSolicitudModal = ({
 					},
 				};
 			}
+			case "UpdateAfiliado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Afiliado`,
+						method: "PATCH",
+					}
+				}
+			}
 			default:
 				return null;
 		}
@@ -29,7 +40,7 @@ const ResolverSolicitudModal = ({
 		loading: "Cargando...",
 		data: {},
 		error: {},
-		params: { cuit: afiliado.cuilValidado, verificarHistorico: false },
+		params: { cuit: afiliado.cuilValidado || afiliado.cuil, verificarHistorico: false },
 	});
 	useEffect(() => {
 		if (!padron.loading) return;
@@ -60,7 +71,7 @@ const ResolverSolicitudModal = ({
 	} else if (padron.error) {
 		contenido = <Grid>Error cargando padron...</Grid>;
 	} else {
-		// contenido = (
+		contenido = (
 		// 	<ResolverSolicitud
 		// 		padronRespuesta={padron}
 		// 		cuilState={afiliado.cuilValidado}
@@ -75,10 +86,39 @@ const ResolverSolicitudModal = ({
 		// 		onHandleInputChange={handleInputChange}
 		// 		onResolverSolicitudHandler={resolverSolicitudHandler}
 		// 	/>
-		// 	);
+				null
+			);
 	}
 
-	return <Modal onClose={onClose(false)}>{contenido}</Modal>;
+	return (
+			<Modal onClose={onClose}>
+				<Grid col width="full" justify="center">
+					<h4>{`DDJJ UATRE ${Formato.Cuit(afiliado.cuil)} ${afiliado.nombre}`}</h4>
+					<DeclaracionesJuradas
+							cuil={afiliado.cuil}
+							infoCompleta={true}
+							mostrarBuscar={false}
+							registros={1}
+						/>
+				</Grid>
+				<Grid col width="full" justify="center">
+					<h4>Actividades del Empleador</h4>
+					{/* <InputMaterial
+						id="CIIU1"
+						value={
+							props.padronEmpresaRespuesta &&
+							props.padronEmpresaRespuesta.ciiU1
+								? `${props.padronEmpresaRespuesta.ciiU1} - ${props.padronEmpresaRespuesta.ciiU1Descripcion}`
+								: ""
+						}
+						label="Actividad Principal"
+						disabled={true}
+						showToolTip={true}
+					/> */}
+				</Grid>
+				{contenido}
+			</Modal>
+		);
 };
 
 export default ResolverSolicitudModal;
