@@ -6,7 +6,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Modal from "components/ui/Modal/Modal";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import Tentativas from "../Tentativas/Handler";
+import Tentativas from "../tentativas/Handler";
 
 const Handler = () => {
 	const navigate = useNavigate();

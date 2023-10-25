@@ -11,8 +11,8 @@ import Formato from "components/helpers/Formato";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
-import LiquidacionForm from "./Formulario/Form";
-import LiquidacionPDF from "./Impresion/Handler";
+import LiquidacionForm from "./formulario/Form";
+import LiquidacionPDF from "./impresion/Handler";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();

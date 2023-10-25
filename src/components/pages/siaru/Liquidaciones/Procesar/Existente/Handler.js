@@ -14,9 +14,9 @@ import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import Button from "components/ui/Button/Button";
 import Formato from "components/helpers/Formato";
-import Tentativas from "../Tentativas/Handler";
-import NominaTable from "../Manual/NominaTable";
-import NominaForm from "../Manual/NominaForm";
+import Tentativas from "../tentativas/Handler";
+import NominaTable from "../manual/NominaTable";
+import NominaForm from "../manual/NominaForm";
 
 const Handler = () => {
 	const navigate = useNavigate();
