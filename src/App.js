@@ -4,7 +4,7 @@ import './App.css';
 import Login from './components/auth/Login';
 import Registro from './components/auth/Registro';
 import ConfirmaEmail from './components/auth/ConfirmaEmail';
-import Contacto from './components/pages/Contacto/Contacto';
+import Contacto from './components/pages/contacto/Contacto';
 
 
 
@@ -12,32 +12,32 @@ import SideBar from './components/sidebar/sidebar'
 import {Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
 
-import InicioHandler from './components/pages/Inicio/InicioHandler';
+import InicioHandler from './components/pages/inicio/InicioHandler';
 
 //---Siaru---
-import SiaruHandler from './components/pages/Siaru/SiaruHandler';
-import LiquidacionesHandler from './components/pages/Siaru/Liquidaciones/LiquidacionesHandler';
-import LiquidacionesProcesarHandler from './components/pages/Siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
-import LiquidacionesProcesarExistenteHandler from './components/pages/Siaru/Liquidaciones/Procesar/Existente/Handler';
-import LiquidacionesProcesarArchivoHandler from './components/pages/Siaru/Liquidaciones/Procesar/Archivo/Handler';
-import LiquidacionesProcesarManualHandler from './components/pages/Siaru/Liquidaciones/Procesar/Manual/Handler';
+import SiaruHandler from './components/pages/siaru/SiaruHandler';
+import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
+import LiquidacionesProcesarHandler from './components/pages/siaru/liquidaciones/procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liquidaciones/procesar/existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
 
 //---ADMINISTRACION---
-import AdministracionHandler from './components/pages/Administracion/AdministracionHandler';
-import SeccionalesHandler from "./components/pages/Seccionales/SeccionalesHandler";
-import EmpresasHandler from "./components/pages/Empresas/EmpresasHandler";
-import AccesosHandler from "./components/pages/Accesos/AccesosHandler";
+import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
+import SeccionalesHandler from "./components/pages/seccionales/SeccionalesHandler";
+import EmpresasHandler from "./components/pages/empresas/EmpresasHandler";
+import AccesosHandler from "./components/pages/accesos/AccesosHandler";
 
 
 //---AFILIADOS---
-import AfiliadosHandler from './components/pages/Afiliados/AfiliadosHandler';
-import Afiliado from './components/pages/Afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/Siaru/Establecimientos/EstablecimientosHandler';
+import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
+import Afiliado from './components/pages/afiliados/Afiliado';
+import EstablecimientosHandler from './components/pages/siaru/establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
 import fondo from './media/Background/color3.png';
-import DelegacionesHandler from 'components/pages/Delegaciones/DelegacionesHandler';
+import DelegacionesHandler from 'components/pages/delegaciones/DelegacionesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/

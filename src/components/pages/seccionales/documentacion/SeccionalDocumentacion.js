@@ -1,8 +1,8 @@
 import { Grid } from "@mui/material";
 import React, { useState } from "react";
-import DocumentacionList from "../../Afiliados/documentacion/DocumentacionList";
+import DocumentacionList from "../../afiliados/documentacion/DocumentacionList";
 import Button from "../../../ui/Button/Button";
-import DocumentacionForm from "../../Afiliados/documentacion/DocumentacionForm";
+import DocumentacionForm from "../../afiliados/documentacion/DocumentacionForm";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "../../../../redux/actions";
 

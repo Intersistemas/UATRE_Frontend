@@ -9,8 +9,8 @@ import {
 } from "redux/actions";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import EmpresaDetails from "./Empresas/EmpresaDetails";
-import EmpresasList from "./Empresas/EmpresasList";
+import EmpresaDetails from "./empresas/EmpresaDetails";
+import EmpresasList from "./empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 
 const SiaruHandler = () => {
