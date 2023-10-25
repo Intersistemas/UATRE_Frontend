@@ -23,7 +23,8 @@ const escribirReducer = (k, v) =>
 
 const liquidacionProcesarDef = {
 	existente: {
-		periodo: null,
+		periodoDesde: null,
+		periodoHacia: null,
 	},
 	desdeArchivo: {
 		periodo: null,

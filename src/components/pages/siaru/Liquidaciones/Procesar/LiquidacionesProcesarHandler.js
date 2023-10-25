@@ -25,7 +25,7 @@ const LiquidacionesProcesarHandler = () => {
 		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
-	const { desdeArchivo, manual } = useSelector(
+	const { desdeArchivo, manual, existente } = useSelector(
 		(state) => state.liquidacionProcesar
 	);
 	// Limpio el estado al ingresar a esta página
@@ -36,7 +36,11 @@ const LiquidacionesProcesarHandler = () => {
 
 	const archivoRef = useRef(null);
 
-	const [errores, setErrores] = useState({ archivo: [], manual: [] });
+	const [errores, setErrores] = useState({
+		archivo: [],
+		manual: [],
+		existente: [],
+	});
 
 	return (
 		<>
@@ -140,6 +144,100 @@ const LiquidacionesProcesarHandler = () => {
 							</Grid>
 							<Grid col full="width" style={{ color: "red" }}>
 								{errores.archivo}
+							</Grid>
+						</Grid>
+
+						{/* Grupo "Liquidación por copia de período" */}
+						<Grid
+							className={`${styles.fondo} ${styles.grupo}`}
+							col
+							full="width"
+							style={{ minWidth: "310px" }}
+							gap="10px"
+						>
+							<Grid full="width">
+								<Grid className={styles.cabecera} grow>
+									Liquidación por copia de período
+								</Grid>
+							</Grid>
+							<Grid full="width" gap="10px">
+								<Grid block basis="250px">
+									<DateTimePicker
+										type="month"
+										label="Ingrese período a liquidar"
+										value={
+											Formato.Mascara(existente?.periodoHacia, "####-##-01") ??
+											""
+										}
+										disableFuture
+										minDate="1994-01-01"
+										maxDate={dayjs().format("YYYY-MM-DD")}
+										onChange={(fecha) =>
+											dispatch(
+												handleLiquidacionProcesarSeleccionar({
+													existente: {
+														...existente,
+														periodoHacia: Formato.Entero(
+															fecha?.format("YYYYMM")
+														),
+													},
+												})
+											)
+										}
+									/>
+								</Grid>
+								<Grid block basis="300px">
+									<DateTimePicker
+										type="month"
+										label="Ingrese período desde el cual liquidar"
+										value={
+											Formato.Mascara(existente?.periodoDesde, "####-##-01") ??
+											""
+										}
+										disableFuture
+										minDate="1994-01-01"
+										maxDate={dayjs().format("YYYY-MM-DD")}
+										onChange={(fecha) =>
+											dispatch(
+												handleLiquidacionProcesarSeleccionar({
+													existente: {
+														...existente,
+														periodoDesde: Formato.Entero(
+															fecha?.format("YYYYMM")
+														),
+													},
+												})
+											)
+										}
+									/>
+								</Grid>
+								<Grid grow />
+								<Grid block basis="200px">
+									<Button
+										className="botonAmarillo"
+										onClick={() => {
+											const newErrores = [];
+											if (!existente?.periodoHacia)
+												newErrores.push(
+													<Grid>Debe ingresar un período a liquidar.</Grid>
+												);
+											if (!existente?.periodoDesde)
+												newErrores.push(
+													<Grid>
+														Debe ingresar un período desde el cual liquidar.
+													</Grid>
+												);
+											setErrores((old) => ({ ...old, existente: newErrores }));
+											if (newErrores.length === 0)
+												setRedirect({ to: "existente" });
+										}}
+									>
+										Inicia
+									</Button>
+								</Grid>
+							</Grid>
+							<Grid col full="width" style={{ color: "red" }}>
+								{errores.existente}
 							</Grid>
 						</Grid>
 

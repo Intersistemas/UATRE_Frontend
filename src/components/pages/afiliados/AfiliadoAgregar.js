@@ -1,9 +1,5 @@
 import React, { useEffect, useReducer, useRef, useState } from "react";
-import Button from "../../ui/Button/Button";
-import Modal from "../../ui/Modal/Modal";
-import classes from "./AfiliadoAgregar.module.css";
-import useHttp from "../../hooks/useHttp";
-import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import moment from "moment";
 import {
   Dialog,
   DialogActions,
@@ -12,29 +8,41 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import InputMaterial from "../../ui/Input/InputMaterial";
-import SelectMaterial from "../../ui/Select/SelectMaterial";
-import moment from "moment";
-import ValidarCUIT from "../../validators/ValidarCUIT";
-import ValidarEmail from "../../validators/ValidarEmail";
-import FormatearFecha from "../../helpers/FormatearFecha";
-import InputMaterialMask from "../../ui/Input/InputMaterialMask";
+import Button from "components/ui/Button/Button";
+import Modal from "components/ui/Modal/Modal";
+import useHttp from "components/hooks/useHttp";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+import ValidarCUIT from "components/validators/ValidarCUIT";
+import ValidarEmail from "components/validators/ValidarEmail";
+import InputMaterialMask from "components/ui/Input/InputMaterialMask";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
   AFILIADO_SOLICITUDRESUELTA,
   AFILIADO_DATOSAFIPACTUALIZADO,
   AFILIADO_AGREGADO_ACTIVO,
-} from "../../helpers/Mensajes";
-import ResolverSolicitud from "./ResolverSolicitud/ResolverSolicitud";
+} from "components/helpers/Mensajes";
+import Documentacion from "components/Documentacion/Documentacion";
+import UseKeyPress from 'components/helpers/UseKeyPress';
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import classes from "./AfiliadoAgregar.module.css";
 import TabEmpleador from "./TabEmpleador/TabEmpleador";
 import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
-import Documentacion from "../../Documentacion/Documentacion";
-import UseKeyPress from '../../helpers/UseKeyPress';
 
 //#region Reducers
+const fechaIngresoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value !== "" ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: action.value !== "" ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
 const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return { value: action.value, isValid: ValidarCUIT(action.value) };
@@ -375,11 +383,11 @@ const AfiliadoAgregar = (props) => {
   //   resolverSolicitudAfiliadoResponse,
   //   setResolverSolicitudAfiliadoResponse,
   // ] = useState(0);
-  const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
-  const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] =
-    useState(moment(new Date()).format("yyyy-MM-DD"));
-  const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
+  // const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
+  // const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] =
+  //   useState(moment(new Date()).format("yyyy-MM-DD"));
+  // const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
+  // const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
   const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
@@ -407,7 +415,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
-  const [estadoSolicitudResolver, setEstadoSolicitudResolver] = useState(1);
+  // const [estadoSolicitudResolver, setEstadoSolicitudResolver] = useState(1);
   const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] =
     useState("");
 
@@ -426,6 +434,11 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region manejo de validaciones
+  const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
+    value: "",
+    isValid: false,
+  });
+
   const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
     value: "",
     isValid: false,
@@ -638,6 +651,13 @@ const AfiliadoAgregar = (props) => {
         setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
         //dispatches para validar los campos
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value:
+            afiliadoObj.fechaIngreso !== null
+              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+              : "",
+        });
         dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
         dispatchActividad({
           type: "USER_INPUT",
@@ -709,26 +729,26 @@ const AfiliadoAgregar = (props) => {
         setRazonSocialEmpresa(afiliadoObj.empresa);
         setEmpresaIdExiste(afiliadoObj.empresaId);
 
-        if (afiliadoObj.estadoSolicitudId === 1) {
-          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Pendiente" ||
-              estado.label === "Activo" ||
-              estado.label === "Observado" ||
-              estado.label === "Rechazado"
-          );
-          //console.log("estados", estadosSolicitudesPendientes);
-          setEstadosSolicitudes(estadosSolicitudesPendientes);
-          setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
-        } else if (afiliadoObj.estadoSolicitudId === 4) {
-          const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Observado" || estado.label === "Rechazado"
-          );
-          //console.log("estados", estadosSolicitudesObservado);
-          setEstadosSolicitudes(estadosSolicitudesObservado);
-          setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
-        }
+        // if (afiliadoObj.estadoSolicitudId === 1) {
+        //   const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+        //     (estado) =>
+        //       estado.label === "Pendiente" ||
+        //       estado.label === "Activo" ||
+        //       estado.label === "Observado" ||
+        //       estado.label === "Rechazado"
+        //   );
+        //   //console.log("estados", estadosSolicitudesPendientes);
+        //   setEstadosSolicitudes(estadosSolicitudesPendientes);
+        //   setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
+        // } else if (afiliadoObj.estadoSolicitudId === 4) {
+        //   const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
+        //     (estado) =>
+        //       estado.label === "Observado" || estado.label === "Rechazado"
+        //   );
+        //   //console.log("estados", estadosSolicitudesObservado);
+        //   setEstadosSolicitudes(estadosSolicitudesObservado);
+        //   setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
+        // }
 
         //alert
         if (props.accion === "Agrega") {
@@ -738,8 +758,8 @@ const AfiliadoAgregar = (props) => {
           setOpenDialog(true);
           return;
         } else if (props.accion === "Resuelve") {
-          console.log("a resolver");
-          setSelectedTab(3);
+          // console.log("a resolver");
+          // setSelectedTab(3);
         }
       };
 
@@ -1063,7 +1083,7 @@ const AfiliadoAgregar = (props) => {
           padronRespuesta?.nombre ?? ""
         }`,
         puestoId: +puestoState.value,
-        fechaIngreso: null,
+        fechaIngreso: fechaIngresoState.value,
         fechaEgreso: null,
         nacionalidadId: +nacionalidadState.value,
         //empresaId: +empresaId,
@@ -1145,17 +1165,17 @@ const AfiliadoAgregar = (props) => {
         //pasa a resolver solicitud
         else {
           setDialogTexto(AFILIADO_AGREGADO);
-          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Pendiente" ||
-              estado.label === "Activo" ||
-              estado.label === "Observado" ||
-              estado.label === "Rechazado"
-          );
+          // const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
+          //   (estado) =>
+          //     estado.label === "Pendiente" ||
+          //     estado.label === "Activo" ||
+          //     estado.label === "Observado" ||
+          //     estado.label === "Rechazado"
+          // );
 
-          setEstadoSolicitudResolver(2);
-          setEstadosSolicitudes(estadosSolicitudesPendientes);
-          setSelectedTab(3);
+          // setEstadoSolicitudResolver(2);
+          // setEstadosSolicitudes(estadosSolicitudesPendientes);
+          // setSelectedTab(3);
         }
       };
 
@@ -1186,95 +1206,95 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region Resolver Solciitud Afiliado
-  const resolverSolicitudHandler = (event) => {
-    //console.log("id", nuevoAfiliadoObservadoResponse);
-    event.preventDefault();
+  // const resolverSolicitudHandler = (event) => {
+  //   //console.log("id", nuevoAfiliadoObservadoResponse);
+  //   event.preventDefault();
 
-    //Estados Observado y Rechazado llevan comentario obligatorio
-    if (
-      (afiliado?.estadoSolicitudId === 4 || afiliado?.estadoSolicitud === 5) &&
-      resolverSolicitudObs === ""
-    ) {
-      setDialogTexto("Debe completar el campo Observaciones");
-      setOpenDialog(true);
-      return;
-    }
+  //   //Estados Observado y Rechazado llevan comentario obligatorio
+  //   if (
+  //     (afiliado?.estadoSolicitudId === 4 || afiliado?.estadoSolicitud === 5) &&
+  //     resolverSolicitudObs === ""
+  //   ) {
+  //     setDialogTexto("Debe completar el campo Observaciones");
+  //     setOpenDialog(true);
+  //     return;
+  //   }
 
-    //Controles
-    console.log("afiliado", afiliado);
-    console.log("estadoSolicitudResolver", estadoSolicitudResolver);
-    if (afiliado?.estadoSolicitudId === estadoSolicitudResolver) {
-      setDialogTexto(
-        `El estado seleccionado es el mismo que posee actualmente el afiliado`
-      );
-      setOpenDialog(true);
+  //   //Controles
+  //   console.log("afiliado", afiliado);
+  //   console.log("estadoSolicitudResolver", estadoSolicitudResolver);
+  //   if (afiliado?.estadoSolicitudId === estadoSolicitudResolver) {
+  //     setDialogTexto(
+  //       `El estado seleccionado es el mismo que posee actualmente el afiliado`
+  //     );
+  //     setOpenDialog(true);
 
-      return;
-    }
+  //     return;
+  //   }
 
-    const patchAfiliado = [
-      {
-        path: "EstadoSolicitudId",
-        op: "replace",
-        value: estadoSolicitudResolver,
-      },
-      {
-        path: "FechaIngreso",
-        op: "replace",
-        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
-      },
-      {
-        path: "NroAfiliado",
-        op: "replace",
-        value: "0",
-      },
-      {
-        path: "EstadoSolicitudObservaciones",
-        op: "replace",
-        value: resolverSolicitudObs,
-      },
-      {
-        path: "FechaEgreso",
-        op: "replace",
-        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
-      },
-    ];
+  //   const patchAfiliado = [
+  //     {
+  //       path: "EstadoSolicitudId",
+  //       op: "replace",
+  //       value: estadoSolicitudResolver,
+  //     },
+  //     {
+  //       path: "FechaIngreso",
+  //       op: "replace",
+  //       value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+  //     },
+  //     {
+  //       path: "NroAfiliado",
+  //       op: "replace",
+  //       value: "0",
+  //     },
+  //     {
+  //       path: "EstadoSolicitudObservaciones",
+  //       op: "replace",
+  //       value: resolverSolicitudObs,
+  //     },
+  //     {
+  //       path: "FechaEgreso",
+  //       op: "replace",
+  //       value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
+  //     },
+  //   ];
 
-    const resolverSolicitudAfiliado = async (
-      resolverSolicitudAfiliadoResponse
-    ) => {
-      if (resolverSolicitudAfiliadoResponse) {
-        console.log("props.estadosSolicitudes", props.estadosSolicitudes);
-        const estadoSolicitudSel = props.estadosSolicitudes.find(
-          (estadoSolicitudSel) =>
-            estadoSolicitudSel.value === +estadoSolicitudResolver
-        );
-        console.log("estadoSolicitudSel", estadoSolicitudSel);
-        setDialogTexto(
-          `${AFILIADO_SOLICITUDRESUELTA} ${estadoSolicitudSel.label}!`
-        );
-        setOpenDialog(true);
-        setNuevoAfiliadoResponse({...nuevoAfiliadoResponse,  estadoSolicitud:  estadoSolicitudSel.label})
+  //   const resolverSolicitudAfiliado = async (
+  //     resolverSolicitudAfiliadoResponse
+  //   ) => {
+  //     if (resolverSolicitudAfiliadoResponse) {
+  //       console.log("props.estadosSolicitudes", props.estadosSolicitudes);
+  //       const estadoSolicitudSel = props.estadosSolicitudes.find(
+  //         (estadoSolicitudSel) =>
+  //           estadoSolicitudSel.value === +estadoSolicitudResolver
+  //       );
+  //       console.log("estadoSolicitudSel", estadoSolicitudSel);
+  //       setDialogTexto(
+  //         `${AFILIADO_SOLICITUDRESUELTA} ${estadoSolicitudSel.label}!`
+  //       );
+  //       setOpenDialog(true);
+  //       setNuevoAfiliadoResponse({...nuevoAfiliadoResponse,  estadoSolicitud:  estadoSolicitudSel.label})
 
-        if (+estadoSolicitudResolver === 2) {
-          setShowImprimirLiquidacion(true);
-        }
-      }
-    };
+  //       if (+estadoSolicitudResolver === 2) {
+  //         setShowImprimirLiquidacion(true);
+  //       }
+  //     }
+  //   };
 
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse.id}`,
-        method: "PATCH",
-        body: patchAfiliado,
-        headers: {
-          "Content-Type": "application/json-patch+json",
-        },
-      },
-      resolverSolicitudAfiliado
-    );
-  };
+  //   request(
+  //     {
+  //       baseURL: "Afiliaciones",
+  //       endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse.id}`,
+  //       method: "PATCH",
+  //       body: patchAfiliado,
+  //       headers: {
+  //         "Content-Type": "application/json-patch+json",
+  //       },
+  //     },
+  //     resolverSolicitudAfiliado
+  //   );
+  // };
   //#endregion
 
   //#region Operacions validar CUIT/CUIL
@@ -1294,7 +1314,19 @@ const AfiliadoAgregar = (props) => {
       setCuilValidado(true);
       setPadronRespuesta(padronObj);
       //Solo actualizo los datos principales si estoy agregando solicitud
+      // fecha ingreso
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const year = today.getFullYear();
+      const day = today.getDate();
+      const fechaIngreso = year + "-" + month + "-" + day;
+      console.log("fechaIngreso", moment(fechaIngreso).format("yyyy-MM-DD"));
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(fechaIngreso).format("yyyy-MM-DD"),
+      });
       let domicilioReal = "";
+      
       if (props.accion === "Agrega") {
         dispatchNombre({
           type: "USER_INPUT",
@@ -1481,11 +1513,11 @@ const AfiliadoAgregar = (props) => {
         dispatchLocalidad({ type: "USER_INPUT", value: value });
         break;
 
-      case "estadoSolicitudSelect":
-        console.log("estadoSolicitudElegido", value);
-        setEstadoSolicitudResolver(value);
-        setResolverSolicitudFechaIngreso(value === 2 ? moment(new Date()).format("yyyy-MM-DD") : "")
-        break;
+      // case "estadoSolicitudSelect":
+      //   console.log("estadoSolicitudElegido", value);
+      //   setEstadoSolicitudResolver(value);
+      //   setResolverSolicitudFechaIngreso(value === 2 ? moment(new Date()).format("yyyy-MM-DD") : "")
+      //   break;
 
       default:
         break;
@@ -1496,6 +1528,9 @@ const AfiliadoAgregar = (props) => {
   //#region handles Inputs
   const handleInputChange = (value, id) => {
     switch (id) {
+      case "fechaIngreso":
+        dispatchFechaIngreso({ type: "USER_INPUT", value: value });
+        break;
       case "cuil":
         setCuilValidado(false);
         setAfiliadoExiste(false);
@@ -1571,13 +1606,13 @@ const AfiliadoAgregar = (props) => {
         setCorreoEmpresa(value);
         break;
 
-      case "resolverSolicitudObs":
-        setResolverSolicitudObs(value);
-        break;
+      // case "resolverSolicitudObs":
+      //   setResolverSolicitudObs(value);
+      //   break;
 
-      case "resolverSolicitudFechaIngreso":
-        setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
-        break;
+      // case "resolverSolicitudFechaIngreso":
+      //   setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
+      //   break;
 
       default:
         break;
@@ -1773,7 +1808,7 @@ const AfiliadoAgregar = (props) => {
       nroAfiliado: +afiliado.nroAfiliado,
       nombre: nombreState.value,
       puestoId: +puestoState.value,
-      fechaIngreso: afiliado.fechaIngreso,
+      fechaIngreso: fechaIngresoState.value,
       fechaEgreso: afiliado.fechaEgreso,
       nacionalidadId: +nacionalidadState.value,
       //empresaCUIT: +cuitEmpresa,
@@ -1999,7 +2034,9 @@ const AfiliadoAgregar = (props) => {
 						<Typography gutterBottom>{dialogTexto}</Typography>
 					</DialogContent>
 					<DialogActions>
-						<Button className="botonAmarillo" onClick={handleCloseDialog}>Cierra</Button>
+						<Button className="botonAmarillo" onClick={handleCloseDialog}>
+							Cierra
+						</Button>
 					</DialogActions>
 				</Dialog>
 			</div>
@@ -2033,7 +2070,7 @@ const AfiliadoAgregar = (props) => {
 							}
 							disabled={cuilState.isValid ? false : true}
 						/>
-						<Tab
+						{/* <Tab
 							label="Resuelve Solicitud"
 							disabled={handleResuelveSolicitudDisable()}
 							hidden={
@@ -2041,16 +2078,16 @@ const AfiliadoAgregar = (props) => {
 									? false
 									: true
 							}
-						/>
+						/> */}
 						<Tab
 							label="Documentacion"
 							disabled={cuitState.isValid ? false : true}
 						/>
 					</Tabs>
 				</div>
-				{selectedTab === 0 && (
+				{[
+					//Datos Principales
 					<div className={classes.div}>
-						{/* region Datos Principales */}
 						<div className={classes.renglon}>
 							<div className={classes.input25}>
 								<InputMaterialMask
@@ -2079,7 +2116,7 @@ const AfiliadoAgregar = (props) => {
 							</div>
 							<div className={classes.input25}>
 								<Button
-                  className="botonAzul"
+									className="botonAzul"
 									width={80}
 									heigth={70}
 									disabled={deshabilitarBotonValidarCUIL()}
@@ -2101,10 +2138,11 @@ const AfiliadoAgregar = (props) => {
 							<div className={classes.input25}>
 								<InputMaterial
 									id="fechaIngreso"
-									value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+									value={fechaIngresoState.value}
 									label="Fecha Ingreso"
 									onChange={handleInputChange}
-                  readOnly={!afiliadoExiste}
+									type="date"
+									//readOnly={!afiliadoExiste}
 								/>
 							</div>
 						</div>
@@ -2299,7 +2337,7 @@ const AfiliadoAgregar = (props) => {
 									value={puestoState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
-									error={!puestoState.isValid && inputsTouched ? true : false}
+									//error={!puestoState.isValid && inputsTouched ? true : false}
 								/>
 							</div>
 							<div className={classes.input25}>
@@ -2355,9 +2393,9 @@ const AfiliadoAgregar = (props) => {
 						</div>
 
 						<DatosAfip afiliado={afiliado} padronRespuesta={padronRespuesta} />
-					</div>
-				)}
-				{selectedTab === 1 && (
+					</div>,
+
+					//Empleador
 					<TabEmpleador
 						padronEmpresaRespuesta={padronEmpresaRespuesta}
 						cuitEmpresa={cuitEmpresa}
@@ -2375,9 +2413,8 @@ const AfiliadoAgregar = (props) => {
 						onHandleInputChange={handleInputChange}
 						onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
 						onFocus={handleOnFocus}
-					/>
-				)}
-				{selectedTab === 2 && (
+					/>,
+					// DeclaracionesJuradas
 					<>
 						<DeclaracionesJuradas
 							cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
@@ -2411,27 +2448,26 @@ const AfiliadoAgregar = (props) => {
 								</div>
 							</div>
 						</div>
-					</>
-				)}
-				{selectedTab === 3 && (
-					<ResolverSolicitud
-						padronRespuesta={padronRespuesta}
-						cuilState={
-							afiliado !== null ? afiliado.cuilValidado : cuilState.value
-						}
-						nombreState={nombreState}
-						cuitEmpresa={cuitEmpresa}
-						resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
-						resolverSolicitudObs={resolverSolicitudObs}
-						estadoSolicitud={estadoSolicitudResolver}
-						estadosSolicitudes={estadosSolicitudes}
-						showImprimirLiquidacion={showImprimirLiquidacion}
-						onHandleChangeSelect={handleChangeSelect}
-						onHandleInputChange={handleInputChange}
-						onResolverSolicitudHandler={resolverSolicitudHandler}
-					/>
-				)}
-				{selectedTab === 4 && (
+					</>,
+
+					// //ResolverSolicitud
+					// <ResolverSolicitud
+					// 	padronRespuesta={padronRespuesta}
+					// 	cuilState={
+					// 		afiliado !== null ? afiliado.cuilValidado : cuilState.value
+					// 	}
+					// 	nombreState={nombreState}
+					// 	cuitEmpresa={cuitEmpresa}
+					// 	resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
+					// 	resolverSolicitudObs={resolverSolicitudObs}
+					// 	estadoSolicitud={estadoSolicitudResolver}
+					// 	estadosSolicitudes={estadosSolicitudes}
+					// 	showImprimirLiquidacion={showImprimirLiquidacion}
+					// 	onHandleChangeSelect={handleChangeSelect}
+					// 	onHandleInputChange={handleInputChange}
+					// 	onResolverSolicitudHandler={resolverSolicitudHandler}
+					// />,
+
 					<Documentacion
 						data={documentacionList}
 						onChange={({ index, item }) => {
@@ -2448,11 +2484,11 @@ const AfiliadoAgregar = (props) => {
 							}
 							setDocumentacionList(newDocList);
 						}}
-					/>
-				)}
-				<div className={classes.footer} >
-					<Button 			
-            className="botonAzul"			/*className={classes.button}*/
+					/>,
+				].at(selectedTab)}
+				<div className={classes.footer}>
+					<Button
+						className="botonAzul" /*className={classes.button}*/
 						hidden={props.accion === "Resuelve" ? true : false}
 						loading={afiliadoProcesando}
 						width={25}
@@ -2462,7 +2498,11 @@ const AfiliadoAgregar = (props) => {
 						{AgregarModificarAfiliadoTitulo()}
 					</Button>
 
-					<Button className="botonAmarillo" width={25} onClick={handleCerrarModal} >
+					<Button
+						className="botonAmarillo"
+						width={25}
+						onClick={handleCerrarModal}
+					>
 						CIERRA
 					</Button>
 				</div>

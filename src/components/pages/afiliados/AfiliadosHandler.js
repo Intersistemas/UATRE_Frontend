@@ -6,11 +6,12 @@ import AfiliadosLista from "./AfiliadosLista";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
-import { redirect, useNavigate } from "react-router-dom";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
 import { Filter } from "@mui/icons-material";
 import UseKeyPress from '../../helpers/UseKeyPress';
+import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
+import Carnet from "./Carnet/Handler";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -30,6 +31,7 @@ const AfiliadosHandler = () => {
   const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
+	const [modal, setModal] = useState();
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
@@ -261,12 +263,13 @@ const AfiliadosHandler = () => {
         setAccionSeleccionada("Modifica");
         break;
       case "Resuelve Solicitud":
-        setAfiliadoAgregarShow(true);
+        // setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
       case "Imprime Carnet de Afiliación":
         //navigate(`/afiliaciones/${id}`);
-        setPantallaEnDesarrolloShow(true);
+        // setPantallaEnDesarrolloShow(true);
+        setAccionSeleccionada("Imprime");
         break;
       /*case "Consulta Afiliado":
         //alert('Funcionalidad de Consulta En desarrollo ');
@@ -366,6 +369,42 @@ const AfiliadosHandler = () => {
     setAfiliadoSeleccionado(afiliado);
   };
 
+	useEffect(() => {
+		switch (accionSeleccionada) {
+			case "Resuelve": {
+				setModal(
+					<ResolverSolicitudModal
+						afiliado={afiliadoSeleccionado}
+						onClose={(cambios) => {
+							if (cambios) {
+								setRefresh(true); //Agrego el refresh para que se actualice el registro 
+								setAfiliadoModificado({ ...afiliadoSeleccionado, ...cambios })
+								if (cambios.estadoSolicitud === "Activo")	{
+									setPage(1)	//Si fue resuelto (tiene NroAfiliado) y no hay filtro, el registro va a parar a la primer pagina, entonces lo busco allí
+									setAccionSeleccionada("Imprime");
+								} else {
+									setAccionSeleccionada("");
+								}
+							} else {
+								setAccionSeleccionada("");
+							}
+							setModal(null);
+						}}
+					/>
+				);
+				return;
+			}
+			case "Imprime": {
+				//ToDo imprime credencial
+				setModal(<Carnet afiliado={afiliadoSeleccionado} onClose={() => {
+					setAccionSeleccionada("");
+					setModal(null);
+				}}/>)
+			}
+			default: return;
+		}
+	}, [accionSeleccionada, afiliadoSeleccionado]);
+
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
@@ -396,6 +435,8 @@ const AfiliadosHandler = () => {
             afiliadoSeleccionado = {afiliadoSeleccionado}
           />
         )}
+
+				{modal}
 
         <AfiliadosLista
           afiliados={afiliadosRespuesta}

@@ -49,7 +49,7 @@ const EstablecimientosHandler = () => {
 		error: {},
 		params: { empresaId: empresa?.id, soloActivos: false },
 		filter: "",
-		sort: "-Id",
+		sort: "",
 		page: { index: 1, size: 10 },
 		seleccion: null,
 	});
@@ -59,7 +59,7 @@ const EstablecimientosHandler = () => {
 			...establecimientos.params,
 			pageIndex: establecimientos.page.index,
 			pageSize: establecimientos.page.size,
-			sort: establecimientos.sort,
+			orderBy: establecimientos.sort,
 		};
 		if (establecimientos.filter) params.filtro = establecimientos.filter;
 		pushQuery({
@@ -199,11 +199,11 @@ const EstablecimientosHandler = () => {
 								onTableChange={(type, newState) => {
 									switch (type) {
 										case "sort": {
-											const { sortOrder, sortField } = newState;
+											const { sortField, sortOrder } = newState;
 											return setEstablecimientos((old) => ({
 												...old,
 												loading: "Cargando...",
-												sort: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
+												sort: `${sortField}.${sortOrder}`,
 											}));
 										}
 										case "search": {
