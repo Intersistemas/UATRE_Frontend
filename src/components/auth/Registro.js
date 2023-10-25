@@ -66,7 +66,7 @@ const Registro = () => {
 
   //#region shorcuts
   UseKeyPress(['r'], ()=>registrarRef.current.requestSubmit(), 'AltKey');
-  UseKeyPress(['i'], ()=>navigate("/ingreso"), 'AltKey');
+  UseKeyPress(['i'], ()=>navigate("/Ingreso"), 'AltKey');
 //#endregion 
 
 //#region valido CUIT en AFIP
@@ -329,7 +329,7 @@ const Registro = () => {
         </Form>}
 
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} underlineindex={0}>
+            <Button onClick={()=>navigate("/Ingreso")} underlineindex={0}>
               Inicio
             </Button>
         </div>

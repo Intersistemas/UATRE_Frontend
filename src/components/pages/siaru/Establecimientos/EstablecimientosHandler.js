@@ -21,7 +21,7 @@ const EstablecimientosHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
 	const [form, setForm] = useState(null);

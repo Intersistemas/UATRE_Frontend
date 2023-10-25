@@ -64,7 +64,7 @@ const Sidebar = ({children}) => {
 				}
         return(
             <NavLink {...nav}>
-                <div className={clases.icon}> {miga == "inicio" ? <FaTh/> : <FaAngleUp/>}</div>
+                <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
             </NavLink>    
         ) 
@@ -77,7 +77,7 @@ const Sidebar = ({children}) => {
          navigate("ingreso");
     }
 
-    UseKeyPress(['i'], ()=>navigate("inicio"), 'AltKey');
+    UseKeyPress(['i'], ()=>navigate("/Inicio"), 'AltKey');
     UseKeyPress(['c'], ()=>logout(), 'AltKey');
     
     useEffect(() => {

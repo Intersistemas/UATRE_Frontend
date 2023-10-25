@@ -101,3 +101,9 @@ main{
 .underline{
   text-decoration: underline !important;
 }
+
+
+.MuiAutocomplete-inputRoot{
+  max-height: 40px !important;
+  padding: 0 !important;
+}

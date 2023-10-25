@@ -11,8 +11,40 @@ import {
   TextField,
 } from "@mui/material";
 import Button from "../../../ui/Button/Button";
-
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
+ 
 const SeccionalesLista = (props) => {
+
+//#region despachar Informar Modulo
+const moduloInfoDefault = {
+  nombre: "Seccionales",
+  acciones: [
+    {
+      id: 1,
+      name: "Agrega Seccional",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 2,
+      name: "Modifica Seccional",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 3,
+      name: "Baja Seccional",
+      icon: "",
+      disabled: false,
+    }
+  ],
+};
+const dispatch = useDispatch();
+dispatch(handleModuloSeleccionar(moduloInfoDefault));
+//#endregion
+
+
   //#region Tabla
   const columns = [
     
@@ -95,7 +127,7 @@ const SeccionalesLista = (props) => {
   };
 
   const pagination = {
-    size: 20,
+    size: 15,
   };
 
   console.log("props.seccionales", props.seccionales);
@@ -134,9 +166,6 @@ const SeccionalesLista = (props) => {
           "column-gap": "1rem",
         }}
       >
-        {/*<div> se quita el boon de aqui para ponerlo en el sidebar
-          <Button onClick={props.onAgregarClick}>Agrega</Button>
-        </div>*/}
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>

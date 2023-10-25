@@ -21,9 +21,9 @@ const Handler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 		else if (!periodo)
-			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+			setRedirect({ to: "Procesar" });
 	}, [empresa, periodo]);
 
 	const pushQuery = useQueryQueue((action, _params) => {
@@ -83,10 +83,10 @@ const Handler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case `Empresas`:
-				setRedirect({ to: "/siaru" });
+				setRedirect({ to: "Siaru" });
 				break;
 			case `Procesar liquidaciones`:
-				setRedirect({ to: "/siaru/liquidaciones/procesar" });
+				setRedirect({ to: "Procesar" });
 				break;
 			default:
 				break;

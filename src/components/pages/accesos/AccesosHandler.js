@@ -1,9 +1,7 @@
 import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
-import SeccionalAgregar from "./abm/SeccionalAgregar";
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Accesos";
-import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
@@ -332,20 +330,7 @@ const AccesosHandler = () => {
     <Fragment>
       <div>
       {seccionalAgregarShow && (
-        <SeccionalAgregar
-          refCargos={refCargos}
-          localidades={localidades}
-          seccionalAutoridades={seccionalAutoridades}
-          autoridadAfiliado={autoridadAfiliado}
-          autoridadSeleccionada={autoridadSeleccionada}
-          onClose={onCloseSeccionalAgregarHandler}
-          onConfirmaClick={handlerOnConfirmaClick}
-          onAgregaAutoridad={handlerOnAgregaAutoridad}
-          onCambiaAutoridad={handlerOnCambiaAutoridad}
-          onBorraAutoridad={handlerOnBorraAutoridad}
-          onValidaAfiliadoClick={handlerOnValidaAfiliadoclick}
-          onSeleccionAutoridad={handlerOnSeleccionAutoridad}
-        />
+        alert('opcion en desarrollo')
       )}
 
       <Seccionales
