@@ -20,7 +20,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
 	const [formRender, setFormRender] = useState();
@@ -453,7 +453,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 									<LiquidacionPDF
 										empresa={empresa}
 										liquidaciones={[...res]}
-										onClose={() => setRedirect({ to: "/siaru/liquidaciones" })}
+										onClose={() => setRedirect({ to: "Liquidaciones" })}
 									/>
 								);
 							},

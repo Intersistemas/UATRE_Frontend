@@ -107,10 +107,10 @@ const SiaruHandler = () => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		switch (moduloAccion) {
 			case `Establecimientos de ${descEmpresa}`:
-				setRedirect({ to: "establecimientos" });
+				setRedirect({ to: "Establecimientos" });
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				setRedirect({ to: "liquidaciones" });
+				setRedirect({ to: "Liquidaciones" });
 				break;
 			default:
 				break;

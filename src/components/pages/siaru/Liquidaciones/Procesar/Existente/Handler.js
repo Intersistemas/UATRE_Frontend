@@ -34,9 +34,10 @@ const Handler = () => {
 	}
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+
+		if (!empresa?.id) setRedirect({ to: "/Inicio/siaru" });
 		else if (!periodoDesde || !periodoHacia)
-			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+			setRedirect({ to: "/Inicio/Siaru/Liquidaciones/Procesar" });
 	}, [empresa, periodoDesde, periodoHacia]);
 
 	const [modal, setModal] = useState();
@@ -348,6 +349,7 @@ const Handler = () => {
 				),
 			}));
 		switch (moduloAccion) {
+
 			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
 				break;

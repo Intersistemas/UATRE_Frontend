@@ -119,7 +119,7 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		switch (moduloAccion) {
 			case "Administración de datos":
-				setRedirect({ to: "/administracion" });
+				setRedirect({ to: "Administracion" });
 				break;
 			case "Agrega Delegación":
 				setSelected((old) => ({

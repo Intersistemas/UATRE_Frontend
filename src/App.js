@@ -4,7 +4,7 @@ import './App.css';
 import Login from './components/auth/Login';
 import Registro from './components/auth/Registro';
 import ConfirmaEmail from './components/auth/ConfirmaEmail';
-import Contacto from './components/pages/contacto/Contacto';
+import Contacto from './components/pages/Contacto/Contacto';
 
 
 
@@ -12,31 +12,32 @@ import SideBar from './components/sidebar/sidebar'
 import {Routes, Route, Navigate } from "react-router-dom";
 import AuthContext from './store/authContext';
 
-import InicioHandler from './components/pages/inicio/InicioHandler';
+import InicioHandler from './components/pages/Inicio/InicioHandler';
 
-//---SIARU---
-import SiaruHandler from './components/pages/siaru/SiaruHandler';
-import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
-import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
-import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
-import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
-import LiquidacionesProcesarManualHandler from './components/pages/siaru/Liquidaciones/Procesar/Manual/Handler';
+//---Siaru---
+import SiaruHandler from './components/pages/Siaru/SiaruHandler';
+import LiquidacionesHandler from './components/pages/Siaru/Liquidaciones/LiquidacionesHandler';
+import LiquidacionesProcesarHandler from './components/pages/Siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/Siaru/Liquidaciones/Procesar/Existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/Siaru/Liquidaciones/Procesar/Archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/Siaru/Liquidaciones/Procesar/Manual/Handler';
 
 //---ADMINISTRACION---
-import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
-import SeccionalesHandler from "./components/pages/seccionales/SeccionalesHandler";
-import EmpresasHandler from "./components/pages/empresas/EmpresasHandler";
+import AdministracionHandler from './components/pages/Administracion/AdministracionHandler';
+import SeccionalesHandler from "./components/pages/Seccionales/SeccionalesHandler";
+import EmpresasHandler from "./components/pages/Empresas/EmpresasHandler";
+import AccesosHandler from "./components/pages/Accesos/AccesosHandler";
 
 
 //---AFILIADOS---
-import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
-import Afiliado from './components/pages/afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
+import AfiliadosHandler from './components/pages/Afiliados/AfiliadosHandler';
+import Afiliado from './components/pages/Afiliados/Afiliado';
+import EstablecimientosHandler from './components/pages/Siaru/Establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
 import fondo from './media/Background/color3.png';
-import DelegacionesHandler from 'components/pages/delegaciones/DelegacionesHandler';
+import DelegacionesHandler from 'components/pages/Delegaciones/DelegacionesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/
@@ -83,21 +84,23 @@ const App = () => {
          (<SideBar>
             <Routes>
               <Route path="/" element={<InicioHandler/>} />
-              <Route path="inicio" element={<InicioHandler/>} />
-              <Route path="inicio/afiliaciones" element={<AfiliadosHandler/>} />
-              <Route path="inicio/afiliaciones/:id" element={<Afiliado/>} />
-              <Route path="inicio/siaru" element={<SiaruHandler/>} />
-              <Route path="inicio/siaru/establecimientos" element={<EstablecimientosHandler/>} />
-              <Route path="inicio/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="Inicio" element={<InicioHandler/>} />
+              <Route path="Inicio/Afiliaciones" element={<AfiliadosHandler/>} />
+              <Route path="Inicio/Afiliaciones/:id" element={<Afiliado/>} />
+              <Route path="Inicio/Siaru" element={<SiaruHandler/>} />
+              <Route path="Inicio/Siaru/Establecimientos" element={<EstablecimientosHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones" element={<LiquidacionesHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
 
-              <Route path="inicio/administracion" element={<AdministracionHandler />}/>
-              <Route path="inicio/administracion/seccionales" element={<SeccionalesHandler />} />
-              <Route path="inicio/administracion/empresas" element={<EmpresasHandler />} />
-              <Route path="inicio/administracion/delegaciones" element={<DelegacionesHandler />} />
+              <Route path="Inicio/Administracion" element={<AdministracionHandler />}/>
+              <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />
+              <Route path="Inicio/Administracion/Empresas" element={<EmpresasHandler />} />
+              <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
+              <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
+
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>

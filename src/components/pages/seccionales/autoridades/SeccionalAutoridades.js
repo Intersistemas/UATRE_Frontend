@@ -4,8 +4,40 @@ import Table from "../../../ui/Table/Table";
 import SwitchCustom from "../../../ui/Switch/SwitchCustom";
 import classes from "./SeccionalAutoridades.module.css";
 import FormatearFecha from "../../../helpers/FormatearFecha";
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
 
 const SeccionalAutoridades = (props) => {
+
+
+  //#region despachar Informar Modulo
+const moduloInfoDefault = {
+  nombre: "SeccionalAutoridades",
+  acciones: [
+    {
+      id: 1,
+      name: "Agrega Autoridad",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 2,
+      name: "Modifica Autoridad",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 3,
+      name: "Baja Autoridad",
+      icon: "",
+      disabled: false,
+    }
+  ],
+};
+const dispatch = useDispatch();
+dispatch(handleModuloSeleccionar(moduloInfoDefault));
+//#endregion
+
   console.log("props.seccionalAutoridades", props.seccionalAutoridades);
   const columns = [
     {

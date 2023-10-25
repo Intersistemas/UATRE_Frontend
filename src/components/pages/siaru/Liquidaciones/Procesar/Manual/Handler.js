@@ -32,9 +32,9 @@ const Handler = () => {
 	}
 
 	useEffect(() => {
-		if (!empresa?.cuit) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.cuit) setRedirect({ to: "Siaru" });
 		else if (!periodo)
-			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+			setRedirect({ to: "Procesar" });
 	}, [empresa, periodo]);
 
 	const [modal, setModal] = useState();

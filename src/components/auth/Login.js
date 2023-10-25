@@ -49,8 +49,8 @@ const Login = () => {
 
     //#region shorcuts
     UseKeyPress(['i'], ()=>ingresarRef.current.requestSubmit(), 'AltKey');
-    UseKeyPress(['r'], ()=>navigate("/registro"), 'AltKey');
-    UseKeyPress(['c'], ()=>navigate("/contacto"), 'AltKey');
+    UseKeyPress(['r'], ()=>navigate("/Registro"), 'AltKey');
+    UseKeyPress(['c'], ()=>navigate("/Contacto"), 'AltKey');
   //#endregion 
 
   const cuitChangeHandler = (event) => {
@@ -79,7 +79,7 @@ const Login = () => {
     //pasar al authcontext el usuario
 
     dispatch(handleUsuarioLogueado(userObject));
-    navigate("/inicio");
+    navigate("/Inicio");
   };
 
   const sendLoginHandler = async () => {
@@ -163,7 +163,7 @@ const Login = () => {
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")}underlineindex={0}>Registro</Button>
+                <Button onClick={()=>navigate("/Registro")}underlineindex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>

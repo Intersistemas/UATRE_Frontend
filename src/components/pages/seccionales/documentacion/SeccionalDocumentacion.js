@@ -1,10 +1,42 @@
 import { Grid } from "@mui/material";
 import React, { useState } from "react";
-import DocumentacionList from "../../afiliados/documentacion/DocumentacionList";
+import DocumentacionList from "../../Afiliados/documentacion/DocumentacionList";
 import Button from "../../../ui/Button/Button";
-import DocumentacionForm from "../../afiliados/documentacion/DocumentacionForm";
+import DocumentacionForm from "../../Afiliados/documentacion/DocumentacionForm";
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
 
-const SeccionalDocumentos = () => {
+const SeccionalDocumentacion = () => {
+
+  //#region despachar Informar Modulo
+const moduloInfoDefault = {
+  nombre: "SeccionalDocumentacion",
+  acciones: [
+    {
+      id: 1,
+      name: "Agrega Documentación",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 2,
+      name: "Modifica Documentación",
+      icon: "",
+      disabled: false,
+    },
+    {
+      id: 3,
+      name: "Baja Documentación",
+      icon: "",
+      disabled: false,
+    }
+  ],
+};
+const dispatch = useDispatch();
+dispatch(handleModuloSeleccionar(moduloInfoDefault));
+//#endregion
+
+
   const [documentacionList, setDocumentacionList] = useState({
     data: [],
     idGen: 0,
@@ -134,4 +166,4 @@ const SeccionalDocumentos = () => {
   );
 };
 
-export default SeccionalDocumentos;
+export default SeccionalDocumentacion;

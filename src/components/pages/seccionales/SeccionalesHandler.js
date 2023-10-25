@@ -1,11 +1,11 @@
 import { useState, useEffect, Fragment } from "react";
 import useHttp from "../../hooks/useHttp";
 import SeccionalAgregar from "./abm/SeccionalAgregar";
+import SeccionalForm from "./abm/SeccionalForm";
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Seccionales";
 import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import { useDispatch, useSelector } from "react-redux";
-import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
 
 const selectores = [
@@ -21,46 +21,20 @@ const SeccionalesHandler = () => {
   const [seccionales, setSeccionales] = useState([]);
   const [seccionalesTodas, setSeccionalesTodas] = useState([]);
   const [seccionalAutoridades, setSeccionalAutoridades] = useState([]);
-  const [autoridadSeleccionada, setAutoridadSeleccionada] = useState(null);
-  const [seccionalSeleccionada, setSeccionalSeleccionada] = useState(null);
+  const [autoridadSeleccionada, setAutoridadSeleccionada] = useState({});
+  const [seccionalSeleccionada, setSeccionalSeleccionada] = useState({});
   const [seccionalDocumentos, setSeccionalDocumentos] = useState([]);
   const [refCargos, setRefCargos] = useState([]);
-  const [autoridadAfiliado, setAutoridadAfiliado] = useState(null);
+  const [autoridadAfiliado, setAutoridadAfiliado] = useState({});
   const [soloAutoridadesVigentes, setSoloAutoridadesVigentes] = useState(true);
   const [localidades, setLocalidades] = useState([]);
-  const [seccionalAgregarShow, setSeccionalAgregarShow] = useState(false);
+  const [seccionalFormShow, setSeccionalFormShow] = useState(false);
   const [selector, setSelector] = useState(0);
   const [selectorValor, setSelectorValor] = useState("");
-  
-  const moduloInfoDefault = {
-		nombre: "Seccionales",
-		acciones: [
-		  {
-        id: 1,
-        name: "Agrega Seccional",
-        icon: "",
-        disabled: false,
-		  },
-      {
-        id: 2,
-        name: "Modifica Seccional",
-        icon: "",
-        disabled: false,
-      },
-      {
-        id: 3,
-        name: "Borra Seccional",
-        icon: "",
-        disabled: false,
-      }
-		],
-	};
-	const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
+  const [requestForm, setRequestForm] = useState("");
+  const [tabSelected, setTabSelected] = useState("Seccional")
 
-	//#region despachar Informar Modulo
-	const dispatch = useDispatch();
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	//#endregion
+  const dispatch = useDispatch();
 
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
@@ -68,15 +42,45 @@ const SeccionalesHandler = () => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 	switch (moduloAccion) {
 		case "Agrega Seccional":
-		  handlerOnAgregarClick();
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+		  handlerSeccionalFormShow();
 		  break;
     case "Modifica Seccional":
-      alert('Modifica - Funcionalida en Desarrollo');
-    case "Borra Seccional":
-      alert('Borra - Funcionalida en Desarrollo');
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      handlerSeccionalFormShow();
+      break;
+    case "Baja Seccional":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      alert('Baja - Funcionalida en Desarrollo');
+      break;
+    case "Agrega Autoridad":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+		  alert('Agrega Autoridad en Desarrollo');
+		  break;
+    case "Modifica Autoridad":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      alert('Modifica Autoridad en Desarrollo');
+      break;
+    case "Baja Autoridad":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      alert('Baja Autoridad en Desarrollo');
+      break;
+    case "Agrega Documentación":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+		  alert('Agrega Documentacion en Desarrollo');
+		  break;
+    case "Modifica Documentación":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      alert('Modifica Documentacion en Desarrollo');
+      break;
+    case "Baja Documentación":
+      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+      alert('Baja Documentacion en Desarrollo');
+      break;
 		default:
 		break;
 	}
+  
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 	}, [moduloAccion]);
   //#endregion
@@ -194,7 +198,7 @@ const SeccionalesHandler = () => {
     const processCrearSeccional = async (seccionalObj) => {
       //console.log("seccionalObj", seccionalObj);
 
-      setSeccionalAgregarShow(false);
+      setSeccionalFormShow(false);
       setSeccionales((current) => [...current, seccionalObj]);
     };
 
@@ -214,12 +218,11 @@ const SeccionalesHandler = () => {
 
   //#endregion
 
-  const onCloseSeccionalAgregarHandler = () => {
-    console.log("limpia");
+  const onCloseSeccionalFormHandler = () => {
     setSeccionalAutoridades([]);
     setAutoridadSeleccionada(null);
     setAutoridadAfiliado(null);
-    setSeccionalAgregarShow(false);
+    setSeccionalFormShow(false);
   };
 
   //#region Buscar
@@ -290,9 +293,9 @@ const SeccionalesHandler = () => {
     setSeccionales(seccionalesTodas);
   };
   //#endregion
-
-  const handlerOnAgregarClick = () => {
-    setSeccionalAgregarShow(true);
+  
+  const handlerSeccionalFormShow = () => {
+    setSeccionalFormShow(!seccionalFormShow);
   };
 
   //#region handler AutoridadesSeccional
@@ -301,9 +304,9 @@ const SeccionalesHandler = () => {
   };
 
   const handlerOnCambiaAutoridad = (autoridad) => {
-    console.log("CambiaAutoridad", autoridad)    
+    
     const index = seccionalAutoridades.indexOf(autoridadSeleccionada);
-    console.log('index cambiar', index)
+    
     if (index > -1) {
       const newSeccionalAutoridades = [...seccionalAutoridades];
       newSeccionalAutoridades[index] = autoridad;
@@ -323,7 +326,6 @@ const SeccionalesHandler = () => {
   };
 
   const handlerOnSeleccionAutoridad = (autoridad) => {
-    console.log("AutoridadSeleccionada", autoridadSeleccionada)
     setAutoridadSeleccionada(autoridad)
   }
   //#endregion
@@ -331,14 +333,18 @@ const SeccionalesHandler = () => {
   return (
     <Fragment>
       <div>
-      {seccionalAgregarShow && (
-        <SeccionalAgregar
+      {seccionalFormShow && (
+        <SeccionalForm
+          request={requestForm}
+          record = {seccionalSeleccionada}
+          isLoading = {isLoading}
+
           refCargos={refCargos}
           localidades={localidades}
           seccionalAutoridades={seccionalAutoridades}
           autoridadAfiliado={autoridadAfiliado}
           autoridadSeleccionada={autoridadSeleccionada}
-          onClose={onCloseSeccionalAgregarHandler}
+          handlerSeccionalFormShow={handlerSeccionalFormShow}
           onConfirmaClick={handlerOnConfirmaClick}
           onAgregaAutoridad={handlerOnAgregaAutoridad}
           onCambiaAutoridad={handlerOnCambiaAutoridad}
@@ -350,6 +356,10 @@ const SeccionalesHandler = () => {
 
       <Seccionales
         seccionales={seccionales}
+        record = {seccionalSeleccionada}
+
+        tabSelected = {setTabSelected} //afecta directamente el state
+
         seccionalSeleccionada={seccionalSeleccionada}
         seccionalAutoridades={seccionalAutoridades}
         seccionalDocumentos={seccionalDocumentos}
@@ -362,7 +372,6 @@ const SeccionalesHandler = () => {
         onSelectorValor={handlerOnSelectorValor}
         onBuscarClick={handlerOnBuscarClick}
         onLimpiarClick={handlerOnLimpiarClick}
-        onAgregarClick={handlerOnAgregarClick}
         onSeleccionAutoridad={handlerOnSeleccionAutoridad}
       />
       </div>

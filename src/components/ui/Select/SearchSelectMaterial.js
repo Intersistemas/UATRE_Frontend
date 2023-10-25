@@ -17,6 +17,7 @@ const SearchSelectMaterial = (props) => {
     >
       {/* <InputLabel id={props.label + "-label"}>{props.label}</InputLabel> */}
       <Autocomplete
+        listboxProps={{ style: { maxHeight: 50 } }}
         className={styles.select}
         disablePortal
         freeSolo
@@ -32,16 +33,18 @@ const SearchSelectMaterial = (props) => {
         options={props.options}
         //MenuProps={MenuProps}
         size="small"
-        value={props.value}
+        value={props.value || ""}
         onChange={handleChange}
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
           <TextField
+            style={{'max-height': '40px'}}
             {...params}
             label={props.label}
             key={props.value}
             onChange={props.onTextChange}
+            value={props.value || ""}
           />
         )}
       />

@@ -10,7 +10,7 @@ const PantallaEnDesarrollo = (props) => {
   const navigate = useNavigate();
 
   const handleCerrarModal = () => {
-    navigate("/inicio");
+    navigate("/Inicio");
     props.onClose();
    
   };
