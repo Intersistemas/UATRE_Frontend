@@ -49,6 +49,8 @@ const ResolverSolicitudModal = ({
 		}
 	});
 
+	console.log({afiliado})
+
 	//#region declaracion y carga datos empleador
 	const [empleador, setEmpleador] = useState({
 		loading: "Cargando datos del empleador...",

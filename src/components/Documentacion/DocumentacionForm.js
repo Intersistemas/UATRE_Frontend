@@ -37,7 +37,7 @@ const DocumentacionForm = ({
 						onChange={(v) => onChange({ refTipoDocumentacionId: v })}
 					/>
 				</Grid>
-				<Grid grow>{getValue("archivoNombre")}</Grid>
+				<Grid grow><a download={getValue("nombreArchivo")} href={`data:image/*;base64,${getValue("archivo")}`}>{getValue("nombreArchivo")}</a></Grid>
 				<Grid width="150px">
 					<input
 						ref={archivoRef}
@@ -50,9 +50,10 @@ const DocumentacionForm = ({
 							const reader = new FileReader();
 							reader.readAsDataURL(archivo);
 							reader.onload = () => {
+								console.log({result: reader.result})
 								onChange({
-									archivoBase64: reader.result?.split("base64,")[1],
-									archivoNombre: archivo.name,
+									archivo: reader.result?.split("base64,")[1],
+									nombreArchivo: archivo.name,
 								});
 							};
 						}}

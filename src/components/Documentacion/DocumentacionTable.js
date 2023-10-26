@@ -40,7 +40,7 @@ const DocumentacionTable = ({
 			dataField: "value",
 			text: "Nombre del archivo",
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
-			formatter: (v) => v.archivoNombre ?? "",
+			formatter: (v) => v.nombreArchivo ?? "",
 			style: { ...cs },
 		},
 	];
