@@ -377,7 +377,6 @@ const AfiliadoAgregar = (props) => {
     useState(false);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
-  const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
   //#endregion
 
   //#region variables para respuestas de servicios
@@ -761,6 +760,40 @@ const AfiliadoAgregar = (props) => {
   }, [request, afiliadoExiste, empresaIdExiste]);
   //#endregion
 
+	//#region carga ultimaDDJJ
+  const [ultimaDDJJ, setUltimaDDJJ] = useState({ data: {} });
+	useEffect(() => {
+		if (!cuilState.isValid) return;
+		if (!cuitState.isValid) return;
+		let { cuil, cuit, data } = { cuil: cuilState.value, cuit: cuitState.value };
+		if (ultimaDDJJ.cuil === cuil && ultimaDDJJ.cuit === cuit) return;
+		request(
+			{
+				baseURL: "DDJJ",
+				endpoint: `/DDJJUatre/GetCUILUltimoAnio?cuil=${cuil}&cuit=${cuit}`,
+				method: "GET",
+			},
+			async (ok) => {
+				ok.forEach((ddjj) => {
+					if (!data) {
+						data = {};
+						["modalidadTipo", "actividadTipo"].forEach(
+							(k) => (data[k] = ddjj[k])
+						);
+						return;
+					}
+					Object.keys(data).forEach((k) => {
+						if (!data[k]) return;
+						if (data[k] !== ddjj[k]) data[k] = undefined;
+					});
+				});
+			},
+			async (_) => (data = {}),
+			async () => setUltimaDDJJ({ cuil, cuit, data })
+		);
+	}, [request, ultimaDDJJ, cuilState, cuitState]);
+	//#endregion
+
   //#region Tablas para crear afiliado
   useEffect(() => {
     const processActividades = async (actividadesObj) => {
@@ -1032,7 +1065,7 @@ const AfiliadoAgregar = (props) => {
 			};
 
 			const validaAutomatica =
-				(ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") &&
+				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
 				(padronEmpresaRespuesta?.ciiU1EsRural ||
 					padronEmpresaRespuesta?.ciiU2EsRural ||
 					padronEmpresaRespuesta?.ciiU3EsRural);
@@ -1559,16 +1592,25 @@ const AfiliadoAgregar = (props) => {
   };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
-    if (props.accion === "Agrega") {
-      if (afiliadoExiste) {
-        return true;
-      }
-    } else if (props.accion === "Modifica") {
-      if (!cuilValidado || !cuitValidado) {
-        return true;
-      }
-    }
-  };
+		let disable = false;
+
+		switch (props.accion) {
+			case "Agrega": {
+				if (afiliadoExiste) disable = true;
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+
+		// Debe cargar un cuil valido y un cuit valido para continuar
+		if (!cuilState.isValid || !cuitState.isValid) disable = true;
+		// Deshabilitar hasta comprobar ddjj
+		if (ultimaDDJJ.data == null) disable = true;
+
+		return disable;
+	};
 
   const AgregarModificarAfiliadoTitulo = () => {
 		if (
@@ -1580,15 +1622,26 @@ const AfiliadoAgregar = (props) => {
     return "AGREGA SOLICITUD"
   };
 
-  const handleOnDeclaracionesGeneradas = (ddjjs) => {
-    if (ddjjs?.length) {
-      setUltimaDDJJ(ddjjs[0]);
-    }
-    const ultimaDDJJ = ddjjs[0];
-    console.log("ultimaDDJJ", ultimaDDJJ);
-  };
+  // const handleOnDeclaracionesGeneradas = (ddjjs) => {
+	// 	let unionDDJJ = null;
+	// 	if (!cuilValidado || !cuilValidado) return setUltimaDDJJ(unionDDJJ);
+	// 	ddjjs.forEach((ddjj) => {
+	// 		if (unionDDJJ == null) {
+	// 			unionDDJJ = {};
+	// 			["modalidadTipo", "actividadTipo"].forEach(
+	// 				(k) => (unionDDJJ[k] = ddjj[k])
+	// 			);
+	// 			return;
+	// 		}
+	// 		Object.keys(unionDDJJ).forEach((k) => {
+	// 			if (!unionDDJJ[k]) return;
+	// 			if (unionDDJJ[k] !== ddjj[k]) unionDDJJ[k] = undefined;
+	// 		});
+	// 	});
+	// 	return setUltimaDDJJ(unionDDJJ);
+	// };
   //#endregion
-
+	
   //#region Funciones actualizacion
   const ActualizaDatosAfiliado = () => {
     const empresa = {
@@ -1906,11 +1959,11 @@ const AfiliadoAgregar = (props) => {
 							label={
 								/*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
 							}
-							disabled={cuilState.isValid ? false : true}
+							disabled={!cuilState.isValid || !cuitState.isValid}
 						/>
 						<Tab
 							label="Documentacion"
-							disabled={cuitState.isValid ? false : true}
+							disabled={!cuilState.isValid}
 						/>
 					</Tabs>
 				</div>
@@ -2243,41 +2296,16 @@ const AfiliadoAgregar = (props) => {
 						onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
 						onFocus={handleOnFocus}
 					/>,
+
 					// DeclaracionesJuradas
-					<>
-						<DeclaracionesJuradas
-							cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
-							onSeleccionRegistro={handleSeleccionDDJJ}
-							infoCompleta={true}
-							onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
-							registros={12}
-						/>
-						<div
-							className={classes.div}
-							hidden={
-								ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
-							}
-						>
-							<div className={classes.renglon}>
-								<h6>
-									El afiliado {nombreState.value} de la Empresa{" "}
-									{razonSocialEmpresa} está en condiciones de ser incorporado al
-									Padrón.
-								</h6>
-							</div>
-							<div className={classes.renglon}>
-								<div className={classes.boton}>
-									<Button
-										className="botonAmarillo"
-										width={80}
-										onClick={afiliadoAgregarHandler}
-									>
-										Incorporar al Padrón
-									</Button>
-								</div>
-							</div>
-						</div>
-					</>,
+					<DeclaracionesJuradas
+						cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
+						cuit={cuitEmpresa}
+						onSeleccionRegistro={handleSeleccionDDJJ}
+						infoCompleta={true}
+						// onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+						registros={12}
+					/>,
 
 					<Documentacion
 						data={documentacionList}
