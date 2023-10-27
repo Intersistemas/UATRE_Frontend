@@ -12,6 +12,7 @@ import { Filter } from "@mui/icons-material";
 import UseKeyPress from '../../helpers/UseKeyPress';
 import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
 import Carnet from "./Carnet/Handler";
+import Localizar from "./localizar/Localizar";
 
 const AfiliadosHandler = () => {
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
@@ -81,6 +82,13 @@ const AfiliadosHandler = () => {
         icon: "",
         disabled: true,
       },
+
+      {
+        id: 6,
+        name: "Localiza Afiliado",
+        underlineindex: 0,
+        icon: "",
+      },
     ],
   };
   const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
@@ -112,6 +120,7 @@ const AfiliadosHandler = () => {
     UseKeyPress(['p'], () => despacharAcciones("Imprime Carnet de Afiliación"), 'AltKey');
     UseKeyPress(['b'], () => despacharAcciones("Baja Afiliado"), 'AltKey');
     UseKeyPress(['r'], () => despacharAcciones("Reactiva Afiliado"), 'AltKey');
+		UseKeyPress(['l'], () => despacharAcciones("Localiza Afiliado"), 'AltKey');
     //#endregion 
 
 
@@ -284,6 +293,10 @@ const AfiliadosHandler = () => {
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Reactiva");
         break;
+			case "Localiza Afiliado":
+				setAccionSeleccionada("Localiza");
+				break;
+				
       // alert('Funcionalidad de Imprimir En desarrollo ');
       // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
 
@@ -400,6 +413,16 @@ const AfiliadosHandler = () => {
 					setAccionSeleccionada("");
 					setModal(null);
 				}}/>)
+			}
+			case "Localiza": {
+				setModal(
+					<Localizar
+						onClose={() => {
+							setAccionSeleccionada("");
+							setModal(null);
+						}}
+					/>
+				);
 			}
 			default: return;
 		}
