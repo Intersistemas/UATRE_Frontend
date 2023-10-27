@@ -413,6 +413,7 @@ const AfiliadosHandler = () => {
 					setAccionSeleccionada("");
 					setModal(null);
 				}}/>)
+				return;
 			}
 			case "Localiza": {
 				setModal(
@@ -423,6 +424,7 @@ const AfiliadosHandler = () => {
 						}}
 					/>
 				);
+				return;
 			}
 			default: return;
 		}
