@@ -105,7 +105,7 @@ const SiaruHandler = () => {
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Establecimientos de ${descEmpresa}`:
 				setRedirect({ to: "Establecimientos" });
 				break;

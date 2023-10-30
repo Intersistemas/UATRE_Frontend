@@ -306,7 +306,7 @@ const LiquidacionesHandler = () => {
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Procesa liquidaciones`:
 				setRedirect({ to: "Procesar" });
 				break;

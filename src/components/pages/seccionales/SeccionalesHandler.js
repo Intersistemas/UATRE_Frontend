@@ -23,7 +23,7 @@ const SeccionalesHandler = () => {
   const [seccionalAutoridades, setSeccionalAutoridades] = useState([]);
   const [autoridadSeleccionada, setAutoridadSeleccionada] = useState({});
   const [seccionalSeleccionada, setSeccionalSeleccionada] = useState({});
-  const [seccionalDocumentos, setSeccionalDocumentos] = useState([]);
+  const [seccionalDocumentacion, setSeccionalDocumentacion] = useState([]);
   const [refCargos, setRefCargos] = useState([]);
   const [autoridadAfiliado, setAutoridadAfiliado] = useState({});
   const [soloAutoridadesVigentes, setSoloAutoridadesVigentes] = useState(true);
@@ -34,51 +34,69 @@ const SeccionalesHandler = () => {
   const [requestForm, setRequestForm] = useState("");
   const [tabSelected, setTabSelected] = useState("Seccional")
 
+  const [refresh, setRefresh] = useState(false)
+
   const dispatch = useDispatch();
 
 	const moduloAccion = useSelector((state) => state.moduloAccion);
+	const modulo = useSelector((state) => state.modulo);
+  
 	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
 	useEffect(() => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-	switch (moduloAccion) {
-		case "Agrega Seccional":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-		  handlerSeccionalFormShow();
-		  break;
-    case "Modifica Seccional":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      handlerSeccionalFormShow();
-      break;
-    case "Baja Seccional":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      alert('Baja - Funcionalida en Desarrollo');
-      break;
-    case "Agrega Autoridad":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-		  alert('Agrega Autoridad en Desarrollo');
-		  break;
-    case "Modifica Autoridad":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      alert('Modifica Autoridad en Desarrollo');
-      break;
-    case "Baja Autoridad":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      alert('Baja Autoridad en Desarrollo');
-      break;
-    case "Agrega Documentación":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-		  alert('Agrega Documentacion en Desarrollo');
-		  break;
-    case "Modifica Documentación":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      alert('Modifica Documentacion en Desarrollo');
-      break;
-    case "Baja Documentación":
-      setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
-      alert('Baja Documentacion en Desarrollo');
-      break;
-		default:
-		break;
+  if (modulo?.nombre === "Seccionales"){
+    switch (moduloAccion?.abm) { //comparo por ID, 1=ALTA 2=MODIFICACION 3=BAJA, 4=Consultar, 5=Imprimir
+      case "Alta"://ALTA
+        setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+        handlerSeccionalFormShow();
+        break;
+      case "Modifica"://MODIF
+        setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+        handlerSeccionalFormShow();
+        break;
+      case "Baja":// BAJA
+        setRequestForm(moduloAccion) //para saber cual es el request del form (agrega, modifica, baja)
+        handlerSeccionalFormShow();
+        break;
+      default:
+        break;
+    }
+  }
+  if (modulo?.nombre === "SeccionalAutoridades"){
+    switch (moduloAccion?.abm) { //comparo por ID, 1=ALTA 2=MODIFICACION 3=BAJA, 4=Consultar, 5=Imprimir 
+      case "Alta"://ALTA
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Agrega Autoridad en Desarrollo');
+        break;
+      case "Modifica"://MODIF
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Modifica Autoridad en Desarrollo');
+        break;
+      case "Baja":// BAJA
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Baja Autoridad en Desarrollo');
+        break;
+      default:
+        break;
+    }
+  }
+  if (modulo?.nombre === "SeccionalDocumentacion"){
+    switch (moduloAccion?.abm) { //comparo por ID, 1=ALTA 2=MODIFICACION 3=BAJA, 4=Consultar, 5=Imprimir 
+      case "Alta": //ALTA
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Agrega Documentacion en Desarrollo');
+        break;
+      case "Modifica": //MODIF
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Modifica Documentacion en Desarrollo');
+        break;
+      case "Baja": // BAJA
+        setRequestForm(moduloAccion.name) //para saber cual es el request del form (agrega, modifica, baja)
+        alert('Baja Documentacion en Desarrollo');
+        break;
+      default:
+        break;
+    }
 	}
   
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
@@ -87,6 +105,7 @@ const SeccionalesHandler = () => {
 
   //#region api calls
   useEffect(() => {
+    refresh && setRefresh(false)
     const processSeccionales = async (seccionalesObj) => {
       //console.log("seccionales", seccionalesObj);
       const seccionalesConDescripcion = seccionalesObj.filter(
@@ -100,7 +119,7 @@ const SeccionalesHandler = () => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: "/Seccional",
+        endpoint: "/Seccional/GetSeccionalesSpecs?SoloActivos=false",
         method: "GET",
       },
       processSeccionales
@@ -136,7 +155,10 @@ const SeccionalesHandler = () => {
       },
       processRefCargos
     );
-  }, [request]);
+
+    
+
+  }, [request,refresh]);
 
   const handlerOnSeccionalSeleccionada = (seccional) => {
     setSeccionalAutoridades([]);
@@ -194,7 +216,7 @@ const SeccionalesHandler = () => {
   };
 
   const handlerOnConfirmaClick = (seccional) => {
-    console.log("seccionalcrear", seccional);
+    console.log("seccional crear/modif", seccional);
     const processCrearSeccional = async (seccionalObj) => {
       //console.log("seccionalObj", seccionalObj);
 
@@ -206,7 +228,7 @@ const SeccionalesHandler = () => {
       {
         baseURL: "Afiliaciones",
         endpoint: `/Seccional`,
-        method: "POST",
+        method: seccional.id ? "PUT" : "POST",
         body: seccional,
         headers: {
           "Content-Type": "application/json",
@@ -259,7 +281,7 @@ const SeccionalesHandler = () => {
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/Seccional/GetSeccionalesSpecs?Localidad=${selectorValor}`,
+            endpoint: `/Seccional/GetSeccionalesSpecs?SoloActivos=false&Localidad=${selectorValor}`,
             method: "GET",
           },
           processSeccionalLocalidad
@@ -275,7 +297,7 @@ const SeccionalesHandler = () => {
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/Seccional/GetSeccionalesSpecs?CodigoPostal=${selectorValor}`,
+            endpoint: `/Seccional/GetSeccionalesSpecs?SoloActivos=false&CodigoPostal=${selectorValor}`,
             method: "GET",
           },
           processSeccionalCP
@@ -335,7 +357,8 @@ const SeccionalesHandler = () => {
       <div>
       {seccionalFormShow && (
         <SeccionalForm
-          request={requestForm}
+          requestForm={requestForm}
+          setRefresh={setRefresh}
           record = {seccionalSeleccionada}
           isLoading = {isLoading}
 
@@ -362,7 +385,7 @@ const SeccionalesHandler = () => {
 
         seccionalSeleccionada={seccionalSeleccionada}
         seccionalAutoridades={seccionalAutoridades}
-        seccionalDocumentos={seccionalDocumentos}
+        seccionalDocumentacion={seccionalDocumentacion}
         onSeccionalSeleccionada={handlerOnSeccionalSeleccionada}
         onSoloAutoridadesVigentes={handlerOnSoloAutoridadesVigentes}
         selectores={selectores}

@@ -1,5 +1,5 @@
 import { Grid } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DocumentacionList from "../../afiliados/documentacion/DocumentacionList";
 import Button from "../../../ui/Button/Button";
 import DocumentacionForm from "../../afiliados/documentacion/DocumentacionForm";
@@ -8,33 +8,38 @@ import { handleModuloSeleccionar } from "../../../../redux/actions";
 
 const SeccionalDocumentacion = () => {
 
-  //#region despachar Informar Modulo
-const moduloInfoDefault = {
-  nombre: "SeccionalDocumentacion",
-  acciones: [
-    {
-      id: 1,
-      name: "Agrega Documentación",
-      icon: "",
-      disabled: false,
-    },
-    {
-      id: 2,
-      name: "Modifica Documentación",
-      icon: "",
-      disabled: false,
-    },
-    {
-      id: 3,
-      name: "Baja Documentación",
-      icon: "",
-      disabled: false,
-    }
-  ],
-};
 const dispatch = useDispatch();
-dispatch(handleModuloSeleccionar(moduloInfoDefault));
-//#endregion
+
+useEffect(()=>{
+  //#region despachar Informar Modulo
+  const moduloInfoDefault = {
+    nombre: "SeccionalDocumentacion",
+    acciones: [
+      {
+        id: 1,
+        name: "Agrega Documentación",
+        icon: "",
+        disabled: false,
+      },
+      {
+        id: 2,
+        name: "Modifica Documentación",
+        icon: "",
+        disabled: false,
+      },
+      {
+        id: 3,
+        name: "Baja Documentación",
+        icon: "",
+        disabled: false,
+      }
+    ],
+  };
+  dispatch(handleModuloSeleccionar(moduloInfoDefault));
+  //#endregion
+},[])
+
+
 
 
   const [documentacionList, setDocumentacionList] = useState({

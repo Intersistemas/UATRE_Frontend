@@ -132,7 +132,7 @@ const EstablecimientosHandler = () => {
 				}));
 			},
 		};
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Agrega Establecimiento`:
 				configForm.record = { empresaId: empresa.id };
 				configForm.request = "A";
