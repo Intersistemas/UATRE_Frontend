@@ -3,8 +3,6 @@ import Formato from "../../helpers/Formato";
 import Grid from "../../ui/Grid/Grid";
 import styles from "./AfiliadoDetails.module.css";
 import { styled } from '@mui/material/styles';
-/*import InputMaterial from '@material-ui/core/InputMaterial';*/
-/*import InputMaterial from "@mui/material/InputMaterial";*/
 import InputMaterial from "../../ui/Input/InputMaterial";
 
 const useStyles = styled((theme) => ({
@@ -17,7 +15,6 @@ const useStyles = styled((theme) => ({
   }));
 
 const AfiliadoDetails = (props) => {
-	console.log('AfiliadoDetails_Data:',props.config);
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;

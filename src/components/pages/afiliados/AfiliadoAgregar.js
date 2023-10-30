@@ -86,7 +86,6 @@ const emailReducer = (state, action) => {
 };
 
 const nacionalidadReducer = (state, action) => {
-  console.log("nacionalidad", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -113,7 +112,6 @@ const fechaNacimientoReducer = (state, action) => {
 };
 
 const estadoCivilReducer = (state, action) => {
-  console.log("ESTADO CIVIL reducer: ", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -162,7 +160,6 @@ const tipoDocumentoReducer = (state, action) => {
 };
 
 const numeroDocumentoReducer = (state, action) => {
-  console.log("action.value.length", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -198,7 +195,6 @@ const domicilioReducer = (state, action) => {
 
 const provinciaReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    seccionalSinAsignar.push({ value: 1, label: "" })
     return {
       value: action.value,
       isValid: action.value !== "" ? true : false,
@@ -289,15 +285,6 @@ const telefonoReducer = (state, action) => {
 
 //#endregion
 
-//#region gloabes
-let seccionalSinAsignar = [
-  {
-    value: 99999,
-    label: "Sin Asignar",
-  },
-];
-//#endregion
-
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -340,7 +327,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Capturo errores
   useEffect(() => {
-    console.log("error", error);
     if (error) {
       setAfiliadoProcesando(false);
       if (error.code === 500) {
@@ -386,9 +372,23 @@ const AfiliadoAgregar = (props) => {
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [actividades, setActividades] = useState([]);
   const [nacionalidades, setNacionalidades] = useState([]);
-  const [provincias, setProvincias] = useState([]);
-  const [localidades, setLocalidades] = useState([]);
-  const [seccionales, setSeccionales] = useState([]);
+  const [provincias, setProvincias] = useState({
+		loading: "Cargando...",
+		data: [],
+		error: null,
+	});
+  const [localidades, setLocalidades] = useState({
+		loading: null,
+		params: {},
+		data: [],
+		error: null,
+	});
+  const [seccionales, setSeccionales] = useState({
+		loading: null,
+		params: {},
+		data: [],
+		error: null,
+	});
   const [puestos, setPuestos] = useState([]);
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
@@ -527,24 +527,6 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //setAfiliadoExiste(false);
-      //console.log("cuilState.isValid", cuilState.isValid);
-      // console.log("nombreState.isValid", nombreState.isValid);
-      // console.log("nacionalidadState.isValid", nacionalidadState.isValid);
-      // console.log("estadoCivilState.isValid", estadoCivilState.isValid);
-      // console.log("fechaNacimiento.isValid", fechaNacimientoState.isValid);
-      // console.log("sexoState.isValid", sexoState.isValid);
-      // console.log("tipoDocumentoState.isValid", tipoDocumentoState.isValid);
-      // console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid);
-      // console.log("domicilioState.isValid", domicilioState.isValid);
-      // console.log("provinciaState.isValid", provinciaState.isValid);
-
-      // console.log("localidadState.isValid", localidadState.isValid);
-      // console.log("seccionalState.isValid", seccionalState.isValid);
-      // console.log("puestoState.isValid", puestoState.isValid);
-      // console.log("actividadState.isValid", actividadState.isValid);
-      //console.log("emailState.isValid", emailState.isValid);
-
       if (
         cuilState.isValid &&
         nombreState.isValid &&
@@ -567,7 +549,6 @@ const AfiliadoAgregar = (props) => {
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
     };
   }, [
     cuilState,
@@ -587,7 +568,6 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const identifier = setTimeout(() => {
-      console.log("checking empresa.", cuitState.isValid);
       if (cuitState.isValid) {
         setFormularioEmpleadorIsValid(true);
       }
@@ -595,7 +575,6 @@ const AfiliadoAgregar = (props) => {
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
     };
   }, [cuitState.isValid]);
   //#endregion
@@ -610,7 +589,6 @@ const AfiliadoAgregar = (props) => {
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
 
   useEffect(() => {
-    console.log("props.accion", props.accion);
     if (props.accion === "Modifica") {
       setAfiliadoExiste(true);
       setInputsTouched(true);
@@ -623,7 +601,6 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (cuilState.value && cuilState.isValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj);
@@ -655,13 +632,6 @@ const AfiliadoAgregar = (props) => {
           type: "USER_INPUT",
           value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
         });
-        dispatchSeccional({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0
-              ? ""
-              : afiliadoObj.seccionalId,
-        });
         dispatchEstadoCivil({
           type: "USER_INPUT",
           value:
@@ -683,6 +653,13 @@ const AfiliadoAgregar = (props) => {
           value:
             afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.refLocalidadId,
         });
+				dispatchSeccional({
+					type: "USER_INPUT",
+					value:
+						afiliadoObj.seccionalId && afiliadoObj.refLocalidadId
+							? afiliadoObj.seccionalId
+							: "",
+				});
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
@@ -733,9 +710,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
-        //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
-        //setEmpresaId(empresaObj.id);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -797,13 +772,11 @@ const AfiliadoAgregar = (props) => {
   //#region Tablas para crear afiliado
   useEffect(() => {
     const processActividades = async (actividadesObj) => {
-      //console.log("actividadesObj", actividadesObj);
       const actividadesSelect = actividadesObj
         .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
         .map((actividad) => {
           return { value: actividad.id, label: actividad.descripcion };
         });
-      //console.log("actividades", actividadesSelect);
       setActividades(actividadesSelect);
       dispatchActividad({ type: "USER_INPUT", value: actividadesSelect[0].value });
     };
@@ -820,7 +793,6 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const processPuestos = async (puestosObj) => {
-      //console.log("actividadesObj", puestosObj);
       const puestosSelect = puestosObj
         .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
         .map((puesto) => {
@@ -846,7 +818,6 @@ const AfiliadoAgregar = (props) => {
         .map((sexo) => {
           return { value: sexo.id, label: sexo.descripcion };
         });
-      //console.log("sexosselect", sexosSelect);
       setSexos(sexosSelect);
     };
 
@@ -867,7 +838,6 @@ const AfiliadoAgregar = (props) => {
         .map((nacionalidad) => {
           return { value: nacionalidad.id, label: nacionalidad.descripcion };
         });
-      //console.log("sexosselect", nacionalidadesSelect);
       setNacionalidades(nacionalidadesSelect);
     };
 
@@ -881,103 +851,165 @@ const AfiliadoAgregar = (props) => {
     );
   }, [request]);
 
-  useEffect(() => {
-    const processProvincias = async (provinciasObj) => {
-      const provinciasSelect = provinciasObj
-        .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-        .map((provincia) => {
-          return {
-            value: provincia.id,
-            label: provincia.nombre,
-            idProvinciaAFIP: provincia.idProvinciaAFIP,
-            seccionalIdPorDefecto: provincia.seccionalIdPorDefecto,
-            seccionalDescripcionPorDefecto: provincia.seccionalDescripcionPorDefecto
-          };
-        });
-      //console.log("provinciasSelect", provinciasSelect);      
-      setProvincias(provinciasSelect);
-    };
+	//Provincias
+	useEffect(() => {
+		if (!provincias.loading) return;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: `/Provincia`,
+				method: "GET",
+			},
+			async (ok) =>
+				setProvincias((old) => ({
+					...old,
+					loading: null,
+					data: ok
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({
+							value: r.id,
+							label: r.nombre,
+							idProvinciaAFIP: r.idProvinciaAFIP,
+							seccionalIdPorDefecto: r.seccionalIdPorDefecto,
+							seccionalDescripcionPorDefecto: r.seccionalDescripcionPorDefecto,
+						})),
+					error: null,
+				})),
+			async (error) =>
+				setProvincias((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error,
+				}))
+		);
+	}, [request, provincias]);
 
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Provincia`,
-        method: "GET",
-      },
-      processProvincias
-    );
-  }, [request]);
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (!provinciaState.isValid) return;
+		const provincia = provincias.data.find(
+			(r) => r.value === provinciaState.value
+		);
+		if (provincia == null) return;
+		setSeccionales({
+			data: [
+				{
+					value: provincia.seccionalIdPorDefecto,
+					label: provincia.seccionalDescripcionPorDefecto,
+				},
+			],
+		});
+		setLocalidades((old) => ({
+			...old,
+			loading: "Cargando...",
+			params: { provinciaId: provincia.value },
+		}));
+	}, [provincias, provinciaState]);
 
-  useEffect(() => {
-    if (provinciaState.value !== "") {
-      const processLocalidades = async (localidadesObj) => {
-        const localidadesSelect = localidadesObj
-          .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-          .map((localidad) => {
-            return { value: localidad.id, label: localidad.nombre };
-          });
-        //console.log("seccionalesSelect", seccionalesSelect);
-        setLocalidades(localidadesSelect);
+	// Localidades
+	useEffect(() => {
+		if (!localidades.loading) return;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: [
+					"/RefLocalidad",
+					Object.keys(localidades.params)
+						.map((k) => `${k}=${localidades.params[k]}`)
+						.join("&"),
+				]
+					.filter((r) => r)
+					.join("?"),
+				method: "GET",
+			},
+			async (ok) =>
+				setLocalidades((old) => ({
+					...old,
+					loading: null,
+					data: ok
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ value: r.id, label: r.nombre })),
+					error: null,
+				})),
+			async (err) =>
+				setLocalidades((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error: err,
+				}))
+		);
+	}, [request, localidades]);
 
-        seccionalSinAsignar.splice(0);
-        const provinciaSeleccionada = provincias.find(
-          (e) => e.value === provinciaState.value
-        );
-        //console.log("provinciaSeleccionada", provinciaSeleccionada);
-        seccionalSinAsignar.push({
-          value: provinciaSeleccionada.seccionalIdPorDefecto,
-          label: provinciaSeleccionada.seccionalDescripcionPorDefecto,
-        });
-      };
+	useEffect(() => {
+		if (localidades.loading) return;
+		if (!localidadState.isValid) return;
+		const localidad = localidades.data.find(r => r.value === localidadState.value);
+		if (localidad == null) return;
+		setSeccionales((old) => ({
+			...old,
+			loading: "Cargando",
+			params: { localidadId: localidad.value },
+		}));
+	}, [localidades, localidadState]);
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/RefLocalidad?ProvinciaId=${provinciaState.value}`,
-          method: "GET",
-        },
-        processLocalidades
-      );
-    }
-  }, [request, provinciaState]);
+	// Seccionales
+	useEffect(() => {
+		if (!seccionales.loading) return;
+		let data = [provincias.data.find((r) => r.value === provinciaState.value)]
+			.filter((r) => r)
+			.map((r) => ({
+				value: r.seccionalIdPorDefecto,
+				label: r.seccionalDescripcionPorDefecto,
+			}));
+		let error = null;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: [
+					"/Seccional/GetSeccionalesSpecs",
+					Object.keys(seccionales.params)
+						.map((k) => `${k}=${seccionales.params[k]}`)
+						.join("&"),
+				]
+					.filter((r) => r)
+					.join("?"),
+				method: "GET",
+			},
+			async (ok) =>
+				data.push(
+					...ok
+						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+						.map((r) => ({
+							value: r.id,
+							label: `${r.codigo} ${r.descripcion}`,
+						}))
+				),
+			async (err) => (error = err),
+			async () => {
+				setSeccionales((old) => ({
+					...old,
+					loading: null,
+					data,
+					error,
+				}));
+			}
+		);
+	}, [request, seccionales, provinciaState, provincias]);
 
-  useEffect(() => {
-    if (localidadState.value !== "") {           
-      const processSeccionales = async (seccionalesObj) => {
-        const seccionalesSelect = seccionalesObj
-          .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-          .map((seccional) => {
-            return {
-              value: seccional.id,
-              label: `${seccional.codigo} ${seccional.descripcion}`,
-            };
-          });
-        //   console.log("localidadState", localidadState)
-        // console.log("seccionalesSelect", seccionalesSelect);        
-        // console.log("seccionalSinAsignar", seccionalSinAsignar);
-        
-        setSeccionales(
-          seccionalesSelect.length > 0 ? seccionalesSelect : seccionalSinAsignar
-        );
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Seccional/GetSeccionalesSpecs?LocalidadId=${localidadState.value}`,
-          method: "GET",
-        },
-        processSeccionales
-      );
-    }
-  }, [request, localidadState]);
+	useEffect(() => {
+		if (seccionales.loading) return;
+		if (!seccionales.data.length) return;
+		if (seccionales.data.find(r => r.value === seccionalState.value)) return;
+		dispatchSeccional({ type: "USER_INPUT", value: seccionales.data[0].value });
+	}, [seccionales, seccionalState, dispatchSeccional]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
       const estadosCivilesSelect = estadosCivilesObj.map((estadoCivil) => {
         return { value: estadoCivil.id, label: estadoCivil.descripcion };
       });
-      //console.log("seccionalesSelect", seccionalesSelect);
       setEstadosCiviles(estadosCivilesSelect);
     };
 
@@ -996,7 +1028,6 @@ const AfiliadoAgregar = (props) => {
       const tipoDocumentoSelect = tiposDocumentosObj.map((tipoDocumento) => {
         return { value: tipoDocumento.id, label: tipoDocumento.descripcion };
       });
-      //console.log("seccionalesSelect", seccionalesSelect);
       setTiposDocumentos(tipoDocumentoSelect);
     };
 
@@ -1146,10 +1177,6 @@ const AfiliadoAgregar = (props) => {
 
 			console.log("POST", nuevoAfiliado);
 			const afiliadoAgregar = async (afiliadoResponseObj) => {
-				// console.log({
-				// 	afiliadosObj: afiliadoResponseObj,
-				// 	documentacionList: documentacionList,
-				// });
 
 				setNuevoAfiliadoResponse({
 					...nuevoAfiliado,
@@ -1268,7 +1295,7 @@ const AfiliadoAgregar = (props) => {
         })
 
         //provincia
-        const provincia = provincias.find(
+        const provincia = provincias.data.find(
           (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
         );
         dispatchProvincia({ 
@@ -1278,13 +1305,10 @@ const AfiliadoAgregar = (props) => {
 
         //localidad
         const processLocalidades = async (localidadesObj) => {
-          //console.log("localidades", localidadesObj);
-          //console.log("localidad", localidadesObj[0].id);
           const localidad = localidadesObj.find(
             (localidad) =>
               localidad.codPostal === parseInt(domicilioReal.codigoPostal)
           );
-          //console.log("localidad", localidad)
           dispatchLocalidad({
             type: "USER_INPUT",
             value: localidadesObj[0].id ?? "",
@@ -1305,7 +1329,6 @@ const AfiliadoAgregar = (props) => {
       }
 
       if (props.accion === "Modifica") {
-        //console.log("va a mandar padron", padronObj)
         if (!fechaNacimientoState.isValid) {
           dispatchFechaNacimiento({
             type: "USER_INPUT",
@@ -1334,7 +1357,6 @@ const AfiliadoAgregar = (props) => {
   const validarEmpresaCUITHandler = () => {
     setCUITLoading(true);
     const processConsultaPadron = async (padronObj) => {
-      //console.log("padronObj", padronObj);
       setCuitValidado(true);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
@@ -1351,9 +1373,6 @@ const AfiliadoAgregar = (props) => {
               padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
-      // setTelefonoEmpresa()
-      // setCorreoEmpresa()
-      // setLugarTrabajoEmpresa()
       //ciius
       setCUITLoading(false);
     };
@@ -1371,8 +1390,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
-    //console.log("objetoSeleccionadp", value);
-    //console.log("id", name);
     switch (name) {
       case "actividadSelect":
         dispatchActividad({ type: "USER_INPUT", value: value });
@@ -1391,6 +1408,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "seccionalSelect":
+				if(seccionalState.value === value) break;
         dispatchSeccional({ type: "USER_INPUT", value: value });
         break;
 
@@ -1403,14 +1421,16 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "provinciaSelect":
+				if(provinciaState.value === value) break;
         dispatchProvincia({ type: "USER_INPUT", value: value });
         dispatchLocalidad({ type: "USER_INPUT", value: "" });
         dispatchSeccional({ type: "USER_INPUT", value: "" });
         break;
 
       case "localidadSelect":
-        //console.log("selectLocalidad", value);
+				if(localidadState.value === value) break;
         dispatchLocalidad({ type: "USER_INPUT", value: value });
+        dispatchSeccional({ type: "USER_INPUT", value: "" });
         break;
 
       default:
@@ -1457,7 +1477,6 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "fechaNacimiento":
-        //console.log('fecha', value)
         dispatchFechaNacimiento({ type: "USER_INPUT", value: value });
         break;
 
@@ -1547,7 +1566,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle DDJJ
   const handleSeleccionDDJJ = (row) => {
-    //console.log(row.cuit);
     setCUITEmpresa(row.cuit);
     dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
   };
@@ -1561,7 +1579,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Functions
   const deshabilitarBotonValidarCUIL = () => {
-    //console.log("cuilIsValid",cuilIsValid)
     if (!cuilState.isValid) {
       return true;
     }
@@ -1570,7 +1587,6 @@ const AfiliadoAgregar = (props) => {
   };
 
   const InputDisabled = (input) => {
-    //console.log("InputDisable")
     if (input !== "cuil" && cuilState.value === "") {
       return true;
     }
@@ -1622,24 +1638,6 @@ const AfiliadoAgregar = (props) => {
     return "AGREGA SOLICITUD"
   };
 
-  // const handleOnDeclaracionesGeneradas = (ddjjs) => {
-	// 	let unionDDJJ = null;
-	// 	if (!cuilValidado || !cuilValidado) return setUltimaDDJJ(unionDDJJ);
-	// 	ddjjs.forEach((ddjj) => {
-	// 		if (unionDDJJ == null) {
-	// 			unionDDJJ = {};
-	// 			["modalidadTipo", "actividadTipo"].forEach(
-	// 				(k) => (unionDDJJ[k] = ddjj[k])
-	// 			);
-	// 			return;
-	// 		}
-	// 		Object.keys(unionDDJJ).forEach((k) => {
-	// 			if (!unionDDJJ[k]) return;
-	// 			if (unionDDJJ[k] !== ddjj[k]) unionDDJJ[k] = undefined;
-	// 		});
-	// 	});
-	// 	return setUltimaDDJJ(unionDDJJ);
-	// };
   //#endregion
 	
   //#region Funciones actualizacion
@@ -1845,14 +1843,10 @@ const AfiliadoAgregar = (props) => {
 			})),
 		};
     console.log("afiliado modificado", afiliadoModificado);
-    // console.log("padronRespuesta", padronRespuesta);
-    // console.log("afiliado", afiliado)
     const afiliadoModificar = async (afiliadoModificarResponseObj) => {
-      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
       setAfiliadoModificado(afiliadoModificado);
       setDialogTexto(AFILIADO_ACTUALIZADO);
       setOpenDialog(true);
-      // }
     };
 
     request(
@@ -1873,10 +1867,8 @@ const AfiliadoAgregar = (props) => {
     const patchModelo = ActualizarDatosAfip(padronObj);
     console.log("patchModelo", patchModelo);
     const actualizarDatosAfip = async () => {
-      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
       setDialogTexto(AFILIADO_DATOSAFIPACTUALIZADO);
       setOpenDialog(true);
-      // }
     };
 
     request(
@@ -1903,7 +1895,6 @@ const AfiliadoAgregar = (props) => {
       }
    
     setOpenDialog(false);
-    //setDialogTexto("");
     if (
 			dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
 			[
@@ -1931,7 +1922,7 @@ const AfiliadoAgregar = (props) => {
 					</DialogActions>
 				</Dialog>
 			</div>
-			<Modal onClose={props.onClose}>
+			<Modal onClose={handleCerrarModal}>
 				<CabeceraABMAfiliado
 					cuilState={cuilState}
 					nombreState={nombreState}
@@ -2101,15 +2092,6 @@ const AfiliadoAgregar = (props) => {
 										!nacionalidadState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="nacionalidadSelect"
-                label="Nacionalidad"
-                options={nacionalidades}
-                value={nacionalidad}
-                defaultValue={nacionalidad}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-            />*/}
 							</div>
 							<div className={classes.input25}>
 								<SelectMaterial
@@ -2156,7 +2138,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="provinciaSelect"
 									label="Provincia"
-									options={provincias}
+									options={provincias.data}
 									value={provinciaState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2169,7 +2151,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="localidadSelect"
 									label="Localidad"
-									options={localidades}
+									options={localidades.data}
 									value={localidadState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2177,15 +2159,6 @@ const AfiliadoAgregar = (props) => {
 										!localidadState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="localidadSelect"
-                label="Localidad"
-                options={localidades}
-                value={localidad}
-                defaultValue={localidad}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-              /> */}
 							</div>
 						</div>
 
@@ -2194,7 +2167,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="seccionalSelect"
 									label="Seccional"
-									options={seccionales}
+									options={seccionales.data}
 									value={seccionalState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2202,14 +2175,6 @@ const AfiliadoAgregar = (props) => {
 										!seccionalState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="seccionalSelect"
-                label="Seccional"
-                options={seccionales}
-                value={seccional}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-              /> */}
 							</div>
 							<div className={classes.input25}>
 								<SelectMaterial
