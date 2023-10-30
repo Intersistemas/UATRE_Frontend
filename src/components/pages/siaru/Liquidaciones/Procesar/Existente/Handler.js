@@ -348,7 +348,7 @@ const Handler = () => {
 					/>
 				),
 			}));
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 
 			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");

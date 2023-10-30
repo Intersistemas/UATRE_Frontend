@@ -64,14 +64,16 @@ const AccesosHandler = () => {
 	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
 	useEffect(() => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-	switch (moduloAccion) {
+	switch (moduloAccion?.name) {
 		case "Agrega Seccional":
 		  handlerOnAgregarClick();
 		  break;
     case "Modifica Seccional":
       alert('Modifica - Funcionalida en Desarrollo');
+      break;
     case "Borra Seccional":
       alert('Borra - Funcionalida en Desarrollo');
+      break;
 		default:
 		break;
 	}

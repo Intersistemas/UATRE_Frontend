@@ -1,7 +1,8 @@
-import React from "react";
+import React, {useEffect} from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import Table from "../../../ui/Table/Table";
 import classes from "./SeccionalesLista.module.css";
+import Formato from "components/helpers/Formato";
 import {
   Box,
   FormControl,
@@ -16,40 +17,45 @@ import { handleModuloSeleccionar } from "../../../../redux/actions";
  
 const SeccionalesLista = (props) => {
 
-//#region despachar Informar Modulo
-const moduloInfoDefault = {
-  nombre: "Seccionales",
-  acciones: [
-    {
-      id: 1,
-      name: "Agrega Seccional",
-      icon: "",
-      disabled: false,
-    },
-    {
-      id: 2,
-      name: "Modifica Seccional",
-      icon: "",
-      disabled: false,
-    },
-    {
-      id: 3,
-      name: "Baja Seccional",
-      icon: "",
-      disabled: false,
-    }
-  ],
-};
 const dispatch = useDispatch();
-dispatch(handleModuloSeleccionar(moduloInfoDefault));
-//#endregion
 
+useEffect(()=>{
+  //#region despachar Informar Modulo
+  const moduloInfoDefault = {
+    nombre: "Seccionales",
+    acciones: [
+      {
+        id: 1,
+        abm: "Alta",
+        name: "Agrega Seccional",
+        icon: "",
+        disabled: false,
+      },
+      {
+        id: 2,
+        abm: "Modifica",
+        name: "Modifica Seccional",
+        icon: "",
+        disabled: true,
+      },
+      {
+        id: 3,
+        abm: "Baja",
+        name: "Baja Seccional",
+        icon: "",
+        disabled: true,
+      }
+    ],
+  };
+  dispatch(handleModuloSeleccionar(moduloInfoDefault));
+  //#endregion
+},[])
 
   //#region Tabla
   const columns = [
     
     {
-      headerTitle: (column, colIndex) => `Codigo`,
+      headerTitle: (column, colIndex) => `Codigo Seccional`,
       dataField: "codigo",
       text: "Código",
       sort: true,
@@ -58,9 +64,9 @@ dispatch(handleModuloSeleccionar(moduloInfoDefault));
       },
     },
     {
-      headerTitle: (column, colIndex) => `Descripción`,
+      headerTitle: (column, colIndex) => `Nombre Seccional`,
       dataField: "descripcion",
-      text: "Descripción",
+      text: "Nombre",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -74,11 +80,23 @@ dispatch(handleModuloSeleccionar(moduloInfoDefault));
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
+      formatter: (value, row) => ( 
+        row.deletedDate ? `${value} (${Formato.Fecha(row.deletedDate)})` : value
+      ),
     },
     {
       headerTitle: (column, colIndex) => `Dirección`,
       dataField: "domicilio",
       text: "Dirección",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Localidad Seccional`,
+      dataField: "localidadNombre",
+      text: "Localidad",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -93,6 +111,7 @@ dispatch(handleModuloSeleccionar(moduloInfoDefault));
         return { width: "7rem", textAlign: "center" };
       },
     },
+
     {
       headerTitle: (column, colIndex) => `Id`,
       dataField: "id",
@@ -103,8 +122,20 @@ dispatch(handleModuloSeleccionar(moduloInfoDefault));
         return { width: "7rem", textAlign: "center" };
       },
     },
-  ];
+    {
+      headerTitle: (column, colIndex) => `Id`,
+      dataField: "deletedDate",
+      text: "deletedDate",
+      sort: true,
+      hidden: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
 
+    
+  ];
+ 
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
@@ -114,8 +145,40 @@ dispatch(handleModuloSeleccionar(moduloInfoDefault));
       color: "black",
       fontWeight: "bold",
     },
-    onSelect: (row, isSelect, rowIndex, e) =>
-      props.onSeccionalSeleccionada(row),
+    onSelect: (row, isSelect, rowIndex, e) =>{
+      console.log('seccional_selected',row);
+      props.onSeccionalSeleccionada(row)
+      //modificar la descripcion de los botones de accion
+      //#region despachar Informar Modulo
+      const moduloInfoDefault = {
+        nombre: "Seccionales",
+        acciones: [
+          {
+            id: 1,
+            abm: "Alta",
+            name: "Agrega Seccional",
+            icon: "",
+            disabled: false,
+          },
+          {
+            id: 2,
+            abm: "Modifica",
+            name: `Modifica Seccional ${row.codigo} - ${row.descripcion}`,
+            icon: "",
+            disabled: row.estado == "Baja" ? true : false,
+          },
+          {
+            id: 3,
+            abm: "Baja",
+            name: `Baja Seccional ${row.codigo} - ${row.descripcion}`,
+            icon: "",
+            disabled: row.estado == "Baja" ? true : false,
+          }
+        ],
+      };
+      dispatch(handleModuloSeleccionar(moduloInfoDefault));
+    }
+      //#endregion
   };
 
   const rowEvents = {

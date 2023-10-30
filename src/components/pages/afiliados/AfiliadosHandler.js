@@ -93,7 +93,9 @@ const AfiliadosHandler = () => {
 
   //#region despachar Informar Modulo
   const dispatch = useDispatch();
-  dispatch(handleModuloSeleccionar(moduloInfo));
+  useEffect(()=>{
+    dispatch(handleModuloSeleccionar(moduloInfo));
+  },[])
   //#endregion
 
 
@@ -253,7 +255,7 @@ const AfiliadosHandler = () => {
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
     //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-    switch (moduloAccion) {
+    switch (moduloAccion?.name) {
       case "Agrega Afiliado":
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Agrega");

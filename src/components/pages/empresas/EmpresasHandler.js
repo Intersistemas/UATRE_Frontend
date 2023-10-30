@@ -50,7 +50,7 @@ const EmpresasHandler = () => {
 	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
 	useEffect(() => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-	switch (moduloAccion) {
+	switch (moduloAccion?.name) {
 		case "Agrega Empresa":
 		  alert('Agrega - Funcionalida en Desarrollo');
 		  break;
