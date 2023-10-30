@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext } from "react";
 import classes from "./SeccionalForm.module.css";
 //import Modal from "../../../ui/Modal/Modal";
 
@@ -11,9 +11,18 @@ import Button from "../../../ui/Button/Button";
 import SeccionalDocumentos from "../documentacion/SeccionalDocumentacion";
 import SeccionalAutoridades from "../autoridades/SeccionalAutoridades";
 import SeccionalAutoridadesForm from "../autoridades/SeccionalAutoridadesForm";
+import InputMask from 'react-input-mask';
+import MenuItem from '@mui/material/MenuItem';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import dayjs from "dayjs";
+import AuthContext from '../../../../store/authContext';
+
 
 const SeccionalForm = ({
-  request = "",
+  setRefresh = () => {},
+  requestForm = {},
   record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
   localidades = [],
   seccionalAutoridades = [],
@@ -31,21 +40,34 @@ const SeccionalForm = ({
   onConfirmaClick = () => {},
 }) => {
 
-  request === "Agrega Seccional" ? record={} : record = { ...record };
+  requestForm.abm === "Alta" ? record={} : record = { ...record };
 
   console.log('record_seccional',record);
+  const authContext = useContext(AuthContext)
+  const Usuario = authContext.usuario;
   const [selectedTab, setSelectedTab] = useState(0);
   const [codigoSeccional, setCodigoSeccional] = useState(record?.codigo ?? "");
   const [nombreSeccional, setNombreSeccional] = useState(record?.descripcion ?? "");
-  const [localidadSeccional, setLocalidadSeccional] = useState(record?.localidadSeccional ?? "");
+
+  const [localidadSeccional, setLocalidadSeccional] = useState(record?.localidadNombre ?? "");
+  const [localidadIdSeccional, setLocalidadIdSeccional] = useState(99999);
+
   const [direccionSeccional, setDireccionSeccional] = useState(record?.domicilio ?? "")
+  const [estadoSeccional, setEstadoSeccional] = React.useState(requestForm?.abm == "Baja" ? "Baja" : 'Activa');
   const [observacionesSeccional, setObservacionesSeccional] = useState(record?.observaciones ?? "")
-  const [localidadesSelect, setLocalidadesSelect] = useState([""]);
+  const [bajaObservacionesSeccional, setBajaObservacionesSeccional] = useState(record?.deletedObs ?? "")
+  const [bajaFechaSeccional, setBajaFechaSeccional] = useState(record?.deletedDate ?? dayjs().format("YYYY-MM-DD"))
+  const [bajaUsuarioSeccional, setBajaUsuarioSeccional] = useState(record?.deletedBy ?? authContext.usuario.nombre)
+
+  //const [observacionesSeccional, setObservacionesSeccional] = useState(record?.observaciones ?? "")
+  
+  const [localidadesSelect, setLocalidadesSelect] = useState([""]); //LISTA DE TODAS LAS SECCIONALES  
   const [localidadBuscar, setLocalidadBuscar] = useState("");
 
   const [errores, setErrores] = useState({});
   
   useEffect(() => {
+
     console.log("localidadBuscar", localidadBuscar)
     if (localidadBuscar.length > 2) {
       const localidadesSelect = localidades
@@ -72,7 +94,7 @@ const SeccionalForm = ({
   };
 
   const handleInputChange = (value, id) => {
-    //console.log(value, id)
+    console.log('handleInputChange',value, id)
     switch (id) {
       case "codigoSeccional":
         setCodigoSeccional(value);
@@ -89,15 +111,27 @@ const SeccionalForm = ({
       case "observacionesSeccional":
         setObservacionesSeccional(value);
         break;
+      case "estadoSeccional":
+        setEstadoSeccional(value);
+        break;
+
+      case "bajaObservacionesSeccional":
+        setBajaObservacionesSeccional(value);
+        break;
 
       default:
         break;
     }
   };
 
+  const handleChangeCombo = (event) => {
+    setEstadoSeccional(event.target.value);
+  };
+
+
   const handleChangeSelect = (item) => {
     console.log('handleChangeSelect',item);
-    setLocalidadSeccional(item);
+    setLocalidadIdSeccional(item.value);
   };
 
   const handlerOnTextChange = (event) => {
@@ -108,10 +142,12 @@ const SeccionalForm = ({
 
 //#Region validaciones
 const validar = () => {
+
   let noValida = false;
   const newErrores = {};
   const newAlerts = [];
 
+  console.log('noValida0',noValida);
 
   if (codigoSeccional) {
     newErrores.codigoSeccional = "";
@@ -143,13 +179,19 @@ const validar = () => {
   
 
   switch (
-    request // Validaciones específicas segun request
+    requestForm.abm // Validaciones específicas segun request
   ) {
-    case "Agrega Seccional": // Alta
+    case "Alta": // Alta
       break;
-    case "Baja Seccional": // Baja
+    case "Baja": // Baja
+    if (bajaObservacionesSeccional) {
+      newErrores.bajaObservacionesSeccional = "";
+    } else {
+      noValida = true;
+      newErrores.bajaObservacionesSeccional = "Dato requerido cuando es una baja";
+    }
       break;
-    case "Modifica Seccional": // Modificaicon
+    case "Modifica": // Modificaicon
       break;
     default: // No se reconoce request
       handlerSeccionalFormShow()
@@ -158,32 +200,49 @@ const validar = () => {
 
   setErrores((old) => ({ ...old, ...newErrores }));
 
+  console.log('noValida',noValida);
+
   if (noValida) return;
 
-
-  onConfirmaClick({
+  let newRecord = {
+    id: record.id ?? 0,
     codigo: codigoSeccional,
     descripcion: nombreSeccional,
     domicilio: direccionSeccional,
     observaciones: observacionesSeccional,
-    estado: "Activa",
+    estado: estadoSeccional,
     refDelegacionId: 0,
-    seccionalLocalidad: 
+    refLocalidadesId: localidadIdSeccional
+  }
+
+  if (requestForm?.abm == "Baja") {
+    newRecord = {...newRecord,
+      deletedObs: bajaObservacionesSeccional,
+      deletedDate:  bajaFechaSeccional,
+      deletedBy:  bajaUsuarioSeccional
+    }
+  }
+
+  console.log("newRecord",newRecord);
+
+  onConfirmaClick(newRecord
+    /*seccionalLocalidad: 
     [
       {
         seccionalId: 0,
         refLocalidadId: localidadSeccional.value,
       }
     ],
-    seccionalAutoridades: seccionalAutoridades
-  });
+    seccionalAutoridades: seccionalAutoridades*/
+  );
+
+  setRefresh(true);
 
 }
 //#endregion validaciones
 
   const handlerOnConfirmaClick = (event) => {
     event.preventDefault();
-
     validar()
 
   }
@@ -195,13 +254,14 @@ const validar = () => {
 
   return (
     <>
+    <div style={{zoom: '80%'}}>
         <Modal
             show={handlerSeccionalFormShow}
             onHide={handlerSeccionalFormShow}
             size="lg"
             centered
         >
-        <Modal.Header closeButton>{request}</Modal.Header>
+        <Modal.Header closeButton>{requestForm.name}</Modal.Header>
         <Modal.Body>
         <div className={classes.div}>
             <Tabs
@@ -213,31 +273,56 @@ const validar = () => {
                 label="Datos Generales"
                 //disabled={nuevoAfiliadoResponse ? true : false}
                 />
-                {request === "Agrega Seccional" && <Tab label="Documentacion" />}
-                {request === "Agrega Seccional" && <Tab label="Autoridades" />}
+                {/*request === "Agrega Seccional" && <Tab label="Documentacion" />}
+                {request === "Agrega Seccional" && <Tab label="Autoridades" />*/}
             </Tabs>
 
             {selectedTab === 0 && (
                 <div className={classes.container}>
-                    <div>
-                        <InputMaterial
-                            id="codigoSeccional"
-                            value={codigoSeccional}
-                            label="Codigo"
-                            onChange={handleInputChange}
-                            required
+                    
+                    <div className={classes.item1}>
+
+                        <FormControl sx={{mr: 2, maxWidth: '6rem' }}>
+                            <InputMaterial
+                                id="codigoSeccional"
+                                value={codigoSeccional}
+                                label="Codigo"
+                                onChange={handleInputChange}
+                                as={InputMask}
+                                mask="S-9999"
+                                required 
+                                disabled = {estadoSeccional == "Baja"}
                         />
+                        </FormControl>
+
+                        <FormControl sx={{ minWidth: '8rem' }}>
+                          <InputLabel id="demo-simple-select-label">Estado</InputLabel>
+                          <Select
+                            labelId="demo-simple-select-label"
+                            id="estadoSeccional"
+                            value={estadoSeccional}
+                            label="Estado"
+                            onChange={handleChangeCombo}
+                            disabled={true}
+                          >
+                            <MenuItem value={"Activa"}>Activa</MenuItem>
+                            <MenuItem value={"Pendiente"}>Pendiente</MenuItem>
+                            <MenuItem value={"Baja"}>Baja</MenuItem>
+                          </Select>
+                        </FormControl>  
                     </div>
-                    <div>
-                        <InputMaterial
-                            id="nombreSeccional"
-                            value={nombreSeccional}
-                            label="Nombre"
-                            onChange={handleInputChange}
-                            required
-                        />
+
+                    <div className={classes.item2}>
+                          <InputMaterial
+                                id="nombreSeccional"
+                                value={nombreSeccional}
+                                label="Nombre"
+                                onChange={handleInputChange}
+                                required
+                                disabled = {estadoSeccional == "Baja"}
+                            />
                     </div>
-                    <div /*corrregir este elemento*/ > 
+                    <div className={classes.item3}>
                         <SearchSelectMaterial
                             name="localidadSeccional"
                             label="Localidad"
@@ -247,53 +332,73 @@ const validar = () => {
                             onChange={handleChangeSelect}
                             onTextChange={handlerOnTextChange}
                             required
+                            disabled = {estadoSeccional == "Baja"}
                         />
-                    </div>
-                    <div>
+                   </div>
+                   <div className={classes.item4}>
                         <InputMaterial
                             id="direccionSeccional"
                             value={direccionSeccional}
                             label="Direccion"
                             onChange={handleInputChange}
                             required
+                            disabled = {estadoSeccional == "Baja"}
                         />
                     </div>        
-                    <div>
+                    <div className={classes.item5}>
                         <InputMaterial
                             id="observacionesSeccional"
                             value={observacionesSeccional}
                             label="Observaciones"
                             onChange={handleInputChange}
                             required
+                            disabled = {estadoSeccional == "Baja"}
                         />
                     </div>
+
+                    {estadoSeccional == "Baja" &&
+                    <>
+                      <div className={classes.item6}>
+                            <InputMaterial
+                              
+                                  id="bajaFechaSeccional"
+                                  value={bajaFechaSeccional}
+                                  label="Baja Fecha"
+                                  onChange={handleInputChange}
+                                  required
+                                  show = {estadoSeccional == "Baja"}
+                                  disabled ={true}
+                              />
+                      </div>
+                      <div className={classes.item7}>
+                            <InputMaterial
+                                  id="bajaUsuarioSeccional"
+                                  value={bajaUsuarioSeccional}
+                                  label="Baja Usuario"
+                                  onChange={handleInputChange}
+                                  required
+                                  disabled = {estadoSeccional == "Baja"}
+                              />
+                      </div>
+                      <div className={classes.item8}>
+                            <InputMaterial 
+                                  id="bajaObservacionesSeccional"
+                                  value={bajaObservacionesSeccional}
+                                  label="Baja Observaciones"
+                                  onChange={handleInputChange}
+                                  required
+                                  disabled = {estadoSeccional != "Baja"}
+                              />
+                      </div>
+                    </>}
                 </div>
-            )}
-            {selectedTab === 1 && <SeccionalDocumentos />}
-            {selectedTab === 2 && (
-                <>
-                <SeccionalAutoridades
-                    seccionalAutoridades={seccionalAutoridades}
-                    onSeleccionAutoridad={onSeleccionAutoridad}
-                />
-                <SeccionalAutoridadesForm
-                    onAgregarAutoridad={handlerOnAgregarAutoridad}
-                    onCambiaAutoridad={onCambiaAutoridad}
-                    onBorraAutoridad={onBorraAutoridad}
-                    autoridadSeleccionada={autoridadSeleccionada}
-                    refCargos={refCargos}
-                    autoridadAfiliado={autoridadAfiliado}
-                    onValidaAfiliadoClick={onValidaAfiliadoClick}
-                />
-                </>
             )}
             </div>
            
         </Modal.Body>
-            <Modal.Footer sdfs >
+            <Modal.Footer>
                 <Button
                     className="botonAzul"
-                    type="submit"
                     loading={isLoading}
                     width={25}
                     onClick={handlerOnConfirmaClick}
@@ -306,6 +411,7 @@ const validar = () => {
                 </Button>
             </Modal.Footer>
         </Modal>
+        </div>
     </>
   );
 };

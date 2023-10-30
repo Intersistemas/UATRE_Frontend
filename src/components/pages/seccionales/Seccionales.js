@@ -24,7 +24,7 @@ const Seccionales = (props) => {
       <div className="contenido">
 
         <div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
-            <h5>{props.record?.codigo +' - '+ props.record?.descripcion}</h5>
+            <h5>{(props?.record?.codigo) ? (props.record?.codigo +' - '+ props.record?.descripcion) : ""}</h5>
         </div>
         
         <Tabs
@@ -41,13 +41,13 @@ const Seccionales = (props) => {
             className={styles.tab}
             style={{ backgroundColor: "#186090" }}
             label="AUTORIDADES"
-            disabled={props.seccionalSeleccionada?.id ? false : true}
+            //disabled={props.seccionalSeleccionada?.id ? false : true}
           />
           <Tab
             className={styles.tab}
             style={{ backgroundColor: "#186090" }}
             label="DOCUMENTOS"
-            disabled={props.seccionalSeleccionada?.id ? false : true}
+            //disabled={props.seccionalSeleccionada?.id ? false : true}
           />
         </Tabs>
       

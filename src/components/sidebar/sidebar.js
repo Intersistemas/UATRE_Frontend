@@ -87,6 +87,7 @@ const Sidebar = ({children}) => {
 
     //Despacho/actualizo el estado global de acciones, el componente que creo las acciones capturará el estado y sabrá qué hacer
     const despacharAcciones = (accion)=>{
+        console.log('despacharAcciones',accion)
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
@@ -125,7 +126,7 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>

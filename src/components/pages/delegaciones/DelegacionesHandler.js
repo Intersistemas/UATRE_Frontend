@@ -116,8 +116,9 @@ const DelegacionesHandler = () => {
 
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
+	
 	useEffect(() => {
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case "Administración de datos":
 				setRedirect({ to: "Administracion" });
 				break;
@@ -125,28 +126,28 @@ const DelegacionesHandler = () => {
 				setSelected((old) => ({
 					...old,
 					record: {},
-					action: moduloAccion,
+					action: moduloAccion.name,
 					request: "A",
 				}));
 				break;
 			case `Consulta Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					action: moduloAccion,
+					action: moduloAccion.name,
 					request: "C",
 				}));
 				break;
 			case `Modifica Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					action: moduloAccion,
+					action: moduloAccion.name,
 					request: "M",
 				}));
 				break;
 			case `Borra Delegación ${selectedDesc}`:
 				setSelected((old) => ({
 					...old,
-					action: moduloAccion,
+					action: moduloAccion.name,
 					request: "B",
 				}));
 				break;
