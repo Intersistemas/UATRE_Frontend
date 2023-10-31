@@ -13,6 +13,7 @@ import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
+import Action from 'components/helpers/Action';
 
 const Sidebar = ({children}) => {
 
@@ -126,7 +127,7 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>
