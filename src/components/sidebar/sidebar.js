@@ -11,7 +11,7 @@ import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
-import { handleModuloEjecutarAccion } from '../../redux/actions';
+import { handleModuloEjecutarAccion, handleModuloSeleccionar } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
 import Action from 'components/helpers/Action';
 
@@ -35,6 +35,11 @@ const Sidebar = ({children}) => {
     const toggle = () => setIsOpen (!isOpen);
     
     const navFunction = useSelector(state => state.nav[location.pathname]);
+
+		const limpiarModulo = (path) => {
+			if (location.pathname === path) return;
+			dispatch(handleModuloSeleccionar({}));
+		}
     
     let currentLink = [];
 
@@ -49,17 +54,20 @@ const Sidebar = ({children}) => {
 					to: path,
 					className: clases.link,
 					activeClassName: clases.active,
+					onClick: () => limpiarModulo(path),
 				};
         if (navFunction != null) {
 					nav.to = "#";
 					nav.onClick = () =>
 						navFunction({
-							go: ({ to = path, delta = null, options = null } = {}) =>
+							go: ({ to = path, delta = null, options = null } = {}) => {
+								limpiarModulo(to);
 								delta == null && options == null
 									? navigate(to)
 									: options == null
 									? navigate(delta)
-									: navigate(to, options),
+									: navigate(to, options);
+							},
 							to: path,
 						});
 				}
