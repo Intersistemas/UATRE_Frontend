@@ -65,7 +65,7 @@ const DocumentacionModal = ({
 					</Grid>
 					{hide.archivo ? null : (
 						<>
-							<Grid grow>{getValue("nombreArchivo")}</Grid>
+							<Grid grow><a download={getValue("nombreArchivo")} href={`data:image/*;base64,${getValue("archivo")}`}>{getValue("nombreArchivo")}</a></Grid>
 							<Grid width="150px" col>
 								<Grid width="full">
 									<input
@@ -90,6 +90,7 @@ const DocumentacionModal = ({
 										}}
 									/>
 									<Button
+										className="botonAmarillo"
 										onClick={() => archivoRef.current?.click()}
 										disabled={disabled.archivo}
 									>

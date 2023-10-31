@@ -1,24 +1,106 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
-} from "redux/actions";
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
-import useDelegaciones from "./useDelegaciones";
+import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDelegaciones from "./useDelegaciones";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
 
+	const tabs = [];
 	const [tab, setTab] = useState(0);
-	const [delegacionesTab, delegacionChanger, delegacionSelected] = useDelegaciones();
-	const [documentacionesTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
 
-	//#region actualizar por cambio de seleccion de delegacion
+	//#region Tab delegaciones
+	const [delegacionesTab, delegacionChanger, delegacionSelected] =
+		useDelegaciones();
+	const [delegacionesActions, setDelegacionesActions] = useState([]);
+	useEffect(() => {
+		const createAction = ({ request, action }) =>
+			new Action({
+				name: action,
+				onExecute: (action) =>
+					delegacionChanger({ type: "selected", request, action }),
+			});
+		const actions = [
+			createAction({ action: `Agrega Delegación`, request: "A" }),
+		];
+		const desc = delegacionSelected?.id;
+		if (!desc) {
+			setDelegacionesActions(actions);
+			return;
+		}
+		actions.push(
+			createAction({ action: `Consulta Delegación ${desc}`, request: "C" })
+		);
+		actions.push(
+			createAction({ action: `Modifica Delegación ${desc}`, request: "M" })
+		);
+		actions.push(
+			createAction({ action: `Baja Delegación ${desc}`, request: "B" })
+		);
+		setDelegacionesActions(actions);
+	}, [delegacionChanger, delegacionSelected]);
+	const [documentacionesActions, setDocumentacionesActions] = useState([]);
+	tabs.push({
+		header: () => <Tab label="Delegaciones" />,
+		body: delegacionesTab,
+		actions: delegacionesActions,
+	});
+	//#endregion
+
+	//#region Tab documentaciones
+	const [documentacionesTab, documentacionChanger, documentacionSelected] =
+		useDocumentaciones();
+	useEffect(() => {
+		const actions = [];
+		const dele = delegacionSelected?.id;
+		if (!dele) {
+			setDocumentacionesActions(actions);
+			return;
+		}
+		const deleDesc = `para Delegación ${dele}`;
+		const createAction = ({ request, action }) =>
+			new Action({
+				name: action,
+				onExecute: (action) =>
+					documentacionChanger({ type: "selected", request, action }),
+			});
+		actions.push(
+			createAction({ action: `Agrega Documentación ${deleDesc}`, request: "A" })
+		);
+		const docu = documentacionSelected?.id;
+		if (!docu) {
+			setDocumentacionesActions(actions);
+			return;
+		}
+		const docuDesc = `${docu} ${deleDesc}`;
+		actions.push(
+			createAction({
+				action: `Consulta Documentación ${docuDesc}`,
+				request: "C",
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Modifica Documentación ${docuDesc}`,
+				request: "M",
+			})
+		);
+		actions.push(
+			createAction({ action: `Baja Documentación ${docuDesc}`, request: "B" })
+		);
+		setDocumentacionesActions(actions);
+	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id]);
+	tabs.push({
+		header: () => <Tab label="Documentacion" disabled={!delegacionSelected} />,
+		body: documentacionesTab,
+		actions: documentacionesActions,
+	});
+
+	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
 		documentacionChanger({
 			type: "list",
@@ -27,113 +109,11 @@ const DelegacionesHandler = () => {
 	}, [delegacionSelected?.id, documentacionChanger]);
 	//#endregion
 
-	//#region sidebar
-	const sidebar = {
-		delegacionChanger: delegacionChanger,
-		documentacionChanger: documentacionChanger,
-		dispatch: dispatch,
-	};
-
-	const [redirect, setRedirect] = useState({ to: "", options: null }); //De esta forma puedo limpiar moduloInfo antes de cambiar de página
-	const moduloInfo = {};
-	if (redirect.to) {
-		navigate(redirect.to, redirect.options);
-	} else {
-		moduloInfo.nombre = "Delegaciones";
-		moduloInfo.acciones = [{ name: "Administración de datos" }];
-	}
-
-	sidebar.delegacionDesc = (() => {
-		if (!moduloInfo.acciones || tab !== 0) return "";
-		moduloInfo.acciones.push({ name: `Agrega Delegación` });
-		const desc = delegacionSelected?.id;
-		if (!desc) return "";
-		moduloInfo.acciones.push({ name: `Consulta Delegación ${desc}` });
-		moduloInfo.acciones.push({ name: `Modifica Delegación ${desc}` });
-		moduloInfo.acciones.push({ name: `Baja Delegación ${desc}` });
-		return desc;
-	})();
-
-	sidebar.documentacionDesc = (() => {
-		if (!moduloInfo.acciones || tab !== 1) return "";
-		moduloInfo.acciones.push({ name: `Agrega Documentación` });
-		const desc = documentacionSelected?.id;
-		if (!desc) return "";
-		moduloInfo.acciones.push({ name: `Consulta Documentación ${desc}` });
-		moduloInfo.acciones.push({ name: `Modifica Documentación ${desc}` });
-		moduloInfo.acciones.push({ name: `Baja Documentación ${desc}` });
-		return desc;
-	})();
-	
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	sidebar.moduloAccion = useSelector((state) => state.moduloAccion);
+	//#region modulo y acciones
+	const acciones = tabs[tab].actions;
 	useEffect(() => {
-		switch (sidebar.moduloAccion) {
-			case "Administración de datos":
-				setRedirect({ to: "Administracion" });
-				break;
-			case "Agrega Delegación":
-				sidebar.delegacionChanger({
-					type: "selected",
-					request: "A",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Consulta Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionChanger({
-					type: "selected",
-					request: "C",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Modifica Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionChanger({
-					type: "selected",
-					request: "M",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Baja Delegación ${sidebar.delegacionDesc}`:
-				sidebar.delegacionChanger({
-					type: "selected",
-					request: "B",
-					action: sidebar.moduloAccion,
-				});
-				break;
-				
-			case "Agrega Documentación":
-				sidebar.documentacionChanger({
-					type: "selected",
-					request: "A",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Consulta Documentación ${sidebar.documentacionDesc}`:
-				sidebar.documentacionChanger({
-					type: "selected",
-					request: "C",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Modifica Documentación ${sidebar.documentacionDesc}`:
-				sidebar.documentacionChanger({
-					type: "selected",
-					request: "M",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			case `Baja Documentación ${sidebar.documentacionDesc}`:
-				sidebar.documentacionChanger({
-					type: "selected",
-					request: "B",
-					action: sidebar.moduloAccion,
-				});
-				break;
-			default:
-				break;
-		}
-		sidebar.dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [sidebar]);
+		dispatch(handleModuloSeleccionar({ nombre: "Delegaciones", acciones }));
+	}, [dispatch, acciones]);
 	//#endregion
 
 	return (
@@ -143,18 +123,10 @@ const DelegacionesHandler = () => {
 			</Grid>
 			<Grid width="full">
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					<Tab label="Delegaciones" />
-					<Tab label="Documentacion" disabled={!delegacionSelected} />
+					{tabs.map((r) => r.header())}
 				</Tabs>
 			</Grid>
-			{(() => {
-				switch (tab) {
-					default:
-						return delegacionesTab();
-					case 1:
-						return documentacionesTab();
-				}
-			})()}
+			{tabs[tab].body()}
 		</Grid>
 	);
 };
