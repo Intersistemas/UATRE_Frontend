@@ -11,7 +11,6 @@ import {
 const Item = (k) => `redux_${k}`;
 
 export const limpiarReducer = () => {
-	localStorage.removeItem(Item(MODULO_SELECCIONAR));
 	localStorage.removeItem(Item(AFILIADO_SELECCIONAR));
 	localStorage.removeItem(Item(EMPRESA_SELECCIONAR));
 	localStorage.removeItem(Item(USUARIO_LOGUEADO)); //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
@@ -37,14 +36,10 @@ const liquidacionProcesarDef = {
 const leerReducer = (k) => {
 	const v = localStorage.getItem(Item(k));
 	switch (k) {
-		case MODULO_SELECCIONAR:
-			return v ? JSON.parse(v) : {};
 		case AFILIADO_SELECCIONAR:
 			return v ? JSON.parse(v) : {};
 		case EMPRESA_SELECCIONAR:
 			return v ? JSON.parse(v) : null;
-		// case MODULO_EJECUTARACCION:
-		// 	return v;
 		case USUARIO_LOGUEADO: //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
 			return v ? JSON.parse(v) : {};
 		case LIQUIDACION_PROCESAR_SELECCIONAR:
@@ -55,7 +50,7 @@ const leerReducer = (k) => {
 };
 
 const initialState = {
-	modulo: leerReducer(MODULO_SELECCIONAR),
+	modulo: {},
 	afiliado: leerReducer(AFILIADO_SELECCIONAR),
 	empresa: leerReducer(EMPRESA_SELECCIONAR),
 	moduloAccion: "",
@@ -67,7 +62,6 @@ const initialState = {
 const reducer = (state = initialState, { type, payload }) => {
 	switch (type) {
 		case MODULO_SELECCIONAR: {
-			escribirReducer(MODULO_SELECCIONAR, payload);
 			return { ...state, modulo: payload };
 		}
 		case AFILIADO_SELECCIONAR: {
