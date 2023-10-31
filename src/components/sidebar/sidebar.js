@@ -96,7 +96,6 @@ const Sidebar = ({children}) => {
 
     //Despacho/actualizo el estado global de acciones, el componente que creo las acciones capturará el estado y sabrá qué hacer
     const despacharAcciones = (accion)=>{
-        console.log('despacharAcciones',accion)
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
