@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Formato from "../../../helpers/Formato";
-import useHttp from "../../../hooks/useHttp";
-import Table from "../../../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import Table from "components/ui/Table/Table";
 
 const LiquidacionesList = ({
 	data = [],
-	selection = {},
-	pagination = {},
-	loading = false,
 	noData,
+	...x
 }) => {
 	data ??= [];
-	selection ??= {};
-	pagination ??= {};
 
 	const tiposLiquidacion = [
 		{ codigo: 0, descripcion: "Periodo"},
@@ -107,12 +103,10 @@ const LiquidacionesList = ({
 		<Table
 			remote
 			keyField="id"
-			loading={loading}
 			data={data}
 			columns={columns}
-			pagination={pagination}
-			selection={selection}
 			noDataIndication={noData}
+			{...x}
 		/>
 	);
 };

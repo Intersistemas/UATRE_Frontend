@@ -14,8 +14,6 @@ const UseKeyPress = (keys, callback, combination = null, node = null) => {
   const handleKeyPress = useCallback(
     (event) => {
 
-    console.log('handleKeyPress:',event);
-
       if (event.altKey && upperCase(combination).replace(' ','') == 'ALTKEY') {
         
         if (keys.some((key) => event.key === key)) {
@@ -25,9 +23,9 @@ const UseKeyPress = (keys, callback, combination = null, node = null) => {
         
       } else{
         // check if one of the key is part of the ones we want
-        if (keys.some((key) => event.key === key)) {
+        if (keys.some((key) => event.key === key) && combination == null) {
             //callbackRef.current(event);
-
+            callbackRef.current(event);
         }
       }
     },

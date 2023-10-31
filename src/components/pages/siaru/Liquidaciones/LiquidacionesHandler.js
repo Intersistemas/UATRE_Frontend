@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -11,19 +11,19 @@ import Formato from "components/helpers/Formato";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
-import LiquidacionForm from "./Formulario/Form";
-import LiquidacionPDF from "./Impresion/Handler";
+import LiquidacionForm from "./formulario/Form";
+import LiquidacionPDF from "./impresion/Handler";
 
 const LiquidacionesHandler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const empresa = useMemo(
-		() => (location.state?.empresa ? location.state.empresa : {}),
-		[location.state?.empresa]
-	);
-	if (empresa?.id == null) navigate("/ingreso");
 
+	const empresa = useSelector((state) => state.empresa);
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
+	}, [empresa]);
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -83,63 +83,75 @@ const LiquidacionesHandler = () => {
 
 	//#region declaración y carga de periodos
 	const [periodos, setPeriodos] = useState({
+		loading: "Cargando...",
+		params: { empresaId: empresa.id ?? 0 },
 		data: [{ valor: 0, descipcion: "Todos" }],
-		loading: true,
+		error: null,
 	});
 	const [periodo, setPeriodo] = useState(0);
-	useEffect(
-		() =>
-			pushQuery({
-				action: "GetLiquidacionPeriodos",
-				params: { empresaId: empresa.id ?? 0 },
-				onOk: async (res) =>
-					setPeriodos({
-						data: [
-							{ descipcion: "Todos", valor: 0 },
-							...res.map((r) => ({
-								descipcion: Formato.Periodo(r),
-								valor: r,
-							})),
-						],
-					}),
-				onError: async (err) =>
-					setPeriodos({
-						data: [{ valor: 0, descipcion: "Todos" }],
-						error: err,
-					}),
-			}),
-		[pushQuery, empresa]
-	);
+	useEffect(() => {
+		if (!periodos.loading) return;
+		pushQuery({
+			action: "GetLiquidacionPeriodos",
+			params: periodos.params,
+			onOk: async (res) =>
+				setPeriodos((old) => ({
+					...old,
+					loading: null,
+					data: [
+						{ descipcion: "Todos", valor: 0 },
+						...res.map((r) => ({
+							descipcion: Formato.Periodo(r),
+							valor: r,
+						})),
+					],
+					error: null,
+				})),
+			onError: async (err) =>
+				setPeriodos((old) => ({
+					...old,
+					loading: null,
+					data: [{ valor: 0, descipcion: "Todos" }],
+					error: err,
+				})),
+		});
+	}, [pushQuery, periodos]);
 	//#endregion
 
 	//#region declaracion y carga de establecimientos
 	const [establecimientos, setEstablecimientos] = useState({
+		loading: "Cargando...",
+		params: { empresaId: empresa.id ?? 0 },
 		data: [{ descipcion: "Todos", valor: { id: 0 } }],
-		loading: true,
+		error: null,
 	});
 	const [establecimiento, setEstablecimiento] = useState({ id: 0 });
-	useEffect(
-		() =>
-			pushQuery({
-				action: "GetEstablecimientosByEmpresa",
-				params: { empresaId: empresa.id ?? 0 },
-				onOk: async (res) =>
-					setEstablecimientos({
-						data: [
-							{ descipcion: "Todos", valor: { id: 0 } },
-							...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
-						],
-					}),
-				onError: async (err) => {
-					err = err?.code === 404 ? null : err;
-					setEstablecimientos({
-						data: [{ descipcion: "Todos", valor: { id: 0 } }],
-						error: err,
-					});
-				},
-			}),
-		[pushQuery, empresa]
-	);
+	useEffect(() => {
+		if (!establecimientos.loading) return;
+		pushQuery({
+			action: "GetEstablecimientosByEmpresa",
+			params: establecimientos.params,
+			onOk: async (res) =>
+				setEstablecimientos((old) => ({
+					...old,
+					loading: null,
+					data: [
+						{ descipcion: "Todos", valor: { id: 0 } },
+						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
+					],
+					error: null,
+				})),
+			onError: async (err) => {
+				err = err?.code === 404 ? null : err;
+				setEstablecimientos((old) => ({
+					...old,
+					loading: null,
+					data: [{ descipcion: "Todos", valor: { id: 0 } }],
+					error: err,
+				}));
+			},
+		});
+	}, [pushQuery, establecimientos]);
 	//#endregion
 
 	//#region declaracion y carga de tipos de pago
@@ -158,54 +170,52 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
-	const [refreshLiqudaciones, setRefreshLiquidaciones] = useState(true);
-	const [liquidaciones, setLiquidaciones] = useState({ loading: true });
-	const [pagination, setPagination] = useState({
-		index: 1,
-		size: 10,
-		onChange: (changes) => {
-			setPagination((old) => ({ ...old, ...changes }));
-			setRefreshLiquidaciones(true);
-		},
+	const [liquidaciones, setLiquidaciones] = useState({
+		loading: "Cargando...",
+		filter: { empresaId: empresa.id, todos: true },
+		page: { index: 1, size: 10 },
+		sort: `-Id`,
+		data: [],
+		error: {},
 	});
 	const [liquidacion, setLiquidacion] = useState(null);
 	useEffect(() => {
-		if (!refreshLiqudaciones) return;
+		if (!liquidaciones.loading) return;
+		const params = {
+			...liquidaciones.filter,
+			page: `${liquidaciones.page.index},${liquidaciones.page.size}`,
+			sort: liquidaciones.sort,
+		};
+		if (periodo) params.periodo = periodo;
+		if (establecimiento?.id)
+			params.empresaEstablecimientoId = establecimiento.id;
 		const newApiQuery = {
 			action: "GetLiquidaciones",
-			params: {
-				empresaId: empresa.id,
-				page: `${pagination.index},${pagination.size}`,
-				sort: `-Id`,
-				todos: true,
-			},
+			params: params,
 			onOk: async (res) => {
-				setLiquidaciones({ data: res.data });
-				if (res.data.length > 0) setLiquidacion(res.data[0]);
-				setPagination((old) => ({
+				setLiquidaciones((old) => ({
 					...old,
-					index: res.index,
-					size: res.size,
-					count: res.count,
-					pages: res.pages,
+					loading: null,
+					page: {
+						index: res.index,
+						size: res.size,
+						count: res.count,
+					},
+					data: res.data,
+					error: null,
 				}));
-				if (refreshLiqudaciones) setRefreshLiquidaciones(false);
+				if (res.data.length > 0) setLiquidacion(res.data[0]);
 			},
-			onError: async (err) => setLiquidaciones({ error: err }),
+			onError: async (err) =>
+				setLiquidaciones((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error: err,
+				})),
 		};
-		if (periodo) newApiQuery.params.periodo = periodo;
-		if (establecimiento?.id)
-			newApiQuery.params.empresaEstablecimientoId = establecimiento.id;
 		pushQuery(newApiQuery);
-	}, [
-		refreshLiqudaciones,
-		pagination.index,
-		pagination.size,
-		periodo,
-		establecimiento.id,
-		empresa.id,
-		pushQuery
-	]);
+	}, [liquidaciones, periodo, establecimiento.id, pushQuery]);
 
 	// Información si ocurrió algún error durante la carga de liquidaciones
 	let liqNoData = <h4>No hay informacion a mostrar</h4>;
@@ -233,11 +243,12 @@ const LiquidacionesHandler = () => {
 	if (formRequest) {
 		const disabled = {};
 		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
-		if (formRequest === "B") {
+		if (formRequest === "B" || (formRequest === "C" && !!liquidacion.refMotivoBajaId)) {
 			disabled.refMotivoBajaId = false;
 			disabled.deletedObs = false;
 		}
 		liquidacionForm = (
+			//ejemplo update
 			<LiquidacionForm
 				request={formRequest}
 				record={liquidacion}
@@ -249,7 +260,7 @@ const LiquidacionesHandler = () => {
 						config: { body: record },
 						onOk: (_res) => {
 							setFormRequest(null);
-							setRefreshLiquidaciones(true);
+							setLiquidaciones((old) => ({ ...old, loading: "Cargando..." }));
 						},
 						onError: (error) =>
 							console.log({ tag: "LiquidacionForm.onConfirm", error: error }),
@@ -278,7 +289,7 @@ const LiquidacionesHandler = () => {
 	//#region despachar Informar Modulo
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Procesa liquidaciones` }],
+		acciones: [{ name: `Procesa liquidaciones` }],
 	};
 	const liquidacionDesc = liquidacion
 		? `liquidacion número ${liquidacion.id}`
@@ -291,17 +302,13 @@ const LiquidacionesHandler = () => {
 			moduloInfo.acciones.push({ name: `Paga ${liquidacionDesc}` });
 		}
 	}
+	if (redirect.to) moduloInfo.acciones = [];
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		switch (moduloAccion) {
-			case `Empresas`:
-				navigate("/siaru");
-				break;
+		switch (moduloAccion?.name) {
 			case `Procesa liquidaciones`:
-				navigate("/siaru/liquidaciones/procesar", {
-					state: { empresa: empresa },
-				});
+				setRedirect({ to: "Procesar" });
 				break;
 			case `Consulta ${liquidacionDesc}`:
 				setFormRequest("C");
@@ -310,7 +317,6 @@ const LiquidacionesHandler = () => {
 				setFormRequest("B");
 				break;
 			case `Imprime ${liquidacionDesc}`:
-				// alert("Proximamente");
 				setDespliegaPDF(true);
 				break;
 			case `Paga ${liquidacionDesc}`:
@@ -320,7 +326,7 @@ const LiquidacionesHandler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, liquidacionDesc, empresa, navigate, dispatch]);
+	}, [moduloAccion, liquidacionDesc, dispatch]);
 	// #endregion
 
 	const selection = {
@@ -356,9 +362,7 @@ const LiquidacionesHandler = () => {
 							<SelectMaterial
 								name="periodo"
 								label="Periodo"
-								error={
-									periodos.loading ? "Cargando" : periodos.error?.message ?? ""
-								}
+								error={periodos.loading ?? periodos.error?.message ?? ""}
 								value={periodo}
 								options={periodos.data.map((r) => ({
 									label: r.descipcion,
@@ -366,7 +370,10 @@ const LiquidacionesHandler = () => {
 								}))}
 								onChange={(value, _id) => {
 									setPeriodo(value);
-									setRefreshLiquidaciones(true);
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+									}));
 								}}
 							/>
 						</Grid>
@@ -375,9 +382,9 @@ const LiquidacionesHandler = () => {
 								name="establecimiento"
 								label="Establecimiento"
 								error={
-									establecimientos.loading
-										? "Cargando"
-										: establecimientos.error?.message ?? ""
+									establecimientos.loading ??
+									establecimientos.error?.message ??
+									""
 								}
 								value={establecimiento.id}
 								options={establecimientos.data.map((r) => ({
@@ -389,18 +396,41 @@ const LiquidacionesHandler = () => {
 										establecimientos.data.find((r) => r.valor.id === value)
 											.valor
 									);
-									setRefreshLiquidaciones(true);
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+									}));
 								}}
 							/>
 						</Grid>
 					</Grid>
 					<Grid full="width" grow>
 						<LiquidacionesList
-							loading={liquidaciones.loading}
+							loading={!!liquidaciones.loading}
 							data={liquidaciones.data}
 							noData={liqNoData}
-							pagination={pagination}
+							pagination={{
+								...liquidaciones.page,
+								onChange: (changes) =>
+									setLiquidaciones((old) => ({
+										...old,
+										loading: "Cargando...",
+										page: { ...old.page, ...changes },
+									})),
+							}}
 							selection={selection}
+							onTableChange={(type, {sortOrder, sortField}) => {
+								switch (type) {
+									case "sort":
+										return setLiquidaciones((old) => ({
+											...old,
+											loading: "Cargando...",
+											sort: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
+										}));
+									default:
+										return;
+								}
+							}}
 						/>
 					</Grid>
 					<Grid full="width">

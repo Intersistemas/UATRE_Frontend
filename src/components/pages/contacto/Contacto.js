@@ -63,7 +63,7 @@ const Contacto = () => {
 
   //#region shorcuts
   UseKeyPress(['n'], ()=>enviarRef.current.requestSubmit(), 'AltKey');
-  UseKeyPress(['i'], ()=>navigate("/ingreso"), 'AltKey');
+  UseKeyPress(['i'], ()=>navigate("/Ingreso"), 'AltKey');
 //#endregion 
 
 
@@ -218,7 +218,7 @@ const Contacto = () => {
           </Collapse>  
         </Form>
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} className="botonBlanco" underlineindex={0}>
+            <Button onClick={()=>navigate("/Ingreso")} underlineindex={0}>
               Inicio
             </Button>
         </div>

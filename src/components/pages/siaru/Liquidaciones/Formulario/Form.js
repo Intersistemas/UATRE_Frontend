@@ -1,17 +1,16 @@
 import React, { useState } from "react";
-import styles from "./Form.module.css";
-import Controles from "./Controles";
+import dayjs from "dayjs";
+import CloseIcon from "@mui/icons-material/Close";
+import { Alert, AlertTitle } from "@mui/lab";
+import { IconButton, Collapse } from "@mui/material";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import modalStyles from "components/ui/Modal/Modal.module.css";
-import dayjs from "dayjs";
-import CloseIcon from "@mui/icons-material/Close";
-import { Alert, AlertTitle } from "@mui/lab";
-import { IconButton, Collapse } from "@mui/material";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
+import styles from "./Form.module.css";
+import Controles from "./Controles";
 
 const Form = ({
 	request = "C", //"A" = Alta, "B" = Baja, "M" = Modificacion, "C" = Consulta
@@ -25,7 +24,7 @@ const Form = ({
 }) => {
 	record = { ...record };
 	disabled ??= {};
-	if (!["M", "B"].includes(request)) {
+	if (!["B", "C"].includes(request)) {
 		if (request === "A") record.id = 0;
 		disabled.refMotivoBajaId = true;
 		disabled.deletedObs = true;
@@ -75,24 +74,22 @@ const Form = ({
 		setModalExistente(
 			<Modal onClose={handleCancelar}>
 				<Grid col gap={`${gap}px`} full>
-					<Grid full="width" justify="center">
+					<Grid width="full" justify="center">
 						<h3>
 							Ya existe una liquidación para el establecimiento y el período
 							indicado
 						</h3>
 					</Grid>
-					<Grid col full justify="end">
-						<Grid gap={`${gap}px`}>
-							<Grid width="50%">
-								<Button className="botonBlanco" onClick={handleCancelar}>
-									Volver para modificar datos
-								</Button>
-							</Grid>
-							<Grid width="50%">
-								<Button onClick={handleBajaContinuar}>
-									Dar de baja liquidación anterior y continuar
-								</Button>
-							</Grid>
+					<Grid width="full" gap="200px" justify="center">
+						<Grid width="150px">
+							<Button className="botonAzul" onClick={handleBajaContinuar}>
+								Dar de baja liquidación anterior y continuar
+							</Button>
+						</Grid>
+						<Grid width="150px">
+							<Button className="botonAmarillo" onClick={handleCancelar}>
+								Volver para modificar datos
+							</Button>
 						</Grid>
 					</Grid>
 				</Grid>
@@ -307,14 +304,14 @@ const Form = ({
 				<Grid width="full" gap="200px" justify="center">
 					<Grid width="150px">
 						{["A", "B", "M"].includes(request) ? (
-							<LoadingButtonCustom onClick={validar}>
-								CONFIRMA
-							</LoadingButtonCustom>
+							<Button className="botonAzul" onClick={validar}>
+								Confirma
+							</Button>
 						) : null}
 					</Grid>
 					<Grid width="150px">
-						<Button onClick={() => onCancel(request)}>
-							CANCELA
+						<Button className="botonAmarillo" onClick={() => onCancel(request)}>
+							Cancela
 						</Button>
 					</Grid>
 				</Grid>

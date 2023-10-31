@@ -1,5 +1,6 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
+import InputMask from 'react-input-mask';
 
 const InputMaterial = (props) => {
   //Validaciones
@@ -47,38 +48,48 @@ const InputMaterial = (props) => {
   //   console.log("error", props.error)
   // }
   return (
-    <Tooltip title={props.showToolTip ? props.value : false} arrow>
-      <TextField
-        variant={props.variant}
-        size={props.size ? props.size : "small"}
-        autoFocus={props.id === "cuil" ? true : false}
-        id={props.id}
-        //error={!props.isValid}
-        label={props.label}
-        className={styles.input}
-        value={props.value || ""}
-        onChange={handleChange}
-        disabled={props.disabled}
-        style={{...props.style,
-          width: props.width != null ? `${props.width}%` : "100%",
-          padding: `${props.padding}`,
-        }}
-        type={props.type || "text"}
-        inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
-        InputLabelProps={{
-          shrink: true,
-        }}
-        InputProps={{
-          readOnly: props.readOnly || false,          
-        }}
-        helperText={props.helperText ?? ""}
-        FormHelperTextProps={{ style: { marginTop: "0px" } }}
-        error={props.error || false}
-        color={props.color}
-        focused={props.focused || false}
-        //onFocus={handleOnFocus}
-      />
-    </Tooltip>
+
+    <InputMask
+      mask={props.mask}
+      className={styles.input}
+      value={props.value || ""}
+      onChange={handleChange}
+      disabled={props.disabled}
+    >
+    {() =>
+        <TextField
+          disabled={props.disabled}
+          variant={props.variant}
+          size={props.size ? props.size : "small"}
+          autoFocus={props.id === "cuil" ? true : false}
+          id={props.id}
+          //error={!props.isValid}
+          label={props.label}
+          className={styles.input}
+          value={props.value || ""}
+          onChange={handleChange}
+          style={{...props.style,
+            width: props.width != null ? `${props.width}%` : "100%",
+            padding: `${props.padding}`,
+          }}
+          type={props.type || "text"}
+          inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          InputProps={{
+            readOnly: props.readOnly || false,          
+          }}
+          helperText={props.helperText ?? ""}
+          FormHelperTextProps={{ style: { marginTop: "0px" } }}
+          error={props.error || false}
+          color={props.color}
+          focused={props.focused || false}
+          //onFocus={handleOnFocus}
+        >
+        </TextField>}
+    </InputMask>
+    
   );
 };
 

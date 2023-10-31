@@ -1,19 +1,12 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import LoginCard from "../ui/LoginCard/LoginCard";
 import classes from "./Login.module.css";
 import Button from "../ui/Button/Button";
 import useHttp from "../hooks/useHttp";
-import AuthContext from "../../store/authContext";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../media/Logo1.png";
-import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
-import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
-import verClaveImg from "../../media/VerPswIcono.svg";
-import { useDispatch } from "react-redux";
 
-import Tooltip from '@mui/material/Tooltip';
 import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
@@ -22,12 +15,11 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const ConfirmaEmail = () => {
   console.log("ConfirmaEmail");
-  const authContext = useContext(AuthContext);
+
   const { isLoading, error, sendRequest: sendConfirmRequest } = useHttp();
-  const dispatch = useDispatch();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search); //podría reemp´lazar el windows.loc por UseLocatioN??? o por usePArams???
       
   const [email, setEmail] = useState(params.get("email"));   
   const [token, setToken] = useState(params.get("token").replaceAll(' ', '+'));  
@@ -146,7 +138,7 @@ const ConfirmaEmail = () => {
           </div>
         </div>
         <div className={`mt-3`}>
-            <Button onClick={()=>navigate("/ingreso")} type="submit" className="botonBlanco">
+            <Button onClick={()=>navigate("/Ingreso")} type="submit">
               Inicio
             </Button>
         </div>

@@ -8,7 +8,7 @@
 
   --color3-40: #8cb0c766; /*#d1dfe9*/
   --color3-80: #8cb0c7cc;
-
+ 
   /*82C3ED50 para tablas*/
   --color4: rgb(13 110 253 / 50%); /*focus*/
 
@@ -100,4 +100,10 @@ main{
 
 .underline{
   text-decoration: underline !important;
+}
+
+
+.MuiAutocomplete-inputRoot{
+  max-height: 40px !important;
+  padding: 0 !important;
 }

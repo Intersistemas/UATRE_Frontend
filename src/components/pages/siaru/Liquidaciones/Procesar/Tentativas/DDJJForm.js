@@ -1,9 +1,9 @@
 import React from "react";
-import styles from "./DDJJForm.module.css";
+import { TextField } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Select from "components/ui/Select/Select";
 import Formato from "components/helpers/Formato";
-import { TextField } from "@mui/material";
+import styles from "./DDJJForm.module.css";
 
 const DDJJForm = ({
 	records = [],
@@ -72,7 +72,7 @@ const DDJJForm = ({
 					size="small"
 					label="Nombre"
 					value={joined.nombre ?? ""}
-					style={{ width: "80%" }}
+					style={{ width: "70%" }}
 				/>
 				<TextField
 					InputLabelProps={{ style: inputLabelStyles }}
@@ -80,7 +80,7 @@ const DDJJForm = ({
 					size="small"
 					label="Remuneración imponible"
 					value={Formato.Moneda(joined.remuneracionImponible) ?? ""}
-					style={{ width: "10%" }}
+					style={{ width: "20%" }}
 				/>
 			</Grid>
 			<Grid full="width" gap="10px">

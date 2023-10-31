@@ -35,9 +35,6 @@
   .sidebar_opciones{
       zoom: 70%;
   }
-  .logo{
-    zoom: 140%;
-  }
 }
 
 @media (max-width: 800px) {
@@ -49,7 +46,7 @@
 .top_section{
   /*display: flex;*/
   align-items:center;
-  padding:20px 15px;
+  padding:10px 15px;
 }
 .logo{
   font-size: 40px;

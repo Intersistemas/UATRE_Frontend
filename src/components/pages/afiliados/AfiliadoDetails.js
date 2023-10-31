@@ -3,8 +3,6 @@ import Formato from "../../helpers/Formato";
 import Grid from "../../ui/Grid/Grid";
 import styles from "./AfiliadoDetails.module.css";
 import { styled } from '@mui/material/styles';
-/*import InputMaterial from '@material-ui/core/InputMaterial';*/
-/*import InputMaterial from "@mui/material/InputMaterial";*/
 import InputMaterial from "../../ui/Input/InputMaterial";
 
 const useStyles = styled((theme) => ({
@@ -17,7 +15,6 @@ const useStyles = styled((theme) => ({
   }));
 
 const AfiliadoDetails = (props) => {
-	console.log('AfiliadoDetails_Data:',props.config);
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
@@ -31,12 +28,7 @@ const AfiliadoDetails = (props) => {
 	const validar = (value) =>{
 
 		if (_.includes(value, "-") && _.includes(value, ":")){ //SI ES UNA FECHA
-			let ms = Date.parse(value)
-			if (!isNaN(ms)) {
-				if (ms < 0) {
-					return " ";
-				} else return _.split(value, 'T', 1 );
-			}
+			return Formato.Fecha(value);
 		}
 
 		if (_.isString(value)){
@@ -80,6 +72,7 @@ const AfiliadoDetails = (props) => {
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={validar(data.sexo)} /> 													
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={validar(data.estadoCivil)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={validar(data.nacionalidad)}/>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha de carga" value={validar(data.createdDate)}/>
 								</Grid>		
 							</Grid>
 						</Grid>

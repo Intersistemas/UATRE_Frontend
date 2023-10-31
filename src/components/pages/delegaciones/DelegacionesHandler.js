@@ -8,7 +8,7 @@ import {
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import useDelegaciones from "./useDelegaciones";
-import useDocumentaciones from "components/Documentacion/useDocumentaciones";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -70,7 +70,7 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		switch (sidebar.moduloAccion) {
 			case "Administración de datos":
-				setRedirect({ to: "/administracion" });
+				setRedirect({ to: "Administracion" });
 				break;
 			case "Agrega Delegación":
 				sidebar.delegacionChanger({

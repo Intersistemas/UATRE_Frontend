@@ -17,8 +17,6 @@ import UseKeyPress from '../helpers/UseKeyPress';
   //#region shorcuts
  
 const Login = () => {
-  console.log("Login");
-
   //#region atributos
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest: sendLoginRequest } = useHttp();
@@ -37,7 +35,6 @@ const Login = () => {
   useEffect(() => {
     if (error) {
       setMensajeError(error.message);
-      console.log("capturo error", error);
       if(error.code === 401){
         setMensajeError(error.message);
       }
@@ -52,8 +49,8 @@ const Login = () => {
 
     //#region shorcuts
     UseKeyPress(['i'], ()=>ingresarRef.current.requestSubmit(), 'AltKey');
-    UseKeyPress(['r'], ()=>navigate("/registro"), 'AltKey');
-    UseKeyPress(['c'], ()=>navigate("/contacto"), 'AltKey');
+    UseKeyPress(['r'], ()=>navigate("/Registro"), 'AltKey');
+    UseKeyPress(['c'], ()=>navigate("/Contacto"), 'AltKey');
   //#endregion 
 
   const cuitChangeHandler = (event) => {
@@ -73,19 +70,16 @@ const Login = () => {
   };
 
   const processLogIn = async (userObject) => {
-    console.log("userObject1", userObject);
     await authContext.login(
       userObject.token.tokenId,
       userObject.token.validTo.toString(),
       userObject.rol,
       userObject
     );
-    console.log("logged");
     //pasar al authcontext el usuario
 
-    console.log("enteredCUIT", enteredCUIT);
     dispatch(handleUsuarioLogueado(userObject));
-    navigate("/inicio");
+    navigate("/Inicio");
   };
 
   const sendLoginHandler = async () => {
@@ -112,7 +106,6 @@ const Login = () => {
     event.preventDefault();
     //props.onLogin(enteredCUIT, enteredPassword);
     sendLoginHandler();
-    console.log("submitHandler");
   };
 
   const [verClave, setVerClave] = useState(false);
@@ -165,12 +158,12 @@ const Login = () => {
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (
               <div>
-                <Button type="submit" className="botonAzul" underlineindex={0}>
+                <Button active type="submit" className="botonAzul" underlineindex={0}>
                   Ingresar
                 </Button>
                 <p />
                 
-                <Button onClick={()=>navigate("/registro")} className="botonBlanco" underlineindex={0}>Registro</Button>
+                <Button onClick={()=>navigate("/Registro")}underlineindex={0}>Registro</Button>
               </div>
             ) : (
               <p>Cargando...</p>

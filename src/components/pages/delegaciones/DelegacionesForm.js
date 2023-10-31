@@ -3,7 +3,6 @@ import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import LoadingButtonCustom from "components/ui/LoadingButtonCustom/LoadingButtonCustom";
 import InputMaterial from "components/ui/Input/InputMaterial";
 
 const DelegacionesForm = ({
@@ -69,10 +68,10 @@ const DelegacionesForm = ({
 				</Grid>
 				<Grid width="100%" gap="200px" justify="center">
 					<Grid width="200px">
-						<LoadingButtonCustom onClick={() => onClose(true)}>CONFIRMA</LoadingButtonCustom>
+						<Button className="botonAzul" onClick={() => onClose(true)}>CONFIRMA</Button>
 					</Grid>
 					<Grid width="200px">
-						<Button onClick={() => onClose(false)}>
+						<Button className="botonAmarillo" onClick={() => onClose(false)}>
 							CANCELA
 						</Button>
 					</Grid>

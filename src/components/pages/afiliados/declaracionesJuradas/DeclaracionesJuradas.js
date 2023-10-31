@@ -10,7 +10,7 @@ const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
   const [idPrimerRegistroDelGrid, setIdPrimerRegistroDelGrid] = useState(0);
-  const { cuil, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
+  const { cuil, cuit, infoCompleta, mostrarBuscar, registros } = props.cuil === null ? 0 : props;
 
   useEffect(() => {
     if (cuil > 0) {
@@ -19,12 +19,12 @@ const DeclaracionesJuradas = (props) => {
         setIdPrimerRegistroDelGrid(ddJJUatreObj[0]?.id ?? 0);
         props.onSeleccionRegistro(ddJJUatreObj[0]);
         setDDJJUatreList(ddJJUatreObj);
-        props.onDeclaracionesGeneradas&&props.onDeclaracionesGeneradas(ddJJUatreObj.data);
+        props.onDeclaracionesGeneradas&&props.onDeclaracionesGeneradas(ddJJUatreObj);
       };
       request(
         {
           baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}`,
+          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${cuil}&cuit=${cuit}`,
           method: "GET",
         },
         processDDJJUatre

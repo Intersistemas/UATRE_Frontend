@@ -1,6 +1,6 @@
 import React from "react";
-import Formato from "../../../../../helpers/Formato";
-import Table from "../../../../../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+import Table from "components/ui/Table/Table";
 
 const DDJJList = ({
 	records = [],	// Lista de Nominas

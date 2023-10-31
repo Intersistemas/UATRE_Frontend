@@ -1,7 +1,8 @@
-import React from "react";
+import React, {useEffect} from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import Table from "../../../ui/Table/Table";
 import classes from "./SeccionalesLista.module.css";
+import Formato from "components/helpers/Formato";
 import {
   Box,
   FormControl,
@@ -11,13 +12,50 @@ import {
   TextField,
 } from "@mui/material";
 import Button from "../../../ui/Button/Button";
-
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
+ 
 const SeccionalesLista = (props) => {
+
+const dispatch = useDispatch();
+
+useEffect(()=>{
+  //#region despachar Informar Modulo
+  const moduloInfoDefault = {
+    nombre: "Seccionales",
+    acciones: [
+      {
+        id: 1,
+        abm: "Alta",
+        name: "Agrega Seccional",
+        icon: "",
+        disabled: false,
+      },
+      {
+        id: 2,
+        abm: "Modifica",
+        name: "Modifica Seccional",
+        icon: "",
+        disabled: true,
+      },
+      {
+        id: 3,
+        abm: "Baja",
+        name: "Baja Seccional",
+        icon: "",
+        disabled: true,
+      }
+    ],
+  };
+  dispatch(handleModuloSeleccionar(moduloInfoDefault));
+  //#endregion
+},[])
+
   //#region Tabla
   const columns = [
     
     {
-      headerTitle: (column, colIndex) => `Codigo`,
+      headerTitle: (column, colIndex) => `Codigo Seccional`,
       dataField: "codigo",
       text: "Código",
       sort: true,
@@ -26,9 +64,9 @@ const SeccionalesLista = (props) => {
       },
     },
     {
-      headerTitle: (column, colIndex) => `Descripción`,
+      headerTitle: (column, colIndex) => `Nombre Seccional`,
       dataField: "descripcion",
-      text: "Descripción",
+      text: "Nombre",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -42,11 +80,23 @@ const SeccionalesLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
+      formatter: (value, row) => ( 
+        row.deletedDate ? `${value} (${Formato.Fecha(row.deletedDate)})` : value
+      ),
     },
     {
       headerTitle: (column, colIndex) => `Dirección`,
       dataField: "domicilio",
       text: "Dirección",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Localidad Seccional`,
+      dataField: "localidadNombre",
+      text: "Localidad",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -61,6 +111,7 @@ const SeccionalesLista = (props) => {
         return { width: "7rem", textAlign: "center" };
       },
     },
+
     {
       headerTitle: (column, colIndex) => `Id`,
       dataField: "id",
@@ -71,8 +122,20 @@ const SeccionalesLista = (props) => {
         return { width: "7rem", textAlign: "center" };
       },
     },
-  ];
+    {
+      headerTitle: (column, colIndex) => `Id`,
+      dataField: "deletedDate",
+      text: "deletedDate",
+      sort: true,
+      hidden: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
 
+    
+  ];
+ 
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
@@ -82,8 +145,40 @@ const SeccionalesLista = (props) => {
       color: "black",
       fontWeight: "bold",
     },
-    onSelect: (row, isSelect, rowIndex, e) =>
-      props.onSeccionalSeleccionada(row),
+    onSelect: (row, isSelect, rowIndex, e) =>{
+      console.log('seccional_selected',row);
+      props.onSeccionalSeleccionada(row)
+      //modificar la descripcion de los botones de accion
+      //#region despachar Informar Modulo
+      const moduloInfoDefault = {
+        nombre: "Seccionales",
+        acciones: [
+          {
+            id: 1,
+            abm: "Alta",
+            name: "Agrega Seccional",
+            icon: "",
+            disabled: false,
+          },
+          {
+            id: 2,
+            abm: "Modifica",
+            name: `Modifica Seccional ${row.codigo} - ${row.descripcion}`,
+            icon: "",
+            disabled: row.estado == "Baja" ? true : false,
+          },
+          {
+            id: 3,
+            abm: "Baja",
+            name: `Baja Seccional ${row.codigo} - ${row.descripcion}`,
+            icon: "",
+            disabled: row.estado == "Baja" ? true : false,
+          }
+        ],
+      };
+      dispatch(handleModuloSeleccionar(moduloInfoDefault));
+    }
+      //#endregion
   };
 
   const rowEvents = {
@@ -95,7 +190,7 @@ const SeccionalesLista = (props) => {
   };
 
   const pagination = {
-    size: 20,
+    size: 15,
   };
 
   console.log("props.seccionales", props.seccionales);
@@ -134,9 +229,6 @@ const SeccionalesLista = (props) => {
           "column-gap": "1rem",
         }}
       >
-        {/*<div> se quita el boon de aqui para ponerlo en el sidebar
-          <Button onClick={props.onAgregarClick}>Agrega</Button>
-        </div>*/}
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>
@@ -177,7 +269,8 @@ const SeccionalesLista = (props) => {
           error={props.error}
         />
         <Button
-          className="botonBorder"
+          className="botonAmarillo"
+          botonBorder
           width={70}
           onClick={props.onBuscarClick}
           disabled={!props.selectorValor ?? true}
@@ -185,7 +278,8 @@ const SeccionalesLista = (props) => {
           Busca
         </Button>
         <Button
-          className="botonBorder"
+          className="botonAmarillo"
+          botonBorder
           //width={70}
           style={{ "min-width": "fit-content" }}
           onClick={props.onLimpiarClick}

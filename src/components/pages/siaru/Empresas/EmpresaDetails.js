@@ -1,11 +1,12 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import styles from "./EmpresaDetails.module.css";
-import Formato from "../../../helpers/Formato";
-import Grid from "../../../ui/Grid/Grid";
-import InputMaterial from "../../../ui/Input/InputMaterial";
+import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
-const EmpresaDetails = ({ data }) => {
-	data ??= {};
+const EmpresaDetails = () => {
+	const data = useSelector((state) => state.empresa) ?? {};
 
 	const im = {
 		variant: "standard",

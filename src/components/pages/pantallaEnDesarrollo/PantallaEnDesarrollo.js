@@ -1,16 +1,20 @@
-import React from "react";
+import React, {useContext} from "react";
 import ModalEnDesarrollo from "../../ui/ModalEnDesarrollo/ModalEnDesarrollo";
 import classes from "./PantallaEnDesarrollo.module.css";
 import Button from "../../ui/Button/Button";
 import imagenEnDesarrollo from '../../../media/EnConstruccion/2.png';
 import { useNavigate } from "react-router-dom";
+import AuthContext from "../../../store/authContext";
+
 
 const PantallaEnDesarrollo = (props) => {
   console.log("en desarrollo");
   const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
 
   const handleCerrarModal = () => {
-    navigate("/");
+
+    authContext?.isLoggedIn ? navigate("/Inicio") : navigate("");
     props.onClose();
    
   };
@@ -25,7 +29,7 @@ const PantallaEnDesarrollo = (props) => {
 
         <div className={classes.boton}>
           <Button
-            className={classes.button}
+            className="botonAmarillo"
             width={100}
             onClick={()=>handleCerrarModal()}
             //onClick={()=>navigate("/")}

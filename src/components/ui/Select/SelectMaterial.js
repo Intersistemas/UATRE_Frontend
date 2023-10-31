@@ -14,7 +14,6 @@ const MenuProps = {
 
 const SelectMaterial = (props) => {
   const handleChange = (event) => {
-    //console.log(event)
     props.onChange(event.target.value, event.target.name);
   };
 
@@ -27,12 +26,11 @@ const SelectMaterial = (props) => {
     <FormControl
       size="small"
       style={{ width: props.width != null ? `${props.width}%` : "100%" }}
-      error={props.error ?? false}
+      error={!!props.error}
     >
       <InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
       <Select
         className={styles.select}
-        //className={styles.select}
         style={{...props.style}}
         labelId={props.label + "-label"}
         name={props.name}
@@ -43,9 +41,6 @@ const SelectMaterial = (props) => {
         MenuProps={MenuProps}
         size="small"
         disabled={props.disabled}
-        // InputLabelProps={{
-        //   shrink: true,
-        // }}       
       >        
         {props.options.map((option) => (
           <MenuItem key={option.value} value={option.value}>

@@ -31,12 +31,34 @@ export function Booleano(valor) {
 }
 
 export function Fecha(isoString) {
+	return FechaHora(isoString, "date");
+}
+
+export function Hora(isoString) {
+	return FechaHora(isoString, "time");
+}
+
+export function FechaHora(isoString, type = "datetime") {
 	if (isoString == null) return "";
-	return Intl.DateTimeFormat("es-AR", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "numeric",
-	}).format(new Date(isoString));
+	let ms = Date.parse(isoString);
+	if (isNaN(ms) || ms < 0) return "";
+
+	const options = typeof type === "object" ? type : {};
+	if (typeof type === "string") {
+		type = type?.toLowerCase();
+		if (type.startsWith("date")) {
+			options.day = "2-digit";
+			options.month = "2-digit";
+			options.year = "numeric";
+		}
+		if (type.endsWith("time")) {
+			options.hour = "2-digit";
+			options.minute = "2-digit";
+			options.second = "2-digit";
+		}
+	}
+
+	return Intl.DateTimeFormat("es-AR", options).format(new Date(ms));
 }
 
 export function Periodo(numero) {
@@ -72,6 +94,8 @@ class _Formato {
 	Moneda = Moneda;
 	Booleano = Booleano;
 	Fecha = Fecha;
+	Hora = Hora;
+	FechaHora = FechaHora;
 	Periodo = Periodo;
 	Cuit = Cuit;
 	Entero = Entero;

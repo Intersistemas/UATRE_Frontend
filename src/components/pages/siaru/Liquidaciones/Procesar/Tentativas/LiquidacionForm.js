@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import styles from "./LiquidacionForm.module.css";
+import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import { TextField } from "@mui/material";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import dayjs from "dayjs";
 import Button from "components/ui/Button/Button";
+import Modal from "components/ui/Modal/Modal";
+import styles from "./LiquidacionForm.module.css";
 
 const onChangeDef = (_changes = {}) => {};
 const onConfirmDef = () => {};
@@ -42,14 +43,20 @@ const LiquidacionForm = ({
 	//#endregion
 
 	//#region Cargo parametros
-	const [params, setParams] = useState(null);
-	useEffect(() => {
-		const pending = {
+	const [params, setParams] = useState({
+		loading: "Cargando...",
+		data: {
 			LiquidacionTipoPagoIdSindical: -1,
 			LiquidacionTipoPagoIdSolidario: -1,
-		};
-		const result = {};
-		const assignParam = (param, value) => {
+		},
+		error: {},
+	});
+	useEffect(() => {
+		if (!params.loading) return;
+		const pending = Object.keys(params.data);
+		const result = {...params.data};
+		const errors = {};
+		const formatParamValue = (param, value) => {
 			switch (param) {
 				case "LiquidacionTipoPagoIdSindical":
 				case "LiquidacionTipoPagoIdSolidario":
@@ -63,18 +70,23 @@ const LiquidacionForm = ({
 				action: "GetParameter",
 				params: { paramName: param },
 				onOk: async (res) => {
-					result[param] = assignParam(param, res.valor);
+					result[param] = formatParamValue(param, res.valor);
 				},
 				onError: async (err) => {
-					result[param] = pending[param];
+					errors[param] = err;
 				},
 				onFinally: async () => {
-					delete pending[param];
-					if (Object.keys(pending).length === 0) setParams(result);
+					pending.splice(pending.indexOf(param), 1);
+					if (pending.length === 0) {
+						setParams({
+							data: result,
+							error: Object.keys(errors).length ? errors : null,
+						});
+					}
 				},
 			});
-		Object.keys(pending).forEach((param) => queryParam(param));
-	}, [pushQuery]);
+		pending.forEach((param) => queryParam(param));
+	}, [pushQuery, params]);
 	//#endregion
 
 	//#region Cargo datos de despliegue
@@ -87,9 +99,9 @@ const LiquidacionForm = ({
 		fechaPagoEstimada: ""
 	};
 	records.forEach((liq, ix) => {
-		if (liq.liquidacionTipoPagoId === params.LiquidacionTipoPagoIdSindical) {
+		if (liq.liquidacionTipoPagoId === params.data.LiquidacionTipoPagoIdSindical) {
 			datos.sindicalTotal += liq.totalRemuneraciones ?? 0;
-		} else if (liq.liquidacionTipoPagoId === params.LiquidacionTipoPagoIdSolidario) {
+		} else if (liq.liquidacionTipoPagoId === params.data.LiquidacionTipoPagoIdSolidario) {
 			datos.solidarioTotal += liq.totalRemuneraciones ?? 0;
 		}
 		Object.keys(datos).forEach((k) => {
@@ -111,47 +123,43 @@ const LiquidacionForm = ({
 	if (datos.fechaPagoEstimada === undefined) {
 		diferencias.fechaPagoEstimada = "Las fechas difieren"
 	}
-	datos.fechaPagoEstimada ??= "";
+	// datos.fechaPagoEstimada ??= "";
 	//#endregion
 
 	const generarLiquidacion = () => {
 		// Validaciones primero
-		const newErrores = [];
+		const errores = [];
 
 		if (!records?.length) {
-			newErrores.push(
-				<Grid>Debe seleccionar las liquidaciones a generar.</Grid>
-			);
+			errores.push("Debe seleccionar las liquidaciones a generar.");
 		} else {
 			if (records.find((r) => !r.vencimientoFecha))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene fecha de vencimiento.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene fecha de vencimiento.");
 			if (records.find((r) => !r.fechaPagoEstimada))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene fecha de pago estimada.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene fecha de pago estimada.");
 			if (records.find((r) => !r.cantidadTrabajadores))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene cantidad de
-						trabajadores.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene cantidad de trabajadores.");
 			if (records.find((r) => !r.totalRemuneraciones))
-				newErrores.push(
-					<Grid>
-						Una de las liquidaciones a generar no tiene total de remuneraciones.
-					</Grid>
-				);
+				errores.push("Una de las liquidaciones a generar no tiene total de remuneraciones.");
 		}
 
-		setliqErrors(newErrores);
-		if (newErrores.length) return;
+		setliqErrors(
+			<Modal onClose={() => setliqErrors(null)}>
+				<Grid col gap="10px" width="full">
+					<Grid col width="full">
+						{errores.map((v, i) => (<Grid id={i} justify="center"><h4>{v}</h4></Grid>))}
+					</Grid>
+					<Grid width="full" gap="200px" justify="center">
+						<Grid width="350px">
+							<Button className="botonAmarillo" onClick={() => setliqErrors(null)}>
+								Volver para modificar datos
+							</Button>
+						</Grid>
+					</Grid>
+				</Grid>
+			</Modal>
+		);
+		if (errores.length) return;
 
 		onConfirm();
 	};
@@ -190,23 +198,23 @@ const LiquidacionForm = ({
 				/>
 			</Grid>
 			<Grid width="full">
-				<Grid width="200px">
+				<Grid width="300px">
 					<DateTimePicker
 						type="date"
-						label="Fecha pago estimada"
+						label="Asigna fecha de pago estimada"
 						minDate={dayjs().format("YYYY-MM-DD")}
 						value={datos.fechaPagoEstimada}
 						InputRenderProps={{ helperText: diferencias.fechaPagoEstimada }}
 						onChange={(f) =>
 							onChange({
-								fechaPagoEstimada: f?.format("YYYY-MM-DD") ?? null,
+								fechaPagoEstimada: f?.format("YYYY-MM-DD"),
 							})
 						}
 					/>
 				</Grid>
 				<Grid grow/>
 				<Grid>
-					<Button onClick={generarLiquidacion} disabled={!records?.length}>
+					<Button className="botonAmarillo" onClick={generarLiquidacion} disabled={!records?.length}>
 						Genera liquidación
 					</Button>
 				</Grid>

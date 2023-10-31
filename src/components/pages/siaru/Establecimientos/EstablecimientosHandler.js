@@ -1,82 +1,111 @@
 import React, { useEffect, useState } from "react";
-import useHttp from "components/hooks/useHttp";
-import Grid from "components/ui/Grid/Grid";
-import Formato from "components/helpers/Formato";
-import EstablecimientoDetails from "./EstablecimientoDetails";
-import EstablecimientosList from "./EstablecimientosList";
-import Form from "./EstablecimientoForm";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 } from "redux/actions";
+import Grid from "components/ui/Grid/Grid";
+import Formato from "components/helpers/Formato";
+import EstablecimientoDetails from "./EstablecimientoDetails";
+import EstablecimientosList from "./EstablecimientosList";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Form from "./EstablecimientoForm";
 
 const EstablecimientosHandler = () => {
-	const location = useLocation();
 	const navigate = useNavigate();
-	const empresa = location.state?.empresa;
-	if (empresa?.id == null) navigate("/ingreso");
 
-	const empresaId = empresa ? empresa.id : 0;
+	const empresa = useSelector((state) => state.empresa);
+
+	const [redirect, setRedirect] = useState({ to: "", options: null });
+	if (redirect.to) navigate(redirect.to, redirect.options);
+
+	useEffect(() => {
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
+	}, [empresa]);
+
 	const [form, setForm] = useState(null);
-	const { sendRequest } = useHttp();
+
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetEstablecimientos":
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: "/EmpresaEstablecimientos/GetByEmpresa",
+					}
+				}
+			default:
+				return null;
+		}
+	});
 	const dispatch = useDispatch();
 	
 	//#region carga inicial de establecimientos
-	const [refresh, setRefresh] = useState({ origen: "inicio" });
-	const [establecimientos, setEstablecimientos] = useState({ loading: true });
-	const [pagination, setPagination] = useState({
-		index: 1,
-		size: 10,
-		onChange: (changes) => setPagination((old) => ({ ...old, ...changes })),
+	const [establecimientos, setEstablecimientos] = useState({
+		loading: "Cargando...",
+		data: [],
+		error: {},
+		params: { empresaId: empresa?.id, soloActivos: false },
+		filter: "",
+		sort: "",
+		page: { index: 1, size: 10 },
+		seleccion: null,
 	});
-	const [seleccionado, setSeleccionado] = useState(null);
 	useEffect(() => {
-		if (!refresh) return;
-
-		const finalAction = () => {
-			if (refresh) setRefresh(null);
-		}
-
-		sendRequest(
-			{
-				baseURL: "Comunes",
-				endpoint: `/EmpresaEstablecimientos/GetByEmpresa?EmpresaId=${empresaId}&PageIndex=${pagination.index}&PageSize=${pagination.size}&SoloActivos=false`,
-				method: "GET",
-			},
-			async (res) => {
+		if (!establecimientos.loading) return;
+		const params = {
+			...establecimientos.params,
+			pageIndex: establecimientos.page.index,
+			pageSize: establecimientos.page.size,
+			orderBy: establecimientos.sort,
+		};
+		if (establecimientos.filter) params.filtro = establecimientos.filter;
+		pushQuery({
+			action: "GetEstablecimientos",
+			params: params,
+			onOk: async (res) => {
 				const data = [...res.data];
-				setEstablecimientos({ data: data });
-				setPagination((old) => ({
+				setEstablecimientos((old) => ({
 					...old,
-					index: res.index,
-					size: res.size,
-					count: res.count,
-					pages: res.pages,
+					loading: null,
+					data: data,
+					error: null,
+					page: {
+						index: res.index,
+						size: res.size,
+						count: res.count,
+					},
+					seleccion:
+						data.find((r) => r.id === old.seleccion?.id) ??
+						data.at(0) ??
+						null,
 				}));
-				if (data.length > 0) setSeleccionado(data[0]);
-				finalAction();
 			},
-			async (err) => {
-				setEstablecimientos({ error: err.error });
-				setSeleccionado(null);
-				finalAction();
+			onError: async (err) => {
+				setEstablecimientos((old) => ({
+					...old,
+					loading: null,
+					data: null,
+					error: err,
+					seleccion: null,
+				}));
 			},
-		);
-	}, [sendRequest, refresh, empresaId, pagination.index, pagination.size]);
+		});
+	}, [establecimientos, pushQuery]);
 
 	//#region despachar Informar Modulo
-	const estabDesc = seleccionado ? `${seleccionado.nombre}` : ``;
+	const estabDesc = `${establecimientos.seleccion?.nombre ?? ""}`;
 	const moduloInfo = {
 		nombre: "SIARU",
-		acciones: [{ name: `Empresas` }, { name: `Agrega Establecimiento` }],
+		acciones: [{ name: `Agrega Establecimiento` }],
 	};
-	if (seleccionado) {
+	if (establecimientos.seleccion) {
 		moduloInfo.acciones.push({
 			name: `Consulta Establecimiento ${estabDesc}`,
 		});
-		if (!seleccionado.refMotivosBajaId) {
+		if (!establecimientos.seleccion.refMotivosBajaId) {
 			moduloInfo.acciones.push({
 				name: `Modifica Establecimiento ${estabDesc}`,
 			});
@@ -92,19 +121,20 @@ const EstablecimientosHandler = () => {
 	useEffect(() => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
 		const configForm = {
-			record: seleccionado,
+			record: establecimientos.seleccion,
 			onCancel: (_request) => setForm(null),
-			onConfirm: (_request, _record) => {
+			onConfirm: (request, _record) => {
 				setForm(null);
-				setRefresh({ origen: "formulario" });
+				setEstablecimientos((old) => ({
+					...old,
+					loading: "Cargando...",
+					seleccion: request === "A" ? null : old.seleccion,
+				}));
 			},
 		};
-		switch (moduloAccion) {
-			case `Empresas`:
-				navigate("/siaru");
-				break;
+		switch (moduloAccion?.name) {
 			case `Agrega Establecimiento`:
-				configForm.record = { empresaId: empresaId };
+				configForm.record = { empresaId: empresa.id };
 				configForm.request = "A";
 				setForm(<Form {...configForm} />);
 				break;
@@ -124,13 +154,14 @@ const EstablecimientosHandler = () => {
 				break;
 		}
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, empresaId, estabDesc, seleccionado, navigate, dispatch]);
+	}, [moduloAccion, empresa, estabDesc, establecimientos, dispatch]);
 
 	const selection = {
-		onSelect: (row, _isSelect, _rowIndex, _e) => setSeleccionado(row),
-	}
-	if (seleccionado) {
-		selection.selected = [seleccionado.id]
+		onSelect: (row, _isSelect, _rowIndex, _e) =>
+			setEstablecimientos((old) => ({ ...old, seleccion: row })),
+	};
+	if (establecimientos.seleccion) {
+		selection.selected = [establecimientos.seleccion.id]
 	}
 
 	return (
@@ -155,11 +186,41 @@ const EstablecimientosHandler = () => {
 							<EstablecimientosList
 								loading={establecimientos.loading}
 								data={establecimientos.data}
-								pagination={pagination}
+								pagination={{
+									...establecimientos.page,
+									onChange: (changes) =>
+										setEstablecimientos((old) => ({
+											...old,
+											loading: "Cargando...",
+											page: { ...old.page, ...changes },
+										})),
+								}}
 								selection={selection}
+								onTableChange={(type, newState) => {
+									switch (type) {
+										case "sort": {
+											const { sortField, sortOrder } = newState;
+											return setEstablecimientos((old) => ({
+												...old,
+												loading: "Cargando...",
+												sort: `${sortField}.${sortOrder}`,
+											}));
+										}
+										case "search": {
+											const { searchText } = newState;
+											return setEstablecimientos((old) => ({
+												...old,
+												loading: "Cargando...",
+												filter: searchText,
+											}));
+										}
+										default:
+											return;
+									}
+								}}
 							/>
 						</Grid>
-						<EstablecimientoDetails data={seleccionado} />
+						<EstablecimientoDetails data={establecimientos.seleccion} />
 						{form}
 					</Grid>
 				</Grid>

@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useSelector } from 'react-redux'
 import {
-    FaTh,FaBars,FaRegUser, FaChevronRight
+    FaTh,FaBars,FaRegUser, FaChevronRight, FaAngleUp
 }from "react-icons/fa";
+
 import { BsFillXCircleFill } from "react-icons/bs";
-import { Link, NavLink,useNavigate } from 'react-router-dom';
+import { NavLink,useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/authContext';
 import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
@@ -15,6 +16,9 @@ import UseKeyPress from '../helpers/UseKeyPress';
 
 const Sidebar = ({children}) => {
 
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const moduloActual = useSelector(state => state.modulo)
     const afiliadoSeleccionado = useSelector(state => state.afiliado)
     
@@ -24,29 +28,56 @@ const Sidebar = ({children}) => {
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
     const Usuario = authContext.usuario;
-
     const[botones ,setBotones] = useState([]);
 
     const[isOpen ,setIsOpen] = useState(true);
     const toggle = () => setIsOpen (!isOpen);
-    const menuItem=[
-        {
-            path:"/inicio",
-            name: <text><text className={clases.underline}>I</text>nicio</text>,
-            icon:<FaTh/>
-        }
-    ]
-    const navigate = useNavigate();
-
     
-    console.log('moduloActual: ',moduloActual);
+    const navFunction = useSelector(state => state.nav[location.pathname]);
+    
+    let currentLink = [];
+
+    const migas = location.pathname.split('/')
+    .filter(miga => miga !== '')
+    .map(miga => {
+        currentLink.push(`/${miga}`)
+        
+        const path = currentLink.join('');
+        const nav = {
+					key: miga,
+					to: path,
+					className: clases.link,
+					activeClassName: clases.active,
+				};
+        if (navFunction != null) {
+					nav.to = "#";
+					nav.onClick = () =>
+						navFunction({
+							go: ({ to = path, delta = null, options = null } = {}) =>
+								delta == null && options == null
+									? navigate(to)
+									: options == null
+									? navigate(delta)
+									: navigate(to, options),
+							to: path,
+						});
+				}
+        return(
+            <NavLink {...nav}>
+                <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
+                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
+            </NavLink>    
+        ) 
+
+    })
+
 
     const logout = () =>{
          logoutHandler();
-         navigate("/ingreso");
+         navigate("ingreso");
     }
 
-    UseKeyPress(['i'], ()=>navigate("/inicio"), 'AltKey');
+    UseKeyPress(['i'], ()=>navigate("/Inicio"), 'AltKey');
     UseKeyPress(['c'], ()=>logout(), 'AltKey');
     
     useEffect(() => {
@@ -56,6 +87,7 @@ const Sidebar = ({children}) => {
 
     //Despacho/actualizo el estado global de acciones, el componente que creo las acciones capturará el estado y sabrá qué hacer
     const despacharAcciones = (accion)=>{
+        console.log('despacharAcciones',accion)
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
@@ -67,8 +99,8 @@ const Sidebar = ({children}) => {
                 <div className={clases.sidebar_opciones}>
                     <div className={clases.top_section}>
                         <h1 style={{display: isOpen ? "block" : "none"}} className={clases.logo}>
-                            <img src={logo} width="70" height="70" onClick={toggle}/>
-                            <a> UATRE</a>
+                            <img src={logo} width="100" height="100" onClick={toggle}/>
+                            <a>UATRE</a>
                         </h1>
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
@@ -79,20 +111,22 @@ const Sidebar = ({children}) => {
                         </div>
                             {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                     </div>
-                        {
-                        menuItem.map((item, index)=>(
-                            <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
-                                <div className={clases.icon}>{item.icon}</div>
-                                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
-                            </NavLink>
-                        ))
-                        }
+                        <div>
+                        { migas/*
+                            menuItem.map((item, index)=>(
+                                <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
+                                    <div className={clases.icon}>{item.icon}</div>
+                                    <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{item.name}</div>
+                                </NavLink>
+                            ))
+                            */}
+                        </div>
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>
