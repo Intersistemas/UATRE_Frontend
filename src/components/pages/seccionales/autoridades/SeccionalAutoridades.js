@@ -17,21 +17,24 @@ useEffect(()=>{
     acciones: [
       {
         id: 1,
+        abm: "Alta",
         name: "Agrega Autoridad",
         icon: "",
         disabled: false,
       },
       {
         id: 2,
+        abm: "Modifica",
         name: "Modifica Autoridad",
         icon: "",
-        disabled: false,
+        disabled: true,
       },
       {
         id: 3,
+        abm: "baja",
         name: "Baja Autoridad",
         icon: "",
-        disabled: false,
+        disabled: true,
       }
     ],
   };
@@ -115,7 +118,38 @@ useEffect(()=>{
     },
     onSelect: (row, isSelect, rowIndex, e) => {
       console.log("row",row)
-      props.onSeleccionAutoridad(row)      
+      props.onSeleccionAutoridad(row)     
+      
+        //modificar la descripcion de los botones de accion
+        //#region despachar Informar Modulo
+        const moduloInfoDefault = {
+          nombre: "SeccionalAutoridades",
+          acciones: [
+            {
+              id: 1,
+              abm: "Alta",
+              name: "Agrega Autoridad",
+              icon: "",
+              disabled: false,
+            },
+            {
+              id: 2,
+              abm: "Modifica",
+              name: `Modifica Autoridad ${row.afiliadoNombre}`,
+              icon: "",
+              disabled: row.estado == "Baja" ? true : false,
+            },
+            {
+              id: 3,
+              abm: "Baja",
+              name: `Baja Autoridad ${row.afiliadoNombre}`,
+              icon: "",
+              disabled: row.estado == "Baja" ? true : false,
+            }
+          ],
+        };
+
+        dispatch(handleModuloSeleccionar(moduloInfoDefault));
     }
   };
 

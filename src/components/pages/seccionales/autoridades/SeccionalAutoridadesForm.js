@@ -4,11 +4,30 @@ import InputMaterial from "../../../ui/Input/InputMaterial";
 import SelectMaterial from "../../../ui/Select/SelectMaterial";
 import moment from "moment";
 import Button from "../../../ui/Button/Button";
+import {Modal} from 'react-bootstrap';
 
 const vigente = new Date(2099, 11, 31);
 const hoy = new Date();
 
-const SeccionalAutoridadesForm = (props) => {
+const SeccionalAutoridadesForm = ({
+    setRefresh = () => {},
+    requestForm = {},
+    seccionalSeleccionada = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
+    localidades = [],
+    isLoading={},
+  
+    refCargos=[],
+    seccionalAutoridades = [],
+    autoridadAfiliado={},
+    autoridadSeleccionada={},
+    
+    handleFormShow = () => {},
+    onValidaAfiliadoClick = () =>{},
+    onConfirmaFormSeccionalAutoridadesClick = () => {},
+  }) => {
+
+    requestForm.abm === "Alta" ? autoridadSeleccionada={} : autoridadSeleccionada = { ...autoridadSeleccionada };
+
   const [numeroAfiliado, setNumeroAfiliado] = useState("");
   const [vigenciaDesde, setVigenciaDesde] = useState(
     moment(hoy).format("yyyy-MM-DD")
@@ -21,8 +40,6 @@ const SeccionalAutoridadesForm = (props) => {
 
 
   //Si eleji una autoridad la muestro en el form
-  console.log("SeccionalAutoridadesForm", props);
-  const { autoridadSeleccionada } = props
     console.log("autoridadSeleccionada", autoridadSeleccionada);
   useEffect(() => {
     if(autoridadSeleccionada !== null){
@@ -73,13 +90,14 @@ const SeccionalAutoridadesForm = (props) => {
 
   const handleAgregaAutoridad = (event) => {
     event.preventDefault();
-    const refCargoElegido = props.refCargos.find((refCargoElegido) => {
+    const refCargoElegido = refCargos.find((refCargoElegido) => {
       return refCargoElegido.value === refCargo;
     });
 
-    props.onAgregarAutoridad({
-      afiliadoId: props.autoridadAfiliado?.id,
-      afiliadoNombre: props.autoridadAfiliado?.nombre,
+    //onConfirmaClick({
+      onConfirmaFormSeccionalAutoridadesClick({
+      afiliadoId: autoridadAfiliado?.id,
+      afiliadoNombre: autoridadAfiliado?.nombre,
       afiliadoNumero: numeroAfiliado,
       fechaVigenciaDesde: vigenciaDesde,
       fechaVigenciaHasta: vigenciaHasta,
@@ -93,13 +111,14 @@ const SeccionalAutoridadesForm = (props) => {
 
   const handleCambiaAutoridad = (event) => {
     event.preventDefault();
-    const refCargoElegido = props.refCargos.find((refCargoElegido) => {
+    const refCargoElegido = refCargos.find((refCargoElegido) => {
       return refCargoElegido.value === refCargo;
     });
 
-    props.onCambiaAutoridad({
-      afiliadoId: props.autoridadAfiliado?.id,
-      afiliadoNombre: props.autoridadAfiliado?.nombre,
+    // onCambiaAutoridad({
+      onConfirmaFormSeccionalAutoridadesClick({
+      afiliadoId: autoridadAfiliado?.id,
+      afiliadoNombre: autoridadAfiliado?.nombre,
       afiliadoNumero: numeroAfiliado,
       fechaVigenciaDesde: vigenciaDesde,
       fechaVigenciaHasta: vigenciaHasta,
@@ -113,97 +132,103 @@ const SeccionalAutoridadesForm = (props) => {
 
   const handleBorraAutoridad = (event) => {
     event.preventDefault();
-    props.onBorraAutoridad(props.autoridadAfiliado?.id);
+    //onBorraAutoridad(
+      onConfirmaFormSeccionalAutoridadesClick({afiliadoId: autoridadAfiliado?.id});
   }
 
   const handleOnValidaAfiliadoClick = (event) => {
     event.preventDefault();
-    props.onValidaAfiliadoClick(numeroAfiliado);
+    onValidaAfiliadoClick(numeroAfiliado);
   };
 
   return (
     <div className={classes.div}>
-      <div className={classes.renglon}>
-        <div className={classes.input33}>
-          <InputMaterial
-            id="numeroAfiliado"
-            value={numeroAfiliado}
-            label="Numero Afiliado"
-            onChange={handleInputChange}
-          />
-        </div>
-        <Button className="botonAmarillo" width={20} onClick={handleOnValidaAfiliadoClick}>
-          Valida
-        </Button>
-        <div className={classes.input}>
-          <InputMaterial
-            id="nombreAfiliado"
-            value={props.autoridadAfiliado?.nombre ?? "No existe el afiliado"}
-            label="Nombre"
-            readOnly={true}
-          />
-        </div>
-      </div>
-      <div className={classes.renglon}>
-        <div className={classes.input}>
-          <InputMaterial
-            id="vigenciaDesde"
-            value={vigenciaDesde}
-            label="Vigencia Desde"
-            onChange={handleInputChange}
-            type="date"
-          />
-        </div>
-        <div className={classes.input}>
-          <InputMaterial
-            id="vigenciaHasta"
-            value={vigenciaHasta}
-            label="Vigencia Hasta"
-            onChange={handleInputChange}
-            type="date"
-          />
-        </div>
-        <div className={classes.input}>
-          <SelectMaterial
-            name="refCargo"
-            value={refCargo}
-            options={props.refCargos}
-            label="Cargo:"
-            onChange={handleChangeSelect}
-          />
-        </div>
-      </div>
-      <div className={classes.renglon}>
-        <div className={classes.input100}>
-          <InputMaterial
-            id="observaciones"
-            value={observaciones}
-            label="Observaciones"
-            onChange={handleInputChange}
-          />
-        </div>
-      </div>
-      <Button
-        className="botonAmarillo"
-        onClick={handleAgregaAutoridad}
-        disable={props.autoridadAfiliado?.id}
-      >
-        Agrega
-      </Button>
-      <Button
-        className="botonAmarillo"
-        onClick={handleCambiaAutoridad}
-        disable={props.autoridadAfiliado?.id}
-      >
-        Cambia
-      </Button>
-      <Button
-        className="botonAmarillo"
-        onClick={handleBorraAutoridad}
-        disable={props.autoridadAfiliado?.id}
-      >
-        Borra
-      </Button>
+        <Modal
+            show={handleFormShow}
+            onHide={handleFormShow}
+            size="lg"
+            centered
+        >
+        <Modal.Header closeButton>{requestForm.name}</Modal.Header>
+          <Modal.Body>
+
+
+          <div className={classes.renglon}>
+            <div className={classes.input33}>
+              <InputMaterial
+                id="numeroAfiliado"
+                value={numeroAfiliado}
+                label="Numero Afiliado"
+                onChange={handleInputChange}
+              />
+            </div>
+            <Button className="botonAmarillo" width={20} onClick={handleOnValidaAfiliadoClick}>
+              Valida
+            </Button>
+            <div className={classes.input}>
+              <InputMaterial
+                id="nombreAfiliado"
+                value={autoridadAfiliado?.nombre ?? "No existe el afiliado"}
+                label="Nombre"
+                readOnly={true}
+              />
+            </div>
+          </div>
+          <div className={classes.renglon}>
+            <div className={classes.input}>
+              <InputMaterial
+                id="vigenciaDesde"
+                value={vigenciaDesde}
+                label="Vigencia Desde"
+                onChange={handleInputChange}
+                type="date"
+              />
+            </div>
+            <div className={classes.input}>
+              <InputMaterial
+                id="vigenciaHasta"
+                value={vigenciaHasta}
+                label="Vigencia Hasta"
+                onChange={handleInputChange}
+                type="date"
+              />
+            </div>
+            <div className={classes.input}>
+              <SelectMaterial
+                name="refCargo"
+                value={refCargo}
+                options={refCargos}
+                label="Cargo:"
+                onChange={handleChangeSelect}
+              />
+            </div>
+          </div>
+          <div className={classes.renglon}>
+            <div className={classes.input100}>
+              <InputMaterial
+                id="observaciones"
+                value={observaciones}
+                label="Observaciones"
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+                <Button
+                    className="botonAzul"
+                    loading={isLoading}
+                    width={25}
+                    onClick={onConfirmaFormSeccionalAutoridadesClick}
+                >
+                    CONFIRMA
+                </Button>
+
+                <Button className="botonAmarillo" width={25} onClick={handleFormShow}>
+                    CIERRA
+                </Button>
+            </Modal.Footer>
+        </Modal>
     </div>
   );
 };

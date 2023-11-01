@@ -8,9 +8,6 @@ import { Tab, Tabs } from "@mui/material";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
 import Button from "../../../ui/Button/Button";
-import SeccionalDocumentos from "../documentacion/SeccionalDocumentacion";
-import SeccionalAutoridades from "../autoridades/SeccionalAutoridades";
-import SeccionalAutoridadesForm from "../autoridades/SeccionalAutoridadesForm";
 import InputMask from 'react-input-mask';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
@@ -23,43 +20,32 @@ import AuthContext from '../../../../store/authContext';
 const SeccionalForm = ({
   setRefresh = () => {},
   requestForm = {},
-  record = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
+  seccionalSeleccionada = {}, // Registro de liquidacion a realizar baja/modificaicon/consulta. Si es alta, se toman estos datos como iniciales.
   localidades = [],
-  seccionalAutoridades = [],
   isLoading={},
-  refCargos=[],
-  autoridadAfiliado={},
-  autoridadSeleccionada={},
 
-  onCambiaAutoridad= () => {},
-  onBorraAutoridad= () => {},
-  onValidaAfiliadoClick= () => {},
-  onSeleccionAutoridad= () => {},
-  handlerSeccionalFormShow = () => {},
-  onAgregaAutoridad = () => {},
+  handleFormShow = () => {},
   onConfirmaClick = () => {},
 }) => {
 
-  requestForm.abm === "Alta" ? record={} : record = { ...record };
+  requestForm.abm === "Alta" ? seccionalSeleccionada={} : seccionalSeleccionada = { ...seccionalSeleccionada };
 
-  console.log('record_seccional',record);
+  console.log('seccionalSeleccionada_seccional',seccionalSeleccionada);
   const authContext = useContext(AuthContext)
   const Usuario = authContext.usuario;
   const [selectedTab, setSelectedTab] = useState(0);
-  const [codigoSeccional, setCodigoSeccional] = useState(record?.codigo ?? "");
-  const [nombreSeccional, setNombreSeccional] = useState(record?.descripcion ?? "");
+  const [codigoSeccional, setCodigoSeccional] = useState(seccionalSeleccionada?.codigo ?? "");
+  const [nombreSeccional, setNombreSeccional] = useState(seccionalSeleccionada?.descripcion ?? "");
 
-  const [localidadSeccional, setLocalidadSeccional] = useState(record?.localidadNombre ?? "");
+  const [localidadSeccional, setLocalidadSeccional] = useState(seccionalSeleccionada?.localidadNombre ?? "");
   const [localidadIdSeccional, setLocalidadIdSeccional] = useState(99999);
 
-  const [direccionSeccional, setDireccionSeccional] = useState(record?.domicilio ?? "")
+  const [direccionSeccional, setDireccionSeccional] = useState(seccionalSeleccionada?.domicilio ?? "")
   const [estadoSeccional, setEstadoSeccional] = React.useState(requestForm?.abm == "Baja" ? "Baja" : 'Activa');
-  const [observacionesSeccional, setObservacionesSeccional] = useState(record?.observaciones ?? "")
-  const [bajaObservacionesSeccional, setBajaObservacionesSeccional] = useState(record?.deletedObs ?? "")
-  const [bajaFechaSeccional, setBajaFechaSeccional] = useState(record?.deletedDate ?? dayjs().format("YYYY-MM-DD"))
-  const [bajaUsuarioSeccional, setBajaUsuarioSeccional] = useState(record?.deletedBy ?? authContext.usuario.nombre)
-
-  //const [observacionesSeccional, setObservacionesSeccional] = useState(record?.observaciones ?? "")
+  const [observacionesSeccional, setObservacionesSeccional] = useState(seccionalSeleccionada?.observaciones ?? "")
+  const [bajaObservacionesSeccional, setBajaObservacionesSeccional] = useState(seccionalSeleccionada?.deletedObs ?? "")
+  const [bajaFechaSeccional, setBajaFechaSeccional] = useState(seccionalSeleccionada?.deletedDate ?? dayjs().format("YYYY-MM-DD"))
+  const [bajaUsuarioSeccional, setBajaUsuarioSeccional] = useState(seccionalSeleccionada?.deletedBy ?? authContext.usuario.nombre)
   
   const [localidadesSelect, setLocalidadesSelect] = useState([""]); //LISTA DE TODAS LAS SECCIONALES  
   const [localidadBuscar, setLocalidadBuscar] = useState("");
@@ -194,7 +180,7 @@ const validar = () => {
     case "Modifica": // Modificaicon
       break;
     default: // No se reconoce request
-      handlerSeccionalFormShow()
+      handleFormShow()
       return;
   }
 
@@ -205,7 +191,7 @@ const validar = () => {
   if (noValida) return;
 
   let newRecord = {
-    id: record.id ?? 0,
+    id: seccionalSeleccionada.id ?? 0,
     codigo: codigoSeccional,
     descripcion: nombreSeccional,
     domicilio: direccionSeccional,
@@ -225,16 +211,7 @@ const validar = () => {
 
   console.log("newRecord",newRecord);
 
-  onConfirmaClick(newRecord
-    /*seccionalLocalidad: 
-    [
-      {
-        seccionalId: 0,
-        refLocalidadId: localidadSeccional.value,
-      }
-    ],
-    seccionalAutoridades: seccionalAutoridades*/
-  );
+  onConfirmaClick(newRecord);
 
   setRefresh(true);
 
@@ -247,17 +224,14 @@ const validar = () => {
 
   }
 
-  const handlerOnAgregarAutoridad = (autoridad) => {
-    console.log("nueva autoridad", autoridad)
-    onAgregaAutoridad(autoridad);      
-  }
+
 
   return (
     <>
     <div style={{zoom: '80%'}}>
         <Modal
-            show={handlerSeccionalFormShow}
-            onHide={handlerSeccionalFormShow}
+            show={handleFormShow}
+            onHide={handleFormShow}
             size="lg"
             centered
         >
@@ -273,8 +247,6 @@ const validar = () => {
                 label="Datos Generales"
                 //disabled={nuevoAfiliadoResponse ? true : false}
                 />
-                {/*request === "Agrega Seccional" && <Tab label="Documentacion" />}
-                {request === "Agrega Seccional" && <Tab label="Autoridades" />*/}
             </Tabs>
 
             {selectedTab === 0 && (
@@ -406,7 +378,7 @@ const validar = () => {
                     CONFIRMA
                 </Button>
 
-                <Button className="botonAmarillo" width={25} onClick={handlerSeccionalFormShow}>
+                <Button className="botonAmarillo" width={25} onClick={handleFormShow}>
                     CIERRA
                 </Button>
             </Modal.Footer>

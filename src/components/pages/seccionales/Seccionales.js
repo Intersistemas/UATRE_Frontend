@@ -63,8 +63,9 @@ const Seccionales = (props) => {
             onSelectorValor={props.onSelectorValor}
             onBuscarClick={props.onBuscarClick}
             onLimpiarClick={props.onLimpiarClick}
+
           />
-       
+
       )}
 
       {selectedTab === 1 && (
