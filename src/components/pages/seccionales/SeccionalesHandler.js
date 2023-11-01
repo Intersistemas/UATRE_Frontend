@@ -383,6 +383,7 @@ const SeccionalesHandler = () => {
           requestForm={requestForm}
           setRefresh={setRefresh}
           record = {autoridadSeleccionada}
+          seccionalSeleccionada = {seccionalSeleccionada}
           isLoading = {isLoading}
 
           refCargos={refCargos}

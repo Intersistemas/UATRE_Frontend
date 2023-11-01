@@ -255,16 +255,16 @@ const validar = () => {
                     <div className={classes.item1}>
 
                         <FormControl sx={{mr: 2, maxWidth: '6rem' }}>
-                            <InputMaterial
-                                id="codigoSeccional"
-                                value={codigoSeccional}
-                                label="Codigo"
-                                onChange={handleInputChange}
-                                as={InputMask}
-                                mask="S-9999"
-                                required 
-                                disabled = {estadoSeccional == "Baja"}
-                        />
+                          <InputMaterial
+                            id="codigoSeccional"
+                            value={codigoSeccional}
+                            label="Codigo"
+                            onChange={handleInputChange}
+                            as={InputMask}
+                            mask="S-9999"
+                            required 
+                            disabled = {estadoSeccional == "Baja"}
+                          />
                         </FormControl>
 
                         <FormControl sx={{ minWidth: '8rem' }}>
@@ -285,82 +285,81 @@ const validar = () => {
                     </div>
 
                     <div className={classes.item2}>
-                          <InputMaterial
-                                id="nombreSeccional"
-                                value={nombreSeccional}
-                                label="Nombre"
-                                onChange={handleInputChange}
-                                required
-                                disabled = {estadoSeccional == "Baja"}
-                            />
+                        <InputMaterial
+                          id="nombreSeccional"
+                          value={nombreSeccional}
+                          label="Nombre"
+                          onChange={handleInputChange}
+                          required
+                          disabled = {estadoSeccional == "Baja"}
+                        />
                     </div>
                     <div className={classes.item3}>
                         <SearchSelectMaterial
-                            name="localidadSeccional"
-                            label="Localidad"
-                            options={localidadesSelect}
-                            value={localidadSeccional}
-                            //defaultValue={localidadSeccional}
-                            onChange={handleChangeSelect}
-                            onTextChange={handlerOnTextChange}
-                            required
-                            disabled = {estadoSeccional == "Baja"}
+                          name="localidadSeccional"
+                          label="Localidad"
+                          options={localidadesSelect}
+                          value={localidadSeccional}
+                          //defaultValue={localidadSeccional}
+                          onChange={handleChangeSelect}
+                          onTextChange={handlerOnTextChange}
+                          required
+                          disabled = {estadoSeccional == "Baja"}
                         />
                    </div>
                    <div className={classes.item4}>
                         <InputMaterial
-                            id="direccionSeccional"
-                            value={direccionSeccional}
-                            label="Direccion"
-                            onChange={handleInputChange}
-                            required
-                            disabled = {estadoSeccional == "Baja"}
+                          id="direccionSeccional"
+                          value={direccionSeccional}
+                          label="Direccion"
+                          onChange={handleInputChange}
+                          required
+                          disabled = {estadoSeccional == "Baja"}
                         />
                     </div>        
                     <div className={classes.item5}>
                         <InputMaterial
-                            id="observacionesSeccional"
-                            value={observacionesSeccional}
-                            label="Observaciones"
-                            onChange={handleInputChange}
-                            required
-                            disabled = {estadoSeccional == "Baja"}
+                          id="observacionesSeccional"
+                          value={observacionesSeccional}
+                          label="Observaciones"
+                          onChange={handleInputChange}
+                          required
+                          disabled = {estadoSeccional == "Baja"}
                         />
                     </div>
 
                     {estadoSeccional == "Baja" &&
                     <>
                       <div className={classes.item6}>
-                            <InputMaterial
-                              
-                                  id="bajaFechaSeccional"
-                                  value={bajaFechaSeccional}
-                                  label="Baja Fecha"
-                                  onChange={handleInputChange}
-                                  required
-                                  show = {estadoSeccional == "Baja"}
-                                  disabled ={true}
-                              />
+                        <InputMaterial
+                          id="bajaFechaSeccional"
+                          value={bajaFechaSeccional}
+                          label="Baja Fecha"
+                          onChange={handleInputChange}
+                          required
+                          show = {estadoSeccional == "Baja"}
+                          disabled ={true}
+                        />
                       </div>
                       <div className={classes.item7}>
-                            <InputMaterial
-                                  id="bajaUsuarioSeccional"
-                                  value={bajaUsuarioSeccional}
-                                  label="Baja Usuario"
-                                  onChange={handleInputChange}
-                                  required
-                                  disabled = {estadoSeccional == "Baja"}
-                              />
+                        <InputMaterial
+                          id="bajaUsuarioSeccional"
+                          value={bajaUsuarioSeccional}
+                          label="Baja Usuario"
+                          onChange={handleInputChange}
+                          required
+                          disabled = {estadoSeccional == "Baja"}
+                        />
                       </div>
                       <div className={classes.item8}>
-                            <InputMaterial 
-                                  id="bajaObservacionesSeccional"
-                                  value={bajaObservacionesSeccional}
-                                  label="Baja Observaciones"
-                                  onChange={handleInputChange}
-                                  required
-                                  disabled = {estadoSeccional != "Baja"}
-                              />
+                        <InputMaterial 
+                          id="bajaObservacionesSeccional"
+                          value={bajaObservacionesSeccional}
+                          label="Baja Observaciones"
+                          onChange={handleInputChange}
+                          required
+                          disabled = {estadoSeccional != "Baja"}
+                        />
                       </div>
                     </>}
                 </div>
@@ -370,10 +369,10 @@ const validar = () => {
         </Modal.Body>
             <Modal.Footer>
                 <Button
-                    className="botonAzul"
-                    loading={isLoading}
-                    width={25}
-                    onClick={handlerOnConfirmaClick}
+                  className="botonAzul"
+                  loading={isLoading}
+                  width={25}
+                  onClick={handlerOnConfirmaClick}
                 >
                     CONFIRMA
                 </Button>
