@@ -1,14 +1,13 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useContext } from "react";
 import useHttp from "../../hooks/useHttp";
-import SeccionalAgregar from "./abm/SeccionalAgregar";
 
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Seccionales";
-import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
-import  SeccionalAutoridadesForm  from "./autoridades/SeccionalAutoridadesForm"
+import  SeccionalAutoridadesForm  from "./autoridades/SeccionalAutoridadesForm";
 import SeccionalForm from "./abm/SeccionalForm";
+import AuthContext from "../../../store/authContext";
 
 const selectores = [
   { value: 1, label: "NOMBRE" },
@@ -35,6 +34,7 @@ const SeccionalesHandler = () => {
   const [selectorValor, setSelectorValor] = useState("");
   const [requestForm, setRequestForm] = useState("");
   const [tabSelected, setTabSelected] = useState("Seccional")
+  const Usuario = useContext(AuthContext).usuario;
 
   const [refresh, setRefresh] = useState(false)
 
@@ -109,8 +109,11 @@ const SeccionalesHandler = () => {
   //#endregion
 
   //#region api calls
-  useEffect(() => {
+  
+  useEffect(() => { 
     refresh && setRefresh(false)
+    
+    //#region 1RO CONSULTO TODAS LAS SECCIONALES
     const processSeccionales = async (seccionalesObj) => {
       //console.log("seccionales", seccionalesObj);
       const seccionalesConDescripcion = seccionalesObj.filter(
@@ -124,14 +127,28 @@ const SeccionalesHandler = () => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: "/Seccional/GetSeccionalesSpecs?SoloActivos=false",
-        method: "GET",
+        endpoint: "/Seccional/GetSeccionalesSpecs",
+        method: "POST",
+        body: {
+          soloActivos: "false",
+          ambitos: [
+            {
+              "tipo": "T",
+              "id": 0
+            }
+          ]
+        },
+        headers: {
+          "Content-Type": "application/json",
+        }
       },
       processSeccionales
     );
+  //#endregion
 
+    //#region 2DO consulto todas las localidades y cargos que voy a enviar a los FORMs
     const processLocalidades = async (localidadesObj) => {
-      //console.log("localidades", localidadesObj);
+      console.log("localidades", localidadesObj);
       setLocalidades(localidadesObj);
     };
 
@@ -160,11 +177,17 @@ const SeccionalesHandler = () => {
       },
       processRefCargos
     );
+    //#endregion 
   }, [request,refresh]);
+//#endregion 
 
-  const handlerOnSeccionalSeleccionada = (seccional) => {
-    setSeccionalAutoridades([]);
-    console.log("seccional", seccional);
+
+  //SELECCIONO TODO LO RELACIONADO CON LA SECCIONAL SELECCIONADA
+  const handleSeccionalSeleccionada = (seccional = seccionalSeleccionada, soloActivos = true) => {
+    //setSeccionalAutoridades([]);
+
+    console.log("handlerSeccional", seccional);
+    console.log("handlerSeccionalSeleccionada", seccionalSeleccionada);
     setSeccionalSeleccionada(seccional);
 
     const processSeccionalAutoridades = async (seccionalAutoridadesObj) => {
@@ -175,28 +198,13 @@ const SeccionalesHandler = () => {
     request(
       {
         baseURL: "Afiliaciones",
-        endpoint: `/SeccionalAutoridad/GetSeccionalAutoridadBySeccional?SeccionalId=${seccional.id}&SoloActivos=${soloAutoridadesVigentes}`,
+        endpoint: `/SeccionalAutoridad/GetSeccionalAutoridadBySeccional?SeccionalId=${seccional.id}&SoloActivos=${soloActivos}`,
         method: "GET",
       },
       processSeccionalAutoridades
     );
   };
 
-  const onSoloAutoridadesVigentes = (soloActivos) => {
-    const processSeccionalAutoridades = async (seccionalAutoridadesObj) => {
-      console.log("seccionalAutSoloActivos", seccionalAutoridadesObj);
-      setSeccionalAutoridades(seccionalAutoridadesObj);
-    };
-
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/SeccionalAutoridad/GetSeccionalAutoridadBySeccional?SeccionalId=${seccionalSeleccionada.id}&SoloActivos=${soloActivos}`,
-        method: "GET",
-      },
-      processSeccionalAutoridades
-    );
-  };
 
   const onValidaAfiliado = (numeroAfiliado) => {
     console.log("numeroAfiliado", +numeroAfiliado);
@@ -245,13 +253,13 @@ const SeccionalesHandler = () => {
 
 
   //#region Buscar
-  const handlerOnSelectorSelected = (selector) => {
+  const handleSelectorSelected = (selector) => {
     //console.log("selector", selector)
     setSelector(selector);
     setSelectorValor("");
   };
 
-  const handlerOnSelectorValor = (selectorValor) => {
+  const handleSelectorValor = (selectorValor) => {
     setSelectorValor(selectorValor);
   };
 
@@ -428,20 +436,19 @@ const SeccionalesHandler = () => {
       }
       <Seccionales
         seccionales={seccionales}
-        record = {seccionalSeleccionada}
-
-        tabSelected = {setTabSelected} //afecta directamente el state
-
         seccionalSeleccionada={seccionalSeleccionada}
+        tabSelected = {setTabSelected} //afecta directamente el state  
+
         seccionalAutoridades={seccionalAutoridades}
         seccionalDocumentacion={seccionalDocumentacion}
-        onSeccionalSeleccionada={handlerOnSeccionalSeleccionada}
-        onSoloAutoridadesVigentes={onSoloAutoridadesVigentes}
+
+        handleSeccionalSeleccionada ={handleSeccionalSeleccionada}
+
         selectores={selectores}
         selector={selector}
         selectorValor={selectorValor}
-        onSelectorSelected={handlerOnSelectorSelected}
-        onSelectorValor={handlerOnSelectorValor}
+        handleSelectorSelected={handleSelectorSelected}
+        handleSelectorValor={handleSelectorValor}
         onBuscarClick={handlerOnBuscarClick}
         onLimpiarClick={handlerOnLimpiarClick}
         onSeleccionAutoridad={handlerOnSeleccionAutoridad}
