@@ -223,7 +223,7 @@ const AccesosHandler = () => {
   };
 
   //#region Buscar
-  const handlerOnSelectorSelected = (selector) => {
+  const handleSelectorSelected = (selector) => {
     //console.log("selector", selector)
     setSelector(selector);
     setSelectorValor("");
@@ -345,7 +345,7 @@ const AccesosHandler = () => {
         selectores={selectores}
         selector={selector}
         selectorValor={selectorValor}
-        onSelectorSelected={handlerOnSelectorSelected}
+        handleSelectorSelected={handleSelectorSelected}
         onSelectorValor={handlerOnSelectorValor}
         onBuscarClick={handlerOnBuscarClick}
         onLimpiarClick={handlerOnLimpiarClick}

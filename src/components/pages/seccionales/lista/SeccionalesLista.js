@@ -147,7 +147,7 @@ useEffect(()=>{
     },
     onSelect: (row, isSelect, rowIndex, e) =>{
       console.log('seccional_selected',row);
-      props.onSeccionalSeleccionada(row)
+      props.handleSeccionalSeleccionada(row)
       //modificar la descripcion de los botones de accion
       //#region despachar Informar Modulo
       const moduloInfoDefault = {
@@ -211,11 +211,11 @@ useEffect(()=>{
 
   const handleChangeSelect = (event) => {
     console.log("Seleccionó:", event.target.value);
-    props.onSelectorSelected(event.target.value);
+    props.handleSelectorSelected(event.target.value);
   };
 
   const handleChangeSearchEntry = (event) => {
-    props.onSelectorValor(event.target.value);
+    props.handleSelectorValor(event.target.value);
   };
 
   return (

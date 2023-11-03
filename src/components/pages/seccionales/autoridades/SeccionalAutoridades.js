@@ -6,9 +6,17 @@ import classes from "./SeccionalAutoridades.module.css";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "../../../../redux/actions";
+import { FormControlLabel, Switch } from "@mui/material";
 
 const SeccionalAutoridades = (props) => { 
 const dispatch = useDispatch();
+const [checked, setChecked] = React.useState(true);
+
+const handleChangeSwitch = (event) => {
+
+  setChecked(event.target.checked);
+  props.onSeccionalSeleccionada({}, event.target.checked);
+};
 
 useEffect(()=>{
    //#region despachar Informar Modulo
@@ -179,10 +187,13 @@ useEffect(()=>{
 
   return (
     <div className={classes.div}>
-      <SwitchCustom
-        onHandleChange={props.onSoloAutoridadesVigentes}
+      <FormControlLabel
+        control={
+          <Switch checked={checked} onChange={handleChangeSwitch} label={props.label} />
+        }
         label="Solo vigentes"
       />
+
       <Table {...tableProps} />
     </div>
   );

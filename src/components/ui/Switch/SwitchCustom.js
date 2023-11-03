@@ -6,7 +6,7 @@ const SwitchCustom = (props) => {
 
   const handleChange = (event) => {
     setChecked(event.target.checked);
-    props.onHandleChange(event.target.checked);
+    props.onHandleChange(null, event.target.checked);
   };
 
   return (
