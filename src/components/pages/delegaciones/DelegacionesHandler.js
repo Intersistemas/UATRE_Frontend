@@ -6,6 +6,7 @@ import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useDelegaciones from "./useDelegaciones";
+import useColaboradores from "components/colaboradores/useColaboradores";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -43,7 +44,6 @@ const DelegacionesHandler = () => {
 		);
 		setDelegacionesActions(actions);
 	}, [delegacionChanger, delegacionSelected]);
-	const [documentacionesActions, setDocumentacionesActions] = useState([]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
 		body: delegacionesTab,
@@ -54,6 +54,7 @@ const DelegacionesHandler = () => {
 	//#region Tab documentaciones
 	const [documentacionesTab, documentacionChanger, documentacionSelected] =
 		useDocumentaciones();
+	const [documentacionesActions, setDocumentacionesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
 		const dele = delegacionSelected?.id;
@@ -104,9 +105,70 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		documentacionChanger({
 			type: "list",
+			clear: !delegacionSelected?.id,
 			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
 		});
 	}, [delegacionSelected?.id, documentacionChanger]);
+	//#endregion
+
+	//#region Tab colaboradores
+	const [colaboradoresTab, colaboradoresChanger, colaboradorSelected] =
+		useColaboradores();
+	const [colaboradoresActions, setColaboradoresActions] = useState([]);
+	useEffect(() => {
+		const actions = [];
+		const dele = delegacionSelected?.id;
+		if (!dele) {
+			setColaboradoresActions(actions);
+			return;
+		}
+		const deleDesc = `para Delegación ${dele}`;
+		const createAction = ({ request, action }) =>
+			new Action({
+				name: action,
+				onExecute: (action) =>
+					colaboradoresChanger({ type: "selected", request, action }),
+			});
+		actions.push(
+			createAction({ action: `Agrega Colaborador ${deleDesc}`, request: "A" })
+		);
+		const sele = colaboradorSelected?.id;
+		if (!sele) {
+			setColaboradoresActions(actions);
+			return;
+		}
+		const seleDesc = `${sele} ${deleDesc}`;
+		actions.push(
+			createAction({
+				action: `Consulta Colaborador ${seleDesc}`,
+				request: "C",
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Modifica Colaborador ${seleDesc}`,
+				request: "M",
+			})
+		);
+		actions.push(
+			createAction({ action: `Baja Colaborador ${seleDesc}`, request: "B" })
+		);
+		setDocumentacionesActions(actions);
+	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id]);
+	tabs.push({
+		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected} />,
+		body: colaboradoresTab,
+		actions: colaboradoresActions,
+	});
+
+	// Si cambia delegación, refresco lista de colaboradores
+	useEffect(() => {
+		colaboradoresChanger({
+			type: "list",
+			clear: !delegacionSelected?.id,
+			params: { refDelegacionId: delegacionSelected?.id },
+		});
+	}, [delegacionSelected?.id, colaboradoresChanger]);
 	//#endregion
 
 	//#region modulo y acciones

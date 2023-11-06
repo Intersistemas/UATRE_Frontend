@@ -1,90 +1,63 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import DocumentacionTable from "./DocumentacionTable";
-import DocumentacionForm from "./DocumentacionModal";
+import ColaboradoresTable from "./ColaboradoresTable";
+import ColaboradoresForm from "./ColaboradoresForm";
 
-const useDocumentaciones = () => {
+const useColaboradores = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetTipoList":
+			case "GetList": {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/RefTipoDocumentacion/GetAll`,
+						endpoint: `/DelegacionColaboradores/GetWithSpecs`,
 						method: "GET",
 					},
 				};
-			case "GetList":
+			}
+			case "Create": {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DocumentacionEntidad/GetBySpec`,
-						method: "GET",
-					},
-				};
-			case "Create":
-				return {
-					config: {
-						baseURL: "Comunes",
-						endpoint: `/DocumentacionEntidad`,
+						endpoint: `/DelegacionColaboradores`,
 						method: "POST",
 					},
 				};
-			case "Update":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/DocumentacionEntidad/${id}`,
-							method: "PUT",
-						},
-						params: otherParams,
-					};
-				})();
-			case "Delete":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/DocumentacionEntidad/${id}`,
-							method: "DELETE",
-						},
-						params: otherParams,
-					};
-				})();
+			}
+			case "Update": {
+				const { id, ...x } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/DelegacionColaboradores`,
+						method: "PUT",
+					},
+					params: x,
+				};
+			}
+			case "Delete": {
+				const { id, ...x } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/DelegacionColaboradores/${id}`,
+						method: "DELETE",
+					},
+					params: x,
+				};
+			}
 			default:
 				return null;
 		}
 	});
 	//#endregion
 
-	//#region declaracion y carga list tipos documentacion
-	const [tipoDocumentacionList, setTipoDocumentacionList] = useState({
-		loading: "Cargando..",
-		data: [],
-		error: {},
-	});
-	useEffect(() => {
-		if (!tipoDocumentacionList.loading) return;
-		pushQuery({
-			action: "GetTipoList",
-			onOk: async (res) => setTipoDocumentacionList({ data: res }),
-			onError: async (err) => {
-				const newList = { data: [] };
-				if (err.code !== 404) newList.error = err;
-				setTipoDocumentacionList(newList);
-			},
-		});
-	}, [pushQuery, tipoDocumentacionList.loading]);
-	//#endregion
-
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
 		params: {},
+		pagination: { index: 1, size: 5 },
 		data: [],
 		error: null,
 		selection: { action: "", request: "", index: null, record: null },
@@ -94,8 +67,12 @@ const useDocumentaciones = () => {
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
-			params: { ...list.params },
-			onOk: async (data) =>
+			params: {
+				...list.params,
+				pageIndex: list.pagination.index,
+				pageSize: list.pagination.size,
+			},
+			onOk: async ({ index, size, count, data }) =>
 				setList((o) => {
 					const selection = {
 						action: "",
@@ -103,11 +80,14 @@ const useDocumentaciones = () => {
 						record:
 							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
-					if (selection.record)
+					if (selection.record) {
 						selection.index = data.indexOf(selection.record);
+						selection.record = { ...selection.record };
+					}
 					return {
 						...o,
 						loading: null,
+						pagination: { index, size, count },
 						data,
 						error: null,
 						selection,
@@ -122,12 +102,12 @@ const useDocumentaciones = () => {
 					selection: { action: "", request: "", index: null, record: null },
 				})),
 		});
-	}, [pushQuery, list.loading, list.params]);
+	}, [pushQuery, list]);
 	//#endregion
 
 	const requestChanges = useCallback((changes) => {
 		switch (changes.type) {
-			case "selected": {
+			case "selected":
 				return setList((o) => ({
 					...o,
 					selection: {
@@ -137,7 +117,6 @@ const useDocumentaciones = () => {
 						record: changes.request === "A" ? {} : o.selection.record,
 					},
 				}));
-			}
 			case "list": {
 				if (changes.clear)
 					return setList((o) => ({
@@ -145,6 +124,7 @@ const useDocumentaciones = () => {
 						loading: null,
 						data: [],
 						error: null,
+						selection: { action: "", request: "", index: null, record: null },
 					}));
 				return setList((o) => ({
 					...o,
@@ -161,18 +141,16 @@ const useDocumentaciones = () => {
 	let form = null;
 	if (list.selection.request) {
 		form = (
-			<DocumentacionForm
+			<ColaboradoresForm
 				data={list.selection.record}
 				title={list.selection.action}
 				errores={list.selection.errores}
-				dependecies={{ tipoDocumentacionList: tipoDocumentacionList.data }}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
-								refTipoDocumentacionId: true,
-								archivo: true,
-								observaciones: true,
+								afiliadoId: true,
+								esAuxiliar: true,
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
@@ -198,22 +176,24 @@ const useDocumentaciones = () => {
 					if (!["A", "B", "M"].includes(list.selection.request))
 						confirm = false;
 					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
+						setList((o) => {
+							const selection = {
 								...o.selection,
 								request: "",
 								action: "",
 								record: o.data.at(o.selection.index),
 								errores: null,
-							},
-						}));
+							};
+							if (selection.record) {
+								selection.record = { ...selection.record };
+							}
+							return { ...o, selection }
+						});
 						return;
 					}
 
 					const record = { ...list.selection.record };
-					record.entidadId = list.params.entidadId;
-					record.entidadTipo = list.params.entidadTipo;
+					record.refDelegacionId = list.params.refDelegacionId;
 
 					//Validaciones
 					const errores = {};
@@ -221,9 +201,8 @@ const useDocumentaciones = () => {
 						// if (!record.deletedObs)
 						// 	errores.deletedObs = "Dato requerido";
 					} else {
-						if (!record.refTipoDocumentacionId)
-							errores.refTipoDocumentacionId = "Dato requerido";
-						if (!record.archivo) errores.archivo = "Dato requerido";
+						if (!record.afiliadoId) errores.afiliadoId = "Dato requerido";
+						if (record.esAuxiliar == null) errores.esAuxiliar = "Dato requerido";
 					}
 					if (Object.keys(errores).length) {
 						setList((o) => ({
@@ -249,7 +228,7 @@ const useDocumentaciones = () => {
 							break;
 						case "M":
 							query.action = "Update";
-							query.params = { id: record.id };
+							// query.params = { id: record.id };
 							query.config.body = record;
 							break;
 						case "B":
@@ -268,13 +247,22 @@ const useDocumentaciones = () => {
 
 	const render = () => (
 		<>
-			<DocumentacionTable
-				tipoList={tipoDocumentacionList.data}
+			<ColaboradoresTable
 				data={list.data}
 				loading={!!list.loading}
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
+				pagination={{
+					...list.pagination,
+					onChange: ({ index, size }) =>
+						setList((o) => ({
+							...o,
+							loading: "Cargando...",
+							pagination: { index, size },
+							data: [],
+						})),
+				}}
 				selection={{
 					selected: [list.selection.record?.id].filter((r) => r),
 					onSelect: (record, isSelect, index, e) =>
@@ -296,4 +284,4 @@ const useDocumentaciones = () => {
 	return [render, requestChanges, list.selection.record];
 };
 
-export default useDocumentaciones;
+export default useColaboradores;
