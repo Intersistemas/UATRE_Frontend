@@ -28,16 +28,6 @@ const Localizar = ({ onClose = onCloseDef }) => {
 						baseURL: "Afiliaciones",
 						endpoint: "/Afiliado/GetAfiliadosWithSpec",
 						method: "POST",
-						body: {
-						  soloActivos: "false",
-						  ambitoTodos: Usuario.ambitoTodos,
-						  ambitoSeccionales: Usuario.ambitoSeccionales,
-						  ambitoDelegaciones: Usuario.ambitoDelegaciones,
-						  ambitoProvincias: Usuario.ambitoProvincias,
-						},
-						headers: {
-						  "Content-Type": "application/json",
-						}
 					},
 				};
 			}
@@ -67,11 +57,13 @@ const Localizar = ({ onClose = onCloseDef }) => {
 		if (!afiliados.loading) return;
 		pushQuery({
 			action: "GetAfiliados",
-			params: {
-				soloActivos: true,
-				pageIndex: afiliados.pagination.index,
-				pageSize: afiliados.pagination.size,
-				...afiliados.params,
+			config: {
+				body: {
+					...afiliados.params,
+					soloActivos: true,
+					pageIndex: afiliados.pagination.index,
+					pageSize: afiliados.pagination.size,
+				},
 			},
 			onOk: ({ index, size, count, data }) =>
 				setAfiliados((o) => ({
@@ -81,7 +73,9 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					data,
 					selection: {
 						selected: ((a) => (a.length ? a : data.length ? [data[0].id] : []))(
-							data.filter((r) => o.selection.selected.includes(r.id)).map(r => r.id)
+							data
+								.filter((r) => o.selection.selected.includes(r.id))
+								.map((r) => r.id)
 						),
 					},
 					error: null,
