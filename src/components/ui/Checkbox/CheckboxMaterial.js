@@ -48,7 +48,7 @@ const CheckboxMaterial = ({
 					<Checkbox
 						id={id}
 						size={size}
-						value={value === options[0]}
+						checked={value === options[0]}
 						indeterminate={!options.includes(value)}
 						onChange={(_, value) => onChange(options[value ? 0 : 1], id)}
 						{...x}
