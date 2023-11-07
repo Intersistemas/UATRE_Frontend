@@ -8,7 +8,6 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 import styles from "./Localizar.module.css";
-import AuthContext from "../../../../store/authContext";
 
 const onCloseDef = () => {};
 
@@ -17,9 +16,6 @@ const InputMaterialDetail = (p) => (
 );
 
 const Localizar = ({ onClose = onCloseDef }) => {
-
-	const Usuario = useContext(AuthContext).usuario;
-
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
 			case "GetAfiliados": {
