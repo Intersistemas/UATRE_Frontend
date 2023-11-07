@@ -14,7 +14,7 @@ const ColaboradoresForm = ({
 	title = "",
 	disabled = {},
 	hide = {},
-	errores = {},
+	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
@@ -22,7 +22,7 @@ const ColaboradoresForm = ({
 	
 	disabled ??= {};
 	hide ??= {};
-	errores ??= {};
+	errors ??= {};
 
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
@@ -36,17 +36,30 @@ const ColaboradoresForm = ({
 					<h3>{title}</h3>
 				</Grid>
 				<Grid width="full" gap="15px">
-					<Grid width="80%">
-						{hide.afiliadoId ? null : (
+					<Grid width="20%">
+						{hide.afiliadoCuil ? null : (
 							<InputMaterial
-								id="afiliadoId"
+								id="afiliadoCuil"
 								type="number"
-								label="Afiliado"
-								disabled={disabled.afiliadoId}
-								error={!!errores.afiliadoId}
-								helperText={errores.afiliadoId ?? ""}
-								value={getValue("afiliadoId")}
-								onChange={(afiliadoId) => onChange({ afiliadoId })}
+								label="CUIL del afiliado"
+								disabled={disabled.afiliadoCuil}
+								error={!!errors.afiliadoCuil}
+								helperText={errors.afiliadoCuil ?? ""}
+								value={getValue("afiliadoCuil")}
+								onChange={(afiliadoCuil) => onChange({ afiliadoCuil })}
+								width={100}
+							/>
+						)}
+					</Grid>
+					<Grid width="60%">
+						{hide.afiliadoNombre ? null : (
+							<InputMaterial
+								id="afiliadoNombre"
+								label="Nombre del afiliado"
+								disabled={disabled.afiliadoNombre}
+								error={!!errors.afiliadoNombre}
+								helperText={errors.afiliadoNombre ?? ""}
+								value={getValue("afiliadoNombre")}
 								width={100}
 							/>
 						)}
@@ -57,8 +70,8 @@ const ColaboradoresForm = ({
 								id="esAuxiliar"
 								label="Es auxiliar"
 								disabled={disabled.esAuxiliar}
-								error={!!errores.esAuxiliar}
-								helperText={errores.esAuxiliar ?? ""}
+								error={!!errors.esAuxiliar}
+								helperText={errors.esAuxiliar ?? ""}
 								value={data.esAuxiliar}
 								onChange={(esAuxiliar) => onChange({ esAuxiliar })}
 							/>
@@ -71,10 +84,24 @@ const ColaboradoresForm = ({
 							id="deletedObs"
 							label="Observación de baja"
 							disabled={disabled.deletedObs}
-							error={!!errores.deletedObs}
-							helperText={errores.deletedObs ?? ""}
+							error={!!errors.deletedObs}
+							helperText={errors.deletedObs ?? ""}
 							value={getValue("deletedObs")}
 							onChange={(deletedObs) => onChange({ deletedObs })}
+							width={100}
+						/>
+					)}
+				</Grid>
+				<Grid full="width">
+					{hide.obs ? null : (
+						<InputMaterial
+							id="obs"
+							label="Observación de reactivación"
+							disabled={disabled.obs}
+							error={!!errors.obs}
+							helperText={errors.obs ?? ""}
+							value={getValue("obs")}
+							onChange={(obs) => onChange({ obs })}
 							width={100}
 						/>
 					)}

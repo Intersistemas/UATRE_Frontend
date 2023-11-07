@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import ColaboradoresTable from "./ColaboradoresTable";
 import ColaboradoresForm from "./ColaboradoresForm";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 const useColaboradores = () => {
 	//#region Trato queries a APIs
-	const pushQuery = useQueryQueue((action, params) => {
+	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
 			case "GetList": {
 				return {
@@ -26,25 +27,39 @@ const useColaboradores = () => {
 				};
 			}
 			case "Update": {
-				const { id, ...x } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
 						endpoint: `/DelegacionColaboradores`,
 						method: "PUT",
 					},
-					params: x,
 				};
 			}
 			case "Delete": {
-				const { id, ...x } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores/${id}`,
-						method: "DELETE",
+						endpoint: `/DelegacionColaboradores/DarDeBaja`,
+						method: "PATCH",
 					},
-					params: x,
+				};
+			}
+			case "Reactivate": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/DelegacionColaboradores/Reactivar`,
+						method: "PATCH",
+					},
+				};
+			}
+			case "GetAfiliado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/Afiliado/GetAfiliadoByCUIL`,
+					},
 				};
 			}
 			default:
@@ -60,7 +75,13 @@ const useColaboradores = () => {
 		pagination: { index: 1, size: 5 },
 		data: [],
 		error: null,
-		selection: { action: "", request: "", index: null, record: null },
+		selection: {
+			action: "",
+			request: "",
+			index: null,
+			record: null,
+			errors: null,
+		},
 	});
 
 	useEffect(() => {
@@ -144,7 +165,7 @@ const useColaboradores = () => {
 			<ColaboradoresForm
 				data={list.selection.record}
 				title={list.selection.action}
-				errores={list.selection.errores}
+				errors={list.selection.errors}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
@@ -155,25 +176,58 @@ const useColaboradores = () => {
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
 				})()}
-				hide={
-					["A", "M"].includes(list.selection.request)
+				hide={(() => {
+					const r = ["A", "M"].includes(list.selection.request)
 						? { deletedObs: true }
-						: {}
-				}
-				onChange={(changes) =>
-					setList((o) => ({
-						...o,
-						selection: {
-							...o.selection,
-							record: {
-								...o.selection.record,
-								...changes,
+						: {};
+					if (list.selection.request !== "R") r.obs = true;
+					return r;
+				})()}
+				onChange={(record) => {
+					const changes = { record: { ...record }, errors: {} };
+					const applyChanges = ({ record, errors } = changes) =>
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								record: { ...o.selection.record, ...record },
+								errors: { ...o.selection.errors, ...errors },
 							},
-						},
-					}))
-				}
+						}));
+					if ("afiliadoCuil" in record) {
+						changes.record.afiliadoId = 0;
+						changes.record.afiliadoNombre = "";
+						changes.errors.afiliadoCuil = "";
+						if (`${record.afiliadoCuil}`.length !== 11) {
+							changes.errors.afiliadoNombre = "";
+						} else if (ValidarCUIT(record.afiliadoCuil)) {
+							changes.errors.afiliadoNombre = "Cargando...";
+						} else {
+							changes.errors.afiliadoCuil = "CUIL incorrecto";
+						}
+						applyChanges();
+						if (changes.errors.afiliadoNombre === "Cargando...") {
+							pushQuery({
+								action: "GetAfiliado",
+								params: { cuil: record.afiliadoCuil },
+								onOk: async (ok) => {
+									changes.record.afiliadoId = ok.id;
+									changes.record.afiliadoNombre = ok.nombre;
+									changes.errors.afiliadoNombre = "";
+								},
+								onError: async (error) => {
+									changes.errors.afiliadoNombre =
+										error.message ?? "Error obteniendo datos del afiliado";
+								},
+								onFinally: async () => applyChanges(),
+							});
+						}
+					} else {
+						applyChanges();
+					}
+				}}
 				onClose={(confirm) => {
-					if (!["A", "B", "M"].includes(list.selection.request))
+					if (!["A", "B", "M", "R"].includes(list.selection.request))
 						confirm = false;
 					if (!confirm) {
 						setList((o) => {
@@ -182,12 +236,12 @@ const useColaboradores = () => {
 								request: "",
 								action: "",
 								record: o.data.at(o.selection.index),
-								errores: null,
+								errors: null,
 							};
 							if (selection.record) {
 								selection.record = { ...selection.record };
 							}
-							return { ...o, selection }
+							return { ...o, selection };
 						});
 						return;
 					}
@@ -201,8 +255,10 @@ const useColaboradores = () => {
 						// if (!record.deletedObs)
 						// 	errores.deletedObs = "Dato requerido";
 					} else {
-						if (!record.afiliadoId) errores.afiliadoId = "Dato requerido";
-						if (record.esAuxiliar == null) errores.esAuxiliar = "Dato requerido";
+						if (!record.afiliadoId)
+							errores.afiliadoCuil = "Debe ingresar un afiliado existente";
+						if (record.esAuxiliar == null)
+							errores.esAuxiliar = "Dato requerido";
 					}
 					if (Object.keys(errores).length) {
 						setList((o) => ({
@@ -222,20 +278,32 @@ const useColaboradores = () => {
 						onError: async (err) => alert(err.message),
 					};
 					switch (list.selection.request) {
-						case "A":
+						case "A": {
 							query.action = "Create";
 							query.config.body = record;
 							break;
-						case "M":
+						}
+						case "M": {
 							query.action = "Update";
-							// query.params = { id: record.id };
 							query.config.body = record;
 							break;
-						case "B":
+						}
+						case "B": {
 							query.action = "Delete";
-							query.params = { id: record.id };
-							query.config.body = record.bajaObservacion;
+							query.config.body = {
+								id: record.id,
+								deletedObs: record.deletedObs,
+							};
 							break;
+						}
+						case "R": {
+							query.action = "Reactivate";
+							query.config.body = {
+								id: record.id,
+								obs: record.obs,
+							};
+							break;
+						}
 						default:
 							break;
 					}

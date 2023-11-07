@@ -139,21 +139,24 @@ const DelegacionesHandler = () => {
 		}
 		const seleDesc = `${sele} ${deleDesc}`;
 		actions.push(
-			createAction({
-				action: `Consulta Colaborador ${seleDesc}`,
-				request: "C",
-			})
+			createAction({ action: `Consulta Colaborador ${seleDesc}`, request: "C" })
 		);
 		actions.push(
-			createAction({
-				action: `Modifica Colaborador ${seleDesc}`,
-				request: "M",
-			})
+			createAction({ action: `Modifica Colaborador ${seleDesc}`, request: "M" })
 		);
-		actions.push(
-			createAction({ action: `Baja Colaborador ${seleDesc}`, request: "B" })
-		);
-		setDocumentacionesActions(actions);
+		if (colaboradorSelected?.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Reactiva Colaborador ${seleDesc}`,
+					request: "R",
+				})
+			);
+		} else {
+			actions.push(
+				createAction({ action: `Baja Colaborador ${seleDesc}`, request: "B" })
+			);
+		}
+		setColaboradoresActions(actions);
 	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected} />,
