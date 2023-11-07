@@ -2,23 +2,14 @@ import React, { useEffect, useState } from "react";
 import Formato from "../../helpers/Formato";
 import Grid from "../../ui/Grid/Grid";
 import styles from "./AfiliadoDetails.module.css";
-import { styled } from '@mui/material/styles';
 import InputMaterial from "../../ui/Input/InputMaterial";
 
-const useStyles = styled((theme) => ({
-	root: {
-	  '& > *': {
-		margin: theme.spacing(1),
-		width: '25ch',
-	  },
-	},
-  }));
 
 const AfiliadoDetails = (props) => {
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
-	const ddjj = config.ddjj ?? 0;
+	const ddjj = config.ddjj ?? {};
 	const empresa = config.empresa ?? {};
 	const [hotField, setHotField] = useState();
 	
@@ -26,6 +17,8 @@ const AfiliadoDetails = (props) => {
 	const _ = require('lodash');
 
 	const validar = (value) =>{
+
+		if (!value) return "";
 
 		if (_.includes(value, "-") && _.includes(value, ":")){ //SI ES UNA FECHA
 			return Formato.Fecha(value);
@@ -45,8 +38,6 @@ const AfiliadoDetails = (props) => {
 			} else return value;
 		} */
 	}
-
-	const classes = useStyles();
 
 	useEffect(()=>
 	{
@@ -217,7 +208,7 @@ const AfiliadoDetails = (props) => {
 			default:
 			  break;
 		  }
-	},[config])
+	},[config /*, data, tab, ddjj, empresa*/])
 
 	
 	return (
