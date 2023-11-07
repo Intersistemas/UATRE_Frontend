@@ -13,7 +13,7 @@ const SearchSelectMaterial = (props) => {
   return (
     <FormControl
       size="small"
-      style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+      style={{ width: props.width != null ? `${props.width}%` : "100%", backgroundColor: 'white' }}
     >
       {/* <InputLabel id={props.label + "-label"}>{props.label}</InputLabel> */}
       <Autocomplete
@@ -29,6 +29,7 @@ const SearchSelectMaterial = (props) => {
           );
         }}
         disabled={props.disabled}
+        readOnly={props.readOnly}
         id={props.label + "-label"}
         options={props.options}
         //MenuProps={MenuProps}

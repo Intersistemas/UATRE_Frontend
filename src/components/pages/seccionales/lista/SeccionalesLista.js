@@ -20,36 +20,39 @@ const SeccionalesLista = (props) => {
 const dispatch = useDispatch();
 
 useEffect(()=>{
-  //#region despachar Informar Modulo
-  const moduloInfoDefault = {
-    nombre: "Seccionales",
-    acciones: [
-      {
-        id: 1,
-        abm: "Alta",
-        name: "Agrega Seccional",
-        icon: "",
-        disabled: false,
-      },
-      {
-        id: 2,
-        abm: "Modifica",
-        name: "Modifica Seccional",
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 3,
-        abm: "Baja",
-        name: "Baja Seccional",
-        icon: "",
-        disabled: true,
-      }
-    ],
-  };
+
+      //modificar la descripcion de los botones de accion
+      //#region despachar Informar Modulo
+      const moduloInfoDefault = {
+        nombre: "Seccionales",
+        acciones: [
+          {
+            id: 1,
+            abm: "Alta",
+            name: "Agrega Seccional",
+            icon: "",
+            disabled: false,
+          },
+          {
+            id: 2,
+            abm: "Modifica",
+            name: `Modifica Seccional ${props.seccionalSeleccionada?.codigo ?? ""} ${props.seccionalSeleccionada?.descripcion ?? ""}`,
+            icon: "",
+            disabled: props.seccionalSeleccionada?.deletedDate ? true : false,
+          },
+          {
+            id: 3,
+            abm: "Baja",
+            name: `Baja Seccional ${props.seccionalSeleccionada?.codigo ?? ""} ${props.seccionalSeleccionada?.descripcion ?? ""}`,
+            icon: "",
+            disabled: props.seccionalSeleccionada?.deletedDate  ? true : false,
+          }
+        ],
+      };
+
   dispatch(handleModuloSeleccionar(moduloInfoDefault));
   //#endregion
-},[])
+},[props.seccionalSeleccionada])
 
   //#region Tabla
   const columns = [
@@ -81,7 +84,7 @@ useEffect(()=>{
         return { width: "7rem", textAlign: "center" };
       },
       formatter: (value, row) => ( 
-        row.deletedDate ? `${value} (${Formato.Fecha(row.deletedDate)})` : value
+        row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value
       ),
     },
     {
@@ -132,7 +135,18 @@ useEffect(()=>{
         return { width: "7rem", textAlign: "center" };
       },
     },
-
+    {
+      headerTitle: (column, colIndex) => `Delegación`,
+      dataField: "refDelegacionDescripcion",
+      text: "Delegación",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+      formatter: (value, row) => ( 
+        row.refDelegacionDescripcion ?? ""
+      ),
+    },
     
   ];
  
@@ -140,6 +154,7 @@ useEffect(()=>{
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    selected: [props.seccionalSeleccionada?.id],
     style: {
       backgroundColor: "#EEC85E",
       color: "black",
@@ -148,52 +163,21 @@ useEffect(()=>{
     onSelect: (row, isSelect, rowIndex, e) =>{
       console.log('seccional_selected',row);
       props.handleSeccionalSeleccionada(row)
-      //modificar la descripcion de los botones de accion
-      //#region despachar Informar Modulo
-      const moduloInfoDefault = {
-        nombre: "Seccionales",
-        acciones: [
-          {
-            id: 1,
-            abm: "Alta",
-            name: "Agrega Seccional",
-            icon: "",
-            disabled: false,
-          },
-          {
-            id: 2,
-            abm: "Modifica",
-            name: `Modifica Seccional ${row.codigo} - ${row.descripcion}`,
-            icon: "",
-            disabled: row.estado == "Baja" ? true : false,
-          },
-          {
-            id: 3,
-            abm: "Baja",
-            name: `Baja Seccional ${row.codigo} - ${row.descripcion}`,
-            icon: "",
-            disabled: row.estado == "Baja" ? true : false,
-          }
-        ],
-      };
-      dispatch(handleModuloSeleccionar(moduloInfoDefault));
+     
     }
       //#endregion
   };
 
-  const rowEvents = {
-    // onClick: (e, row, rowIndex) => {
-    //   //console.log(`row: ${row.cuit}`);
-    //   props.onSeleccionRegistro(row);
-    //   setIdPrimerRegistroDelGrid(row?.id);
-    // },
+  //seccionalSeleccionada
+  const rowEvents  = (row, isSelect) => {
+    //props.handleSeccionalSeleccionada(row);
   };
 
   const pagination = {
     size: 15,
   };
 
-  console.log("props.seccionales", props.seccionales);
+  //console.log("props.seccionales", props.seccionales);
   const tableProps = {
     keyField: "id",
     data: props.seccionales,
@@ -201,6 +185,8 @@ useEffect(()=>{
     //selectRow: selectRow,
     selection: selectRow,
     rowEvents: rowEvents,
+    onSelected: rowEvents,
+
     loading: props.isLoading,
     noDataIndication: <h4>No existen Seccionales.</h4>,
     overlay: overlayFactory({ spinner: true }),

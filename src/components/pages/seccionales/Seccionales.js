@@ -75,7 +75,9 @@ const Seccionales = ({
       
           <SeccionalesLista
             seccionales={seccionales}
+            seccionalSeleccionada={seccionalSeleccionada}
             handleSeccionalSeleccionada={handleSeccionalSeleccionada}
+
             selectores={selectores}
             selector={selector}
             selectorValor={selectorValor}
@@ -89,8 +91,10 @@ const Seccionales = ({
 
       {selectedTab === 1 && (
           <SeccionalAutoridades
-            seccionalAutoridades={seccionalAutoridades}          
             handleSeccionalSeleccionada={handleSeccionalSeleccionada}
+            seccionalSeleccionada={seccionalSeleccionada}
+
+            seccionalAutoridades={seccionalAutoridades}          
             onSeleccionAutoridad={onSeleccionAutoridad}
           />
       )}

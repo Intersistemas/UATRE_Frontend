@@ -70,7 +70,7 @@ const Table = ({
 	pagination = { ...paginationDef },
 	selection = { ...selectionDef },
 	rowEvents = { ...rowEventsDef },
-	onSelected = onSelectedDef, //** En desuso, utilizar selectRow = { ... onSelect } en su lugar */
+	onSelected = onSelectedDef, //** En desuso, utilizar "selection" = { ... onSelect } en su lugar */
 	onTableChange = onTableChangeDef,
 	rowStyle = rowStyleDef,
 	mostrarBuscar = true,
