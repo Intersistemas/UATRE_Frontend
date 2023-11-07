@@ -4,6 +4,10 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
+import UseKeyPress from "components/helpers/UseKeyPress";
+
+const onChangeDef = (changes = {}) => {};
+const onCloseDef = (confirm = false) => {};
 
 const DelegacionesForm = ({
 	data = {},
@@ -11,8 +15,8 @@ const DelegacionesForm = ({
 	disabled = {},
 	hide = {},
 	errors = {},
-	onChange = (changes = {}) => {},
-	onClose = (confirm = false) => {},
+	onChange = onChangeDef,
+	onClose = onCloseDef,
 }) => {
 	data ??= {};
 	data.codigoDelegacion ??= "";
@@ -22,8 +26,14 @@ const DelegacionesForm = ({
 	hide ??= {};
 	errors ??= {};
 
+	onChange ??= onChangeDef;
+	onClose ??= onCloseDef;
+
+  UseKeyPress(['Escape'], () => onClose());
+  UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
+
 	return (
-		<Modal onClose={() => onClose(false)}>
+		<Modal onClose={() => onClose()}>
 			<Grid col full gap="15px">
 				<Grid className={modalCss.modalCabecera} width="full" justify="center">
 					<h3>{title}</h3>
@@ -71,7 +81,7 @@ const DelegacionesForm = ({
 						<Button className="botonAzul" onClick={() => onClose(true)}>CONFIRMA</Button>
 					</Grid>
 					<Grid width="200px">
-						<Button className="botonAmarillo" onClick={() => onClose(false)}>
+						<Button className="botonAmarillo" onClick={() => onClose()}>
 							CANCELA
 						</Button>
 					</Grid>

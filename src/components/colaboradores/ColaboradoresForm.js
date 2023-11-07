@@ -5,6 +5,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
+import UseKeyPress from "components/helpers/UseKeyPress";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -28,6 +29,9 @@ const ColaboradoresForm = ({
 	onClose ??= onCloseDef;
 
 	const getValue = (v) => data[v] ?? "";
+
+  UseKeyPress(['Escape'], () => onClose());
+  UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
 
 	return (
 		<Modal onClose={() => onClose(false)}>

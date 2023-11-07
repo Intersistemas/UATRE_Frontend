@@ -7,6 +7,7 @@ import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useDelegaciones from "./useDelegaciones";
 import useColaboradores from "components/colaboradores/useColaboradores";
+import KeyPress from "components/keyPress/KeyPress";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -19,14 +20,16 @@ const DelegacionesHandler = () => {
 		useDelegaciones();
 	const [delegacionesActions, setDelegacionesActions] = useState([]);
 	useEffect(() => {
-		const createAction = ({ action, request }) =>
+		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
 					delegacionChanger("selected", { request, action }),
+				combination: "AltKey",
+				...x,
 			});
 		const actions = [
-			createAction({ action: `Agrega Delegación`, request: "A" }),
+			createAction({ action: `Agrega Delegación`, request: "A", keys: "a" }),
 		];
 		const desc = delegacionSelected?.id;
 		if (!desc) {
@@ -34,13 +37,25 @@ const DelegacionesHandler = () => {
 			return;
 		}
 		actions.push(
-			createAction({ action: `Consulta Delegación ${desc}`, request: "C" })
+			createAction({
+				action: `Consulta Delegación ${desc}`,
+				request: "C",
+				keys: "o",
+			})
 		);
 		actions.push(
-			createAction({ action: `Modifica Delegación ${desc}`, request: "M" })
+			createAction({
+				action: `Modifica Delegación ${desc}`,
+				request: "M",
+				keys: "m",
+			})
 		);
 		actions.push(
-			createAction({ action: `Baja Delegación ${desc}`, request: "B" })
+			createAction({
+				action: `Baja Delegación ${desc}`,
+				request: "B",
+				keys: "b",
+			})
 		);
 		setDelegacionesActions(actions);
 	}, [delegacionChanger, delegacionSelected]);
@@ -67,7 +82,7 @@ const DelegacionesHandler = () => {
 			return;
 		}
 		const deleDesc = `para Delegación ${dele}`;
-		const createAction = ({ action, request }) =>
+		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
@@ -76,9 +91,15 @@ const DelegacionesHandler = () => {
 						action,
 						record: { entidadTipo: "D", entidadId: delegacionSelected?.id },
 					}),
+				combination: "AltKey",
+				...x,
 			});
 		actions.push(
-			createAction({ action: `Agrega Documentación ${deleDesc}`, request: "A" })
+			createAction({
+				action: `Agrega Documentación ${deleDesc}`,
+				request: "A",
+				keys: "a",
+			})
 		);
 		const docu = documentacionSelected?.id;
 		if (!docu) {
@@ -90,16 +111,22 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Consulta Documentación ${docuDesc}`,
 				request: "C",
+				keys: "o",
 			})
 		);
 		actions.push(
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
+				keys: "m",
 			})
 		);
 		actions.push(
-			createAction({ action: `Baja Documentación ${docuDesc}`, request: "B" })
+			createAction({
+				action: `Baja Documentación ${docuDesc}`,
+				request: "B",
+				keys: "b",
+			})
 		);
 		setDocumentacionesActions(actions);
 	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id]);
@@ -130,7 +157,7 @@ const DelegacionesHandler = () => {
 			return;
 		}
 		const deleDesc = `para Delegación ${dele}`;
-		const createAction = ({ action, request }) =>
+		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
@@ -139,9 +166,15 @@ const DelegacionesHandler = () => {
 						action,
 						record: { refDelegacionId: delegacionSelected?.id },
 					}),
+				combination: "AltKey",
+				...x,
 			});
 		actions.push(
-			createAction({ action: `Agrega Colaborador ${deleDesc}`, request: "A" })
+			createAction({
+				action: `Agrega Colaborador ${deleDesc}`,
+				request: "A",
+				keys: "a",
+			})
 		);
 		const sele = colaboradorSelected?.id;
 		if (!sele) {
@@ -150,21 +183,34 @@ const DelegacionesHandler = () => {
 		}
 		const seleDesc = `${sele} ${deleDesc}`;
 		actions.push(
-			createAction({ action: `Consulta Colaborador ${seleDesc}`, request: "C" })
+			createAction({
+				action: `Consulta Colaborador ${seleDesc}`,
+				request: "C",
+				keys: "o",
+			})
 		);
 		actions.push(
-			createAction({ action: `Modifica Colaborador ${seleDesc}`, request: "M" })
+			createAction({
+				action: `Modifica Colaborador ${seleDesc}`,
+				request: "M",
+				keys: "m",
+			})
 		);
 		if (colaboradorSelected?.deletedDate) {
 			actions.push(
 				createAction({
 					action: `Reactiva Colaborador ${seleDesc}`,
 					request: "R",
+					keys: "r",
 				})
 			);
 		} else {
 			actions.push(
-				createAction({ action: `Baja Colaborador ${seleDesc}`, request: "B" })
+				createAction({
+					action: `Baja Colaborador ${seleDesc}`,
+					request: "B",
+					keys: "b",
+				})
 			);
 		}
 		setColaboradoresActions(actions);
@@ -202,6 +248,7 @@ const DelegacionesHandler = () => {
 				</Tabs>
 			</Grid>
 			{tabs[tab].body()}
+			<KeyPress items={acciones} />
 		</Grid>
 	);
 };

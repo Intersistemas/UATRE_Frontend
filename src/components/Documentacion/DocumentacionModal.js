@@ -5,6 +5,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
+import UseKeyPress from "components/helpers/UseKeyPress";
 
 const dependeciesDef = {
 	tipoDocumentacionList: [{ id: 0, descripcion: ""}],
@@ -40,6 +41,9 @@ const DocumentacionModal = ({
 
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+
+  UseKeyPress(['Escape'], () => onClose());
+  UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
 
 	return (
 		<Modal onClose={() => onClose(false)}>
