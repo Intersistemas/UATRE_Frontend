@@ -5,14 +5,34 @@ import styles from "./Seccionales.module.css";
 import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import SeccionalDocumentacion from "./documentacion/SeccionalDocumentacion";
 
-const Seccionales = (props) => {
+const Seccionales = ({
+  
+  seccionalSeleccionada = {},
+  seccionales = [],
+  seccionalAutoridades = [],
+  seccionalDocumentacion = [],
+
+  handleSeccionalSeleccionada = () => {},
+  tabSelected = () => {},
+  handleSelectorSelected = () =>{},
+  handleSelectorValor = () =>{},
+  onBuscarClick = () =>{},
+  onLimpiarClick = () =>{},
+  onSeleccionAutoridad = () =>{},
+
+  selectores={},
+  selector={},
+  selectorValor="",
+
+
+}) => {
     const [selectedTab, setSelectedTab] = useState(0)
 
     const handleChangeTab = (event, newValue) => {
 
       setSelectedTab(newValue);
 
-      props.tabSelected(newValue); //le paso al handler el tab seleccionado para que sepa que botones de accion debe renderizar
+      tabSelected(newValue); //le paso al handler el tab seleccionado para que sepa que botones de accion debe renderizar
 
     };
   return ( 
@@ -24,7 +44,7 @@ const Seccionales = (props) => {
       <div className="contenido">
 
         <div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
-            <h5>{(props?.record?.codigo) ? (props.record?.codigo +' - '+ props.record?.descripcion) : ""}</h5>
+            <h5>{(seccionalSeleccionada?.codigo) ? (seccionalSeleccionada?.codigo +' - '+ seccionalSeleccionada?.descripcion) : ""}</h5>
         </div>
         
         <Tabs
@@ -54,30 +74,33 @@ const Seccionales = (props) => {
       {selectedTab === 0 && (
       
           <SeccionalesLista
-            seccionales={props.seccionales}
-            onSeccionalSeleccionada={props.onSeccionalSeleccionada}
-            selectores={props.selectores}
-            selector={props.selector}
-            selectorValor={props.selectorValor}
-            onSelectorSelected={props.onSelectorSelected}
-            onSelectorValor={props.onSelectorValor}
-            onBuscarClick={props.onBuscarClick}
-            onLimpiarClick={props.onLimpiarClick}
+            seccionales={seccionales}
+            seccionalSeleccionada={seccionalSeleccionada}
+            handleSeccionalSeleccionada={handleSeccionalSeleccionada}
 
+            selectores={selectores}
+            selector={selector}
+            selectorValor={selectorValor}
+            handleSelectorSelected={handleSelectorSelected}
+            handleSelectorValor={handleSelectorValor}
+            onBuscarClick={onBuscarClick}
+            onLimpiarClick={onLimpiarClick}
           />
 
       )}
 
       {selectedTab === 1 && (
-        <SeccionalAutoridades
-          seccionalAutoridades={props.seccionalAutoridades}          
-          onSoloAutoridadesVigentes={props.onSoloAutoridadesVigentes}
-          onSeleccionAutoridad={props.onSeleccionAutoridad}
-        />
+          <SeccionalAutoridades
+            handleSeccionalSeleccionada={handleSeccionalSeleccionada}
+            seccionalSeleccionada={seccionalSeleccionada}
+
+            seccionalAutoridades={seccionalAutoridades}          
+            onSeleccionAutoridad={onSeleccionAutoridad}
+          />
       )}
 
       {selectedTab === 2 && (
-        <SeccionalDocumentacion seccionalDocumentacion={props.seccionalDocumentacion} />
+        <SeccionalDocumentacion seccionalDocumentacion={seccionalDocumentacion} />
       )}
       </div>
     </>

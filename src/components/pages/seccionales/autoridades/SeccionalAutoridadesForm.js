@@ -17,7 +17,6 @@ const SeccionalAutoridadesForm = ({
     isLoading={},
   
     refCargos=[],
-    seccionalAutoridades = [],
     autoridadAfiliado={},
     autoridadSeleccionada={},
     
@@ -52,7 +51,7 @@ const SeccionalAutoridadesForm = ({
   }, [autoridadSeleccionada])
   
   const handleInputChange = (value, id) => {
-    //console.log(value, id)
+    console.log('handleInputChange',value, id)
     switch (id) {
       case "numeroAfiliado":
         setNumeroAfiliado(value);
@@ -149,7 +148,10 @@ const SeccionalAutoridadesForm = ({
             size="lg"
             centered
         >
-        <Modal.Header closeButton>{requestForm.name}</Modal.Header>
+          <Modal.Header closeButton className="d-flex flex-column">
+            <div> Seccional: {seccionalSeleccionada.codigo}-{seccionalSeleccionada.descripcion}</div>
+            <div> {requestForm.name} </div> 
+          </Modal.Header>
           <Modal.Body>
 
 

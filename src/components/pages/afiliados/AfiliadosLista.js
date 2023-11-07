@@ -108,7 +108,7 @@ const AfiliadosLista = (props ) => {
       text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
+        return { width: "10%", textAlign: "center" };
       },
       formatter: Formato.DNI,
     },
