@@ -4,6 +4,14 @@ import ColaboradoresTable from "./ColaboradoresTable";
 import ColaboradoresForm from "./ColaboradoresForm";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 
+const selectionDef = {
+	action: "",
+	request: "",
+	index: null,
+	record: null,
+	errors: null,
+};
+
 const useColaboradores = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
@@ -75,13 +83,7 @@ const useColaboradores = () => {
 		pagination: { index: 1, size: 5 },
 		data: [],
 		error: null,
-		selection: {
-			action: "",
-			request: "",
-			index: null,
-			record: null,
-			errors: null,
-		},
+		selection: {...selectionDef},
 	});
 
 	useEffect(() => {
@@ -120,37 +122,41 @@ const useColaboradores = () => {
 					loading: null,
 					data: [],
 					error: err.code === 404 ? null : err,
-					selection: { action: "", request: "", index: null, record: null },
+					selection: {...selectionDef},
 				})),
 		});
 	}, [pushQuery, list]);
 	//#endregion
 
-	const requestChanges = useCallback((changes) => {
-		switch (changes.type) {
-			case "selected":
+	const requestChanges = useCallback((type, payload = {}) => {
+		switch (type) {
+			case "selected": {
 				return setList((o) => ({
 					...o,
 					selection: {
 						...o.selection,
-						request: changes.request,
-						action: changes.action,
-						record: changes.request === "A" ? {} : o.selection.record,
+						request: payload.request,
+						action: payload.action,
+						record: {
+							...(payload.request === "A" ? {} : o.selection.record),
+							...payload.record,
+						},
 					},
 				}));
+			}
 			case "list": {
-				if (changes.clear)
+				if (payload.clear)
 					return setList((o) => ({
 						...o,
 						loading: null,
 						data: [],
 						error: null,
-						selection: { action: "", request: "", index: null, record: null },
+						selection: {...selectionDef},
 					}));
 				return setList((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: { ...changes.params },
+					params: { ...payload.params },
 					data: [],
 				}));
 			}
@@ -247,25 +253,23 @@ const useColaboradores = () => {
 					}
 
 					const record = { ...list.selection.record };
-					record.refDelegacionId = list.params.refDelegacionId;
 
 					//Validaciones
-					const errores = {};
+					const errors = {};
 					if (list.selection.request === "B") {
 						// if (!record.deletedObs)
-						// 	errores.deletedObs = "Dato requerido";
+						// 	errors.deletedObs = "Dato requerido";
 					} else {
 						if (!record.afiliadoId)
-							errores.afiliadoCuil = "Debe ingresar un afiliado existente";
-						if (record.esAuxiliar == null)
-							errores.esAuxiliar = "Dato requerido";
+							errors.afiliadoCuil = "Debe ingresar un afiliado existente";
+						if (record.esAuxiliar == null) errors.esAuxiliar = "Dato requerido";
 					}
-					if (Object.keys(errores).length) {
+					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
 							selection: {
 								...o.selection,
-								errores,
+								errors,
 							},
 						}));
 						return;

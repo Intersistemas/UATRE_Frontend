@@ -17,7 +17,7 @@ const DocumentacionModal = ({
 	title = "",
 	disabled = {},
 	hide = {},
-	errores = {},
+	errors = {},
 	dependecies = dependeciesDef,
 	onChange = onChangeDef,
 	onClose = onCloseDef,
@@ -26,7 +26,7 @@ const DocumentacionModal = ({
 	
 	disabled ??= {};
 	hide ??= {};
-	errores ??= {};
+	errors ??= {};
 
 	dependecies ??= {}
 	dependecies = dependecies === dependeciesDef ? {} : { ...dependecies };
@@ -54,8 +54,8 @@ const DocumentacionModal = ({
 								name="refTipoDocumentacionId"
 								label="Tipo de documentacion"
 								disabled={disabled.refTipoDocumentacionId}
-								error={!!errores.refTipoDocumentacionId}
-								helperText={errores.refTipoDocumentacionId ?? ""}
+								error={!!errors.refTipoDocumentacionId}
+								helperText={errors.refTipoDocumentacionId ?? ""}
 								options={dependecies.tipoDocumentacionList}
 								value={getValue("refTipoDocumentacionId")}
 								// defaultValue={dependecies.tipoDocumentacionList[0]}
@@ -98,7 +98,7 @@ const DocumentacionModal = ({
 									</Button>
 								</Grid>
 								<Grid width="full" style={{ color: "red" }}>
-									{errores.archivo ?? ""}
+									{errors.archivo ?? ""}
 								</Grid>
 							</Grid>
 						</>
@@ -110,8 +110,8 @@ const DocumentacionModal = ({
 							id="observaciones"
 							label="Observaciones"
 							disabled={disabled.observaciones}
-							error={!!errores.observaciones}
-							helperText={errores.observaciones ?? ""}
+							error={!!errors.observaciones}
+							helperText={errors.observaciones ?? ""}
 							value={getValue("observaciones")}
 							onChange={(v) => onChange({ observaciones: v })}
 							width={100}
@@ -124,8 +124,8 @@ const DocumentacionModal = ({
 							id="deletedObs"
 							label="Observación de baja"
 							disabled={disabled.deletedObs}
-							error={!!errores.deletedObs}
-							helperText={errores.deletedObs ?? ""}
+							error={!!errors.deletedObs}
+							helperText={errors.deletedObs ?? ""}
 							value={getValue("deletedObs")}
 							onChange={(v) => onChange({ deletedObs: v })}
 							width={100}

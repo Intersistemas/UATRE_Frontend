@@ -3,18 +3,19 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import DelegacionesTable from "./DelegacionesTable";
 import DelegacionesForm from "./DelegacionesForm";
 
-const selectedDef = {
-	record: null,
-	index: null,
+const selectionDef = {
 	action: "",
 	request: "",
+	index: null,
+	record: null,
+	errors: null,
 };
 
 const useDelegaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetList":
+			case "GetList": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -22,7 +23,8 @@ const useDelegaciones = () => {
 						method: "GET",
 					},
 				};
-			case "Create":
+			}
+			case "Create": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -30,30 +32,29 @@ const useDelegaciones = () => {
 						method: "POST",
 					},
 				};
-			case "Update":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/RefDelegacion/${id}`,
-							method: "PUT",
-						},
-						params: otherParams,
-					};
-				})();
-			case "Delete":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/RefDelegacion/${id}`,
-							method: "DELETE",
-						},
-						params: otherParams,
-					};
-				})();
+			}
+			case "Update": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefDelegacion/${id}`,
+						method: "PUT",
+					},
+					params: otherParams,
+				};
+			}
+			case "Delete": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefDelegacion/${id}`,
+						method: "DELETE",
+					},
+					params: otherParams,
+				};
+			}
 			default:
 				return null;
 		}
@@ -62,124 +63,166 @@ const useDelegaciones = () => {
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
-		loading: "Cargando..",
+		loading: null,
+		params: {},
 		data: [],
-		error: {},
+		error: null,
+		selection: {...selectionDef},
 	});
-
-	const [selected, setSelected] = useState({ ...selectedDef });
 
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
-			onOk: async (res) => {
-				const newData = [...res];
-				setList({ data: newData });
-				setSelected((old) => {
-					const newSelected = { ...selectedDef };
-					if (!newData.length) return newSelected;
-					newSelected.index = newData.findIndex(r => r.id === old.record?.id)
-					if (newSelected.index < 0) newSelected.index = 0;
-					newSelected.record = { ...newData[newSelected.index] };
-					return newSelected;
-				});
-			},
-			onError: async (err) => {
-				const newList = { data: [] };
-				if (err.code !== 404) newList.error = err;
-				setList(newList);
-				setSelected({ ...selectedDef });
-			},
+			params: { ...list.params },
+			onOk: async (data) =>
+				setList((o) => {
+					const selection = {
+						action: "",
+						request: "",
+						record:
+							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
+					};
+					if (selection.record)
+						selection.index = data.indexOf(selection.record);
+					return {
+						...o,
+						loading: null,
+						data,
+						error: null,
+						selection,
+					};
+				}),
+			onError: async (err) =>
+				setList((o) => ({
+					...o,
+					loading: null,
+					data: [],
+					error: err.code === 404 ? null : err,
+					selection: { ...selectionDef },
+				})),
 		});
-	}, [pushQuery, list.loading]);
+	}, [pushQuery, list.loading, list.params]);
 	//#endregion
 
-	const requestChanges = useCallback((changes) => {
-		switch (changes.type) {
-			case "selected":
-				return setSelected((old) => ({
-					...old,
-					request: changes.request,
-					action: changes.action,
-					record: changes.request === "A" ? {} : old.record,
+	const requestChanges = useCallback((type, payload = {}) => {
+		switch (type) {
+			case "selected": {
+				return setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						request: payload.request,
+						action: payload.action,
+						record: {
+							...(payload.request === "A" ? {} : o.selection.record),
+							...payload.record,
+						},
+					},
 				}));
-			case "list":
-				return setList({
+			}
+			case "list": {
+				if (payload.clear)
+					return setList((o) => ({
+						...o,
+						loading: null,
+						data: [],
+						error: null,
+						selection: { ...selectionDef },
+					}));
+				return setList((o) => ({
+					...o,
 					loading: "Cargando...",
+					params: { ...payload.params },
 					data: [],
-				});
+				}));
+			}
 			default:
 				return;
 		}
 	}, []);
 
 	let form = null;
-	if (selected.request) {
+	if (list.selection.request) {
 		form = (
 			<DelegacionesForm
-				data={selected.record}
-				title={selected.action}
-				errores={selected.errores}
+				data={list.selection.record}
+				title={list.selection.action}
+				errors={list.selection.errors}
 				disabled={(() => {
-					const r = ["A", "M"].includes(selected.request)
+					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
 								codigoDelegacion: true,
 								nombre: true,
 						  };
-					if (selected.request !== "B") r.deletedObs = true
+					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
 				})()}
-				hide={["A", "M"].includes(selected.request) ? { deletedObs: true } : {}}
+				hide={
+					["A", "M"].includes(list.selection.request)
+						? { deletedObs: true }
+						: {}
+				}
 				onChange={(changes) =>
-					setSelected((old) => ({
-						...old,
-						record: {
-							...old.record,
-							...changes,
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							record: {
+								...o.selection.record,
+								...changes,
+							},
 						},
 					}))
 				}
 				onClose={(confirm) => {
-					if (!["A", "B", "M"].includes(selected.request)) confirm = false;
+					if (!["A", "B", "M"].includes(list.selection.request))
+						confirm = false;
 					if (!confirm) {
-						setSelected({
-							record: {
-								...list.data[selected.index],
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								request: "",
+								action: "",
+								record: o.data.at(o.selection.index),
+								errors: null,
 							},
-							index: selected.index,
-						});
+						}));
 						return;
 					}
 
-					const record = { ...selected.record };
+					const record = { ...list.selection.record };
 
 					//Validaciones
-					const errores = {};
-					if (selected.request === "B") {
+					const errors = {};
+					if (list.selection.request === "B") {
 						// if (!record.deletedObs)
-						// 	errores.deletedObs = "Dato requerido";
+						// 	errors.deletedObs = "Dato requerido";
 					} else {
 						if (!record.codigoDelegacion)
-							errores.codigoDelegacion = "Dato requerido";
-						if (!record.nombre) errores.nombre = "Dato requerido";
+							errors.codigoDelegacion = "Dato requerido";
+						if (!record.nombre) errors.nombre = "Dato requerido";
 					}
-
-					if (Object.keys(errores).length) {
-						setSelected((old) => ({
-							...old,
-							errores: errores,
+					if (Object.keys(errors).length) {
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								errors,
+							},
 						}));
 						return;
 					}
 
 					const query = {
 						config: {},
-						onOk: async (_res) => setList((old) => ({ ...old, loading: "Cargando..." })),
+						onOk: async (_res) =>
+							setList((old) => ({ ...old, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
-					switch (selected.request) {
+					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";
 							query.config.body = record;
@@ -212,21 +255,24 @@ const useDelegaciones = () => {
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
 				selection={{
-					selected: selected.record ? [selected.record.id] : [],
-					onSelect: (row, isSelect, rowIndex, e) => {
-						setSelected({
-							record: { ...row },
-							index: rowIndex,
-							request: "",
-						});
-					},
+					selected: [list.selection.record?.id].filter((r) => r),
+					onSelect: (record, isSelect, index, e) =>
+						setList((o) => ({
+							...o,
+							selection: {
+								action: "",
+								request: "",
+								index,
+								record,
+							},
+						})),
 				}}
 			/>
 			{form}
 		</>
 	);
 
-	return [render, requestChanges, selected.record];
+	return [render, requestChanges, list.selection.record];
 };
 
 export default useDelegaciones;

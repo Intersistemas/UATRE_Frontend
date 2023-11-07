@@ -3,11 +3,19 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import DocumentacionTable from "./DocumentacionTable";
 import DocumentacionForm from "./DocumentacionModal";
 
+const selectionDef = {
+	action: "",
+	request: "",
+	index: null,
+	record: null,
+	errors: null,
+};
+
 const useDocumentaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetTipoList":
+			case "GetTipoList": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -15,7 +23,8 @@ const useDocumentaciones = () => {
 						method: "GET",
 					},
 				};
-			case "GetList":
+			}
+			case "GetList": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -23,7 +32,8 @@ const useDocumentaciones = () => {
 						method: "GET",
 					},
 				};
-			case "Create":
+			}
+			case "Create": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -31,30 +41,29 @@ const useDocumentaciones = () => {
 						method: "POST",
 					},
 				};
-			case "Update":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/DocumentacionEntidad/${id}`,
-							method: "PUT",
-						},
-						params: otherParams,
-					};
-				})();
-			case "Delete":
-				return (() => {
-					const { id, ...otherParams } = params;
-					return {
-						config: {
-							baseURL: "Comunes",
-							endpoint: `/DocumentacionEntidad/${id}`,
-							method: "DELETE",
-						},
-						params: otherParams,
-					};
-				})();
+			}
+			case "Update": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/DocumentacionEntidad/${id}`,
+						method: "PUT",
+					},
+					params: otherParams,
+				};
+			}
+			case "Delete": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/DocumentacionEntidad/${id}`,
+						method: "DELETE",
+					},
+					params: otherParams,
+				};
+			}
 			default:
 				return null;
 		}
@@ -87,7 +96,7 @@ const useDocumentaciones = () => {
 		params: {},
 		data: [],
 		error: null,
-		selection: { action: "", request: "", index: null, record: null },
+		selection: {...selectionDef},
 	});
 
 	useEffect(() => {
@@ -119,37 +128,41 @@ const useDocumentaciones = () => {
 					loading: null,
 					data: [],
 					error: err.code === 404 ? null : err,
-					selection: { action: "", request: "", index: null, record: null },
+					selection: {...selectionDef},
 				})),
 		});
 	}, [pushQuery, list.loading, list.params]);
 	//#endregion
 
-	const requestChanges = useCallback((changes) => {
-		switch (changes.type) {
+	const requestChanges = useCallback((type, payload = {}) => {
+		switch (type) {
 			case "selected": {
 				return setList((o) => ({
 					...o,
 					selection: {
 						...o.selection,
-						request: changes.request,
-						action: changes.action,
-						record: changes.request === "A" ? {} : o.selection.record,
+						request: payload.request,
+						action: payload.action,
+						record: {
+							...(payload.request === "A" ? {} : o.selection.record),
+							...payload.record,
+						},
 					},
 				}));
 			}
 			case "list": {
-				if (changes.clear)
+				if (payload.clear)
 					return setList((o) => ({
 						...o,
 						loading: null,
 						data: [],
 						error: null,
+						selection: {...selectionDef},
 					}));
 				return setList((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: { ...changes.params },
+					params: { ...payload.params },
 					data: [],
 				}));
 			}
@@ -164,7 +177,7 @@ const useDocumentaciones = () => {
 			<DocumentacionForm
 				data={list.selection.record}
 				title={list.selection.action}
-				errores={list.selection.errores}
+				errors={list.selection.errors}
 				dependecies={{ tipoDocumentacionList: tipoDocumentacionList.data }}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
@@ -205,32 +218,30 @@ const useDocumentaciones = () => {
 								request: "",
 								action: "",
 								record: o.data.at(o.selection.index),
-								errores: null,
+								errors: null,
 							},
 						}));
 						return;
 					}
 
 					const record = { ...list.selection.record };
-					record.entidadId = list.params.entidadId;
-					record.entidadTipo = list.params.entidadTipo;
 
 					//Validaciones
-					const errores = {};
+					const errors = {};
 					if (list.selection.request === "B") {
 						// if (!record.deletedObs)
-						// 	errores.deletedObs = "Dato requerido";
+						// 	errors.deletedObs = "Dato requerido";
 					} else {
 						if (!record.refTipoDocumentacionId)
-							errores.refTipoDocumentacionId = "Dato requerido";
-						if (!record.archivo) errores.archivo = "Dato requerido";
+							errors.refTipoDocumentacionId = "Dato requerido";
+						if (!record.archivo) errors.archivo = "Dato requerido";
 					}
-					if (Object.keys(errores).length) {
+					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
 							selection: {
 								...o.selection,
-								errores,
+								errors,
 							},
 						}));
 						return;

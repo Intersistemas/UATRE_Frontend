@@ -19,11 +19,11 @@ const DelegacionesHandler = () => {
 		useDelegaciones();
 	const [delegacionesActions, setDelegacionesActions] = useState([]);
 	useEffect(() => {
-		const createAction = ({ request, action }) =>
+		const createAction = ({ action, request }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					delegacionChanger({ type: "selected", request, action }),
+					delegacionChanger("selected", { request, action }),
 			});
 		const actions = [
 			createAction({ action: `Agrega Delegación`, request: "A" }),
@@ -49,6 +49,10 @@ const DelegacionesHandler = () => {
 		body: delegacionesTab,
 		actions: delegacionesActions,
 	});
+
+	useEffect(() => {
+		delegacionChanger("list");
+	}, [delegacionChanger]);
 	//#endregion
 
 	//#region Tab documentaciones
@@ -63,11 +67,15 @@ const DelegacionesHandler = () => {
 			return;
 		}
 		const deleDesc = `para Delegación ${dele}`;
-		const createAction = ({ request, action }) =>
+		const createAction = ({ action, request }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					documentacionChanger({ type: "selected", request, action }),
+					documentacionChanger("selected", {
+						request,
+						action,
+						record: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+					}),
 			});
 		actions.push(
 			createAction({ action: `Agrega Documentación ${deleDesc}`, request: "A" })
@@ -103,8 +111,7 @@ const DelegacionesHandler = () => {
 
 	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
-		documentacionChanger({
-			type: "list",
+		documentacionChanger("list", {
 			clear: !delegacionSelected?.id,
 			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
 		});
@@ -123,11 +130,15 @@ const DelegacionesHandler = () => {
 			return;
 		}
 		const deleDesc = `para Delegación ${dele}`;
-		const createAction = ({ request, action }) =>
+		const createAction = ({ action, request }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					colaboradoresChanger({ type: "selected", request, action }),
+					colaboradoresChanger("selected", {
+						request,
+						action,
+						record: { refDelegacionId: delegacionSelected?.id },
+					}),
 			});
 		actions.push(
 			createAction({ action: `Agrega Colaborador ${deleDesc}`, request: "A" })
@@ -166,8 +177,7 @@ const DelegacionesHandler = () => {
 
 	// Si cambia delegación, refresco lista de colaboradores
 	useEffect(() => {
-		colaboradoresChanger({
-			type: "list",
+		colaboradoresChanger("list", {
 			clear: !delegacionSelected?.id,
 			params: { refDelegacionId: delegacionSelected?.id },
 		});

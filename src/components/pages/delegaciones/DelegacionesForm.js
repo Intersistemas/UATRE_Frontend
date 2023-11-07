@@ -10,7 +10,7 @@ const DelegacionesForm = ({
 	title = "",
 	disabled = {},
 	hide = {},
-	errores = {},
+	errors = {},
 	onChange = (changes = {}) => {},
 	onClose = (confirm = false) => {},
 }) => {
@@ -20,7 +20,7 @@ const DelegacionesForm = ({
 
 	disabled ??= {};
 	hide ??= {};
-	errores ??= {};
+	errors ??= {};
 
 	return (
 		<Modal onClose={() => onClose(false)}>
@@ -33,8 +33,8 @@ const DelegacionesForm = ({
 						{hide.codigoDelegacion ? null : (
 							<InputMaterial
 								label="Cód. delegación"
-								error={!!errores.codigoDelegacion}
-								helperText={errores.codigoDelegacion ?? ""}
+								error={!!errors.codigoDelegacion}
+								helperText={errors.codigoDelegacion ?? ""}
 								value={data.codigoDelegacion}
 								disabled={disabled.codigoDelegacion ?? false}
 								onChange={(value, _id) => onChange({ codigoDelegacion: value })}
@@ -45,8 +45,8 @@ const DelegacionesForm = ({
 						{hide.nombre ? null : (
 							<InputMaterial
 								label="Nombre"
-								error={!!errores.nombre}
-								helperText={errores.nombre ?? ""}
+								error={!!errors.nombre}
+								helperText={errors.nombre ?? ""}
 								value={data.nombre}
 								disabled={disabled.nombre ?? false}
 								onChange={(value, _id) => onChange({ nombre: value })}
@@ -58,8 +58,8 @@ const DelegacionesForm = ({
 					{hide.deletedObs ? null : (
 						<InputMaterial
 							label="Observaciones de baja"
-							error={!!errores.deletedObs}
-							helperText={errores.deletedObs ?? ""}
+							error={!!errors.deletedObs}
+							helperText={errors.deletedObs ?? ""}
 							value={data.deletedObs}
 							disabled={disabled.deletedObs ?? false}
 							onChange={(value, _id) => onChange({ deletedObs: value })}
