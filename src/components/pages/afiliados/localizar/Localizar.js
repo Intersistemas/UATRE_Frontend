@@ -149,7 +149,14 @@ const Localizar = ({ onClose = onCloseDef }) => {
 								pagination: { ...o.pagination, ...c },
 							})),
 					}}
-					selection={{ ...afiliados.selection }}
+					selection={{
+						...afiliados.selection,
+						onSelect: (row, isSelect, index, e) =>
+							setAfiliados((o) => ({
+								...o,
+								selection: { ...o.selection, selected: [row.id] },
+							})),
+					}}
 					noDataIndication={
 						afiliados.loading ||
 						((e) => (e ? <span style={{ color: "red" }}>{e}</span> : null))(
