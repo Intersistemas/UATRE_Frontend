@@ -51,7 +51,7 @@ const SeccionalAutoridadesForm = ({
   }, [autoridadSeleccionada])
   
   const handleInputChange = (value, id) => {
-    //console.log(value, id)
+    console.log('handleInputChange',value, id)
     switch (id) {
       case "numeroAfiliado":
         setNumeroAfiliado(value);

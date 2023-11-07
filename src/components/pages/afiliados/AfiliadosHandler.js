@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment,useContext } from "react";
 import useHttp from "../../hooks/useHttp";
 import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
@@ -13,8 +13,12 @@ import UseKeyPress from '../../helpers/UseKeyPress';
 import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
 import Carnet from "./Carnet/Handler";
 import Localizar from "./localizar/Localizar";
+import AuthContext from "../../../store/authContext"; 
+import { getListItemAvatarUtilityClass } from "@mui/material";
 
 const AfiliadosHandler = () => {
+  const Usuario = useContext(AuthContext).usuario;
+
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
@@ -33,6 +37,7 @@ const AfiliadosHandler = () => {
   const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
 	const [modal, setModal] = useState();
+  
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
@@ -138,28 +143,34 @@ const AfiliadosHandler = () => {
       if (refresh) setRefresh(false);
     };
 
-    let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
-    if (estadoSolicitud > 0) {
-      //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-    }
-    if (sortColumn) {
-      //ORDENAMIENTO
-      sortOrder == "desc"
-        ? (endpoint = `${endpoint}&Sort=${sortColumn}Desc`)
-        : (endpoint = `${endpoint}&Sort=${sortColumn}`);
-    }
+    let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
+    
+    let body = {
+          pageIndex: page,
+          pageSize: sizePerPage,
+          soloActivos: "false",
+
+          ambitoTodos: Usuario.ambitoTodos,
+          ambitoSeccionales: Usuario.ambitoSeccionales,
+          ambitoDelegaciones: Usuario.ambitoDelegaciones,
+          ambitoProvincias: Usuario.ambitoProvincias,
+
+          ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
+          ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
+    };
 
     if (filter) {
-      //BUSQUEDA
-      endpoint = `${endpoint}&${filterColumn}=${filter}`;
+      body[filterColumn] = filter;
     }
-
     request(
       {
         baseURL: "Afiliaciones",
         endpoint: endpoint,
-        method: "GET",
+        method: "POST",
+        body: body,
+        headers: {
+          "Content-Type": "application/json",
+        }
       },
       processAfiliados
     );
@@ -357,7 +368,8 @@ const AfiliadosHandler = () => {
   const handleFilter = (select, entry) => {
     if (filter != entry){
       handlePageChange(1,12)
-      console.log("Filter",Filter)
+      console.log("filter",filter);
+
       setFilter(entry)
       setFilterColumn(select)
     } 

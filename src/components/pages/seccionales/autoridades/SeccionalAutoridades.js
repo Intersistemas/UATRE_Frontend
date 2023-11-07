@@ -13,9 +13,13 @@ const dispatch = useDispatch();
 const [checked, setChecked] = React.useState(true);
 
 const handleChangeSwitch = (event) => {
+  
+  console.log('props.seccionalSeleccionada**',props.seccionalSeleccionada);
+  console.log('event.target.checked',event.target.checked);
 
   setChecked(event.target.checked);
-  props.onSeccionalSeleccionada({}, event.target.checked);
+  props.handleSeccionalSeleccionada(props.seccionalSeleccionada, event.target.checked);  //actualizo la seccional selecciona para traer autoridades vigentes o no vigentes
+
 };
 
 useEffect(()=>{

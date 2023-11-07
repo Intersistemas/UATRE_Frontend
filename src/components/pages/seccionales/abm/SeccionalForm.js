@@ -30,25 +30,28 @@ const SeccionalForm = ({
 
   requestForm.abm === "Alta" ? seccionalSeleccionada={} : seccionalSeleccionada = { ...seccionalSeleccionada };
 
-  console.log('seccionalSeleccionada_seccional',seccionalSeleccionada);
+  const localidadInicio = {value: seccionalSeleccionada?.refLocalidadesId, label: seccionalSeleccionada?.localidadNombre}
+
   const authContext = useContext(AuthContext)
   const Usuario = authContext.usuario;
   const [selectedTab, setSelectedTab] = useState(0);
+  
   const [codigoSeccional, setCodigoSeccional] = useState(seccionalSeleccionada?.codigo ?? "");
   const [nombreSeccional, setNombreSeccional] = useState(seccionalSeleccionada?.descripcion ?? "");
 
-  const [localidadSeccional, setLocalidadSeccional] = useState(seccionalSeleccionada?.localidadNombre ?? "");
-  const [localidadIdSeccional, setLocalidadIdSeccional] = useState(99999);
+  const [localidadSeccional, setLocalidadSeccional] = useState(localidadInicio ?? {});
+  const [localidadIdSeccional, setLocalidadIdSeccional] = useState(localidadInicio);
 
   const [direccionSeccional, setDireccionSeccional] = useState(seccionalSeleccionada?.domicilio ?? "")
   const [estadoSeccional, setEstadoSeccional] = React.useState(requestForm?.abm == "Baja" ? "Baja" : 'Activa');
   const [observacionesSeccional, setObservacionesSeccional] = useState(seccionalSeleccionada?.observaciones ?? "")
+
   const [bajaObservacionesSeccional, setBajaObservacionesSeccional] = useState(seccionalSeleccionada?.deletedObs ?? "")
   const [bajaFechaSeccional, setBajaFechaSeccional] = useState(seccionalSeleccionada?.deletedDate ?? dayjs().format("YYYY-MM-DD"))
   const [bajaUsuarioSeccional, setBajaUsuarioSeccional] = useState(seccionalSeleccionada?.deletedBy ?? authContext.usuario.nombre)
   
-  const [localidadesSelect, setLocalidadesSelect] = useState([""]); //LISTA DE TODAS LAS SECCIONALES  
-  const [localidadBuscar, setLocalidadBuscar] = useState("");
+  const [localidadesOptions, setLocalidadesOptions] = useState([seccionalSeleccionada?.localidadNombre ?? ""]); //LISTA DE TODAS LAS SECCIONALES  
+  const [localidadBuscar, setLocalidadBuscar] = useState(seccionalSeleccionada?.localidadNombre ?? "");
 
   const [errores, setErrores] = useState({});
   
@@ -63,15 +66,14 @@ const SeccionalForm = ({
         .map((localidad) => {
           return { value: localidad.id, label: localidad.nombre };
         });
-        console.log("localidadesSelect", localidadesSelect, localidades);
-        setLocalidadesSelect(localidadesSelect);
+        //console.log("localidadesSelect", localidadesSelect, localidades);
+        setLocalidadesOptions(localidadesSelect);
       }     
-      
 
-    if (localidadBuscar === ""){
-      setLocalidadesSelect([])
-      setLocalidadBuscar("")
-    }    
+      if (localidadBuscar === ""){
+        setLocalidadesOptions([])
+        setLocalidadBuscar("")
+      }    
   }, [localidades, localidadBuscar]);
 
   const handleChangeTab = (event, newValue) => {
@@ -198,14 +200,15 @@ const validar = () => {
     observaciones: observacionesSeccional,
     estado: estadoSeccional,
     refDelegacionId: 0,
-    refLocalidadesId: localidadIdSeccional
+    refLocalidadesId: localidadIdSeccional,
+
   }
 
   if (requestForm?.abm == "Baja") {
     newRecord = {...newRecord,
       deletedObs: bajaObservacionesSeccional,
-      deletedDate:  bajaFechaSeccional,
-      deletedBy:  bajaUsuarioSeccional
+      /*deletedDate:  bajaFechaSeccional,
+      deletedBy:  bajaUsuarioSeccional*/
     }
   }
 
@@ -293,14 +296,14 @@ const validar = () => {
                           required
                           disabled = {estadoSeccional == "Baja"}
                         />
-                    </div>
-                    <div className={classes.item3}>
+                    </div> 
+                    <div /*****/className={classes.item3}>
                         <SearchSelectMaterial
                           name="localidadSeccional"
                           label="Localidad"
-                          options={localidadesSelect}
+                          options={localidadesOptions}
                           value={localidadSeccional}
-                          //defaultValue={localidadSeccional}
+                          //defaultValue={localidadInicio}
                           onChange={handleChangeSelect}
                           onTextChange={handlerOnTextChange}
                           required

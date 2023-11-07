@@ -119,7 +119,11 @@ const SeccionalesHandler = () => {
       const seccionalesConDescripcion = seccionalesObj.filter(
         (seccional) =>
           seccional.descripcion !== "" && seccional.descripcion !== null
-      );
+      ).sort((a, b) =>
+      a.codigo > b.codigo ? 1 : -1,
+    );
+
+
       setSeccionalesTodas(seccionalesConDescripcion);
       setSeccionales(seccionalesConDescripcion);
     };
@@ -131,12 +135,7 @@ const SeccionalesHandler = () => {
         method: "POST",
         body: {
           soloActivos: "false",
-          ambitos: [
-            {
-              "tipo": "T",
-              "id": 0
-            }
-          ]
+          ambitos: Usuario.ambitos
         },
         headers: {
           "Content-Type": "application/json",
@@ -183,11 +182,10 @@ const SeccionalesHandler = () => {
 
 
   //SELECCIONO TODO LO RELACIONADO CON LA SECCIONAL SELECCIONADA
-  const handleSeccionalSeleccionada = (seccional = seccionalSeleccionada, soloActivos = true) => {
+  const handleSeccionalSeleccionada = (seccional, soloActivos = true) => {
     //setSeccionalAutoridades([]);
 
     console.log("handlerSeccional", seccional);
-    console.log("handlerSeccionalSeleccionada", seccionalSeleccionada);
     setSeccionalSeleccionada(seccional);
 
     const processSeccionalAutoridades = async (seccionalAutoridadesObj) => {
@@ -217,8 +215,19 @@ const SeccionalesHandler = () => {
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadosWithSpec?NroAfiliado=${+numeroAfiliado}`,
-          method: "GET",
+          endpoint: `/Afiliado/GetAfiliadosWithSpec`,
+          method: "POST",
+          body: {
+            nroAfiliado: +numeroAfiliado,
+            soloActivos: "false",
+            ambitoTodos: Usuario.ambitoTodos,
+            ambitoSeccionales: Usuario.ambitoSeccionales,
+            ambitoDelegaciones: Usuario.ambitoDelegaciones,
+            ambitoProvincias: Usuario.ambitoProvincias,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          }
         },
         processAfiliado
       );
@@ -237,6 +246,20 @@ const SeccionalesHandler = () => {
     };
 
     request(
+      seccional.deletedObs ?
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional/DarDeBaja`,
+        method: "PATCH", 
+        body: {
+          "id": seccional.id,
+          "deletedObs": seccional.deletedObs
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+      :
       {
         baseURL: "Afiliaciones",
         endpoint: `/Seccional`,
@@ -437,12 +460,12 @@ const SeccionalesHandler = () => {
       <Seccionales
         seccionales={seccionales}
         seccionalSeleccionada={seccionalSeleccionada}
+        handleSeccionalSeleccionada ={handleSeccionalSeleccionada}
+
         tabSelected = {setTabSelected} //afecta directamente el state  
 
         seccionalAutoridades={seccionalAutoridades}
         seccionalDocumentacion={seccionalDocumentacion}
-
-        handleSeccionalSeleccionada ={handleSeccionalSeleccionada}
 
         selectores={selectores}
         selector={selector}
