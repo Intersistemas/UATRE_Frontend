@@ -23,7 +23,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					config: {
 						baseURL: "Afiliaciones",
 						endpoint: "/Afiliado/GetAfiliadosWithSpec",
-						method: "GET",
+						method: "POST",
 					},
 				};
 			}
@@ -53,11 +53,13 @@ const Localizar = ({ onClose = onCloseDef }) => {
 		if (!afiliados.loading) return;
 		pushQuery({
 			action: "GetAfiliados",
-			params: {
-				soloActivos: true,
-				pageIndex: afiliados.pagination.index,
-				pageSize: afiliados.pagination.size,
-				...afiliados.params,
+			config: {
+				body: {
+					...afiliados.params,
+					soloActivos: true,
+					pageIndex: afiliados.pagination.index,
+					pageSize: afiliados.pagination.size,
+				},
 			},
 			onOk: ({ index, size, count, data }) =>
 				setAfiliados((o) => ({
@@ -67,7 +69,9 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					data,
 					selection: {
 						selected: ((a) => (a.length ? a : data.length ? [data[0].id] : []))(
-							data.filter((r) => o.selection.selected.includes(r.id)).map(r => r.id)
+							data
+								.filter((r) => o.selection.selected.includes(r.id))
+								.map((r) => r.id)
 						),
 					},
 					error: null,
@@ -145,7 +149,14 @@ const Localizar = ({ onClose = onCloseDef }) => {
 								pagination: { ...o.pagination, ...c },
 							})),
 					}}
-					selection={{ ...afiliados.selection }}
+					selection={{
+						...afiliados.selection,
+						onSelect: (row, isSelect, index, e) =>
+							setAfiliados((o) => ({
+								...o,
+								selection: { ...o.selection, selected: [row.id] },
+							})),
+					}}
 					noDataIndication={
 						afiliados.loading ||
 						((e) => (e ? <span style={{ color: "red" }}>{e}</span> : null))(
