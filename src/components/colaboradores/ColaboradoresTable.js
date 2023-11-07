@@ -2,7 +2,7 @@ import React from "react";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 
-const ColaboradoresTable = ({ ...x }) => {
+const ColaboradoresTable = ({ columns = [], ...x }) => {
 	return (
 		<Table
 			remote
@@ -29,8 +29,9 @@ const ColaboradoresTable = ({ ...x }) => {
 					text: "Baja",
 					headerStyle: (_colum, _colIndex) => ({ width: "10px" }),
 					formatter: Formato.Fecha,
-					style: { color: "red" }
+					style: { color: "red" },
 				},
+				...columns,
 			]}
 			{...x}
 		/>
