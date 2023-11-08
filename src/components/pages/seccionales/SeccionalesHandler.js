@@ -115,13 +115,13 @@ const SeccionalesHandler = () => {
     
     //#region 1RO CONSULTO TODAS LAS SECCIONALES
     const processSeccionales = async (seccionalesObj) => {
-      //console.log("seccionales", seccionalesObj);
-      const seccionalesConDescripcion = seccionalesObj.filter(
-        (seccional) =>
-          seccional.descripcion !== "" && seccional.descripcion !== null
-      ).sort((a, b) =>
-      a.codigo > b.codigo ? 1 : -1,
-    );
+      console.log("seccionales_seccionalesObj", seccionalesObj);
+      const seccionalesConDescripcion = seccionalesObj.data.filter(
+          (seccional) =>
+            seccional.descripcion !== "" && seccional.descripcion !== null
+        ).sort((a, b) =>
+        a.codigo > b.codigo ? 1 : -1,
+      );
 
 
       setSeccionalesTodas(seccionalesConDescripcion);
@@ -135,7 +135,10 @@ const SeccionalesHandler = () => {
         method: "POST",
         body: {
           soloActivos: "false",
-          ambitos: Usuario.ambitos
+          ambitoTodos: Usuario.ambitoTodos,
+          ambitoSeccionales: Usuario.ambitoSeccionales,
+          ambitoDelegaciones: Usuario.ambitoDelegaciones,
+          ambitoProvincias: Usuario.ambitoProvincias,
         },
         headers: {
           "Content-Type": "application/json",
@@ -309,8 +312,19 @@ const SeccionalesHandler = () => {
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/Seccional/GetSeccionalesSpecs?SoloActivos=false&Localidad=${selectorValor}`,
-            method: "GET",
+            endpoint: `/Seccional/GetSeccionalesSpecs`,
+            method: "POST",
+            body: {
+              Localidad: selectorValor,
+              soloActivos: "false",
+              ambitoTodos: Usuario.ambitoTodos,
+              ambitoSeccionales: Usuario.ambitoSeccionales,
+              ambitoDelegaciones: Usuario.ambitoDelegaciones,
+              ambitoProvincias: Usuario.ambitoProvincias,
+            },
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
           processSeccionalLocalidad
         );
@@ -325,8 +339,19 @@ const SeccionalesHandler = () => {
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/Seccional/GetSeccionalesSpecs?SoloActivos=false&CodigoPostal=${selectorValor}`,
-            method: "GET",
+            endpoint: `/Seccional/GetSeccionalesSpecs`,
+            method: "POST",
+            body: {
+              codigoPostal: selectorValor,
+              soloActivos: "false",
+              ambitoTodos: Usuario.ambitoTodos,
+              ambitoSeccionales: Usuario.ambitoSeccionales,
+              ambitoDelegaciones: Usuario.ambitoDelegaciones,
+              ambitoProvincias: Usuario.ambitoProvincias,
+            },
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
           processSeccionalCP
         );
@@ -458,6 +483,8 @@ const SeccionalesHandler = () => {
         />
       }
       <Seccionales
+        isLoading = {isLoading} 
+        
         seccionales={seccionales}
         seccionalSeleccionada={seccionalSeleccionada}
         handleSeccionalSeleccionada ={handleSeccionalSeleccionada}
