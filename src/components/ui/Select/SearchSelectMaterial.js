@@ -13,10 +13,11 @@ const SearchSelectMaterial = (props) => {
   return (
     <FormControl
       size="small"
-      style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+      style={{ width: props.width != null ? `${props.width}%` : "100%", backgroundColor: 'white' }}
     >
       {/* <InputLabel id={props.label + "-label"}>{props.label}</InputLabel> */}
       <Autocomplete
+        listboxProps={{ style: { maxHeight: 50 } }}
         className={styles.select}
         disablePortal
         freeSolo
@@ -28,20 +29,23 @@ const SearchSelectMaterial = (props) => {
           );
         }}
         disabled={props.disabled}
+        readOnly={props.readOnly}
         id={props.label + "-label"}
         options={props.options}
         //MenuProps={MenuProps}
         size="small"
-        value={props.value}
+        value={props.value || ""}
         onChange={handleChange}
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
           <TextField
+            style={{'max-height': '40px'}}
             {...params}
             label={props.label}
             key={props.value}
             onChange={props.onTextChange}
+            value={props.value || ""}
           />
         )}
       />

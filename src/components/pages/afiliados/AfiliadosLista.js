@@ -108,7 +108,7 @@ const AfiliadosLista = (props ) => {
       text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
+        return { width: "10%", textAlign: "center" };
       },
       formatter: Formato.DNI,
     },
@@ -344,6 +344,8 @@ const AfiliadosLista = (props ) => {
    switch(selectedTab){
      case 0:
         setAfiliadoSeleccionado(row);
+        setddjjUatreSeleccionado({}); //dejo vacia las ddjj al seleccionar un nuevo afiliado
+        setEmpresaSeleccionada({}) //dejo vacia la empresa al seleccional el afiliado
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
@@ -522,6 +524,7 @@ const AfiliadosLista = (props ) => {
           {selectedTab === 1 && ( //DDJJ
             <DeclaracionesJuradas
               cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
+              cuit={afiliadoSeleccionado.empresaCUIT}
               infoCompleta={true}
               onSeleccionRegistro={rowEvents}
               onDeclaracionesGeneradas={null}

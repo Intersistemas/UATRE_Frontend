@@ -24,11 +24,11 @@ const AdministracionHandler = () => {
 
 	useEffect(() => {
 		const newAccesos = [];
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("seccionales")}>Seccionales</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("empresas")}>Empresas</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("delegaciones")}>Delegaciones</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("localidades")}>Localidades</Button>)
-		modulos.includes("Administracion de Accesos") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("administracionDeAccesos")}>Administración De Accesos</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Seccionales")}>Seccionales</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>Empresas</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Delegaciones")}>Delegaciones</Button>)
+		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
+		modulos.includes("Administracion de Accesos") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("AdministracionDeAccesos")}>Administración De Accesos</Button>)
 		setAccesos(newAccesos);	
 
 		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!

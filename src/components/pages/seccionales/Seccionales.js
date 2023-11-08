@@ -3,13 +3,37 @@ import SeccionalesLista from "./lista/SeccionalesLista";
 import { Tab, Tabs } from "@mui/material";
 import styles from "./Seccionales.module.css";
 import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
-import SeccionalDocumentos from "./documentos/SeccionalDocumentos";
+import SeccionalDocumentacion from "./documentacion/SeccionalDocumentacion";
 
-const Seccionales = (props) => {
+const Seccionales = ({
+  
+  seccionalSeleccionada = {},
+  seccionales = [],
+  seccionalAutoridades = [],
+  seccionalDocumentacion = [],
+
+  handleSeccionalSeleccionada = () => {},
+  tabSelected = () => {},
+  handleSelectorSelected = () =>{},
+  handleSelectorValor = () =>{},
+  onBuscarClick = () =>{},
+  onLimpiarClick = () =>{},
+  onSeleccionAutoridad = () =>{},
+
+  selectores={},
+  selector={},
+  selectorValor="",
+
+
+}) => {
     const [selectedTab, setSelectedTab] = useState(0)
 
     const handleChangeTab = (event, newValue) => {
+
       setSelectedTab(newValue);
+
+      tabSelected(newValue); //le paso al handler el tab seleccionado para que sepa que botones de accion debe renderizar
+
     };
   return ( 
     <>
@@ -17,7 +41,12 @@ const Seccionales = (props) => {
         <h1 className="titulo">Seccionales</h1>
       </div>
 
-      <div>
+      <div className="contenido">
+
+        <div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
+            <h5>{(seccionalSeleccionada?.codigo) ? (seccionalSeleccionada?.codigo +' - '+ seccionalSeleccionada?.descripcion) : ""}</h5>
+        </div>
+        
         <Tabs
           value={selectedTab}
           onChange={handleChangeTab}
@@ -32,44 +61,48 @@ const Seccionales = (props) => {
             className={styles.tab}
             style={{ backgroundColor: "#186090" }}
             label="AUTORIDADES"
-            disabled={props.seccionalSeleccionada?.id ? false : true}
+            //disabled={props.seccionalSeleccionada?.id ? false : true}
           />
           <Tab
             className={styles.tab}
             style={{ backgroundColor: "#186090" }}
             label="DOCUMENTOS"
-            disabled={props.seccionalSeleccionada?.id ? false : true}
+            //disabled={props.seccionalSeleccionada?.id ? false : true}
           />
         </Tabs>
-      </div>
+      
       {selectedTab === 0 && (
-        <div>
+      
           <SeccionalesLista
-            seccionales={props.seccionales}
-            onSeccionalSeleccionada={props.onSeccionalSeleccionada}
-            selectores={props.selectores}
-            selector={props.selector}
-            selectorValor={props.selectorValor}
-            onSelectorSelected={props.onSelectorSelected}
-            onSelectorValor={props.onSelectorValor}
-            onBuscarClick={props.onBuscarClick}
-            onLimpiarClick={props.onLimpiarClick}
-            onAgregarClick={props.onAgregarClick}
+            seccionales={seccionales}
+            seccionalSeleccionada={seccionalSeleccionada}
+            handleSeccionalSeleccionada={handleSeccionalSeleccionada}
+
+            selectores={selectores}
+            selector={selector}
+            selectorValor={selectorValor}
+            handleSelectorSelected={handleSelectorSelected}
+            handleSelectorValor={handleSelectorValor}
+            onBuscarClick={onBuscarClick}
+            onLimpiarClick={onLimpiarClick}
           />
-        </div>
+
       )}
 
       {selectedTab === 1 && (
-        <SeccionalAutoridades
-          seccionalAutoridades={props.seccionalAutoridades}          
-          onSoloAutoridadesVigentes={props.onSoloAutoridadesVigentes}
-          onSeleccionAutoridad={props.onSeleccionAutoridad}
-        />
+          <SeccionalAutoridades
+            handleSeccionalSeleccionada={handleSeccionalSeleccionada}
+            seccionalSeleccionada={seccionalSeleccionada}
+
+            seccionalAutoridades={seccionalAutoridades}          
+            onSeleccionAutoridad={onSeleccionAutoridad}
+          />
       )}
 
       {selectedTab === 2 && (
-        <SeccionalDocumentos seccionalDocumentos={props.seccionalDocumentos} />
+        <SeccionalDocumentacion seccionalDocumentacion={seccionalDocumentacion} />
       )}
+      </div>
     </>
   );
 };

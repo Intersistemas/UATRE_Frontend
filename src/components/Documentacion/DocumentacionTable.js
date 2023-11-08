@@ -16,6 +16,9 @@ const DocumentacionTable = ({
 	initSelection.onSelect ??= selectionOnSelectDef;
 	const selection = {
 		...initSelection,
+		selected: initSelection.selected
+			?.map((r) => data.find((d) => d.value.id === r)?.index)
+			.filter((r) => r != null),
 		onSelect: (row, isSelect, index, e) =>
 			initSelection.onSelect(row.value, isSelect, index, e),
 	};
@@ -33,14 +36,14 @@ const DocumentacionTable = ({
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			formatter: (_cell, row, _rowIndex, _formatExtraDatas) =>
 				tipoList.find((r) => r.id === row.value.refTipoDocumentacionId)
-					.descripcion ?? "",
+					?.descripcion ?? "",
 			style: { ...cs },
 		},
 		{
 			dataField: "value",
 			text: "Nombre del archivo",
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
-			formatter: (v) => v.archivoNombre ?? "",
+			formatter: (v) => v.nombreArchivo ?? "",
 			style: { ...cs },
 		},
 	];

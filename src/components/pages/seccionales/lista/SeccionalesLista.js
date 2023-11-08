@@ -1,7 +1,8 @@
-import React from "react";
+import React, {useEffect} from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import Table from "../../../ui/Table/Table";
 import classes from "./SeccionalesLista.module.css";
+import Formato from "components/helpers/Formato";
 import {
   Box,
   FormControl,
@@ -11,13 +12,53 @@ import {
   TextField,
 } from "@mui/material";
 import Button from "../../../ui/Button/Button";
-
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
+ 
 const SeccionalesLista = (props) => {
+
+const dispatch = useDispatch();
+
+useEffect(()=>{
+
+      //modificar la descripcion de los botones de accion
+      //#region despachar Informar Modulo
+      const moduloInfoDefault = {
+        nombre: "Seccionales",
+        acciones: [
+          {
+            id: 1,
+            abm: "Alta",
+            name: "Agrega Seccional",
+            icon: "",
+            disabled: false,
+          },
+          {
+            id: 2,
+            abm: "Modifica",
+            name: `Modifica Seccional ${props.seccionalSeleccionada?.codigo ?? ""} ${props.seccionalSeleccionada?.descripcion ?? ""}`,
+            icon: "",
+            disabled: props.seccionalSeleccionada?.deletedDate ? true : false,
+          },
+          {
+            id: 3,
+            abm: "Baja",
+            name: `Baja Seccional ${props.seccionalSeleccionada?.codigo ?? ""} ${props.seccionalSeleccionada?.descripcion ?? ""}`,
+            icon: "",
+            disabled: props.seccionalSeleccionada?.deletedDate  ? true : false,
+          }
+        ],
+      };
+
+  dispatch(handleModuloSeleccionar(moduloInfoDefault));
+  //#endregion
+},[props.seccionalSeleccionada])
+
   //#region Tabla
   const columns = [
     
     {
-      headerTitle: (column, colIndex) => `Codigo`,
+      headerTitle: (column, colIndex) => `Codigo Seccional`,
       dataField: "codigo",
       text: "Código",
       sort: true,
@@ -26,9 +67,9 @@ const SeccionalesLista = (props) => {
       },
     },
     {
-      headerTitle: (column, colIndex) => `Descripción`,
+      headerTitle: (column, colIndex) => `Nombre Seccional`,
       dataField: "descripcion",
-      text: "Descripción",
+      text: "Nombre",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -42,11 +83,23 @@ const SeccionalesLista = (props) => {
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
+      formatter: (value, row) => ( 
+        row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value
+      ),
     },
     {
       headerTitle: (column, colIndex) => `Dirección`,
       dataField: "domicilio",
       text: "Dirección",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Localidad Seccional`,
+      dataField: "localidadNombre",
+      text: "Localidad",
       sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
@@ -61,6 +114,7 @@ const SeccionalesLista = (props) => {
         return { width: "7rem", textAlign: "center" };
       },
     },
+
     {
       headerTitle: (column, colIndex) => `Id`,
       dataField: "id",
@@ -71,34 +125,59 @@ const SeccionalesLista = (props) => {
         return { width: "7rem", textAlign: "center" };
       },
     },
+    {
+      headerTitle: (column, colIndex) => `Id`,
+      dataField: "deletedDate",
+      text: "deletedDate",
+      sort: true,
+      hidden: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+    },
+    {
+      headerTitle: (column, colIndex) => `Delegación`,
+      dataField: "refDelegacionDescripcion",
+      text: "Delegación",
+      sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7rem", textAlign: "center" };
+      },
+      formatter: (value, row) => ( 
+        row.refDelegacionDescripcion ?? ""
+      ),
+    },
+    
   ];
-
+ 
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
     hideSelectColumn: true,
+    selected: [props.seccionalSeleccionada?.id],
     style: {
       backgroundColor: "#EEC85E",
       color: "black",
       fontWeight: "bold",
     },
-    onSelect: (row, isSelect, rowIndex, e) =>
-      props.onSeccionalSeleccionada(row),
+    onSelect: (row, isSelect, rowIndex, e) =>{
+      console.log('seccional_selected',row);
+      props.handleSeccionalSeleccionada(row)
+     
+    }
+      //#endregion
   };
 
-  const rowEvents = {
-    // onClick: (e, row, rowIndex) => {
-    //   //console.log(`row: ${row.cuit}`);
-    //   props.onSeleccionRegistro(row);
-    //   setIdPrimerRegistroDelGrid(row?.id);
-    // },
+  //seccionalSeleccionada
+  const rowEvents  = (row, isSelect) => {
+    //props.handleSeccionalSeleccionada(row);
   };
 
   const pagination = {
-    size: 20,
+    size: 15,
   };
 
-  console.log("props.seccionales", props.seccionales);
+  //console.log("props.seccionales", props.seccionales);
   const tableProps = {
     keyField: "id",
     data: props.seccionales,
@@ -106,6 +185,8 @@ const SeccionalesLista = (props) => {
     //selectRow: selectRow,
     selection: selectRow,
     rowEvents: rowEvents,
+    onSelected: rowEvents,
+
     loading: props.isLoading,
     noDataIndication: <h4>No existen Seccionales.</h4>,
     overlay: overlayFactory({ spinner: true }),
@@ -116,11 +197,11 @@ const SeccionalesLista = (props) => {
 
   const handleChangeSelect = (event) => {
     console.log("Seleccionó:", event.target.value);
-    props.onSelectorSelected(event.target.value);
+    props.handleSelectorSelected(event.target.value);
   };
 
   const handleChangeSearchEntry = (event) => {
-    props.onSelectorValor(event.target.value);
+    props.handleSelectorValor(event.target.value);
   };
 
   return (
@@ -134,9 +215,6 @@ const SeccionalesLista = (props) => {
           "column-gap": "1rem",
         }}
       >
-        {/*<div> se quita el boon de aqui para ponerlo en el sidebar
-          <Button onClick={props.onAgregarClick}>Agrega</Button>
-        </div>*/}
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>
           <InputLabel id="demo-simple-select-label">Busca </InputLabel>

@@ -14,24 +14,25 @@ import AuthContext from './store/authContext';
 
 import InicioHandler from './components/pages/inicio/InicioHandler';
 
-//---SIARU---
+//---Siaru---
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
-import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
-import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
-import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
-import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
-import LiquidacionesProcesarManualHandler from './components/pages/siaru/Liquidaciones/Procesar/Manual/Handler';
+import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
+import LiquidacionesProcesarHandler from './components/pages/siaru/liquidaciones/procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liquidaciones/procesar/existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
 
 //---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
 import SeccionalesHandler from "./components/pages/seccionales/SeccionalesHandler";
 import EmpresasHandler from "./components/pages/empresas/EmpresasHandler";
+import AccesosHandler from "./components/pages/accesos/AccesosHandler";
 
 
 //---AFILIADOS---
 import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
+import EstablecimientosHandler from './components/pages/siaru/establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
@@ -83,21 +84,23 @@ const App = () => {
          (<SideBar>
             <Routes>
               <Route path="/" element={<InicioHandler/>} />
-              <Route path="inicio" element={<InicioHandler/>} />
-              <Route path="inicio/afiliaciones" element={<AfiliadosHandler/>} />
-              <Route path="inicio/afiliaciones/:id" element={<Afiliado/>} />
-              <Route path="inicio/siaru" element={<SiaruHandler/>} />
-              <Route path="inicio/siaru/establecimientos" element={<EstablecimientosHandler/>} />
-              <Route path="inicio/siaru/liquidaciones" element={<LiquidacionesHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar" element={<LiquidacionesProcesarHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/existente" element={<LiquidacionesProcesarExistenteHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
-              <Route path="inicio/siaru/liquidaciones/procesar/manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="Inicio" element={<InicioHandler/>} />
+              <Route path="Inicio/Afiliaciones" element={<AfiliadosHandler/>} />
+              <Route path="Inicio/Afiliaciones/:id" element={<Afiliado/>} />
+              <Route path="Inicio/Siaru" element={<SiaruHandler/>} />
+              <Route path="Inicio/Siaru/Establecimientos" element={<EstablecimientosHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones" element={<LiquidacionesHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
+              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
 
-              <Route path="inicio/administracion" element={<AdministracionHandler />}/>
-              <Route path="inicio/administracion/seccionales" element={<SeccionalesHandler />} />
-              <Route path="inicio/administracion/empresas" element={<EmpresasHandler />} />
-              <Route path="inicio/administracion/delegaciones" element={<DelegacionesHandler />} />
+              <Route path="Inicio/Administracion" element={<AdministracionHandler />}/>
+              <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />
+              <Route path="Inicio/Administracion/Empresas" element={<EmpresasHandler />} />
+              <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
+              <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
+
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>

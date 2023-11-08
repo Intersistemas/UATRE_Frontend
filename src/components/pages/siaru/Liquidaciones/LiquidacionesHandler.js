@@ -11,8 +11,8 @@ import Formato from "components/helpers/Formato";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import LiquidacionesList from "./LiquidacionesList";
 import LiquidacionDetails from "./LiquidacionDetails";
-import LiquidacionForm from "./Formulario/Form";
-import LiquidacionPDF from "./Impresion/Handler";
+import LiquidacionForm from "./formulario/Form";
+import LiquidacionPDF from "./impresion/Handler";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();
@@ -22,7 +22,7 @@ const LiquidacionesHandler = () => {
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
@@ -253,6 +253,7 @@ const LiquidacionesHandler = () => {
 			disabled.deletedObs = false;
 		}
 		liquidacionForm = (
+			//ejemplo update
 			<LiquidacionForm
 				request={formRequest}
 				record={liquidacion}
@@ -310,9 +311,9 @@ const LiquidacionesHandler = () => {
 	dispatch(handleModuloSeleccionar(moduloInfo));
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Procesa liquidaciones`:
-				setRedirect({ to: "procesar" });
+				setRedirect({ to: "Procesar" });
 				break;
 			case `Consulta ${liquidacionDesc}`:
 				setFormRequest("C");

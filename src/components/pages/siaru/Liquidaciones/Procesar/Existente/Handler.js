@@ -14,9 +14,9 @@ import Grid from "components/ui/Grid/Grid";
 import Modal from "components/ui/Modal/Modal";
 import Button from "components/ui/Button/Button";
 import Formato from "components/helpers/Formato";
-import Tentativas from "../Tentativas/Handler";
-import NominaTable from "../Manual/NominaTable";
-import NominaForm from "../Manual/NominaForm";
+import Tentativas from "../tentativas/Handler";
+import NominaTable from "../manual/NominaTable";
+import NominaForm from "../manual/NominaForm";
 
 const Handler = () => {
 	const navigate = useNavigate();
@@ -34,9 +34,10 @@ const Handler = () => {
 	}
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+
+		if (!empresa?.id) setRedirect({ to: "/Inicio/siaru" });
 		else if (!periodoDesde || !periodoHacia)
-			setRedirect({ to: "/inicio/siaru/liquidaciones/procesar" });
+			setRedirect({ to: "/Inicio/Siaru/Liquidaciones/Procesar" });
 	}, [empresa, periodoDesde, periodoHacia]);
 
 	const [modal, setModal] = useState();
@@ -347,7 +348,8 @@ const Handler = () => {
 					/>
 				),
 			}));
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
+
 			case `Agrega trabajador`:
 				abreFormularioTrabajador("A");
 				break;

@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment,useContext } from "react";
 import useHttp from "../../hooks/useHttp";
 import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
@@ -6,13 +6,19 @@ import AfiliadosLista from "./AfiliadosLista";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
-import { redirect, useNavigate } from "react-router-dom";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
 import { Filter } from "@mui/icons-material";
 import UseKeyPress from '../../helpers/UseKeyPress';
+import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
+import Carnet from "./Carnet/Handler";
+import Localizar from "./localizar/Localizar";
+import AuthContext from "../../../store/authContext"; 
+import { getListItemAvatarUtilityClass } from "@mui/material";
 
 const AfiliadosHandler = () => {
+  const Usuario = useContext(AuthContext).usuario;
+
   const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
@@ -30,6 +36,8 @@ const AfiliadosHandler = () => {
   const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [totalPageIndex, setTotalPageIndex] = useState(0);
   const [accionSeleccionada, setAccionSeleccionada] = useState("");
+	const [modal, setModal] = useState();
+  
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
@@ -79,6 +87,13 @@ const AfiliadosHandler = () => {
         icon: "",
         disabled: true,
       },
+
+      {
+        id: 6,
+        name: "Localiza Afiliado",
+        underlineindex: 0,
+        icon: "",
+      },
     ],
   };
   const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
@@ -91,7 +106,9 @@ const AfiliadosHandler = () => {
 
   //#region despachar Informar Modulo
   const dispatch = useDispatch();
-  dispatch(handleModuloSeleccionar(moduloInfo));
+  useEffect(()=>{
+    dispatch(handleModuloSeleccionar(moduloInfo));
+  },[])
   //#endregion
 
 
@@ -110,6 +127,7 @@ const AfiliadosHandler = () => {
     UseKeyPress(['p'], () => despacharAcciones("Imprime Carnet de Afiliación"), 'AltKey');
     UseKeyPress(['b'], () => despacharAcciones("Baja Afiliado"), 'AltKey');
     UseKeyPress(['r'], () => despacharAcciones("Reactiva Afiliado"), 'AltKey');
+		UseKeyPress(['l'], () => despacharAcciones("Localiza Afiliado"), 'AltKey');
     //#endregion 
 
 
@@ -125,28 +143,34 @@ const AfiliadosHandler = () => {
       if (refresh) setRefresh(false);
     };
 
-    let endpoint = `/Afiliado/GetAfiliadosWithSpec?PageIndex=${page}&PageSize=${sizePerPage}`;
-    if (estadoSolicitud > 0) {
-      //endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-      endpoint = `${endpoint}&EstadoSolicitudId=${estadoSolicitud}`;
-    }
-    if (sortColumn) {
-      //ORDENAMIENTO
-      sortOrder == "desc"
-        ? (endpoint = `${endpoint}&Sort=${sortColumn}Desc`)
-        : (endpoint = `${endpoint}&Sort=${sortColumn}`);
-    }
+    let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
+    
+    let body = {
+          pageIndex: page,
+          pageSize: sizePerPage,
+          soloActivos: "false",
+
+          ambitoTodos: Usuario.ambitoTodos,
+          ambitoSeccionales: Usuario.ambitoSeccionales,
+          ambitoDelegaciones: Usuario.ambitoDelegaciones,
+          ambitoProvincias: Usuario.ambitoProvincias,
+
+          ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
+          ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
+    };
 
     if (filter) {
-      //BUSQUEDA
-      endpoint = `${endpoint}&${filterColumn}=${filter}`;
+      body[filterColumn] = filter;
     }
-
     request(
       {
         baseURL: "Afiliaciones",
         endpoint: endpoint,
-        method: "GET",
+        method: "POST",
+        body: body,
+        headers: {
+          "Content-Type": "application/json",
+        }
       },
       processAfiliados
     );
@@ -251,7 +275,7 @@ const AfiliadosHandler = () => {
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
     //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-    switch (moduloAccion) {
+    switch (moduloAccion?.name) {
       case "Agrega Afiliado":
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Agrega");
@@ -261,12 +285,13 @@ const AfiliadosHandler = () => {
         setAccionSeleccionada("Modifica");
         break;
       case "Resuelve Solicitud":
-        setAfiliadoAgregarShow(true);
+        // setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
       case "Imprime Carnet de Afiliación":
         //navigate(`/afiliaciones/${id}`);
-        setPantallaEnDesarrolloShow(true);
+        // setPantallaEnDesarrolloShow(true);
+        setAccionSeleccionada("Imprime");
         break;
       /*case "Consulta Afiliado":
         //alert('Funcionalidad de Consulta En desarrollo ');
@@ -281,6 +306,10 @@ const AfiliadosHandler = () => {
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Reactiva");
         break;
+			case "Localiza Afiliado":
+				setAccionSeleccionada("Localiza");
+				break;
+				
       // alert('Funcionalidad de Imprimir En desarrollo ');
       // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
 
@@ -339,7 +368,8 @@ const AfiliadosHandler = () => {
   const handleFilter = (select, entry) => {
     if (filter != entry){
       handlePageChange(1,12)
-      console.log("Filter",Filter)
+      console.log("filter",filter);
+
       setFilter(entry)
       setFilterColumn(select)
     } 
@@ -365,6 +395,54 @@ const AfiliadosHandler = () => {
   const handleOnAfiliadoSeleccionado = (afiliado) => {
     setAfiliadoSeleccionado(afiliado);
   };
+
+	useEffect(() => {
+		switch (accionSeleccionada) {
+			case "Resuelve": {
+				setModal(
+					<ResolverSolicitudModal
+						afiliado={afiliadoSeleccionado}
+						onClose={(cambios) => {
+							if (cambios) {
+								setRefresh(true); //Agrego el refresh para que se actualice el registro 
+								setAfiliadoModificado({ ...afiliadoSeleccionado, ...cambios })
+								if (cambios.estadoSolicitud === "Activo")	{
+									setPage(1)	//Si fue resuelto (tiene NroAfiliado) y no hay filtro, el registro va a parar a la primer pagina, entonces lo busco allí
+									setAccionSeleccionada("Imprime");
+								} else {
+									setAccionSeleccionada("");
+								}
+							} else {
+								setAccionSeleccionada("");
+							}
+							setModal(null);
+						}}
+					/>
+				);
+				return;
+			}
+			case "Imprime": {
+				//ToDo imprime credencial
+				setModal(<Carnet afiliado={afiliadoSeleccionado} onClose={() => {
+					setAccionSeleccionada("");
+					setModal(null);
+				}}/>)
+				return;
+			}
+			case "Localiza": {
+				setModal(
+					<Localizar
+						onClose={() => {
+							setAccionSeleccionada("");
+							setModal(null);
+						}}
+					/>
+				);
+				return;
+			}
+			default: return;
+		}
+	}, [accionSeleccionada, afiliadoSeleccionado]);
 
   if (isLoading) {
     return <h1>Cargando...</h1>;
@@ -396,6 +474,8 @@ const AfiliadosHandler = () => {
             afiliadoSeleccionado = {afiliadoSeleccionado}
           />
         )}
+
+				{modal}
 
         <AfiliadosLista
           afiliados={afiliadosRespuesta}

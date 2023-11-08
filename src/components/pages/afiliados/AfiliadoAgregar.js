@@ -1,9 +1,5 @@
 import React, { useEffect, useReducer, useRef, useState } from "react";
-import Button from "../../ui/Button/Button";
-import Modal from "../../ui/Modal/Modal";
-import classes from "./AfiliadoAgregar.module.css";
-import useHttp from "../../hooks/useHttp";
-import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import moment from "moment";
 import {
   Dialog,
   DialogActions,
@@ -12,29 +8,41 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import InputMaterial from "../../ui/Input/InputMaterial";
-import SelectMaterial from "../../ui/Select/SelectMaterial";
-import moment from "moment";
-import ValidarCUIT from "../../validators/ValidarCUIT";
-import ValidarEmail from "../../validators/ValidarEmail";
-import FormatearFecha from "../../helpers/FormatearFecha";
-import InputMaterialMask from "../../ui/Input/InputMaterialMask";
+import Button from "components/ui/Button/Button";
+import Modal from "components/ui/Modal/Modal";
+import useHttp from "components/hooks/useHttp";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+import ValidarCUIT from "components/validators/ValidarCUIT";
+import ValidarEmail from "components/validators/ValidarEmail";
+import InputMaterialMask from "components/ui/Input/InputMaterialMask";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
   AFILIADO_SOLICITUDRESUELTA,
   AFILIADO_DATOSAFIPACTUALIZADO,
   AFILIADO_AGREGADO_ACTIVO,
-} from "../../helpers/Mensajes";
-import ResolverSolicitud from "./ResolverSolicitud/ResolverSolicitud";
+} from "components/helpers/Mensajes";
+import Documentacion from "components/documentacion/Documentacion";
+import UseKeyPress from 'components/helpers/UseKeyPress';
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import classes from "./AfiliadoAgregar.module.css";
 import TabEmpleador from "./TabEmpleador/TabEmpleador";
 import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
-import Documentacion from "../../Documentacion/Documentacion";
-import UseKeyPress from '../../helpers/UseKeyPress';
 
 //#region Reducers
+const fechaIngresoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value !== "" ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: action.value !== "" ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
 const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return { value: action.value, isValid: ValidarCUIT(action.value) };
@@ -78,7 +86,6 @@ const emailReducer = (state, action) => {
 };
 
 const nacionalidadReducer = (state, action) => {
-  console.log("nacionalidad", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -105,7 +112,6 @@ const fechaNacimientoReducer = (state, action) => {
 };
 
 const estadoCivilReducer = (state, action) => {
-  console.log("ESTADO CIVIL reducer: ", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -154,7 +160,6 @@ const tipoDocumentoReducer = (state, action) => {
 };
 
 const numeroDocumentoReducer = (state, action) => {
-  console.log("action.value.length", action.value);
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
@@ -190,7 +195,6 @@ const domicilioReducer = (state, action) => {
 
 const provinciaReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    seccionalSinAsignar.push({ value: 1, label: "" })
     return {
       value: action.value,
       isValid: action.value !== "" ? true : false,
@@ -281,15 +285,6 @@ const telefonoReducer = (state, action) => {
 
 //#endregion
 
-//#region gloabes
-let seccionalSinAsignar = [
-  {
-    value: 99999,
-    label: "Sin Asignar",
-  },
-];
-//#endregion
-
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -300,14 +295,10 @@ const AfiliadoAgregar = (props) => {
   const [dialogTexto, setDialogTexto] = useState("");
   //#endregion
 
-
-
   UseKeyPress(['Escape'], () => handleCerrarModal());
  // UseKeyPress(['a'], ()=>btnconfirmar(), 'AltKey');
 
   UseKeyPress(['Enter'], () => afiliadoAgregarHandler(), 'AltKey');
-
-  
 
   //#region Texto completar campos
   const TextCompletarCampos = () => {
@@ -336,7 +327,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Capturo errores
   useEffect(() => {
-    console.log("error", error);
     if (error) {
       setAfiliadoProcesando(false);
       if (error.code === 500) {
@@ -371,18 +361,8 @@ const AfiliadoAgregar = (props) => {
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] =
     useState(false);
-  // const [
-  //   resolverSolicitudAfiliadoResponse,
-  //   setResolverSolicitudAfiliadoResponse,
-  // ] = useState(0);
-  const [resolverSolicitudObs, setResolverSolicitudObs] = useState("");
-  const [resolverSolicitudFechaIngreso, setResolverSolicitudFechaIngreso] =
-    useState(moment(new Date()).format("yyyy-MM-DD"));
-  const [showImprimirLiquidacion, setShowImprimirLiquidacion] = useState(false);
-  const [estadosSolicitudes, setEstadosSolicitudes] = useState([]);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
-  const [ultimaDDJJ, setUltimaDDJJ] = useState([]);
   //#endregion
 
   //#region variables para respuestas de servicios
@@ -392,9 +372,23 @@ const AfiliadoAgregar = (props) => {
   const [padronEmpresaRespuesta, setPadronEmpresaRespuesta] = useState(null);
   const [actividades, setActividades] = useState([]);
   const [nacionalidades, setNacionalidades] = useState([]);
-  const [provincias, setProvincias] = useState([]);
-  const [localidades, setLocalidades] = useState([]);
-  const [seccionales, setSeccionales] = useState([]);
+  const [provincias, setProvincias] = useState({
+		loading: "Cargando...",
+		data: [],
+		error: null,
+	});
+  const [localidades, setLocalidades] = useState({
+		loading: null,
+		params: {},
+		data: [],
+		error: null,
+	});
+  const [seccionales, setSeccionales] = useState({
+		loading: null,
+		params: {},
+		data: [],
+		error: null,
+	});
   const [puestos, setPuestos] = useState([]);
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
@@ -407,9 +401,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
-  const [estadoSolicitudResolver, setEstadoSolicitudResolver] = useState(1);
-  const [estadoSolicitudDescripcion, setEstadoSolicitudDescripcion] =
-    useState("");
 
   //#endregion
 
@@ -426,6 +417,11 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region manejo de validaciones
+  const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
+    value: "",
+    isValid: false,
+  });
+
   const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
     value: "",
     isValid: false,
@@ -531,24 +527,6 @@ const AfiliadoAgregar = (props) => {
   //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
-      //setAfiliadoExiste(false);
-      //console.log("cuilState.isValid", cuilState.isValid);
-      // console.log("nombreState.isValid", nombreState.isValid);
-      // console.log("nacionalidadState.isValid", nacionalidadState.isValid);
-      // console.log("estadoCivilState.isValid", estadoCivilState.isValid);
-      // console.log("fechaNacimiento.isValid", fechaNacimientoState.isValid);
-      // console.log("sexoState.isValid", sexoState.isValid);
-      // console.log("tipoDocumentoState.isValid", tipoDocumentoState.isValid);
-      // console.log("numeroDocumentoState.isValid", numeroDocumentoState.isValid);
-      // console.log("domicilioState.isValid", domicilioState.isValid);
-      // console.log("provinciaState.isValid", provinciaState.isValid);
-
-      // console.log("localidadState.isValid", localidadState.isValid);
-      // console.log("seccionalState.isValid", seccionalState.isValid);
-      // console.log("puestoState.isValid", puestoState.isValid);
-      // console.log("actividadState.isValid", actividadState.isValid);
-      //console.log("emailState.isValid", emailState.isValid);
-
       if (
         cuilState.isValid &&
         nombreState.isValid &&
@@ -571,7 +549,6 @@ const AfiliadoAgregar = (props) => {
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
     };
   }, [
     cuilState,
@@ -591,7 +568,6 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const identifier = setTimeout(() => {
-      console.log("checking empresa.", cuitState.isValid);
       if (cuitState.isValid) {
         setFormularioEmpleadorIsValid(true);
       }
@@ -599,7 +575,6 @@ const AfiliadoAgregar = (props) => {
 
     return () => {
       clearTimeout(identifier);
-      //console.log("cleanup");
     };
   }, [cuitState.isValid]);
   //#endregion
@@ -614,12 +589,10 @@ const AfiliadoAgregar = (props) => {
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
 
   useEffect(() => {
-    console.log("props.accion", props.accion);
-    if (props.accion === "Modifica" || props.accion === "Resuelve") {
+    if (props.accion === "Modifica") {
       setAfiliadoExiste(true);
       setInputsTouched(true);
       if (cuilParam > 0) {
-        //setCUIL(cuilParam);
         dispatchCUIL({ type: "USER_INPUT", value: cuilParam });
       }
     }
@@ -628,16 +601,19 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (cuilState.value && cuilState.isValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj);
         setAfiliadoExiste(true);
-        //setPadronRespuesta(true);
-        //setEstadoSolicitud(afiliadoObj.estadoSolicitudId);
-        setEstadoSolicitudDescripcion(afiliadoObj.estadoSolicitud);
 
         //dispatches para validar los campos
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value:
+            afiliadoObj.fechaIngreso !== null
+              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+              : "",
+        });
         dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
         dispatchActividad({
           type: "USER_INPUT",
@@ -655,13 +631,6 @@ const AfiliadoAgregar = (props) => {
         dispatchSexo({
           type: "USER_INPUT",
           value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
-        });
-        dispatchSeccional({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.seccionalId === 0 || afiliadoObj.refLocalidadId === 0
-              ? ""
-              : afiliadoObj.seccionalId,
         });
         dispatchEstadoCivil({
           type: "USER_INPUT",
@@ -684,6 +653,13 @@ const AfiliadoAgregar = (props) => {
           value:
             afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.refLocalidadId,
         });
+				dispatchSeccional({
+					type: "USER_INPUT",
+					value:
+						afiliadoObj.seccionalId && afiliadoObj.refLocalidadId
+							? afiliadoObj.seccionalId
+							: "",
+				});
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
@@ -708,27 +684,7 @@ const AfiliadoAgregar = (props) => {
         setCUITEmpresa(afiliadoObj.empresaCUIT);
         setRazonSocialEmpresa(afiliadoObj.empresa);
         setEmpresaIdExiste(afiliadoObj.empresaId);
-
-        if (afiliadoObj.estadoSolicitudId === 1) {
-          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Pendiente" ||
-              estado.label === "Activo" ||
-              estado.label === "Observado" ||
-              estado.label === "Rechazado"
-          );
-          //console.log("estados", estadosSolicitudesPendientes);
-          setEstadosSolicitudes(estadosSolicitudesPendientes);
-          setEstadoSolicitudResolver(estadosSolicitudesPendientes[1].value);
-        } else if (afiliadoObj.estadoSolicitudId === 4) {
-          const estadosSolicitudesObservado = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Observado" || estado.label === "Rechazado"
-          );
-          //console.log("estados", estadosSolicitudesObservado);
-          setEstadosSolicitudes(estadosSolicitudesObservado);
-          setEstadoSolicitudResolver(estadosSolicitudesObservado[0].value);
-        }
+				setDocumentacionList(afiliadoObj.documentacion ?? []);
 
         //alert
         if (props.accion === "Agrega") {
@@ -737,9 +693,6 @@ const AfiliadoAgregar = (props) => {
           );
           setOpenDialog(true);
           return;
-        } else if (props.accion === "Resuelve") {
-          console.log("a resolver");
-          setSelectedTab(3);
         }
       };
 
@@ -757,9 +710,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
-        //console.log("empresaObj", empresaObj);
         setPadronEmpresaRespuesta(empresaObj);
-        //setEmpresaId(empresaObj.id);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
         setDomicilioEmpresa(
@@ -784,16 +735,48 @@ const AfiliadoAgregar = (props) => {
   }, [request, afiliadoExiste, empresaIdExiste]);
   //#endregion
 
+	//#region carga ultimaDDJJ
+  const [ultimaDDJJ, setUltimaDDJJ] = useState({ data: {} });
+	useEffect(() => {
+		if (!cuilState.isValid) return;
+		if (!cuitState.isValid) return;
+		let { cuil, cuit, data } = { cuil: cuilState.value, cuit: cuitState.value };
+		if (ultimaDDJJ.cuil === cuil && ultimaDDJJ.cuit === cuit) return;
+		request(
+			{
+				baseURL: "DDJJ",
+				endpoint: `/DDJJUatre/GetCUILUltimoAnio?cuil=${cuil}&cuit=${cuit}`,
+				method: "GET",
+			},
+			async (ok) => {
+				ok.forEach((ddjj) => {
+					if (!data) {
+						data = {};
+						["modalidadTipo", "actividadTipo"].forEach(
+							(k) => (data[k] = ddjj[k])
+						);
+						return;
+					}
+					Object.keys(data).forEach((k) => {
+						if (!data[k]) return;
+						if (data[k] !== ddjj[k]) data[k] = undefined;
+					});
+				});
+			},
+			async (_) => (data = {}),
+			async () => setUltimaDDJJ({ cuil, cuit, data })
+		);
+	}, [request, ultimaDDJJ, cuilState, cuitState]);
+	//#endregion
+
   //#region Tablas para crear afiliado
   useEffect(() => {
     const processActividades = async (actividadesObj) => {
-      //console.log("actividadesObj", actividadesObj);
       const actividadesSelect = actividadesObj
         .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
         .map((actividad) => {
           return { value: actividad.id, label: actividad.descripcion };
         });
-      //console.log("actividades", actividadesSelect);
       setActividades(actividadesSelect);
       dispatchActividad({ type: "USER_INPUT", value: actividadesSelect[0].value });
     };
@@ -810,7 +793,6 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const processPuestos = async (puestosObj) => {
-      //console.log("actividadesObj", puestosObj);
       const puestosSelect = puestosObj
         .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
         .map((puesto) => {
@@ -836,7 +818,6 @@ const AfiliadoAgregar = (props) => {
         .map((sexo) => {
           return { value: sexo.id, label: sexo.descripcion };
         });
-      //console.log("sexosselect", sexosSelect);
       setSexos(sexosSelect);
     };
 
@@ -857,7 +838,6 @@ const AfiliadoAgregar = (props) => {
         .map((nacionalidad) => {
           return { value: nacionalidad.id, label: nacionalidad.descripcion };
         });
-      //console.log("sexosselect", nacionalidadesSelect);
       setNacionalidades(nacionalidadesSelect);
     };
 
@@ -871,103 +851,165 @@ const AfiliadoAgregar = (props) => {
     );
   }, [request]);
 
-  useEffect(() => {
-    const processProvincias = async (provinciasObj) => {
-      const provinciasSelect = provinciasObj
-        .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-        .map((provincia) => {
-          return {
-            value: provincia.id,
-            label: provincia.nombre,
-            idProvinciaAFIP: provincia.idProvinciaAFIP,
-            seccionalIdPorDefecto: provincia.seccionalIdPorDefecto,
-            seccionalDescripcionPorDefecto: provincia.seccionalDescripcionPorDefecto
-          };
-        });
-      //console.log("provinciasSelect", provinciasSelect);      
-      setProvincias(provinciasSelect);
-    };
+	//Provincias
+	useEffect(() => {
+		if (!provincias.loading) return;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: `/Provincia`,
+				method: "GET",
+			},
+			async (ok) =>
+				setProvincias((old) => ({
+					...old,
+					loading: null,
+					data: ok
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({
+							value: r.id,
+							label: r.nombre,
+							idProvinciaAFIP: r.idProvinciaAFIP,
+							seccionalIdPorDefecto: r.seccionalIdPorDefecto,
+							seccionalDescripcionPorDefecto: r.seccionalDescripcionPorDefecto,
+						})),
+					error: null,
+				})),
+			async (error) =>
+				setProvincias((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error,
+				}))
+		);
+	}, [request, provincias]);
 
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Provincia`,
-        method: "GET",
-      },
-      processProvincias
-    );
-  }, [request]);
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (!provinciaState.isValid) return;
+		const provincia = provincias.data.find(
+			(r) => r.value === provinciaState.value
+		);
+		if (provincia == null) return;
+		setSeccionales({
+			data: [
+				{
+					value: provincia.seccionalIdPorDefecto,
+					label: provincia.seccionalDescripcionPorDefecto,
+				},
+			],
+		});
+		setLocalidades((old) => ({
+			...old,
+			loading: "Cargando...",
+			params: { provinciaId: provincia.value },
+		}));
+	}, [provincias, provinciaState]);
 
-  useEffect(() => {
-    if (provinciaState.value !== "") {
-      const processLocalidades = async (localidadesObj) => {
-        const localidadesSelect = localidadesObj
-          .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-          .map((localidad) => {
-            return { value: localidad.id, label: localidad.nombre };
-          });
-        //console.log("seccionalesSelect", seccionalesSelect);
-        setLocalidades(localidadesSelect);
+	// Localidades
+	useEffect(() => {
+		if (!localidades.loading) return;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: [
+					"/RefLocalidad",
+					Object.keys(localidades.params)
+						.map((k) => `${k}=${localidades.params[k]}`)
+						.join("&"),
+				]
+					.filter((r) => r)
+					.join("?"),
+				method: "GET",
+			},
+			async (ok) =>
+				setLocalidades((old) => ({
+					...old,
+					loading: null,
+					data: ok
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ value: r.id, label: r.nombre })),
+					error: null,
+				})),
+			async (err) =>
+				setLocalidades((old) => ({
+					...old,
+					loading: null,
+					data: [],
+					error: err,
+				}))
+		);
+	}, [request, localidades]);
 
-        seccionalSinAsignar.splice(0);
-        const provinciaSeleccionada = provincias.find(
-          (e) => e.value === provinciaState.value
-        );
-        //console.log("provinciaSeleccionada", provinciaSeleccionada);
-        seccionalSinAsignar.push({
-          value: provinciaSeleccionada.seccionalIdPorDefecto,
-          label: provinciaSeleccionada.seccionalDescripcionPorDefecto,
-        });
-      };
+	useEffect(() => {
+		if (localidades.loading) return;
+		if (!localidadState.isValid) return;
+		const localidad = localidades.data.find(r => r.value === localidadState.value);
+		if (localidad == null) return;
+		setSeccionales((old) => ({
+			...old,
+			loading: "Cargando",
+			params: { localidadId: localidad.value },
+		}));
+	}, [localidades, localidadState]);
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/RefLocalidad?ProvinciaId=${provinciaState.value}`,
-          method: "GET",
-        },
-        processLocalidades
-      );
-    }
-  }, [request, provinciaState]);
+	// Seccionales
+	useEffect(() => {
+		if (!seccionales.loading) return;
+		let data = [provincias.data.find((r) => r.value === provinciaState.value)]
+			.filter((r) => r)
+			.map((r) => ({
+				value: r.seccionalIdPorDefecto,
+				label: r.seccionalDescripcionPorDefecto,
+			}));
+		let error = null;
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: [
+					"/Seccional/GetSeccionalesSpecs",
+					Object.keys(seccionales.params)
+						.map((k) => `${k}=${seccionales.params[k]}`)
+						.join("&"),
+				]
+					.filter((r) => r)
+					.join("?"),
+				method: "GET",
+			},
+			async (ok) =>
+				data.push(
+					...ok
+						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+						.map((r) => ({
+							value: r.id,
+							label: `${r.codigo} ${r.descripcion}`,
+						}))
+				),
+			async (err) => (error = err),
+			async () => {
+				setSeccionales((old) => ({
+					...old,
+					loading: null,
+					data,
+					error,
+				}));
+			}
+		);
+	}, [request, seccionales, provinciaState, provincias]);
 
-  useEffect(() => {
-    if (localidadState.value !== "") {           
-      const processSeccionales = async (seccionalesObj) => {
-        const seccionalesSelect = seccionalesObj
-          .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-          .map((seccional) => {
-            return {
-              value: seccional.id,
-              label: `${seccional.codigo} ${seccional.descripcion}`,
-            };
-          });
-        //   console.log("localidadState", localidadState)
-        // console.log("seccionalesSelect", seccionalesSelect);        
-        // console.log("seccionalSinAsignar", seccionalSinAsignar);
-        
-        setSeccionales(
-          seccionalesSelect.length > 0 ? seccionalesSelect : seccionalSinAsignar
-        );
-      };
-
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Seccional/GetSeccionalesSpecs?LocalidadId=${localidadState.value}`,
-          method: "GET",
-        },
-        processSeccionales
-      );
-    }
-  }, [request, localidadState]);
+	useEffect(() => {
+		if (seccionales.loading) return;
+		if (!seccionales.data.length) return;
+		if (seccionales.data.find(r => r.value === seccionalState.value)) return;
+		dispatchSeccional({ type: "USER_INPUT", value: seccionales.data[0].value });
+	}, [seccionales, seccionalState, dispatchSeccional]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
       const estadosCivilesSelect = estadosCivilesObj.map((estadoCivil) => {
         return { value: estadoCivil.id, label: estadoCivil.descripcion };
       });
-      //console.log("seccionalesSelect", seccionalesSelect);
       setEstadosCiviles(estadosCivilesSelect);
     };
 
@@ -986,7 +1028,6 @@ const AfiliadoAgregar = (props) => {
       const tipoDocumentoSelect = tiposDocumentosObj.map((tipoDocumento) => {
         return { value: tipoDocumento.id, label: tipoDocumento.descripcion };
       });
-      //console.log("seccionalesSelect", seccionalesSelect);
       setTiposDocumentos(tipoDocumentoSelect);
     };
 
@@ -1016,165 +1057,163 @@ const AfiliadoAgregar = (props) => {
     setAfiliadoProcesando(true);
     //#region Insertar Sol
     if (props.accion === "Agrega" && !afiliadoExiste) {
-      const empresa = {
-        cuit: cuitEmpresa,
-        razonSocial: padronEmpresaRespuesta
-          ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
-          : "",
-        claveTipo: padronEmpresaRespuesta.tipoClave,
-        claveEstado: padronEmpresaRespuesta.estadoClave,
-        claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
-        actividadPrincipalDescripcion:
-          padronEmpresaRespuesta.descripcionActividadPrincipal,
-        actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
-        actividadPrincipalPeriodo:
-          padronEmpresaRespuesta.periodoActividadPrincipal,
-        contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
-        cierreMes: padronEmpresaRespuesta.mesCierre,
-        email: correoEmpresa,
-        telefono: telefonoEmpresa,
-        domicilioCalle: "string",
-        domicilioNumero: 0,
-        domicilioPiso: "string",
-        domicilioDpto: "string",
-        domicilioSector: "string",
-        domicilioTorre: "string",
-        domicilioManzana: "string",
-        domicilioProvinciasId: 0,
-        domicilioLocalidadesId: 0,
-        domicilioCodigoPostal: 0,
-        domicilioCPA: "string",
-        domicilioTipo: "string",
-        domicilioEstado: "string",
-        domicilioDatoAdicional: "string",
-        domicilioDatoAdicionalTipo: "string",
-        ciiU1: padronEmpresaRespuesta.ciiU1,
-        ciiU2: padronEmpresaRespuesta.ciiU2,
-        ciiU3: padronEmpresaRespuesta.ciiU3,
-      };
+			const empresa = {
+				cuit: cuitEmpresa,
+				razonSocial: padronEmpresaRespuesta
+					? padronEmpresaRespuesta?.razonSocial ??
+					  `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+					: "",
+				claveTipo: padronEmpresaRespuesta.tipoClave,
+				claveEstado: padronEmpresaRespuesta.estadoClave,
+				claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
+				actividadPrincipalDescripcion:
+					padronEmpresaRespuesta.descripcionActividadPrincipal,
+				actividadPrincipalId: padronEmpresaRespuesta.idActividadPrincipal,
+				actividadPrincipalPeriodo:
+					padronEmpresaRespuesta.periodoActividadPrincipal,
+				contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
+				cierreMes: padronEmpresaRespuesta.mesCierre,
+				email: correoEmpresa,
+				telefono: telefonoEmpresa,
+				domicilioCalle: "string",
+				domicilioNumero: 0,
+				domicilioPiso: "string",
+				domicilioDpto: "string",
+				domicilioSector: "string",
+				domicilioTorre: "string",
+				domicilioManzana: "string",
+				domicilioProvinciasId: 0,
+				domicilioLocalidadesId: 0,
+				domicilioCodigoPostal: 0,
+				domicilioCPA: "string",
+				domicilioTipo: "string",
+				domicilioEstado: "string",
+				domicilioDatoAdicional: "string",
+				domicilioDatoAdicionalTipo: "string",
+				ciiU1: padronEmpresaRespuesta.ciiU1,
+				ciiU2: padronEmpresaRespuesta.ciiU2,
+				ciiU3: padronEmpresaRespuesta.ciiU3,
+			};
 
-      const domicilioRealAFIP = padronRespuesta.domicilios.find(
-        (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
-      );
-      const nuevoAfiliado = {
-        cuil: +cuilState.value,
-        nombre: `${padronRespuesta?.apellido ?? ""} ${
-          padronRespuesta?.nombre ?? ""
-        }`,
-        puestoId: +puestoState.value,
-        fechaIngreso: null,
-        fechaEgreso: null,
-        nacionalidadId: +nacionalidadState.value,
-        //empresaId: +empresaId,
-        seccionalId: +seccionalState.value,
-        sexoId: +sexoState.value,
-        tipoDocumentoId: +tipoDocumentoState.value,
-        documento: +numeroDocumentoState.value,
-        actividadId: +actividadState.value,
-        //estadoSolicitud: afiliado.estadoSolicitud,
-        estadoSolicitudId:
-          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
-            ? 2
-            : 1,
-        estadoSolicitudObservaciones:
-          ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM"
-            ? "Validación Automática"
-            : null,
-        estadoCivilId: +estadoCivilState.value,
-        refLocalidadId: +localidadState.value,
-        domicilio: domicilioState.value,
-        telefono: telefonoState.value,
-        correo: emailState.value,
-        celular: "",
-        fechaNacimiento: fechaNacimientoState.value,
-        afipcuil: +cuilState.value,
-        afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
-        afipNombre: padronRespuesta?.nombre ?? "",
-        afipApellido: padronRespuesta?.apellido ?? "",
-        afipRazonSocial: "",
-        afipTipoDocumento: padronRespuesta?.tipoDocumento,
-        afipNumeroDocumento: padronRespuesta?.numeroDocumento,
-        afipTipoPersona: padronRespuesta?.tipoPersona,
-        afipTipoClave: padronRespuesta?.tipoClave,
-        afipEstadoClave: padronRespuesta?.estadoClave,
-        afipClaveInactivaAsociada: 0,
-        afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
-        afipFormaJuridica: padronRespuesta?.formaJuridica,
-        afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
-        afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
-        afipPeriodoActividadPrincipal:
-          padronRespuesta?.periodoActividadPrincipal,
-        afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
-        afipMesCierre: padronRespuesta?.mesCierre,
-        afipDomicilioDireccion: domicilioRealAFIP?.direccion,
-        afipDomicilioCalle: domicilioRealAFIP?.calle,
-        afipDomicilioNumero: domicilioRealAFIP?.numero,
-        afipDomicilioPiso: domicilioRealAFIP?.piso,
-        afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
-        afipDomicilioSector: domicilioRealAFIP?.sector,
-        afipDomicilioTorre: domicilioRealAFIP?.torre,
-        afipDomicilioManzana: domicilioRealAFIP?.manzana,
-        afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
-        afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
-        afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
-        afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
-        afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
-        afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
-        afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
-        afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
-        empresa: empresa,
-				documentacion: documentacionList,
-      };
+			const validaAutomatica =
+				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
+				(padronEmpresaRespuesta?.ciiU1EsRural ||
+					padronEmpresaRespuesta?.ciiU2EsRural ||
+					padronEmpresaRespuesta?.ciiU3EsRural);
+			
+			const domicilioRealAFIP = padronRespuesta.domicilios.find(
+				(domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+			);
+			const nuevoAfiliado = {
+				cuil: +cuilState.value,
+				nombre: `${padronRespuesta?.apellido ?? ""} ${
+					padronRespuesta?.nombre ?? ""
+				}`,
+				puestoId: +puestoState.value,
+				fechaIngreso: fechaIngresoState.value,
+				fechaEgreso: null,
+				nacionalidadId: +nacionalidadState.value,
+				//empresaId: +empresaId,
+				seccionalId: +seccionalState.value,
+				sexoId: +sexoState.value,
+				tipoDocumentoId: +tipoDocumentoState.value,
+				documento: +numeroDocumentoState.value,
+				actividadId: +actividadState.value,
+				//estadoSolicitud: afiliado.estadoSolicitud,
+				estadoSolicitudId: validaAutomatica ? 2 : 1,
+				estadoSolicitudObservaciones: validaAutomatica
+					? "Validación Automática"
+					: null,
+				estadoCivilId: +estadoCivilState.value,
+				refLocalidadId: +localidadState.value,
+				domicilio: domicilioState.value,
+				telefono: telefonoState.value,
+				correo: emailState.value,
+				celular: "",
+				fechaNacimiento: fechaNacimientoState.value,
+				afipcuil: +cuilState.value,
+				afipFechaNacimiento: padronRespuesta?.fechaNacimiento,
+				afipNombre: padronRespuesta?.nombre ?? "",
+				afipApellido: padronRespuesta?.apellido ?? "",
+				afipRazonSocial: "",
+				afipTipoDocumento: padronRespuesta?.tipoDocumento,
+				afipNumeroDocumento: padronRespuesta?.numeroDocumento,
+				afipTipoPersona: padronRespuesta?.tipoPersona,
+				afipTipoClave: padronRespuesta?.tipoClave,
+				afipEstadoClave: padronRespuesta?.estadoClave,
+				afipClaveInactivaAsociada: 0,
+				afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+				afipFormaJuridica: padronRespuesta?.formaJuridica,
+				afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
+				afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
+				afipPeriodoActividadPrincipal:
+					padronRespuesta?.periodoActividadPrincipal,
+				afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
+				afipMesCierre: padronRespuesta?.mesCierre,
+				afipDomicilioDireccion: domicilioRealAFIP?.direccion,
+				afipDomicilioCalle: domicilioRealAFIP?.calle,
+				afipDomicilioNumero: domicilioRealAFIP?.numero,
+				afipDomicilioPiso: domicilioRealAFIP?.piso,
+				afipDomicilioDepto: domicilioRealAFIP?.oficinaDptoLocal,
+				afipDomicilioSector: domicilioRealAFIP?.sector,
+				afipDomicilioTorre: domicilioRealAFIP?.torre,
+				afipDomicilioManzana: domicilioRealAFIP?.manzana,
+				afipDomicilioLocalidad: domicilioRealAFIP?.localidad,
+				afipDomicilioProvincia: domicilioRealAFIP?.descripcionProvincia,
+				afipDomicilioIdProvincia: domicilioRealAFIP?.idProvincia,
+				afipDomicilioCodigoPostal: domicilioRealAFIP?.codigoPostal,
+				afipDomicilioTipo: domicilioRealAFIP?.tipoDomicilio,
+				afipDomicilioEstado: domicilioRealAFIP?.estadoDomicilio,
+				afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
+				afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
+				empresa: empresa,
+				documentacion: documentacionList.map((r) => ({
+					...r,
+					id: 0,
+					entidadTipo: "A",
+					entidadId: 0,
+				})),
+				};
 
-      console.log("POST", nuevoAfiliado);
-      const afiliadoAgregar = async (afiliadoResponseObj) => {
-        // console.log({
-        // 	afiliadosObj: afiliadoResponseObj,
-        // 	documentacionList: documentacionList,
-        // });
+			console.log("POST", nuevoAfiliado);
+			const afiliadoAgregar = async (afiliadoResponseObj) => {
 
-        setNuevoAfiliadoResponse({...nuevoAfiliado,id:afiliadoResponseObj,estadoSolicitud: "Pendiente"});
-        console.log('Afiliado agregado',nuevoAfiliadoResponse);
-        setOpenDialog(true);
-        //Si se incorpora automaticamente
-        if (ultimaDDJJ.condicion === "RA" || ultimaDDJJ.condicion === "RM") {
-          //setResolverSolicitudAfiliadoResponse(1);
-          setDialogTexto(AFILIADO_AGREGADO_ACTIVO);
-        }
-        //pasa a resolver solicitud
-        else {
-          setDialogTexto(AFILIADO_AGREGADO);
-          const estadosSolicitudesPendientes = props.estadosSolicitudes.filter(
-            (estado) =>
-              estado.label === "Pendiente" ||
-              estado.label === "Activo" ||
-              estado.label === "Observado" ||
-              estado.label === "Rechazado"
-          );
+				setNuevoAfiliadoResponse({
+					...nuevoAfiliado,
+					id: afiliadoResponseObj,
+					estadoSolicitud: props.estadosSolicitudes.find(
+						(r) => r.value === nuevoAfiliado.estadoSolicitudId
+					)?.label,
+					empresaCUIT: cuitEmpresa,
+				});
+				setOpenDialog(true);
+				//Si se incorpora automaticamente
+				if (nuevoAfiliado.estadoSolicitudId === 2) {
+					//setResolverSolicitudAfiliadoResponse(1);
+					setDialogTexto(AFILIADO_AGREGADO_ACTIVO);
+				}
+				//pasa a resolver solicitud
+				else {
+					setDialogTexto(AFILIADO_AGREGADO);
+				}
+			};
 
-          setEstadoSolicitudResolver(2);
-          setEstadosSolicitudes(estadosSolicitudesPendientes);
-          setSelectedTab(3);
-        }
-      };
+			request(
+				{
+					baseURL: "Afiliaciones",
+					endpoint: `/Afiliado`,
+					method: "POST",
+					body: nuevoAfiliado,
+					headers: {
+						"Content-Type": "application/json",
+					},
+				},
+				afiliadoAgregar
+			);
+			//#endregion
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado`,
-          method: "POST",
-          body: nuevoAfiliado,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        afiliadoAgregar
-      );
-      //#endregion
-
-      //#region Update Solicitud
-    } else if (
+			//#region Update Solicitud
+		} else if (
       props.accion === "Modifica" ||
       (props.accion === "Agrega" && afiliadoExiste)
     ) {
@@ -1182,98 +1221,6 @@ const AfiliadoAgregar = (props) => {
     }
     setAfiliadoProcesando(false);
     //#endregion
-  };
-  //#endregion
-
-  //#region Resolver Solciitud Afiliado
-  const resolverSolicitudHandler = (event) => {
-    //console.log("id", nuevoAfiliadoObservadoResponse);
-    event.preventDefault();
-
-    //Estados Observado y Rechazado llevan comentario obligatorio
-    if (
-      (afiliado?.estadoSolicitudId === 4 || afiliado?.estadoSolicitud === 5) &&
-      resolverSolicitudObs === ""
-    ) {
-      setDialogTexto("Debe completar el campo Observaciones");
-      setOpenDialog(true);
-      return;
-    }
-
-    //Controles
-    console.log("afiliado", afiliado);
-    console.log("estadoSolicitudResolver", estadoSolicitudResolver);
-    if (afiliado?.estadoSolicitudId === estadoSolicitudResolver) {
-      setDialogTexto(
-        `El estado seleccionado es el mismo que posee actualmente el afiliado`
-      );
-      setOpenDialog(true);
-
-      return;
-    }
-
-    const patchAfiliado = [
-      {
-        path: "EstadoSolicitudId",
-        op: "replace",
-        value: estadoSolicitudResolver,
-      },
-      {
-        path: "FechaIngreso",
-        op: "replace",
-        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
-      },
-      {
-        path: "NroAfiliado",
-        op: "replace",
-        value: "0",
-      },
-      {
-        path: "EstadoSolicitudObservaciones",
-        op: "replace",
-        value: resolverSolicitudObs,
-      },
-      {
-        path: "FechaEgreso",
-        op: "replace",
-        value: null, //moment(resolverSolicitudFechaIngreso).format("yyyy-MM-DD"),
-      },
-    ];
-
-    const resolverSolicitudAfiliado = async (
-      resolverSolicitudAfiliadoResponse
-    ) => {
-      if (resolverSolicitudAfiliadoResponse) {
-        console.log("props.estadosSolicitudes", props.estadosSolicitudes);
-        const estadoSolicitudSel = props.estadosSolicitudes.find(
-          (estadoSolicitudSel) =>
-            estadoSolicitudSel.value === +estadoSolicitudResolver
-        );
-        console.log("estadoSolicitudSel", estadoSolicitudSel);
-        setDialogTexto(
-          `${AFILIADO_SOLICITUDRESUELTA} ${estadoSolicitudSel.label}!`
-        );
-        setOpenDialog(true);
-        setNuevoAfiliadoResponse({...nuevoAfiliadoResponse,  estadoSolicitud:  estadoSolicitudSel.label})
-
-        if (+estadoSolicitudResolver === 2) {
-          setShowImprimirLiquidacion(true);
-        }
-      }
-    };
-
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Afiliado?Id=${nuevoAfiliadoResponse.id}`,
-        method: "PATCH",
-        body: patchAfiliado,
-        headers: {
-          "Content-Type": "application/json-patch+json",
-        },
-      },
-      resolverSolicitudAfiliado
-    );
   };
   //#endregion
 
@@ -1294,7 +1241,19 @@ const AfiliadoAgregar = (props) => {
       setCuilValidado(true);
       setPadronRespuesta(padronObj);
       //Solo actualizo los datos principales si estoy agregando solicitud
+      // fecha ingreso
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const year = today.getFullYear();
+      const day = today.getDate();
+      const fechaIngreso = year + "-" + month + "-" + day;
+      console.log("fechaIngreso", moment(fechaIngreso).format("yyyy-MM-DD"));
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(fechaIngreso).format("yyyy-MM-DD"),
+      });
       let domicilioReal = "";
+      
       if (props.accion === "Agrega") {
         dispatchNombre({
           type: "USER_INPUT",
@@ -1336,7 +1295,7 @@ const AfiliadoAgregar = (props) => {
         })
 
         //provincia
-        const provincia = provincias.find(
+        const provincia = provincias.data.find(
           (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
         );
         dispatchProvincia({ 
@@ -1346,13 +1305,10 @@ const AfiliadoAgregar = (props) => {
 
         //localidad
         const processLocalidades = async (localidadesObj) => {
-          //console.log("localidades", localidadesObj);
-          //console.log("localidad", localidadesObj[0].id);
           const localidad = localidadesObj.find(
             (localidad) =>
               localidad.codPostal === parseInt(domicilioReal.codigoPostal)
           );
-          //console.log("localidad", localidad)
           dispatchLocalidad({
             type: "USER_INPUT",
             value: localidadesObj[0].id ?? "",
@@ -1373,7 +1329,6 @@ const AfiliadoAgregar = (props) => {
       }
 
       if (props.accion === "Modifica") {
-        //console.log("va a mandar padron", padronObj)
         if (!fechaNacimientoState.isValid) {
           dispatchFechaNacimiento({
             type: "USER_INPUT",
@@ -1402,7 +1357,6 @@ const AfiliadoAgregar = (props) => {
   const validarEmpresaCUITHandler = () => {
     setCUITLoading(true);
     const processConsultaPadron = async (padronObj) => {
-      //console.log("padronObj", padronObj);
       setCuitValidado(true);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
@@ -1419,9 +1373,6 @@ const AfiliadoAgregar = (props) => {
               padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
-      // setTelefonoEmpresa()
-      // setCorreoEmpresa()
-      // setLugarTrabajoEmpresa()
       //ciius
       setCUITLoading(false);
     };
@@ -1439,8 +1390,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
-    //console.log("objetoSeleccionadp", value);
-    //console.log("id", name);
     switch (name) {
       case "actividadSelect":
         dispatchActividad({ type: "USER_INPUT", value: value });
@@ -1459,6 +1408,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "seccionalSelect":
+				if(seccionalState.value === value) break;
         dispatchSeccional({ type: "USER_INPUT", value: value });
         break;
 
@@ -1471,20 +1421,16 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "provinciaSelect":
+				if(provinciaState.value === value) break;
         dispatchProvincia({ type: "USER_INPUT", value: value });
         dispatchLocalidad({ type: "USER_INPUT", value: "" });
         dispatchSeccional({ type: "USER_INPUT", value: "" });
         break;
 
       case "localidadSelect":
-        //console.log("selectLocalidad", value);
+				if(localidadState.value === value) break;
         dispatchLocalidad({ type: "USER_INPUT", value: value });
-        break;
-
-      case "estadoSolicitudSelect":
-        console.log("estadoSolicitudElegido", value);
-        setEstadoSolicitudResolver(value);
-        setResolverSolicitudFechaIngreso(value === 2 ? moment(new Date()).format("yyyy-MM-DD") : "")
+        dispatchSeccional({ type: "USER_INPUT", value: "" });
         break;
 
       default:
@@ -1496,6 +1442,9 @@ const AfiliadoAgregar = (props) => {
   //#region handles Inputs
   const handleInputChange = (value, id) => {
     switch (id) {
+      case "fechaIngreso":
+        dispatchFechaIngreso({ type: "USER_INPUT", value: value });
+        break;
       case "cuil":
         setCuilValidado(false);
         setAfiliadoExiste(false);
@@ -1528,7 +1477,6 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "fechaNacimiento":
-        //console.log('fecha', value)
         dispatchFechaNacimiento({ type: "USER_INPUT", value: value });
         break;
 
@@ -1569,14 +1517,6 @@ const AfiliadoAgregar = (props) => {
 
       case "correoEmpresa":
         setCorreoEmpresa(value);
-        break;
-
-      case "resolverSolicitudObs":
-        setResolverSolicitudObs(value);
-        break;
-
-      case "resolverSolicitudFechaIngreso":
-        setResolverSolicitudFechaIngreso(moment(value).format("yyyy-MM-DD"));
         break;
 
       default:
@@ -1626,7 +1566,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle DDJJ
   const handleSeleccionDDJJ = (row) => {
-    //console.log(row.cuit);
     setCUITEmpresa(row.cuit);
     dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
   };
@@ -1640,7 +1579,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region Functions
   const deshabilitarBotonValidarCUIL = () => {
-    //console.log("cuilIsValid",cuilIsValid)
     if (!cuilState.isValid) {
       return true;
     }
@@ -1649,7 +1587,6 @@ const AfiliadoAgregar = (props) => {
   };
 
   const InputDisabled = (input) => {
-    //console.log("InputDisable")
     if (input !== "cuil" && cuilState.value === "") {
       return true;
     }
@@ -1671,60 +1608,38 @@ const AfiliadoAgregar = (props) => {
   };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
-    if (props.accion === "Agrega") {
-      if (afiliadoExiste) {
-        return true;
-      }
-    } else if (props.accion === "Modifica") {
-      if (!cuilValidado || !cuitValidado) {
-        return true;
-      }
-    }
-    console.log("selectedTab", selectedTab)
-    if (selectedTab === 3){
-      return true;
-    } 
-  };
+		let disable = false;
+
+		switch (props.accion) {
+			case "Agrega": {
+				if (afiliadoExiste) disable = true;
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+
+		// Debe cargar un cuil valido y un cuit valido para continuar
+		if (!cuilState.isValid || !cuitState.isValid) disable = true;
+		// Deshabilitar hasta comprobar ddjj
+		if (ultimaDDJJ.data == null) disable = true;
+
+		return disable;
+	};
 
   const AgregarModificarAfiliadoTitulo = () => {
-    if (props.accion === "Agrega") {
-      if (afiliadoExiste) {
-        return "MODIFICA AFILIADO";
-      }
-      return "AGREGA SOLICITUD";
-    } else if (props.accion === "Modifica") {
-      return "MODIFICA AFILIADO";
-    }
-
+		if (
+			props.accion === "Modifica" ||
+			(props.accion === "Agrega" && afiliadoExiste)
+		)
+			return "MODIFICA AFILIADO";
+		
     return "AGREGA SOLICITUD"
   };
 
-  const handleResuelveSolicitudDisable = () => {
-    if (props.accion === "Resuelve") {
-      //console.log("estadoSolicitud", afiliado?.estadoSolicitudId);
-      if (afiliado?.estadoSolicitudId !== 1 || afiliado?.estadoSolicitudId !== 4){
-        return false;
-      }
-    } else if (props.accion === "Agrega") {
-      if (afiliadoExiste) {
-        return true;
-      }
-      if (nuevoAfiliadoResponse) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleOnDeclaracionesGeneradas = (ddjjs) => {
-    if (ddjjs?.length) {
-      setUltimaDDJJ(ddjjs[0]);
-    }
-    const ultimaDDJJ = ddjjs[0];
-    console.log("ultimaDDJJ", ultimaDDJJ);
-  };
   //#endregion
-
+	
   //#region Funciones actualizacion
   const ActualizaDatosAfiliado = () => {
     const empresa = {
@@ -1767,169 +1682,171 @@ const AfiliadoAgregar = (props) => {
 
     const domicilioRealAFIP = padronRespuesta?.domicilios.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
     );
+		
     const afiliadoModificado = {
-      id: nuevoAfiliadoResponse.id,
-      cuil: +cuilState.value,
-      nroAfiliado: +afiliado.nroAfiliado,
-      nombre: nombreState.value,
-      puestoId: +puestoState.value,
-      fechaIngreso: afiliado.fechaIngreso,
-      fechaEgreso: afiliado.fechaEgreso,
-      nacionalidadId: +nacionalidadState.value,
-      //empresaCUIT: +cuitEmpresa,
-      seccionalId: +seccionalState.value,
-      sexoId: +sexoState.value,
-      tipoDocumentoId: +tipoDocumentoState.value,
-      documento: +numeroDocumentoState.value,
-      actividadId: +actividadState.value,
-      estadoSolicitud: afiliado.estadoSolicitud,
-      estadoSolicitudId: +afiliado.estadoSolicitudId,
-      estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
-      estadoCivilId: +estadoCivilState.value,
-      refLocalidadId: +localidadState.value,
-      domicilio: domicilioState.value,
-      telefono: telefonoState.value,
-      correo: emailState.value,
-      celular: "",
-      fechaNacimiento: fechaNacimientoState.value,
-      afipcuil: +cuilState.value,
-      afipFechaNacimiento:
-        padronRespuesta !== null
-          ? padronRespuesta.fechaNacimiento
-          : afiliado.afipFechaFallecimiento,
-      afipNombre:
-        padronRespuesta !== null ? padronRespuesta.nombre : afiliado.afipNombre,
-      afipApellido:
-        padronRespuesta !== null
-          ? padronRespuesta.apellido
-          : afiliado.afipApellido,
-      afipRazonSocial: "",
-      afipTipoDocumento:
-        padronRespuesta !== null
-          ? padronRespuesta.tipoDocumento
-          : afiliado.afipTipoDocumento,
-      afipNumeroDocumento:
-        padronRespuesta !== null
-          ? padronRespuesta.numeroDocumento
-          : afiliado.afipNumeroDocumento,
-      afipTipoPersona:
-        padronRespuesta !== null
-          ? padronRespuesta.tipoPersona
-          : afiliado.afipTipoPersona,
-      afipTipoClave:
-        padronRespuesta !== null
-          ? padronRespuesta.tipoClave
-          : afiliado.afipTipoClave,
-      afipEstadoClave:
-        padronRespuesta !== null
-          ? padronRespuesta.estadoClave
-          : afiliado.afipEstadoClave,
-      afipClaveInactivaAsociada:
-        padronRespuesta !== null
-          ? padronRespuesta.claveInactivaAsociada
-          : afiliado.afipClaveInactivaAsociada,
-      afipFechaFallecimiento:
-        padronRespuesta !== null
-          ? padronRespuesta.fechaFallecimiento
-          : afiliado.afipFechaFallecimiento,
-      afipFormaJuridica:
-        padronRespuesta !== null
-          ? padronRespuesta.formaJuridica
-          : afiliado.afip,
-      afipActividadPrincipal:
-        padronRespuesta !== null
-          ? padronRespuesta.descripcionActividadPrincipal
-          : afiliado.afip,
-      afipIdActividadPrincipal:
-        padronRespuesta !== null
-          ? padronRespuesta.idActividadPrincipal
-          : afiliado.afip,
-      afipPeriodoActividadPrincipal:
-        padronRespuesta !== null
-          ? padronRespuesta.periodoActividadPrincipal
-          : afiliado.afip,
-      afipFechaContratoSocial:
-        padronRespuesta !== null
-          ? padronRespuesta.afipFechaContratoSocial
-          : afiliado.afip,
-      afipMesCierre:
-        padronRespuesta !== null ? padronRespuesta.mesCierre : afiliado.afip,
-      afipDomicilioDireccion:
-        padronRespuesta !== null
-          ? `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`
-          : afiliado.afipDomicilioDireccion,
-      afipDomicilioCalle:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.calle
-          : afiliado.afipDomicilioCalle,
-      afipDomicilioNumero:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.numero
-          : afiliado.afipDomicilioNumero,
-      afipDomicilioPiso:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.piso
-          : afiliado.afipDomicilioPiso,
-      afipDomicilioDepto:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.depto
-          : afiliado.afipDomicilioDepto,
-      afipDomicilioSector:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.sector
-          : afiliado.afipDomicilioSector,
-      afipDomicilioTorre:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.torre
-          : afiliado.afipDomicilioTorre,
-      afipDomicilioManzana:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.manzana
-          : afiliado.afipDomicilioManzana,
-      afipDomicilioLocalidad:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.localidad
-          : afiliado.afipDomicilioLocalidad,
-      afipDomicilioProvincia:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.provincia
-          : afiliado.afipDomicilioProvincia,
-      afipDomicilioIdProvincia:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.idProvincia
-          : afiliado.afipDomicilioIdProvincia,
-      afipDomicilioCodigoPostal:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.codigoPostal
-          : afiliado.afipDomicilioCodigoPostal,
-      afipDomicilioTipo:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.tipo
-          : afiliado.afipDomicilioTipo,
-      afipDomicilioEstado:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.estado
-          : afiliado.afipDomicilioEstado,
-      afipDomicilioDatoAdicional:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.datoAdicional
-          : afiliado.afipDomicilioDatoAdicional,
-      afipDomicilioTipoDatoAdicional:
-        padronRespuesta !== null
-          ? domicilioRealAFIP.tipoDatoAdicional
-          : afiliado.afipDomicilioTipoDatoAdicional,
-      empresa: empresa,
-			documentacion: documentacionList,
-    };
+			id: nuevoAfiliadoResponse.id,
+			cuil: +cuilState.value,
+			nroAfiliado: +afiliado.nroAfiliado,
+			nombre: nombreState.value,
+			puestoId: +puestoState.value,
+			fechaIngreso: fechaIngresoState.value,
+			fechaEgreso: afiliado.fechaEgreso,
+			nacionalidadId: +nacionalidadState.value,
+			//empresaCUIT: +cuitEmpresa,
+			seccionalId: +seccionalState.value,
+			sexoId: +sexoState.value,
+			tipoDocumentoId: +tipoDocumentoState.value,
+			documento: +numeroDocumentoState.value,
+			actividadId: +actividadState.value,
+			estadoSolicitud: afiliado.estadoSolicitud,
+			estadoSolicitudId: +afiliado.estadoSolicitudId,
+			estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
+			estadoCivilId: +estadoCivilState.value,
+			refLocalidadId: +localidadState.value,
+			domicilio: domicilioState.value,
+			telefono: telefonoState.value,
+			correo: emailState.value,
+			celular: "",
+			fechaNacimiento: fechaNacimientoState.value,
+			afipcuil: +cuilState.value,
+			afipFechaNacimiento:
+				padronRespuesta !== null
+					? padronRespuesta.fechaNacimiento
+					: afiliado.afipFechaFallecimiento,
+			afipNombre:
+				padronRespuesta !== null ? padronRespuesta.nombre : afiliado.afipNombre,
+			afipApellido:
+				padronRespuesta !== null
+					? padronRespuesta.apellido
+					: afiliado.afipApellido,
+			afipRazonSocial: "",
+			afipTipoDocumento:
+				padronRespuesta !== null
+					? padronRespuesta.tipoDocumento
+					: afiliado.afipTipoDocumento,
+			afipNumeroDocumento:
+				padronRespuesta !== null
+					? padronRespuesta.numeroDocumento
+					: afiliado.afipNumeroDocumento,
+			afipTipoPersona:
+				padronRespuesta !== null
+					? padronRespuesta.tipoPersona
+					: afiliado.afipTipoPersona,
+			afipTipoClave:
+				padronRespuesta !== null
+					? padronRespuesta.tipoClave
+					: afiliado.afipTipoClave,
+			afipEstadoClave:
+				padronRespuesta !== null
+					? padronRespuesta.estadoClave
+					: afiliado.afipEstadoClave,
+			afipClaveInactivaAsociada:
+				padronRespuesta !== null
+					? padronRespuesta.claveInactivaAsociada
+					: afiliado.afipClaveInactivaAsociada,
+			afipFechaFallecimiento:
+				padronRespuesta !== null
+					? padronRespuesta.fechaFallecimiento
+					: afiliado.afipFechaFallecimiento,
+			afipFormaJuridica:
+				padronRespuesta !== null
+					? padronRespuesta.formaJuridica
+					: afiliado.afip,
+			afipActividadPrincipal:
+				padronRespuesta !== null
+					? padronRespuesta.descripcionActividadPrincipal
+					: afiliado.afip,
+			afipIdActividadPrincipal:
+				padronRespuesta !== null
+					? padronRespuesta.idActividadPrincipal
+					: afiliado.afip,
+			afipPeriodoActividadPrincipal:
+				padronRespuesta !== null
+					? padronRespuesta.periodoActividadPrincipal
+					: afiliado.afip,
+			afipFechaContratoSocial:
+				padronRespuesta !== null
+					? padronRespuesta.afipFechaContratoSocial
+					: afiliado.afip,
+			afipMesCierre:
+				padronRespuesta !== null ? padronRespuesta.mesCierre : afiliado.afip,
+			afipDomicilioDireccion:
+				padronRespuesta !== null
+					? `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`
+					: afiliado.afipDomicilioDireccion,
+			afipDomicilioCalle:
+				padronRespuesta !== null
+					? domicilioRealAFIP.calle
+					: afiliado.afipDomicilioCalle,
+			afipDomicilioNumero:
+				padronRespuesta !== null
+					? domicilioRealAFIP.numero
+					: afiliado.afipDomicilioNumero,
+			afipDomicilioPiso:
+				padronRespuesta !== null
+					? domicilioRealAFIP.piso
+					: afiliado.afipDomicilioPiso,
+			afipDomicilioDepto:
+				padronRespuesta !== null
+					? domicilioRealAFIP.depto
+					: afiliado.afipDomicilioDepto,
+			afipDomicilioSector:
+				padronRespuesta !== null
+					? domicilioRealAFIP.sector
+					: afiliado.afipDomicilioSector,
+			afipDomicilioTorre:
+				padronRespuesta !== null
+					? domicilioRealAFIP.torre
+					: afiliado.afipDomicilioTorre,
+			afipDomicilioManzana:
+				padronRespuesta !== null
+					? domicilioRealAFIP.manzana
+					: afiliado.afipDomicilioManzana,
+			afipDomicilioLocalidad:
+				padronRespuesta !== null
+					? domicilioRealAFIP.localidad
+					: afiliado.afipDomicilioLocalidad,
+			afipDomicilioProvincia:
+				padronRespuesta !== null
+					? domicilioRealAFIP.provincia
+					: afiliado.afipDomicilioProvincia,
+			afipDomicilioIdProvincia:
+				padronRespuesta !== null
+					? domicilioRealAFIP.idProvincia
+					: afiliado.afipDomicilioIdProvincia,
+			afipDomicilioCodigoPostal:
+				padronRespuesta !== null
+					? domicilioRealAFIP.codigoPostal
+					: afiliado.afipDomicilioCodigoPostal,
+			afipDomicilioTipo:
+				padronRespuesta !== null
+					? domicilioRealAFIP.tipo
+					: afiliado.afipDomicilioTipo,
+			afipDomicilioEstado:
+				padronRespuesta !== null
+					? domicilioRealAFIP.estado
+					: afiliado.afipDomicilioEstado,
+			afipDomicilioDatoAdicional:
+				padronRespuesta !== null
+					? domicilioRealAFIP.datoAdicional
+					: afiliado.afipDomicilioDatoAdicional,
+			afipDomicilioTipoDatoAdicional:
+				padronRespuesta !== null
+					? domicilioRealAFIP.tipoDatoAdicional
+					: afiliado.afipDomicilioTipoDatoAdicional,
+			empresa: empresa,
+			documentacion: documentacionList.map((r) => ({
+				...r,
+				id: r.id ?? 0,
+				entidadTipo: "A",
+				entidadId: nuevoAfiliadoResponse.id,
+			})),
+		};
     console.log("afiliado modificado", afiliadoModificado);
-    // console.log("padronRespuesta", padronRespuesta);
-    // console.log("afiliado", afiliado)
     const afiliadoModificar = async (afiliadoModificarResponseObj) => {
-      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
       setAfiliadoModificado(afiliadoModificado);
       setDialogTexto(AFILIADO_ACTUALIZADO);
       setOpenDialog(true);
-      // }
     };
 
     request(
@@ -1950,10 +1867,8 @@ const AfiliadoAgregar = (props) => {
     const patchModelo = ActualizarDatosAfip(padronObj);
     console.log("patchModelo", patchModelo);
     const actualizarDatosAfip = async () => {
-      //console.log("afiliadoModificarResponseObj", afiliadoModificarResponseObj);
       setDialogTexto(AFILIADO_DATOSAFIPACTUALIZADO);
       setOpenDialog(true);
-      // }
     };
 
     request(
@@ -1980,14 +1895,16 @@ const AfiliadoAgregar = (props) => {
       }
    
     setOpenDialog(false);
-    //setDialogTexto("");
     if (
-      dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
-      dialogTexto === AFILIADO_ACTUALIZADO ||
-      dialogTexto === AFILIADO_AGREGADO_ACTIVO
-    ) {
-      handleCerrarModal(true);
-    }
+			dialogTexto.includes(AFILIADO_SOLICITUDRESUELTA) ||
+			[
+				AFILIADO_ACTUALIZADO,
+				AFILIADO_AGREGADO,
+				AFILIADO_AGREGADO_ACTIVO,
+			].includes(dialogTexto)
+		) {
+			handleCerrarModal(true);
+		}
   };
   //#endregion
 
@@ -1999,18 +1916,20 @@ const AfiliadoAgregar = (props) => {
 						<Typography gutterBottom>{dialogTexto}</Typography>
 					</DialogContent>
 					<DialogActions>
-						<Button className="botonAmarillo" onClick={handleCloseDialog}>Cierra</Button>
+						<Button className="botonAmarillo" onClick={handleCloseDialog}>
+							Cierra
+						</Button>
 					</DialogActions>
 				</Dialog>
 			</div>
-			<Modal onClose={props.onClose}>
+			<Modal onClose={handleCerrarModal}>
 				<CabeceraABMAfiliado
 					cuilState={cuilState}
 					nombreState={nombreState}
 					afiliadoExiste={afiliadoExiste}
 					padronRespuesta={padronRespuesta}
 					afiliado={afiliado}
-					estadoSolicitudDescripcion={estadoSolicitudDescripcion}
+					estadoSolicitudDescripcion={afiliado?.estadoSolicitud}
 				/>
 
 				<div className={classes.div}>
@@ -2031,26 +1950,17 @@ const AfiliadoAgregar = (props) => {
 							label={
 								/*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
 							}
-							disabled={cuilState.isValid ? false : true}
-						/>
-						<Tab
-							label="Resuelve Solicitud"
-							disabled={handleResuelveSolicitudDisable()}
-							hidden={
-								props.accion === "Agrega" || props.accion === "Resuelve"
-									? false
-									: true
-							}
+							disabled={!cuilState.isValid || !cuitState.isValid}
 						/>
 						<Tab
 							label="Documentacion"
-							disabled={cuitState.isValid ? false : true}
+							disabled={!cuilState.isValid}
 						/>
 					</Tabs>
 				</div>
-				{selectedTab === 0 && (
+				{[
+					//Datos Principales
 					<div className={classes.div}>
-						{/* region Datos Principales */}
 						<div className={classes.renglon}>
 							<div className={classes.input25}>
 								<InputMaterialMask
@@ -2079,7 +1989,7 @@ const AfiliadoAgregar = (props) => {
 							</div>
 							<div className={classes.input25}>
 								<Button
-                  className="botonAzul"
+									className="botonAzul"
 									width={80}
 									heigth={70}
 									disabled={deshabilitarBotonValidarCUIL()}
@@ -2101,10 +2011,11 @@ const AfiliadoAgregar = (props) => {
 							<div className={classes.input25}>
 								<InputMaterial
 									id="fechaIngreso"
-									value={FormatearFecha(afiliado?.fechaIngreso) ?? ""}
+									value={fechaIngresoState.value}
 									label="Fecha Ingreso"
 									onChange={handleInputChange}
-                  readOnly={!afiliadoExiste}
+									type="date"
+									//readOnly={!afiliadoExiste}
 								/>
 							</div>
 						</div>
@@ -2181,15 +2092,6 @@ const AfiliadoAgregar = (props) => {
 										!nacionalidadState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="nacionalidadSelect"
-                label="Nacionalidad"
-                options={nacionalidades}
-                value={nacionalidad}
-                defaultValue={nacionalidad}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-            />*/}
 							</div>
 							<div className={classes.input25}>
 								<SelectMaterial
@@ -2236,7 +2138,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="provinciaSelect"
 									label="Provincia"
-									options={provincias}
+									options={provincias.data}
 									value={provinciaState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2249,7 +2151,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="localidadSelect"
 									label="Localidad"
-									options={localidades}
+									options={localidades.data}
 									value={localidadState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2257,15 +2159,6 @@ const AfiliadoAgregar = (props) => {
 										!localidadState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="localidadSelect"
-                label="Localidad"
-                options={localidades}
-                value={localidad}
-                defaultValue={localidad}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-              /> */}
 							</div>
 						</div>
 
@@ -2274,7 +2167,7 @@ const AfiliadoAgregar = (props) => {
 								<SelectMaterial
 									name="seccionalSelect"
 									label="Seccional"
-									options={seccionales}
+									options={seccionales.data}
 									value={seccionalState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
@@ -2282,14 +2175,6 @@ const AfiliadoAgregar = (props) => {
 										!seccionalState.isValid && inputsTouched ? true : false
 									}
 								/>
-								{/* <SearchSelectMaterial
-                name="seccionalSelect"
-                label="Seccional"
-                options={seccionales}
-                value={seccional}
-                onChange={handleChangeSelect}
-                disabled={!padronRespuesta?.idPersona ? true : false}
-              /> */}
 							</div>
 							<div className={classes.input25}>
 								<SelectMaterial
@@ -2299,7 +2184,7 @@ const AfiliadoAgregar = (props) => {
 									value={puestoState.value}
 									onChange={handleChangeSelect}
 									disabled={InputDisabled()}
-									error={!puestoState.isValid && inputsTouched ? true : false}
+									//error={!puestoState.isValid && inputsTouched ? true : false}
 								/>
 							</div>
 							<div className={classes.input25}>
@@ -2355,9 +2240,9 @@ const AfiliadoAgregar = (props) => {
 						</div>
 
 						<DatosAfip afiliado={afiliado} padronRespuesta={padronRespuesta} />
-					</div>
-				)}
-				{selectedTab === 1 && (
+					</div>,
+
+					//Empleador
 					<TabEmpleador
 						padronEmpresaRespuesta={padronEmpresaRespuesta}
 						cuitEmpresa={cuitEmpresa}
@@ -2375,63 +2260,18 @@ const AfiliadoAgregar = (props) => {
 						onHandleInputChange={handleInputChange}
 						onValidarEmpresaCUITHandler={validarEmpresaCUITHandler}
 						onFocus={handleOnFocus}
-					/>
-				)}
-				{selectedTab === 2 && (
-					<>
-						<DeclaracionesJuradas
-							cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
-							onSeleccionRegistro={handleSeleccionDDJJ}
-							infoCompleta={true}
-							onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
-							registros={12}
-						/>
-						<div
-							className={classes.div}
-							hidden={
-								ultimaDDJJ.condicion !== "RA" && ultimaDDJJ.condicion !== "RM"
-							}
-						>
-							<div className={classes.renglon}>
-								<h6>
-									El afiliado {nombreState.value} de la Empresa{" "}
-									{razonSocialEmpresa} está en condiciones de ser incorporado al
-									Padrón.
-								</h6>
-							</div>
-							<div className={classes.renglon}>
-								<div className={classes.boton}>
-									<Button
-										className="botonAmarillo"
-										width={80}
-										onClick={afiliadoAgregarHandler}
-									>
-										Incorporar al Padrón
-									</Button>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-				{selectedTab === 3 && (
-					<ResolverSolicitud
-						padronRespuesta={padronRespuesta}
-						cuilState={
-							afiliado !== null ? afiliado.cuilValidado : cuilState.value
-						}
-						nombreState={nombreState}
-						cuitEmpresa={cuitEmpresa}
-						resolverSolicitudFechaIngreso={resolverSolicitudFechaIngreso}
-						resolverSolicitudObs={resolverSolicitudObs}
-						estadoSolicitud={estadoSolicitudResolver}
-						estadosSolicitudes={estadosSolicitudes}
-						showImprimirLiquidacion={showImprimirLiquidacion}
-						onHandleChangeSelect={handleChangeSelect}
-						onHandleInputChange={handleInputChange}
-						onResolverSolicitudHandler={resolverSolicitudHandler}
-					/>
-				)}
-				{selectedTab === 4 && (
+					/>,
+
+					// DeclaracionesJuradas
+					<DeclaracionesJuradas
+						cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
+						cuit={cuitEmpresa}
+						onSeleccionRegistro={handleSeleccionDDJJ}
+						infoCompleta={true}
+						// onDeclaracionesGeneradas={handleOnDeclaracionesGeneradas}
+						registros={12}
+					/>,
+
 					<Documentacion
 						data={documentacionList}
 						onChange={({ index, item }) => {
@@ -2448,12 +2288,11 @@ const AfiliadoAgregar = (props) => {
 							}
 							setDocumentacionList(newDocList);
 						}}
-					/>
-				)}
-				<div className={classes.footer} >
-					<Button 			
-            className="botonAzul"			/*className={classes.button}*/
-						hidden={props.accion === "Resuelve" ? true : false}
+					/>,
+				][selectedTab]}
+				<div className={classes.footer}>
+					<Button
+						className="botonAzul" /*className={classes.button}*/
 						loading={afiliadoProcesando}
 						width={25}
 						onClick={afiliadoAgregarHandler}
@@ -2462,7 +2301,11 @@ const AfiliadoAgregar = (props) => {
 						{AgregarModificarAfiliadoTitulo()}
 					</Button>
 
-					<Button className="botonAmarillo" width={25} onClick={handleCerrarModal} >
+					<Button
+						className="botonAmarillo"
+						width={25}
+						onClick={handleCerrarModal}
+					>
 						CIERRA
 					</Button>
 				</div>

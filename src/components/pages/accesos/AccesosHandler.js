@@ -1,12 +1,11 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment,useContext } from "react";
 import useHttp from "../../hooks/useHttp";
-import SeccionalAgregar from "./abm/SeccionalAgregar";
 //import SeccionalesLista from "./lista/SeccionalesLista";
 import Seccionales from "./Accesos";
-import SeccionalAutoridades from "./autoridades/SeccionalAutoridades";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
+import AuthContext from "../../../store/authContext";
 
 const selectores = [
   { value: 1, label: "NOMBRE" },
@@ -15,6 +14,8 @@ const selectores = [
 ];
 
 const AccesosHandler = () => {
+
+  const Usuario = useContext(AuthContext).usuario;
   const { isLoading, error, sendRequest: request } = useHttp();
 
   //#region variables de estado
@@ -66,14 +67,16 @@ const AccesosHandler = () => {
 	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
 	useEffect(() => {
 	//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-	switch (moduloAccion) {
+	switch (moduloAccion?.name) {
 		case "Agrega Seccional":
 		  handlerOnAgregarClick();
 		  break;
     case "Modifica Seccional":
       alert('Modifica - Funcionalida en Desarrollo');
+      break;
     case "Borra Seccional":
       alert('Borra - Funcionalida en Desarrollo');
+      break;
 		default:
 		break;
 	}
@@ -181,8 +184,19 @@ const AccesosHandler = () => {
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadosWithSpec?NroAfiliado=${+numeroAfiliado}`,
-          method: "GET",
+          endpoint: `/Afiliado/GetAfiliadosWithSpec`,
+          method: "POST",
+
+          body: {
+            nroAfiliado: +numeroAfiliado,
+            ambitoTodos: Usuario.ambitoTodos,
+            ambitoSeccionales: Usuario.ambitoSeccionales,
+            ambitoDelegaciones: Usuario.ambitoDelegaciones,
+            ambitoProvincias: Usuario.ambitoProvincias,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          }
         },
         processAfiliado
       );
@@ -223,7 +237,7 @@ const AccesosHandler = () => {
   };
 
   //#region Buscar
-  const handlerOnSelectorSelected = (selector) => {
+  const handleSelectorSelected = (selector) => {
     //console.log("selector", selector)
     setSelector(selector);
     setSelectorValor("");
@@ -332,20 +346,7 @@ const AccesosHandler = () => {
     <Fragment>
       <div>
       {seccionalAgregarShow && (
-        <SeccionalAgregar
-          refCargos={refCargos}
-          localidades={localidades}
-          seccionalAutoridades={seccionalAutoridades}
-          autoridadAfiliado={autoridadAfiliado}
-          autoridadSeleccionada={autoridadSeleccionada}
-          onClose={onCloseSeccionalAgregarHandler}
-          onConfirmaClick={handlerOnConfirmaClick}
-          onAgregaAutoridad={handlerOnAgregaAutoridad}
-          onCambiaAutoridad={handlerOnCambiaAutoridad}
-          onBorraAutoridad={handlerOnBorraAutoridad}
-          onValidaAfiliadoClick={handlerOnValidaAfiliadoclick}
-          onSeleccionAutoridad={handlerOnSeleccionAutoridad}
-        />
+        alert('opcion en desarrollo')
       )}
 
       <Seccionales
@@ -358,7 +359,7 @@ const AccesosHandler = () => {
         selectores={selectores}
         selector={selector}
         selectorValor={selectorValor}
-        onSelectorSelected={handlerOnSelectorSelected}
+        handleSelectorSelected={handleSelectorSelected}
         onSelectorValor={handlerOnSelectorValor}
         onBuscarClick={handlerOnBuscarClick}
         onLimpiarClick={handlerOnLimpiarClick}

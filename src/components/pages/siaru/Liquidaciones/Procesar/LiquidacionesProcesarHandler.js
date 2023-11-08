@@ -22,7 +22,7 @@ const LiquidacionesProcesarHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
 	const { desdeArchivo, manual, existente } = useSelector(
@@ -135,7 +135,7 @@ const LiquidacionesProcesarHandler = () => {
 												);
 											setErrores((old) => ({ ...old, archivo: newErrores }));
 											if (newErrores.length === 0)
-												setRedirect({ to: "archivo" });
+												setRedirect({ to: "Archivo" });
 										}}
 									>
 										Inicia
@@ -289,7 +289,7 @@ const LiquidacionesProcesarHandler = () => {
 												);
 											setErrores((old) => ({ ...old, manual: newErrores }));
 											if (newErrores.length === 0)
-												setRedirect({ to: "manual" });
+												setRedirect({ to: "Manual" });
 										}}
 									>
 										Inicia

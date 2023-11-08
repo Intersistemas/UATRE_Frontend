@@ -22,7 +22,7 @@ const EstablecimientosHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
 	const [form, setForm] = useState(null);
@@ -151,7 +151,7 @@ const EstablecimientosHandler = () => {
 				}));
 			},
 		};
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Agrega Establecimiento`:
 				configForm.record = { empresaId: empresa.id };
 				configForm.request = "A";

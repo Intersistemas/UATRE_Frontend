@@ -9,8 +9,8 @@ import {
 } from "redux/actions";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import EmpresaDetails from "./Empresas/EmpresaDetails";
-import EmpresasList from "./Empresas/EmpresasList";
+import EmpresaDetails from "./empresas/EmpresaDetails";
+import EmpresasList from "./empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 
 const SiaruHandler = () => {
@@ -105,12 +105,12 @@ const SiaruHandler = () => {
 	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
 		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-		switch (moduloAccion) {
+		switch (moduloAccion?.name) {
 			case `Establecimientos de ${descEmpresa}`:
-				setRedirect({ to: "establecimientos" });
+				setRedirect({ to: "Establecimientos" });
 				break;
 			case `Liquidaciones de ${descEmpresa}`:
-				setRedirect({ to: "liquidaciones" });
+				setRedirect({ to: "Liquidaciones" });
 				break;
 			default:
 				break;

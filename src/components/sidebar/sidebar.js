@@ -11,8 +11,9 @@ import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
-import { handleModuloEjecutarAccion } from '../../redux/actions';
+import { handleModuloEjecutarAccion, handleModuloSeleccionar } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
+import Action from 'components/helpers/Action';
 
 const Sidebar = ({children}) => {
 
@@ -34,6 +35,11 @@ const Sidebar = ({children}) => {
     const toggle = () => setIsOpen (!isOpen);
     
     const navFunction = useSelector(state => state.nav[location.pathname]);
+
+		const limpiarModulo = (path) => {
+			if (location.pathname === path) return;
+			dispatch(handleModuloSeleccionar({}));
+		}
     
     let currentLink = [];
 
@@ -48,23 +54,26 @@ const Sidebar = ({children}) => {
 					to: path,
 					className: clases.link,
 					activeClassName: clases.active,
+					onClick: () => limpiarModulo(path),
 				};
         if (navFunction != null) {
 					nav.to = "#";
 					nav.onClick = () =>
 						navFunction({
-							go: ({ to = path, delta = null, options = null } = {}) =>
+							go: ({ to = path, delta = null, options = null } = {}) => {
+								limpiarModulo(to);
 								delta == null && options == null
 									? navigate(to)
 									: options == null
 									? navigate(delta)
-									: navigate(to, options),
+									: navigate(to, options);
+							},
 							to: path,
 						});
 				}
         return(
             <NavLink {...nav}>
-                <div className={clases.icon}> {miga == "inicio" ? <FaTh/> : <FaAngleUp/>}</div>
+                <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
             </NavLink>    
         ) 
@@ -77,7 +86,7 @@ const Sidebar = ({children}) => {
          navigate("ingreso");
     }
 
-    UseKeyPress(['i'], ()=>navigate("inicio"), 'AltKey');
+    UseKeyPress(['i'], ()=>navigate("/Inicio"), 'AltKey');
     UseKeyPress(['c'], ()=>logout(), 'AltKey');
     
     useEffect(() => {
@@ -125,7 +134,7 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => despacharAcciones(item.name)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {item.disabled}  key={index} onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>

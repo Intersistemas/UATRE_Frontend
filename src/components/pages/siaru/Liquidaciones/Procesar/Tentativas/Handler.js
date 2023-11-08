@@ -7,11 +7,11 @@ import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import DDJJList from "./DDJJList";
 import LiquidacionList from "./LiquidacionList";
-import LiquidacionesForm from "../../Formulario/Form";
+import LiquidacionesForm from "../../formulario/Form";
 import DDJJForm from "./DDJJForm";
-import CalcularCampos from "../../Formulario/CalcularCampos";
+import CalcularCampos from "../../formulario/CalcularCampos";
 import LiquidacionForm from "./LiquidacionForm";
-import LiquidacionPDF from "../../Impresion/Handler";
+import LiquidacionPDF from "../../impresion/Handler";
 
 const Handler = ({ periodo, tentativas = [] }) => {
 	const navigate = useNavigate();
@@ -20,7 +20,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
 
 	const [formRender, setFormRender] = useState();
@@ -453,7 +453,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 									<LiquidacionPDF
 										empresa={empresa}
 										liquidaciones={[...res]}
-										onClose={() => setRedirect({ to: "/siaru/liquidaciones" })}
+										onClose={() => setRedirect({ to: "Liquidaciones" })}
 									/>
 								);
 							},

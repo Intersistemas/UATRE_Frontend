@@ -1,70 +1,85 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
+import InputMask from 'react-input-mask';
 
-const onChangeDef = (value, id) => {};
-
-const InputMaterial = ({
-	id,
-	value = "",
-	type = "text",
-	size = "small",
-	autoFocus = id === "cuil",
-	showToolTip = false,
-	toolTip = {
-		title: showToolTip ? value : "",
-		arrow: true,
-	},
-	width = "100",
-	padding = "",
-	style = {
-		width: `${width}%`,
-		padding: `${padding}`,
-	},
-	inputFormat = type === "date" ? "DD/MM/YYYY" : null,
-	InputLabelProps = { shrink: true },
-	readOnly = false,
-	InputProps = { readOnly: readOnly },
-	FormHelperTextProps = { style: { marginTop: "0px" } },
-	onChange = onChangeDef,
-	...x
-}) => {
+const InputMaterial = (props) => {
   //Validaciones
-  const handleChange = (event) => {
-		let regex = /^.*$/
-    switch (id) {
-			case "cuil":
-			case "cuit":
-			case "numeroDocumento":
-			case "telefono": {
-				regex = /^[0-9\b]+$/;
-				break;
-			}
-			default:
-				break;
-		}
-		if (event.target.value === "" || regex.test(event.target.value)) {
-			onChange(event.target.value, id);
-		}
+	props = { ...props };
+	props.onChange ??= ((_value, _id) => {});
+  
+  const handleChange = (event) => { 
+    switch (props.id) {
+      case "cuil":   
+      var reCUIL = /^[0-9\b]+$/;     
+        if (event.target.value === "" || reCUIL.test(event.target.value)) {
+          props.onChange(event.target.value, props.id);
+        }
+        break;
+ 
+      case "cuit":
+        const reCUIT = /^[0-9\b]+$/;
+        if (event.target.value === "" || reCUIT.test(event.target.value)) {
+          props.onChange(event.target.value, props.id);
+        }
+        break;
+
+      case "numeroDocumento": 
+      case "telefono":
+        const reNumero = /^[0-9\b]+$/;
+        if (event.target.value === "" || reNumero.test(event.target.value)) {
+          props.onChange(event.target.value, props.id);
+        }
+        break;
+
+      default:
+        props.onChange(event.target.value, props.id);
+        break;
+    }
   };
 	
   return (
-    <Tooltip {...toolTip}>
-      <TextField
-        className={styles.input}
-        id={id}
-        value={value}
-        type={type}
-        size={size}
-        autoFocus={autoFocus}
-        style={style}
-        inputFormat={inputFormat}
-        InputLabelProps={InputLabelProps}
-        InputProps={InputProps}
-        FormHelperTextProps={FormHelperTextProps}
-        onChange={handleChange}
-        {...x}
-      />
-    </Tooltip>
+
+    <InputMask
+      mask={props.mask}
+      className={styles.input}
+      value={props.value || ""}
+      onChange={handleChange}
+      disabled={props.disabled}
+    >
+    {() =>
+        <TextField
+          disabled={props.disabled}
+          variant={props.variant}
+          size={props.size ? props.size : "small"}
+          autoFocus={props.id === "cuil" ? true : false}
+          id={props.id}
+          //error={!props.isValid}
+          label={props.label}
+          className={styles.input}
+          value={props.value || ""}
+          onChange={handleChange}
+          style={{...props.style,
+            width: props.width != null ? `${props.width}%` : "100%",
+            padding: `${props.padding}`,
+          }}
+          type={props.type || "text"}
+          inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          InputProps={{
+            readOnly: props.readOnly || false,          
+          }}
+          helperText={props.helperText ?? ""}
+          FormHelperTextProps={{ style: { marginTop: "0px" } }}
+          error={props.error || false}
+          color={props.color}
+          focused={props.focused || false}
+          //onFocus={handleOnFocus}
+        >
+        </TextField>}
+    </InputMask>
+    
   );
 };
 

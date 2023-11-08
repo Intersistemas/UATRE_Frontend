@@ -5,7 +5,7 @@ import { Tab, Tabs } from "@mui/material";
 import InputMaterial from "../../../ui/Input/InputMaterial";
 import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
 import Button from "../../../ui/Button/Button";
-import SeccionalDocumentos from "../documentos/SeccionalDocumentos";
+import SeccionalDocumentos from "../documentacion/SeccionalDocumentacion";
 import SeccionalAutoridades from "../autoridades/SeccionalAutoridades";
 import SeccionalAutoridadesForm from "../autoridades/SeccionalAutoridadesForm";
 
@@ -175,24 +175,7 @@ const SeccionalAgregar = (props) => {
               </div>
             </div>
           )}
-          {selectedTab === 1 && <SeccionalDocumentos />}
-          {selectedTab === 2 && (
-            <>
-              <SeccionalAutoridades
-                seccionalAutoridades={props.seccionalAutoridades}
-                onSeleccionAutoridad={props.onSeleccionAutoridad}
-              />
-              <SeccionalAutoridadesForm
-                onAgregarAutoridad={handlerOnAgregarAutoridad}
-                onCambiaAutoridad={props.onCambiaAutoridad}
-                onBorraAutoridad={props.onBorraAutoridad}
-                autoridadSeleccionada={props.autoridadSeleccionada}
-                refCargos={props.refCargos}
-                autoridadAfiliado={props.autoridadAfiliado}
-                onValidaAfiliadoClick={props.onValidaAfiliadoClick}
-              />
-            </>
-          )}
+
         </div>
         <div className={classes.footer}>
           <Button
