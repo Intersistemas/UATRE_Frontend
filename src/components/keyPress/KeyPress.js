@@ -24,13 +24,14 @@ const keyPressProps = { items: [keyPressItemProps] };
 const KeyPress = ({ items = keyPressProps.items } = {}) => {
 	if (items === keyPressProps.items) items = [];
 	items = (Array.isArray(items) ? items : [items])
-		.filter((a) => a != null && a.keys != null)
-		.map((k) => {
-			const p = { ...k };
-			p.callback ??= k instanceof Action ? k.execute : null;
+		.map((item) => {
+			if (item == null || item.keys == null) return;
+			const p = { ...item };
+			p.callback ??= item instanceof Action ? item.execute : null;
 			if (p.callback == null) return;
 			return <KeyPressItem {...p} />;
-		});
+		})
+		.filter((item) => item);
 	return <>{items}</>;
 };
 
