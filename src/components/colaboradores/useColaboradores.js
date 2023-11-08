@@ -200,22 +200,22 @@ const useColaboradores = () => {
 								errors: { ...o.selection.errors, ...errors },
 							},
 						}));
-					if ("afiliadoCuil" in record) {
+					if ("afiliadoCUIL" in record) {
 						changes.record.afiliadoId = 0;
 						changes.record.afiliadoNombre = "";
-						changes.errors.afiliadoCuil = "";
-						if (`${record.afiliadoCuil}`.length !== 11) {
+						changes.errors.afiliadoCUIL = "";
+						if (`${record.afiliadoCUIL}`.length !== 11) {
 							changes.errors.afiliadoNombre = "";
-						} else if (ValidarCUIT(record.afiliadoCuil)) {
+						} else if (ValidarCUIT(record.afiliadoCUIL)) {
 							changes.errors.afiliadoNombre = "Cargando...";
 						} else {
-							changes.errors.afiliadoCuil = "CUIL incorrecto";
+							changes.errors.afiliadoCUIL = "CUIL incorrecto";
 						}
 						applyChanges();
 						if (changes.errors.afiliadoNombre === "Cargando...") {
 							pushQuery({
 								action: "GetAfiliado",
-								params: { cuil: record.afiliadoCuil },
+								params: { cuil: record.afiliadoCUIL },
 								onOk: async (ok) => {
 									changes.record.afiliadoId = ok.id;
 									changes.record.afiliadoNombre = ok.nombre;
@@ -261,7 +261,7 @@ const useColaboradores = () => {
 						// 	errors.deletedObs = "Dato requerido";
 					} else {
 						if (!record.afiliadoId)
-							errors.afiliadoCuil = "Debe ingresar un afiliado existente";
+							errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
 						if (record.esAuxiliar == null) errors.esAuxiliar = "Dato requerido";
 					}
 					if (Object.keys(errors).length) {

@@ -10,8 +10,14 @@ const ColaboradoresTable = ({ columns = [], ...x }) => {
 			mostrarBuscar={false}
 			columns={[
 				{
+					dataField: "afiliadoCUIL",
+					text: "Afiliado - CUIL",
+					headerStyle: (_colum, _colIndex) => ({ width: "20px" }),
+					formatter: Formato.Cuit,
+				},
+				{
 					dataField: "afiliadoNombre",
-					text: "Afiliado",
+					text: "Afiliado - Nombre",
 					headerStyle: (_colum, _colIndex) => ({
 						width: "100px",
 						textAlign: "left",
@@ -21,13 +27,13 @@ const ColaboradoresTable = ({ columns = [], ...x }) => {
 				{
 					dataField: "esAuxiliar",
 					text: "Es Auxiliar",
-					headerStyle: (_colum, _colIndex) => ({ width: "10px" }),
+					headerStyle: (_colum, _colIndex) => ({ width: "20px" }),
 					formatter: Formato.Booleano,
 				},
 				{
 					dataField: "deletedDate",
 					text: "Baja",
-					headerStyle: (_colum, _colIndex) => ({ width: "10px" }),
+					headerStyle: (_colum, _colIndex) => ({ width: "20px" }),
 					formatter: Formato.Fecha,
 					style: { color: "red" },
 				},

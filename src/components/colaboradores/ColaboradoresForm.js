@@ -41,16 +41,16 @@ const ColaboradoresForm = ({
 				</Grid>
 				<Grid width="full" gap="15px">
 					<Grid width="20%">
-						{hide.afiliadoCuil ? null : (
+						{hide.afiliadoCUIL ? null : (
 							<InputMaterial
-								id="afiliadoCuil"
+								id="afiliadoCUIL"
 								type="number"
 								label="CUIL del afiliado"
-								disabled={disabled.afiliadoCuil}
-								error={!!errors.afiliadoCuil}
-								helperText={errors.afiliadoCuil ?? ""}
-								value={getValue("afiliadoCuil")}
-								onChange={(afiliadoCuil) => onChange({ afiliadoCuil })}
+								disabled={disabled.afiliadoCUIL}
+								error={!!errors.afiliadoCUIL}
+								helperText={errors.afiliadoCUIL ?? ""}
+								value={getValue("afiliadoCUIL")}
+								onChange={(afiliadoCUIL) => onChange({ afiliadoCUIL })}
 								width={100}
 							/>
 						)}
