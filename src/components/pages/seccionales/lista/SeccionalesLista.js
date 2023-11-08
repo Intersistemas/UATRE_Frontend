@@ -143,9 +143,9 @@ useEffect(()=>{
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
-      formatter: (value, row) => ( 
+      /*formatter: (value, row) => ( 
         row.refDelegacionDescripcion ?? ""
-      ),
+      ),*/
     },
     
   ];
@@ -178,16 +178,16 @@ useEffect(()=>{
   };
 
   //console.log("props.seccionales", props.seccionales);
-  const tableProps = {
+  let tableProps = {
     keyField: "id",
     data: props.seccionales,
     columns: columns,
-    //selectRow: selectRow,
+
     selection: selectRow,
     rowEvents: rowEvents,
-    onSelected: rowEvents,
+    //onSelected: rowEvents,
 
-    loading: props.isLoading,
+    //loading: props.isLoading,
     noDataIndication: <h4>No existen Seccionales.</h4>,
     overlay: overlayFactory({ spinner: true }),
     pagination: pagination,

@@ -165,12 +165,10 @@ const DeclaracionesJuradas = (props) => {
   }  
 
   let tableProps = {
-    mostrarBuscar: mostrarBuscar ?? true,
-    promptBuscar: "Buscar en DDJJ:",
     keyField: "id",
     data: ddJJUatreList,
     columns: columns,
-    //selectRow: selectRow,
+
     selection: selectRow,
     rowEvents: rowEvents,
     loading: isLoading,
@@ -180,6 +178,8 @@ const DeclaracionesJuradas = (props) => {
     overlay: overlayFactory({ spinner: true }),
     //onSelected: props.onSeleccionRegistro,
     pagination: pagination,
+    mostrarBuscar: mostrarBuscar ?? true,
+    promptBuscar: "Buscar en DDJJ:",
   };
 
   return (

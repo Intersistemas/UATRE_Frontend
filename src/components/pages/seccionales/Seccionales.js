@@ -7,6 +7,7 @@ import SeccionalDocumentacion from "./documentacion/SeccionalDocumentacion";
 
 const Seccionales = ({
   
+  isLoading = false,
   seccionalSeleccionada = {},
   seccionales = [],
   seccionalAutoridades = [],
@@ -26,6 +27,7 @@ const Seccionales = ({
 
 
 }) => {
+
     const [selectedTab, setSelectedTab] = useState(0)
 
     const handleChangeTab = (event, newValue) => {
@@ -74,6 +76,8 @@ const Seccionales = ({
       {selectedTab === 0 && (
       
           <SeccionalesLista
+            isLoading = {isLoading} 
+
             seccionales={seccionales}
             seccionalSeleccionada={seccionalSeleccionada}
             handleSeccionalSeleccionada={handleSeccionalSeleccionada}

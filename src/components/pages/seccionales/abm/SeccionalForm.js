@@ -33,14 +33,14 @@ const SeccionalForm = ({
   const localidadInicio = {value: seccionalSeleccionada?.refLocalidadesId, label: seccionalSeleccionada?.localidadNombre}
 
   const authContext = useContext(AuthContext)
-  const Usuario = authContext.usuario;
+
   const [selectedTab, setSelectedTab] = useState(0);
   
   const [codigoSeccional, setCodigoSeccional] = useState(seccionalSeleccionada?.codigo ?? "");
   const [nombreSeccional, setNombreSeccional] = useState(seccionalSeleccionada?.descripcion ?? "");
 
   const [localidadSeccional, setLocalidadSeccional] = useState(localidadInicio ?? {});
-  const [localidadIdSeccional, setLocalidadIdSeccional] = useState(localidadInicio);
+  const [localidadIdSeccional, setLocalidadIdSeccional] = useState(localidadInicio.value);
 
   const [direccionSeccional, setDireccionSeccional] = useState(seccionalSeleccionada?.domicilio ?? "")
   const [estadoSeccional, setEstadoSeccional] = React.useState(requestForm?.abm == "Baja" ? "Baja" : 'Activa');
@@ -199,9 +199,8 @@ const validar = () => {
     domicilio: direccionSeccional,
     observaciones: observacionesSeccional,
     estado: estadoSeccional,
-    refDelegacionId: 0,
+    //refDelegacionId: 0,
     refLocalidadesId: localidadIdSeccional,
-
   }
 
   if (requestForm?.abm == "Baja") {
