@@ -29,7 +29,12 @@ const DelegacionesHandler = () => {
 				...x,
 			});
 		const actions = [
-			createAction({ action: `Agrega Delegación`, request: "A", keys: "a" }),
+			createAction({
+				action: `Agrega Delegación`,
+				request: "A",
+				keys: "a",
+				underlineindex: 0,
+			}),
 		];
 		const desc = delegacionSelected?.id;
 		if (!desc) {
@@ -41,6 +46,7 @@ const DelegacionesHandler = () => {
 				action: `Consulta Delegación ${desc}`,
 				request: "C",
 				keys: "o",
+				underlineindex: 1,
 			})
 		);
 		actions.push(
@@ -48,6 +54,7 @@ const DelegacionesHandler = () => {
 				action: `Modifica Delegación ${desc}`,
 				request: "M",
 				keys: "m",
+				underlineindex: 0,
 			})
 		);
 		actions.push(
@@ -55,6 +62,7 @@ const DelegacionesHandler = () => {
 				action: `Baja Delegación ${desc}`,
 				request: "B",
 				keys: "b",
+				underlineindex: 0,
 			})
 		);
 		setDelegacionesActions(actions);
@@ -99,6 +107,7 @@ const DelegacionesHandler = () => {
 				action: `Agrega Documentación ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				underlineindex: 0,
 			})
 		);
 		const docu = documentacionSelected?.id;
@@ -112,6 +121,7 @@ const DelegacionesHandler = () => {
 				action: `Consulta Documentación ${docuDesc}`,
 				request: "C",
 				keys: "o",
+				underlineindex: 1,
 			})
 		);
 		actions.push(
@@ -119,6 +129,7 @@ const DelegacionesHandler = () => {
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
 				keys: "m",
+				underlineindex: 0,
 			})
 		);
 		actions.push(
@@ -126,6 +137,7 @@ const DelegacionesHandler = () => {
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
 				keys: "b",
+				underlineindex: 0,
 			})
 		);
 		setDocumentacionesActions(actions);
@@ -174,6 +186,7 @@ const DelegacionesHandler = () => {
 				action: `Agrega Colaborador ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				underlineindex: 0,
 			})
 		);
 		const sele = colaboradorSelected?.id;
@@ -187,6 +200,7 @@ const DelegacionesHandler = () => {
 				action: `Consulta Colaborador ${seleDesc}`,
 				request: "C",
 				keys: "o",
+				underlineindex: 1,
 			})
 		);
 		actions.push(
@@ -194,6 +208,7 @@ const DelegacionesHandler = () => {
 				action: `Modifica Colaborador ${seleDesc}`,
 				request: "M",
 				keys: "m",
+				underlineindex: 0,
 			})
 		);
 		if (colaboradorSelected?.deletedDate) {
@@ -202,7 +217,8 @@ const DelegacionesHandler = () => {
 					action: `Reactiva Colaborador ${seleDesc}`,
 					request: "R",
 					keys: "r",
-				})
+					underlineindex: 0,
+			})
 			);
 		} else {
 			actions.push(
@@ -210,7 +226,8 @@ const DelegacionesHandler = () => {
 					action: `Baja Colaborador ${seleDesc}`,
 					request: "B",
 					keys: "b",
-				})
+					underlineindex: 0,
+			})
 			);
 		}
 		setColaboradoresActions(actions);
