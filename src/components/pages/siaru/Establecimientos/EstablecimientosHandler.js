@@ -11,6 +11,7 @@ import EstablecimientoDetails from "./EstablecimientoDetails";
 import EstablecimientosList from "./EstablecimientosList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Form from "./EstablecimientoForm";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
 const EstablecimientosHandler = () => {
 	const navigate = useNavigate();
@@ -34,23 +35,24 @@ const EstablecimientosHandler = () => {
 						baseURL: "Comunes",
 						method: "GET",
 						endpoint: "/EmpresaEstablecimientos/GetByEmpresa",
-					}
-				}
+					},
+				};
 			default:
 				return null;
 		}
 	});
 	const dispatch = useDispatch();
-	
+
 	//#region carga inicial de establecimientos
 	const [establecimientos, setEstablecimientos] = useState({
 		loading: "Cargando...",
 		data: [],
 		error: {},
-		params: { empresaId: empresa?.id, soloActivos: false },
+		params: { empresaId: empresa?.id },
 		filter: "",
 		sort: "",
-		page: { index: 1, size: 10 },
+		page: { index: 1, size: 10, count: 0 },
+		totalBajas: 0,
 		seleccion: null,
 	});
 	useEffect(() => {
@@ -59,29 +61,42 @@ const EstablecimientosHandler = () => {
 			...establecimientos.params,
 			pageIndex: establecimientos.page.index,
 			pageSize: establecimientos.page.size,
-			orderBy: establecimientos.sort,
 		};
 		if (establecimientos.filter) params.filtro = establecimientos.filter;
+		if (establecimientos.sort) params.orderBy = establecimientos.sort;
 		pushQuery({
 			action: "GetEstablecimientos",
 			params: params,
 			onOk: async (res) => {
 				const data = [...res.data];
-				setEstablecimientos((old) => ({
-					...old,
-					loading: null,
-					data: data,
-					error: null,
-					page: {
-						index: res.index,
-						size: res.size,
-						count: res.count,
+				let totalBajas = 0;
+				pushQuery({
+					action: "GetEstablecimientos",
+					params: {
+						...params,
+						pageIndex: 1,
+						pageSize: 1,
+						bajas: true,
 					},
-					seleccion:
-						data.find((r) => r.id === old.seleccion?.id) ??
-						data.at(0) ??
-						null,
-				}));
+					onOk: async (resBajas) => (totalBajas = resBajas.count),
+					onFinally: () =>
+						setEstablecimientos((old) => ({
+							...old,
+							loading: null,
+							data: data,
+							error: null,
+							page: {
+								index: res.index,
+								size: res.size,
+								count: res.count,
+							},
+							totalBajas: totalBajas,
+							seleccion:
+								data.find((r) => r.id === old.seleccion?.id) ??
+								data.at(0) ??
+								null,
+						})),
+				});
 			},
 			onError: async (err) => {
 				setEstablecimientos((old) => ({
@@ -105,7 +120,11 @@ const EstablecimientosHandler = () => {
 		moduloInfo.acciones.push({
 			name: `Consulta Establecimiento ${estabDesc}`,
 		});
-		if (!establecimientos.seleccion.refMotivosBajaId) {
+		if (establecimientos.seleccion.deletedDate) {
+			moduloInfo.acciones.push({
+				name: `Reactiva Establecimiento ${estabDesc}`,
+			});
+		} else {
 			moduloInfo.acciones.push({
 				name: `Modifica Establecimiento ${estabDesc}`,
 			});
@@ -150,6 +169,11 @@ const EstablecimientosHandler = () => {
 				configForm.request = "B";
 				setForm(<Form {...configForm} />);
 				break;
+			case `Reactiva Establecimiento ${estabDesc}`:
+				// configForm.request = "B";
+				// setForm(<Form {...configForm} />);
+				alert("Proximamente...");
+				break;
 			default:
 				break;
 		}
@@ -161,7 +185,7 @@ const EstablecimientosHandler = () => {
 			setEstablecimientos((old) => ({ ...old, seleccion: row })),
 	};
 	if (establecimientos.seleccion) {
-		selection.selected = [establecimientos.seleccion.id]
+		selection.selected = [establecimientos.seleccion.id];
 	}
 
 	return (
@@ -175,13 +199,34 @@ const EstablecimientosHandler = () => {
 					full
 					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
 				>
-					<Grid full="width">
+					<Grid width="full">
 						<h2 className="subtitulo">
 							Establecimientos de {Formato.Cuit(empresa.cuit)}{" "}
 							{empresa.razonSocial ?? ""}
 						</h2>
 					</Grid>
-					<Grid full="width" col grow gap="5px">
+					<Grid width="full" col grow gap="5px">
+						<Grid width="full" justify="between">
+							<Grid col height="full" justify="end">
+								<h5 style={{ margin: 0 }}>
+									Cantidad de establecimientos: {establecimientos.page.count},
+									de baja: {establecimientos.totalBajas}
+								</h5>
+							</Grid>
+							<Grid width="260px">
+								<InputMaterial
+									value={establecimientos.filter}
+									placeholder="Ingrese datos de busqueda"
+									onChange={(value) =>
+										setEstablecimientos((old) => ({
+											...old,
+											loading: "Cargando...",
+											filter: value,
+										}))
+									}
+								/>
+							</Grid>
+						</Grid>
 						<Grid grow>
 							<EstablecimientosList
 								loading={establecimientos.loading}
@@ -196,6 +241,7 @@ const EstablecimientosHandler = () => {
 										})),
 								}}
 								selection={selection}
+								mostrarBuscar={false}
 								onTableChange={(type, newState) => {
 									switch (type) {
 										case "sort": {
@@ -206,14 +252,14 @@ const EstablecimientosHandler = () => {
 												sort: `${sortField}.${sortOrder}`,
 											}));
 										}
-										case "search": {
-											const { searchText } = newState;
-											return setEstablecimientos((old) => ({
-												...old,
-												loading: "Cargando...",
-												filter: searchText,
-											}));
-										}
+										// case "search": {
+										// 	const { searchText } = newState;
+										// 	return setEstablecimientos((old) => ({
+										// 		...old,
+										// 		loading: "Cargando...",
+										// 		filter: searchText,
+										// 	}));
+										// }
 										default:
 											return;
 									}

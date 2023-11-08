@@ -36,17 +36,7 @@ const InputMaterial = (props) => {
         break;
     }
   };
-
-  // const handleOnFocus = (event) => {
-  //   props.onFocus(props.id);
-  // };
-
-  // const shrink = props.type === "date" || props.value !== '' ? true : false  
-  //console.log("helperText", props.helperText)
-  // if (props.id === "numeroDocumento")
-  // {
-  //   console.log("error", props.error)
-  // }
+	
   return (
 
     <InputMask

@@ -37,7 +37,7 @@ const Handler = ({
 					config: {
 						baseURL: "Afiliaciones",
 						endpoint: `/Seccional/GetSeccionalesSpecs`,
-						method: "GET",
+						method: "POST",
 					},
 				};
 			default:
@@ -101,9 +101,11 @@ const Handler = ({
 		localidades.forEach((localidadId) => {
 			pushQuery({
 				action: "GetSeccionales",
-				params: { localidadId: localidadId },
-				onOk: async (res) =>
-					newData.push({ localidadId: localidadId, seccional: res.shift() }),
+				config: {
+					body: { localidadId },
+				},
+				onOk: async ({data}) =>
+					newData.push({ localidadId: localidadId, seccional: data.shift() }),
 				onError: async (err) =>
 					newData.push({ localidadId: localidadId, error: err }),
 				onFinally: () => {

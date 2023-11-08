@@ -143,7 +143,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	//#region declaración y carga de esablecimientos
 	const [establecimientos, setEstablecimientos] = useState({
 		loading: "Cargando...",
-		params: { empresaId: empresa.id, pageSize: 5000 },
+		params: { empresaId: empresa.id, pageSize: 5000, bajas: false },
 		data: null,
 		error: null,
 	});

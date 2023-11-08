@@ -137,7 +137,12 @@ const LiquidacionesHandler = () => {
 					loading: null,
 					data: [
 						{ descipcion: "Todos", valor: { id: 0 } },
-						...res.data.map((r) => ({ descipcion: r.nombre, valor: r })),
+						...res.data.map((r) => ({
+							descipcion: [r.nombre, r.deletedDate ? "Establecimiento de baja" : ""]
+								.filter((e) => e)
+								.join(" - "),
+							valor: r,
+						})),
 					],
 					error: null,
 				})),
