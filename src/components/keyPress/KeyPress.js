@@ -25,10 +25,10 @@ const KeyPress = ({ items = keyPressProps.items } = {}) => {
 	if (items === keyPressProps.items) items = [];
 	items = (Array.isArray(items) ? items : [items])
 		.map((item) => {
-			if (item?.keys == null) return;
+			if (item?.keys == null) return null;
 			const p = { ...item };
 			p.callback ??= item instanceof Action ? item.execute : null;
-			if (p.callback == null) return;
+			if (p.callback == null) return null;
 			return <KeyPressItem {...p} />;
 		})
 		.filter((item) => item);
