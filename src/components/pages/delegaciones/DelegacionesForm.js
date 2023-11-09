@@ -33,9 +33,7 @@ const DelegacionesForm = ({
 
 	return (
 		<Modal size="lg" centered show onHide={() => onClose()}>
-			<Modal.Header>
-				<h3>{title}</h3>
-			</Modal.Header>
+			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full" gap="15px">
