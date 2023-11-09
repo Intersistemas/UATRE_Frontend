@@ -8,6 +8,7 @@ const selectionDef = {
 	request: "",
 	index: null,
 	record: null,
+	edit: null,
 	errors: null,
 };
 
@@ -96,7 +97,7 @@ const useDocumentaciones = () => {
 		params: {},
 		data: [],
 		error: null,
-		selection: {...selectionDef},
+		selection: { ...selectionDef },
 	});
 
 	useEffect(() => {
@@ -107,8 +108,7 @@ const useDocumentaciones = () => {
 			onOk: async (data) =>
 				setList((o) => {
 					const selection = {
-						action: "",
-						request: "",
+						...selectionDef,
 						record:
 							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
@@ -128,7 +128,7 @@ const useDocumentaciones = () => {
 					loading: null,
 					data: [],
 					error: err.code === 404 ? null : err,
-					selection: {...selectionDef},
+					selection: { ...selectionDef },
 				})),
 		});
 	}, [pushQuery, list.loading, list.params]);
@@ -143,7 +143,7 @@ const useDocumentaciones = () => {
 						...o.selection,
 						request: payload.request,
 						action: payload.action,
-						record: {
+						edit: {
 							...(payload.request === "A" ? {} : o.selection.record),
 							...payload.record,
 						},
@@ -157,7 +157,7 @@ const useDocumentaciones = () => {
 						loading: null,
 						data: [],
 						error: null,
-						selection: {...selectionDef},
+						selection: { ...selectionDef },
 					}));
 				return setList((o) => ({
 					...o,
@@ -172,10 +172,10 @@ const useDocumentaciones = () => {
 	}, []);
 
 	let form = null;
-	if (list.selection.request) {
+	if (list.selection.edit) {
 		form = (
 			<DocumentacionForm
-				data={list.selection.record}
+				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				dependecies={{ tipoDocumentacionList: tipoDocumentacionList.data }}
@@ -200,8 +200,8 @@ const useDocumentaciones = () => {
 						...o,
 						selection: {
 							...o.selection,
-							record: {
-								...o.selection.record,
+							edit: {
+								...o.selection.edit,
 								...changes,
 							},
 						},
@@ -214,17 +214,15 @@ const useDocumentaciones = () => {
 						setList((o) => ({
 							...o,
 							selection: {
-								...o.selection,
-								request: "",
-								action: "",
+								...selectionDef,
+								index: o.selection.index,
 								record: o.data.at(o.selection.index),
-								errors: null,
 							},
 						}));
 						return;
 					}
 
-					const record = { ...list.selection.record };
+					const record = list.selection.edit;
 
 					//Validaciones
 					const errors = {};
@@ -292,8 +290,7 @@ const useDocumentaciones = () => {
 						setList((o) => ({
 							...o,
 							selection: {
-								action: "",
-								request: "",
+								...selectionDef,
 								index,
 								record,
 							},

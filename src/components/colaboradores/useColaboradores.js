@@ -9,6 +9,7 @@ const selectionDef = {
 	request: "",
 	index: null,
 	record: null,
+	edit: null,
 	errors: null,
 };
 
@@ -83,7 +84,7 @@ const useColaboradores = () => {
 		pagination: { index: 1, size: 5 },
 		data: [],
 		error: null,
-		selection: {...selectionDef},
+		selection: { ...selectionDef },
 	});
 
 	useEffect(() => {
@@ -98,15 +99,12 @@ const useColaboradores = () => {
 			onOk: async ({ index, size, count, data }) =>
 				setList((o) => {
 					const selection = {
-						action: "",
-						request: "",
+						...selectionDef,
 						record:
 							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
-					if (selection.record) {
+					if (selection.record)
 						selection.index = data.indexOf(selection.record);
-						selection.record = { ...selection.record };
-					}
 					return {
 						...o,
 						loading: null,
@@ -122,7 +120,7 @@ const useColaboradores = () => {
 					loading: null,
 					data: [],
 					error: err.code === 404 ? null : err,
-					selection: {...selectionDef},
+					selection: { ...selectionDef },
 				})),
 		});
 	}, [pushQuery, list]);
@@ -137,7 +135,7 @@ const useColaboradores = () => {
 						...o.selection,
 						request: payload.request,
 						action: payload.action,
-						record: {
+						edit: {
 							...(payload.request === "A" ? {} : o.selection.record),
 							...payload.record,
 						},
@@ -151,7 +149,7 @@ const useColaboradores = () => {
 						loading: null,
 						data: [],
 						error: null,
-						selection: {...selectionDef},
+						selection: { ...selectionDef },
 					}));
 				return setList((o) => ({
 					...o,
@@ -166,10 +164,10 @@ const useColaboradores = () => {
 	}, []);
 
 	let form = null;
-	if (list.selection.request) {
+	if (list.selection.edit) {
 		form = (
 			<ColaboradoresForm
-				data={list.selection.record}
+				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				disabled={(() => {
@@ -189,24 +187,24 @@ const useColaboradores = () => {
 					if (list.selection.request !== "R") r.obs = true;
 					return r;
 				})()}
-				onChange={(record) => {
-					const changes = { record: { ...record }, errors: {} };
-					const applyChanges = ({ record, errors } = changes) =>
+				onChange={(edit) => {
+					const changes = { edit: { ...edit }, errors: {} };
+					const applyChanges = ({ edit, errors } = changes) =>
 						setList((o) => ({
 							...o,
 							selection: {
 								...o.selection,
-								record: { ...o.selection.record, ...record },
+								edit: { ...o.selection.edit, ...edit },
 								errors: { ...o.selection.errors, ...errors },
 							},
 						}));
-					if ("afiliadoCUIL" in record) {
-						changes.record.afiliadoId = 0;
-						changes.record.afiliadoNombre = "";
+					if ("afiliadoCUIL" in edit) {
+						changes.edit.afiliadoId = 0;
+						changes.edit.afiliadoNombre = "";
 						changes.errors.afiliadoCUIL = "";
-						if (`${record.afiliadoCUIL}`.length !== 11) {
+						if (`${edit.afiliadoCUIL}`.length !== 11) {
 							changes.errors.afiliadoNombre = "";
-						} else if (ValidarCUIT(record.afiliadoCUIL)) {
+						} else if (ValidarCUIT(edit.afiliadoCUIL)) {
 							changes.errors.afiliadoNombre = "Cargando...";
 						} else {
 							changes.errors.afiliadoCUIL = "CUIL incorrecto";
@@ -215,10 +213,10 @@ const useColaboradores = () => {
 						if (changes.errors.afiliadoNombre === "Cargando...") {
 							pushQuery({
 								action: "GetAfiliado",
-								params: { cuil: record.afiliadoCUIL },
+								params: { cuil: edit.afiliadoCUIL },
 								onOk: async (ok) => {
-									changes.record.afiliadoId = ok.id;
-									changes.record.afiliadoNombre = ok.nombre;
+									changes.edit.afiliadoId = ok.id;
+									changes.edit.afiliadoNombre = ok.nombre;
 									changes.errors.afiliadoNombre = "";
 								},
 								onError: async (error) => {
@@ -236,23 +234,18 @@ const useColaboradores = () => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request))
 						confirm = false;
 					if (!confirm) {
-						setList((o) => {
-							const selection = {
-								...o.selection,
-								request: "",
-								action: "",
+						setList((o) => ({
+							...o,
+							selection: {
+								...selectionDef,
+								index: o.selection.index,
 								record: o.data.at(o.selection.index),
-								errors: null,
-							};
-							if (selection.record) {
-								selection.record = { ...selection.record };
-							}
-							return { ...o, selection };
-						});
+							},
+						}));
 						return;
 					}
 
-					const record = { ...list.selection.record };
+					const record = list.selection.edit;
 
 					//Validaciones
 					const errors = {};
@@ -341,8 +334,7 @@ const useColaboradores = () => {
 						setList((o) => ({
 							...o,
 							selection: {
-								action: "",
-								request: "",
+								...selectionDef,
 								index,
 								record,
 							},
