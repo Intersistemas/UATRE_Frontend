@@ -69,7 +69,7 @@ const DocumentacionForm = ({
 						Subir archivo
 					</Button>
 				</Grid>
-			</Grid>
+			</Grid> 
 			<Grid full="width">
 				{/* <InputMaterialMask
 					id="observaciones"

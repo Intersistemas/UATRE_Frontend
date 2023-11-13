@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import overlayFactory from "react-bootstrap-table2-overlay";
 import Table from "../../../ui/Table/Table";
 import SwitchCustom from "../../../ui/Switch/SwitchCustom";
-import classes from "./SeccionalAutoridades.module.css";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "../../../../redux/actions";
@@ -190,7 +189,7 @@ useEffect(()=>{
   };
 
   return (
-    <div className={classes.div}>
+    <div>
       <FormControlLabel
         control={
           <Switch checked={checked} onChange={handleChangeSwitch} label={props.label} />

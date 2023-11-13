@@ -1,7 +1,7 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
-
+ 
 const ColaboradoresTable = ({ columns = [], ...x }) => {
 	return (
 		<Table

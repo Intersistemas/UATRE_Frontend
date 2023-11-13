@@ -23,7 +23,7 @@ import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
 import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
-import Seccional from "./seccional/Seccional";
+import Seccional from "./seccionales/Seccional";
 import useHttp from "../../hooks/useHttp";
 import { styled } from '@mui/material/styles';
 import Documentacion from "./documentacion/Documentacion";
