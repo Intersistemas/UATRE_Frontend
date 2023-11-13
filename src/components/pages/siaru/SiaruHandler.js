@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import AuthContext from "store/authContext";
 import {
-	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 	handleEmpresaSeleccionar,
 } from "redux/actions";
@@ -12,11 +11,15 @@ import Formato from "components/helpers/Formato";
 import EmpresaDetails from "./empresas/EmpresaDetails";
 import EmpresasList from "./empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import Action from "components/helpers/Action";
+import KeyPress from "components/keyPress/KeyPress";
 
 const SiaruHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const pushQuery = useQueryQueue((action, params) => {
+	const authContext = useContext(AuthContext);
+
+	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
 			case "GetEmpresa": {
 				return {
@@ -31,103 +34,91 @@ const SiaruHandler = () => {
 				return null;
 		}
 	});
-	const authContext = useContext(AuthContext);
 
-	const [redirect, setRedirect] = useState({ to: "", options: null });
-	if (redirect.to) navigate(redirect.to, redirect.options);
-
-	//#region declaración y carga de lista y detalle de empresas
-	const [empresaList, setEmpresaList] = useState({ loading: true });
-	const [empresa, setEmpresa] = useState({
-		loading: null,
-		params: { cuit: 0 },
-		data: {},
-		error: {},
-	});
+	//#region declaración y carga de empresas
+	const [empresas, setEmpresas] = useState({ data: [], selected: null });
 	useEffect(() => {
-		if (!empresa.loading) return;
-		pushQuery({
-			action: "GetEmpresa",
-			params: empresa.params,
-			onOk: (res) =>
-				setEmpresa((old) => {
-					const newEmpresa = {
-						...old,
-						loading: null,
-						data: res,
-						error: null,
-					};
-					dispatch(handleEmpresaSeleccionar(newEmpresa.data));
-					return newEmpresa;
-				}),
-			onError: (err) =>
-				setEmpresa((old) => {
-					const newEmpresa = {
-						...old,
-						loading: null,
-						data: {},
-						error: err,
-					};
-					dispatch(handleEmpresaSeleccionar(null));
-					return newEmpresa;
-				}),
-		});
-	}, [empresa, pushQuery, dispatch]);
-
-	useEffect(() => {
-		if (authContext.usuario?.empresas) {
-			const empresas = [...authContext.usuario.empresas];
-			setEmpresaList({ data: empresas });
-			if (empresas.length > 0)
-				setEmpresa((old) => ({
-					...old,
-					loading: "Cargando...",
-					params: { cuit: empresas[0].cuitEmpresa },
-				}));
-		}
+		const empresas = { data: [], selected: null };
+		if (authContext.usuario?.empresas)
+			empresas.data.push(...authContext.usuario.empresas);
+		if (empresas.data.length) empresas.selected = empresas.data[0];
+		setEmpresas(empresas);
 	}, [authContext.usuario]);
 	//#endregion
 
-	//#region despachar Informar Modulo
-	const descEmpresa = [empresa?.data]
-		.map((e) =>
-			[Formato.Cuit(e?.cuit), e?.razonSocial].filter((r) => r).join(" - ")
-		);
-	const moduloInfo = {
-		nombre: "SIARU",
-		acciones: [],
-	};
-	if (empresa.data) {
-		moduloInfo.acciones.push({ name: `Liquidaciones de ${descEmpresa}` });
-		moduloInfo.acciones.push({ name: `Establecimientos de ${descEmpresa}` });
-	}
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	const moduloAccion = useSelector((state) => state.moduloAccion);
+	//#region declaración y carga de empresa
+	const [empresa, setEmpresa] = useState({
+		loading: null,
+		params: {},
+		data: {},
+		error: null,
+	});
 	useEffect(() => {
-		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-		switch (moduloAccion?.name) {
-			case `Establecimientos de ${descEmpresa}`:
-				setRedirect({ to: "Establecimientos" });
-				break;
-			case `Liquidaciones de ${descEmpresa}`:
-				setRedirect({ to: "Liquidaciones" });
-				break;
-			default:
-				break;
-		}
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descEmpresa, dispatch]);
+		if (!empresa.loading) return;
+		const result = { loading: null, data: null, error: null };
+		pushQuery({
+			action: "GetEmpresa",
+			params: empresa.params,
+			onOk: (data) => (result.data = data),
+			onError: (error) => (result.error = error),
+			onFinally: () => {
+				dispatch(handleEmpresaSeleccionar(result.data));
+				setEmpresa((o) => ({ ...o, ...result }));
+			},
+		});
+	}, [empresa, pushQuery, dispatch]);
+	// Cargo empresa cuando cambia la selección de empresas
+	useEffect(() => {
+		const empresa = {
+			loading: null,
+			params: { cuit: empresas.selected?.cuitEmpresa },
+			data: {},
+			error: null,
+		};
+		if (empresa.params.cuit) empresa.loading = "Cargando...";
+		setEmpresa((o) => ({ ...o, ...empresa }));
+	}, [empresas.selected?.cuitEmpresa]);
 	//#endregion
 
-	const selection = {
-		onSelect: (row, _isSelect, _rowIndex, _e) =>
-			setEmpresa((old) => ({
-				...old,
-				loading: "Cargando...",
-				params: { cuit: row.cuitEmpresa },
-			})),
-	};
-	if (empresa.params.cuit) selection.selected = [empresa.params.cuit];
+	//#region declaracion y carga de acciones
+	const [acciones, setAcciones] = useState([]);
+	useEffect(() => {
+		const acciones = [];
+		const addAction = (
+			name = "",
+			onExecute = (name) => {},
+			keys = "",
+			combination = "AltKey"
+		) =>
+			acciones.push(
+				new Action({
+					name,
+					onExecute,
+					keys,
+					underlineindex: name.toLowerCase().indexOf(keys),
+					combination,
+				})
+			);
+		const desc = (({ cuit, razonSocial } = {}) =>
+			[Formato.Cuit(cuit), razonSocial].filter((r) => r).join(" - "))(
+			empresa.data
+		);
+		if (desc) {
+			addAction(
+				`Establecimientos de ${desc}`,
+				(_) => navigate("Establecimientos"),
+				"s"
+			);
+			addAction(
+				`Liquidaciones de ${desc}`,
+				(_) => navigate("Liquidaciones"),
+				"q"
+			);
+		}
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+		setAcciones(acciones);
+	}, [empresa.data, dispatch, navigate]);
+	//#endregion
 
 	return (
 		<>
@@ -146,30 +137,16 @@ const SiaruHandler = () => {
 					<Grid full="width" col grow gap="5px">
 						<Grid grow>
 							<EmpresasList
-								loading={empresaList.loading}
-								data={empresaList.data}
-								selection={selection}
-								noData={(() => {
-									const rq = empresaList;
-									if (rq?.loading) return <h4>Cargando...</h4>;
-									if (!rq?.error)
-										return <h4>No hay informacion a mostrar</h4>;
-									switch (rq.error.code ?? 0) {
-										case 0:
-											return <h4>{rq.error.message}</h4>;
-										default:
-											return (
-												<h4 style={{ color: "red" }}>
-													{"Error "}
-													{rq.error.code ? `${rq.error.code} - ` : ""}
-													{rq.error.message}
-												</h4>
-											);
-									}
-								})()}
+								data={empresas.data}
+								selection={{
+									selected: [empresas.selected?.cuitEmpresa].filter((r) => r),
+									onSelect: (selected) =>
+										setEmpresas((o) => ({ ...o, selected })),
+								}}
 							/>
 						</Grid>
 						<EmpresaDetails />
+						<KeyPress items={acciones} />
 					</Grid>
 				</Grid>
 			</div>

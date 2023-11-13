@@ -217,7 +217,7 @@ const DelegacionesHandler = () => {
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
-			})
+				})
 			);
 		} else {
 			actions.push(
@@ -226,7 +226,7 @@ const DelegacionesHandler = () => {
 					request: "B",
 					keys: "b",
 					underlineindex: 0,
-			})
+				})
 			);
 		}
 		setColaboradoresActions(actions);

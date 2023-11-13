@@ -8,6 +8,7 @@ const selectionDef = {
 	request: "",
 	index: null,
 	record: null,
+	edit: null,
 	errors: null,
 };
 
@@ -67,7 +68,7 @@ const useDelegaciones = () => {
 		params: {},
 		data: [],
 		error: null,
-		selection: {...selectionDef},
+		selection: { ...selectionDef },
 	});
 
 	useEffect(() => {
@@ -78,8 +79,7 @@ const useDelegaciones = () => {
 			onOk: async (data) =>
 				setList((o) => {
 					const selection = {
-						action: "",
-						request: "",
+						...selectionDef,
 						record:
 							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
@@ -114,7 +114,7 @@ const useDelegaciones = () => {
 						...o.selection,
 						request: payload.request,
 						action: payload.action,
-						record: {
+						edit: {
 							...(payload.request === "A" ? {} : o.selection.record),
 							...payload.record,
 						},
@@ -143,10 +143,10 @@ const useDelegaciones = () => {
 	}, []);
 
 	let form = null;
-	if (list.selection.request) {
+	if (list.selection.edit) {
 		form = (
 			<DelegacionesForm
-				data={list.selection.record}
+				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				disabled={(() => {
@@ -169,8 +169,8 @@ const useDelegaciones = () => {
 						...o,
 						selection: {
 							...o.selection,
-							record: {
-								...o.selection.record,
+							edit: {
+								...o.selection.edit,
 								...changes,
 							},
 						},
@@ -183,17 +183,15 @@ const useDelegaciones = () => {
 						setList((o) => ({
 							...o,
 							selection: {
-								...o.selection,
-								request: "",
-								action: "",
+								...selectionDef,
+								index: o.selection.index,
 								record: o.data.at(o.selection.index),
-								errors: null,
 							},
 						}));
 						return;
 					}
 
-					const record = { ...list.selection.record };
+					const record = list.selection.edit;
 
 					//Validaciones
 					const errors = {};
@@ -260,8 +258,7 @@ const useDelegaciones = () => {
 						setList((o) => ({
 							...o,
 							selection: {
-								action: "",
-								request: "",
+								...selectionDef,
 								index,
 								record,
 							},

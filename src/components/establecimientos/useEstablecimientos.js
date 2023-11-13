@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import ColaboradoresTable from "./ColaboradoresTable";
-import ColaboradoresForm from "./ColaboradoresForm";
-import ValidarCUIT from "components/validators/ValidarCUIT";
+import EstablecimientosTable from "./EstablecimientosTable";
+import EstablecimientosForm from "./EstablecimientosForm";
+import ValidarEmail from "components/validators/ValidarEmail";
 
 const selectionDef = {
 	action: "",
@@ -13,7 +13,7 @@ const selectionDef = {
 	errors: null,
 };
 
-const useColaboradores = () => {
+const useEstablecimientos = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -21,7 +21,7 @@ const useColaboradores = () => {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores/GetWithSpecs`,
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
 						method: "GET",
 					},
 				};
@@ -30,7 +30,7 @@ const useColaboradores = () => {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores`,
+						endpoint: `/EmpresaEstablecimientos`,
 						method: "POST",
 					},
 				};
@@ -39,7 +39,7 @@ const useColaboradores = () => {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores`,
+						endpoint: `/EmpresaEstablecimientos`,
 						method: "PUT",
 					},
 				};
@@ -48,7 +48,7 @@ const useColaboradores = () => {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores/DarDeBaja`,
+						endpoint: `/EmpresaEstablecimientos/DarDeBaja`,
 						method: "PATCH",
 					},
 				};
@@ -57,11 +57,19 @@ const useColaboradores = () => {
 				return {
 					config: {
 						baseURL: "Comunes",
-						endpoint: `/DelegacionColaboradores/Reactivar`,
+						endpoint: `/EmpresaEstablecimientos/Reactivar`,
 						method: "PATCH",
 					},
 				};
 			}
+			case "GetMotivosBaja":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
 			case "GetAfiliado": {
 				return {
 					config: {
@@ -71,10 +79,102 @@ const useColaboradores = () => {
 					},
 				};
 			}
+			case "GetProvincias": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/Provincia`,
+					},
+				};
+			}
+			case "GetLocalidades": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/RefLocalidad`,
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
+	//#endregion
+
+	//#region declaración y carga de dependencias
+
+	//#region declaración y carga de motivosBaja
+	const [motivosBaja, setMotivosBaja] = useState({
+		loading: "Cargando...",
+		params: { tipo: "E" },
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!motivosBaja.loading) return;
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: motivosBaja.params,
+			onOk: async (data) =>
+				setMotivosBaja({
+					data: data.map((r) => ({
+						label: r.descripcion,
+						value: r.id,
+					})),
+				}),
+			onError: async (error) => setMotivosBaja({ data: [], error }),
+		});
+	}, [pushQuery, motivosBaja]);
+	//#endregion
+
+	//#region declaración y carga de provincias
+	const [provincias, setProvincias] = useState({
+		loading: "Cargando...",
+		params: {},
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!provincias.loading) return;
+		pushQuery({
+			action: "GetProvincias",
+			params: provincias.params,
+			onOk: async (data) =>
+				setProvincias({
+					data: data
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (error) => setProvincias({ data: [], error }),
+		});
+	}, [pushQuery, provincias]);
+	//#endregion
+
+	//#region declaración y carga de provincias
+	const [localidades, setLocalidades] = useState({
+		loading: null,
+		params: { provinciaId: 0 },
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!localidades.loading) return;
+		pushQuery({
+			action: "GetLocalidades",
+			params: localidades.params,
+			onOk: async (data) =>
+				setLocalidades({
+					data: data
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ label: r.nombre, value: r.id })),
+				}),
+			onError: async (error) => setLocalidades({ data: [], error }),
+		});
+	}, [pushQuery, localidades]);
+	//#endregion
+
 	//#endregion
 
 	//#region declaracion y carga list y selected
@@ -129,18 +229,34 @@ const useColaboradores = () => {
 	const requestChanges = useCallback((type, payload = {}) => {
 		switch (type) {
 			case "selected": {
-				return setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						request: payload.request,
-						action: payload.action,
-						edit: {
-							...(payload.request === "A" ? {} : o.selection.record),
-							...payload.record,
+				return setList((o) => {
+					const newList = {
+						...o,
+						selection: {
+							...o.selection,
+							request: payload.request,
+							action: payload.action,
+							edit: {
+								...(payload.request === "A" ? {} : o.selection.record),
+								...payload.record,
+							},
+							errors: {},
 						},
-					},
-				}));
+					};
+					const newLocalidades = {
+						loading: null,
+						params: {},
+						data: [],
+						error: null,
+					};
+					const edit = newList.selection.edit;
+					if (edit.domicilioProvinciasId) {
+						newLocalidades.loading = "Cargando...";
+						newLocalidades.params.provinciaId = edit.domicilioProvinciasId;
+					}
+					setLocalidades(newLocalidades);
+					return newList;
+				});
 			}
 			case "list": {
 				if (payload.clear)
@@ -155,6 +271,10 @@ const useColaboradores = () => {
 					...o,
 					loading: "Cargando...",
 					params: { ...payload.params },
+					pagination: {
+						...o.pagination,
+						...payload.pagination,
+					},
 					data: [],
 				}));
 			}
@@ -166,24 +286,42 @@ const useColaboradores = () => {
 	let form = null;
 	if (list.selection.edit) {
 		form = (
-			<ColaboradoresForm
+			<EstablecimientosForm
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
+				dependecies={{ motivosBaja, provincias, localidades }}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
-								afiliadoId: true,
-								esAuxiliar: true,
+								nroSucursal: true,
+								nombre: true,
+								telefono: true,
+								email: true,
+								domicilioCalle: true,
+								domicilioNumero: true,
+								domicilioPiso: true,
+								domicilioDpto: true,
+								domicilioProvinciasId: true,
+								domicilioLocalidadesId: true,
 						  };
-					if (list.selection.request !== "B") r.deletedObs = true;
+					if (list.selection.request !== "B") {
+						r.refMotivosBajaId = true;
+						r.deletedObs = true;
+					}
 					return r;
 				})()}
 				hide={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
-						? { deletedObs: true }
+						? { refMotivosBajaId: true, deletedObs: true }
 						: {};
+					if (list.selection.request === "C") {
+						if (!list.selection.record.deletedDate) {
+							r.refMotivosBajaId = true;
+							r.deletedObs = true;
+						}
+					}
 					if (list.selection.request !== "R") r.obs = true;
 					return r;
 				})()}
@@ -198,37 +336,21 @@ const useColaboradores = () => {
 								errors: { ...o.selection.errors, ...errors },
 							},
 						}));
-					if ("afiliadoCUIL" in edit) {
-						changes.edit.afiliadoId = 0;
-						changes.edit.afiliadoNombre = "";
-						changes.errors.afiliadoCUIL = "";
-						if (`${edit.afiliadoCUIL}`.length !== 11) {
-							changes.errors.afiliadoNombre = "";
-						} else if (ValidarCUIT(edit.afiliadoCUIL)) {
-							changes.errors.afiliadoNombre = "Cargando...";
+					if ("domicilioProvinciasId" in edit) {
+						if (edit.domicilioProvinciasId) {
+							setLocalidades((o) => ({
+								...o,
+								loading: "Cargando...",
+								params: { provinciaId: changes.provinciaId },
+								data: [],
+								error: null,
+							}));
 						} else {
-							changes.errors.afiliadoCUIL = "CUIL incorrecto";
+							changes.errors.domicilioProvinciasId =
+								"Debe seleccionar una provincia";
 						}
-						applyChanges();
-						if (changes.errors.afiliadoNombre === "Cargando...") {
-							pushQuery({
-								action: "GetAfiliado",
-								params: { cuil: edit.afiliadoCUIL },
-								onOk: async (ok) => {
-									changes.edit.afiliadoId = ok.id;
-									changes.edit.afiliadoNombre = ok.nombre;
-									changes.errors.afiliadoNombre = "";
-								},
-								onError: async (error) => {
-									changes.errors.afiliadoNombre =
-										error.message ?? "Error obteniendo datos del afiliado";
-								},
-								onFinally: async () => applyChanges(),
-							});
-						}
-					} else {
-						applyChanges();
 					}
+					applyChanges();
 				}}
 				onClose={(confirm) => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request))
@@ -250,12 +372,18 @@ const useColaboradores = () => {
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
-						// if (!record.deletedObs)
-						// 	errors.deletedObs = "Dato requerido";
+						if (!record.refMotivosBajaId)
+							errors.refMotivosBajaId = "Dato requerido";
+					} else if (list.selection.request === "R") {
 					} else {
-						if (!record.afiliadoId)
-							errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
-						if (record.esAuxiliar == null) errors.esAuxiliar = "Dato requerido";
+						if (!record.empresaId) errors.empresaId = "Dato requerido";
+						if (!record.nombre) errors.nombre = "Dato requerido";
+						if (!!record.email && !ValidarEmail(record.email))
+							errors.email = "El correo ingresado tiene un formato incorrecto.";
+						if (!record.domicilioProvinciasId)
+							errors.domicilioProvinciasId = "Dato requerido";
+						if (!record.domicilioLocalidadesId)
+							errors.domicilioLocalidadesId = "Dato requerido";
 					}
 					if (Object.keys(errors).length) {
 						setList((o) => ({
@@ -289,6 +417,7 @@ const useColaboradores = () => {
 							query.action = "Delete";
 							query.config.body = {
 								id: record.id,
+								refMotivosBajaId: record.refMotivosBajaId,
 								deletedObs: record.deletedObs,
 							};
 							break;
@@ -312,9 +441,10 @@ const useColaboradores = () => {
 
 	const render = () => (
 		<>
-			<ColaboradoresTable
+			<EstablecimientosTable
 				data={list.data}
 				loading={!!list.loading}
+				mostrarBuscar={false}
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
@@ -340,12 +470,28 @@ const useColaboradores = () => {
 							},
 						})),
 				}}
+				onTableChange={(type, newState) => {
+					switch (type) {
+						case "sort": {
+							const { sortField, sortOrder } = newState;
+							return setList((o) => ({
+								...o,
+								loading: "Cargando...",
+								params: {
+									...o.params,
+									orderBy: `${sortField}.${sortOrder}`,
+								},
+							}));
+						}
+						default:
+							return;
+					}
+				}}
 			/>
 			{form}
 		</>
 	);
-
 	return [render, requestChanges, list.selection.record];
 };
 
-export default useColaboradores;
+export default useEstablecimientos;

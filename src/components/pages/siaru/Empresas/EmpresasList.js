@@ -4,7 +4,6 @@ import Table from "components/ui/Table/Table";
 
 const EmpresasList = ({
 	data = [],
-	noData,
 	...x
 }) => {
 	data ??= [];
@@ -44,7 +43,6 @@ const EmpresasList = ({
 			keyField="cuitEmpresa"
 			data={data}
 			columns={columns}
-			noDataIndication={noData}
 			{...x}
 		/>
 	);
