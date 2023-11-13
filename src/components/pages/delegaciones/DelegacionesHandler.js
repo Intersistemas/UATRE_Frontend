@@ -79,8 +79,7 @@ const DelegacionesHandler = () => {
 	//#endregion
 
 	//#region Tab documentaciones
-	const [documentacionesTab, documentacionChanger, documentacionSelected] =
-		useDocumentaciones();
+	const [documentacionesTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
 	const [documentacionesActions, setDocumentacionesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
