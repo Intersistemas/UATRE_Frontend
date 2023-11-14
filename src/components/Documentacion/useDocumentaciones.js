@@ -15,6 +15,7 @@ const selectionDef = {
 const useDocumentaciones = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
+		console.log('useDocumentaciones_action',action);
 		switch (action) {
 			case "GetTipoList": {
 				return {

@@ -76,6 +76,15 @@ const useSeccionales = () => {
 					},
 				};
 			}
+			case "GetAllDelegaciones": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/RefDelegacion/GetAll",
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
@@ -87,6 +96,7 @@ const useSeccionales = () => {
 		loading: null,
 		params: {},
 		data: [],
+		delegaciones: [],
 		error: null,
 		selection: {...selectionDef},
 	});
@@ -99,7 +109,6 @@ const useSeccionales = () => {
 			params: { ...list.params },
 			onOk: async ({data}) =>
 				setList((o) => {
-					console.log('data**',data);
 					const selection = {
 						action: "",
 						request: "",
@@ -125,6 +134,36 @@ const useSeccionales = () => {
 				})),
 		});
 	}, [pushQuery, list.loading, list.params]);
+
+	useEffect(() => {
+		if (!list.loading) return;
+		pushQuery({
+			action: "GetAllDelegaciones",
+
+			onOk: async (data) =>
+				setList((o) => {
+					console.log('delegaciones_useSeccionales:',data)
+
+					const delegaciones = data.map((refDelegacion) => {
+						return { value: refDelegacion.id, label: `${refDelegacion.codigoDelegacion}-${refDelegacion.nombre}` };
+					 });	
+					return {
+						...o,
+						loading: null,
+						//pagination: { index, size, count },
+						delegaciones,
+						error: null,
+					};
+				}),
+			onError: async (err) =>
+				setList((o) => ({
+					...o,
+					loading: null,
+					delegaciones: [],
+					error: err.code === 404 ? null : err,
+				})),
+		});
+	}, [pushQuery, list]);
 	//#endregion
 
 	const requestChanges = useCallback((type, payload = {}) => {
@@ -187,6 +226,7 @@ const useSeccionales = () => {
 						return {...list.selection.record, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
 					})()
 				}
+				delegaciones={list.delegaciones}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				loading={!!list.loading}
@@ -198,10 +238,9 @@ const useSeccionales = () => {
 								codigo: true,
 								estado: true,
 								descripcion: true,
-
+								refDelegacionId: true,
 								refLocalidadesId: true,
 								domicilio: true,
-
 								observaciones: true,
 								
 						  };
@@ -216,7 +255,8 @@ const useSeccionales = () => {
 						? { deletedObs: true }
 						: {}
 				}
-				onChange={(changes) =>
+				onChange={(changes) =>{ //solo entra el campo que se está editando
+					console.log('edit_useAutoridades',changes);
 					setList((o) => ({
 						...o,
 						selection: {
@@ -227,6 +267,7 @@ const useSeccionales = () => {
 							},
 						},
 					}))
+					}
 				}
 
 				/*onTextChange={(partialText)=>{
@@ -263,7 +304,7 @@ const useSeccionales = () => {
 						if (!record.observaciones) errors.observaciones = "Dato requerido";
 						if (!record.domicilio) errors.domicilio = "Dato requerido";
 						if (!record.refLocalidadesId) errors.refLocalidadesId = "Dato requerido";
-						if (!record.descripcion) errors.descripcion = "Dato requerido";
+						//if (!record.descripcion) errors.descripcion = "Dato requerido";
 						if (!record.estado) errors.estado = "Dato requerido";
 					}
 					console.log('list.selection2',list.selection);
@@ -277,13 +318,16 @@ const useSeccionales = () => {
 						}));
 						return;
 					}
+
 					console.log('list.selection3',list.selection);
+					
 					const query = {
 						config: {},
 						onOk: async (_res) =>
 							setList((old) => ({ ...old, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
+
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";

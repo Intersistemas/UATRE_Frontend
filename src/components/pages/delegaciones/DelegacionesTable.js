@@ -1,6 +1,6 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
-
+ 
 const DelegacionesTable = ({
 	columns: columnsInit = [],
 	...x

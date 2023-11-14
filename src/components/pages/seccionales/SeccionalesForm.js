@@ -15,10 +15,11 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 
 import useHttp from "../../hooks/useHttp";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
-
+ 
 
 const SeccionalesForm = ({
 	data = {},
@@ -29,9 +30,12 @@ const SeccionalesForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 	loading = {},
+	delegaciones =[]
 }) => {
 	data ??= {}; 
+	delegaciones ??= [];
 	console.log('data_seccional:',data)
+	console.log('delegaciones_seccional:',delegaciones)
 
 	disabled ??= {};
 	hide ??= {};
@@ -52,9 +56,16 @@ const SeccionalesForm = ({
 	
 	const [localidadSeccional, setLocalidadSeccional] = useState(localidadInicio );
 	
+
+	const selectedDelegacion = (delegacionId) =>{
+		const delegacion = delegaciones.find((c) => c.value === delegacionId)
+		return delegacion;
+	}
+
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
-		onChange({ estado: data.estado })
+		disabled.estado && onChange({ estado: data.estado });
+
 		const processLocalidades = async (localidadesObj) => {
 			console.log("localidades", localidadesObj);
 			setLocalidadesTodas(localidadesObj);
@@ -177,9 +188,6 @@ const SeccionalesForm = ({
 							//value={localidadSeccional}
 							onTextChange={handlerOnTextChange}
 							required
-
-							//onChange={handleChangeSelect}
-
 							/>
 						</div>
 						<div className={classes.item4}>
@@ -192,8 +200,23 @@ const SeccionalesForm = ({
 							disabled={disabled.domicilio ?? false}
 							onChange={(value, _id) => onChange({ domicilio: value })}
 							/>
-						</div>        
+						</div>
 						<div className={classes.item5}>
+							<SelectMaterial
+								id="refDelegacionId"
+								name="refDelegacionId"
+								label="Delegación"
+								error={!!errors.refDelegacionId} 
+								helperText={errors.refDelegacionId ?? ""}
+								value={selectedDelegacion(data.refDelegacionId)?.value}
+								disabled={disabled.refDelegacionId}
+								onChange={(value) => onChange({ refDelegacionId: value })}
+								
+								options={delegaciones}
+								required
+							/>      
+						</div>  
+						<div className={classes.item6}>
 							<InputMaterial
 							id="observaciones"
 							label="Observaciones"
@@ -207,7 +230,7 @@ const SeccionalesForm = ({
 
 						{!hide.deletedObs &&
 						<>
-						<div className={classes.item6}>
+						<div className={classes.item7}>
 							<InputMaterial
 							id="deletedDate"
 							label="Fecha Baja"
@@ -218,7 +241,7 @@ const SeccionalesForm = ({
 							onChange={(value, _id) => onChange({ deletedDate: value })}
 							/>
 						</div>
-						<div className={classes.item7}>
+						<div className={classes.item8}>
 							<InputMaterial
 							id="deletedBy"
 							label="Usuario Baja"
@@ -229,7 +252,7 @@ const SeccionalesForm = ({
 							onChange={(value, _id) => onChange({ deletedBy: value })}
 							/>
 						</div>
-						<div className={classes.item8}>
+						<div className={classes.item9}>
 							<InputMaterial 
 							id="deletedObs"
 							label="Observaciones Baja"
