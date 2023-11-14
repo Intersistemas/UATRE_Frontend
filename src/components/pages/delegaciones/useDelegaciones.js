@@ -216,10 +216,11 @@ const useDelegaciones = () => {
 
 					const query = {
 						config: {},
-						onOk: async (_res) =>
+						onOk: async (res) =>
 							setList((old) => ({ ...old, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
+
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";

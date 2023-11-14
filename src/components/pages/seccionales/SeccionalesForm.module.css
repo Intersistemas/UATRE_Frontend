@@ -30,19 +30,23 @@
     }
     
     .item5{
-        grid-row: span 3;
-        grid-column: span 3;
+        grid-row: span 1;
+        grid-column: span 1;
     }
 
     .item6{
-        grid-row: span 1;
-        grid-column: span 1;
+        grid-row: span 2;
+        grid-column: span 2;
     }
     .item7{
         grid-row: span 2;
         grid-column: span 2;
     }
     .item8{
+        grid-row: span 2;
+        grid-column: span 2;
+    }
+    .item9{
         grid-row: span 3;
         grid-column: span 3;
     }

@@ -67,7 +67,7 @@ const SeccionalesTable = ({
 			},
 		  },
 	  
-		  {
+		  { 
 			headerTitle: (column, colIndex) => `Id`,
 			dataField: "id",
 			text: "Id",

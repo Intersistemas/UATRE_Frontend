@@ -114,7 +114,7 @@ const SeccionalesHandler = () => {
 					autoridadesChanger("selected", {
 						request,
 						action,
-						record: { refSeccionalId: seccionalSelected?.id },
+						record: { seccionalId: seccionalSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -145,8 +145,16 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
-				keys: "m",
-				underlineindex: 0,
+
+				...(autoridadSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "m",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		if (autoridadSelected?.deletedDate) {
@@ -163,8 +171,15 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
-					keys: "b",
-					underlineindex: 0,
+					...(autoridadSelected?.deletedDate ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "b",
+						 underlineindex: 0
+						}
+					)
 			})
 			);
 		}
@@ -205,7 +220,7 @@ const SeccionalesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id },
+						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
 					}),
 				combination: "AltKey",
 				...x,
@@ -263,7 +278,7 @@ const SeccionalesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id },
+			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
 		});
 	}, [seccionalSelected?.id, documentacionChanger]);
 	//#endregion
