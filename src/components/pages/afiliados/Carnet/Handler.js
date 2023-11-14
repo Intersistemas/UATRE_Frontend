@@ -14,7 +14,7 @@ const Handler = ({ afiliado = {}, onClose = () => {} } = {}) => {
 					config: {
 						baseURL: "Afiliaciones",
 						endpoint: `/Seccional/GetSeccionalesSpecs`,
-						method: "GET",
+						method: "POST",
 					},
 				};
 			}
@@ -36,7 +36,7 @@ const Handler = ({ afiliado = {}, onClose = () => {} } = {}) => {
 		if (!seccional.loading) return;
 		pushQuery({
 			action: "GetSeccionales",
-			params: seccional.params,
+			body: seccional.params,
 			onOk: async (res) =>
 				setSeccional((old) => ({
 					...old,

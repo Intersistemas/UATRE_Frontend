@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Modal from "components/ui/Modal/Modal";
-import modalCss from "components/ui/Modal/Modal.module.css";
+// import Modal from "components/ui/Modal/Modal";
+// import modalCss from "components/ui/Modal/Modal.module.css";
+import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
@@ -82,147 +83,147 @@ const Localizar = ({ onClose = onCloseDef }) => {
 	}, [pushQuery, afiliados]);
 
 	return (
-		<Modal onClose={onClose}>
-			<Grid col width="full" gap="10px">
-				<Grid className={modalCss.modalCabecera} width="full" justify="center">
-					<h4>Localiza afiliado</h4>
+		<Modal size="lg" centered show onHide={onClose}> 
+			<Modal.Header>
+				<Grid width="full" justify="center">
+					<h4>Localiza Afiliado</h4>
 				</Grid>
-				<Grid>Parámetros</Grid>
-				<Grid width="full" gap="inherit">
-					<InputMaterial
-						label="Nro. Afiliado"
-						type="number"
-						value={state.nroAfiliado}
-						onChange={(v) => setState((o) => ({ ...o, nroAfiliado: v }))}
-					/>
-					<InputMaterial
-						label="CUIL"
-						type="number"
-						value={state.cuil}
-						onChange={(v) => setState((o) => ({ ...o, cuil: v }))}
-					/>
-					<InputMaterial
-						label="Documento"
-						type="number"
-						value={state.documento}
-						onChange={(v) => setState((o) => ({ ...o, documento: v }))}
-					/>
-					<Grid style={{ minWidth: "200px" }}>
-						<Button
-							className="botonAmarillo"
-							onClick={() => {
-								const cambios = {
-									params: {},
-									data: [],
-									selection: { selected: [] },
-								};
+			</Modal.Header>
+			<Modal.Body>
+				<Grid col width="full" gap="10px">
+					<Grid>Buscar por...</Grid>
+					<Grid width="full" gap="inherit">
+						<InputMaterial
+							label="Nro. Afiliado"
+							type="number"
+							value={state.nroAfiliado}
+							onChange={(v) => setState((o) => ({ ...o, nroAfiliado: v }))}
+						/>
+						<InputMaterial
+							label="CUIL"
+							type="number"
+							value={state.cuil}
+							onChange={(v) => setState((o) => ({ ...o, cuil: v }))}
+						/>
+						<InputMaterial
+							label="Documento"
+							type="number"
+							value={state.documento}
+							onChange={(v) => setState((o) => ({ ...o, documento: v }))}
+						/>
+						<Grid style={{ minWidth: "200px" }}>
+							<Button
+								className="botonAmarillo"
+								onClick={() => {
+									const cambios = {
+										params: {},
+										data: [],
+										selection: { selected: [] },
+									};
 
-								if (state.nroAfiliado)
-									cambios.params.nroAfiliado = state.nroAfiliado;
-								if (state.documento) cambios.params.documento = state.documento;
-								if (state.cuil) cambios.params.cuil = state.cuil;
+									if (state.nroAfiliado)
+										cambios.params.nroAfiliado = state.nroAfiliado;
+									if (state.documento) cambios.params.documento = state.documento;
+									if (state.cuil) cambios.params.cuil = state.cuil;
 
-								if (Object.keys(cambios.params).length)
-									cambios.loading = "Cargando...";
-								else
-									cambios.error = { message: "Debe ingresar algún parámetro " };
+									if (Object.keys(cambios.params).length)
+										cambios.loading = "Cargando...";
+									else
+										cambios.error = { message: "Debe ingresar algún parámetro " };
 
-								setAfiliados((o) => ({ ...o, ...cambios }));
-							}}
-						>
-							Localiza
-						</Button>
-					</Grid>
-				</Grid>
-				<Table
-					remote
-					loading={!!afiliados.loading}
-					mostrarBuscar={false}
-					keyField="id"
-					data={afiliados.data}
-					pagination={{
-						...afiliados.pagination,
-						onChange: (c) =>
-							setAfiliados((o) => ({
-								...o,
-								loading: "Cargando",
-								pagination: { ...o.pagination, ...c },
-							})),
-					}}
-					selection={{
-						...afiliados.selection,
-						onSelect: (row, isSelect, index, e) =>
-							setAfiliados((o) => ({
-								...o,
-								selection: { ...o.selection, selected: [row.id] },
-							})),
-					}}
-					noDataIndication={
-						afiliados.loading ||
-						((e) => (e ? <span style={{ color: "red" }}>{e}</span> : null))(
-							[afiliados.error?.code, afiliados.error?.message]
-								.filter((r) => r)
-								.join(" ")
-						) ||
-						"No existen datos para mostrar"
-					}
-					columns={[
-						{
-							dataField: "nroAfiliado",
-							text: "Nro. Afil.",
-							style: { textAlign: "center" },
-							headerStyle: () => ({ width: "7rem", textAlign: "center" }),
-						},
-						{
-							dataField: "nombre",
-							text: "Nombre",
-						},
-						{
-							dataField: "seccional",
-							text: "Seccional",
-						},
-					]}
-				/>
-				<Grid
-					className={[styles.fondo, styles.grupo].join(" ")}
-					col
-					width="full"
-					gap="inherit"
-				>
-					<Grid className={styles.titulo} width="full">
-						Datos del afiliado
-					</Grid>
-					<Grid col width="full" gap="inherit" style={{ padding: "0rem 1rem" }}>
-						<Grid width="full" gap="inherit">
-							<InputMaterialDetail
-								label="Nro. afiliado"
-								value={selected.nroAfiliado}
-								width="20"
-							/>
-							<InputMaterialDetail
-								label="CUIL"
-								value={Formato.Cuit(selected.cuil)}
-								width="20"
-							/>
-							<InputMaterialDetail
-								label="Documento"
-								value={[
-									selected.afipTipoDocumento,
-									selected.afipNumeroDocumento,
-								]
-									.filter((r) => r)
-									.join(" ")}
-								width="20"
-							/>
-							<InputMaterialDetail
-								label="Seccional"
-								value={selected.seccional}
-								width="40"
-							/>
+									setAfiliados((o) => ({ ...o, ...cambios }));
+								}}
+							>
+								Localiza
+							</Button>
 						</Grid>
-						<InputMaterialDetail label="Nombre" value={selected.nombre} />
+					</Grid>
+					<Table
+						remote
+						loading={!!afiliados.loading}
+						mostrarBuscar={false}
+						keyField="id"
+						data={afiliados.data}
+						pagination={{
+							...afiliados.pagination,
+							onChange: (c) =>
+								setAfiliados((o) => ({
+									...o,
+									loading: "Cargando",
+									pagination: { ...o.pagination, ...c },
+								})),
+						}}
+						selection={{
+							...afiliados.selection,
+							onSelect: (row, isSelect, index, e) =>
+								setAfiliados((o) => ({
+									...o,
+									selection: { ...o.selection, selected: [row.id] },
+								})),
+						}}
+						noDataIndication={
+							afiliados.loading ||
+							((e) => (e ? <span style={{ color: "red" }}>{e}</span> : null))(
+								[afiliados.error?.code, afiliados.error?.message]
+									.filter((r) => r)
+									.join(" ")
+							) ||
+							"No existen datos para mostrar"
+						}
+						columns={[
+							{
+								dataField: "nroAfiliado",
+								text: "Nro. Afil.",
+								style: { textAlign: "center" },
+								headerStyle: () => ({ width: "7rem", textAlign: "center" }),
+							},
+							{
+								dataField: "nombre",
+								text: "Nombre",
+							},
+							{
+								dataField: "seccional",
+								text: "Seccional",
+							},
+						]}
+					/>
+					<Grid
+						className={[styles.fondo, styles.grupo].join(" ")}
+						col
+						width="full"
+						gap="inherit"
+					>
+						<Grid className={styles.titulo} width="full">
+							Datos del afiliado
+						</Grid>
+						<Grid col width="full" gap="inherit" style={{ padding: "0rem 1rem" }}>
+							<Grid width="full" gap="inherit">
+								<InputMaterialDetail
+									label="Nro. afiliado"
+									value={selected.nroAfiliado}
+								/>
+								<InputMaterialDetail
+									label="CUIL"
+									mask="99-99.999.999-9"
+									value={selected.cuil}
+								/>
+								<InputMaterialDetail
+									label="Documento"
+									value={[
+										selected.afipTipoDocumento,
+										Formato.DNI(selected.afipNumeroDocumento),
+									]
+										.filter((r) => r)
+										.join(" ")}
+								/>
+							</Grid>
+							<InputMaterialDetail label="Seccional" value={selected.seccional} />
+							<InputMaterialDetail label="Nombre" value={selected.nombre} />
+						</Grid>
 					</Grid>
 				</Grid>
+			</Modal.Body>
+			<Modal.Footer>
 				<Grid width="full" justify="evenly" gap="inherit">
 					<Grid width="200px" gap="inherit">
 						<Button className="botonAmarillo" onClick={onClose}>
@@ -230,7 +231,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 						</Button>
 					</Grid>
 				</Grid>
-			</Grid>
+			</Modal.Footer>
 		</Modal>
 	);
 };

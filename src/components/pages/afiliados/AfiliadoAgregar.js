@@ -1483,7 +1483,7 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "numeroDocumento":
-        dispatchNumeroDocumento({ type: "USER_INPUT", value: value });
+        dispatchNumeroDocumento({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") });
         break;
 
       case "domicilio":
@@ -2055,6 +2055,7 @@ const AfiliadoAgregar = (props) => {
 									value={numeroDocumentoState.value}
 									label="Numero Documento"
 									disabled={InputDisabled()}
+									mask="99\.999\.999"
 									//width={96}
 									onChange={handleInputChange}
 									error={

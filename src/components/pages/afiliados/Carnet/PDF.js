@@ -37,17 +37,23 @@ const PDF = ({ afiliado = {}, seccional = {} } = {}) => {
 					</P>
 					<Grid width="full">
 						<Grid col width="full" gap="5px">
-							<P align="center">{afiliado.documento}</P>
+							<P align="center">
+								{[afiliado.tipoDocumento, Formato.DNI(afiliado.documento)]
+									.filter((r) => r)
+									.join(" ")}
+							</P>
 							<P align="center">{`Afil. Nro. ${afiliado.nroAfiliado}`}</P>
 							<P size={12} align="center" bold>
-								{afiliado.afipDomicilioProvincia}
+								{afiliado.provincia}
 							</P>
 						</Grid>
 						<Grid col width="full" gap="5px">
 							<P align="center">{afiliado.nacionalidad}</P>
-							<P align="center">{`Secc. Nro. ${seccional.codigo}`}</P>
+							<P align="center">
+								{((v) => (v ? `Secc. Nro. ${v}` : ""))(seccional.codigo)}
+							</P>
 							<P size={12} align="center" bold>
-								{afiliado.afipDomicilioLocalidad}
+								{afiliado.localidad}
 							</P>
 						</Grid>
 					</Grid>

@@ -23,7 +23,7 @@ const InputMaterial = (props) => {
         }
         break;
 
-      case "numeroDocumento": 
+      // case "numeroDocumento": 
       case "telefono":
         const reNumero = /^[0-9\b]+$/;
         if (event.target.value === "" || reNumero.test(event.target.value)) {
