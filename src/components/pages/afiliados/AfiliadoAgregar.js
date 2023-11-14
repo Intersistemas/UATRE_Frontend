@@ -967,19 +967,21 @@ const AfiliadoAgregar = (props) => {
 		request(
 			{
 				baseURL: "Afiliaciones",
-				endpoint: [
-					"/Seccional/GetSeccionalesSpecs",
-					Object.keys(seccionales.params)
-						.map((k) => `${k}=${seccionales.params[k]}`)
-						.join("&"),
-				]
-					.filter((r) => r)
-					.join("?"),
-				method: "GET",
+				// endpoint: [
+				// 	"/Seccional/GetSeccionalesSpecs",
+				// 	Object.keys(seccionales.params)
+				// 		.map((k) => `${k}=${seccionales.params[k]}`)
+				// 		.join("&"),
+				// ]
+				// 	.filter((r) => r)
+				// 	.join("?"),
+				endpoint: "/Seccional/GetSeccionalesSpecs",
+				body: seccionales.params,
+				method: "POST",
 			},
 			async (ok) =>
 				data.push(
-					...ok
+					...ok.data
 						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
 						.map((r) => ({
 							value: r.id,
