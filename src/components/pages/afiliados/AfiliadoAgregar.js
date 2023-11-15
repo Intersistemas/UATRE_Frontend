@@ -1352,7 +1352,7 @@ const AfiliadoAgregar = (props) => {
       {        
         baseURL: "Comunes",
         endpoint: `/AFIPConsulta?CUIT=${
-          afiliado !== null ? afiliado.cuilValidado : cuilState.value
+          afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
         }&VerificarHistorico=${false}`,
         method: "GET",
       },
