@@ -17,37 +17,31 @@ const useHttp = () => {
         const storedTokenData = getStoredToken()
         let url = ''
 
+
+        //DONDE HARÄ EL DEPLOY??
+        //const servidor =  process.env.SERVIDOR;
+        const servidor = 
+        'uatredesa';
+        //'uatretest';
+        //'uatre';
+
         switch (configRequest.baseURL) {
           case "Comunes":
-            url = "http://uatredesa.intersistemas.net:8202/api";
-            // url = "http://uatretest.intersistemas.net:8202/api";
-            // url = "http://uatre.intersistemas.net:8202/api";
-            //url = "https://localhost:7032/api";
-            break;
-          case "Afiliaciones":
-            url = 'http://uatredesa.intersistemas.net:8200/api';
-            // url = 'http://uatretest.intersistemas.net:8200/api';
-            // url = "http://uatre.intersistemas.net:8200/api";
-            //url = "http://localhost:5165/api";
-            break;
-          case "DDJJ":
-              url = 'http://uatredesa.intersistemas.net:8203/api';
-              // url = 'http://uatretest.intersistemas.net:8203/api';
-              //url = "http://uatre.intersistemas.net:8203/api";
-              //url = "http://localhost:5165/api";
+              url = `http://${servidor}.intersistemas.net:8202/api`;
               break;
-
+          case "Afiliaciones":
+              url = `http://${servidor}.intersistemas.net:8200/api`;
+              break;
+          case "DDJJ":
+              url = `http://${servidor}.intersistemas.net:8203/api`;
+              break;
           case "SIARU":
-            url = 'http://uatredesa.intersistemas.net:8201/api/v1';
-            // url = 'http://uatretest.intersistemas.net:8201/api/v1';
-            // url = "http://uatre.intersistemas.net:8201/api/v1";
-            break;
+              url = `http://${servidor}.intersistemas.net:8201/api/v1`;
+              break;
             
           case 'Seguridad':
-                url = 'http://uatredesa.intersistemas.net:8800/api'
-                // url = 'http://uatretest.intersistemas.net:8800/api'
-                // url = "http://uatre.intersistemas.net:8800/api";
-                break;
+              url = `http://${servidor}.intersistemas.net:8800/api`;
+              break;
 	
             default:
                 break;
