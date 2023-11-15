@@ -23,10 +23,15 @@ import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import Table from "../../ui/Table/Table";
 import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
-import Seccional from "./seccionales/Seccional";
 import useHttp from "../../hooks/useHttp";
 import { styled } from '@mui/material/styles';
 import Documentacion from "./documentacion/Documentacion";
+import AfiliadoSeccional from './AfiliadosSeccionales'
+import Action from "components/helpers/Action";
+import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
+import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import KeyPress from "components/keyPress/KeyPress";
+
 
 
 const AfiliadosLista = (props ) => {
@@ -34,8 +39,10 @@ const AfiliadosLista = (props ) => {
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(0);
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(props.afiliadoSeleccionado);
+  const [seccionalSeleccionada, setSeccionalSeleccionada] = useState({});
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
+  const [afiliadosActions, setAfiliadosActions] = useState();
   const {isLoading, error, sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
 
@@ -56,9 +63,140 @@ const AfiliadosLista = (props ) => {
 
   };
 
+
+  useEffect(() => {
+
+    console.log('selectedTab:',selectedTab);
+    let actions = [];
+
+    if (selectedTab == 0) {
+      const createAction = ({ action, request, ...x }) =>
+        new Action({
+          name: action,
+          //request: request,
+          onExecute: () =>  dispatch(handleModuloEjecutarAccion(request)),
+          combination: "AltKey",
+          ...x,
+        });
+
+      actions.push(
+        createAction({
+          action: `Agrega Afiliado`,
+          request: "A",
+          keys: "a",
+          underlineindex: 0,
+        }),
+      );
+
+      const desc = "";//afiliadoSeleccionado?.nombre ;
+
+      actions.push(
+        createAction({
+          action: `Modifica Afiliado ${desc}`,
+          request: "M",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "m",
+            underlineindex: 0
+            }
+          )
+        })
+      );
+
+      actions.push(
+        createAction({
+          action: `Resuelve Solicitud ${desc}`,
+          request: "R",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "s",
+            underlineindex: 9,
+            }
+          )
+        })
+      );
+
+      actions.push(
+        createAction({
+          action: `Imprime Carnet de Afiliación ${desc}`,
+          request: "I",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "p",
+            underlineindex: 2,
+            }
+          )
+        })
+      );
+
+      actions.push(
+        createAction({
+          action: `Baja Afiliado ${desc}`,
+          request: "B",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "b",
+            underlineindex: 0,
+            }
+          )
+        })
+      );
+
+      actions.push(
+        createAction({
+          action: `Reactiva Afiliado ${desc}`,
+          request: "R",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "r",
+            underlineindex: 0,
+            }
+          )
+        })
+      );
+
+      actions.push(
+        createAction({
+          action: `Localiza Afiliado ${desc}`,
+          request: "L",
+          disabled:  false,
+          keys: "l",
+          underlineindex: 0,
+        })
+      );
+    }
+
+    const acciones = actions;
+		dispatch(handleModuloSeleccionar({ nombre: "Afiliados", acciones }));
+    setAfiliadosActions(actions);
+		 //cargo todas las acciones / botones
+	}, [selectedTab, afiliadoSeleccionado]);
+
+
+
   //llamo para que se refresquen los datos del primer registro seleccionado
   useEffect(() => {
-    console.log('props.afiliadoSeleccionado',props.afiliadoSeleccionado)
+    console.log('props.afiliadoSeleccionado',props.afiliadoSeleccionado);
     rowEvents(props.afiliadoSeleccionado);
 
   }, [props.afiliadoSeleccionado]);
@@ -354,6 +492,9 @@ const AfiliadosLista = (props ) => {
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
+     case 4:
+         setSeccionalSeleccionada(row);
+         break;
     default: break;
    }
    dispatch(handleAfiliadoSeleccionar(row));
@@ -516,8 +657,10 @@ const AfiliadosLista = (props ) => {
               </Tabs>
               </div>
           {selectedTab === 0 && ( //AFILIADOS
+          //despachar afiliados
             <div>
               <TableSegmentado {...tableProps}/>
+              <KeyPress items={afiliadosActions} />
             </div> 
           )}
 
@@ -531,9 +674,9 @@ const AfiliadosLista = (props ) => {
             />        
           )}
           {selectedTab === 2 && (
-            <Documentacion
-            idUsuario={afiliadoSeleccionado.id}
-            />
+            
+            <AfiliadosDocumentaciones afiliado={afiliadoSeleccionado}/>
+            
           )}
 
           {selectedTab === 3 && (
@@ -541,8 +684,9 @@ const AfiliadosLista = (props ) => {
           )}
 
           {selectedTab === 4 && (
-            <Seccional
-              localidadId={afiliadoSeleccionado.refLocalidadId}
+            <AfiliadoSeccional
+              afiliado={afiliadoSeleccionado}
+              onSeleccionRegistro={rowEvents}
             />        
           )}
 
@@ -550,6 +694,7 @@ const AfiliadosLista = (props ) => {
             data: afiliadoSeleccionado,
             ddjj: ddjjUatreSeleccionado,
             empresa: empresaSeleccionada,
+            seccional: seccionalSeleccionada,
             tab: selectedTab
           }}/>
       </div>
