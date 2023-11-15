@@ -858,6 +858,11 @@ const AfiliadoAgregar = (props) => {
 	//Provincias
 	useEffect(() => {
 		if (!provincias.loading) return;
+		const changes = {
+			loading: null,
+			data: [],
+			error: null,
+		};
 		request(
 			{
 				baseURL: "Afiliaciones",
@@ -865,10 +870,8 @@ const AfiliadoAgregar = (props) => {
 				method: "GET",
 			},
 			async (ok) =>
-				setProvincias((old) => ({
-					...old,
-					loading: null,
-					data: ok
+				changes.data.push(
+					...ok
 						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
 						.map((r) => ({
 							value: r.id,
@@ -876,16 +879,10 @@ const AfiliadoAgregar = (props) => {
 							idProvinciaAFIP: r.idProvinciaAFIP,
 							seccionalIdPorDefecto: r.seccionalIdPorDefecto,
 							seccionalDescripcionPorDefecto: r.seccionalDescripcionPorDefecto,
-						})),
-					error: null,
-				})),
-			async (error) =>
-				setProvincias((old) => ({
-					...old,
-					loading: null,
-					data: [],
-					error,
-				}))
+						}))
+				),
+			async (error) => (changes.error = error),
+			async () => setProvincias((o) => ({ ...o, ...changes }))
 		);
 	}, [request, provincias]);
 
@@ -914,6 +911,15 @@ const AfiliadoAgregar = (props) => {
 	// Localidades
 	useEffect(() => {
 		if (!localidades.loading) return;
+		const changes = {
+			loading: null,
+			data: [],
+			error: null,
+		};
+		if (!localidades.params) {
+			setLocalidades((o) => ({ ...o, ...changes }));
+			return;
+		}
 		request(
 			{
 				baseURL: "Afiliaciones",
@@ -928,21 +934,13 @@ const AfiliadoAgregar = (props) => {
 				method: "GET",
 			},
 			async (ok) =>
-				setLocalidades((old) => ({
-					...old,
-					loading: null,
-					data: ok
+				changes.data.push(
+					...ok
 						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-						.map((r) => ({ value: r.id, label: r.nombre })),
-					error: null,
-				})),
-			async (err) =>
-				setLocalidades((old) => ({
-					...old,
-					loading: null,
-					data: [],
-					error: err,
-				}))
+						.map((r) => ({ value: r.id, label: r.nombre }))
+				),
+			async (error) => (changes.error = error),
+			async () => setLocalidades((o) => ({ ...o, ...changes }))
 		);
 	}, [request, localidades]);
 
@@ -961,30 +959,27 @@ const AfiliadoAgregar = (props) => {
 	// Seccionales
 	useEffect(() => {
 		if (!seccionales.loading) return;
-		let data = [provincias.data.find((r) => r.value === provinciaState.value)]
-			.filter((r) => r)
-			.map((r) => ({
-				value: r.seccionalIdPorDefecto,
-				label: r.seccionalDescripcionPorDefecto,
-			}));
-		let error = null;
+		const changes = {
+			loading: null,
+			data: [provincias.data.find((r) => r.value === provinciaState.value)]
+				.filter((r) => r)
+				.map((r) => ({
+					value: r.seccionalIdPorDefecto,
+					label: r.seccionalDescripcionPorDefecto,
+				})),
+			error: null,
+		};
+		const applyChanges = () => setSeccionales((o) => ({ ...o, ...changes }));
+		if (!seccionales.params) return applyChanges();
 		request(
 			{
 				baseURL: "Afiliaciones",
-				// endpoint: [
-				// 	"/Seccional/GetSeccionalesSpecs",
-				// 	Object.keys(seccionales.params)
-				// 		.map((k) => `${k}=${seccionales.params[k]}`)
-				// 		.join("&"),
-				// ]
-				// 	.filter((r) => r)
-				// 	.join("?"),
 				endpoint: "/Seccional/GetSeccionalesSpecs",
 				body: seccionales.params,
 				method: "POST",
 			},
 			async (ok) =>
-				data.push(
+				changes.data.push(
 					...ok.data
 						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
 						.map((r) => ({
@@ -992,15 +987,8 @@ const AfiliadoAgregar = (props) => {
 							label: `${r.codigo} ${r.descripcion}`,
 						}))
 				),
-			async (err) => (error = err),
-			async () => {
-				setSeccionales((old) => ({
-					...old,
-					loading: null,
-					data,
-					error,
-				}));
-			}
+			async (error) => (changes.error = error),
+			async () => applyChanges()
 		);
 	}, [request, seccionales, provinciaState, provincias]);
 
@@ -1253,7 +1241,6 @@ const AfiliadoAgregar = (props) => {
       const year = today.getFullYear();
       const day = today.getDate();
       const fechaIngreso = year + "-" + month + "-" + day;
-      console.log("fechaIngreso", moment(fechaIngreso).format("yyyy-MM-DD"));
       dispatchFechaIngreso({
         type: "USER_INPUT",
         value: moment(fechaIngreso).format("yyyy-MM-DD"),
