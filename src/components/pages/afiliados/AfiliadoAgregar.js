@@ -1960,7 +1960,7 @@ const AfiliadoAgregar = (props) => {
 						/>
 						<Tab
 							label="Documentacion"
-							disabled={!cuilState.isValid}
+							disabled={!cuilState.isValid || !cuitState.isValid}
 						/>
 					</Tabs>
 				</div>
