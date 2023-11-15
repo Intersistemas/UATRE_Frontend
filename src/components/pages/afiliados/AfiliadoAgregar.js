@@ -615,6 +615,10 @@ const AfiliadoAgregar = (props) => {
               : "",
         });
         dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
+				dispatchFechaIngreso({
+					type: "USER_INPUT",
+					value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
+				});
         dispatchActividad({
           type: "USER_INPUT",
           value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
