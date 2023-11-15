@@ -99,7 +99,7 @@ const SeccionalesTable = ({
 		...columnsInit
 	];
 	//#endregion
-
+ 
 	return (
 		<Table
 			keyField="id"

@@ -4,7 +4,6 @@ import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
 
 import { useDispatch, useSelector } from "react-redux";
-import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
@@ -42,61 +41,7 @@ const AfiliadosHandler = () => {
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
   
-  const moduloInfoDefault = {
-    nombre: "Afiliados",
-    acciones: [
-      {
-        id: 1,
-        name: "Agrega Afiliado",
-        underlineindex: 0,
-        icon: "",
-        disabled: false,
-      },
-      {
-        id: 2,
-        name: "Modifica Afiliado",
-        underlineindex: 0,
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 3,
-        name: "Resuelve Solicitud",
-        underlineindex: 9,
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 4,
-        name: "Imprime Carnet de Afiliación",
-        underlineindex: 2,
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 5,
-        name: "Baja Afiliado",
-        underlineindex: 0,
-        icon: "",
-        disabled: true,
-      },
-      {
-        id: 6,
-        name: "Reactiva Afiliado",
-        underlineindex: 0,
-        icon: "",
-        disabled: true,
-      },
-
-      {
-        id: 6,
-        name: "Localiza Afiliado",
-        underlineindex: 0,
-        icon: "",
-      },
-    ],
-  };
-  const [moduloInfo, setModuloInfo] = useState(moduloInfoDefault);
+  
 
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
@@ -106,29 +51,8 @@ const AfiliadosHandler = () => {
 
   //#region despachar Informar Modulo
   const dispatch = useDispatch();
-  useEffect(()=>{
-    dispatch(handleModuloSeleccionar(moduloInfo));
-  },[])
+
   //#endregion
-
-
-  const despacharAcciones = (a) =>{
-   //console.log(first)
-
-    let boton = moduloInfo?.acciones.find(element => element.name == a);
-
-    !boton?.disabled && dispatch(handleModuloEjecutarAccion(a));
-  }
-
-    //#region shorcuts
-    UseKeyPress(['a'], () => despacharAcciones("Agrega Afiliado"), 'AltKey');
-    UseKeyPress(['m'], () => despacharAcciones("Modifica Afiliado"), 'AltKey');
-    UseKeyPress(['s'], () => despacharAcciones("Resuelve Solicitud"), 'AltKey');
-    UseKeyPress(['p'], () => despacharAcciones("Imprime Carnet de Afiliación"), 'AltKey');
-    UseKeyPress(['b'], () => despacharAcciones("Baja Afiliado"), 'AltKey');
-    UseKeyPress(['r'], () => despacharAcciones("Reactiva Afiliado"), 'AltKey');
-		UseKeyPress(['l'], () => despacharAcciones("Localiza Afiliado"), 'AltKey');
-    //#endregion 
 
 
   //#region Cargar Tablas
@@ -188,54 +112,6 @@ const AfiliadosHandler = () => {
   ]);
 
 
-  //#region AFILIADO SELECCIONADO, según las condiciones del afiliado se habilitarán determinados botones del SIDEBAR (por esto me veo  obligado a hacer un dispatch)
-  useEffect(() => {
-    //console.log('afiliadoModificado*',afiliadoModificado);
-    //console.log('afiliadoSeleccionado*',afiliadoSeleccionado)
-    switch (afiliadoSeleccionado?.estadoSolicitud) {
-      case "Observado":
-        const accionesAux0 = moduloInfoDefault.acciones.map((accion) =>
-          accion.id === 2 ? { ...accion, disabled: false } : accion
-        );
-        setModuloInfo({ ...moduloInfo, acciones: accionesAux0 });
-        break;
-      case "Activo":
-        const accionesAux1 = moduloInfoDefault.acciones.map((accion) =>
-          accion.id === 2 ||
-          accion.id === 4 ||
-          accion.id === 5 
-            ? { ...accion, disabled: false }
-            : accion
-        );
-        setModuloInfo({ ...moduloInfo, acciones: accionesAux1 });
-        break;
-      case "Pendiente":
-        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
-        const accionesAux2 = moduloInfoDefault.acciones.map((accion) =>
-          accion.id === 2 || accion.id === 3
-            ? { ...accion, disabled: false }
-            : accion
-        );
-        setModuloInfo({ ...moduloInfo, acciones: accionesAux2 });
-        break;
-      case "No Activo":
-        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
-        const accionesAux3 = moduloInfoDefault.acciones.map((accion) =>
-          accion.id === 6
-           ? { ...accion, disabled: false } 
-           : accion
-        );
-        setModuloInfo({ ...moduloInfo, acciones: accionesAux3 });
-        break;
-      default:
-        setModuloInfo(moduloInfoDefault); //seteo por defecto primero
-        break;
-    }
-    console.log("moduloInfo3", moduloInfo);
-    dispatch(handleModuloSeleccionar(moduloInfo));
-  }, [afiliadoSeleccionado,afiliadosRespuesta,afiliadoModificado]);
-  //#endregion
-
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
       const estadosSolicitudesTable = estadosSolicitudesObj.map(
@@ -275,20 +151,21 @@ const AfiliadosHandler = () => {
   //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
     //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-    switch (moduloAccion?.name) {
-      case "Agrega Afiliado":
+    console.log('modulo Accion:',moduloAccion);
+    switch (moduloAccion) {
+      case "A":
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Agrega");
         break;
-      case "Modifica Afiliado":
+      case "M":
         setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Modifica");
         break;
-      case "Resuelve Solicitud":
+      case "S":
         // setAfiliadoAgregarShow(true);
         setAccionSeleccionada("Resuelve");
         break;
-      case "Imprime Carnet de Afiliación":
+      case "I":
         //navigate(`/afiliaciones/${id}`);
         // setPantallaEnDesarrolloShow(true);
         setAccionSeleccionada("Imprime");
@@ -297,16 +174,16 @@ const AfiliadosHandler = () => {
         //alert('Funcionalidad de Consulta En desarrollo ');
         setPantallaEnDesarrolloShow(true);
         break;*/
-      case "Baja Afiliado":
+      case "B":
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Baja");
         break;
 
-      case "Reactiva Afiliado":
+      case "R":
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Reactiva");
         break;
-			case "Localiza Afiliado":
+			case "L":
 				setAccionSeleccionada("Localiza");
 				break;
 				

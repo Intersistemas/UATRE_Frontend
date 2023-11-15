@@ -37,10 +37,7 @@ const SeccionalesHandler = () => {
 			}),
 		];
 		const desc = seccionalSelected?.codigo ?? seccionalSelected?.descripcion;
-		/*if (!desc) {
-			setSeccionalesActions(actions);
-			return;
-		}*/
+
 		actions.push(
 			createAction({
 				action: `Consulta Seccional ${desc}`,
