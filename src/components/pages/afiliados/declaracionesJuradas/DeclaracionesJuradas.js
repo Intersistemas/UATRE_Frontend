@@ -12,27 +12,32 @@ const DeclaracionesJuradas = (props) => {
   const [idPrimerRegistroDelGrid, setIdPrimerRegistroDelGrid] = useState(0);
   const { cuil, cuit, infoCompleta, mostrarBuscar, registros } = props.cuil && props;
 
-  console.log('DeclaracionesJuradas_props',props);
-
   useEffect(() => {
     if (cuil > 0) {
-      console.log('DeclaracionesJuradas_cuil',cuil);
       const processDDJJUatre = async (ddJJUatreObj) => {
         setIdPrimerRegistroDelGrid(ddJJUatreObj[0]?.id ?? 0);
         props.onSeleccionRegistro(ddJJUatreObj[0]);
         setDDJJUatreList(ddJJUatreObj);
         props.onDeclaracionesGeneradas&&props.onDeclaracionesGeneradas(ddJJUatreObj);
       };
+			const param = (name, value) => (value ? `${name}=${value}` : null);
       request(
-        {
-          baseURL: "DDJJ",
-          endpoint: `/DDJJUatre/GetCUILUltimoAnio?CUIL=${+cuil}`,
-          method: "GET",
-        },
-        processDDJJUatre
-      );
+				{
+					baseURL: "DDJJ",
+					endpoint: [
+						"/DDJJUatre/GetCUILUltimoAnio",
+						[param("CUIL", cuil), param("CUIT", cuit)]
+							.filter((r) => r)
+							.join("&"),
+					]
+						.filter((r) => r)
+						.join("?"),
+					method: "GET",
+				},
+				processDDJJUatre
+			);
     }
-  }, [request, cuil]);
+  }, [request, cuil, cuit]);
 
   let columns = null
   if (infoCompleta) {
@@ -151,7 +156,6 @@ const DeclaracionesJuradas = (props) => {
 
   const rowEvents = {
     onClick: (e, row, rowIndex) => {
-      //console.log(`row: ${row.cuit}`);
       props.onSeleccionRegistro(row);
       setIdPrimerRegistroDelGrid(row?.id);
     },

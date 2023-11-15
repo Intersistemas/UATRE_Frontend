@@ -1559,8 +1559,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle DDJJ
   const handleSeleccionDDJJ = (row) => {
-    setCUITEmpresa(row.cuit);
-    dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
+    // setCUITEmpresa(row.cuit);
+    // dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
   };
   //#endregion
 
