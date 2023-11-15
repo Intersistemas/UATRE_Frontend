@@ -54,7 +54,7 @@ const DocumentacionTable = ({
 			data={data}
 			columns={columns}
 			selection={selection}
-			mostrarBuscar={false}
+			mostrarBuscar={true}
 			{...x}
 		/>
 	);

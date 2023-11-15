@@ -20,6 +20,7 @@ const useSeccionales = () => {
 	const Usuario = useContext(AuthContext).usuario;
 
 	const pushQuery = useQueryQueue((action, params) => {
+		console.log('action & param: ', action," & ", params);
 		switch (action) {
 			case "GetList": {
 				return {
@@ -30,11 +31,22 @@ const useSeccionales = () => {
 						body: {
 							soloActivos: "false",
 							ambitoTodos: Usuario.ambitoTodos,
-							ambitoSeccionales: Usuario.ambitoSeccionales,
-							ambitoDelegaciones: Usuario.ambitoDelegaciones,
 							ambitoProvincias: Usuario.ambitoProvincias,
-						  },
+							ambitoDelegaciones: Usuario.ambitoDelegaciones,
+							ambitoSeccionales: Usuario.ambitoSeccionales,
+						 },
 					},
+				};
+			}
+			case "GetById": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional/${id}`,
+						method: "GET",
+					},
+					params: otherParams,
 				};
 			}
 			case "Create": {
@@ -135,6 +147,7 @@ const useSeccionales = () => {
 		});
 	}, [pushQuery, list.loading, list.params]);
 
+
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
@@ -197,6 +210,42 @@ const useSeccionales = () => {
 					params: { ...payload.params },
 					data: [],
 				}));
+			}
+			case "GetById": {
+				console.log('GetById_payload:',payload);
+				return pushQuery({
+					action: "GetById",
+					params: { ...payload.params },
+					onOk: async (obj) =>
+						
+						{
+						let data = [];
+						data.push(obj);
+						console.log('data_Seccional',data);
+						setList((o) => {
+							const selection = {
+								action: "",
+								request: "",
+								record: data,
+							};
+
+							return {
+								...o,
+								loading: null,
+								data,
+								error: null,
+								selection,
+							};
+						})},
+					onError: async (err) =>
+						setList((o) => ({
+							...o,
+							loading: null,
+							data: [],
+							error: err.code === 404 ? null : err,
+							selection: { ...selectionDef },
+						})),
+				});
 			}
 			default:
 				return;
