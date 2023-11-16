@@ -31,6 +31,7 @@ import TabEmpleador from "./TabEmpleador/TabEmpleador";
 import CabeceraABMAfiliado from "./CabeceraABMAfiliado/CabeceraABMAfiliado";
 import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
+import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 
 //#region Reducers
 const fechaIngresoReducer = (state, action) => {
@@ -2049,14 +2050,24 @@ const AfiliadoAgregar = (props) => {
 								/>
 							</div>
 							<div className={classes.input25}>
-								<InputMaterial
+								{/* <InputMaterial
 									id="fechaIngreso"
 									value={fechaIngresoState.value}
 									label="Fecha Ingreso"
 									onChange={handleInputChange}
 									type="date"
 									//readOnly={!afiliadoExiste}
-								/>
+								/> */}
+								<DateTimePicker
+									type="date"
+									id="fechaIngreso"
+									value={fechaIngresoState.value}
+									label="Fecha Ingreso"
+									maxDate={moment().format("YYYY-MM-DD")}
+									onChange={(f) =>
+										handleInputChange(f?.format("YYYY-MM-DD") ?? "", "fechaIngreso")
+									}
+									/>
 							</div>
 						</div>
 						<div className={classes.renglon}>
@@ -2106,7 +2117,7 @@ const AfiliadoAgregar = (props) => {
 						</div>
 						<div className={classes.renglon}>
 							<div className={classes.input25}>
-								<InputMaterial
+								{/* <InputMaterial
 									id="fechaNacimiento"
 									value={fechaNacimientoState.value}
 									label="Fecha de Nacimiento"
@@ -2118,7 +2129,23 @@ const AfiliadoAgregar = (props) => {
 											? true
 											: false
 									}
-								/>
+								/> */}
+								<DateTimePicker
+									type="date"
+									id="fechaNacimiento"
+									value={fechaNacimientoState.value}
+									label="Fecha de Nacimiento"
+									maxDate={moment().format("YYYY-MM-DD")}
+									disabled={InputDisabled()}
+									onChange={(f) =>
+										handleInputChange(f?.format("YYYY-MM-DD") ?? "", "fechaNacimiento")
+									}
+									error={
+										!fechaNacimientoState.isValid && inputsTouched
+											? true
+											: false
+									}
+									/>
 							</div>
 							<div className={classes.input25}>
 								<SelectMaterial
