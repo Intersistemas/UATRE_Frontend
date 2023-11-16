@@ -129,6 +129,7 @@ const DatosAfip = (props) => {
             value={numeroDocumentoAFIP}
             label="Documento"
             readOnly={true}
+						mask="99.999.999"
             color={
               numeroDocumentoAFIP !== "" &&
               numeroDocumentoAFIP !== props.afiliado?.afipNumeroDocumento

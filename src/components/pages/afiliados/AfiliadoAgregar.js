@@ -803,6 +803,7 @@ const AfiliadoAgregar = (props) => {
           return { value: puesto.id, label: puesto.descripcion };
         });
       setPuestos(puestosSelect);
+			dispatchPuesto({ type: "USER_INPUT", value: puestosSelect[0].value });
     };
 
     request(
@@ -1236,15 +1237,17 @@ const AfiliadoAgregar = (props) => {
       setPadronRespuesta(padronObj);
       //Solo actualizo los datos principales si estoy agregando solicitud
       // fecha ingreso
-      const today = new Date();
-      const month = today.getMonth() + 1;
-      const year = today.getFullYear();
-      const day = today.getDate();
-      const fechaIngreso = year + "-" + month + "-" + day;
-      dispatchFechaIngreso({
-        type: "USER_INPUT",
-        value: moment(fechaIngreso).format("yyyy-MM-DD"),
-      });
+      if (!fechaIngresoState.isValid) {
+				const today = new Date();
+				const month = today.getMonth() + 1;
+				const year = today.getFullYear();
+				const day = today.getDate();
+				const fechaIngreso = year + "-" + month + "-" + day;
+				dispatchFechaIngreso({
+					type: "USER_INPUT",
+					value: moment(fechaIngreso).format("yyyy-MM-DD"),
+				});
+			}
       let domicilioReal = "";
       
       if (props.accion === "Agrega") {
