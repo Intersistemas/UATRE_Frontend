@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 // import Modal from "components/ui/Modal/Modal";
-// import modalCss from "components/ui/Modal/Modal.module.css";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
@@ -84,7 +84,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 
 	return (
 		<Modal size="lg" centered show onHide={onClose}> 
-			<Modal.Header>
+			<Modal.Header className={modalCss.modalCabecera}>
 				<Grid width="full" justify="center">
 					<h4>Localiza Afiliado</h4>
 				</Grid>
