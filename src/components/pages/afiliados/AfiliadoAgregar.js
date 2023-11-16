@@ -283,6 +283,7 @@ const telefonoReducer = (state, action) => {
   return { value: "", isValid: false };
 };
 
+const onLoadedDef = ({ data, error }) => {};
 //#endregion
 
 const AfiliadoAgregar = (props) => {
@@ -376,18 +377,21 @@ const AfiliadoAgregar = (props) => {
 		loading: "Cargando...",
 		data: [],
 		error: null,
+		onLoaded: onLoadedDef
 	});
   const [localidades, setLocalidades] = useState({
 		loading: null,
-		params: {},
+		params: null,
 		data: [],
 		error: null,
+		onLoaded: onLoadedDef
 	});
   const [seccionales, setSeccionales] = useState({
 		loading: null,
-		params: {},
+		params: null,
 		data: [],
 		error: null,
+		onLoaded: onLoadedDef
 	});
   const [puestos, setPuestos] = useState([]);
   const [sexos, setSexos] = useState([]);
@@ -521,7 +525,6 @@ const AfiliadoAgregar = (props) => {
     value: "",
     isValid: false,
   });
-
   //#ENDREGION
 
   //checking
@@ -648,22 +651,41 @@ const AfiliadoAgregar = (props) => {
               ? ""
               : afiliadoObj.tipoDocumentoId,
         });
-        dispatchProvincia({
-          type: "USER_INPUT",
-          value: afiliadoObj.provinciaId === 0 ? "" : afiliadoObj.provinciaId,
-        });
-        dispatchLocalidad({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.refLocalidadId === 0 ? "" : afiliadoObj.refLocalidadId,
-        });
-				dispatchSeccional({
-					type: "USER_INPUT",
-					value:
-						afiliadoObj.seccionalId && afiliadoObj.refLocalidadId
-							? afiliadoObj.seccionalId
-							: "",
-				});
+
+				const provinciaId = afiliadoObj.provinciaId
+					? afiliadoObj.provinciaId
+					: "";
+				const localidadId = afiliadoObj.refLocalidadId
+					? afiliadoObj.refLocalidadId
+					: "";
+				const seccionalId =
+					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
+        dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+				setLocalidades((o) => ({
+					...o,
+					loading: "Cargando...",
+					params: provinciaId ? { provinciaId } : null,
+					onLoaded: ({ data }) => {
+						if (!Array.isArray(data)) return;
+						const myLocalidadId =
+							data.find((r) => r.value === localidadId)?.value ?? "";
+						dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+						setSeccionales((o) => ({
+							...o,
+							loading: "Cargando...",
+							params: myLocalidadId ? { localidadId: myLocalidadId } : null,
+							onLoaded: ({ data }) => {
+								if (!Array.isArray(data)) return;
+								const mySeccionalId =
+									data.find((r) => r.value === seccionalId)?.value ??
+									data.at(0)?.value ??
+									"";
+								dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
+							},
+						}));
+					},
+				}));
+
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
           type: "USER_INPUT",
@@ -863,6 +885,7 @@ const AfiliadoAgregar = (props) => {
 			loading: null,
 			data: [],
 			error: null,
+			onLoaded: onLoadedDef,
 		};
 		request(
 			{
@@ -883,31 +906,12 @@ const AfiliadoAgregar = (props) => {
 						}))
 				),
 			async (error) => (changes.error = error),
-			async () => setProvincias((o) => ({ ...o, ...changes }))
+			async () => {
+				provincias.onLoaded(changes)
+				setProvincias((o) => ({ ...o, ...changes }));
+			}
 		);
 	}, [request, provincias]);
-
-	useEffect(() => {
-		if (provincias.loading) return;
-		if (!provinciaState.isValid) return;
-		const provincia = provincias.data.find(
-			(r) => r.value === provinciaState.value
-		);
-		if (provincia == null) return;
-		setSeccionales({
-			data: [
-				{
-					value: provincia.seccionalIdPorDefecto,
-					label: provincia.seccionalDescripcionPorDefecto,
-				},
-			],
-		});
-		setLocalidades((old) => ({
-			...old,
-			loading: "Cargando...",
-			params: { provinciaId: provincia.value },
-		}));
-	}, [provincias, provinciaState]);
 
 	// Localidades
 	useEffect(() => {
@@ -916,11 +920,13 @@ const AfiliadoAgregar = (props) => {
 			loading: null,
 			data: [],
 			error: null,
+			onLoaded: onLoadedDef,
 		};
-		if (!localidades.params) {
+		const applyChanges = () => {
+			localidades.onLoaded(changes)
 			setLocalidades((o) => ({ ...o, ...changes }));
-			return;
 		}
+		if (!localidades.params) return applyChanges();
 		request(
 			{
 				baseURL: "Afiliaciones",
@@ -941,21 +947,9 @@ const AfiliadoAgregar = (props) => {
 						.map((r) => ({ value: r.id, label: r.nombre }))
 				),
 			async (error) => (changes.error = error),
-			async () => setLocalidades((o) => ({ ...o, ...changes }))
+			async () => applyChanges()
 		);
 	}, [request, localidades]);
-
-	useEffect(() => {
-		if (localidades.loading) return;
-		if (!localidadState.isValid) return;
-		const localidad = localidades.data.find(r => r.value === localidadState.value);
-		if (localidad == null) return;
-		setSeccionales((old) => ({
-			...old,
-			loading: "Cargando",
-			params: { localidadId: localidad.value },
-		}));
-	}, [localidades, localidadState]);
 
 	// Seccionales
 	useEffect(() => {
@@ -969,8 +963,12 @@ const AfiliadoAgregar = (props) => {
 					label: r.seccionalDescripcionPorDefecto,
 				})),
 			error: null,
+			onLoaded: onLoadedDef,
 		};
-		const applyChanges = () => setSeccionales((o) => ({ ...o, ...changes }));
+		const applyChanges = () => {
+			seccionales.onLoaded(changes)
+			setSeccionales((o) => ({ ...o, ...changes }));
+		}
 		if (!seccionales.params) return applyChanges();
 		request(
 			{
@@ -991,14 +989,7 @@ const AfiliadoAgregar = (props) => {
 			async (error) => (changes.error = error),
 			async () => applyChanges()
 		);
-	}, [request, seccionales, provinciaState, provincias]);
-
-	useEffect(() => {
-		if (seccionales.loading) return;
-		if (!seccionales.data.length) return;
-		if (seccionales.data.find(r => r.value === seccionalState.value)) return;
-		dispatchSeccional({ type: "USER_INPUT", value: seccionales.data[0].value });
-	}, [seccionales, seccionalState, dispatchSeccional]);
+	}, [request, seccionales, provincias]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
@@ -1290,26 +1281,47 @@ const AfiliadoAgregar = (props) => {
           value: 1,
         })
 
+				if (!puestoState.isValid)
+					dispatchPuesto({
+						type: "USER_INPUT",
+						value: 99999,
+					});
+
         //provincia
-        const provincia = provincias.data.find(
+        const provinciaId = provincias.data.find(
           (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
-        );
-        dispatchProvincia({ 
-          type: "USER_INPUT", 
-          value: provincia.value, 
-        });
+        )?.value ?? "";
+        dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
 
         //localidad
         const processLocalidades = async (localidadesObj) => {
-          const localidad = localidadesObj.find(
+          const localidadId = localidadesObj.find(
             (localidad) =>
               localidad.codPostal === parseInt(domicilioReal.codigoPostal)
-          );
-          dispatchLocalidad({
-            type: "USER_INPUT",
-            value: localidadesObj[0].id ?? "",
-          });
-          dispatchLocalidad({ type: "USER_INPUT", value: localidad.value });
+          )?.id ?? "";
+					setLocalidades((o) => ({
+						...o,
+						loading: "Cargando...",
+						params: provinciaId ? { provinciaId } : null,
+						onLoaded: ({ data }) => {
+							if (!Array.isArray(data)) return;
+							const myLocalidadId =
+								data.find((r) => r.value === localidadId)?.value ?? "";
+							dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+							setSeccionales((o) => ({
+								...o,
+								loading: "Cargando...",
+								params: myLocalidadId ? { localidadId: myLocalidadId } : null,
+								onLoaded: ({ data }) => {
+									if (!Array.isArray(data)) return;
+									dispatchSeccional({
+										type: "USER_INPUT",
+										value: data.at(0)?.value ?? "",
+									});
+								},
+							}));
+						},
+					}));
         };
 
         request(
@@ -1405,7 +1417,7 @@ const AfiliadoAgregar = (props) => {
 
       case "seccionalSelect":
 				if(seccionalState.value === value) break;
-        dispatchSeccional({ type: "USER_INPUT", value: value });
+        dispatchSeccional({ type: "USER_INPUT", value });
         break;
 
       case "estadoCivilSelect":
@@ -1418,15 +1430,43 @@ const AfiliadoAgregar = (props) => {
 
       case "provinciaSelect":
 				if(provinciaState.value === value) break;
-        dispatchProvincia({ type: "USER_INPUT", value: value });
-        dispatchLocalidad({ type: "USER_INPUT", value: "" });
-        dispatchSeccional({ type: "USER_INPUT", value: "" });
+        dispatchProvincia({ type: "USER_INPUT", value });
+				setLocalidades((o) => ({
+					...o,
+					loading: "Cargando...",
+					params: value ? { provinciaId: value } : null,
+					onLoaded: ({ data }) => {
+						if (!Array.isArray(data)) return;
+						dispatchLocalidad({ type: "USER_INPUT", value: "" });
+						setSeccionales((o) => ({
+							...o,
+							loading: "Cargando...",
+							params: null,
+							onLoaded: ({ data }) => {
+								if (!Array.isArray(data)) return;
+								dispatchSeccional({
+									type: "USER_INPUT",
+									value: data.at(0)?.value ?? "",
+								});
+							},
+						}));
+					},
+				}));
         break;
 
       case "localidadSelect":
 				if(localidadState.value === value) break;
-        dispatchLocalidad({ type: "USER_INPUT", value: value });
-        dispatchSeccional({ type: "USER_INPUT", value: "" });
+        dispatchLocalidad({ type: "USER_INPUT", value });
+				setSeccionales((o) => ({
+					...o,
+					loading: "Cargando...",
+					params: value ? { localidadId: value } : null,
+					onLoaded: ({ data }) => {
+						if (!Array.isArray(data)) return;
+						const mySeccionalId = data.at(0)?.value ?? "";
+						dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
+					},
+				}));
         break;
 
       default:
@@ -1617,7 +1657,7 @@ const AfiliadoAgregar = (props) => {
 		}
 
 		// Debe cargar un cuil valido y un cuit valido para continuar
-		if (!cuilState.isValid || !cuitState.isValid) disable = true;
+		if (!cuilState.isValid || !cuitState.isValid || !cuitValidado) disable = true;
 		// Deshabilitar hasta comprobar ddjj
 		if (ultimaDDJJ.data == null) disable = true;
 
@@ -1946,11 +1986,11 @@ const AfiliadoAgregar = (props) => {
 							label={
 								/*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
 							}
-							disabled={!cuilState.isValid || !cuitState.isValid}
+							disabled={!cuilState.isValid || !cuitState.isValid || !cuitValidado}
 						/>
 						<Tab
 							label="Documentacion"
-							disabled={!cuilState.isValid || !cuitState.isValid}
+							disabled={!cuilState.isValid || !cuitState.isValid || !cuitValidado}
 						/>
 					</Tabs>
 				</div>
