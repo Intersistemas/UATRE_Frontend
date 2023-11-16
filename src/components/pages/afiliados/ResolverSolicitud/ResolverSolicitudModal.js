@@ -44,6 +44,15 @@ const ResolverSolicitudModal = ({
 					},
 				};
 			}
+			case "GetAfiliado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: "/Afiliado/GetAfiliadoByCUIL",
+						method: "GET"
+					}
+				}
+			}
 			default:
 				return null;
 		}
@@ -305,11 +314,11 @@ const ResolverSolicitudModal = ({
 										],
 									},
 									onOk: async (_res) =>
-										onClose({
-											...datos,
-											estadoSolicitud: estadosSolicitud.data?.find(
-												(r) => r.value === datos.estadoSolicitudId
-											)?.label,
+										pushQuery({
+											action: "GetAfiliado",
+											params: { cuil: afiliado.cuil },
+											onOk: async (ok) => onClose(ok),
+											onError: async (error) => alert(error.message),
 										}),
 									onError: async (err) => alert(err.message),
 								});
