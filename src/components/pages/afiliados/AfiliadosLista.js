@@ -110,7 +110,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Resuelve Solicitud ${desc}`,
-          request: "R",
+          request: "S",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
