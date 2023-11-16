@@ -1656,6 +1656,8 @@ const AfiliadoAgregar = (props) => {
 			}
 		}
 
+		// El fomulario debe ser valido para continuar
+		if (!formularioIsValid) disable = true;
 		// Debe cargar un cuil valido y un cuit valido para continuar
 		if (!cuilState.isValid || !cuitState.isValid || !cuitValidado) disable = true;
 		// Deshabilitar hasta comprobar ddjj
@@ -1974,23 +1976,25 @@ const AfiliadoAgregar = (props) => {
 						onChange={handleChangeTab}
 						aria-label="basic tabs example"
 					>
+						<Tab label="Datos Personales" />
+						<Tab label="Datos Empleador" disabled={!formularioIsValid} />
 						<Tab
-							label="Datos Personales"
-							//disabled={nuevoAfiliadoResponse ? true : false}
-						/>
-						<Tab
-							label="Datos Empleador"
-							disabled={formularioIsValid ? false : true}
-						/>
-						<Tab
-							label={
-								/*padronRespuesta ? `DDJJ UATRE de ${cuilState.value} ${nombre}` : //es demasiado grande el texto para el tab*/ "DDJJ UATRE"
+							label="DDJJ UATRE"
+							disabled={
+								!cuilState.isValid ||
+								!cuitState.isValid ||
+								!cuitValidado ||
+								!formularioIsValid
 							}
-							disabled={!cuilState.isValid || !cuitState.isValid || !cuitValidado}
 						/>
 						<Tab
 							label="Documentacion"
-							disabled={!cuilState.isValid || !cuitState.isValid || !cuitValidado}
+							disabled={
+								!cuilState.isValid ||
+								!cuitState.isValid ||
+								!cuitValidado ||
+								!formularioIsValid
+							}
 						/>
 					</Tabs>
 				</div>
