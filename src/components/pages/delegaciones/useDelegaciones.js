@@ -12,7 +12,9 @@ const selectionDef = {
 	errors: null,
 };
 
-const useDelegaciones = () => {
+const useDelegaciones = ({
+	onLoadSelect = ({ data, record }) => data.find((r) => r.id === record?.id) ?? data.at(0),
+} = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -81,7 +83,7 @@ const useDelegaciones = () => {
 					const selection = {
 						...selectionDef,
 						record:
-							data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
+							onLoadSelect({ data, record: o.selection.record }),
 					};
 					if (selection.record)
 						selection.index = data.indexOf(selection.record);
@@ -185,7 +187,10 @@ const useDelegaciones = () => {
 							selection: {
 								...selectionDef,
 								index: o.selection.index,
-								record: o.data.at(o.selection.index),
+								record:
+									o.selection.index > -1
+										? o.data.at(o.selection.index)
+										: o.selection.record,
 							},
 						}));
 						return;
