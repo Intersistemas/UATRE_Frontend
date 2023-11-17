@@ -1,206 +1,290 @@
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  Typography,
-} from "@mui/material";
 import React, { useEffect, useState } from "react";
-import Button from "../../../ui/Button/Button";
-import ModalBajaReactivacion from "../../../ui/ModalBajaReactivacion/ModalBajaReactivacion";
-import classes from "./PantallaBajaReactivacion.module.css";
-import modalCss from "../../../ui/Modal/Modal.module.css";
-import InputMaterial from "../../../ui/Input/InputMaterial";
 import moment from "moment";
-import useHttp from "../../../hooks/useHttp";
-import { AFILIADO_BAJA, AFILIADO_REACTIVADO } from "../../../helpers/Mensajes";
-import Formato from "../../../helpers/Formato";
-import FormatearFecha from "../../../helpers/FormatearFecha";
+import {
+	Dialog,
+	DialogActions,
+	DialogContent,
+	Typography,
+} from "@mui/material";
+import { Modal } from "react-bootstrap";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import {
+	AFILIADO_BAJA,
+	AFILIADO_REACTIVADO,
+} from "components/helpers/Mensajes";
+import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+import Button from "components/ui/Button/Button";
 
 const PantallaBajaReactivacion = (props) => {
-  const { isLoading, error, sendRequest: request } = useHttp();
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogTexto, setDialogTexto] = useState("");
-  const [fecha, setFecha] = useState(moment(new Date()).format("yyyy-MM-DD"));
-  const [observaciones, setObservaciones] = useState("");
-  const [resolverSolicitudAfiliadoResponse, setResolverSolicitudAfiliadoResponse] = useState(0)
+	const pushQuery = useQueryQueue((action) => {
+		switch (action) {
+			case "PatchAfiliado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Afiliado`,
+						method: "PATCH",
+					},
+				};
+			}
+			case "GetMotivosBaja": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
+	const [dialogTexto, setDialogTexto] = useState("");
+	const [fecha, setFecha] = useState(moment(new Date()).format("yyyy-MM-DD"));
+	const [observaciones, setObservaciones] = useState("");
+	const [refMotivoBajaId, setRefMotivoBajaId] = useState(
+		(props.accion === "Baja" ? props.refMotivoBajaId : null) ?? 0
+	);
+	const [
+		resolverSolicitudAfiliadoResponse,
+		setResolverSolicitudAfiliadoResponse,
+	] = useState(0);
+	const [errors, setErrors] = useState({});
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    handleCerrarModal();
-  };
+	//#region declaracion carga motivosBaja
+	const [motivosBaja, setMotivosBaja] = useState({
+		loading: props.accion === "Baja" ? "Cargando..." : null,
+		params: { tipo: "A" },
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!motivosBaja.loading) return;
+		const changes = { loading: null, data: [], error: null };
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: motivosBaja.params,
+			onOk: async (ok) => {
+				if (!Array.isArray(ok))
+					return console.error(
+						`Se esperaba un arreglo en "GetMotivosBaja"`,
+						ok
+					);
+				changes.data.push(
+					...ok
+						.filter((r) => r.deletedDate == null)
+						.map(({ id: value, descripcion: label }) => ({ value, label }))
+				);
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setMotivosBaja((o) => ({ ...o, ...changes })),
+		});
+	}, [motivosBaja]);
+	//#endregion
 
-  const handleCerrarModal = () => {  
-    
-    if (dialogTexto !== "") { // SI SE MODIFICÓ... entonces actualizo el estado del registro
-      const regUpdated = dialogTexto == AFILIADO_BAJA ? {...props.afiliado, estadoSolicitud: "No Activo"} : {...props.afiliado, estadoSolicitud: "Activo"}; //ENVIO TODA LA DATA, PREVIAMENTE MODIFICO EL ESTADO DEL AFILIADO.
-      props.onClose( regUpdated ?? false); //SI SE ACTUALIZO EL AFILIADO, PASO EL OBJETO ENTRO  para poder seleccionarlo en la grilla luego del refresh.
-    }else{
-      props.onClose(false);
-    }
-  };
+	const handleCloseDialog = () => {
+		if ([AFILIADO_BAJA, AFILIADO_REACTIVADO].includes(dialogTexto)) {
+			//ENVIO TODA LA DATA, PREVIAMENTE MODIFICO EL ESTADO DEL AFILIADO.
+			const regUpdated =
+				dialogTexto == AFILIADO_BAJA
+					? { ...props.afiliado, estadoSolicitud: "No Activo" }
+					: { ...props.afiliado, estadoSolicitud: "Activo" };
+			//SI SE ACTUALIZO EL AFILIADO, PASO EL OBJETO ENTRO  para poder seleccionarlo en la grilla luego del refresh.
+			props.onClose(regUpdated ?? false);
+		} else {
+			setDialogTexto("");
+		}
+	};
 
-  const handleInputChange = (value, id) => {
-    switch (id) {
-      case "fecha":
-        setFecha(moment(value).format("yyyy-MM-DD"));
-        break;
-      case "observaciones":
-        setObservaciones(value);
-        break;
-      default:
-        break;
-    }
-  };
+	const handleInputChange = (value, id) => {
+		switch (id) {
+			case "fecha":
+				setFecha(moment(value).format("yyyy-MM-DD"));
+				break;
+			case "observaciones":
+				setObservaciones(value);
+				break;
+			case "refMotivoBajaId":
+				setRefMotivoBajaId(value);
+				break;
+			default:
+				break;
+		}
+	};
 
-  useEffect(() => {
-    if (dialogTexto !== "") {
-      setOpenDialog(true);
-    }
-  }, [dialogTexto]);
+	const handleConfirmar = (event) => {
+		event.preventDefault();
 
-  const handleConfirmar = (event) => {
-    event.preventDefault();
+		//Validaciones
+		const errors = {};
+		if (observaciones === "")
+			errors.observaciones = "Se deben indicar las Observaciones";
+		if (props.accion === "Baja" && !refMotivoBajaId)
+			errors.refMotivoBajaId = "Se debe indicar el motivo de baja";
+		setErrors(errors);
+		if (Object.keys(errors).length) {
+			setDialogTexto(
+				Object.values(errors)
+					.filter((r) => r)
+					.map((r) => <div>{r}</div>)
+			);
+			return;
+		}
 
-    if (observaciones === "") {
-      setDialogTexto("Se deben indicar las Observaciones");
-      return;
-    }
+		const estadoSolicitudId = props.accion === "Baja" ? 3 : 2;
+		const body = [
+			{ path: "EstadoSolicitudId", op: "replace", value: estadoSolicitudId },
+			{ path: "FechaIngreso", op: "replace", value: null },
+			{ path: "NroAfiliado", op: "replace", value: "0" },
+			{
+				path: "EstadoSolicitudObservaciones",
+				op: "replace",
+				value: observaciones,
+			},
+			{
+				path: "FechaEgreso",
+				op: "replace",
+				value: moment(fecha).format("yyyy-MM-DD"),
+			},
+			{ path: "refMotivoBajaId", op: "replace", value: refMotivoBajaId },
+		];
+		pushQuery({
+			action: "PatchAfiliado",
+			params: { id: props.afiliado?.id },
+			config: { body },
+			onOk: async (ok) => {
+				if (ok) {
+					setDialogTexto(
+						props.accion === "Baja" ? AFILIADO_BAJA : AFILIADO_REACTIVADO
+					);
+					setResolverSolicitudAfiliadoResponse(ok);
+				}
+			},
+			onError: async (error) =>
+				setDialogTexto(
+					`Error actualizando afiliado: "${error?.message ?? "Desconocido"}"`
+				),
+		});
+	};
 
-    const estadoSolicitudId = props.accion === "Baja" ? 3 : 2
-    const patchAfiliado = [
-      {
-        path: "EstadoSolicitudId",
-        op: "replace",
-        value: estadoSolicitudId,
-      },
-      {
-        path: "FechaIngreso",
-        op: "replace",
-        value: null,
-      },
-      {
-        path: "NroAfiliado",
-        op: "replace",
-        value: "0",
-      },
-      {
-        path: "EstadoSolicitudObservaciones",
-        op: "replace",
-        value: observaciones,
-      },
-      {
-        path: "FechaEgreso",
-        op: "replace",
-        value: moment(fecha).format("yyyy-MM-DD"),
-      },
-    ];
-
-    const resolverSolicitudAfiliado = async (
-      resolverSolicitudAfiliadoResponse
-    ) => {
-      if (resolverSolicitudAfiliadoResponse) {  
-        setDialogTexto(props.accion === "Baja" ? AFILIADO_BAJA : AFILIADO_REACTIVADO);
-        setResolverSolicitudAfiliadoResponse(resolverSolicitudAfiliadoResponse);        
-      }
-    };
-
-    request(
-      {
-        baseURL: "Afiliaciones",        
-        endpoint: `/Afiliado?Id=${props.afiliado?.id}`,
-        method: "PATCH",
-        body: patchAfiliado,
-        headers: {
-          "Content-Type": "application/json-patch+json",
-        },
-      },
-      resolverSolicitudAfiliado
-    );
-  };
-
-//   useEffect(() => {
-//     if (resolverSolicitudAfiliadoResponse !== 0){
-//         handleCerrarModal()
-//     }
-//   }, [resolverSolicitudAfiliadoResponse])
-  
-
-  //console.log("fecha", fecha);
-  return (
-    <>
-      <div>
-        <Dialog onClose={handleCloseDialog} open={openDialog}>
-          <DialogContent dividers>
-            <Typography gutterBottom>{dialogTexto}</Typography>
-          </DialogContent>
-          <DialogActions dividers>
-            <Button className="botonAmarillo" onClick={handleCloseDialog}>Cerrar</Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-      <ModalBajaReactivacion onClose={props.onClose}>
-        <div className={modalCss.modalCabecera}>
-          <h3 className={classes.titulo}>
-            {props.accion === "Baja"
-              ? `Baja Afiliado: ${Formato.Cuit(props.afiliado?.cuil)} ${
-                  props.afiliado?.nombre
-                }`
-              : `Reactiva Afiliado: ${Formato.Cuit(props.afiliado?.cuil)} ${
-                  props.afiliado?.nombre
-                }`}
-          </h3>
-          <div className={classes.subTituloVentana}>
-            <h5 className={classes.titulo}>
-              Estado Solicitud del Afiliado: {props.afiliado?.estadoSolicitud}
-            </h5>
-            <h5 className={classes.titulo}>
-              Fecha de Ingreso: {FormatearFecha(props.afiliado?.fechaIngreso)}{" "}
-              - Nro Afiliado: {props.afiliado.nroAfiliado}
-            </h5>
-          </div>
-        </div>
-        <div className={classes.div}>
-          <div className={classes.renglon}>
-            <div className={classes.input25}>
-              <InputMaterial
-                id="fecha"
-                value={fecha}
-                label={
-                  props.accion === "Baja"
-                    ? "Fecha de Baja"
-                    : "Fecha de Reactivación"
-                }
-                type="date"
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className={classes.input100}>
-              <InputMaterial
-                id="observaciones"
-                value={observaciones}
-                label="Observaciones"
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-        </div>
-        <div className={classes.footer}>
-          <Button
-            className="botonAmarillo"
-            width={25}
-            onClick={handleConfirmar}
-            disabled={resolverSolicitudAfiliadoResponse !== 0}
-          >
-            {props.accion === "Baja" ? "Baja Afiliado" : "Reactiva Afiliado"}
-          </Button>
-
-          <Button className="botonAmarillo" width={25} onClick={handleCerrarModal}>
-            Cierra
-          </Button>
-        </div>
-      </ModalBajaReactivacion>
-    </>
-  );
+	return (
+		<>
+			<div>
+				<Dialog onClose={handleCloseDialog} open={!!dialogTexto}>
+					<DialogContent dividers>
+						<Typography gutterBottom>{dialogTexto}</Typography>
+					</DialogContent>
+					<DialogActions dividers>
+						<Button className="botonAmarillo" onClick={handleCloseDialog}>
+							Cerrar
+						</Button>
+					</DialogActions>
+				</Dialog>
+			</div>
+			<Modal size="lg" centered show onHide={props.onClose}>
+				<Modal.Header className={modalCss.modalCabecera}>
+					<Grid col width="full">
+						<Grid width="full" justify="center">
+							<h4>
+								{[
+									props.accion === "Baja" ? "Baja" : "Reactiva",
+									"Afiliado:",
+									Formato.Cuit(props.afiliado?.cuil),
+									props.afiliado?.nombre,
+								]
+									.filter((r) => r)
+									.join(" ")}
+							</h4>
+						</Grid>
+						<Grid width="full" justify="center">
+							<h5>
+								Estado Solicitud del Afiliado: {props.afiliado?.estadoSolicitud}
+							</h5>
+						</Grid>
+						<Grid width="full" justify="center">
+							<h5>
+								{[
+									`Fecha de Ingreso: ${Formato.Fecha(
+										props.afiliado?.fechaIngreso
+									)}`,
+									`Nro Afiliado: ${props.afiliado.nroAfiliado}`,
+								].join(" - ")}
+							</h5>
+						</Grid>
+					</Grid>
+				</Modal.Header>
+				<Modal.Body>
+					<Grid col full gap="5px">
+						<Grid width="full" gap="inherit">
+							<Grid width="25">
+								<InputMaterial
+									id="fecha"
+									value={fecha}
+									label={
+										props.accion === "Baja"
+											? "Fecha de Baja"
+											: "Fecha de Reactivación"
+									}
+									type="date"
+									onChange={handleInputChange}
+								/>
+							</Grid>
+							<Grid width="full">
+								<InputMaterial
+									id="observaciones"
+									value={observaciones}
+									label="Observaciones"
+									error={!!errors.observaciones}
+									helperText={errors.observaciones}
+									onChange={handleInputChange}
+								/>
+							</Grid>
+						</Grid>
+						{props.accion !== "Baja" ? null : (
+							<Grid width="full">
+								<SelectMaterial
+									id="refMotivoBajaId"
+									value={refMotivoBajaId}
+									options={motivosBaja.data}
+									label="Motivo de baja"
+									error={motivosBaja.loading ?? errors.refMotivoBajaId}
+									onChange={(v) => handleInputChange(v, "refMotivoBajaId")}
+								/>
+							</Grid>
+						)}
+					</Grid>
+				</Modal.Body>
+				<Modal.Footer>
+					<Grid justify="end" gap="15px">
+						<Grid>
+							<Button
+								className="botonAmarillo"
+								onClick={handleConfirmar}
+								disabled={resolverSolicitudAfiliadoResponse !== 0}
+							>
+								{props.accion === "Baja"
+									? "Baja Afiliado"
+									: "Reactiva Afiliado"}
+							</Button>
+						</Grid>
+						<Grid>
+							<Button
+								className="botonAmarillo"
+								onClick={() => props.onClose(false)}
+							>
+								Cierra
+							</Button>
+						</Grid>
+					</Grid>
+				</Modal.Footer>
+			</Modal>
+		</>
+	);
 };
 
 export default PantallaBajaReactivacion;
