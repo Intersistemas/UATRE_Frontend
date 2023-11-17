@@ -1349,6 +1349,7 @@ const AfiliadoAgregar = (props) => {
       }
 
       setCUILLoading(false);
+			setInputsTouched(true);
     };
     
     request(      
