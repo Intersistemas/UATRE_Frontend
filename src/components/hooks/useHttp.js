@@ -36,7 +36,7 @@ const useHttp = () => {
               url = `http://${servidor}.intersistemas.net:8203/api`;
               break;
           case "SIARU":
-              url = `http://${servidor}.intersistemas.net:8201/api/v1`;
+              url = `http://${servidor}.intersistemas.net:8201/api`;
               break;
             
           case 'Seguridad':
