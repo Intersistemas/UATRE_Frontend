@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import Table from "components/ui/Table/Table";
+import React, { useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import Table from "components/ui/Table/Table";
 
 const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 	const pushQuery = useQueryQueue((action) => {
@@ -14,10 +14,10 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 					},
 				};
 			}
+			default:
+				return null;
 		}
 	});
-
-	const tiposLiquidacion = ["Periodo", "Acta"];
 
 	//#region declaración y carga de tipos de pago
 	const [tiposPago, setTiposPago] = useState({
@@ -44,35 +44,15 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 				{
 					dataField: "id",
 					text: "Número",
-					formatter: Formato.Entero,
 					sort: true,
-					headerStyle: (colum, colIndex) => ({ width: "100px" }),
-					style: { ...cs, textAlign: "right" },
+					headerStyle: { width: "100px" },
+					style: { textAlign: "center" },
 				},
 				{
-					dataField: "periodo",
-					text: "Periodo",
-					formatter: Formato.Periodo,
+					dataField: "empresaEstablecimiento_Nombre",
+					text: "Establecimiento",
 					sort: true,
-					headerStyle: (colum, colIndex) => ({ width: "100px" }),
-					style: { ...cs },
-				},
-				{
-					dataField: "fecha",
-					text: "Fecha",
-					formatter: Formato.Fecha,
-					sort: true,
-					headerStyle: (colum, colIndex) => ({ width: "100px" }),
-					style: { ...cs },
-				},
-				{
-					dataField: "tipoLiquidacion",
-					text: "Tipo",
-					sort: true,
-					formatExtraData: tiposLiquidacion,
-					formatter: (v, r, i, e) => e.at(v) ?? "",
-					headerStyle: (colum, colIndex) => ({ width: "80px" }),
-					style: { ...cs, textAlign: "left" },
+					style: { textAlign: "left" },
 				},
 				{
 					dataField: "liquidacionTipoPagoId",
@@ -84,30 +64,11 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 						e.error?.message ??
 						e.data.find((r) => r.codigo === v)?.descripcion ??
 						"",
-					headerStyle: (colum, colIndex) => ({ width: "150px" }),
-					style: { ...cs, textAlign: "left" },
-				},
-				{
-					dataField: "empresaEstablecimiento_Nombre",
-					text: "Establecimiento",
-					sort: true,
-					style: { ...cs, textAlign: "left" },
-				},
-				{
-					dataField: "deletedDate",
-					text: "Baja fecha",
-					formatter: Formato.Fecha,
-					sort: true,
-					headerStyle: (colum, colIndex) => ({ width: "120px" }),
-					style: { ...cs },
-				},
-				{
-					dataField: "refMotivoBaja_Descripcion",
-					text: "Baja motivo",
-					sort: true,
-					style: { ...cs, textAlign: "left" },
+					headerStyle: { width: "150px" },
+					style: { textAlign: "left" },
 				},
 			]}
+			mostrarBuscar={false}
 			{...x}
 		/>
 	);

@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
+import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
-import LiquidacionesCabeceraDetails from "./LiquidacionesCabeceraDetails";
+import useLiquidaciones from "./useLiquidaciones";
 import LiquidacionPDF from "./impresion/Handler";
+import LiquidacionDetails from "./LiquidacionDetails";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();
@@ -21,10 +23,11 @@ const LiquidacionesHandler = () => {
 	useEffect(() => {
 		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
+
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetLiquidacionPeriodos":
+			case "GetLiquidacionPeriodos": {
 				return {
 					config: {
 						baseURL: "SIARU",
@@ -32,15 +35,8 @@ const LiquidacionesHandler = () => {
 						endpoint: `/Liquidaciones/Periodos`,
 					},
 				};
-			case "GetLiquidacionTipoPagoList":
-				return {
-					config: {
-						baseURL: "SIARU",
-						method: "GET",
-						endpoint: `/LiquidacionesTiposPagos`,
-					},
-				};
-			case "GetLiquidaciones":
+			}
+			case "GetLiquidaciones": {
 				return {
 					config: {
 						baseURL: "SIARU",
@@ -48,7 +44,8 @@ const LiquidacionesHandler = () => {
 						endpoint: `/Liquidaciones`,
 					},
 				};
-			case "CreateLiquidacion":
+			}
+			case "CreateLiquidacion": {
 				return {
 					config: {
 						baseURL: "SIARU",
@@ -56,7 +53,8 @@ const LiquidacionesHandler = () => {
 						endpoint: `/Liquidaciones`,
 					},
 				};
-			case "UpdateLiquidacion":
+			}
+			case "UpdateLiquidacion": {
 				return {
 					config: {
 						baseURL: "SIARU",
@@ -64,7 +62,8 @@ const LiquidacionesHandler = () => {
 						endpoint: `/Liquidaciones`,
 					},
 				};
-			case "GetEstablecimientosByEmpresa":
+			}
+			case "GetEstablecimientosByEmpresa": {
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -72,6 +71,7 @@ const LiquidacionesHandler = () => {
 						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
 					},
 				};
+			}
 			default:
 				return null;
 		}
@@ -133,21 +133,25 @@ const LiquidacionesHandler = () => {
 	}, [pushQuery, liquidacionesTiposPagos]);
 	//#endregion
 
-	//#region declaracion y carga de liquidaciones
+	//#region declaracion y carga de cabeceras de liquidaciones
 	const [liqCabRender, liqCabChanger, liqCabSelected] =
 		useLiquidacionesCabecera({ pagination: { size: 10 } });
 	const [liqCabActions, setLiqCabActions] = useState([]);
 	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit });
 
 	//#region ImprimePDF
-	const [despliegaPDF, setDespliegaPDF] = useState(false);
+	const [despliegaPDF, setDespliegaPDF] = useState();
 	let liquidacionPDFRender;
 	if (despliegaPDF) {
 		liquidacionPDFRender = (
 			<LiquidacionPDF
 				empresa={empresa}
-				liquidaciones={liqCabSelected.liquidaciones}
-				onClose={() => setDespliegaPDF(false)}
+				liquidaciones={
+					Array.isArray(despliegaPDF)
+						? despliegaPDF
+						: [despliegaPDF].filter((r) => r)
+				}
+				onClose={() => setDespliegaPDF(null)}
 			/>
 		);
 	}
@@ -183,7 +187,7 @@ const LiquidacionesHandler = () => {
 					action: `Imprime ${desc}`,
 					keys: "i",
 					underlineindex: 0,
-					onExecute: (_) => setDespliegaPDF(true),
+					onExecute: (_) => setDespliegaPDF(liqCabSelected.liquidaciones),
 				})
 			);
 			actions.push(
@@ -202,17 +206,75 @@ const LiquidacionesHandler = () => {
 	}, [liqCabChanger, liqCabParams]);
 	//#endregion
 
+	//#region declaracion y carga de
+	const [liqRender, liqChanger, liqSelected] = useLiquidaciones({
+		remote: false,
+		pagination: { size: 10 },
+	});
+	const [liqActions, setLiqActions] = useState([]);
+	useEffect(() => {
+		const createAction = ({ action: name, request, ...x }) =>
+			new Action({
+				name,
+				onExecute: (action) => liqChanger("selected", { request, action }),
+				combination: "AltKey",
+				...x,
+			});
+		const actions = [];
+		const desc = ((v) => (v ? `liquidacion detalle ${v}` : ""))(
+			liqSelected?.id
+		);
+		if (!desc) {
+			setLiqActions(actions);
+			return;
+		}
+		actions.push(
+			createAction({
+				action: `Consulta ${desc}`,
+				request: "C",
+				keys: "n",
+				underlineindex: 1,
+			})
+		);
+		if (!liqSelected.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Imprime ${desc}`,
+					keys: "m",
+					underlineindex: 0,
+					onExecute: (_) => setDespliegaPDF(liqSelected),
+				})
+			);
+		}
+		setLiqActions(actions);
+	}, [liqChanger, liqSelected]);
+
+	// Si cambia cabecera, refresco lista de liquidaciones
+	useEffect(() => {
+		liqChanger("list", {
+			clear: !liqCabSelected?.id,
+			data: Array.isArray(liqCabSelected?.liquidaciones)
+				? liqCabSelected?.liquidaciones
+				: [],
+		});
+	}, [liqCabSelected, liqChanger]);
+	//#endregion
+
 	//#region modulo y acciones
-	const acciones = [
-		new Action({
-			name: "Procesa liquidaciones",
-			keys: "p",
-			underlineindex: 0,
-			combination: "AltKey",
-			onExecute: (_) => setRedirect({ to: "Procesar" }),
-		}),
-		...liqCabActions,
-	];
+	const acciones = useMemo(
+		() => [
+			new Action({
+				name: "Procesa liquidaciones",
+				keys: "p",
+				underlineindex: 0,
+				combination: "AltKey",
+				onExecute: (_) => setRedirect({ to: "Procesar" }),
+			}),
+			...liqCabActions,
+			...liqActions,
+		],
+		[liqCabActions, liqActions]
+	);
 	useEffect(() => {
 		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
 	}, [dispatch, acciones]);
@@ -258,15 +320,17 @@ const LiquidacionesHandler = () => {
 							/>
 						</Grid>
 					</Grid>
+					<Grid full="width">{liqCabRender()}</Grid>
 					<Grid full="width" grow>
-						{liqCabRender()}
+						{liqRender()}
 					</Grid>
 					<Grid full="width">
-						<LiquidacionesCabeceraDetails data={liqCabSelected} />
+						<LiquidacionDetails data={liqSelected} cabecera={liqCabSelected} />
 					</Grid>
 				</Grid>
 				{liquidacionPDFRender}
 			</Grid>
+			<KeyPress items={acciones} />
 		</>
 	);
 };

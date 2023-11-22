@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import LiquidacionesCabeceraTable from "./LiquidacionesCabeceraTable";
-import LiquidacionesCabeceraForm from "./LiquidacionesCabeceraForm";
+import LiquidacionesTable from "./LiquidacionesTable";
+import LiquidacionesForm from "./LiquidacionesForm";
 
 const selectionDef = {
 	action: "",
@@ -12,7 +12,7 @@ const selectionDef = {
 	errors: null,
 };
 
-const useLiquidacionesCabecera = ({
+const useLiquidaciones = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
 	pagination: paginationInit = { index: 1, size: 5 },
@@ -26,7 +26,7 @@ const useLiquidacionesCabecera = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesCabecera`,
+						endpoint: `/Liquidaciones`,
 						method: "GET",
 					},
 				};
@@ -35,7 +35,7 @@ const useLiquidacionesCabecera = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesCabecera`,
+						endpoint: `/Liquidaciones`,
 						method: "POST",
 					},
 				};
@@ -44,7 +44,7 @@ const useLiquidacionesCabecera = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesCabecera/UpdateFechaPagoEstimada`,
+						endpoint: `/Liquidaciones`,
 						method: "PATCH",
 					},
 				};
@@ -53,7 +53,7 @@ const useLiquidacionesCabecera = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesCabecera/Baja`,
+						endpoint: `/Liquidaciones`,
 						method: "PATCH",
 					},
 				};
@@ -67,7 +67,6 @@ const useLiquidacionesCabecera = ({
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
-		remote: remoteInit,
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...(Array.isArray(dataInit) ? dataInit : [])],
@@ -180,7 +179,7 @@ const useLiquidacionesCabecera = ({
 	let form = null;
 	if (list.selection.edit) {
 		form = (
-			<LiquidacionesCabeceraForm
+			<LiquidacionesForm
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
@@ -320,7 +319,7 @@ const useLiquidacionesCabecera = ({
 
 	const render = () => (
 		<>
-			<LiquidacionesCabeceraTable
+			<LiquidacionesTable
 				remote={list.remote}
 				data={list.data}
 				loading={!!list.loading}
@@ -372,4 +371,4 @@ const useLiquidacionesCabecera = ({
 	return [render, requestChanges, list.selection.record];
 };
 
-export default useLiquidacionesCabecera;
+export default useLiquidaciones;

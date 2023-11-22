@@ -1,38 +1,51 @@
-import React from "react";
-import dayjs from "dayjs";
-import Grid from "components/ui/Grid/Grid";
+import React, { useEffect, useState } from "react";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import styles from "./LiquidacionDetails.module.css";
 
-const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
+const LiquidacionDetails = ({ data = {}, cabecera = {} }) => {
 	data ??= {};
-	tiposPagos ??= [];
+	cabecera ??= {};
 
-	const tiposLiquidacion = [
-		{ codigo: 0, descripcion: "Periodo" },
-		{ codigo: 1, descripcion: "Acta" },
-	];
+	const pushQuery = useQueryQueue((action) => {
+		switch (action) {
+			case "GetTiposPagos": {
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/v1/LiquidacionesTiposPagos`,
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
 
-	const im = {
-		variant: "standard",
-		padding: "0rem 0.5rem",
-	};
+	const MyInputMaterial = (p) => (
+		<InputMaterial variant="standard" padding="0rem 0.5rem" {...p} />
+	);
 
-	const valor = (valor) => (valor ? valor : " ");
-
-	const calc = {
-		vencimientoFecha: null,
-		importeTotal:
-			Math.round(
-				(data.interesImporte + data.interesNeto + Number.EPSILON) * 100
-			) / 100,
-	};
-	if (data.periodo > 100) {
-		calc.vencimientoFecha = dayjs(Formato.Mascara(data.periodo, "####-##-15"))
-			.add(1, "month")
-			.format("YYYY-MM-DD");
-	}
+	//#region declaración y carga de tipos de pagos
+	const [tiposPagos, setTiposPagos] = useState({
+		loading: "Cargando...",
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!tiposPagos.loading) return;
+		const changes = { loading: null, data: [], error: null };
+		pushQuery({
+			action: "GetTiposPagos",
+			onOk: async (data) => changes.data.push(...data),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setTiposPagos((o) => ({ ...o, ...changes })),
+		});
+	}, [tiposPagos, pushQuery]);
+	//#endregion
 
 	let importeTotal;
 	if (data.interesImporte != null || data.interesNeto != null) {
@@ -51,103 +64,94 @@ const LiquidacionDetails = ({ data = {}, tiposPagos = [] }) => {
 		>
 			<Grid full="width">
 				<Grid className={styles.titulo} grow>
-					Datos de la liquidación {data.id}
+					{[
+						"Datos de",
+						[
+							((v) => (v ? `la liquidación ${v}` : ""))(cabecera.id),
+							((v) => (v ? `el detalle ${v}` : ""))(data.id),
+						]
+							.filter((r) => r)
+							.join(", "),
+					]
+						.filter((r) => r)
+						.join(" ")}
 				</Grid>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<InputMaterial
-					label="Fecha"
-					value={valor(Formato.Fecha(data.fecha))}
-					{...im}
-				/>
-				<InputMaterial
+				<MyInputMaterial label="Fecha" value={Formato.Fecha(cabecera.createdDate)} />
+				<MyInputMaterial
 					label="Tipo de liquidación"
-					value={valor(
-						tiposLiquidacion.find((r) => r.codigo === data.tipoLiquidacion)
-							?.descripcion ?? ""
-					)}
-					{...im}
+					value={["Periodo", "Acta"].at(cabecera.tipoLiquidacion) ?? ""}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Tipo de pago"
-					value={valor(
-						tiposPagos.find((r) => r.codigo === data.liquidacionTipoPagoId)
+					value={
+						tiposPagos.data.find((r) => r.codigo === data.liquidacionTipoPagoId)
 							?.descripcion ?? ""
-					)}
-					{...im}
+					}
+					error={!!tiposPagos.error}
+					helperText={tiposPagos.loading ?? tiposPagos.error?.message}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Establecimiento"
-					value={valor(
-						`${data.empresaEstablecimientoId ?? ""} ${
-							data.empresaEstablecimiento_Nombre ?? ""
-						}`
-					)}
-					{...im}
+					value={[
+						data.empresaEstablecimientoId,
+						data.empresaEstablecimiento_Nombre,
+					]
+						.filter((r) => r)
+						.join(" ")}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Periodo"
-					value={valor(Formato.Periodo(data.periodo) ?? "")}
-					{...im}
+					value={Formato.Periodo(cabecera.periodo)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Fecha de Vencimiento"
-					value={valor(Formato.Fecha(calc.vencimientoFecha) ?? "")}
-					{...im}
+					value={Formato.Fecha(cabecera.fechaVencimiento)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Fecha de pago estimada"
-					value={valor(Formato.Fecha(data.fechaPagoEstimada) ?? "")}
-					{...im}
+					value={Formato.Fecha(cabecera.fechaPagoEstimada)}
 				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<InputMaterial
+				<MyInputMaterial
 					label="Cantidad de trabajadores"
-					value={valor(Formato.Entero(data.cantidadTrabajadores) ?? "")}
-					{...im}
+					value={Formato.Entero(data.cantidadTrabajadores)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Total de remuneraciones"
-					value={valor(Formato.Moneda(data.totalRemuneraciones) ?? "")}
-					{...im}
+					value={Formato.Moneda(data.totalRemuneraciones)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Aporte"
-					value={valor(Formato.Moneda(data.interesNeto) ?? "")}
-					{...im}
+					value={Formato.Moneda(data.interesNeto)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Importe intereses"
-					value={valor(Formato.Moneda(data.interesImporte) ?? "")}
-					{...im}
+					value={Formato.Moneda(data.interesImporte)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Total a pagar"
-					value={valor(Formato.Moneda(importeTotal) ?? "")}
-					{...im}
+					value={Formato.Moneda(importeTotal)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Secuencia rectificación"
-					value={valor(Formato.Entero(data.rectificativa) ?? "")}
-					{...im}
+					value={Formato.Entero(cabecera.rectificativa)}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Fecha de baja"
-					value={valor(Formato.Fecha(data.deletedDate) ?? "")}
-					{...im}
+					value={Formato.Fecha(cabecera.deletedDate)}
 				/>
 			</Grid>
 			<Grid full="width" gap="5px">
-				<InputMaterial
+				<MyInputMaterial
 					label="Motivo de baja"
-					value={valor(data.refMotivoBaja_Descripcion ?? "")}
-					{...im}
+					value={cabecera.refMotivoBaja_Descripcion}
 				/>
-				<InputMaterial
+				<MyInputMaterial
 					label="Observaciones de baja"
-					value={valor(data.deletedObs ?? "")}
-					{...im}
+					value={cabecera.deletedObs}
 				/>
 			</Grid>
 		</Grid>
