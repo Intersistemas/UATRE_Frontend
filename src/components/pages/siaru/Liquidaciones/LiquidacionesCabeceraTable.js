@@ -60,7 +60,14 @@ const LiquidacionesCabeceraTable = ({
 					formatter: Formato.Fecha,
 					sort: true,
 					headerStyle: { width: "150px" },
-					style: (v) => (v ? { background: "#ff6464cc", color: "#fff" } : {}),
+					style: (v) => {
+						const r = { textAlign: "center" };
+						if (v) {
+							r.background = "#ff6464cc";
+							r.color = "#FFF";
+						}
+						return r;
+					},
 				},
 				...columnsInit,
 			]}

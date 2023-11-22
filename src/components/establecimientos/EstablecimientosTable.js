@@ -12,7 +12,7 @@ const EstablecimientosTable = ({ columns = [], ...x }) => {
 					dataField: "nroSucursal",
 					text: "Nro.",
 					sort: true,
-					headerStyle: (_colum, _colIndex) => ({ width: "80px" }),
+					headerStyle: { width: "80px" },
 					formatter: Formato.Entero,
 				},
 				{
@@ -25,31 +25,30 @@ const EstablecimientosTable = ({ columns = [], ...x }) => {
 					dataField: "localidadDescripcion",
 					text: "Localidad",
 					sort: true,
-					headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+					headerStyle: { width: "25%" },
 					style: { textAlign: "left" },
 				},
 				{
 					dataField: "provinciaDescripcion",
 					text: "Provincia",
 					sort: true,
-					headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+					headerStyle: { width: "25%" },
 					style: { textAlign: "left" },
 				},
 				{
 					dataField: "deletedDate",
 					text: "Fecha de baja",
 					sort: true,
-					headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
-					formatter: (value) => {
-						const style = {};
-						value = Formato.Fecha(value);
-						if (value) {
-							style.background = "#ff6464cc";
-							style.color = "#FFF";
+					headerStyle: { width: "150px" },
+					formatter: Formato.Fecha,
+					style: (v) => {
+						const r = { textAlign: "center" };
+						if (v) {
+							r.background = "#ff6464cc";
+							r.color = "#FFF";
 						}
-						return <div style={style}>{value}</div>;
+						return r;
 					},
-					style: { textAlign: "center" },
 				},
 				...columns,
 			]}
