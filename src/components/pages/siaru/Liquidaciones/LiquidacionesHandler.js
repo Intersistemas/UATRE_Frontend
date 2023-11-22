@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useQueryQueue from "components/hooks/useQueryQueue";
 import { useDispatch, useSelector } from "react-redux";
-import {
-	handleModuloEjecutarAccion,
-	handleModuloSeleccionar,
-} from "redux/actions";
-import Grid from "components/ui/Grid/Grid";
+import { handleModuloSeleccionar } from "redux/actions";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
+import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
-import LiquidacionesList from "./LiquidacionesList";
-import LiquidacionDetails from "./LiquidacionDetails";
-import LiquidacionForm from "./formulario/Form";
+import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
+import LiquidacionesCabeceraDetails from "./LiquidacionesCabeceraDetails";
 import LiquidacionPDF from "./impresion/Handler";
 
 const LiquidacionesHandler = () => {
@@ -85,197 +82,62 @@ const LiquidacionesHandler = () => {
 	const [periodos, setPeriodos] = useState({
 		loading: "Cargando...",
 		params: { empresaId: empresa.id ?? 0 },
-		data: [{ valor: 0, descipcion: "Todos" }],
+		data: [{ label: "Todos", value: 0 }],
 		error: null,
 	});
-	const [periodo, setPeriodo] = useState(0);
 	useEffect(() => {
 		if (!periodos.loading) return;
+		const changes = {
+			loading: null,
+			data: [{ label: "Todos", value: 0 }],
+			error: null,
+		};
 		pushQuery({
 			action: "GetLiquidacionPeriodos",
 			params: periodos.params,
-			onOk: async (res) =>
-				setPeriodos((old) => ({
-					...old,
-					loading: null,
-					data: [
-						{ descipcion: "Todos", valor: 0 },
-						...res.map((r) => ({
-							descipcion: Formato.Periodo(r),
-							valor: r,
-						})),
-					],
-					error: null,
-				})),
-			onError: async (err) =>
-				setPeriodos((old) => ({
-					...old,
-					loading: null,
-					data: [{ valor: 0, descipcion: "Todos" }],
-					error: err,
-				})),
+			onOk: async (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un array", data);
+				changes.data.push(
+					...data.map((value) => ({
+						label: Formato.Periodo(value),
+						value,
+					}))
+				);
+			},
+			onError: async (error) => {
+				if (error?.code === 404) return;
+				changes.error = error;
+			},
+			onFinally: async () => setPeriodos((o) => ({ ...o, ...changes })),
 		});
 	}, [pushQuery, periodos]);
 	//#endregion
 
-	//#region declaracion y carga de establecimientos
-	const [establecimientos, setEstablecimientos] = useState({
-		loading: "Cargando...",
-		params: { empresaId: empresa.id ?? 0 },
-		data: [{ descipcion: "Todos", valor: { id: 0 } }],
-		error: null,
-	});
-	const [establecimiento, setEstablecimiento] = useState({ id: 0 });
-	useEffect(() => {
-		if (!establecimientos.loading) return;
-		pushQuery({
-			action: "GetEstablecimientosByEmpresa",
-			params: establecimientos.params,
-			onOk: async (res) =>
-				setEstablecimientos((old) => ({
-					...old,
-					loading: null,
-					data: [
-						{ descipcion: "Todos", valor: { id: 0 } },
-						...res.data.map((r) => ({
-							descipcion: [r.nombre, r.deletedDate ? "Establecimiento de baja" : ""]
-								.filter((e) => e)
-								.join(" - "),
-							valor: r,
-						})),
-					],
-					error: null,
-				})),
-			onError: async (err) => {
-				err = err?.code === 404 ? null : err;
-				setEstablecimientos((old) => ({
-					...old,
-					loading: null,
-					data: [{ descipcion: "Todos", valor: { id: 0 } }],
-					error: err,
-				}));
-			},
-		});
-	}, [pushQuery, establecimientos]);
-	//#endregion
-
 	//#region declaracion y carga de tipos de pago
 	const [liquidacionesTiposPagos, setLiquidacionesTiposPagos] = useState({
-		loading: true,
+		loading: "Cargando...",
+		data: [],
+		error: null,
 	});
-	useEffect(
-		() =>
-			pushQuery({
-				action: "GetLiquidacionTipoPagoList",
-				onOk: async (res) => setLiquidacionesTiposPagos({ data: res }),
-				onError: async (err) => setLiquidacionesTiposPagos({ error: err }),
-			}),
-		[pushQuery]
-	);
+	useEffect(() => {
+		if (!liquidacionesTiposPagos.loading) return;
+		const changes = { loading: null, data: [], error: null };
+		pushQuery({
+			action: "GetLiquidacionTipoPagoList",
+			onOk: async (data) => changes.data.push(...data),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () =>
+				setLiquidacionesTiposPagos((o) => ({ ...o, ...changes })),
+		});
+	}, [pushQuery, liquidacionesTiposPagos]);
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
-	const [liquidaciones, setLiquidaciones] = useState({
-		loading: "Cargando...",
-		filter: { empresaId: empresa.id, todos: true },
-		page: { index: 1, size: 10 },
-		sort: `-Id`,
-		data: [],
-		error: {},
-	});
-	const [liquidacion, setLiquidacion] = useState(null);
-	useEffect(() => {
-		if (!liquidaciones.loading) return;
-		const params = {
-			...liquidaciones.filter,
-			page: `${liquidaciones.page.index},${liquidaciones.page.size}`,
-			sort: liquidaciones.sort,
-		};
-		if (periodo) params.periodo = periodo;
-		if (establecimiento?.id)
-			params.empresaEstablecimientoId = establecimiento.id;
-		const newApiQuery = {
-			action: "GetLiquidaciones",
-			params: params,
-			onOk: async (res) => {
-				setLiquidaciones((old) => ({
-					...old,
-					loading: null,
-					page: {
-						index: res.index,
-						size: res.size,
-						count: res.count,
-					},
-					data: res.data,
-					error: null,
-				}));
-				if (res.data.length > 0) setLiquidacion(res.data[0]);
-			},
-			onError: async (err) =>
-				setLiquidaciones((old) => ({
-					...old,
-					loading: null,
-					data: [],
-					error: err,
-				})),
-		};
-		pushQuery(newApiQuery);
-	}, [liquidaciones, periodo, establecimiento.id, pushQuery]);
-
-	// Información si ocurrió algún error durante la carga de liquidaciones
-	let liqNoData = <h4>No hay informacion a mostrar</h4>;
-	if (liquidaciones.error) {
-		switch (liquidaciones.error.code ?? 0) {
-			case 0:
-				liqNoData = <h4>{liquidaciones.error.message}</h4>;
-				break;
-			default:
-				liqNoData = (
-					<h4 style={{ color: "red" }}>
-						{"Error "}
-						{liquidaciones.error.code ? `${liquidaciones.error.code} - ` : ""}
-						{liquidaciones.error.message}
-					</h4>
-				);
-				break;
-		}
-	}
-	//#endregion
-
-	//#region declaracion y carga de formulario de liquidacion
-	const [formRequest, setFormRequest] = useState();
-	let liquidacionForm;
-	if (formRequest) {
-		const disabled = {};
-		Object.keys(liquidacion).forEach((k) => (disabled[`${k}`] = true));
-		if (formRequest === "B" || (formRequest === "C" && !!liquidacion.refMotivoBajaId)) {
-			disabled.refMotivoBajaId = false;
-			disabled.deletedObs = false;
-		}
-		liquidacionForm = (
-			//ejemplo update
-			<LiquidacionForm
-				request={formRequest}
-				record={liquidacion}
-				empresa={empresa}
-				disabled={disabled}
-				onConfirm={(record, request) => {
-					pushQuery({
-						action: request === "A" ? "CreateLiquidacion" : "UpdateLiquidacion",
-						config: { body: record },
-						onOk: (_res) => {
-							setFormRequest(null);
-							setLiquidaciones((old) => ({ ...old, loading: "Cargando..." }));
-						},
-						onError: (error) =>
-							console.log({ tag: "LiquidacionForm.onConfirm", error: error }),
-					});
-				}}
-				onCancel={(_request) => setFormRequest(null)}
-			/>
-		);
-	}
-	//#endregion
+	const [liqCabRender, liqCabChanger, liqCabSelected] =
+		useLiquidacionesCabecera({ pagination: { size: 10 } });
+	const [liqCabActions, setLiqCabActions] = useState([]);
+	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit });
 
 	//#region ImprimePDF
 	const [despliegaPDF, setDespliegaPDF] = useState(false);
@@ -284,69 +146,84 @@ const LiquidacionesHandler = () => {
 		liquidacionPDFRender = (
 			<LiquidacionPDF
 				empresa={empresa}
-				liquidaciones={[liquidacion]}
+				liquidaciones={liqCabSelected.liquidaciones}
 				onClose={() => setDespliegaPDF(false)}
 			/>
 		);
 	}
 	//#endregion
 
-	//#region despachar Informar Modulo
-	const moduloInfo = {
-		nombre: "SIARU",
-		acciones: [{ name: `Procesa liquidaciones` }],
-	};
-	const liquidacionDesc = liquidacion
-		? `liquidacion número ${liquidacion.id}`
-		: ``;
-	if (liquidacion) {
-		moduloInfo.acciones.push({ name: `Consulta ${liquidacionDesc}` });
-		if (!liquidacion.refMotivoBajaId) {
-			moduloInfo.acciones.push({ name: `Baja ${liquidacionDesc}` });
-			moduloInfo.acciones.push({ name: `Imprime ${liquidacionDesc}` });
-			moduloInfo.acciones.push({ name: `Paga ${liquidacionDesc}` });
-		}
-	}
-	if (redirect.to) moduloInfo.acciones = [];
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	const moduloAccion = useSelector((state) => state.moduloAccion);
 	useEffect(() => {
-		switch (moduloAccion?.name) {
-			case `Procesa liquidaciones`:
-				setRedirect({ to: "Procesar" });
-				break;
-			case `Consulta ${liquidacionDesc}`:
-				setFormRequest("C");
-				break;
-			case `Baja ${liquidacionDesc}`:
-				setFormRequest("B");
-				break;
-			case `Imprime ${liquidacionDesc}`:
-				setDespliegaPDF(true);
-				break;
-			case `Paga ${liquidacionDesc}`:
-				alert("Proximamente");
-				break;
-			default:
-				break;
+		const createAction = ({ action: name, request, ...x }) =>
+			new Action({
+				name,
+				onExecute: (action) => liqCabChanger("selected", { request, action }),
+				combination: "AltKey",
+				...x,
+			});
+		const actions = [];
+		const desc = ((v) => (v ? `liquidacion número ${v}` : ""))(
+			liqCabSelected?.id
+		);
+		if (!desc) {
+			setLiqCabActions(actions);
+			return;
 		}
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, liquidacionDesc, dispatch]);
-	// #endregion
+		actions.push(
+			createAction({
+				action: `Consulta ${desc}`,
+				request: "C",
+				keys: "o",
+				underlineindex: 1,
+			})
+		);
+		if (!liqCabSelected.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Imprime ${desc}`,
+					keys: "i",
+					underlineindex: 0,
+					onExecute: (_) => setDespliegaPDF(true),
+				})
+			);
+			actions.push(
+				createAction({
+					action: `Paga ${desc}`,
+					keys: "a",
+					underlineindex: 0,
+					onExecute: (_) => alert("Proximamente"),
+				})
+			);
+		}
+		setLiqCabActions(actions);
+	}, [liqCabChanger, liqCabSelected]);
+	useEffect(() => {
+		liqCabChanger("list", { params: liqCabParams });
+	}, [liqCabChanger, liqCabParams]);
+	//#endregion
 
-	const selection = {
-		onSelect: (row, _isSelect, _rowIndex, _e) => setLiquidacion(row),
-	};
-	if (liquidacion) {
-		selection.selected = [liquidacion.id];
-	}
+	//#region modulo y acciones
+	const acciones = [
+		new Action({
+			name: "Procesa liquidaciones",
+			keys: "p",
+			underlineindex: 0,
+			combination: "AltKey",
+			onExecute: (_) => setRedirect({ to: "Procesar" }),
+		}),
+		...liqCabActions,
+	];
+	useEffect(() => {
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+	}, [dispatch, acciones]);
+	//#endregion
 
 	return (
 		<>
-			<div className="titulo">
+			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
-			</div>
-			<div className="contenido">
+			</Grid>
+			<Grid className="contenido" width="full">
 				<Grid
 					col
 					full
@@ -354,100 +231,42 @@ const LiquidacionesHandler = () => {
 				>
 					<Grid full="width">
 						<h2 className="subtitulo">
-							Liquidaciones de
-							{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+							{[
+								"Liquidaciones de",
+								Formato.Cuit(empresa.cuit),
+								empresa.razonSocial,
+							]
+								.filter((r) => r)
+								.join(" ")}
 						</h2>
 					</Grid>
-					<Grid
-						full="width"
-						gap="5px"
-						style={{ background: "#ffffffe0", padding: "5px" }}
-					>
+					<Grid full="width" gap="5px" style={{ padding: "5px" }}>
 						<Grid width="50%">
 							<SelectMaterial
 								name="periodo"
 								label="Periodo"
 								error={periodos.loading ?? periodos.error?.message ?? ""}
-								value={periodo}
-								options={periodos.data.map((r) => ({
-									label: r.descipcion,
-									value: r.valor,
-								}))}
-								onChange={(value, _id) => {
-									setPeriodo(value);
-									setLiquidaciones((old) => ({
-										...old,
-										loading: "Cargando...",
-									}));
-								}}
-							/>
-						</Grid>
-						<Grid width="50%">
-							<SelectMaterial
-								name="establecimiento"
-								label="Establecimiento"
-								error={
-									establecimientos.loading ??
-									establecimientos.error?.message ??
-									""
+								value={liqCabParams.periodo ?? 0}
+								options={periodos.data}
+								onChange={(periodo) =>
+									setLiqCabParams((o) => {
+										const params = { ...o, periodo };
+										if (!periodo) delete params.periodo;
+										return params;
+									})
 								}
-								value={establecimiento.id}
-								options={establecimientos.data.map((r) => ({
-									label: r.descipcion,
-									value: r.valor?.id,
-								}))}
-								onChange={(value, _id) => {
-									setEstablecimiento(
-										establecimientos.data.find((r) => r.valor.id === value)
-											.valor
-									);
-									setLiquidaciones((old) => ({
-										...old,
-										loading: "Cargando...",
-									}));
-								}}
 							/>
 						</Grid>
 					</Grid>
 					<Grid full="width" grow>
-						<LiquidacionesList
-							loading={!!liquidaciones.loading}
-							data={liquidaciones.data}
-							noData={liqNoData}
-							pagination={{
-								...liquidaciones.page,
-								onChange: (changes) =>
-									setLiquidaciones((old) => ({
-										...old,
-										loading: "Cargando...",
-										page: { ...old.page, ...changes },
-									})),
-							}}
-							selection={selection}
-							onTableChange={(type, {sortOrder, sortField}) => {
-								switch (type) {
-									case "sort":
-										return setLiquidaciones((old) => ({
-											...old,
-											loading: "Cargando...",
-											sort: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
-										}));
-									default:
-										return;
-								}
-							}}
-						/>
+						{liqCabRender()}
 					</Grid>
 					<Grid full="width">
-						<LiquidacionDetails
-							data={liquidacion}
-							tiposPagos={liquidacionesTiposPagos.data}
-						/>
+						<LiquidacionesCabeceraDetails data={liqCabSelected} />
 					</Grid>
 				</Grid>
-				{liquidacionForm}
 				{liquidacionPDFRender}
-			</div>
+			</Grid>
 		</>
 	);
 };
