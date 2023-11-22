@@ -85,7 +85,11 @@ const Table = ({
 	keyField ??= "";
 	columns ??= [];
 	columns.forEach((r) => {
-		r.style = { ...columnStyleDef, ...r.style };
+		const style = r.style;
+		r.style = (...a) => ({
+			...columnStyleDef,
+			...(typeof style === "function" ? style(...a) : style),
+		});
 	});
 	onSelected ??= onSelectedDef;
 	onTableChange ??= onTableChangeDef;
@@ -128,7 +132,11 @@ const Table = ({
 	// Normalizo selectRow que pasa por props
 	if (selection) {
 		selection = { ...selectionDef, ...selection };
-		selection.style = { ...selectionDef.style, ...selection.style };
+		const style = selection.style;
+		selection.style = (...a) => ({
+			...selectionDef.style,
+			...(typeof style === "function" ? style(...a) : style),
+		});
 		if (selection.onSelect === selectionDef.onSelect)
 			selection.onSelect = (row, isSelect, rowIndex, e) => onSelected(row);
 	} else {
