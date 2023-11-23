@@ -120,7 +120,10 @@ const useSeccionales = () => {
 			action: "GetList",
 			params: { ...list.params },
 			onOk: async ({data}) =>
+			
+			
 				setList((o) => {
+					console.log('data:',data)
 					const selection = {
 						action: "",
 						request: "",
@@ -155,7 +158,7 @@ const useSeccionales = () => {
 
 			onOk: async (data) =>
 				setList((o) => {
-					console.log('delegaciones_useSeccionales:',data)
+					//console.log('delegaciones_useSeccionales:',data)
 
 					const delegaciones = data.map((refDelegacion) => {
 						return { value: refDelegacion.id, label: `${refDelegacion.codigoDelegacion}-${refDelegacion.nombre}` };

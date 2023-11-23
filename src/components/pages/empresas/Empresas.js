@@ -1,8 +1,8 @@
 import React, { Fragment, useState } from "react";
 import { Tab, Tabs } from "@mui/material";
-import styles from "./Empresas.module.css";
 import Formato from "../../helpers/Formato";
 import Table from "../../ui/Table/Table";
+import Grid from "components/ui/Grid/Grid";
 
 
 const Empresas = ({
@@ -58,59 +58,60 @@ const Empresas = ({
     };
   return (
     <>
-      <div>
-        <h1 className="titulo">Empresas</h1>
-      </div>
 
-      <div>
-        <Tabs
-          value={selectedTab}
-          onChange={handleChangeTab}
-          className={styles.tabs}
-        >
-          <Tab
-            className={styles.tab}
-            style={{ backgroundColor: "#186090" }}
-            label="Empresas"
-          />
-          
-          <Tab
-            className={styles.tab}
-            style={{ backgroundColor: "#186090" }}
-            label="2"
-            //disabled={props.seccionalSeleccionada?.id ? false : true}
-          />
-          <Tab
-            className={styles.tab}
-            style={{ backgroundColor: "#186090" }}
-            label="3"
-            //disabled={props.seccionalSeleccionada?.id ? false : true}
-          />
-        </Tabs>
-      </div>
-      {selectedTab === 0 && (
-        <div>
+      <Grid full col>
+            <Grid>
+              <h1 className="titulo">Empresas</h1>
+            </Grid>
 
-        <Table
-              remote
-              keyField="cuitEmpresa"
-              loading={loading}
-              data={data}
-              columns={columns}
-              pagination={pagination}
-              selection={selection}
-              noDataIndication={noData}
-            />
-        </div>
-      )}
+            <div className="tabs">
+              <text>{/*delegacionSelected?.nombre ? delegacionSelected.nombre  : " " */}</text>
 
-      {selectedTab === 1 && (
-       <h1>11</h1>
-      )}
+              <Tabs
+                value={selectedTab}
+                onChange={handleChangeTab}
+                >
+                  <Tab
+                    style={{ backgroundColor: "#186090" }}
+                    label="Empresas"
+                  />
+                  
+                  <Tab
+                    style={{ backgroundColor: "#186090" }}
+                    label="2"
+                    //disabled={props.seccionalSeleccionada?.id ? false : true}
+                  />
+                  <Tab
+                    style={{ backgroundColor: "#186090" }}
+                    label="3"
+                    //disabled={props.seccionalSeleccionada?.id ? false : true}
+                  />
+                </Tabs>
+            </div> 
+            <>
+              {selectedTab === 0 && (
+                <Table
+                      remote
+                      keyField="cuitEmpresa"
+                      loading={loading}
+                      data={data}
+                      columns={columns}
+                      pagination={pagination}
+                      selection={selection}
+                      noDataIndication={noData}
+                    />
+              )}
 
-      {selectedTab === 2 && (
-       <h1>22</h1>
-      )}
+              {selectedTab === 1 && (
+              <h1>11</h1>
+              )}
+
+              {selectedTab === 2 && (
+              <h1>22</h1>
+              )}     
+            </>    
+      </Grid>
+    
     </>
   );
 };

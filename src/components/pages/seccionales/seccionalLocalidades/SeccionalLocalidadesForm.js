@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
@@ -7,7 +7,9 @@ import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import moment from "moment";
 import classes from "./SeccionalLocalidadesForm.module.css";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import useHttp from "../../../hooks/useHttp";
 
 
 const onChangeDef = (changes = {}) => {};
@@ -19,13 +21,11 @@ const SeccionalLocalidadesForm = ({
 	disabled = {},
 	hide = {},
 	errors = {},
-	cargos = [],
 	loading = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
 	data ??= {};
-	cargos ??= [];
 
 	disabled ??= {};
 	hide ??= {};
@@ -34,19 +34,60 @@ const SeccionalLocalidadesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	const getValue = (v) => data[v] ?? "";
+	console.log('SeccionalLocalidadesForm_Data',data);
+	console.log('SeccionalLocalidadesForm_errors',errors);
+	
+	
+	const [localidadBuscar, setLocalidadBuscar] = useState("");
+	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
 
-	useEffect(()=>{
-		//format("YYYY-MM-DD")
-		moment(getValue("fechaVigenciaDesde")).format("YYYY-MM-DD")
-		onChange({fechaVigenciaDesde: moment(data.fechaVigenciaDesde).format("YYYY-MM-DD")});
-		onChange({fechaVigenciaHasta: moment(data.fechaVigenciaHasta).format("YYYY-MM-DD")});
-	},[]);
+	const [localidadSeccional, setLocalidadSeccional] = useState({});
 
-	const selectedCargo = (cargoId) =>{
-		const cargo = cargos.find((c) => c.value === cargoId)
-		return cargo;
-	}
+
+//TRAIGO TODAS LAS LOCALIDADES una vez
+	useEffect(() => {
+
+		if (data?.refLocalidadId && data?.refLocalidadId >= 1){ 
+			const localidad = data?.localidadesTodas?.find((localidad) =>
+			localidad.id === data?.refLocalidadId)
+			
+			console.log('OBJ_localidad ',localidad)
+			setLocalidadSeccional({...localidad, value: localidad?.id ?? 0, label: localidad?.nombre});
+
+		}
+	},[data?.refLocalidadId]);
+
+
+	useEffect(() => {
+		console.log('localidadBuscar',localidadBuscar)
+		if (localidadBuscar.length > 2) {
+		const localidadesSelect = data?.localidadesTodas
+			.filter((localidad) =>
+			localidad.nombre.toUpperCase().includes(localidadBuscar.toUpperCase())
+			)
+			.map((localidad) => {
+			return { value: localidad.id, label: localidad.nombre };
+			});
+			//console.log("localidadesSelect", localidadesSelect, localidades);
+			setLocalidadesOptions(localidadesSelect);
+		}     
+
+		if (localidadBuscar === ""){
+			setLocalidadesOptions([])
+			setLocalidadBuscar("")
+		}    
+	}, [data?.localidadesTodas, localidadBuscar]);
+
+	
+	const handlerOnTextChange = (event) => {
+		console.log("text change", event.target.value);
+		
+		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
+		setLocalidadBuscar(event.target.value);
+		
+	};
+	//#endregion
+
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
@@ -56,86 +97,46 @@ const SeccionalLocalidadesForm = ({
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<div className={classes.renglon}>
-					<div className={classes.input33}>
-					<InputMaterial
-						id="afiliadoNumero"
-						disabled={disabled.afiliadoNumero}
-						value={getValue("afiliadoNumero")}
-						error={!!errors.afiliadoNumero}
-						helperText={errors.afiliadoNumero ?? ""}
-						label="Numero Afiliado"
-						onChange={(afiliadoNumero)=>onChange({afiliadoNumero})}
-					/>
-					</div>
-					<Button id="validarAfiliadoNumero" className="botonAmarillo" width={20} onClick={()=>onChange({afiliadoNumero: getValue("afiliadoNumero")})}> {/*darle funcionalidad*/}
-						Valida
-					</Button>
+					<SearchSelectMaterial
+						id="refLocalidadId"
+						name="refLocalidadId"
+						label="Localidad"
+
+						error={(!!errors.refLocalidadId) || (data?.localidadNombre !== localidadSeccional.label)} 
+						helperText={errors.refLocalidadId ?? ""}
+						value={localidadSeccional}
+						disabled={disabled.refLocalidadId ?? false}
+						onChange={(value, _id) => (
+							onChange({ refLocalidadId: value.value }),
+							onChange({ localidadNombre: value.label })
+							)}
+						
+						options={localidadesOptions}
+				
+						onTextChange={handlerOnTextChange}
+						required
+						/>
+				</div>
+				<div className={classes.renglon}>
 					<div className={classes.input}>
 						<InputMaterial
-							id="afiliadoNombre"
-							disabled={disabled.afiliadoNombre}
-							value={ getValue("afiliadoNombre")}
-							error={!!errors.afiliadoNombre}
-							helperText={errors.afiliadoNombre ?? ""}
-							label="Nombre"
-							readOnly={true}
+							id="codigoPostal"
+							disabled={true}
+							value={localidadSeccional?.codPostal}
+							label="Código Postal"
+							type="text"
 						/>
 					</div>
-				</div>
-				<div className={classes.renglon}>
 					<div className={classes.input}>
-					<InputMaterial
-						id="fechaVigenciaDesde"
-						disabled={disabled.fechaVigenciaDesde}
-						value={moment(getValue("fechaVigenciaDesde")).format("YYYY-MM-DD")}
-						error={!!errors.fechaVigenciaDesde}
-						helperText={errors.fechaVigenciaDesde ?? ""}
-						label="Vigencia Desde"
-						onChange={(fechaVigenciaDesde)=>onChange({fechaVigenciaDesde})}
-						type="date"
-					/>
-					</div>
-					<div className={classes.input}>
-					<InputMaterial
-						id="fechaVigenciaHasta"
-						disabled={disabled.fechaVigenciaHasta}
-						value={moment(getValue("fechaVigenciaHasta")).format("YYYY-MM-DD")}
-						error={!!errors.fechaVigenciaHasta}
-						helperText={errors.fechaVigenciaHasta ?? ""}
-						label="Vigencia Hasta"
-						onChange={(fechaVigenciaHasta)=>onChange({fechaVigenciaHasta})}
-						type="date"
-					/>
-					</div>
-					<div className={classes.input}>
-
-						<SelectMaterial
-							id="refCargosId"
-							name="refCargosId"
-							label="Cargo"
-							error={!!errors.refCargosId} 
-							helperText={errors.refCargosId ?? ""}
-							value={selectedCargo(data.refCargosId)?.value}
-							disabled={disabled.refCargosId}
-							onChange={(value) => onChange({ refCargosId: value })}
-							
-							options={cargos}
-							required
+						<InputMaterial
+							id="provincia"
+							disabled={true}
+							value={localidadSeccional?.provincia}
+							label="Provincia"
+							type="text"
 						/>
 					</div>
-				</div>
-				<div className={classes.renglon}>
-					<div className={classes.input100}>
-					<InputMaterial
-						id="observaciones"
-						disabled={disabled.observaciones}
-						value={getValue("observaciones")}
-						error={!!errors.observaciones}
-						helperText={errors.observaciones ?? ""}
-						label="Observaciones"
-						onChange={(observaciones)=>onChange({observaciones})}
-					/>
-					</div>
+			
 				</div>
 
 				{!hide.deletedObs &&
@@ -147,7 +148,7 @@ const SeccionalLocalidadesForm = ({
 							label="Fecha Baja"
 							error={!!errors.deletedDate}
 							helperText={errors.deletedDate ?? ""}
-							value={getValue("deletedDate")}
+							value={data?.deletedDate}
 							disabled={disabled.deletedDate ?? false}
 							onChange={(value, _id) => onChange({ deletedDate: value })}
 							/>
@@ -158,7 +159,7 @@ const SeccionalLocalidadesForm = ({
 							label="Usuario Baja"
 							error={!!errors.deletedBy}
 							helperText={errors.deletedBy ?? ""}
-							value={getValue("deletedBy")}
+							value={data?.deletedBy}
 							disabled={disabled.deletedBy ?? false}
 							onChange={(value, _id) => onChange({ deletedBy: value })}
 							/>
@@ -170,7 +171,7 @@ const SeccionalLocalidadesForm = ({
 						label="Observaciones Baja"
 						error={!!errors.deletedObs}
 						helperText={errors.deletedObs ?? ""}
-						value={getValue("deletedObs")}
+						value={data?.deletedObs}
 						disabled={disabled.deletedObs ?? false}
 						onChange={(value, _id) => onChange({ deletedObs: value })}
 						/>

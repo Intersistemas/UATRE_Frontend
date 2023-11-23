@@ -31,6 +31,7 @@ import Action from "components/helpers/Action";
 import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
 import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
+import Grid from "components/ui/Grid/Grid";
 
 
 
@@ -83,6 +84,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Agrega Afiliado`,
           request: "A",
+          tarea: "Afiliado_Agrega",
           keys: "a",
           underlineindex: 0,
         }),
@@ -94,6 +96,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Modifica Afiliado ${desc}`,
           request: "M",
+          tarea: "Afiliado_Modifica",
 
           ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
             {disabled:  true}
@@ -111,6 +114,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Resuelve Solicitud ${desc}`,
           request: "S",
+          tarea: "Afiliado_Revsuelve",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
@@ -128,6 +132,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Imprime Carnet de Afiliación ${desc}`,
           request: "I",
+          tarea: "Afiliado_ImpCarnet",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
             {disabled:  true}
@@ -145,6 +150,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Baja Afiliado ${desc}`,
           request: "B",
+          tarea: "Afiliado_Baja",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
             {disabled:  true}
@@ -162,7 +168,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Reactiva Afiliado ${desc}`,
           request: "R",
-
+          tarea: "Afiliado_Reactiva",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
             {disabled:  true}
             :
@@ -610,95 +616,98 @@ const AfiliadosLista = (props ) => {
   }
 
   return (
-    <> 
-        <div>
-          <h1 className='titulo'>Afiliaciones</h1>  
-        </div>
+    <div className="vh-100 d-flex flex-column"> 
+        <Grid full col>
+            <Grid>
+              <h1 className="titulo">Afiliaciones</h1>
+            </Grid>
+    
+            <div className="tabs">
+              <text>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</text>
 
-        <div className="contenido">
+              <div style={{margin: '0% 0% 3rem 0%'}}>
+                <Tabs
+                  value={selectedTab}
+                  onChange={handleChangeTab}
+                  className={styles.tabs}
+                >
+                    <Tab  
+                    className={styles.tab}
+                    style={{backgroundColor: "#186090"}}
+                    label= 'AFILIADOS'
+                    />
+                    <Tab className={styles.tab}  
+                      style={{backgroundColor: "#186090"}}        
+                      label= 'DDJJ UATRE'
+                      disabled={afiliadoSeleccionado?.cuil ? false : true}
+                    />
+                    
+                    <Tab className={styles.tab}
+                    style={{backgroundColor: "#186090"}}
+                      label= 'Documentación'
+                      disabled={afiliadoSeleccionado?.cuil ? false : true}
+                    />
 
-              <div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
-                  <h5>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</h5>
+                    <Tab className={styles.tab}
+                    style={{backgroundColor: "#186090"}}
+                      label= 'Cambios de Datos'
+                      disabled={afiliadoSeleccionado?.cuil ? false : true}
+                    />
+
+                    <Tab className={styles.tab}
+                    style={{backgroundColor: "#186090"}}
+                    label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
+                      disabled={afiliadoSeleccionado?.cuil ? false : true}
+                    />                 
+                </Tabs>
               </div>
-              <div style={{margin: '0% 0% -0.6rem 0%'}}>
-              <Tabs
-                value={selectedTab}
-                onChange={handleChangeTab}
-                className={styles.tabs}
-              >
-                  <Tab  
-                   className={styles.tab}
-                   style={{backgroundColor: "#186090"}}
-                   label= 'AFILIADOS'
-                  />
-                  <Tab className={styles.tab}  
-                    style={{backgroundColor: "#186090"}}        
-                    label= 'DDJJ UATRE'
-                    disabled={afiliadoSeleccionado?.cuil ? false : true}
-                  />
-                  
-                  <Tab className={styles.tab}
-                  style={{backgroundColor: "#186090"}}
-                    label= 'Documentación'
-                    disabled={afiliadoSeleccionado?.cuil ? false : true}
-                  />
-
-                  <Tab className={styles.tab}
-                  style={{backgroundColor: "#186090"}}
-                    label= 'Cambios de Datos'
-                    disabled={afiliadoSeleccionado?.cuil ? false : true}
-                  />
-
-                  <Tab className={styles.tab}
-                  style={{backgroundColor: "#186090"}}
-                  label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-                    disabled={afiliadoSeleccionado?.cuil ? false : true}
-                  />                 
-              </Tabs>
-              </div>
-          {selectedTab === 0 && ( //AFILIADOS
-          //despachar afiliados
-            <div>
-              <TableSegmentado {...tableProps}/>
-              <KeyPress items={afiliadosActions} />
             </div> 
-          )}
+           
+              <div className="contenido table_and_detail">
+                {selectedTab === 0 && ( //AFILIADOS
+                  <div>
+                    <TableSegmentado {...tableProps}/>
+                    <KeyPress items={afiliadosActions} />
+                  </div> 
+                )}
 
-          {selectedTab === 1 && ( //DDJJ
-            <DeclaracionesJuradas
-              cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
-              cuit={afiliadoSeleccionado.empresaCUIT}
-              infoCompleta={true}
-              onSeleccionRegistro={rowEvents}
-              onDeclaracionesGeneradas={null}
-            />        
-          )}
-          {selectedTab === 2 && (
-            
-            <AfiliadosDocumentaciones afiliado={afiliadoSeleccionado}/>
-            
-          )}
+                {selectedTab === 1 && ( //DDJJ
+                  <DeclaracionesJuradas
+                    cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
+                    cuit={afiliadoSeleccionado.empresaCUIT}
+                    infoCompleta={true}
+                    onSeleccionRegistro={rowEvents}
+                    onDeclaracionesGeneradas={null}
+                  />        
+                )}
+                {selectedTab === 2 && (
+                  
+                  <AfiliadosDocumentaciones afiliado={afiliadoSeleccionado}/>
+                  
+                )}
 
-          {selectedTab === 3 && (
-            <Table  {...tablePropsVacia1}/>
-          )}
+                {selectedTab === 3 && (
+                  <Table  {...tablePropsVacia1}/>
+                )}
 
-          {selectedTab === 4 && (
-            <AfiliadoSeccional
-              afiliado={afiliadoSeleccionado}
-              onSeleccionRegistro={rowEvents}
-            />        
-          )}
+                {selectedTab === 4 && (
+                  <AfiliadoSeccional
+                    afiliado={afiliadoSeleccionado}
+                    onSeleccionRegistro={rowEvents}
+                  />        
+                )}
 
-          <AfiliadoDetails config={{
-            data: afiliadoSeleccionado,
-            ddjj: ddjjUatreSeleccionado,
-            empresa: empresaSeleccionada,
-            seccional: seccionalSeleccionada,
-            tab: selectedTab
-          }}/>
-      </div>
-    </>
+                <AfiliadoDetails config={{
+                  data: afiliadoSeleccionado,
+                  ddjj: ddjjUatreSeleccionado,
+                  empresa: empresaSeleccionada,
+                  seccional: seccionalSeleccionada,
+                  tab: selectedTab
+                }}/>
+              </div> 
+           
+      </Grid>   
+    </div>
   );
 };
 

@@ -78,7 +78,7 @@ const TableRemote = (props) => {
 
   return (
 
-    <div className={classes.tabla}>
+    <div className={classes.tabla} style={{marginTop: '-3.5rem'}}>
       {props.selectoresBuscar &&
        <Box sx={{ maxWidth: 700}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
         <FormControl fullWidth>

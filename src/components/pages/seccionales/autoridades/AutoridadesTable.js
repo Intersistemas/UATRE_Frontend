@@ -102,7 +102,7 @@ const AuoridadesTable  = ({
 	return (
 			<Table
 				keyField="id"
-				mostrarBuscar={false}
+				mostrarBuscar={true}
 				columns={columns}
 				{...x}
 			/>

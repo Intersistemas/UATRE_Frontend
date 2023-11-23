@@ -20,71 +20,52 @@ const SeccionalLocalidadesTable  = ({
 	columns: columnsInit = [],
 	...x
 } = {}) => {
+
 	const columns = [
 		{
-		headerTitle: (column, colIndex) => `Id`,
-		dataField: "id",
-		text: "Id",
-		sort: true,
-		hidden: true,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
-		},
-		},
-		{
-		headerTitle: (column, colIndex) => `Cargo`,
-		dataField: "refCargosDescripcion",
-		text: "Cargo",
-		sort: true,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
-		},
+			headerTitle: (column, colIndex) => `Id`,
+			dataField: "id",
+			text: "Id",
+			sort: true,
+			hidden: true,
+			headerStyle: (colum, colIndex) => {
+				return { width: "7rem", textAlign: "center" };
+			},
 		},
 		{
-		headerTitle: (column, colIndex) => `Nombre`,
-		dataField: "afiliadoNombre",
-		text: "Nombre",
-		sort: true,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
-		},
-		},
-		{
-		headerTitle: (column, colIndex) => `NroAfiliado`,
-		dataField: "afiliadoNumero",
-		text: "NroAfiliado",
-		sort: true,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
-		},
-		},
-		{
-			headerTitle: (column, colIndex) => `Observaciones`,
-			dataField: "observaciones",
-			text: "Observaciones",
+			headerTitle: (column, colIndex) => `Codigo`,
+			dataField: "codigo",
+			text: "Código",
 			sort: true,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
-				},
+			},
 		},
 		{
-		headerTitle: (column, colIndex) => `VigenteDesde`,
-		dataField: "fechaVigenciaDesde",
-		text: "Vigencia Desde",
-		sort: true,
-		formatter:FormatearFecha,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
-		},
+			headerTitle: (column, colIndex) => `Nombre Localidad`,
+			dataField: "nombre",
+			text: "Localidad",
+			sort: true,
+			headerStyle: (colum, colIndex) => {
+				return { width: "7rem", textAlign: "center" };
+			},
 		},
 		{
-		headerTitle: (column, colIndex) => `VigenteHasta`,
-		dataField: "fechaVigenciaHasta",
-		text: "Vigencia Hasta",
-		sort: true,
-		formatter: FormatearFecha,
-		headerStyle: (colum, colIndex) => {
-			return { width: "7rem", textAlign: "center" };
+			headerTitle: (column, colIndex) => `Código Postal`,
+			dataField: "codPostal",
+			text: "Código Postal",
+			sort: true,
+			headerStyle: (colum, colIndex) => {
+				return { width: "7rem", textAlign: "center" };
+			},
+		},
+		{
+			headerTitle: (column, colIndex) => `Provincia`,
+			dataField: "litProvincia",
+			text: "Provincia",
+			sort: true,
+			headerStyle: (colum, colIndex) => {
+				return { width: "7rem", textAlign: "center" };
 			},
 		},
 		{
@@ -102,7 +83,7 @@ const SeccionalLocalidadesTable  = ({
 	return (
 			<Table
 				keyField="id"
-				mostrarBuscar={false}
+				mostrarBuscar={true}
 				columns={columns}
 				{...x}
 			/>

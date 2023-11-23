@@ -9,13 +9,35 @@ import useAutoridades from "components/pages/seccionales/autoridades/useAutorida
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "./useSeccionales";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
+import useHttp from "../../hooks/useHttp";
 
 const SeccionalesHandler = () => {
 	const dispatch = useDispatch();
+	const { isLoading, error, sendRequest: request } = useHttp();
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
+	const [localidadesTodas, setLocalidadesTodas] = useState([]);
+	
 
+	useEffect(()=>{
+
+		const processLocalidades = async (localidadesObj) => {
+				
+			setLocalidadesTodas(localidadesObj);
+		};
+
+		request(
+			{
+			baseURL: "Afiliaciones",
+			endpoint: "/RefLocalidad",
+			method: "GET",
+			},
+			processLocalidades
+		);
+	},[]);
+	
+	
 	//#region Tab Seccionales
 	const [seccionalesTab, seccionalChanger, seccionalSelected] = useSeccionales();
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
@@ -32,6 +54,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Seccional`,
 				request: "A",
+				tarea: "Seccional_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -43,7 +66,7 @@ const SeccionalesHandler = () => {
 				action: `Consulta Seccional ${desc}`,
 				request: "C",
 
-				...(!seccionalSelected ? 
+				...(!seccionalSelected?.id ? 
 					{disabled:  true}
 					:
 					{
@@ -59,8 +82,9 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Seccional ${desc}`,
 				request: "M",
+				tarea: "Seccional_Modifica",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
 					{disabled:  true}
 					:
 					{
@@ -75,8 +99,9 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Baja Seccional ${desc}`,
 				request: "B",
+				tarea: "Seccional_Baja",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
 					{disabled:  true}
 					:
 					{
@@ -101,13 +126,12 @@ const SeccionalesHandler = () => {
 	}, [seccionalChanger]);
 	//#endregion
 
-
 	//#region Tab Autoridades
 	const [autoridadesTab, autoridadesChanger, autoridadSelected] = useAutoridades();
 	const [autoridadesActions, setAutoridadesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const secc = seccionalSelected?.id;
+		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
 		if (!secc) {
 			setAutoridadesActions(actions);
 			return;
@@ -129,6 +153,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Autoridad ${seccDesc}`,
 				request: "A",
+				tarea: "Seccional_Autoridad_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -151,6 +176,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
+				tarea: "Seccional_Autoridad_Modifica",
 
 				...(autoridadSelected?.deletedDate ? 
 					{disabled:  true}
@@ -168,6 +194,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Reactiva Autoridad ${seleDesc}`,
 					request: "R",
+					tarea: "Seccional_Autoridad_Reactiva",
 					keys: "r",
 					underlineindex: 0,
 			})
@@ -177,6 +204,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
+					tarea: "Seccional_Autoridad_Baja",
 					...(autoridadSelected?.deletedDate ? 
 						{disabled:  true}
 						:
@@ -192,7 +220,7 @@ const SeccionalesHandler = () => {
 		setAutoridadesActions(actions);
 	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Autoridades" disabled={!seccionalSelected || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
 		body: autoridadesTab,
 		actions: autoridadesActions,
 	});
@@ -201,7 +229,7 @@ const SeccionalesHandler = () => {
 	useEffect(() => {
 		autoridadesChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { seccionalId: seccionalSelected?.id /*aca debo ir el check de SOloActivos */},
+			params: { seccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
 		});
 	}, [seccionalSelected?.id, autoridadesChanger]);
 	//#endregion
@@ -213,7 +241,7 @@ const SeccionalesHandler = () => {
 
 	useEffect(() => {
 		const actions = [];
-		const secc = seccionalSelected?.id;
+		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
 		if (!secc) {
 			setDocumentacionesActions(actions);
 			return;
@@ -236,6 +264,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
+				tarea: "Seccional_Documentacion_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -258,6 +287,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
+				tarea: "Seccional_Documentacion_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -266,6 +296,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
+				tarea: "Seccional_Documentacion_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -275,7 +306,7 @@ const SeccionalesHandler = () => {
 
 
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!seccionalSelected || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Documentacion" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -290,17 +321,16 @@ const SeccionalesHandler = () => {
 	//#endregion
 
 
-
 	//#region Tab SeccionalLocalidades
-	const [seccionalLocalidadesTab, seccionalLocalidadesChanger, seccionalLocalidadesSelected] =
-		useSeccionalLocalidades();
+	const [seccionalLocalidadesTab, seccionalLocalidadesChanger, seccionalLocalidadesSelected] = useSeccionalLocalidades();
 	const [seccionalLocalidadesActions, setSeccionalLocalidadesActions] = useState([]);
 
 	useEffect(() => {
+		console.log('UseE_SeccionalLocalidades')
 		const actions = [];
-		const secc = seccionalSelected?.id;
+		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
 		if (!secc) {
-			setDocumentacionesActions(actions);
+			setSeccionalLocalidadesActions(actions);
 			return;
 		}
 		const seccDesc = `para Seccional ${secc}`;
@@ -308,10 +338,11 @@ const SeccionalesHandler = () => {
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					documentacionChanger("selected", {
-						request,
-						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+				seccionalLocalidadesChanger("selected", {
+					request,
+					action,
+					localidades: localidadesTodas,
+					record: { seccionalId: seccionalSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -319,59 +350,85 @@ const SeccionalesHandler = () => {
 
 		actions.push(
 			createAction({
-				action: `Agrega Localidad a ${seccDesc}`,
+				action: `Agrega Localidad ${seccDesc}`,
 				request: "A",
+				tarea: "Seccional_Localidad_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
 		);
-		const docu = documentacionSelected?.id;
+		const docu = seccionalLocalidadesSelected?.codigo;
 		if (!docu) {
-			setDocumentacionesActions(actions);
+			setSeccionalLocalidadesActions(actions);
 			return;
 		}
 		const docuDesc = `${docu} ${seccDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta localidad ${docuDesc}`,
+				action: `Consulta Localidad ${docuDesc}`,
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
 			})
 		);
-		actions.push(
+		/*actions.push(
 			createAction({
 				action: `Modifica Localidad ${docuDesc}`,
 				request: "M",
 				keys: "m",
 				underlineindex: 0,
 			})
-		);
-		actions.push(
-			createAction({
-				action: `Baja localidad ${docuDesc}`,
-				request: "B",
-				keys: "b",
-				underlineindex: 0,
+		);*/
+
+		if (seccionalLocalidadesSelected?.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Reactiva Localidad ${docuDesc}`,
+					tarea: "Seccional_Localidad_Reactiva",
+					request: "R",
+					keys: "r",
+					underlineindex: 0,
 			})
-		);
-		setDocumentacionesActions(actions);
+			);
+		} else {
+			actions.push(
+				createAction({
+					action: `Baja Localidad ${docuDesc}`,
+					request: "B",
+					tarea: "Seccional_Localidad_Baja",
+					...(seccionalLocalidadesSelected?.deletedDate ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "b",
+						 underlineindex: 0
+						}
+					)
+			})
+			);
+		}
+		
+		setSeccionalLocalidadesActions(actions);
 	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
 
 
 	tabs.push({
-		header: () => <Tab label="Localidades" disabled={!seccionalSelected || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
 		body: seccionalLocalidadesTab,
 		actions: seccionalLocalidadesActions,
 	});
 
 	// Si cambia Seccional, refresco lista de documentación
 	useEffect(() => {
-		documentacionChanger("list", {
+		console.log('seccionalSelected',seccionalSelected)
+		seccionalLocalidadesChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+			localidades: localidadesTodas,
+			//data: seccionalSelected?.seccionalLocalidad ?? [{}],
+			params: { seccionalId: seccionalSelected?.id,  soloactivos: false},
 		});
-	}, [seccionalSelected?.id, documentacionChanger]);
+	}, [localidadesTodas, seccionalSelected?.id, documentacionChanger]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -386,17 +443,19 @@ const SeccionalesHandler = () => {
 			<Grid>
 				<h1 className="titulo">Seccionales</h1>
 			</Grid>
-			
-				<div style={{display: 'flex', color: '#186090', height: '1.5rem', paddingLeft: '1rem'}}>
-					<h5>{seccionalSelected?.descripcion ? ` ${seccionalSelected?.codigo} - ${seccionalSelected.descripcion ?? ""}` : ''}</h5>
-				</div>
-			<Grid width="full">
+		
+	
+			<div className="tabs">
+				<text>{seccionalSelected?.descripcion ? ` ${seccionalSelected?.codigo} - ${seccionalSelected.descripcion ?? ""}` : " " }</text>
+
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
 					{tabs.map((r) => r.header())}
 				</Tabs>
-			</Grid>
+			</div>
+
 			{tabs[tab].body()}
 			<KeyPress items={acciones} />
+		
 		</Grid>
 	);
 };

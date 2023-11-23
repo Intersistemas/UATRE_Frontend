@@ -85,31 +85,31 @@ const EmpresasHandler = () => {
 
   return (
     <Fragment>
-      <div>
-      <Empresas
-        loading={empresaList.loading}
-        data={empresaList.data}
-        selection={selection}
-        noData={(() => {
-          const rq = empresaList;
-          if (rq?.loading) return <h4>Cargando...</h4>;
-          if (!rq?.error)
-            return <h4>No hay informacion a mostrar</h4>;
-          switch (rq.error.code ?? 0) {
-            case 0:
-              return <h4>{rq.error.message}</h4>;
-            default:
-              return (
-                <h4 style={{ color: "red" }}>
-                  {"Error "}
-                  {rq.error.code ? `${rq.error.code} - ` : ""}
-                  {rq.error.message}
-                </h4>
-              );
-          }
-        })()}
+    
+        <Empresas
+          loading={empresaList.loading}
+          data={empresaList.data}
+          selection={selection}
+          noData={(() => {
+            const rq = empresaList;
+            if (rq?.loading) return <h4>Cargando...</h4>;
+            if (!rq?.error)
+              return <h4>No hay informacion a mostrar</h4>;
+            switch (rq.error.code ?? 0) {
+              case 0:
+                return <h4>{rq.error.message}</h4>;
+              default:
+                return (
+                  <h4 style={{ color: "red" }}>
+                    {"Error "}
+                    {rq.error.code ? `${rq.error.code} - ` : ""}
+                    {rq.error.message}
+                  </h4>
+                );
+            }
+          })()}
         />
-        </div>
+       
     </Fragment>
   );
 };

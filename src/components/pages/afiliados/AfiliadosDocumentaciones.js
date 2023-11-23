@@ -46,6 +46,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
+				tarea: "Documentacion_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -68,6 +69,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
+				tarea: "Documentacion_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -76,6 +78,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
+				tarea: "Documentacion_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})

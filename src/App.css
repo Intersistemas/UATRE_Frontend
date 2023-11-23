@@ -122,13 +122,31 @@ border: 1.5px solid rgb(53, 149, 210);
 }
 
 .contenido{
-  width: 99% !important;
+  /*width: 99% !important;*/
   background-color: var(--color3-40);
   border-radius: 20px;
   padding: 0.5%;
   position: relative;
-  min-height: -webkit-fill-available;
+  height: 100vh;
   /*margin: 0.5rem 0%;*/
+}
+
+.table_and_detail{
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+}
+
+.tabs{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    >text{
+      min-height: 1.5rem;
+      color: var(--color1);
+      font-weight: bold;
+      padding: 0% 1%;
+    }
 }
 
 @media (max-width: 2570px) {
