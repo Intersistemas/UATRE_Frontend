@@ -104,9 +104,9 @@
 }
 
 /*INPUT/SELECT DEL MODAL*/
-.modal input,[aria-expanded]{
+/* .modal input,[aria-expanded]{
   padding: 1rem 1rem 0.2rem 1rem !important;
-}
+} */
 
 .modal fieldset{
   border-color: var(--gris2) !important;

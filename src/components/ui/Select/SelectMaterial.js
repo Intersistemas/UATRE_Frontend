@@ -23,34 +23,38 @@ const SelectMaterial = (props) => {
 	}
 
   return (
-    <FormControl
-      size="small"
-      style={{ width: props.width != null ? `${props.width}%` : "100%" }}
-      error={!!props.error}
-    >
-      <InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
-      <Select
-        className={styles.select}
-        style={{...props.style}}
-        labelId={props.label + "-label"}
-        name={props.name}
-        label={props.label}
-        value={props.value}
-        defaultValue={props.defaultValue}
-        onChange={handleChange}
-        MenuProps={MenuProps}
-        size="small"
-        disabled={props.disabled}
-      >        
-        {props.options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Select>
+		<FormControl
+			size="small"
+			style={{ width: props.width != null ? `${props.width}%` : "100%" }}
+			error={!!props.error}
+		>
+			<InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
+			<Select
+				className={styles.select}
+				style={{ ...props.style }}
+				labelId={props.label + "-label"}
+				name={props.name}
+				label={props.label}
+				value={props.value}
+				defaultValue={props.defaultValue}
+				onChange={handleChange}
+				MenuProps={MenuProps}
+				size="small"
+				disabled={props.disabled}
+				SelectDisplayProps={{
+					...props.SelectDisplayProps,
+					style: { minHeight: "inherit", ...props.SelectDisplayProps?.style },
+				}}
+			>
+				{props.options.map((option) => (
+					<MenuItem key={option.value} value={option.value}>
+						{option.label}
+					</MenuItem>
+				))}
+			</Select>
 			{helperTextRender}
-    </FormControl>
-  );
+		</FormControl>
+	);
 };
 
 export default SelectMaterial;
