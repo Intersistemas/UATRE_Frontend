@@ -618,8 +618,8 @@ const AfiliadosLista = (props ) => {
   return (
     <div className="vh-100 d-flex flex-column"> 
         <Grid full col>
-            <Grid>
-              <h1 className="titulo">Afiliaciones</h1>
+            <Grid className="titulo">
+              <h1>Afiliaciones</h1>
             </Grid>
     
             <div className="tabs">

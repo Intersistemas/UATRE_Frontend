@@ -118,6 +118,7 @@ const useAutoridades = () => {
 			action: "GetList",
 			params: {
 				...list.params,
+				SoloActivos: false
 				//pageIndex: list.pagination.index,
 				//pageSize: list.pagination.size,
 			},
@@ -239,8 +240,8 @@ const useAutoridades = () => {
 					//seccionalId = list.selection.edit.refSeccionalId,
 					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
 						{
-							fechaVigenciaDesde: vigenteDesde,
-							fechaVigenciaHasta: vigenteHasta,
+							fechaVigenciaDesde: list.selection.edit.fechaVigenciaDesde ?? vigenteDesde,
+							fechaVigenciaHasta: list.selection.edit.fechaVigenciaHasta ?? vigenteHasta,							
 
 						}:
 						["B"].includes(list.selection.request) ? //INIT PARA BAJA
@@ -449,7 +450,7 @@ const useAutoridades = () => {
 	  setList((o) => ({
 		...o,
 		loading: "Cargando...",
-		params: { ...list.params, soloActivos: event.target.checked },
+		params: { ...list.params, soloVigentes: event.target.checked },
 		data: [],
 	}));
 	};

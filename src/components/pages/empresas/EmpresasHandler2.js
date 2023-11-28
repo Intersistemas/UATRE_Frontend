@@ -7,11 +7,11 @@ import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useAutoridades from "components/pages/seccionales/autoridades/useAutoridades";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "./useSeccionales";
+import useSeccionales from "./useEmpresas";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
 import useHttp from "../../hooks/useHttp";
 
-const SeccionalesHandler = () => {
+const EmpresasHandler = () => {
 	const dispatch = useDispatch();
 	const { isLoading, error, sendRequest: request } = useHttp();
 
@@ -29,7 +29,7 @@ const SeccionalesHandler = () => {
 
 		request(
 			{
-			baseURL: "Afiliaciones",
+			baseURL: "Comunes",
 			endpoint: "/RefLocalidad",
 			method: "GET",
 			},
@@ -460,4 +460,4 @@ const SeccionalesHandler = () => {
 	);
 };
 
-export default SeccionalesHandler;
+export default EmpresasHandler;

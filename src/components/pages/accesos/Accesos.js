@@ -10,8 +10,8 @@ const Accesos = (props) => {
     };
   return ( 
     <>
-      <div>
-        <h1 className="titulo">Administración de Accesos</h1>
+      <div className="titulo">
+        <h1>Administración de Accesos</h1>
       </div>
 
       <div>

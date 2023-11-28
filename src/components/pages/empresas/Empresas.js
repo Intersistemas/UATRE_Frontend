@@ -60,8 +60,8 @@ const Empresas = ({
     <>
 
       <Grid full col>
-            <Grid>
-              <h1 className="titulo">Empresas</h1>
+            <Grid className="titulo">
+              <h1>Empresas</h1>
             </Grid>
 
             <div className="tabs">

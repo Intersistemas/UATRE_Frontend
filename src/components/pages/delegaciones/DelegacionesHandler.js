@@ -261,8 +261,8 @@ const DelegacionesHandler = () => {
 	return (
 
 		<Grid full col>
-			<Grid>
-				<h1 className="titulo">Delegaciones</h1>
+			<Grid className="titulo">
+				<h1 >Delegaciones</h1>
 			</Grid>
 
 			<div className="tabs">

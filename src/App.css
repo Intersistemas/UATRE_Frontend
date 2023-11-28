@@ -125,7 +125,7 @@ border: 1.5px solid rgb(53, 149, 210);
   /*width: 99% !important;*/
   background-color: var(--color3-40);
   border-radius: 20px;
-  padding: 0.5%;
+  padding: 0 0.5% 0.5% 0.5%;
   position: relative;
   height: 100vh;
   /*margin: 0.5rem 0%;*/
@@ -150,25 +150,25 @@ border: 1.5px solid rgb(53, 149, 210);
 }
 
 @media (max-width: 2570px) {
-  .contenido,.titulo {
+  .contenido, .titulo, .tabs {
       zoom: 100%;
   }
 }
 
 @media (max-width: 1920px) {
-  .contenido,.titulo, .sidebar{
+  .contenido,.titulo, .sidebar, .tabs {
       zoom: 90%;
   }
 }
 
 @media (max-width: 1366px) {
-  .contenido, .titulo, .sidebar{
+  .contenido, .titulo, .sidebar, .tabs {
       zoom: 70%;
   }
 }
 
 @media (max-width: 800px) {
-  .contenido, .titulo, .sidebar{
+  .contenido, .titulo, .sidebar, .tabs {
       zoom: 60%;
   }
 }

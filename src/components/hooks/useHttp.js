@@ -21,8 +21,8 @@ const useHttp = () => {
         //DONDE HARÄ EL DEPLOY??
         //const servidor =  process.env.SERVIDOR;
         const servidor = 
-        'uatredesa';
-        //'uatretest';
+        //'uatredesa';
+        'uatretest';
         //'uatre';
 
         switch (configRequest.baseURL) {
