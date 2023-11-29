@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import AsArray from "components/helpers/AsArray";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import LiquidacionesTable from "./LiquidacionesTable";
 import LiquidacionesForm from "./LiquidacionesForm";
@@ -12,12 +13,38 @@ const selectionDef = {
 	errors: null,
 };
 
+export const onLoadSelectFirst = ({ data, multi, record }) => {
+	const dataArray = AsArray(data);
+	if (multi) {
+		record = AsArray(record);
+		let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
+		if (retorno.length === 0) retorno = [dataArray.at(0)].filter((r) => r);
+		return retorno.length ? retorno : null;
+	}
+	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
+};
+
+export const onLoadSelectSame = ({ data, multi, record }) => {
+	const dataArray = AsArray(data);
+	if (multi) {
+		record = AsArray(record);
+		let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
+		return retorno.length ? retorno : null;
+	}
+	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
+};
+
+export const onLoadSelectKeep = ({ record }) => record;
+
 const useLiquidaciones = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
+	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
-	onLoadSelect: onLoadSelectInit = ({ data, record }) =>
-		data.find((r) => r.id === record?.id) ?? data.at(0),
+	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
+	columns = [],
+	hideSelectColumn = true,
+	mostrarBuscar = false,
 } = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
@@ -26,7 +53,7 @@ const useLiquidaciones = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/Liquidaciones`,
+						endpoint: `/LiquidacionesNomina`,
 						method: "GET",
 					},
 				};
@@ -35,7 +62,7 @@ const useLiquidaciones = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/Liquidaciones`,
+						endpoint: `/LiquidacionesNomina`,
 						method: "POST",
 					},
 				};
@@ -44,7 +71,7 @@ const useLiquidaciones = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/Liquidaciones`,
+						endpoint: `/LiquidacionesNomina`,
 						method: "PATCH",
 					},
 				};
@@ -53,7 +80,7 @@ const useLiquidaciones = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/Liquidaciones`,
+						endpoint: `/LiquidacionesNomina`,
 						method: "PATCH",
 					},
 				};
@@ -67,27 +94,38 @@ const useLiquidaciones = ({
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
+		remote: remoteInit,
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
-		data: [...(Array.isArray(dataInit) ? dataInit : [])],
+		data: [...AsArray(dataInit, true)],
 		error: null,
-		selection: { ...selectionDef },
-		onLoadSelect: onLoadSelectInit,
+		selection: {
+			...selectionDef,
+			multi: multiInit,
+		},
+		onLoadSelect:
+			onLoadSelectInit === onLoadSelectFirst && multiInit
+				? onLoadSelectSame
+				: onLoadSelectInit,
 	});
 
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
 		if (!list.remote) {
+			const data = list.data;
+			const multi = list.selection.multi;
+			const record = list.selection.record;
+			changes.data = data;
 			changes.selection = {
+				...list.selection,
 				...selectionDef,
-				record: list.onLoadSelect({
-					data: list.data,
-					record: list.selection.record,
-				}),
+				record: list.onLoadSelect({ data, multi, record }),
 			};
-			if (changes.selection.record)
-				changes.selection.index = list.data.indexOf(changes.selection.record);
+
+			changes.selection.index = multi
+				? changes.selection.record?.map((r) => changes.data.indexOf(r))
+				: changes.data.indexOf(changes.selection.record);
 			setList((o) => ({ ...o, ...changes }));
 			return;
 		}
@@ -102,18 +140,24 @@ const useLiquidaciones = ({
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
 				changes.data.push(...data);
+				data = changes.data;
+				const multi = list.selection.multi;
+				const record = list.selection.record;
 				changes.pagination = { index, size, count };
 				changes.selection = {
+					...list.selection,
 					...selectionDef,
-					record: list.onLoadSelect({ data, record: list.selection.record }),
+					record: list.onLoadSelect({ data, multi, record }),
 				};
-				if (changes.selection.record)
-					changes.selection.index = data.indexOf(changes.selection.record);
+
+				changes.selection.index = multi
+					? changes.selection.record?.map((r) => changes.data.indexOf(r))
+					: changes.data.indexOf(changes.selection.record);
 			},
 			onError: async (error) => {
 				if (error.code === 404) return;
 				changes.error = error;
-				changes.selection = { ...selectionDef };
+				changes.selection = { ...list.selection, ...selectionDef };
 			},
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
@@ -123,18 +167,34 @@ const useLiquidaciones = ({
 	const requestChanges = useCallback((type, payload = {}) => {
 		switch (type) {
 			case "selected": {
-				return setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						request: payload.request,
-						action: payload.action,
-						edit: {
-							...(payload.request === "A" ? {} : o.selection.record),
-							...payload.record,
+				return setList((o) => {
+					const record = {};
+					AsArray(o.selection.record, !o.selection.multi)
+						.filter((r) => r)
+						.forEach((r, i) => {
+							Object.keys(r).forEach((k) => {
+								if (i === 0) {
+									record[k] = r[k];
+									return;
+								}
+								if (record[k] === undefined) return;
+								if (record[k] === r[k]) return;
+								record[k] = undefined;
+							});
+						});
+					return {
+						...o,
+						selection: {
+							...o.selection,
+							request: payload.request,
+							action: payload.action,
+							edit: {
+								...(payload.request === "A" ? {} : record),
+								...payload.record,
+							},
 						},
-					},
-				}));
+					};
+				});
 			}
 			case "list": {
 				return setList((o) => {
@@ -146,6 +206,7 @@ const useLiquidaciones = ({
 								: payload.clear
 								? []
 								: o.data,
+						multi: "multi" in payload ? !!payload.multi : o.selection.multi,
 						error: null,
 						onLoadSelect:
 							"onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
@@ -154,17 +215,17 @@ const useLiquidaciones = ({
 					if (payload.pagination)
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {
+						const data = changes.data;
+						const multi = changes.multi;
+						const record = o.selection.record;
 						changes.selection = {
+							...o.selection,
 							...selectionDef,
-							record: changes.onLoadSelect({
-								data: changes.data,
-								record: o.selection.record,
-							}),
+							record: changes.onLoadSelect({ data, multi, record }),
 						};
-						if (changes.selection.record)
-							changes.selection.index = changes.data.indexOf(
-								changes.selection.record
-							);
+						changes.selection.index = multi
+							? changes.selection.record?.map((r) => changes.data.indexOf(r))
+							: changes.data.indexOf(changes.selection.record);
 					} else {
 						changes.loading = "Cargando...";
 					}
@@ -222,7 +283,7 @@ const useLiquidaciones = ({
 								...selectionDef,
 								index: o.selection.index,
 								record:
-									o.selection.index > -1
+									!o.selection.multi && o.selection.index > -1
 										? o.data.at(o.selection.index)
 										: o.selection.record,
 							},
@@ -266,14 +327,34 @@ const useLiquidaciones = ({
 								break;
 							}
 							case "M": {
-								changes.data.splice(list.selection.index, 1, record);
+								if (list.selection.multi) {
+									AsArray(list.selection.record).forEach((r, i) => {
+										r = { ...r, ...record };
+										list.selection.record[i] = r;
+										i = list.selection.index.at(i);
+										if (i < 0) return;
+										changes.data.splice(i, 1, r);
+									});
+								} else {
+									changes.data.splice(list.selection.index, 1, record);
+								}
 								break;
 							}
 							case "B": {
-								changes.data.splice(list.selection.index, 1, {
-									...changes.data.at(list.selection.index),
-									deletedObs: record.deletedObs,
-								});
+								if (list.selection.multi) {
+									AsArray(list.selection.record).forEach((r, i) => {
+										r = { ...r, deletedObs: record.deletedObs };
+										list.selection.record[i] = r;
+										i = list.selection.index.at(i);
+										if (i < 0) return;
+										changes.data.splice(i, 1, r);
+									});
+								} else {
+									changes.data.splice(list.selection.index, 1, {
+										...changes.data.at(list.selection.index),
+										deletedObs: record.deletedObs,
+									});
+								}
 								break;
 							}
 							default:
@@ -326,6 +407,8 @@ const useLiquidaciones = ({
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
+				columns={columns}
+				mostrarBuscar={mostrarBuscar}
 				pagination={{
 					...list.pagination,
 					onChange: ({ index, size }) =>
@@ -337,16 +420,67 @@ const useLiquidaciones = ({
 						})),
 				}}
 				selection={{
-					selected: [list.selection.record?.id].filter((r) => r),
-					onSelect: (record, isSelect, index, e) =>
+					mode: list.selection.multi ? "checkbox" : "radio",
+					hideSelectColumn: hideSelectColumn,
+					selected: AsArray(list.selection.record, !list.selection.multi)
+						.filter((r) => r)
+						.map((r) => r.id),
+					onSelect: (record, isSelect, rowIndex, e) => {
+						if (rowIndex == null) return;
+						let index = list.data.findIndex((r) => r.id === record.id);
+						if (list.selection.multi) {
+							const newIndex = [];
+							const newRecord = [];
+							list.selection.record?.forEach((r, i) => {
+								if (!isSelect && r.id === record.id) return;
+								newIndex.push(list.selection.index[i]);
+								newRecord.push(r);
+							});
+							if (isSelect && !newIndex.includes(index)) {
+								newIndex.push(index);
+								newRecord.push(record);
+							}
+							if (newIndex.length) {
+								index = newIndex;
+								record = newRecord;
+							} else {
+								index = null;
+								record = null;
+							}
+						}
 						setList((o) => ({
 							...o,
 							selection: {
+								...o.selection,
 								...selectionDef,
 								index,
 								record,
 							},
-						})),
+						}));
+					},
+					onSelectAll: (isSelect, rows, e) => {
+						if (!list.selection.multi) return;
+						let index = [];
+						let record = [];
+						if (isSelect) {
+							list.data.forEach((r, i) => {
+								record.push(r);
+								index.push(i);
+							});
+						} else {
+							index = null;
+							record = null;
+						}
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								...selectionDef,
+								index,
+								record,
+							},
+						}));
+					},
 				}}
 				onTableChange={(type, { sortOrder, sortField }) => {
 					switch (type) {

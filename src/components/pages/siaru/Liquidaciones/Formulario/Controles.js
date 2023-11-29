@@ -38,7 +38,7 @@ const Controles = ({
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesTiposPagos`,
+						endpoint: `/v1/LiquidacionesTiposPagos`,
 						method: "GET",
 					},
 				};

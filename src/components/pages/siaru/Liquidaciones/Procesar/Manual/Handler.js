@@ -383,7 +383,7 @@ const Handler = () => {
 			<div className="titulo">
 				<h1>Sistema de Aportes Rurales</h1>
 			</div>
-			<div className="contenido">
+			<div className="contenido" style={{height: "100%"}}>
 				{contenido}
 				{modal}
 			</div>

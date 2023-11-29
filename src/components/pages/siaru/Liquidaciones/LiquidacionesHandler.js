@@ -137,7 +137,7 @@ const LiquidacionesHandler = () => {
 	const [liqCabRender, liqCabChanger, liqCabSelected] =
 		useLiquidacionesCabecera({ pagination: { size: 10 } });
 	const [liqCabActions, setLiqCabActions] = useState([]);
-	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit });
+	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit, sort: "-id" });
 
 	//#region ImprimePDF
 	const [despliegaPDF, setDespliegaPDF] = useState();
@@ -206,7 +206,7 @@ const LiquidacionesHandler = () => {
 	}, [liqCabChanger, liqCabParams]);
 	//#endregion
 
-	//#region declaracion y carga de
+	//#region declaracion y carga de liquidaciones
 	const [liqRender, liqChanger, liqSelected] = useLiquidaciones({
 		remote: false,
 		pagination: { size: 10 },
@@ -228,24 +228,24 @@ const LiquidacionesHandler = () => {
 			setLiqActions(actions);
 			return;
 		}
-		actions.push(
-			createAction({
-				action: `Consulta ${desc}`,
-				request: "C",
-				keys: "n",
-				underlineindex: 1,
-			})
-		);
-		if (!liqSelected.deletedDate) {
-			actions.push(
-				createAction({
-					action: `Imprime ${desc}`,
-					keys: "m",
-					underlineindex: 0,
-					onExecute: (_) => setDespliegaPDF(liqSelected),
-				})
-			);
-		}
+		// actions.push(
+		// 	createAction({
+		// 		action: `Consulta ${desc}`,
+		// 		request: "C",
+		// 		keys: "n",
+		// 		underlineindex: 2,
+		// 	})
+		// );
+		// if (!liqSelected.deletedDate) {
+		// 	actions.push(
+		// 		createAction({
+		// 			action: `Imprime ${desc}`,
+		// 			keys: "m",
+		// 			underlineindex: 1,
+		// 			onExecute: (_) => setDespliegaPDF(liqSelected),
+		// 		})
+		// 	);
+		// }
 		setLiqActions(actions);
 	}, [liqChanger, liqSelected]);
 
