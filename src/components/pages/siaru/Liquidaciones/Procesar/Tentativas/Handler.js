@@ -16,6 +16,7 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
+import CabeceraPrint from "../../impresion/CabeceraPrint";
 
 const RangoDias = (desde, hasta) => {
 	const dias = dayjs(hasta).diff(desde, "days");
@@ -818,29 +819,21 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	useEffect(() => {
 		if (!liqCab.loading) return;
 		const changes = { loading: null, data: null, error: null };
-		const applyChanges = () => setLiqCab((o) => ({ ...o, ...changes }));
+
 		// pushQuery({
-		// 	action: "CreateCabecera",
-		// 	config: { body: liqCab.body },
-		// 	onOk: async (id) =>
-		// 		pushQuery({
-		// 			action: "GetCabecera",
-		// 			params: { id },
-		// 			onOk: async (data) => (changes.data = data),
-		// 			onError: async (error) => (changes.error = error),
-		// 			onFinally: async () => applyChanges(),
-		// 		}),
-		// 	onError: async (error) => {
-		// 		changes.error = error;
-		// 		applyChanges();
-		// 	},
+		// 	action: "GetCabecera",
+		// 	params: { id: 7 },
+		// 	onOk: async (data) => (changes.data = data),
+		// 	onError: async (error) => (changes.error = error),
+		// 	onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
 		// });
+		
 		pushQuery({
-			action: "GetCabecera",
-			params: { id: 7 },
+			action: "CreateCabecera",
+			config: { body: liqCab.body },
 			onOk: async (data) => (changes.data = data),
 			onError: async (error) => (changes.error = error),
-			onFinally: async () => applyChanges(),
+			onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
 		});
 	}, [liqCab, pushQuery]);
 
@@ -870,13 +863,17 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				</Grid>
 				{!liqCab.data ? null : (
 					<Modal
-						size="sm"
+						size="xl"
 						centered
 						show
 						onHide={() => setRedirect({ to: "/Inicio/Siaru/Liquidaciones" })}
 					>
 						<Modal.Header closeButton>Liquidacion Generada</Modal.Header>
-						<Modal.Body>En desarrollo, mostrar la impresión</Modal.Body>
+						<Modal.Body style={{ height: "80vh" }}>
+							<Grid full>
+								<CabeceraPrint data={liqCab.data} />
+							</Grid>
+						</Modal.Body>
 					</Modal>
 				)}
 			</Grid>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
+import { Modal } from "react-bootstrap";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
@@ -10,7 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
 import useLiquidaciones from "./useLiquidaciones";
-import LiquidacionPDF from "./impresion/Handler";
+import CabeceraPrint from "./impresion/CabeceraPrint";
 import LiquidacionDetails from "./LiquidacionDetails";
 
 const LiquidacionesHandler = () => {
@@ -144,15 +145,14 @@ const LiquidacionesHandler = () => {
 	let liquidacionPDFRender;
 	if (despliegaPDF) {
 		liquidacionPDFRender = (
-			<LiquidacionPDF
-				empresa={empresa}
-				liquidaciones={
-					Array.isArray(despliegaPDF)
-						? despliegaPDF
-						: [despliegaPDF].filter((r) => r)
-				}
-				onClose={() => setDespliegaPDF(null)}
-			/>
+			<Modal size="xl" centered show onHide={() => setDespliegaPDF(null)}>
+				<Modal.Header closeButton>Impresión de liquidación</Modal.Header>
+				<Modal.Body style={{ height: "80vh" }}>
+					<Grid full>
+						<CabeceraPrint data={despliegaPDF} />
+					</Grid>
+				</Modal.Body>
+			</Modal>
 		);
 	}
 	//#endregion
@@ -187,7 +187,7 @@ const LiquidacionesHandler = () => {
 					action: `Imprime ${desc}`,
 					keys: "i",
 					underlineindex: 0,
-					onExecute: (_) => setDespliegaPDF(liqCabSelected.liquidaciones),
+					onExecute: (_) => setDespliegaPDF(liqCabSelected),
 				})
 			);
 			actions.push(
