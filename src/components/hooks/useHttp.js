@@ -7,25 +7,33 @@ const useHttp = () => {
 
     const sendRequest = useCallback(
 			async (
-				configRequest,
+				{
+					baseURL = "",
+					headers = {},
+					method = "GET",
+					endpoint = "",
+					okType = "json",
+					errorType = "json",
+					bodyToJSON = true,
+					body,
+					...configRequest
+				},
 				takeOk = (data) => {},
 				takeError = (error) => {},
 				takeFinally = () => {}
 			) => {
         setIsLoading(true);
         setError(null)
-        const storedTokenData = getStoredToken()
         let url = ''
 
-
-        //DONDE HARÄ EL DEPLOY??
+        //DONDE HARÁ EL DEPLOY??
         //const servidor =  process.env.SERVIDOR;
         const servidor = 
         'uatredesa';
         //'uatretest';
         //'uatre';
 
-        switch (configRequest.baseURL) {
+        switch (baseURL) {
           case "Comunes":
               url = `http://${servidor}.intersistemas.net:8202/api`;
               break;
@@ -38,46 +46,65 @@ const useHttp = () => {
           case "SIARU":
               url = `http://${servidor}.intersistemas.net:8201/api`;
               break;
-            
           case 'Seguridad':
               url = `http://${servidor}.intersistemas.net:8800/api`;
               break;
-	
-            default:
-                break;
-
+					default:
+							break;
         }
 
-				configRequest.bodyToJSON ??= true;
-        //Agrego Token
-        let headers = {...configRequest.headers}
-        if(headers.Authorization === true)
-        {
-            headers = {...headers,
-                Authorization: "Bearer " + storedTokenData.token
-            }
-        }
-        
-				if (configRequest.body && configRequest.bodyToJSON)
-					headers["Content-Type"] ??= "application/json";
+        //Configuracion fetch
+				const config = {
+					method,
+					headers: { ...headers },
+					...configRequest,
+				};
+
+				if (body != null) {
+					if (bodyToJSON) {
+						config.headers["Content-Type"] ??= "application/json";
+						config.body = JSON.stringify(body);
+					} else {
+						config.body = body;
+					}
+				}
+
+				if (config.headers.Authorization === true)
+					config.headers.Authorization = `Bearer ${getStoredToken().token}`;
 
 				const errorBase = {};
 				try {
-					const response = await fetch(url + configRequest.endpoint, {
-						method: configRequest.method ? configRequest.method : "GET",
-						headers: headers,
-						body: configRequest.body
-							? configRequest.bodyToJSON
-								? JSON.stringify(configRequest.body)
-								: configRequest.body
-							: null,
-					});
+					const response = await fetch(`${url}${endpoint}`, config);
 
-					const data = await response.json();
+					const decodeType = async (type = "") => {
+						switch (type?.toString().trim().toLowerCase()) {
+							case "json":
+								return response.json();
+							case "text":
+								return response.text();
+							case "blob":
+								return response.blob();
+							case "formdata":
+								return response.formData();
+							case "arrayBuffer":
+								return response.arrayBuffer();
+							default:
+								return response;
+						}
+					}
+
+					const data = await decodeType(response.ok ? okType : errorType);
 					if (!response.ok) {
 						errorBase.type = response.statusText;
 						errorBase.code = response.status;
-						errorBase.message = data.Message || data.Mensaje || data.message || data.mensaje || data.errors;
+						errorBase.message =
+							typeof data === "object" && data != null
+								? data.Message ||
+								  data.Mensaje ||
+								  data.message ||
+								  data.mensaje ||
+								  data.errors
+								: (errorBase.message = data);
 						errorBase.data = data;
 						throw Object.assign(new Error(errorBase.message), errorBase);
 					}
