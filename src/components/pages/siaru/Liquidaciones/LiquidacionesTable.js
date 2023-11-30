@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
 
-const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
+const LiquidacionesTable = ({ columns, ...x } = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -22,10 +23,10 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 	});
 	//#endregion
 
-	//#region declaración y carga de tipos de pago
+	//#region declaración tipos de pago
 	const [tiposPago, setTiposPago] = useState({
-		loading: "Cargando...",
-		data: [],
+		loading: null,
+		data: null,
 		error: null,
 	});
 	useEffect(() => {
@@ -68,7 +69,7 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 			formatter: (v, r, i, e = tiposPago) =>
 				e.loading ??
 				e.error?.message ??
-				e.data.find(({ id }) => id === v)?.descripcion ??
+				e.data?.find(({ id }) => id === v)?.descripcion ??
 				"",
 			headerStyle: { width: "150px" },
 			style: { textAlign: "left" },
@@ -90,14 +91,29 @@ const LiquidacionesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 		},
 	];
 
-	const columns = columnsInit.length
-		? columnsInit.map((r) => ({
-				...columnsDef.find((d) => d.dataField === r.dataField),
-				...r,
-		  }))
-		: columnsDef;
+	const columnsArr =
+		typeof columns === "function"
+			? AsArray(columns(columnsDef), true)
+			: Array.isArray(columns) && columns.length
+			? columns.map((r) => ({
+					...columnsDef.find((d) => d.dataField === r.dataField),
+					...r,
+			  }))
+			: columnsDef;
 
-	return <Table keyField="id" columns={columns} mostrarBuscar={false} {...x} />;
+	useEffect(() => {
+		if (
+			columnsArr.find((r) => r.formatExtraData === tiposPago) &&
+			!tiposPago.loading &&
+			!tiposPago.data
+		) {
+			setTiposPago((o) => ({ ...o, loading: "Cargando... " }));
+		}
+	}, [columnsArr, tiposPago]);
+
+	return (
+		<Table keyField="id" columns={columnsArr} mostrarBuscar={false} {...x} />
+	);
 };
 
 export default LiquidacionesTable;

@@ -42,7 +42,7 @@ const useLiquidacionesNomina = ({
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
-	columns = [],
+	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
 } = {}) => {

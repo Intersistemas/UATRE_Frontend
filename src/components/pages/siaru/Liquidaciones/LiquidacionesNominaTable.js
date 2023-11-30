@@ -1,8 +1,9 @@
 import React from "react";
+import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import Table from "components/ui/Table/Table";
 
-const LiquidacionesNominaTable = ({ columns: columnsInit = [], ...x } = {}) => {
+const LiquidacionesNominaTable = ({ columns, ...x } = {}) => {
 	const columnsDef = [
 		{
 			dataField: "cuil",
@@ -44,13 +45,23 @@ const LiquidacionesNominaTable = ({ columns: columnsInit = [], ...x } = {}) => {
 		},
 	];
 
-	const columns = columnsInit.length
-		? columnsInit.map((r) => ({
-				...columnsDef.find((d) => d.dataField === r.dataField),
-				...r,
-		  }))
-		: columnsDef;
-	return <Table keyField="id" columns={columns} mostrarBuscar={false} {...x} />;
+	return (
+		<Table
+			keyField="id"
+			columns={
+				typeof columns === "function"
+					? AsArray(columns(columnsDef), true)
+					: Array.isArray(columns) && columns.length
+					? columns.map((r) => ({
+							...columnsDef.find((d) => d.dataField === r.dataField),
+							...r,
+					  }))
+					: columnsDef
+			}
+			mostrarBuscar={false}
+			{...x}
+		/>
+	);
 };
 
 export default LiquidacionesNominaTable;
