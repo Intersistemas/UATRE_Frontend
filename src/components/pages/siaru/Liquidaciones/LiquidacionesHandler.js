@@ -135,8 +135,11 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	//#region declaracion y carga de cabeceras de liquidaciones
-	const [liqCabRender, liqCabChanger, liqCabSelected] =
-		useLiquidacionesCabecera({ pagination: { size: 10 } });
+	const {
+		render: liqCabRender,
+		request: liqCabChanger,
+		selected: liqCabSelected,
+	} = useLiquidacionesCabecera({ pagination: { size: 10 } });
 	const [liqCabActions, setLiqCabActions] = useState([]);
 	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit, sort: "-id" });
 
@@ -207,7 +210,11 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	//#region declaracion y carga de liquidaciones
-	const [liqRender, liqChanger, liqSelected] = useLiquidaciones({
+	const {
+		render: liqRender,
+		request: liqChanger,
+		selected: liqSelected,
+	} = useLiquidaciones({
 		remote: false,
 		pagination: { size: 10 },
 	});

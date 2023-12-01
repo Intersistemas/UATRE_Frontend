@@ -164,7 +164,7 @@ const useLiquidaciones = ({
 	}, [pushQuery, list]);
 	//#endregion
 
-	const requestChanges = useCallback((type, payload = {}) => {
+	const request = useCallback((type, payload = {}) => {
 		switch (type) {
 			case "selected": {
 				return setList((o) => {
@@ -502,7 +502,7 @@ const useLiquidaciones = ({
 		</>
 	);
 
-	return [render, requestChanges, list.selection.record];
+	return { render, request, selected: list.selection.record };
 };
 
 export default useLiquidaciones;

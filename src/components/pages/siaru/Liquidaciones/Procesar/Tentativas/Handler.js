@@ -695,7 +695,11 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	//#endregion
 
 	//#region Tab Nominas
-	const [liqNomRender, liqNomChanger, liqNomSel] = useLiquidacionesNomina({
+	const {
+		render: liqNomRender,
+		request: liqNomChanger,
+		selected: liqNomSel,
+	} = useLiquidacionesNomina({
 		remote: false,
 		multi: true,
 		hideSelectColumn: false,
@@ -765,7 +769,11 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	//#endregion
 
 	//#region Tab Liquidacion
-	const [liqRender, liqChanger, liqSel] = useLiquidaciones({
+	const {
+		render: liqRender,
+		request: liqChanger,
+		selected: liqSel,
+	} = useLiquidaciones({
 		remote: false,
 		multi: true,
 		hideSelectColumn: false,
@@ -782,7 +790,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			},
 			{ dataField: "totalRemuneraciones" },
 			{ dataField: "interesNeto" },
-		]
+		],
 	});
 	useEffect(() => {
 		liqChanger("list", { data: estado.liquidaciones.todas });
