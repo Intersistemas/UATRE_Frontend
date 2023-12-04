@@ -72,7 +72,7 @@ const useLiquidacionesCabecera = ({
 					config: {
 						baseURL: "SIARU",
 						endpoint: `/LiquidacionesCabecera/UpdateFechaPagoEstimada`,
-						method: "PATCH",
+						method: "PUT",
 					},
 				};
 			}
@@ -85,10 +85,47 @@ const useLiquidacionesCabecera = ({
 					},
 				};
 			}
+			case "GetMotivosBaja": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
+	//#endregion
+
+	//#region declaración y carga de dependencias
+
+	//#region declaración y carga de motivosBaja
+	const [motivosBaja, setMotivosBaja] = useState({
+		loading: "Cargando...",
+		params: { tipo: "L" },
+		data: [],
+		error: null,
+	});
+	useEffect(() => {
+		if (!motivosBaja.loading) return;
+		const changes = { loading: null, data: [], error: null };
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: motivosBaja.params,
+			onOk: async (data) =>
+				(changes.data = data.map((r) => ({
+					label: r.descripcion,
+					value: r.id,
+				}))),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setMotivosBaja((o) => ({ ...o, ...changes })),
+		});
+	}, [pushQuery, motivosBaja]);
+	//#endregion
+
 	//#endregion
 
 	//#region declaracion y carga list y selected
@@ -139,8 +176,7 @@ const useLiquidacionesCabecera = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data.push(...data);
-				data = changes.data;
+				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
 				changes.pagination = { index, size, count };
@@ -244,19 +280,37 @@ const useLiquidacionesCabecera = ({
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
+				dependecies={{ motivosBaja }}
 				disabled={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? {}
-						: {
-								// afiliadoId: true,
-								// esAuxiliar: true,
-						  };
-					if (list.selection.request !== "B") r.deletedObs = true;
+					const r = {
+						tipoLiquidacion: true,
+						periodo: true,
+						fechaVencimiento: true,
+						fechaPagoEstimada: true,
+						cantidadTrabajadores: true,
+						totalRemuneraciones: true,
+						totalAporte: true,
+						totalIntereses: true,
+						totalImporte: true,
+						// liquidaciones: {
+						// 	cantidadTrabajadores: true,
+						// 	totalRemuneraciones: true,
+						// },
+					};
+					if (["A", "M"].includes(list.selection.request)) {
+						r.fechaPagoEstimada = false;
+						// r.liquidaciones.cantidadTrabajadores = false;
+						// r.liquidaciones.totalRemuneraciones = false;
+					}
+					if (list.selection.request !== "B") {
+						r.refMotivoBajaId = true;
+						r.deletedObs = true;
+					}
 					return r;
 				})()}
 				hide={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
-						? { deletedObs: true }
+						? { refMotivoBajaId: true, deletedObs: true }
 						: {};
 					// if (list.selection.request !== "R") r.obs = true;
 					return r;
@@ -296,8 +350,8 @@ const useLiquidacionesCabecera = ({
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
-						// if (!record.deletedObs)
-						// 	errors.deletedObs = "Dato requerido";
+						if (!record.refMotivoBajaId)
+							errors.refMotivoBajaId = "Dato requerido";
 					} else {
 						// if (!record.afiliadoId)
 						// 	errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
@@ -378,13 +432,17 @@ const useLiquidacionesCabecera = ({
 						}
 						case "M": {
 							query.action = "Update";
-							query.config.body = record;
+							query.config.body = {
+								id: record.id,
+								fechaPagoEstimada: record.fechaPagoEstimada,
+							};
 							break;
 						}
 						case "B": {
 							query.action = "Delete";
 							query.config.body = {
 								id: record.id,
+								refMotivoBajaId: record.refMotivoBajaId,
 								deletedObs: record.deletedObs,
 							};
 							break;
