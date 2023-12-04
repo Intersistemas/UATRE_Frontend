@@ -169,7 +169,7 @@ const LiquidacionesHandler = () => {
 				...x,
 			});
 		const actions = [];
-		const desc = ((v) => (v ? `liquidacion número ${v}` : ""))(
+		const desc = ((v) => (v ? `liquidacion ${v}` : ""))(
 			liqCabSelected?.id
 		);
 		if (!desc) {
@@ -185,6 +185,22 @@ const LiquidacionesHandler = () => {
 			})
 		);
 		if (!liqCabSelected.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Modifica ${desc}`,
+					request: "M",
+					keys: "m",
+					underlineindex: 0,
+				})
+			);
+			actions.push(
+				createAction({
+					action: `Baja ${desc}`,
+					request: "B",
+					keys: "b",
+					underlineindex: 0,
+				})
+			);
 			actions.push(
 				createAction({
 					action: `Imprime ${desc}`,
