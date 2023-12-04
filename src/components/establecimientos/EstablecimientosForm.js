@@ -26,7 +26,7 @@ const dependeciesDef = {
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
-const ColaboradoresForm = ({
+const EstablecimientosForm = ({
 	data = {},
 	title = "",
 	disabled = {},
@@ -284,4 +284,4 @@ const ColaboradoresForm = ({
 	);
 };
 
-export default ColaboradoresForm;
+export default EstablecimientosForm;
