@@ -53,7 +53,8 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 			dataField: "empresaEstablecimientoId",
 			text: "Estab. Nro.",
 			sort: true,
-			headerStyle: { width: "150px" },
+			headerStyle: { width: "120px" },
+			style: { textAlign: "center" },
 		},
 		{
 			dataField: "empresaEstablecimiento_Descripcion",
@@ -71,29 +72,36 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 				e.error?.message ??
 				e.data?.find(({ id }) => id === v)?.descripcion ??
 				"",
-			headerStyle: { width: "150px" },
+			headerStyle: { width: "100px" },
 			style: { textAlign: "left" },
+		},
+		{
+			dataField: "cantidadTrabajadores",
+			text: "Cant. Trab.",
+			sort: true,
+			headerStyle: { width: "120px" },
+			style: { textAlign: "center" },
 		},
 		{
 			dataField: "totalRemuneraciones",
 			text: "Total remuneraciones",
 			sort: true,
 			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "220px" }),
+			headerStyle: { width: "220px" },
 			style: { textAlign: "right" },
 		},
 		{
 			dataField: "interesNeto",
 			text: "Total aporte",
 			formatter: Formato.Moneda,
-			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+			headerStyle: { width: "150px" },
 			style: { textAlign: "right" },
 		},
 	];
 
 	const columnsArr =
 		typeof columns === "function"
-			? AsArray(columns(columnsDef), true)
+			? AsArray(columns(columnsDef.map((r) => ({ ...r }))), true)
 			: Array.isArray(columns) && columns.length
 			? columns.map((r) => ({
 					...columnsDef.find((d) => d.dataField === r.dataField),

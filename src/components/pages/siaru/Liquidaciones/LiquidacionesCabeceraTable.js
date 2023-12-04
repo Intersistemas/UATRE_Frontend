@@ -101,7 +101,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			keyField="id"
 			columns={
 				typeof columns === "function"
-					? AsArray(columns(columnsDef), true)
+					? AsArray(columns(columnsDef.map((r) => ({ ...r }))), true)
 					: Array.isArray(columns) && columns.length
 					? columns.map((r) => ({
 							...columnsDef.find((d) => d.dataField === r.dataField),
