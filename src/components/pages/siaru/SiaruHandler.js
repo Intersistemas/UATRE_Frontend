@@ -99,8 +99,8 @@ const SiaruHandler = () => {
 					combination,
 				})
 			);
-		const desc = (({ cuit, razonSocial } = {}) =>
-			[Formato.Cuit(cuit), razonSocial].filter((r) => r).join(" - "))(
+		const desc = ((r) =>
+			[Formato.Cuit(r?.cuit), r?.razonSocial].filter((r) => r).join(" - "))(
 			empresa.data
 		);
 		if (desc) {
