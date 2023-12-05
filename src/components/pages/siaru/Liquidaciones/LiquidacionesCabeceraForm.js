@@ -6,6 +6,7 @@ import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import Round from "components/helpers/Round";
 import UseKeyPress from "components/helpers/UseKeyPress";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Button from "components/ui/Button/Button";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import Grid from "components/ui/Grid/Grid";
@@ -312,7 +313,7 @@ const LiquidacionesCabeceraForm = ({
 
 	return (
 		<Modal size="xl" centered show onHide={() => onClose()}>
-			<Modal.Header closeButton>{title}</Modal.Header>
+			<Modal.Header className={modalCss.modalCabecera} closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full">

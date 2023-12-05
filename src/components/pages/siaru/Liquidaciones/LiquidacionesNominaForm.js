@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import UseKeyPress from "components/helpers/UseKeyPress";
@@ -30,7 +31,7 @@ const LiquidacionesNominaForm = ({
 
 	return (
 		<Modal size="lg" centered show onHide={() => onClose()}>
-			<Modal.Header closeButton>{title}</Modal.Header>
+			<Modal.Header className={modalCss.modalCabecera} closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				En desarrollo
 			</Modal.Body>

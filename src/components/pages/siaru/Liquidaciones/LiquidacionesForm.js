@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Tabs, Tab } from "@mui/material";
 import { Modal } from "react-bootstrap";
-import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import Round from "components/helpers/Round";
 import UseKeyPress from "components/helpers/UseKeyPress";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
@@ -288,10 +288,11 @@ const LiquidacionesForm = ({
 	//#endregion
 
 	//#region Tab Nomina
-	const [liqNomRender, liqNomChanger, /*liqNomSelected*/] = useLiquidacionesNomina({
-		remote: false,
-		data: nominas,
-	});
+	const { render: liqNomRender, request: liqNomChanger/*, selected: liqNomSelected*/ } =
+		useLiquidacionesNomina({
+			remote: false,
+			data: nominas,
+		});
 	useEffect(() => {
 		liqNomChanger("list");
 	}, [liqNomChanger]);
@@ -305,7 +306,7 @@ const LiquidacionesForm = ({
 
 	return (
 		<Modal size="lg" centered show onHide={() => onClose()}>
-			<Modal.Header  className={modalCss.modalCabecera} closeButton>
+			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				<Grid col width="full" gap="5px">
 					<Grid>{title}</Grid>
 					<Grid gap="inherit">
