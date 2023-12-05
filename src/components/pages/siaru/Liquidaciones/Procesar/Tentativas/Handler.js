@@ -490,6 +490,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			lastId: 0,
 			tipoPagoSindical: { id: 0, porcentaje: 0 },
 			tipoPagoSolidario: { id: 0, porcentaje: 0 },
+			retocadas: [],
 		},
 		nominas: {
 			todas: [],
@@ -577,7 +578,15 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		const liquidaciones = {
 			...estado.liquidaciones,
 			todas: [],
+			retocadas: [],
 		};
+
+		const retocadas = estado.liquidaciones.retocadas.filter(
+			(v, i, a) =>
+				estado.liquidaciones.todas.find(({ id }) => v.id === id) &&
+				a.map(({ id }) => id).indexOf(v.id) === i
+		);
+
 		estado.nominas.todas.forEach((nomina) => {
 			if (!nomina.empresaEstablecimientoId) return;
 			if (!nomina.esRural) return;
@@ -606,25 +615,26 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				tipoLiquidacion: 0,
 				nominas: [],
 			};
-			liquidacion =
-				liquidaciones.todas.find(
+			const liqFind = liquidaciones.todas.find(
 					(r) =>
 						r.empresaEstablecimientoId ===
 							liquidacion.empresaEstablecimientoId &&
 						r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
-				) ?? liquidacion;
+				)
+			if (liqFind != null) liquidacion = liqFind;
 			if (!liquidacion.id) {
 				liquidaciones.lastId += 1;
 				liquidacion.id = liquidaciones.lastId;
 			}
 			liquidacion.nominas.push(nomina);
 
+			const retocada = retocadas.find(({id}) => id === liquidacion.id);
+
 			liquidacion.cantidadTrabajadores += 1;
+			liquidacion.cantidadTrabajadores = Round(retocada?.cantidadTrabajadores ?? liquidacion.cantidadTrabajadores);
 			liquidacion.totalRemuneraciones += Number(nomina.remuneracionImponible);
-			liquidacion.totalRemuneraciones = Round(
-				liquidacion.totalRemuneraciones,
-				2
-			);
+			liquidacion.totalRemuneraciones = Round(retocada?.totalRemuneraciones ?? liquidacion.totalRemuneraciones, 2);
+
 			liquidacion.interesNeto = Round(
 				liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
 				2
@@ -640,7 +650,10 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				2
 			);
 
-			liquidaciones.todas.push(liquidacion);
+			if (liqFind == null) {
+				liquidaciones.todas.push(liquidacion);
+				if (retocada) liquidaciones.retocadas.push(retocada);
+			}
 		});
 
 		liquidaciones.todas
@@ -668,7 +681,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				}
 				cabecera.liquidaciones.push(liquidacion);
 			});
-		cabecera.cantidadTrabajadores = Round(cabecera.cantidadTrabajadores, 2);
+		cabecera.cantidadTrabajadores = Round(cabecera.cantidadTrabajadores);
 		cabecera.totalRemuneraciones = Round(cabecera.totalRemuneraciones, 2);
 		cabecera.totalAporte = Round(cabecera.totalAporte, 2);
 		cabecera.totalIntereses = Round(cabecera.totalIntereses, 2);
@@ -777,20 +790,66 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		remote: false,
 		multi: true,
 		hideSelectColumn: false,
-		columns: [
-			{ dataField: "empresaEstablecimientoId" },
-			{ dataField: "empresaEstablecimiento_Descripcion" },
-			{ dataField: "liquidacionTipoPagoId" },
+		columns: (def, { request }) => [
+			...def,
 			{
-				dataField: "cantidadTrabajadores",
-				text: "Cant. Trab.",
-				sort: true,
-				headerStyle: { width: "125px" },
-				style: { textAlign: "right" },
+				dataField: "_acciones",
+				text: "Acciones",
+				isDummyField: true,
+				formatter: () => (
+					<Button className="botonAmarillo" style={{ padding: 0 }}>
+						Modifica
+					</Button>
+				),
+				headerStyle: { width: "110px" },
+				events: {
+					onClick: (e, column, columnIndex, row, rowIndex) => {
+						e.stopPropagation();
+						request("selected", {
+							request: "M",
+							record: row,
+							action: "Genera liquidacion",
+						});
+					},
+				},
 			},
-			{ dataField: "totalRemuneraciones" },
-			{ dataField: "interesNeto" },
 		],
+		onDataChange: (data) =>
+			setEstado((o) => ({
+				...o,
+				processing: "Calculando...",
+				liquidaciones: {
+					...o.liquidaciones,
+					todas: data,
+					retocadas: data
+						.map((actual) => {
+							const previa = o.liquidaciones.todas.find(
+								({ id }) => id === actual.id
+							);
+							let retocada = o.liquidaciones.retocadas.find(
+								({ id }) => id === actual.id
+							);
+
+							if (
+								!previa ||
+								(previa.cantidadTrabajadores === actual.cantidadTrabajadores &&
+									previa.totalRemuneraciones === actual.totalRemuneraciones)
+							)
+								return retocada;
+
+							retocada ??= { id: actual.id };
+
+							if (previa.cantidadTrabajadores !== actual.cantidadTrabajadores)
+								retocada.cantidadTrabajadores = actual.cantidadTrabajadores;
+
+							if (previa.totalRemuneraciones !== actual.totalRemuneraciones)
+								retocada.totalRemuneraciones = actual.totalRemuneraciones;
+
+							return retocada;
+						})
+						.filter((v, i, a) => v && a.indexOf(v) === i),
+				},
+			})),
 	});
 	useEffect(() => {
 		liqChanger("list", { data: estado.liquidaciones.todas });
