@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
+import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import LiquidacionesTable from "./LiquidacionesTable";
 import LiquidacionesForm from "./LiquidacionesForm";
@@ -10,6 +12,7 @@ const selectionDef = {
 	index: null,
 	record: null,
 	edit: null,
+	apply: [],
 	errors: null,
 };
 
@@ -36,12 +39,15 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 
 export const onLoadSelectKeep = ({ record }) => record;
 
+export const onDataChangeDef = (data = []) => {};
+
 const useLiquidaciones = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
+	onDataChange: onDataChangeInit = onDataChangeDef,
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -107,6 +113,7 @@ const useLiquidaciones = ({
 			onLoadSelectInit === onLoadSelectFirst && multiInit
 				? onLoadSelectSame
 				: onLoadSelectInit,
+		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
 	useEffect(() => {
@@ -153,6 +160,8 @@ const useLiquidaciones = ({
 				changes.selection.index = multi
 					? changes.selection.record?.map((r) => changes.data.indexOf(r))
 					: changes.data.indexOf(changes.selection.record);
+				
+				list.onDataChange(changes.data);
 			},
 			onError: async (error) => {
 				if (error.code === 404) return;
@@ -168,20 +177,17 @@ const useLiquidaciones = ({
 		switch (type) {
 			case "selected": {
 				return setList((o) => {
-					const record = {};
-					AsArray(o.selection.record, !o.selection.multi)
-						.filter((r) => r)
-						.forEach((r, i) => {
-							Object.keys(r).forEach((k) => {
-								if (i === 0) {
-									record[k] = r[k];
-									return;
-								}
-								if (record[k] === undefined) return;
-								if (record[k] === r[k]) return;
-								record[k] = undefined;
-							});
-						});
+					const apply = [];
+					if (payload.request !== "A") {
+						apply.push(
+							...AsArray(
+								"record" in payload ? payload.record : o.selection.record,
+								true
+							)
+								.map(({ id }) => id)
+								.filter((r) => r)
+						);
+					}
 					return {
 						...o,
 						selection: {
@@ -189,9 +195,12 @@ const useLiquidaciones = ({
 							request: payload.request,
 							action: payload.action,
 							edit: {
-								...(payload.request === "A" ? {} : record),
-								...payload.record,
+								...(payload.request === "A"
+									? {}
+									: JoinOjects(o.selection.record)),
+								...JoinOjects(payload.record),
 							},
+							apply,
 						},
 					};
 				});
@@ -206,17 +215,20 @@ const useLiquidaciones = ({
 								: payload.clear
 								? []
 								: o.data,
-						multi: "multi" in payload ? !!payload.multi : o.selection.multi,
 						error: null,
 						onLoadSelect:
 							"onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
+						selection: {
+							...o.selection,
+							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
+						},
 					};
 					if (payload.params) changes.params = payload.params;
 					if (payload.pagination)
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {
 						const data = changes.data;
-						const multi = changes.multi;
+						const multi = changes.selection.multi;
 						const record = o.selection.record;
 						changes.selection = {
 							...o.selection,
@@ -245,12 +257,14 @@ const useLiquidaciones = ({
 				title={list.selection.action}
 				errors={list.selection.errors}
 				disabled={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? {}
-						: {
-								// afiliadoId: true,
-								// esAuxiliar: true,
-						  };
+					const r = {
+						empresaEstablecimientoId: true,
+						liquidacionTipoPagoId: true,
+					};
+					if (["A", "M"].includes(list.selection.request)) {
+						r.cantidadTrabajadores = false;
+						r.totalRemuneraciones = false;
+					}
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
 				})()}
@@ -280,6 +294,7 @@ const useLiquidaciones = ({
 						setList((o) => ({
 							...o,
 							selection: {
+								...o.selection,
 								...selectionDef,
 								index: o.selection.index,
 								record:
@@ -327,46 +342,82 @@ const useLiquidaciones = ({
 								break;
 							}
 							case "M": {
-								if (list.selection.multi) {
-									AsArray(list.selection.record).forEach((r, i) => {
-										r = { ...r, ...record };
-										list.selection.record[i] = r;
-										i = list.selection.index.at(i);
-										if (i < 0) return;
-										changes.data.splice(i, 1, r);
-									});
-								} else {
-									changes.data.splice(list.selection.index, 1, record);
-								}
+								changes.selection = {
+									...list.selection,
+									...selectionDef,
+									index: list.selection.index,
+									record: list.selection.record,
+								};
+								AsArray(list.selection.apply).forEach((id) => {
+									const index = changes.data.findIndex((r) => r.id === id);
+									if (index < 0) return;
+									const r = { ...changes.data.at(index), ...record };
+									if (changes.selection.multi) {
+										changes.selection.index ??= [];
+										changes.selection.record ??= [];
+										const i = changes.selection.record.findIndex(
+											(r) => r.id === id
+										);
+										if (i < 0) {
+											changes.selection.index.push(index);
+											changes.selection.record.push(r);
+										} else {
+											changes.selection.index[i] = index;
+											changes.selection.record[i] = r;
+										}
+									} else {
+										changes.selection.index = index;
+										changes.selection.record = r;
+									}
+									changes.data.splice(index, 1, r);
+								});
 								break;
 							}
 							case "B": {
-								if (list.selection.multi) {
-									AsArray(list.selection.record).forEach((r, i) => {
-										r = { ...r, deletedObs: record.deletedObs };
-										list.selection.record[i] = r;
-										i = list.selection.index.at(i);
-										if (i < 0) return;
-										changes.data.splice(i, 1, r);
-									});
-								} else {
-									changes.data.splice(list.selection.index, 1, {
-										...changes.data.at(list.selection.index),
+								changes.selection = {
+									...list.selection,
+									...selectionDef,
+									index: list.selection.index,
+									record: list.selection.record,
+								};
+								AsArray(list.selection.apply).forEach((id) => {
+									const index = changes.data.findIndex((r) => r.id === id);
+									if (index < 0) return;
+									const r = {
+										...changes.data.at(index),
+										deletedDate: dayjs().format("YYYY-MM-DD"),
 										deletedObs: record.deletedObs,
-									});
-								}
+									};
+									if (changes.selection.multi) {
+										const i = changes.selection.record.findIndex(
+											(r) => r.id === id
+										);
+										if (i < 0) {
+											changes.selection.index.push(index);
+											changes.selection.record.push(r);
+										} else {
+											changes.selection.index[i] = index;
+											changes.selection.record[i] = r;
+										}
+									} else {
+										changes.selection.index = index;
+										changes.selection.record = r;
+									}
+									changes.data.splice(index, 1, r);
+								});
 								break;
 							}
 							default:
 								break;
 						}
+						list.onDataChange(changes.data);
 						setList((o) => ({ ...o, ...changes }));
 						return;
 					}
 
 					const query = {
 						config: {},
-						onOk: async (res) =>
+						onOk: async () =>
 							setList((o) => ({ ...o, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
@@ -407,7 +458,12 @@ const useLiquidaciones = ({
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
-				columns={columns}
+				columns={
+					typeof columns === "function"
+						? (def) =>
+								columns(def, { request, selected: list.selection.record })
+						: columns
+				}
 				mostrarBuscar={mostrarBuscar}
 				pagination={{
 					...list.pagination,
@@ -427,59 +483,63 @@ const useLiquidaciones = ({
 						.map((r) => r.id),
 					onSelect: (record, isSelect, rowIndex, e) => {
 						if (rowIndex == null) return;
-						let index = list.data.findIndex((r) => r.id === record.id);
-						if (list.selection.multi) {
-							const newIndex = [];
-							const newRecord = [];
-							list.selection.record?.forEach((r, i) => {
-								if (!isSelect && r.id === record.id) return;
-								newIndex.push(list.selection.index[i]);
-								newRecord.push(r);
-							});
-							if (isSelect && !newIndex.includes(index)) {
-								newIndex.push(index);
-								newRecord.push(record);
+						setList((o) => {
+							let index = o.data.findIndex((r) => r.id === record.id);
+							if (o.selection.multi) {
+								const newIndex = [];
+								const newRecord = [];
+								o.selection.record?.forEach((r, i) => {
+									if (!isSelect && r.id === record.id) return;
+									newIndex.push(o.selection.index[i]);
+									newRecord.push(r);
+								});
+								if (isSelect && !newIndex.includes(index)) {
+									newIndex.push(index);
+									newRecord.push(record);
+								}
+								if (newIndex.length) {
+									index = newIndex;
+									record = newRecord;
+								} else {
+									index = null;
+									record = null;
+								}
 							}
-							if (newIndex.length) {
-								index = newIndex;
-								record = newRecord;
+							return {
+								...o,
+								selection: {
+									...o.selection,
+									...selectionDef,
+									index,
+									record,
+								},
+							};
+						});
+					},
+					onSelectAll: (isSelect, rows, e) => {
+						if (!list.selection.multi) return;
+						setList((o) => {
+							let index = [];
+							let record = [];
+							if (isSelect) {
+								o.data.forEach((r, i) => {
+									record.push(r);
+									index.push(i);
+								});
 							} else {
 								index = null;
 								record = null;
 							}
-						}
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								...selectionDef,
-								index,
-								record,
-							},
-						}));
-					},
-					onSelectAll: (isSelect, rows, e) => {
-						if (!list.selection.multi) return;
-						let index = [];
-						let record = [];
-						if (isSelect) {
-							list.data.forEach((r, i) => {
-								record.push(r);
-								index.push(i);
-							});
-						} else {
-							index = null;
-							record = null;
-						}
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								...selectionDef,
-								index,
-								record,
-							},
-						}));
+							return {
+								...o,
+								selection: {
+									...o.selection,
+									...selectionDef,
+									index,
+									record,
+								},
+							};
+						});
 					},
 				}}
 				onTableChange={(type, { sortOrder, sortField }) => {
