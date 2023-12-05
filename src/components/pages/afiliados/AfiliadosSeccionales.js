@@ -23,7 +23,7 @@ const AfiliadosSeccionales = (props) => {
 
 	useEffect(() => {
 	
-		console.log('seccionalSelected***',seccionalSelected);
+		
 		props.onSeleccionRegistro(seccionalSelected);
 	},[ seccionalSelected])
 	

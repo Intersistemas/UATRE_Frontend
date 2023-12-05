@@ -124,7 +124,7 @@ const useSeccionales = () => {
 					const selection = {
 						action: "",
 						request: "",
-						record: data.sort((a, b) => a.codigo > b.codigo ? 1 : -1).find((r) => r.id === o.selection.record?.id) ?? data.at(0),
+						record: data.sort((a, b) => a.codigo > b.codigo ? 1 : -1)//.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
 					if (selection.record)
 						selection.index = data.indexOf(selection.record);
@@ -180,6 +180,7 @@ const useSeccionales = () => {
 	//#endregion
 
 	const requestChanges = useCallback((type, payload = {}) => {
+		console.log('useSeccionales_RequestType:',type," payload:",payload)
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -228,7 +229,6 @@ const useSeccionales = () => {
 								request: "",
 								record: data,
 							};
-
 							return {
 								...o,
 								loading: null,
@@ -305,7 +305,7 @@ const useSeccionales = () => {
 						: {}
 				}
 				onChange={(changes) =>{ //solo entra el campo que se está editando
-					console.log('edit_useAutoridades',changes);
+					
 					setList((o) => ({
 						...o,
 						selection: {
@@ -341,7 +341,7 @@ const useSeccionales = () => {
 						}));
 						return;
 					}
-					console.log('list.selection',list.selection);
+					
 					const record = { ...list.selection.record };
 
 					//Validaciones
@@ -349,14 +349,16 @@ const useSeccionales = () => {
 					if (list.selection.request === "B") {
 						 if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					} else {
+						
 						if (!record.codigo) errors.codigo = "Dato requerido";
-						if (!record.observaciones) errors.observaciones = "Dato requerido";
+						//if (!record.observaciones) errors.observaciones = "Dato requerido";
 						if (!record.domicilio) errors.domicilio = "Dato requerido";
-						if (!record.refLocalidadesId) errors.refLocalidadesId = "Dato requerido";
-						//if (!record.descripcion) errors.descripcion = "Dato requerido";
-						if (!record.estado) errors.estado = "Dato requerido";
+						if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
+						if (!record.refDelegacionId || record.refDelegacionId == 0) errors.refDelegacionId = "Dato requerido";
+						if (!record.descripcion) errors.descripcion = "Dato requerido";
+						if (!record.estado) errors.estado = "Dato requerido"; 
 					}
-					console.log('list.selection2',list.selection);
+				
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
@@ -368,8 +370,6 @@ const useSeccionales = () => {
 						return;
 					}
 
-					console.log('list.selection3',list.selection);
-					
 					const query = {
 						config: {},
 						onOk: async (_res) =>

@@ -28,6 +28,7 @@ const SearchSelectMaterial = (props) => {
             </li>
           );
         }}
+        
         disabled={props.disabled}
         readOnly={props.readOnly}
         id={props.label + "-label"}
@@ -39,7 +40,9 @@ const SearchSelectMaterial = (props) => {
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
+          
           <TextField
+            error={props.error}
             style={{'max-height': '40px'}}
             {...params}
             label={props.label}

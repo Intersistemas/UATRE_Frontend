@@ -34,9 +34,11 @@ const SeccionalesForm = ({
 }) => {
 	data ??= {}; 
 	delegaciones ??= [];
-	console.log('data_seccional:',data)
-	console.log('delegaciones_seccional:',delegaciones)
-
+	// console.log('Form_seccional_data:',data)
+	// console.log('data_seccional:',data)
+	// console.log('delegaciones_seccional:',delegaciones)
+	// console.log('Form_seccional_errors:',errors)
+	
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
@@ -52,9 +54,9 @@ const SeccionalesForm = ({
 	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
 	const { isLoading, error, sendRequest: request } = useHttp();
 
-	const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre ?? "Sin Asignar"}
+	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
 	
-	const [localidadSeccional, setLocalidadSeccional] = useState(localidadInicio );
+	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 	
 
 	const selectedDelegacion = (delegacionId) =>{
@@ -67,7 +69,7 @@ const SeccionalesForm = ({
 		disabled.estado && onChange({ estado: data.estado });
 
 		const processLocalidades = async (localidadesObj) => {
-			console.log("localidades", localidadesObj);
+			
 			setLocalidadesTodas(localidadesObj);
 		};
 	
@@ -103,7 +105,11 @@ const SeccionalesForm = ({
 
 	const handlerOnTextChange = (event) => {
 		//console.log("text change", event.target.value);
+		 
+		
+		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
 		setLocalidadBuscar(event.target.value);
+		
 	  };
 	//#endregion
 
@@ -136,7 +142,7 @@ const SeccionalesForm = ({
 								error={!!errors.codigo}
 								helperText={errors.codigo ?? ""}
 								value={data.codigo}
-								disabled={disabled.codigo ?? false}
+								disabled={disabled.codigo}
 								onChange={(value, _id) => onChange({ codigo: value })}
 							/>
 							</FormControl>
@@ -167,7 +173,8 @@ const SeccionalesForm = ({
 							error={!!errors.descripcion} 
 							helperText={errors.descripcion ?? ""}
 							value={data.descripcion}
-							disabled={disabled.descripcion ?? false}
+							disabled={disabled.descripcion}
+							
 							onChange={(value, _id) => onChange({ descripcion: value })}
 							/>
 						</div> 
@@ -178,14 +185,18 @@ const SeccionalesForm = ({
 							name="refLocalidadesId"
 							label="Localidad"
 
-							error={!!errors.refLocalidadesId} 
+							error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
 							helperText={errors.refLocalidadesId ?? ""}
 							value={localidadSeccional}
 							disabled={disabled.refLocalidadesId ?? false}
-							onChange={(value, _id) => onChange({ refLocalidadesId: value.value })}
+							onChange={(value, _id) => (
+								onChange({ refLocalidadesId: value.value }),
+								onChange({ localidadNombre: value.label }),
+								setLocalidadSeccional({...localidadSeccional,label: value.label})
+								)}
 							
 							options={localidadesOptions}
-							//value={localidadSeccional}
+					
 							onTextChange={handlerOnTextChange}
 							required
 							/>
@@ -274,7 +285,8 @@ const SeccionalesForm = ({
 				className="botonAzul"
 				loading={loading}
 				width={25}
-				onClick={() => onClose(true)}//</Modal.Footer>handlerOnConfirmaClick}
+				onClick={() => ( data.localidadNombre == localidadSeccional.label && onClose(true))
+				}//</Modal.Footer>handlerOnConfirmaClick}
 				>
 					CONFIRMA
 				</Button>
