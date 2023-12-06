@@ -114,17 +114,19 @@ const useEstablecimientos = () => {
 	});
 	useEffect(() => {
 		if (!motivosBaja.loading) return;
+		const changes = { loading: null, data: [], error: null };
 		pushQuery({
 			action: "GetMotivosBaja",
 			params: motivosBaja.params,
 			onOk: async (data) =>
-				setMotivosBaja({
-					data: data.map((r) => ({
+				changes.data.push(
+					...data.map((r) => ({
 						label: r.descripcion,
 						value: r.id,
-					})),
-				}),
-			onError: async (error) => setMotivosBaja({ data: [], error }),
+					}))
+				),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setMotivosBaja((o) => ({ ...o, ...changes })),
 		});
 	}, [pushQuery, motivosBaja]);
 	//#endregion
@@ -138,21 +140,23 @@ const useEstablecimientos = () => {
 	});
 	useEffect(() => {
 		if (!provincias.loading) return;
+		const changes = { loading: null, data: [], error: null };
 		pushQuery({
 			action: "GetProvincias",
 			params: provincias.params,
 			onOk: async (data) =>
-				setProvincias({
-					data: data
-						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-						.map((r) => ({ label: r.nombre, value: r.id })),
-				}),
-			onError: async (error) => setProvincias({ data: [], error }),
+				changes.data.push(
+					...data
+					.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+					.map((r) => ({ label: r.nombre, value: r.id }))
+				),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setProvincias((o) => ({ ...o, ...changes })),
 		});
 	}, [pushQuery, provincias]);
 	//#endregion
 
-	//#region declaración y carga de provincias
+	//#region declaración y carga de localidades
 	const [localidades, setLocalidades] = useState({
 		loading: null,
 		params: { provinciaId: 0 },
@@ -161,16 +165,18 @@ const useEstablecimientos = () => {
 	});
 	useEffect(() => {
 		if (!localidades.loading) return;
+		const changes = { loading: null, data: [], error: null };
 		pushQuery({
 			action: "GetLocalidades",
 			params: localidades.params,
 			onOk: async (data) =>
-				setLocalidades({
-					data: data
+				changes.data.push(
+					...data
 						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-						.map((r) => ({ label: r.nombre, value: r.id })),
-				}),
-			onError: async (error) => setLocalidades({ data: [], error }),
+						.map((r) => ({ label: r.nombre, value: r.id }))
+				),
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
 		});
 	}, [pushQuery, localidades]);
 	//#endregion
@@ -341,7 +347,7 @@ const useEstablecimientos = () => {
 							setLocalidades((o) => ({
 								...o,
 								loading: "Cargando...",
-								params: { provinciaId: changes.provinciaId },
+								params: { provinciaId: edit.domicilioProvinciasId },
 								data: [],
 								error: null,
 							}));
