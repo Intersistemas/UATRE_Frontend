@@ -64,6 +64,7 @@ const EstablecimientosHandler = () => {
 			createAction({
 				action: `Agrega Establecimiento`,
 				request: "A",
+				tarea: "Establecimiento_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -85,6 +86,7 @@ const EstablecimientosHandler = () => {
 			createAction({
 				action: `Modifica Establecimiento ${desc}`,
 				request: "M",
+				tarea: "Establecimiento_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -94,6 +96,7 @@ const EstablecimientosHandler = () => {
 				createAction({
 					action: `Reactiva Establecimiento ${desc}`,
 					request: "R",
+					tarea: "Establecimiento_Reactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
@@ -103,6 +106,7 @@ const EstablecimientosHandler = () => {
 				createAction({
 					action: `Baja Establecimiento ${desc}`,
 					request: "B",
+					tarea: "Establecimiento_Baja",
 					keys: "b",
 					underlineindex: 0,
 				})

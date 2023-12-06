@@ -1,9 +1,9 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
 
-import SwitchCustom from "../../../ui/Switch/SwitchCustom";
+import SwitchCustom from "../../../../ui/Switch/SwitchCustom";
 //import FormatearFecha from "../../../helpers/FormatearFecha";
-import { handleModuloSeleccionar } from "../../../../redux/actions";
+import { handleModuloSeleccionar } from "../../../../../redux/actions";
 import { FormControlLabel, Switch } from "@mui/material";
 import FormatearFecha from "components/helpers/FormatearFecha";
 import Formato from "components/helpers/Formato";
@@ -16,7 +16,7 @@ import Formato from "components/helpers/Formato";
 			/>
 */
  
-const SeccionalLocalidadesTable  = ({
+const AuoridadesTable  = ({
 	columns: columnsInit = [],
 	...x
 } = {}) => {
@@ -102,11 +102,11 @@ const SeccionalLocalidadesTable  = ({
 	return (
 			<Table
 				keyField="id"
-				mostrarBuscar={false}
+				mostrarBuscar={true}
 				columns={columns}
 				{...x}
 			/>
 	);
 };
 
-export default SeccionalLocalidadesTable;
+export default AuoridadesTable;

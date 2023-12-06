@@ -6,7 +6,7 @@ import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "../seccionales/useSeccionales";
+import useSeccionales from "../administracion/seccionales/useSeccionales";
 
 const AfiliadosDocumentaciones = (props) => {
     const dispatch = useDispatch();
@@ -46,6 +46,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
+				tarea: "Documentacion_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -68,6 +69,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
+				tarea: "Documentacion_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -76,6 +78,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
+				tarea: "Documentacion_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})

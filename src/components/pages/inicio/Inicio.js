@@ -47,8 +47,10 @@ const Inicio = ({ modulos = [] }) => {
 	}, [modulos, navigate]);
 
 	return (
-		<>
-			<h1 className="titulo">Sistema Integral de UATRE</h1>
+		<>	
+			<div className="titulo">
+				<h1 >Sistema Integral de UATRE</h1>
+			</div>
 			<Grid col gap="20px" style={{ margin: "10px" }}>
 				{accesos}
 			</Grid>
