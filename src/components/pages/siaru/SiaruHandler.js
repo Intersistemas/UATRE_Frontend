@@ -13,11 +13,15 @@ import EmpresasList from "./empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
+import EmpresasForm from "../administracion/empresas/EmpresasForm";
+
 
 const SiaruHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const authContext = useContext(AuthContext);
+
+	const [modal, setModal] = useState();
 
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -33,6 +37,16 @@ const SiaruHandler = () => {
 			default:
 				return null;
 		}
+	});
+
+	const [list, setList] = useState({
+		loading: null,
+		params: {},
+		data: [],
+		pagination: { index: 1, size: 15, count: 0 }, 
+		delegaciones: [],
+		error: null,
+		selection: {},
 	});
 
 	//#region declaración y carga de empresas
@@ -80,10 +94,200 @@ const SiaruHandler = () => {
 	}, [empresas.selected?.cuitEmpresa]);
 	//#endregion
 
+
+	let form = (
+		<EmpresasForm
+			data={(() => { 
+
+				//INIT DE DATOS DEL FORM
+				const data =
+				["A"].includes(list.selection.request) ?? {}  //INIT PARA ALTA
+
+					return {...list.selection.record}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
+				})()
+			}
+			title={"Relaciona Empresa al usuario: "+authContext.usuario.cuit}
+			errors={list.selection.errors}
+			loading={!!list.loading}
+			
+			disabled={(() => {
+				const r = ["A", "M"].includes(list.selection.request)
+					? { }
+					: {
+							cuit: true,
+							razonSocial	:true,
+							claveTipo	:true,
+							claveEstado	:true,
+							claveInactivaAsociada	:true,
+							actividadPrincipalDescripcion	:true,
+							actividadPrincipalId	:true,
+							actividadPrincipalPeriodo	:true,
+							contratoSocialFecha	:true,
+							cierreMes	:true,
+							email	:true,
+							telefono	:true,
+							domicilioCalle	:true,
+							domicilioNumero	:true,
+							domicilioPiso	:true,
+							domicilioDpto	:true,
+							domicilioSector	:true,
+							domicilioTorre	:true,
+							domicilioManzana	:true,
+							domicilioProvinciasId	:true,
+							domicilioLocalidadesId	:true,
+							domicilioCodigoPostal	:true,
+							domicilioCPA	:true,
+							domicilioTipo	:true,
+							domicilioEstado	:true,
+							domicilioDatoAdicional	:true,
+							domicilioDatoAdicionalTipo	:true,
+							ciiU1	:true,
+							ciiU1Descripcion	:true,
+							ciiU1EsRural	:true,
+							ciiU2	:true,
+							ciiU2Descripcion	:true,
+							ciiU2EsRural	:true,
+							ciiU3	:true,
+							ciiU3Descripcion	:true,
+							ciiU3EsRural	:true,
+							localidadDescripcion	:true,
+							provinciaDescripcion	:true,
+							esEmpresaRural	:true,
+							
+					  };
+				if (list.selection.request !== "B") r.deletedObs = true;
+				r.deletedBy=true;
+				r.deletedDate=true;
+
+				return r;
+			})()}
+			hide={
+				["A", "M"].includes(list.selection.request)
+					? { deletedObs: true }
+					: {}
+			}
+			onChange={(changes) =>{ //solo entra el campo que se está editando
+				console.log('useEmpresas_changes:',changes)
+				setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						record: {
+							...o.selection.record,
+							...changes,
+						},
+					},
+				}))
+				}
+			}
+
+			/*onTextChange={(partialText)=>{
+				console.log('partialText',partialText);
+				//setLocalidadBuscar(partialText);
+			}}*/
+
+			onClose={(confirm) => {
+				
+				console.log('SiaruHandler_onClose',confirm)
+				console.log('SiaruHandle_list',list)
+				if (!["A", "B"].includes(list.selection.request)){
+					confirm = false}
+				if (!confirm) {
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							request: "",
+							action: "",
+							record: o.data.at(o.selection.index),
+							errors: null,
+						},
+					}));
+
+					setModal()
+					return;
+				}
+				
+				const record = { ...list.selection.record };
+
+				//Validaciones
+				const errors = {};
+				if (list.selection.request === "B") {
+					 if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+				}
+				
+				if (["A", "M"].includes(list.selection.request)){
+					
+					if (!record.cuit) errors.cuit = "Dato requerido";
+					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
+					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
+					//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
+					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalDescripcion = "Dato requerido";
+					if (!record.telefono) errors.telefono = "Dato requerido"; 
+					if (!record.email) errors.email = "Dato requerido"; 
+
+					if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
+					if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
+					if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
+
+					//if (!record.domicilioLocalidadesId || record.domicilioLocalidadesId === 0) errors.domicilioLocalidadesId = "Dato requerido";
+					//if (!record.domicilioProvinciasId || record.domicilioProvinciasId === 0) errors.domicilioProvinciasId = "Dato requerido";
+				}
+			
+				console.log('useEmpresas_errors',errors);
+
+				if (Object.keys(errors).length) {
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							errors,
+						},
+					}));
+					return;
+				}
+
+				const query = {
+					config: {},
+					onOk: async (_res) =>
+						setList((old) => ({ ...old, loading: "Cargando..." })),
+					onError: async (err) => alert(err.message),
+				};
+
+				switch (list.selection.request) {
+					case "A":
+						query.action = "Create";
+						query.config.body = record;
+						break;
+					case "M":
+						query.action = "Update";
+						query.params = { id: record.id };
+						query.config.body = record;
+						break;
+					case "B":
+						query.action = "Delete";
+						query.params = { id: record.id };
+						query.config.body = { id: record.id, deletedObs: record.deletedObs };
+						break;
+					case "R":
+						query.action = "Reactiva";
+						//query.params = { id: record.id };
+						query.config.body = { id: record.id };
+						break;
+					default:
+						break;
+				}
+				console.log('useEmpresas_query',query);
+				pushQuery(query);
+			}}
+		/>
+	);
 	//#region declaracion y carga de acciones
 	const [acciones, setAcciones] = useState([]);
+
 	useEffect(() => {
 		const acciones = [];
+
 		const addAction = (
 			name = "",
 			onExecute = (name) => {},
@@ -98,11 +302,19 @@ const SiaruHandler = () => {
 					underlineindex: name.toLowerCase().indexOf(keys),
 					combination,
 				})
-			);
+		);
+
+		addAction(
+			`Relaciona Empresa`,
+			(_) => (setModal(form)),
+			"r"
+		);
+
 		const desc = ((r) =>
 			[Formato.Cuit(r?.cuit), r?.razonSocial].filter((r) => r).join(" - "))(
 			empresa.data
 		);
+
 		if (desc) {
 			addAction(
 				`Establecimientos de ${desc}`,
@@ -149,6 +361,7 @@ const SiaruHandler = () => {
 						<KeyPress items={acciones} />
 					</Grid>
 				</Grid>
+				{modal}
 			</div>
 		</>
 	);
