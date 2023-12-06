@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { handleSetNavFunction } from "redux/actions";
+import { Modal } from "react-bootstrap";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import Modal from "components/ui/Modal/Modal";
-import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import Tentativas from "../tentativas/Handler";
 
 const Handler = () => {
@@ -36,27 +37,36 @@ const Handler = () => {
 		dispatch(
 			handleSetNavFunction(({ go }) => {
 				setModal(
-					<Modal onClose={() => setModal(null)}>
-						<Grid col width="full" gap="15px">
-							<Grid width="full" justify="evenly">
-								<h3>Se perderán los datos cargados</h3>
+					<Modal size="lg" centered show onHide={() => setModal(null)}>
+						<Modal.Header
+							className={modalCss.modalCabecera}
+							closeButton
+						/>
+						<Modal.Body>
+							<Grid width="full" justify="center">
+								<h4>Se perderán los datos cargados</h4>
 							</Grid>
-							<Grid width="full" justify="evenly">
-								<Grid width="370px">
-									<Button className="botonAzul" onClick={() => go()}>
-										Continúa
+						</Modal.Body>
+						<Modal.Footer>
+							<Grid gap="20px">
+								<Grid width="150px">
+									<Button
+										className="botonAzul"
+										onClick={() => go()}
+									>
+										CONTINÚA
 									</Button>
 								</Grid>
-								<Grid width="370px">
+								<Grid width="150px">
 									<Button
 										className="botonAmarillo"
 										onClick={() => setModal(null)}
 									>
-										Cancela
+										CANCELA
 									</Button>
 								</Grid>
 							</Grid>
-						</Grid>
+						</Modal.Footer>
 					</Modal>
 				);
 			})
@@ -90,29 +100,19 @@ const Handler = () => {
 	//#region declaración y carga de tentativas
 	const [tentativas, setTentativas] = useState({
 		loading: "Cargando...",
-		params: { cuit: empresa.cuit, periodo: periodo, archivo: archivo },
+		params: { cuit: empresa.cuit, periodo, archivo },
 		data: [],
-		error: {},
+		error: null,
 	});
 	useEffect(() => {
 		if (!tentativas.loading) return;
+		const changes = { loading: null, data: [], error: null }
 		pushQuery({
 			action: "GetTentativas",
 			params: tentativas.params,
-			onOk: (res) =>
-				setTentativas((old) => ({
-					...old,
-					loading: null,
-					data: res,
-					error: null,
-				})),
-			onError: (err) =>
-				setTentativas((old) => ({
-					...old,
-					loading: null,
-					data: null,
-					error: err,
-				})),
+			onOk: async (data) => changes.data.push(...data),
+			onError: async (error) => (changes.error = error),
+			onFinally: () => setTentativas((o) => ({ ...o, ...changes })),
 		});
 	}, [tentativas, pushQuery]);
 	//#endregion
