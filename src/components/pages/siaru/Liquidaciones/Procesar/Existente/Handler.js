@@ -149,6 +149,7 @@ const Handler = () => {
 		selected: liqNomSelected,
 	} = useLiquidacionesNomina({
 		remote: false,
+		mostrarBuscar: true,
 		columns: (def = []) => def.filter((r) => r.dataField !== "afiliadoId"),
 		onDataChange: (data) =>
 			setNomina((o) => ({
