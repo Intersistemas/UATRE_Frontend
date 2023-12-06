@@ -13,6 +13,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidaciones from "./useLiquidaciones";
+import useLiquidacionesNomina from "./useLiquidacionesNomina";
 
 const dependeciesDef = {
 	motivosBaja: {
@@ -284,7 +285,7 @@ const LiquidacionesCabeceraForm = ({
 	//#endregion
 
 	//#region Liquidaciones
-	const { render: liqTab, request: liqRequest } = useLiquidaciones({
+	const { render: liqRender, request: liqRequest, selected: liqSelected } = useLiquidaciones({
 		remote: false,
 		columns: (def) => [
 			...def,
@@ -301,11 +302,21 @@ const LiquidacionesCabeceraForm = ({
 		liqRequest("list", { data: AsArray(data.liquidaciones) });
 	}, [liqRequest, data.liquidaciones]);
 
+	//#region Nominas
+	const { render: nomRender, request: nomRequest } = useLiquidacionesNomina({
+		remote: false,
+	});
+	useEffect(() => {
+		nomRequest("list", { data: AsArray(liqSelected?.nominas) });
+	}, [nomRequest, liqSelected]);
+	//#endregion
+
 	tabs.push({
 		header: () => <Tab label="Establecimientos" />,
 		body: () => (
 			<Grid col full gap="inherit">
-				{liqTab()}
+				{liqRender()}
+				{nomRender()}
 			</Grid>
 		),
 	});
