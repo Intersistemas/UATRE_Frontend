@@ -396,7 +396,6 @@ const useLiquidacionesNomina = ({
 							}
 						}
 					}
-					console.log({changes})
 					setList((o) => ({
 						...o,
 						selection: {

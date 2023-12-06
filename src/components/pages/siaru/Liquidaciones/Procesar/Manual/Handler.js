@@ -104,14 +104,25 @@ const Handler = () => {
 		remote: false,
 		columns: (def = []) => def.filter((r) => r.dataField !== "afiliadoId"),
 		onDataChange: (data) =>
-			setNomina(data.filter((r) => !r.deletedDate)),
+			setNomina(
+				data
+					.filter((r) => !r.deletedDate)
+					.filter(
+						({ cuil }, i, a) =>
+							a.map(({ cuil }) => cuil).lastIndexOf(cuil) === i
+					)
+			),
 	});
 	const [liqNomActions, setLiqNomActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action: name, request, ...x }) =>
 			new Action({
 				name,
-				onExecute: (action) => liqNomRequest("selected", { request, action }),
+				onExecute: (action) => liqNomRequest("selected", (() => {
+					const r = { request, action };
+					if ("record" in x) r.record = x.record;
+					return r;
+				})()),
 				combination: "AltKey",
 				...x,
 			});
@@ -119,6 +130,7 @@ const Handler = () => {
 			createAction({
 				action: `Agrega trabajador`,
 				request: "A",
+				record: { esRural: true },
 				keys: "a",
 				underlineindex: 1,
 			}),
