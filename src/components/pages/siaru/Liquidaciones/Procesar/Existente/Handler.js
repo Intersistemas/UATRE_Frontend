@@ -140,6 +140,9 @@ const Handler = () => {
 			onFinally: async () => setNomina((o) => ({ ...o, ...changes })),
 		});
 	}, [nomina, pushQuery]);
+	//#endregion
+
+	//#region mantenimiento de nomina
 	const {
 		render: liqNomRender,
 		request: liqNomRequest,
