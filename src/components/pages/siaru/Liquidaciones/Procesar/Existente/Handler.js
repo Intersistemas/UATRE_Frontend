@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Alert, AlertTitle } from "@mui/lab";
-import CloseIcon from "@mui/icons-material/Close";
-import { Collapse, IconButton } from "@mui/material";
 import {
-	handleModuloEjecutarAccion,
 	handleModuloSeleccionar,
 	handleSetNavFunction,
 } from "redux/actions";
-import useQueryQueue from "components/hooks/useQueryQueue";
-import Grid from "components/ui/Grid/Grid";
-import Modal from "components/ui/Modal/Modal";
-import Button from "components/ui/Button/Button";
+import { Modal } from "react-bootstrap";
+import Action from "components/helpers/Action";
+import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import KeyPress from "components/keyPress/KeyPress";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import Grid from "components/ui/Grid/Grid";
+import Button from "components/ui/Button/Button";
 import Tentativas from "../tentativas/Handler";
-import NominaTable from "../manual/NominaTable";
-import NominaForm from "../manual/NominaForm";
+import useLiquidacionesNomina from "../../useLiquidacionesNomina";
 
 const Handler = () => {
 	const navigate = useNavigate();
@@ -35,7 +34,7 @@ const Handler = () => {
 
 	useEffect(() => {
 
-		if (!empresa?.id) setRedirect({ to: "/Inicio/siaru" });
+		if (!empresa?.id) setRedirect({ to: "/Inicio/Siaru" });
 		else if (!periodoDesde || !periodoHacia)
 			setRedirect({ to: "/Inicio/Siaru/Liquidaciones/Procesar" });
 	}, [empresa, periodoDesde, periodoHacia]);
@@ -47,27 +46,36 @@ const Handler = () => {
 		dispatch(
 			handleSetNavFunction(({ go }) => {
 				setModal(
-					<Modal onClose={() => setModal(null)}>
-						<Grid col width="full" gap="15px">
-							<Grid width="full" justify="evenly">
-								<h3>Se perderán los datos cargados</h3>
+					<Modal size="lg" centered show onHide={() => setModal(null)}>
+						<Modal.Header
+							className={modalCss.modalCabecera}
+							closeButton
+						/>
+						<Modal.Body>
+							<Grid width="full" justify="center">
+								<h4>Se perderán los datos cargados</h4>
 							</Grid>
-							<Grid width="full" justify="evenly">
-								<Grid width="370px">
-									<Button className="botonAzul" onClick={() => go()}>
-										Continúa
+						</Modal.Body>
+						<Modal.Footer>
+							<Grid gap="20px">
+								<Grid width="150px">
+									<Button
+										className="botonAzul"
+										onClick={() => go()}
+									>
+										CONTINÚA
 									</Button>
 								</Grid>
-								<Grid width="370px">
+								<Grid width="150px">
 									<Button
 										className="botonAmarillo"
 										onClick={() => setModal(null)}
 									>
-										Cancela
+										CANCELA
 									</Button>
 								</Grid>
 							</Grid>
-						</Grid>
+						</Modal.Footer>
 					</Modal>
 				);
 			})
@@ -82,7 +90,7 @@ const Handler = () => {
 					config: {
 						baseURL: "SIARU",
 						method: "GET",
-						endpoint: "/Liquidaciones",
+						endpoint: "/LiquidacionesCabecera",
 					},
 				};
 			case "GetTentativas":
@@ -98,103 +106,105 @@ const Handler = () => {
 		}
 	});
 
-	const [alerts, setAlerts] = useState([]);
-	let alertsRender = null;
-	if (alerts.length > 0) {
-		alertsRender = (
-			<Grid gap="15px" full="width">
-				<Grid col grow>
-					{alerts?.map((r, ix) => (
-						<Collapse key={ix} in={true} style={{ width: "100%" }}>
-							<Alert
-								severity={r.severity}
-								action={
-									<IconButton
-										aria-label="close"
-										color="inherit"
-										size="small"
-										onClick={() => {
-											const newAlerts = [...alerts];
-											newAlerts.splice(ix, 1);
-											setAlerts(newAlerts);
-										}}
-									>
-										<CloseIcon fontSize="inherit" />
-									</IconButton>
-								}
-								sx={{ mb: 2 }}
-								style={{ marginBottom: "0" }}
-							>
-								<AlertTitle>{r.title}</AlertTitle>
-								{r.message}
-							</Alert>
-						</Collapse>
-					))}
-				</Grid>
-			</Grid>
-		);
-	}
-
 	//#region declaración y carga de nomina
 	const [nomina, setNomina] = useState({
-		loading: "Cargando",
-		params: { empresaId: empresa?.id, periodo: periodoDesde },
+		loading: "Cargando...",
+		params: {
+			cuit: empresa?.cuit,
+			periodo: periodoDesde,
+			sort: "-id",
+			page: "1,1",
+		},
 		data: [],
 		error: null,
-		selected: {},
-		form: null,
 	});
 	useEffect(() => {
 		if (!nomina.loading) return;
-		const newData = [];
-		const query = {
+		const changes = { loading: null, data: [], error: null }
+		pushQuery({
 			action: "GetLiquidaciones",
-			params: {
-				...nomina.params,
-				page: "1",
+			params: nomina.params,
+			onOk: async ({ data }) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				data.forEach(({ liquidaciones }) => {
+					AsArray(liquidaciones).forEach(({ nominas }) =>
+						changes.data.push(...AsArray(nominas))
+					);
+				});
+				changes.data = changes.data.filter(
+					(v, i, a) => a.indexOf(a.find(({ id }) => id === v.id)) === i
+				);
 			},
-		};
-		query.onOk = ({ index, pages, data }) => {
-			data.forEach((liq) =>
-				newData.push(
-					...liq.nominas.map((r) => ({
-						cuil: r.cuil,
-						nombre: r.nombre,
-						remuneracion: r.remuneracionImponible,
-					}))
-				)
-			);
-			if (index < pages) {
-				query.params = { ...query.params, page: `${index + 1}` };
-				pushQuery(query);
-			} else {
-				setNomina((old) => ({
-					...old,
-					loading: null,
-					data: newData,
-					selected: newData.length ? { index: 0, row: newData[0] } : null,
-					error: null,
-				}));
-			}
-		};
-		query.onError = (err) => {
-			setAlerts((old) => [
-				...old,
-				{
-					severity: "error",
-					title: `${err.type} cargando tentativas de liquidación`,
-					message: err.message,
-				},
-			]);
-			setNomina((old) => ({
-				...old,
-				loading: null,
-				data: null,
-				error: err,
-			}));
-		};
-		pushQuery(query);
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setNomina((o) => ({ ...o, ...changes })),
+		});
 	}, [nomina, pushQuery]);
+	const {
+		render: liqNomRender,
+		request: liqNomRequest,
+		selected: liqNomSelected,
+	} = useLiquidacionesNomina({
+		remote: false,
+		columns: (def = []) => def.filter((r) => r.dataField !== "afiliadoId"),
+		onDataChange: (data) =>
+			setNomina((o) => ({
+				...o,
+				data: data.filter((r) => !r.deletedDate),
+			})),
+	});
+	const [liqNomActions, setLiqNomActions] = useState([]);
+	useEffect(() => {
+		const createAction = ({ action: name, request, ...x }) =>
+			new Action({
+				name,
+				onExecute: (action) => liqNomRequest("selected", { request, action }),
+				combination: "AltKey",
+				...x,
+			});
+		const actions = [
+			createAction({
+				action: `Agrega trabajador`,
+				request: "A",
+				keys: "a",
+				underlineindex: 1,
+			}),
+		];
+		const desc = ((v) => (v ? `trabajador ${v}` : ""))(
+			Formato.Cuit(liqNomSelected?.cuil)
+		);
+		if (!desc) {
+			setLiqNomActions(actions);
+			return;
+		}
+		actions.push(
+			createAction({
+				action: `Modifica ${desc}`,
+				request: "M",
+				keys: "m",
+				underlineindex: 0,
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Borra ${desc}`,
+				request: "B",
+				keys: "b",
+				underlineindex: 0,
+			})
+		);
+		setLiqNomActions(actions);
+	}, [liqNomRequest, liqNomSelected]);
+	useEffect(() => {
+		liqNomRequest("list", { data: nomina.data, loading: nomina.loading });
+	}, [nomina.data, liqNomRequest])
+	//#endregion
+
+	//#region modulo y acciones
+	const acciones = liqNomActions;
+	useEffect(() => {
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+	}, [dispatch, acciones]);
 	//#endregion
 
 	//#region declaración y carga de tentativas
@@ -206,172 +216,23 @@ const Handler = () => {
 	});
 	useEffect(() => {
 		if (!tentativas.loading) return;
+		const changes = { loading: null, data: [], error: null };
 		pushQuery({
 			action: "GetTentativas",
 			config: { body: tentativas.body },
-			onOk: async (res) =>
-				setTentativas((old) => ({
-					...old,
-					loading: null,
-					data: res,
-					error: null,
-				})),
-			onError: async (err) => {
-				setAlerts((old) => [
-					...old,
-					{
-						severity: "error",
-						title: `${err.type} cargando tentativas de liquidación`,
-						message: err.message,
-					},
-				]);
-				setTentativas((old) => ({
-					...old,
-					loading: null,
-					data: null,
-					error: err,
-				}));
+			onOk: async (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data.push(...data);
 			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setTentativas((o) => ({ ...o, ...changes })),
 		});
 	}, [tentativas, pushQuery]);
 	//#endregion
 
-	//#region despachar Informar Modulo
-	const moduloInfo = {
-		nombre: "SIARU",
-		acciones: [],
-	};
-
-	const descTrabajador = `${Formato.Cuit(nomina.selected.row?.cuil)}`;
-	if (tentativas.data == null) {
-		moduloInfo.acciones.push({ name: `Agrega trabajador` });
-		if (descTrabajador) {
-			moduloInfo.acciones.push({
-				name: `Modifica trabajador ${descTrabajador}`,
-			});
-			moduloInfo.acciones.push({ name: `Borra trabajador ${descTrabajador}` });
-		}
-	}
-
-	if (redirect.to) moduloInfo.acciones = [];
-	dispatch(handleModuloSeleccionar(moduloInfo));
-	const moduloAccion = useSelector((state) => state.moduloAccion);
-	useEffect(() => {
-		const abreFormularioTrabajador = (request = "") =>
-			setNomina((old) => ({
-				...old,
-				form: (
-					<NominaForm
-						data={request === "A" ? null : old.selected.row}
-						request={request}
-						onClose={({ request, data }) =>
-							setNomina((old) => {
-								const newData = {
-									...old,
-									data: [...old.data],
-									form: null,
-								};
-								switch (request) {
-									case "A":
-										newData.selected = {
-											index: newData.data.length,
-											row: data,
-										};
-										newData.data.push(data);
-										break;
-									case "M":
-										newData.selected = {
-											...newData.selected,
-											row: data,
-										};
-										newData.data.splice(newData.selected.index, 1, data);
-										break;
-									case "B":
-										let i = newData.selected.index;
-										newData.data.splice(i, 1);
-										if (i === 0) i = newData.data.length > 0 ? 1 : 0;
-										i -= 1;
-										if (i < 0) newData.selected = {};
-										else
-											newData.selected = {
-												index: i,
-												row: { ...newData.data[newData.selected.index] },
-											};
-										break;
-									default:
-										break;
-								}
-								if (
-									["A", "M"].includes(request) &&
-									old.data.filter(
-										(r, i) =>
-											newData.selected.index !== i && r.cuil === data.cuil
-									).length
-								) {
-									setModal(
-										<Modal onClose={() => setModal(null)}>
-											<Grid col width="full" gap="15px">
-												<Grid width="full" justify="evenly">
-													<h3>{`Ya existe trabajador con cuil ${Formato.Cuit(
-														data.cuil
-													)}`}</h3>
-												</Grid>
-												<Grid width="full" justify="evenly">
-													<Grid width="370px">
-														<Button
-															className="botonAzul"
-															onClick={() => {
-																setModal(null);
-																setNomina(newData);
-															}}
-														>
-															Agrega trabajador de todas formas
-														</Button>
-													</Grid>
-													<Grid width="370px">
-														<Button
-															className="botonAmarillo"
-															onClick={() => setModal(null)}
-														>
-															Cancela
-														</Button>
-													</Grid>
-												</Grid>
-											</Grid>
-										</Modal>
-									);
-									return old;
-								}
-								return newData;
-							})
-						}
-					/>
-				),
-			}));
-		switch (moduloAccion?.name) {
-
-			case `Agrega trabajador`:
-				abreFormularioTrabajador("A");
-				break;
-			case `Modifica trabajador ${descTrabajador}`:
-				abreFormularioTrabajador("M");
-				break;
-			case `Borra trabajador ${descTrabajador}`:
-				abreFormularioTrabajador("B");
-				break;
-			default:
-				break;
-		}
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	}, [moduloAccion, descTrabajador, dispatch]);
-	//#endregion
-
 	let contenido = null;
-	if (nomina.loading) {
-		contenido = <h1>Cargando nomina...</h1>;
-	} else if (tentativas.loading) {
-		contenido = <h1>Cargando tentativas...</h1>;
-	} else if (tentativas?.data != null) {
+	if (tentativas?.data != null) {
 		contenido = (
 			<Tentativas periodo={periodoHacia} tentativas={tentativas.data} />
 		);
@@ -389,47 +250,51 @@ const Handler = () => {
 					{` ${Formato.Periodo(periodoHacia)} `}a partir del período
 					{` ${Formato.Periodo(periodoDesde)}`}
 				</h2>
-				<Grid width="full">
-					<NominaTable
-						records={nomina.data}
-						mostrarBuscar={false}
-						selected={[nomina.selected.row]}
-						onSelect={(selected) =>
-							setNomina((old) => ({ ...old, selected: selected }))
-						}
-					/>
-					{nomina.form}
-				</Grid>
-				{alertsRender}
+				<Grid width="full">{liqNomRender()}</Grid>
 				<Grid justify="center">
 					<Grid width="350px" height="50px">
 						<Button
 							className="botonAmarillo"
-							disabled={!descTrabajador}
+							disabled={!liqNomSelected}
 							onClick={() => {
 								setModal(
-									<Modal onClose={() => setModal(null)}>
-										<Grid col width="full" gap="20px">
+									<Modal size="lg" centered show onHide={() => setModal(null)}>
+										<Modal.Header
+											className={modalCss.modalCabecera}
+											closeButton
+										>
+											Inicia proceso de liquidación
+										</Modal.Header>
+										<Modal.Body>
 											<Grid width="full" justify="center">
-												<h3>
+												<h4>
 													Al continuar no se podrá modificar la lista de
 													trabajadores.
-												</h3>
+												</h4>
 											</Grid>
-											<Grid width="full" gap="200px" justify="center">
+										</Modal.Body>
+										<Modal.Footer>
+											<Grid gap="20px">
 												<Grid width="150px">
 													<Button
 														className="botonAzul"
 														onClick={() => {
 															setModal(null);
-															setTentativas((old) => ({
-																...old,
+															setTentativas((o) => ({
+																...o,
 																loading: "Cargando...",
-																body: { ...old.body, nominas: nomina.data },
+																body: {
+																	...o.body,
+																	nominas: nomina.data.map((r) => ({
+																		cuil: r.cuil,
+																		nombre: r.nombre,
+																		remuneracion: r.remuneracionImponible,
+																	})),
+																},
 															}));
 														}}
 													>
-														Continúa
+														CONTINÚA
 													</Button>
 												</Grid>
 												<Grid width="150px">
@@ -437,11 +302,11 @@ const Handler = () => {
 														className="botonAmarillo"
 														onClick={() => setModal(null)}
 													>
-														Cancela
+														CANCELA
 													</Button>
 												</Grid>
 											</Grid>
-										</Grid>
+										</Modal.Footer>
 									</Modal>
 								);
 							}}
@@ -450,6 +315,7 @@ const Handler = () => {
 						</Button>
 					</Grid>
 				</Grid>
+				<KeyPress items={acciones} />
 			</Grid>
 		);
 	}

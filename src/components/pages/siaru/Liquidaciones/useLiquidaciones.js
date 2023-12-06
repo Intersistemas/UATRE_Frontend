@@ -44,6 +44,7 @@ export const onDataChangeDef = (data = []) => {};
 const useLiquidaciones = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
+	loading = false,
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
@@ -101,6 +102,7 @@ const useLiquidaciones = ({
 	const [list, setList] = useState({
 		loading: null,
 		remote: remoteInit,
+		loadingOverride: loading,
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
@@ -454,7 +456,7 @@ const useLiquidaciones = ({
 			<LiquidacionesTable
 				remote={list.remote}
 				data={list.data}
-				loading={!!list.loading}
+				loading={!!list.loading || !!list.loadingOverride}
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}

@@ -39,12 +39,16 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 
 export const onLoadSelectKeep = ({ record }) => record;
 
+export const onDataChangeDef = (data = []) => {};
+
 const useLiquidacionesCabecera = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
+	loading = false,
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
+	onDataChange: onDataChangeInit = onDataChangeDef,
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -135,6 +139,7 @@ const useLiquidacionesCabecera = ({
 	const [list, setList] = useState({
 		loading: null,
 		remote: remoteInit,
+		loadingOverride: loading,
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
@@ -147,6 +152,7 @@ const useLiquidacionesCabecera = ({
 			onLoadSelectInit === onLoadSelectFirst && multiInit
 				? onLoadSelectSame
 				: onLoadSelectInit,
+		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
 	useEffect(() => {
@@ -192,6 +198,8 @@ const useLiquidacionesCabecera = ({
 				changes.selection.index = multi
 					? changes.selection.record?.map((r) => changes.data.indexOf(r))
 					: changes.data.indexOf(changes.selection.record);
+
+				list.onDataChange(changes.data);
 			},
 			onError: async (error) => {
 				if (error.code === 404) return;
@@ -446,13 +454,14 @@ const useLiquidacionesCabecera = ({
 							default:
 								break;
 						}
+						list.onDataChange(changes.data);
 						setList((o) => ({ ...o, ...changes }));
 						return;
 					}
 
 					const query = {
 						config: {},
-						onOk: async (res) =>
+						onOk: async () =>
 							setList((o) => ({ ...o, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
@@ -493,7 +502,7 @@ const useLiquidacionesCabecera = ({
 			<LiquidacionesCabeceraTable
 				remote={list.remote}
 				data={list.data}
-				loading={!!list.loading}
+				loading={!!list.loading || !!list.loadingOverride}
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}

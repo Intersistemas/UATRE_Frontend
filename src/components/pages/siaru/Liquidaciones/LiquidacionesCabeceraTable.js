@@ -1,6 +1,7 @@
 import React from "react";
 import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
+import Round from "components/helpers/Round";
 import Table from "components/ui/Table/Table";
 
 const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
@@ -61,6 +62,16 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			dataField: "totalIntereses",
 			text: "T. intereses",
 			formatter: Formato.Moneda,
+			sort: true,
+			headerStyle: { width: "140px" },
+			style: { textAlign: "right" },
+		},
+		{
+			dataField: "totalImporte",
+			text: "T. importe",
+			isDummyField: true,
+			formatter: (_v, r) =>
+				Formato.Moneda(Round(r.totalAporte + r.totalIntereses, 2)),
 			sort: true,
 			headerStyle: { width: "140px" },
 			style: { textAlign: "right" },

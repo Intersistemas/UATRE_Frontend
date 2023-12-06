@@ -186,73 +186,81 @@ const LiquidacionesForm = ({
 		body: () => (
 			<>
 				<Grid width="full">
-					<SelectMaterial
-						name="empresaEstablecimientoId"
-						label="Establecimiento"
-						value={data.empresaEstablecimientoId ?? 0}
-						error={
-							!!(errors.empresaEstablecimientoId || establecimientos.error)
-						}
-						helperText={[
-							errors.empresaEstablecimientoId,
-							establecimientos.loading,
-							establecimientos.error,
-						]
-							.filter((r) => r)
-							.join(" ")}
-						options={establecimientos.data}
-						disabled={!!disabled.empresaEstablecimientoId}
-						onChange={(empresaEstablecimientoId) =>
-							onChange({ empresaEstablecimientoId })
-						}
-					/>
-				</Grid>
-				<Grid width="full" gap="inherit">
-					<Grid width="full">
+					{hide.empresaEstablecimientoId ? null : (
 						<SelectMaterial
-							name="liquidacionTipoPagoId"
-							label="Tipo de pago"
-							value={data.liquidacionTipoPagoId ?? 0}
-							error={!!(errors.liquidacionTipoPagoId || tiposPago.error)}
+							name="empresaEstablecimientoId"
+							label="Establecimiento"
+							value={data.empresaEstablecimientoId ?? 0}
+							error={
+								!!(errors.empresaEstablecimientoId || establecimientos.error)
+							}
 							helperText={[
-								errors.liquidacionTipoPagoId,
-								tiposPago.loading,
-								tiposPago.error,
+								errors.empresaEstablecimientoId,
+								establecimientos.loading,
+								establecimientos.error,
 							]
 								.filter((r) => r)
 								.join(" ")}
-							options={tiposPago.data}
-							disabled={!!disabled.liquidacionTipoPagoId}
-							onChange={(liquidacionTipoPagoId) =>
-								onChange({ liquidacionTipoPagoId })
+							options={establecimientos.data}
+							disabled={!!disabled.empresaEstablecimientoId}
+							onChange={(empresaEstablecimientoId) =>
+								onChange({ empresaEstablecimientoId })
 							}
 						/>
+					)}
+				</Grid>
+				<Grid width="full" gap="inherit">
+					<Grid width="full">
+						{hide.liquidacionTipoPagoId ? null : (
+							<SelectMaterial
+								name="liquidacionTipoPagoId"
+								label="Tipo de pago"
+								value={data.liquidacionTipoPagoId ?? 0}
+								error={!!(errors.liquidacionTipoPagoId || tiposPago.error)}
+								helperText={[
+									errors.liquidacionTipoPagoId,
+									tiposPago.loading,
+									tiposPago.error,
+								]
+									.filter((r) => r)
+									.join(" ")}
+								options={tiposPago.data}
+								disabled={!!disabled.liquidacionTipoPagoId}
+								onChange={(liquidacionTipoPagoId) =>
+									onChange({ liquidacionTipoPagoId })
+								}
+							/>
+						)}
 					</Grid>
 					<Grid width="full">
-						<InputMaterial
-							type="number"
-							label="Cantidad de trabajadores"
-							value={data.cantidadTrabajadores}
-							error={!!errors.cantidadTrabajadores}
-							helperText={errors.cantidadTrabajadores}
-							disabled={!!disabled.cantidadTrabajadores}
-							onChange={(value) =>
-								onChange({ cantidadTrabajadores: Formato.Entero(value) })
-							}
-						/>
+						{hide.cantidadTrabajadores ? null : (
+							<InputMaterial
+								type="number"
+								label="Cantidad de trabajadores"
+								value={data.cantidadTrabajadores}
+								error={!!errors.cantidadTrabajadores}
+								helperText={errors.cantidadTrabajadores}
+								disabled={!!disabled.cantidadTrabajadores}
+								onChange={(value) =>
+									onChange({ cantidadTrabajadores: Formato.Entero(value) })
+								}
+							/>
+						)}
 					</Grid>
 					<Grid width="full">
-						<InputMaterial
-							type="number"
-							label="Total remuneraciones"
-							value={data.totalRemuneraciones}
-							error={!!errors.totalRemuneraciones}
-							helperText={errors.totalRemuneraciones}
-							disabled={!!disabled.totalRemuneraciones}
-							onChange={(value) =>
-								onChange({ totalRemuneraciones: Formato.Decimal(value) })
-							}
-						/>
+						{hide.totalRemuneraciones ? null : (
+							<InputMaterial
+								type="number"
+								label="Total remuneraciones"
+								value={data.totalRemuneraciones}
+								error={!!errors.totalRemuneraciones}
+								helperText={errors.totalRemuneraciones}
+								disabled={!!disabled.totalRemuneraciones}
+								onChange={(value) =>
+									onChange({ totalRemuneraciones: Formato.Decimal(value) })
+								}
+							/>
+						)}
 					</Grid>
 				</Grid>
 				<Grid width="full" gap="inherit">

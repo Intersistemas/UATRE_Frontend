@@ -5,6 +5,8 @@ import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import LiquidacionesNominaTable from "./LiquidacionesNominaTable";
 import LiquidacionesNominaForm from "./LiquidacionesNominaForm";
+import Formato from "components/helpers/Formato";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 const selectionDef = {
 	action: "",
@@ -39,12 +41,16 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 
 export const onLoadSelectKeep = ({ record }) => record;
 
+export const onDataChangeDef = (data = []) => {};
+
 const useLiquidacionesNomina = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
+	loading = false,
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
+	onDataChange: onDataChangeInit = onDataChangeDef,
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -88,16 +94,76 @@ const useLiquidacionesNomina = ({
 					},
 				};
 			}
+			case "ConsultaAFIP": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: "/AFIPConsulta",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
 	//#endregion
 
+	//#region declaración y carga de dependencias
+
+	//#region declaración y carga de datosAFIP
+	const [datosAFIP, setDatosAFIP] = useState({
+		loading: null,
+		params: { cuit: 0 },
+		data: {},
+		error: null,
+		onLoad: (r) => {},
+	});
+	useEffect(() => {
+		if (!datosAFIP.loading) return;
+		const changes = { loading: null, data: {}, error: null, onLoad: (r) => {} };
+		pushQuery({
+			action: "ConsultaAFIP",
+			params: datosAFIP.params,
+			onOk: async ({
+				apellido = "",
+				nombre = "",
+				tipoDocumento,
+				numeroDocumento,
+				domicilios = [],
+			}) => {
+				changes.data.cuit = datosAFIP.params.cuit;
+				changes.data.nombre = [apellido, nombre].filter((r) => r).join(", ");
+				changes.data.documento = [tipoDocumento, Formato.DNI(numeroDocumento)]
+					.filter((r) => r != null)
+					.join(" ");
+				changes.data.domicilio = [
+					domicilios.find((r) => r.tipoDomicilio === "LEGAL/REAL") ??
+						(domicilios.length ? domicilios[0] : {}),
+				]
+					.map((r) =>
+						[r.direccion, r.localidad, r.descripcionProvincia]
+							.filter((e) => e)
+							.join(" - ")
+					)
+					.join();
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => {
+				datosAFIP.onLoad({ data: changes.data, error: changes.error });
+				setDatosAFIP((o) => ({ ...o, ...changes }));
+			},
+		});
+	}, [pushQuery, datosAFIP]);
+	//#endregion
+
+	//#endregion
+
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
 		remote: remoteInit,
+		loadingOverride: loading,
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
@@ -110,6 +176,7 @@ const useLiquidacionesNomina = ({
 			onLoadSelectInit === onLoadSelectFirst && multiInit
 				? onLoadSelectSame
 				: onLoadSelectInit,
+		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
 	useEffect(() => {
@@ -156,6 +223,8 @@ const useLiquidacionesNomina = ({
 				changes.selection.index = multi
 					? changes.selection.record?.map((r) => changes.data.indexOf(r))
 					: changes.data.indexOf(changes.selection.record);
+
+				list.onDataChange(changes.data);
 			},
 			onError: async (error) => {
 				if (error.code === 404) return;
@@ -182,18 +251,43 @@ const useLiquidacionesNomina = ({
 								.filter((r) => r)
 						);
 					}
+					const edit = {
+						...(payload.request === "A" ? {} : JoinOjects(o.selection.record)),
+						...JoinOjects(payload.record),
+					};
+					if (edit.cuil && ValidarCUIT(edit.cuil)) {
+						setDatosAFIP((o) => ({
+							...o,
+							loading: "Cargando...",
+							params: { cuit: edit.cuil },
+							data: {},
+							onLoad: ({ data, error }) => {
+								if (error) return;
+								if (!data?.nombre) return;
+								setList((o) => ({
+									...o,
+									selection: {
+										...o.selection,
+										edit: {
+											...o.selection.edit,
+											nombre: o.selection.edit.nombre
+												? o.selection.edit.nombre
+												: data.nombre,
+										},
+									},
+								}));
+							},
+						}));
+					} else {
+						setDatosAFIP((o) => ({ ...o, data: {} }));
+					}
 					return {
 						...o,
 						selection: {
 							...o.selection,
 							request: payload.request,
 							action: payload.action,
-							edit: {
-								...(payload.request === "A"
-									? {}
-									: JoinOjects(o.selection.record)),
-								...JoinOjects(payload.record),
-							},
+							edit,
 							apply,
 						},
 					};
@@ -209,6 +303,7 @@ const useLiquidacionesNomina = ({
 								: payload.clear
 								? []
 								: o.data,
+						loadingOverride: payload.loading,
 						error: null,
 						onLoadSelect:
 							"onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
@@ -250,6 +345,7 @@ const useLiquidacionesNomina = ({
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
+				dependecies={{ datosAFIP }}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
@@ -267,18 +363,49 @@ const useLiquidacionesNomina = ({
 					// if (list.selection.request !== "R") r.obs = true;
 					return r;
 				})()}
-				onChange={(changes) =>
+				onChange={(edit) => {
+					const changes = { edit: { ...edit }, errors: {} };
+					if ("cuil" in edit) {
+						changes.errors.cuil = "";
+						if (edit.cuil && `${edit.cuil}`.length === 11) {
+							if (ValidarCUIT(edit.cuil)) {
+								setDatosAFIP((o) => ({
+									...o,
+									loading: "Cargando",
+									params: { cuit: edit.cuil },
+									data: {},
+									onLoad: ({ data, error }) => {
+										if (error) return;
+										if (!data?.nombre) return;
+										setList((o) => ({
+											...o,
+											selection: {
+												...o.selection,
+												edit: {
+													...o.selection.edit,
+													nombre: o.selection.edit.nombre
+														? o.selection.edit.nombre
+														: data.nombre,
+												},
+											},
+										}));
+									},
+								}));
+							} else {
+								changes.errors.cuil = "CUIL inválido";
+							}
+						}
+					}
+					console.log({changes})
 					setList((o) => ({
 						...o,
 						selection: {
 							...o.selection,
-							edit: {
-								...o.selection.edit,
-								...changes,
-							},
+							edit: { ...o.selection.edit, ...changes.edit },
+							errors: { ...o.selection.errors, ...changes.errors },
 						},
-					}))
-				}
+					}));
+				}}
 				onClose={(confirm) => {
 					if (!["A", "B", "M"].includes(list.selection.request))
 						confirm = false;
@@ -392,13 +519,14 @@ const useLiquidacionesNomina = ({
 							default:
 								break;
 						}
+						list.onDataChange(changes.data);
 						setList((o) => ({ ...o, ...changes }));
 						return;
 					}
 
 					const query = {
 						config: {},
-						onOk: async (res) =>
+						onOk: async () =>
 							setList((o) => ({ ...o, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
@@ -435,7 +563,7 @@ const useLiquidacionesNomina = ({
 			<LiquidacionesNominaTable
 				remote={list.remote}
 				data={list.data}
-				loading={!!list.loading}
+				loading={!!list.loading || !!list.loadingOverride}
 				noDataIndication={
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
