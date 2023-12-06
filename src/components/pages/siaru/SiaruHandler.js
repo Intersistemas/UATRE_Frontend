@@ -16,15 +16,37 @@ import KeyPress from "components/keyPress/KeyPress";
 import EmpresasForm from "../administracion/empresas/EmpresasForm";
 
 
+const selectionDef = {
+	action: "",
+	request: "",
+	index: null,
+	record: null,
+	errors: null,
+};
+
 const SiaruHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const authContext = useContext(AuthContext);
+	const [empresaNueva,setEmpresaNueva] = useState();
 
-	const [modal, setModal] = useState();
+	const pushQuery = useQueryQueue((action, params) => {
 
-	const pushQuery = useQueryQueue((action) => {
+		console.log('siaru_pushQuery',action, "&",params)
 		switch (action) {
+
+			case "GetList": {
+				const { usuarioId , ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Seguridad",
+						method: "GET",
+						endpoint: `/UsuarioEmpresas/${usuarioId}`,
+					},
+					params: otherParams,
+				};
+			}
+
 			case "GetEmpresa": {
 				return {
 					config: {
@@ -34,10 +56,41 @@ const SiaruHandler = () => {
 					},
 				};
 			}
+
+			case "CreateUsuarioEmpresa": {
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/UsuarioEmpresas`,
+						method: "POST",
+					},
+				};
+			}
+
+			case "Create": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/Empresas`,
+						method: "POST",
+					},
+				};
+			}
+			case "Update": {
+				const { id, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/Empresas`,
+						method: "PUT",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
+
 
 	const [list, setList] = useState({
 		loading: null,
@@ -51,14 +104,77 @@ const SiaruHandler = () => {
 
 	//#region declaración y carga de empresas
 	const [empresas, setEmpresas] = useState({ data: [], selected: null });
+
+
+	useEffect(()=>{
+		
+		if (!empresaNueva) return
+		console.log('onFinally')
+		pushQuery({				
+			onError: async (err) => alert(err.message),
+			action: "CreateUsuarioEmpresa",
+			config:{
+				body:{
+						"usuarioId": authContext?.usuario?.id,
+						"empresaId": empresaNueva
+				} //debo pasarle IsUsuario y IdEmpresa
+			},
+		})
+
+	},[empresaNueva, pushQuery,authContext])
+
+
 	useEffect(() => {
-		const empresas = { data: [], selected: null };
-		if (authContext.usuario?.empresas)
-			empresas.data.push(...authContext.usuario.empresas);
-		if (empresas.data.length) empresas.selected = empresas.data[0];
-		setEmpresas(empresas);
-	}, [authContext.usuario]);
-	//#endregion
+		setList((o) => ({
+			...o,
+			loading: "Cargando...",
+			data: [],
+		}));
+	},[]);
+
+	useEffect(() => {
+		if (!list.loading) return;
+		pushQuery({
+			action: "GetList",
+			params: {
+				usuarioId : authContext.usuario.id,
+			},
+			onOk: async (data) =>		
+				setList((o) => {
+					console.log('data_empresas:',data)
+					const selection = {
+						record: {},//o.selection.record,
+						action: "",
+						request: "",
+						/*record: {
+							...(payload.request === "A" ? {} : o.selection.record),
+							...payload.record,
+						},*/
+						//record: data//.sort((a, b) => a.codigo > b.codigo ? 1 : -1)//.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
+					};
+					if (selection.record)
+						selection.index = data.indexOf(selection.record);
+					return {
+						...o,
+						loading: null,
+						//pagination: { index, size, count },
+						data,
+						error: null,
+						selection,
+					};
+				}),
+			onError: async (err) =>
+				setList((o) => ({
+					...o,
+					loading: null,
+					data: [],
+					error: err.code === 404 ? null : err,
+					selection: { ...selectionDef },
+				})),
+		});
+	}, [pushQuery, list.loading, list.params, authContext.usuario]);
+
+
 
 	//#region declaración y carga de empresa
 	const [empresa, setEmpresa] = useState({
@@ -67,7 +183,9 @@ const SiaruHandler = () => {
 		data: {},
 		error: null,
 	});
+
 	useEffect(() => {
+
 		if (!empresa.loading) return;
 		const result = { loading: null, data: null, error: null };
 		pushQuery({
@@ -80,6 +198,8 @@ const SiaruHandler = () => {
 				setEmpresa((o) => ({ ...o, ...result }));
 			},
 		});
+
+		
 	}, [empresa, pushQuery, dispatch]);
 	// Cargo empresa cuando cambia la selección de empresas
 	useEffect(() => {
@@ -95,15 +215,15 @@ const SiaruHandler = () => {
 	//#endregion
 
 
-	let form = (
+	let form = null;
+	if (list.selection.request) {
+		 form = (
 		<EmpresasForm
 			data={(() => { 
 
 				//INIT DE DATOS DEL FORM
-				const data =
-				["A"].includes(list.selection.request) ?? {}  //INIT PARA ALTA
-
-					return {...list.selection.record}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
+				const data = {}  //INIT PARA ALTA
+					return {...list.selection.record, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
 				})()
 			}
 			title={"Relaciona Empresa al usuario: "+authContext.usuario.cuit}
@@ -167,7 +287,6 @@ const SiaruHandler = () => {
 					: {}
 			}
 			onChange={(changes) =>{ //solo entra el campo que se está editando
-				console.log('useEmpresas_changes:',changes)
 				setList((o) => ({
 					...o,
 					selection: {
@@ -187,9 +306,7 @@ const SiaruHandler = () => {
 			}}*/
 
 			onClose={(confirm) => {
-				
-				console.log('SiaruHandler_onClose',confirm)
-				console.log('SiaruHandle_list',list)
+
 				if (!["A", "B"].includes(list.selection.request)){
 					confirm = false}
 				if (!confirm) {
@@ -203,8 +320,6 @@ const SiaruHandler = () => {
 							errors: null,
 						},
 					}));
-
-					setModal()
 					return;
 				}
 				
@@ -247,11 +362,16 @@ const SiaruHandler = () => {
 					return;
 				}
 
+				
 				const query = {
 					config: {},
-					onOk: async (_res) =>
-						setList((old) => ({ ...old, loading: "Cargando..." })),
+					onOk: async (_res) =>(
+						setEmpresaNueva(_res),
+						setList((old) => ({ ...old, loading: "...Cargando" }))
+					),
 					onError: async (err) => alert(err.message),
+					onFinally: () => {
+					},
 				};
 
 				switch (list.selection.request) {
@@ -264,24 +384,17 @@ const SiaruHandler = () => {
 						query.params = { id: record.id };
 						query.config.body = record;
 						break;
-					case "B":
-						query.action = "Delete";
-						query.params = { id: record.id };
-						query.config.body = { id: record.id, deletedObs: record.deletedObs };
-						break;
-					case "R":
-						query.action = "Reactiva";
-						//query.params = { id: record.id };
-						query.config.body = { id: record.id };
-						break;
 					default:
 						break;
 				}
-				console.log('useEmpresas_query',query);
+				console.log('SiaruHandler_query',query);
 				pushQuery(query);
+
+
 			}}
 		/>
 	);
+}
 	//#region declaracion y carga de acciones
 	const [acciones, setAcciones] = useState([]);
 
@@ -306,7 +419,16 @@ const SiaruHandler = () => {
 
 		addAction(
 			`Relaciona Empresa`,
-			(_) => (setModal(form)),
+			(_) => (
+				setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						request: "A",
+						record:{}
+					},
+				}))
+			),
 			"r"
 		);
 
@@ -349,19 +471,40 @@ const SiaruHandler = () => {
 					<Grid full="width" col grow gap="5px">
 						<Grid grow>
 							<EmpresasList
-								data={empresas.data}
+								data={list.data}
+								loading={!!list.loading}
+								pagination={{index:1,size:5}}
 								selection={{
-									selected: [empresas.selected?.cuitEmpresa].filter((r) => r),
-									onSelect: (selected) =>
-										setEmpresas((o) => ({ ...o, selected })),
+									//selected: [empresas.selected?.cuitEmpresa].filter((r) => r),
+									selected: [list.selection.record?.id].filter((r) => r),
+									//onSelect: (selected) =>
+										//setEmpresas((o) => ({ ...o, selected })),
+									onSelect: (record, isSelect, index, e) =>{
+									setList((o) => ({
+										...o,
+										selection: {
+											action: "",
+											request: "",
+											index,
+											record,
+										},
+									}))
+									setEmpresa((o)=>({
+										...o,
+										 loading:"cargando",
+										 params:{cuit:record.cuitEmpresa}
+										}))
+									//dispatch(handleEmpresaSeleccionar(record));
+								}
 								}}
+
 							/>
 						</Grid>
 						<EmpresaDetails />
 						<KeyPress items={acciones} />
 					</Grid>
 				</Grid>
-				{modal}
+				{form}
 			</div>
 		</>
 	);
