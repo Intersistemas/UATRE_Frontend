@@ -181,7 +181,7 @@ const useEstablecimientos = () => {
 	const [list, setList] = useState({
 		loading: null,
 		params: {},
-		pagination: { index: 1, size: 5 },
+		pagination: { index: 1, size: 5 }, 
 		data: [],
 		error: null,
 		selection: { ...selectionDef },

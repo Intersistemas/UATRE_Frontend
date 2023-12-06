@@ -260,9 +260,9 @@ const AfiliadoDetails = (props) => {
 
 	
 	return (
-		<div className={styles.afiliadoDetalle}>
+		<>
 			{hotField}
-		</div>
+		</>
 
 	);
 };

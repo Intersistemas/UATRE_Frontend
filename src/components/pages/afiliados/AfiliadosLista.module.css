@@ -21,4 +21,6 @@
 .tabs{
     position: fixed;
     width: auto;
+    z-index: 1; /* set higher z-index value */
+    /*position: relative*/
 }

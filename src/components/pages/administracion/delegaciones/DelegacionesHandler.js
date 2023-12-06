@@ -32,6 +32,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Agrega Delegación`,
 				request: "A",
+				tarea: "Delegacion_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -53,6 +54,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Modifica Delegación ${desc}`,
 				request: "M",
+				tarea: "Delegacion_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -61,6 +63,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Baja Delegación ${desc}`,
 				request: "B",
+				tarea: "Delegacion_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -74,7 +77,9 @@ const DelegacionesHandler = () => {
 	});
 
 	useEffect(() => {
-		delegacionChanger("list");
+		delegacionChanger("list",
+		{
+		params: { SoloActivos: false }});
 	}, [delegacionChanger]);
 	//#endregion
 
@@ -254,15 +259,20 @@ const DelegacionesHandler = () => {
 	//#endregion
 
 	return (
+
 		<Grid full col>
-			<Grid>
-				<h1 className="titulo">Delegaciones</h1>
+			<Grid className="titulo">
+				<h1 >Delegaciones</h1>
 			</Grid>
-			<Grid width="full">
+
+			<div className="tabs">
+				<text>{delegacionSelected?.nombre ? delegacionSelected.nombre  : " " }</text>
+
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
 					{tabs.map((r) => r.header())}
 				</Tabs>
-			</Grid>
+			</div>
+
 			{tabs[tab].body()}
 			<KeyPress items={acciones} />
 		</Grid>

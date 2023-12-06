@@ -24,8 +24,8 @@ import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquida
 
 //---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
-import SeccionalesHandler from "./components/pages/seccionales/SeccionalesHandler";
-import EmpresasHandler from "./components/pages/empresas/EmpresasHandler";
+import SeccionalesHandler from "./components/pages/administracion/seccionales/SeccionalesHandler";
+import EmpresasHandler from "./components/pages/administracion/empresas/EmpresasHandler";
 import AccesosHandler from "./components/pages/accesos/AccesosHandler";
 
 
@@ -37,7 +37,7 @@ import EstablecimientosHandler from './components/pages/siaru/establecimientos/E
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
 import fondo from './media/Background/color3.png';
-import DelegacionesHandler from 'components/pages/delegaciones/DelegacionesHandler';
+import DelegacionesHandler from 'components/pages/administracion/delegaciones/DelegacionesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/

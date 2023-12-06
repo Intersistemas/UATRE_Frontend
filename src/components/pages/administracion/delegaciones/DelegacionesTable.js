@@ -1,5 +1,6 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
+import FormatearFecha from "components/helpers/FormatearFecha";
  
 const DelegacionesTable = ({
 	columns: columnsInit = [],
@@ -19,6 +20,16 @@ const DelegacionesTable = ({
 			text: "Nombre",
 			sort: true,
 			style: { textAlign: "left" },
+		},
+		{
+			headerTitle: (column, colIndex) => `Fecha Baja`,
+			dataField: "deletedDate",
+			text: "Fecha Baja",
+			sort: true,
+			formatter:FormatearFecha,
+			headerStyle: (colum, colIndex) => {
+			  return { width: "7rem", textAlign: "center" };
+			},
 		},
 		...columnsInit
 	];

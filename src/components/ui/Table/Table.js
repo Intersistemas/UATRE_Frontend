@@ -131,7 +131,7 @@ const Table = ({
 
 	// Normalizo selectRow que pasa por props
 	if (selection) {
-		console.log('selection:',selection);
+		//console.log('selection:',selection);
 		selection = { ...selectionDef, ...selection };
 		const style = selection.style;
 		selection.style = (...a) => ({
@@ -182,7 +182,8 @@ const Table = ({
 						{(toolkitprops) => (
 							<div>
 								{!mostrarBuscar ? null : (
-									<div style={{ display: "flex", justifyContent: "right" }}>
+									//<div style={{ display: "flex", justifyContent: "right" }}>
+									<div className="position-absolute end-0 w-25" style={{ marginTop: '-2.5em'}}>
 										<SearchBar
 											{...toolkitprops.searchProps}
 											srText=""
@@ -190,7 +191,7 @@ const Table = ({
 										/>
 									</div>
 								)}
-								<br />
+								{/*<br />*/}
 								<div className={classes.tabla}>
 									<BootstrapTable
 										{...toolkitprops.baseProps}

@@ -1,11 +1,11 @@
 import { useState, useEffect, Fragment, useContext } from "react";
-import useHttp from "../../hooks/useHttp";
+import useHttp from "../../../hooks/useHttp";
 
 import Empresas from "./Empresas";
 import { useDispatch, useSelector } from "react-redux";
-import { handleModuloSeleccionar } from "../../../redux/actions";
-import { handleModuloEjecutarAccion } from "../../../redux/actions";
-import AuthContext from "../../../store/authContext";
+import { handleModuloSeleccionar } from "../../../../redux/actions";
+import { handleModuloEjecutarAccion } from "../../../../redux/actions";
+import AuthContext from "../../../../store/authContext";
 
 
 const EmpresasHandler = () => {

@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState,useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import AutoridadesTable from "./SeccionalLocalidadesTable";
-import AutoridadesForm from "./SeccionalLocalidadesForm";
-import AuthContext from "../../../../store/authContext";
+import AutoridadesTable from "./AutoridadesTable";
+import AutoridadesForm from "./AutoridadesForm";
+import AuthContext from "../../../../../store/authContext";
 import moment from "moment";
 import FormatearFecha from "components/helpers/FormatearFecha";
+import { FormControlLabel, Switch } from "@mui/material";
 
 
 const vigenteHasta = new Date(2099, 11, 31);
@@ -19,14 +20,16 @@ const selectionDef = {
 	errors: null,
 };
  
-const useSeccionalLocalidades = () => {
+const useAutoridades = () => {
 
 	const Usuario = useContext(AuthContext).usuario;
+	
+	const [checked, setChecked] = React.useState(true);
 
 	//#region Trato queries a APIs
-
+ 
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log('pushQuery_action',action);
+		//console.log('pushQuery_action',action);
 		switch (action) {
 			case "GetList": {
 				return {
@@ -64,7 +67,7 @@ const useSeccionalLocalidades = () => {
 					},
 				};
 			}
-			case "Reactivate": {
+			case "Reactiva": {
 				return {
 					config: {
 						baseURL: "Afiliaciones",
@@ -115,12 +118,13 @@ const useSeccionalLocalidades = () => {
 			action: "GetList",
 			params: {
 				...list.params,
+				SoloActivos: false
 				//pageIndex: list.pagination.index,
 				//pageSize: list.pagination.size,
 			},
 			onOk: async (data) =>
 				setList((o) => {
-					console.log('data_UseAutoridades:',data)
+					//console.log('data_UseAutoridades:',data)
 					const selection = {
 						...selectionDef,
 						record:
@@ -152,6 +156,7 @@ const useSeccionalLocalidades = () => {
 
 
 	useEffect(() => {
+		console.log('useAutoridades_list:',list);
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetAllCargos",
@@ -186,7 +191,7 @@ const useSeccionalLocalidades = () => {
 	//#endregion
 
 	const requestChanges = useCallback((type, payload = {}) => {
-		console.log('donde va?',type);
+		
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -235,8 +240,8 @@ const useSeccionalLocalidades = () => {
 					//seccionalId = list.selection.edit.refSeccionalId,
 					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
 						{
-							fechaVigenciaDesde: vigenteDesde,
-							fechaVigenciaHasta: vigenteHasta,
+							fechaVigenciaDesde: list.selection.edit.fechaVigenciaDesde ?? vigenteDesde,
+							fechaVigenciaHasta: list.selection.edit.fechaVigenciaHasta ?? vigenteHasta,							
 
 						}:
 						["B"].includes(list.selection.request) ? //INIT PARA BAJA
@@ -306,7 +311,7 @@ const useSeccionalLocalidades = () => {
 							},
 						}));
 						//VALIDO EL NRO DEL AFILIADO
-					console.log('numero afil:',changes.edit.afiliadoNumero);
+					//console.log('numero afil:',changes.edit.afiliadoNumero);
 					if ("afiliadoNumero" in edit) {
 
 						if (changes.edit.afiliadoNumero >= 1) {
@@ -365,7 +370,7 @@ const useSeccionalLocalidades = () => {
 
 					const record = list.selection.edit;
 
-					console.log('record',record);
+					console.log('useAutoridades_onClose_record',record);
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
@@ -380,7 +385,6 @@ const useSeccionalLocalidades = () => {
 						//if (!record.observaciones) errors.observaciones = "Debe ingresar un observación";
 					}
 
-					console.log('list',list);
 
 					if (Object.keys(errors).length) {
 						setList((o) => ({
@@ -428,12 +432,12 @@ const useSeccionalLocalidades = () => {
 							query.action = "Reactiva";
 							//query.params = { id: record.id };
 							query.config.body = { id: record.id }
-							break;
+							break; 
 						default:
 							break;
 					}
 
-					console.log('query',query);
+//					console.log('query',query);
 					pushQuery(query);
 
 				}}
@@ -441,8 +445,25 @@ const useSeccionalLocalidades = () => {
 		);
 	}
 
+	const handleChange = (event) => {
+	  setChecked(event.target.checked);
+	  setList((o) => ({
+		...o,
+		loading: "Cargando...",
+		params: { ...list.params, soloVigentes: event.target.checked },
+		data: [],
+	}));
+	};
+	
+
 	const render = () => (
-		<>
+		<div>
+			<FormControlLabel className="position-absolute" style={{marginTop: '-2.5em'}}
+				control={
+				<Switch checked={checked} onChange={handleChange} label="Solo vigentes" />
+				}
+				label="Solo vigentes"
+			/>
 			<AutoridadesTable
 				data={list.data}
 				loading={!!list.loading}
@@ -473,10 +494,10 @@ const useSeccionalLocalidades = () => {
 				}}
 			/>
 			{form}
-		</>
+		</div>
 	);
 
 	return [render, requestChanges, list.selection.record];
 };
 
-export default useSeccionalLocalidades;
+export default useAutoridades;

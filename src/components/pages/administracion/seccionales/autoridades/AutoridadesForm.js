@@ -6,14 +6,14 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import moment from "moment";
-import classes from "./SeccionalLocalidadesForm.module.css";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+import classes from "./SeccionalesAutoridadesForm.module.css";
+import SelectMaterial from "../../../../ui/Select/SelectMaterial";
 
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
-const SeccionalLocalidadesForm = ({
+const AutoridadesForm = ({
 	data = {},
 	title = "",
 	disabled = {},
@@ -191,4 +191,4 @@ const SeccionalLocalidadesForm = ({
 	);
 };
 
-export default SeccionalLocalidadesForm;
+export default AutoridadesForm;

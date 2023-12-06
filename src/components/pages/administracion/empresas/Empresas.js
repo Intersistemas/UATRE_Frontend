@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from "react";
 import { Tab, Tabs } from "@mui/material";
-import Formato from "../../helpers/Formato";
-import Table from "../../ui/Table/Table";
+import Formato from "../../../helpers/Formato";
+import Table from "../../../ui/Table/Table";
 import Grid from "components/ui/Grid/Grid";
 
 
