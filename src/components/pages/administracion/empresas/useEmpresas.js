@@ -259,7 +259,6 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 		form = (
 			<EmpresasForm
 				data={(() => { 
-
 					//INIT DE DATOS DEL FORM
 					const data =
 					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
@@ -442,7 +441,7 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 						default:
 							break;
 					}
-					console.log('useEmpresas_query',query);
+					//console.log('useEmpresas_query',query);
 					pushQuery(query);
 				}}
 			/>
