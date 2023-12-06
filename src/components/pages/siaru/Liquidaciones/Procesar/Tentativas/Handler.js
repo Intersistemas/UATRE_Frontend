@@ -101,6 +101,16 @@ const LiquidacionCabecera = ({
 						onChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") })
 					}
 				/>
+				<InputMaterial
+					type="number"
+					label="% Interes diario Post. Venc."
+					value={data.interesesDiariosPosteriorVencimiento}
+					disabled={!!disabled.fechaPagoEstimada}
+					error={errors.fechaPagoEstimada}
+					onChange={(value) =>
+						onChange({ interesesDiariosPosteriorVencimiento: Round(value, 2) })
+					}
+				/>
 			</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
@@ -608,9 +618,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				liquidacionTipoPagoId: tipoPago.id,
 				cantidadTrabajadores: 0,
 				totalRemuneraciones: 0,
-				interesPorcentaje: Number(
-					liquidacionAntes?.interesPorcentaje ?? tipoPago.porcentaje
-				),
+				interesPorcentaje: Number(tipoPago.porcentaje),
 				interesNeto: 0,
 				tipoLiquidacion: 0,
 				nominas: [],
@@ -634,6 +642,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			liquidacion.cantidadTrabajadores = Round(retocada?.cantidadTrabajadores ?? liquidacion.cantidadTrabajadores);
 			liquidacion.totalRemuneraciones += Number(nomina.remuneracionImponible);
 			liquidacion.totalRemuneraciones = Round(retocada?.totalRemuneraciones ?? liquidacion.totalRemuneraciones, 2);
+			liquidacion.interesPorcentaje = Round(retocada?.interesPorcentaje ?? liquidacion.interesPorcentaje, 2);
 
 			liquidacion.interesNeto = Round(
 				liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
@@ -833,7 +842,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
 							if (
 								!previa ||
 								(previa.cantidadTrabajadores === actual.cantidadTrabajadores &&
-									previa.totalRemuneraciones === actual.totalRemuneraciones)
+									previa.totalRemuneraciones === actual.totalRemuneraciones &&
+									previa.interesPorcentaje === actual.interesPorcentaje)
 							)
 								return retocada;
 
@@ -844,6 +854,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
 							if (previa.totalRemuneraciones !== actual.totalRemuneraciones)
 								retocada.totalRemuneraciones = actual.totalRemuneraciones;
+
+							if (previa.interesPorcentaje !== actual.interesPorcentaje)
+							retocada.interesPorcentaje = actual.interesPorcentaje;
 
 							return retocada;
 						})

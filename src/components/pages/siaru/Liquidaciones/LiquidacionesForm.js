@@ -89,7 +89,7 @@ const LiquidacionesForm = ({
 	//#region Cargo establecimientos
 	const [establecimientos, setEstablecimientos] = useState({
 		loading: "Cargando...",
-		params: { empresaId: empresa?.id /*bajas: false*/ },
+		params: { empresaId: empresa?.id /*, bajas: false*/ },
 		data: [],
 		error: null,
 	});
@@ -124,7 +124,7 @@ const LiquidacionesForm = ({
 					pageIndex: index + 1,
 					pageSize: size,
 				};
-				pushQuery(query);
+				pushQuery({...query});
 			} else {
 				changes.loading = null;
 			}
@@ -233,6 +233,21 @@ const LiquidacionesForm = ({
 						)}
 					</Grid>
 					<Grid width="full">
+						{hide.interesPorcentaje ? null : (
+							<InputMaterial
+								type="number"
+								label="% interes tipo de pago"
+								value={data.interesPorcentaje}
+								error={!!errors.interesPorcentaje}
+								helperText={errors.interesPorcentaje}
+								disabled={!!disabled.interesPorcentaje}
+								onChange={(value) =>
+									onChange({ interesPorcentaje: Formato.Decimal(value) })
+								}
+							/>
+						)}
+					</Grid>
+					<Grid width="full">
 						{hide.cantidadTrabajadores ? null : (
 							<InputMaterial
 								type="number"
@@ -313,7 +328,7 @@ const LiquidacionesForm = ({
 	//#endregion
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="xl" centered show onHide={() => onClose()}>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				<Grid col width="full" gap="5px">
 					<Grid>{title}</Grid>
