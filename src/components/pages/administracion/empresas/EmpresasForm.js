@@ -34,7 +34,7 @@ const EmpresasForm = ({
 }) => {
 	data ??= {}; 
 	delegaciones ??= [];
-	 console.log('Form_empresa_data:',data)
+	//console.log('Form_empresa_data:',data);
 	
 	// console.log('delegaciones_empresa:',delegaciones)
 	// console.log('Form_empresa_errors:',errors)
@@ -315,8 +315,6 @@ const EmpresasForm = ({
 								value={data.deletedDate}
 								disabled={disabled.deletedDate ?? false}
 								onChange={(value, _id) => onChange({ deletedDate: value })}
-								
-
 								/>
 						</div>
 						<div className={classes.item11}>

@@ -9,12 +9,18 @@ const EmpresasList = ({
 	data ??= [];
 
 	const columns = [
+
+		{
+			dataField: "id",
+			text: "id",
+			hidden: true,
+		},
 		{
 			dataField: "cuitEmpresa",
 			text: "CUIT",
 			sort: true,
 			formatter: Formato.Cuit,
-      headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+      		headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},
 		{
 			dataField: "razonSocial",
@@ -40,7 +46,7 @@ const EmpresasList = ({
 
 	return (
 		<Table
-			keyField="cuitEmpresa"
+			keyField="id"
 			data={data}
 			columns={columns}
 			{...x}
