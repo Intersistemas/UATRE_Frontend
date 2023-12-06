@@ -5,9 +5,9 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import useAutoridades from "components/pages/seccionales/autoridades/useAutoridades";
+import useAutoridades from "components/pages/administracion/seccionales/autoridades/useAutoridades";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "../seccionales/useSeccionales";
+import useSeccionales from "../administracion/seccionales/useSeccionales";
 
 const AfiliadosSeccionales = (props) => {
     const dispatch = useDispatch();

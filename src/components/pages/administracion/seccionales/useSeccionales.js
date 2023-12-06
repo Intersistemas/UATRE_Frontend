@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import SeccionalesTable from "./SeccionalesTable";
-import AuthContext from "../../../store/authContext";
+import AuthContext from "../../../../store/authContext";
 import SeccionalesForm from "./SeccionalesForm";
 import dayjs from "dayjs";
 

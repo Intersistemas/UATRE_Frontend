@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState,useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AutoridadesTable from "./AutoridadesTable";
 import AutoridadesForm from "./AutoridadesForm";
-import AuthContext from "../../../../store/authContext";
+import AuthContext from "../../../../../store/authContext";
 import moment from "moment";
 import FormatearFecha from "components/helpers/FormatearFecha";
 import { FormControlLabel, Switch } from "@mui/material";

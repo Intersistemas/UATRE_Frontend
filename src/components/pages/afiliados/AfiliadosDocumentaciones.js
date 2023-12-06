@@ -6,7 +6,7 @@ import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "../seccionales/useSeccionales";
+import useSeccionales from "../administracion/seccionales/useSeccionales";
 
 const AfiliadosDocumentaciones = (props) => {
     const dispatch = useDispatch();

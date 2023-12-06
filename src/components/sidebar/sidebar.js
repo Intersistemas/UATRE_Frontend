@@ -14,6 +14,7 @@ import clases from "./sidebar.module.css";
 import { handleModuloEjecutarAccion, handleModuloSeleccionar } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
 import Action from 'components/helpers/Action';
+import { Grid } from '@mui/material';
 
 const Sidebar = ({children}) => {
 
@@ -134,7 +135,7 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {(item.tarea && (Usuario.cuit != "30707933336" || Usuario.email != "recaudaciones@uatre")) ? (!Usuario.modulosTareas.find(t => t == item.tarea)) || item.disabled : item.disabled}  key={index} onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
+                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {(item.tarea && (Usuario.cuit != "30707933336" && Usuario.cuit != "11111111111" && Usuario.email != "recaudaciones@uatre")) ? (!Usuario.modulosTareas.find(t => t == item.tarea)) || item.disabled : item.disabled}  key={index} onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>
@@ -149,7 +150,6 @@ const Sidebar = ({children}) => {
                     </div>
                 </div>
            </div>
-
             
            <main className= "container">
 

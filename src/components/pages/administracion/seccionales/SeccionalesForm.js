@@ -6,15 +6,15 @@ import classes from "./SeccionalesForm.module.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {Modal} from 'react-bootstrap';
 import UseKeyPress from "components/helpers/UseKeyPress";
-import InputMaterial from "../../ui/Input/InputMaterial";
-import SearchSelectMaterial from "../../ui/Select/SearchSelectMaterial";
+import InputMaterial from "../../../ui/Input/InputMaterial";
+import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
 import InputMask from 'react-input-mask';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 
-import useHttp from "../../hooks/useHttp";
+import useHttp from "../../../hooks/useHttp";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 
 const onChangeDef = (changes = {}) => {};
@@ -44,7 +44,6 @@ const SeccionalesForm = ({
 	errors ??= {};
 
 	onChange ??= onChangeDef;
-	
 	onClose ??= onCloseDef;
 
 	//#region Buscar Localidades
@@ -133,18 +132,18 @@ const SeccionalesForm = ({
 						<div className={classes.item1}>
 
 							<FormControl sx={{mr: 2, maxWidth: '6rem' }}>
-							<InputMaterial
-								id="codigo"
-								label="Codigo"
-								as={InputMask}
-								mask="S-9999"
-								required 
-								error={!!errors.codigo}
-								helperText={errors.codigo ?? ""}
-								value={data.codigo}
-								disabled={disabled.codigo}
-								onChange={(value, _id) => onChange({ codigo: value })}
-							/>
+								<InputMaterial
+									id="codigo"
+									label="Codigo"
+									as={InputMask}
+									mask="S-9999"
+									required 
+									error={!!errors.codigo}
+									helperText={errors.codigo ?? ""}
+									value={data.codigo}
+									disabled={disabled.codigo}
+									onChange={(value, _id) => onChange({ codigo: value })}
+								/>
 							</FormControl>
 
 							<FormControl sx={{ minWidth: '8rem' }}>
@@ -181,26 +180,25 @@ const SeccionalesForm = ({
 
 						<div className={classes.item3}>
 							<SearchSelectMaterial
-							id="refLocalidadesId"
-							name="refLocalidadesId"
-							label="Localidad"
+								id="refLocalidadesId"
+								name="refLocalidadesId"
+								label="Localidad"
 
-							error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
-							helperText={errors.refLocalidadesId ?? ""}
-							value={localidadSeccional}
-							disabled={disabled.refLocalidadesId ?? false}
-							onChange={(value, _id) => (
-								onChange({ refLocalidadesId: value.value }),
-								onChange({ localidadNombre: value.label }),
-								setLocalidadSeccional({...localidadSeccional,label: value.label})
+								error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
+								helperText={errors.refLocalidadesId ?? ""}
+								value={localidadSeccional}
+								disabled={disabled.refLocalidadesId ?? false}
+								onChange={(value, _id) => (
+									onChange({ refLocalidadesId: value.value }),
+									onChange({ localidadNombre: value.label }),
+									setLocalidadSeccional({...localidadSeccional,label: value.label})
 								)}
-							
-							options={localidadesOptions}
-					
-							onTextChange={handlerOnTextChange}
-							required
+								options={localidadesOptions}
+								onTextChange={handlerOnTextChange}
+								required
 							/>
 						</div>
+
 						<div className={classes.item4}>
 							<InputMaterial
 							id="domicilio"

@@ -5,20 +5,19 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import useAutoridades from "components/pages/seccionales/autoridades/useAutoridades";
+//import useAutoridades from "components/pages/administracion/empresas/autoridades/useAutoridades";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "./useSeccionales";
-import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
-import useHttp from "../../hooks/useHttp";
+import useEmpresas from "./useEmpresas";
+//import useEmpresaLocalidades from "./empresaLocalidades/useEmpresaLocalidades";
+import useHttp from "../../../hooks/useHttp";
 
-const SeccionalesHandler = () => {
+const EmpresasHandler = () => {
 	const dispatch = useDispatch();
 	const { isLoading, error, sendRequest: request } = useHttp();
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
-	
 
 	useEffect(()=>{
 
@@ -29,7 +28,7 @@ const SeccionalesHandler = () => {
 
 		request(
 			{
-			baseURL: "Afiliaciones",
+			baseURL: "Comunes",
 			endpoint: "/RefLocalidad",
 			method: "GET",
 			},
@@ -38,35 +37,35 @@ const SeccionalesHandler = () => {
 	},[]);
 	
 	
-	//#region Tab Seccionales
-	const [seccionalesTab, seccionalChanger, seccionalSelected] = useSeccionales();
-	const [seccionalesActions, setSeccionalesActions] = useState([]);
+	//#region Tab Empresas
+	const [empresasTab, empresaChanger, empresaSelected] = useEmpresas( {onLoadSelect: ({record})=> record});
+	const [empresasActions, setEmpresasActions] = useState([]);
 	
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
-				onExecute: (action) => seccionalChanger("selected", { request, action }),
+				onExecute: (action) => empresaChanger("selected", { request, action }),
 				combination: "AltKey",
 				...x,
 			});
 		const actions = [
 			createAction({
-				action: `Agrega Seccional`,
+				action: `Agrega Empresa`,
 				request: "A",
-				tarea: "Seccional_Agrega",
+				tarea: "Empresa_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
 		];
-		const desc = seccionalSelected?.codigo ?? seccionalSelected?.descripcion;
+		const desc = empresaSelected?.cuit ?? empresaSelected?.razonSocial;
 
 		actions.push(
 			createAction({
-				action: `Consulta Seccional ${desc}`,
+				action: `Consulta Empresa ${desc}`,
 				request: "C",
 
-				...(!seccionalSelected?.id ? 
+				...(!empresaSelected?.id ? 
 					{disabled:  true}
 					:
 					{
@@ -80,11 +79,11 @@ const SeccionalesHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Seccional ${desc}`,
+				action: `Modifica Empresa ${desc}`,
 				request: "M",
-				tarea: "Seccional_Modifica",
+				tarea: "Empresa_Modifica",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(empresaSelected?.deletedDate || !empresaSelected?.id ? 
 					{disabled:  true}
 					:
 					{
@@ -95,48 +94,68 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
-		actions.push(
-			createAction({
-				action: `Baja Seccional ${desc}`,
-				request: "B",
-				tarea: "Seccional_Baja",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "b",
-					 underlineindex: 0
-					}
-				)
+
+
+		if (empresaSelected?.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Reactiva Empresa ${desc}`,
+					tarea: "Empresa_Reactiva",
+					request: "R",
+					keys: "r",
+					underlineindex: 0,
 			})
-		);
-		setSeccionalesActions(actions); //cargo todas las acciones / botones
-	}, [seccionalChanger, seccionalSelected]);
+			);
+		}else{
+			actions.push(
+				createAction({
+					action: `Baja Empresa ${desc}`,
+					request: "B",
+					tarea: "Empresa_Baja",
+	
+					...(empresaSelected?.deletedDate || !empresaSelected?.id ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "b",
+						 underlineindex: 0
+						}
+					)
+				})
+			);
+		}
+		setEmpresasActions(actions); //cargo todas las acciones / botones
+	}, [empresaChanger, empresaSelected]);
 
 	tabs.push({
-		header: () => <Tab label="Seccionales" />,
-		body: seccionalesTab,
-		actions: seccionalesActions,
+		header: () => <Tab label="Empresas" />,
+		body: empresasTab,
+		actions: empresasActions,
 	});
 
 	useEffect(() => {
-		seccionalChanger("list");
-	}, [seccionalChanger]);
+
+
+
+		empresaChanger("list",
+		{params: { OrderBy: "razonSocial"}})
+	}, [empresaChanger]);
 	//#endregion
 
-	//#region Tab Autoridades
+	//#region Tab Autoridades 
+	/*
 	const [autoridadesTab, autoridadesChanger, autoridadSelected] = useAutoridades();
 	const [autoridadesActions, setAutoridadesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
+		const secc = empresaSelected?.codigo != "" ? empresaSelected?.codigo : empresaSelected?.id;
 		if (!secc) {
 			setAutoridadesActions(actions);
 			return;
 		}
-		const seccDesc = `para Seccional ${secc}`;
+		const seccDesc = `para Empresa ${secc}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -144,7 +163,7 @@ const SeccionalesHandler = () => {
 					autoridadesChanger("selected", {
 						request,
 						action,
-						record: { seccionalId: seccionalSelected?.id },
+						record: { empresaId: empresaSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -153,7 +172,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Autoridad ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Autoridad_Agrega",
+				tarea: "Empresa_Autoridad_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -176,7 +195,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
-				tarea: "Seccional_Autoridad_Modifica",
+				tarea: "Empresa_Autoridad_Modifica",
 
 				...(autoridadSelected?.deletedDate ? 
 					{disabled:  true}
@@ -194,7 +213,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Reactiva Autoridad ${seleDesc}`,
 					request: "R",
-					tarea: "Seccional_Autoridad_Reactiva",
+					tarea: "Empresa_Autoridad_Reactiva",
 					keys: "r",
 					underlineindex: 0,
 			})
@@ -204,7 +223,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
-					tarea: "Seccional_Autoridad_Baja",
+					tarea: "Empresa_Autoridad_Baja",
 					...(autoridadSelected?.deletedDate ? 
 						{disabled:  true}
 						:
@@ -218,35 +237,37 @@ const SeccionalesHandler = () => {
 			);
 		}
 		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
+	}, [autoridadesChanger, autoridadSelected, empresaSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Autoridades" disabled={!empresaSelected?.id || empresaSelected.deletedDate} />,
 		body: autoridadesTab,
 		actions: autoridadesActions,
 	});
 
-	// Si cambia Seccional, refresco lista de autoridades
+	// Si cambia Empresa, refresco lista de autoridades
 	useEffect(() => {
 		autoridadesChanger("list", {
-			clear: !seccionalSelected?.id,
-			params: { seccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
+			clear: !empresaSelected?.id,
+			params: { empresaId: empresaSelected?.id },
 		});
-	}, [seccionalSelected?.id, autoridadesChanger]);
-	//#endregion
+	}, [empresaSelected?.id, autoridadesChanger]);
+	//#endregion*/
+
 
 	//#region Tab documentaciones
+	/*
 	const [documentacionesTab, documentacionChanger, documentacionSelected] =
 		useDocumentaciones();
 	const [documentacionesActions, setDocumentacionesActions] = useState([]);
 
 	useEffect(() => {
 		const actions = [];
-		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
+		const secc = empresaSelected?.codigo != "" ? empresaSelected?.codigo : empresaSelected?.id;
 		if (!secc) {
 			setDocumentacionesActions(actions);
 			return;
 		}
-		const seccDesc = `para Seccional ${secc}`;
+		const seccDesc = `para Empresa ${secc}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -254,7 +275,7 @@ const SeccionalesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+						record: { entidadTipo: "S", entidadId: empresaSelected?.id, soloactivos: false },
 					}),
 				combination: "AltKey",
 				...x,
@@ -264,7 +285,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Documentacion_Agrega",
+				tarea: "Empresa_Documentacion_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -287,7 +308,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
-				tarea: "Seccional_Documentacion_Modifica",
+				tarea: "Empresa_Documentacion_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -296,53 +317,54 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
-				tarea: "Seccional_Documentacion_Baja",
+				tarea: "Empresa_Documentacion_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id]);
+	}, [documentacionChanger, documentacionSelected, empresaSelected?.id]);
 
 
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Documentacion" disabled={!empresaSelected?.id || empresaSelected.deletedDate} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
 
-	// Si cambia Seccional, refresco lista de documentación
+	// Si cambia Empresa, refresco lista de documentación
 	useEffect(() => {
 		documentacionChanger("list", {
-			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+			clear: !empresaSelected?.id,
+			params: { entidadTipo: "S", entidadId: empresaSelected?.id, soloactivos: false },
 		});
-	}, [seccionalSelected?.id, documentacionChanger]);
-	//#endregion
+	}, [empresaSelected?.id, documentacionChanger]);
+	//#endregion*/
 
 
-	//#region Tab SeccionalLocalidades
-	const [seccionalLocalidadesTab, seccionalLocalidadesChanger, seccionalLocalidadesSelected] = useSeccionalLocalidades();
-	const [seccionalLocalidadesActions, setSeccionalLocalidadesActions] = useState([]);
+	//#region Tab EmpresaLocalidades
+	/*
+	const [empresaLocalidadesTab, empresaLocalidadesChanger, empresaLocalidadesSelected] = useEmpresaLocalidades();
+	const [empresaLocalidadesActions, setEmpresaLocalidadesActions] = useState([]);
 
 	useEffect(() => {
-		console.log('UseE_SeccionalLocalidades')
+		console.log('UseE_EmpresaLocalidades')
 		const actions = [];
-		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
+		const secc = empresaSelected?.codigo != "" ? empresaSelected?.codigo : empresaSelected?.id;
 		if (!secc) {
-			setSeccionalLocalidadesActions(actions);
+			setEmpresaLocalidadesActions(actions);
 			return;
 		}
-		const seccDesc = `para Seccional ${secc}`;
+		const seccDesc = `para Empresa ${secc}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-				seccionalLocalidadesChanger("selected", {
+				empresaLocalidadesChanger("selected", {
 					request,
 					action,
 					localidades: localidadesTodas,
-					record: { seccionalId: seccionalSelected?.id },
+					record: { empresaId: empresaSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -352,14 +374,14 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Localidad ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Localidad_Agrega",
+				tarea: "Empresa_Localidad_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
 		);
-		const docu = seccionalLocalidadesSelected?.codigo;
+		const docu = empresaLocalidadesSelected?.codigo;
 		if (!docu) {
-			setSeccionalLocalidadesActions(actions);
+			setEmpresaLocalidadesActions(actions);
 			return;
 		}
 		const docuDesc = `${docu} ${seccDesc}`;
@@ -378,13 +400,13 @@ const SeccionalesHandler = () => {
 				keys: "m",
 				underlineindex: 0,
 			})
-		);*/
+		);
 
-		if (seccionalLocalidadesSelected?.deletedDate) {
+		if (empresaLocalidadesSelected?.deletedDate) {
 			actions.push(
 				createAction({
 					action: `Reactiva Localidad ${docuDesc}`,
-					tarea: "Seccional_Localidad_Reactiva",
+					tarea: "Empresa_Localidad_Reactiva",
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
@@ -395,8 +417,8 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Localidad ${docuDesc}`,
 					request: "B",
-					tarea: "Seccional_Localidad_Baja",
-					...(seccionalLocalidadesSelected?.deletedDate ? 
+					tarea: "Empresa_Localidad_Baja",
+					...(empresaLocalidadesSelected?.deletedDate ? 
 						{disabled:  true}
 						:
 						{
@@ -409,44 +431,46 @@ const SeccionalesHandler = () => {
 			);
 		}
 		
-		setSeccionalLocalidadesActions(actions);
-	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
+		setEmpresaLocalidadesActions(actions);
+	}, [empresaLocalidadesChanger, empresaLocalidadesSelected, empresaSelected?.id]);
 
 
 	tabs.push({
-		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
-		body: seccionalLocalidadesTab,
-		actions: seccionalLocalidadesActions,
+		header: () => <Tab label="Localidades" disabled={!empresaSelected?.id || empresaSelected.deletedDate} />,
+		body: empresaLocalidadesTab,
+		actions: empresaLocalidadesActions,
 	});
 
-	// Si cambia Seccional, refresco lista de documentación
+	// Si cambia Empresa, refresco lista de documentación
+	/*
 	useEffect(() => {
-		console.log('seccionalSelected',seccionalSelected)
-		seccionalLocalidadesChanger("list", {
-			clear: !seccionalSelected?.id,
+		console.log('empresaSelected',empresaSelected)
+		empresaLocalidadesChanger("list", {
+			clear: !empresaSelected?.id,
 			localidades: localidadesTodas,
-			//data: seccionalSelected?.seccionalLocalidad ?? [{}],
-			params: { seccionalId: seccionalSelected?.id,  soloactivos: false},
+			//data: empresaSelected?.empresaLocalidad ?? [{}],
+			params: { empresaId: empresaSelected?.id,  soloactivos: false},
 		});
-	}, [localidadesTodas, seccionalSelected?.id, documentacionChanger]);
-	//#endregion
+	}, [localidadesTodas, empresaSelected?.id, documentacionChanger]);
+	//#endregion*/
+
 
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
+		dispatch(handleModuloSeleccionar({ nombre: "Empresas", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
 
 	return (
 		<Grid full col>
 			<Grid className="titulo">
-				<h1>Seccionales</h1>
+				<h1>Empresas</h1>
 			</Grid>
 		
 	
 			<div className="tabs">
-				<text>{seccionalSelected?.descripcion ? ` ${seccionalSelected?.codigo} - ${seccionalSelected.descripcion ?? ""}` : " " }</text>
+				<text>{empresaSelected?.razonSocial ? ` ${empresaSelected?.cuit} - ${empresaSelected.razonSocial ?? ""}` : " " }</text>
 
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
 					{tabs.map((r) => r.header())}
@@ -460,4 +484,4 @@ const SeccionalesHandler = () => {
 	);
 };
 
-export default SeccionalesHandler;
+export default EmpresasHandler;

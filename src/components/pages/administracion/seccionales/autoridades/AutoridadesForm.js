@@ -7,7 +7,7 @@ import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import moment from "moment";
 import classes from "./SeccionalesAutoridadesForm.module.css";
-import SelectMaterial from "../../../ui/Select/SelectMaterial";
+import SelectMaterial from "../../../../ui/Select/SelectMaterial";
 
 
 const onChangeDef = (changes = {}) => {};

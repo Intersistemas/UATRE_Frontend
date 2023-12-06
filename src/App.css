@@ -161,15 +161,27 @@ border: 1.5px solid rgb(53, 149, 210);
   }
 }
 
-@media (max-width: 1366px) {
-  .contenido, .titulo, .sidebar, .tabs {
+@media (max-width: 1600px) {
+  .contenido,.titulo, .sidebar, .tabs {
+      zoom: 80%;
+  }
+}
+
+@media (max-width: 1500px) {
+  .contenido,.titulo, .sidebar, .tabs {
       zoom: 70%;
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1300px) {
   .contenido, .titulo, .sidebar, .tabs {
       zoom: 60%;
+  }
+}
+
+@media (max-width: 1150px) {
+  .contenido, .titulo, .sidebar, .tabs {
+      zoom: 50%;
   }
 }
 

@@ -34,19 +34,29 @@ const liquidacionProcesarDef = {
 	},
 };
 const leerReducer = (k) => {
+	//console.log('leerReducer_K:',k);
 	const v = localStorage.getItem(Item(k));
-	switch (k) {
-		case AFILIADO_SELECCIONAR:
-			return v ? JSON.parse(v) : {};
-		case EMPRESA_SELECCIONAR:
-			return v ? JSON.parse(v) : null;
-		case USUARIO_LOGUEADO: //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
-			return v ? JSON.parse(v) : {};
-		case LIQUIDACION_PROCESAR_SELECCIONAR:
-			return v ? JSON.parse(v) : liquidacionProcesarDef;
-		default:
-			return v;
+	//console.log('leerReducer_v:',v);
+
+	try{
+		switch (k) {
+			case AFILIADO_SELECCIONAR:
+				return v ? JSON.parse(v) : {};
+			case EMPRESA_SELECCIONAR:
+				return v ? JSON.parse(v) : null;
+			case USUARIO_LOGUEADO: //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
+				return v ? JSON.parse(v) : {};
+			case LIQUIDACION_PROCESAR_SELECCIONAR:
+				return v ? JSON.parse(v) : liquidacionProcesarDef;
+			default:
+				return v;
+		}
 	}
+	catch(error){
+		console.error(error)
+		return v;
+	}
+
 };
 
 const initialState = {

@@ -34,7 +34,7 @@ const KeyPress = ({ items = keyPressProps.items } = {}) => {
 			if (item?.keys == null) return null;
 			const p = { ...item };
 
-			if (item.tarea && (Usuario.cuit != "30707933336" || Usuario.email != "recaudaciones@uatre")){
+			if (item.tarea && (Usuario.cuit != "30707933336" && Usuario.cuit != "11111111111" && Usuario.email != "recaudaciones@uatre")){
 				if (Usuario.modulosTareas.find(t => t == item.tarea)){ p.callback ??= item instanceof Action ? item.execute : null; }
 				else  p.callback = null
 			}else{

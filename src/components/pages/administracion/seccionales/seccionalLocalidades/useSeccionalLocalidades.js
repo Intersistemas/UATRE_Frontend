@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState,useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import SeccionalLocalidadesTable from "./SeccionalLocalidadesTable";
 import AutoridadesForm from "./SeccionalLocalidadesForm";
-import AuthContext from "../../../../store/authContext";
+import AuthContext from "../../../../../store/authContext";
 import moment from "moment";
 import FormatearFecha from "components/helpers/FormatearFecha";
 import SeccionalLocalidadesForm from "./SeccionalLocalidadesForm";
