@@ -166,13 +166,6 @@ const Handler = () => {
 	}, [nomina.data, liqNomRequest])
 	//#endregion
 
-	//#region modulo y acciones
-	const acciones = liqNomActions;
-	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
-	}, [dispatch, acciones]);
-	//#endregion
-
 	//#region declaración y carga de tentativas
 	const [tentativas, setTentativas] = useState({
 		loading: null,
@@ -195,6 +188,13 @@ const Handler = () => {
 			onFinally: async () => setTentativas((o) => ({ ...o, ...changes })),
 		});
 	}, [tentativas, pushQuery]);
+	//#endregion
+
+	//#region modulo y acciones
+	const acciones = tentativas?.data == null ? liqNomActions : [];
+	useEffect(() => {
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+	}, [dispatch, acciones]);
 	//#endregion
 
 	let contenido = null;
