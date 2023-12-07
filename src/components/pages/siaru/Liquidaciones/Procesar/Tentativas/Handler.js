@@ -725,6 +725,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		remote: false,
 		multi: true,
 		hideSelectColumn: false,
+		mostrarBuscar: true,
 		columns: [
 			{ dataField: "cuil" },
 			{ dataField: "nombre" },
