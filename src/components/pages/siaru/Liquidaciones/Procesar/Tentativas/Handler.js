@@ -107,8 +107,8 @@ const LiquidacionCabecera = ({
 					value={data.interesesDiariosPosteriorVencimiento}
 					disabled={!!disabled.fechaPagoEstimada}
 					error={errors.fechaPagoEstimada}
-					onChange={(value) =>
-						onChange({ interesesDiariosPosteriorVencimiento: Round(value, 2) })
+					onChange={(interesesDiariosPosteriorVencimiento) =>
+						onChange({ interesesDiariosPosteriorVencimiento })
 					}
 				/>
 			</Grid>
