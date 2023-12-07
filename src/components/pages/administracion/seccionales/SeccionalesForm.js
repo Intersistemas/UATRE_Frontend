@@ -46,15 +46,13 @@ const SeccionalesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
+	const { isLoading, error, sendRequest: request } = useHttp();
+
+
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	const [localidadBuscar, setLocalidadBuscar] = useState("");
-
-	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
-	const { isLoading, error, sendRequest: request } = useHttp();
-
-	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
-	
+	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  	
 	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 	
 
@@ -62,7 +60,7 @@ const SeccionalesForm = ({
 		const delegacion = delegaciones.find((c) => c.value === delegacionId)
 		return delegacion;
 	}
-
+ 
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
 		disabled.estado && onChange({ estado: data.estado });
@@ -82,6 +80,7 @@ const SeccionalesForm = ({
 		);
 	},[]);
 
+	
 	useEffect(() => {
 		console.log('localidadBuscar',localidadBuscar)
 		if (localidadBuscar.length > 2) {
@@ -105,7 +104,6 @@ const SeccionalesForm = ({
 	const handlerOnTextChange = (event) => {
 		//console.log("text change", event.target.value);
 		 
-		
 		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
 		setLocalidadBuscar(event.target.value);
 		
