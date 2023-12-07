@@ -14,6 +14,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
 import EmpresasForm from "../administracion/empresas/EmpresasForm";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 
 const selectionDef = {
@@ -90,7 +91,6 @@ const SiaruHandler = () => {
 				return null;
 		}
 	});
-
 
 	const [list, setList] = useState({
 		loading: null,
@@ -334,6 +334,7 @@ const SiaruHandler = () => {
 				if (["A", "M"].includes(list.selection.request)){
 					
 					if (!record.cuit) errors.cuit = "Dato requerido";
+					if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
 					//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
@@ -473,7 +474,7 @@ const SiaruHandler = () => {
 							<EmpresasList
 								data={list.data}
 								loading={!!list.loading}
-								pagination={{index:1,size:5}}
+								pagination={{index:1,size:10}}
 								selection={{
 									//selected: [empresas.selected?.cuitEmpresa].filter((r) => r),
 									selected: [list.selection.record?.id].filter((r) => r),
