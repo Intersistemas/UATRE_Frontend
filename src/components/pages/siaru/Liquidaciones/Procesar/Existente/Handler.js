@@ -210,8 +210,12 @@ const Handler = () => {
 		setLiqNomActions(actions);
 	}, [liqNomRequest, liqNomSelected]);
 	useEffect(() => {
-		liqNomRequest("list", { data: nomina.data, loading: nomina.loading });
-	}, [nomina.data, liqNomRequest])
+		liqNomRequest("list", {
+			data: nomina.data,
+			loading: nomina.loading,
+			error: nomina.error,
+		});
+	}, [nomina, liqNomRequest])
 	//#endregion
 
 	//#region declaración y carga de tentativas
