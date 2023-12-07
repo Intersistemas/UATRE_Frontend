@@ -4,6 +4,7 @@ import EmpresasTable from "./EmpresasTable";
 import AuthContext from "../../../../store/authContext";
 import EmpresasForm from "./EmpresasForm";
 import dayjs from "dayjs";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 
 const selectionDef = {
@@ -383,6 +384,7 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 					if (["A", "M"].includes(list.selection.request)){
 						
 						if (!record.cuit) errors.cuit = "Dato requerido";
+						if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 						if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 						if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
 						//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";

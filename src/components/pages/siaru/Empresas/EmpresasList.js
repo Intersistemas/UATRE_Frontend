@@ -20,7 +20,7 @@ const EmpresasList = ({
 			text: "CUIT",
 			sort: true,
 			formatter: Formato.Cuit,
-      		headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+      		headerStyle: (_colum, _colIndex) => ({ width: "180px" }),
 		},
 		{
 			dataField: "razonSocial",
