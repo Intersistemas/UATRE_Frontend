@@ -432,9 +432,12 @@ const useLiquidacionesNomina = ({
 						// if (!record.deletedObs)
 						// 	errors.deletedObs = "Dato requerido";
 					} else {
-						// if (!record.afiliadoId)
-						// 	errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
-						// if (record.esAuxiliar == null) errors.esAuxiliar = "Dato requerido";
+						if (!record.cuil)
+							errors.cuil = "Dato requerido";
+						else if (!ValidarCUIT(record.cuil))
+							errors.cuil = "Dato inválido";
+						if (!record.remuneracionImponible)
+							errors.remuneracionImponible = "Dato requerido";
 					}
 					if (Object.keys(errors).length) {
 						setList((o) => ({
