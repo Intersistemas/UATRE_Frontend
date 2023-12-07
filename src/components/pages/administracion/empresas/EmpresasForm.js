@@ -13,6 +13,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 import useHttp from "../../../hooks/useHttp";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
@@ -30,6 +34,7 @@ const EmpresasForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 	loading = {},
+	onValidarEmpresaCUITHandler = {},
 	delegaciones =[]
 }) => {
 	data ??= {}; 
@@ -37,7 +42,7 @@ const EmpresasForm = ({
 	//console.log('Form_empresa_data:',data);
 	
 	// console.log('delegaciones_empresa:',delegaciones)
-	// console.log('Form_empresa_errors:',errors)
+	console.log('Form_empresa_errors:',errors)
 	
 	disabled ??= {};
 	hide ??= {};
@@ -47,24 +52,28 @@ const EmpresasForm = ({
 	
 	onClose ??= onCloseDef;
 
-	//#region Buscar Aactividades
-	const [actividadesTodas, setAactividadesTodas] = useState([]);
-	const [actividadBuscar, setAactividadBuscar] = useState("");
-
-	const [actividadesOptions, setAactividadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
 	const { isLoading, error, sendRequest: request } = useHttp();
 
-	//const actividadInicio = {value: data?.refAactividadesId ?? 0, label: data?.actividadNombre}
+
+
+
+	//#region Buscar Aactividades
+	const [actividadesTodas, setActividadesTodas] = useState([]);
+	const [actividadBuscar, setActividadBuscar] = useState("");
+	const [actividadesOptions, setActividadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
+	const [actividadEmpresa, setActividadEmpresa] = useState({value: data?.actividadPrincipalId ?? 0, label: data?.actividadPrincipalDescripcion} );
+
+
+	const [cuitLoading, setCUITLoading] = useState(false);
+	const [cuitValidado, setCuitValidado] = useState("");
+
 	
-	const [actividadEmpresa, setAactividadEmpresa] = useState({value: data?.refAactividadesId ?? 0, label: data?.actividadNombre} );
 	
 		//#region Buscar Localidades
 		const [localidadesTodas, setLocalidadesTodas] = useState([]);
 		const [localidadBuscar, setLocalidadBuscar] = useState("");
-	
 		const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  	
 		//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
-		
 		const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 
 
@@ -79,7 +88,7 @@ const EmpresasForm = ({
 
 		const processAactividades = async (actividadesObj) => {
 			console.log('actividadesObj',actividadesObj);
-			setAactividadesTodas(actividadesObj);
+			setActividadesTodas(actividadesObj);
 		};
 	
 		request(
@@ -92,32 +101,80 @@ const EmpresasForm = ({
 		);
 	},[]);
 
+	
+	const validarEmpresaCUITHandler = () => {
+		setCUITLoading(true);
+		setCuitValidado(0);
+		onChange({existe: false})
+		errors.cuit = "";
+		
+		onChange({ razonSocial: null});
+		onChange({ actividadPrincipalDescripcion: null});
+		//onChange({ domicilioCalle: padronObj.domicilios[0]?.direccion}); este es de AFIP CONSULTA
+		onChange({ domicilioCalle: null});
+		onChange({ telefono: null});
+		onChange({ email: null});
+		onChange({ ciiU1Descripcion: null});
+		onChange({ ciiU2Descripcion: null});
+		onChange({ ciiU3Descripcion: null});
+
+		const processConsultaPadron = async (padronObj) => {
+			console.log('padronObj',padronObj);
+		  setCuitValidado(1);
+		  onChange({existe: true})
+		  //setPadronEmpresaRespuesta(padronObj);
+		 
+		  onChange({ cuit: padronObj.cuit});
+		  onChange({ razonSocial: padronObj.razonSocial});
+		  onChange({ actividadPrincipalDescripcion: padronObj.actividadPrincipalDescripcion});
+		  //onChange({ domicilioCalle: padronObj.domicilios[0]?.direccion}); este es de AFIP CONSULTA
+		  onChange({ domicilioCalle: padronObj.domicilioCalle+" "+padronObj.domicilioNumero});
+		  onChange({ telefono: padronObj.telefono});
+		  onChange({ email: padronObj.email});
+		  onChange({ ciiU1Descripcion: padronObj.ciiU1Descripcion});
+		  onChange({ ciiU2Descripcion: padronObj.ciiU2Descripcion});
+		  onChange({ ciiU3Descripcion: padronObj.ciiU3Descripcion});
+
+		};
+		setCUITLoading(false);
+	
+		request(
+		  {
+			baseURL: "Comunes",
+			//endpoint: `/AFIPConsulta?CUIT=${data.cuit}&VerificarHistorico=${true}`,
+			endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${data.cuit}&SoloActivos=${true}`,
+			method: "GET",
+		  },
+		  processConsultaPadron
+		);
+	  };
+	  //#endregion
+
 	useEffect(() => {
 		console.log('actividadBuscar',actividadBuscar)
 		if (actividadBuscar.length > 2) {
 		const actividadesSelect = actividadesTodas
 			.filter((actividad) =>
-			actividad.nombre.toUpperCase().includes(actividadBuscar.toUpperCase())
+			actividad.descripcion.toUpperCase().includes(actividadBuscar.toUpperCase())
 			)
 			.map((actividad) => {
-			return { value: actividad.id, label: actividad.nombre };
+			return { value: actividad.id, label: actividad.descripcion };
 			});
 			//console.log("actividadesSelect", actividadesSelect, actividades);
-			setAactividadesOptions(actividadesSelect);
+			setActividadesOptions(actividadesSelect);
 		}     
 
 		if (actividadBuscar === ""){
-			setAactividadesOptions([])
-			setAactividadBuscar("")
+			setActividadesOptions([])
+			setActividadBuscar("")
 		}    
 	}, [actividadesTodas, actividadBuscar]);
 
 	const handlerOnTextChange = (event) => {
 		//console.log("text change", event.target.value);
-		 
-		
-		setAactividadEmpresa({...actividadEmpresa, label: event.target.value});
-		setAactividadBuscar(event.target.value);
+				
+		setActividadEmpresa({...actividadEmpresa, label: event.target.value});
+		setActividadBuscar(event.target.value);
 		
 	  };
 	//#endregion
@@ -141,19 +198,36 @@ const EmpresasForm = ({
 						
 						<div className={classes.item1}>
 							<FormControl>
-								<InputMaterial
-									id="cuitEmpresa"
-									label="CUIT"
-									as={InputMask}
-									mask="99-99.999.999-9"
-									required 
-									error={!!errors.cuit}
-									helperText={errors.cuit ?? ""}
-									value={data.cuit}
-									disabled={disabled.cuit}
-									onChange={(value, _id) => onChange({ cuit: value.replace(/[^0-9]+/g, "")})}
-								/>
-							</FormControl>				
+								<Grid container>
+									<InputMaterial
+										id="cuitEmpresa"
+										label="CUIT"
+										as={InputMask}
+										mask="99-99.999.999-9"
+										required 
+										error={!!errors.cuit}
+										helperText={errors.cuit ? errors.cuit : cuitValidado ? "La Empresa ya existe!" : "Se creará la Empresa"}
+										value={data.cuit}
+										disabled={disabled.cuit}
+										onChange={(value, _id) => onChange({ cuit: value.replace(/[^0-9]+/g, "")})}
+									>
+										
+									</InputMaterial>
+
+									<Button
+										className="botonAzul"
+										width={30}
+										heigth={1}
+										disabled={!(data?.cuit?.length == 11)}
+										onClick={validarEmpresaCUITHandler}
+										loading={cuitLoading}
+										>
+										<h6>{!cuitLoading ? `Valida` : `...`}</h6>
+									</Button>	
+									</Grid>
+							</FormControl>		
+
+								
 						</div>
 
 						<div className={classes.item2}>
@@ -164,7 +238,7 @@ const EmpresasForm = ({
 								helperText={errors.razonSocial ?? ""}
 								value={data.razonSocial}
 								disabled={disabled.razonSocial}
-								onChange={(value, _id) => onChange({ razonSocial: value })}
+								onChange={(value, _id) => onChange({ razonSocial: value })} 
 							/>
 						</div> 
 
@@ -193,16 +267,43 @@ const EmpresasForm = ({
 						</div> 
 
 						<div className={classes.item3}>
+
+							
 							<InputMaterial
-								id="actividadPrincipalDescripcion"
+								id="actividadPrincipal"
 								label="Actividad"
 								error={!!errors.actividadPrincipalDescripcion} 
 								helperText={errors.actividadPrincipalDescripcion ?? ""}
 								value={data.actividadPrincipalDescripcion}
 								disabled={disabled.actividadPrincipalDescripcion}
-								onChange={(value, _id) => onChange({ actividadPrincipalDescripcion: value })}
+								onChange={(value, _id) => onChange({ actividadPrincipalDescripcion: value })}   
 							/>
+{/*
+							<SearchSelectMaterial
+								id="actividadPrincipal"
+								name="actividadPrincipal"
+								label="Actividad"
+
+								error={(!!errors.actividadPrincipalId) || (data.actividadPrincipalDescripcion != actividadEmpresa.label)} 
+								helperText={errors.actividadPrincipalId ?? ""}
+								value={actividadEmpresa}
+								disabled={disabled.actividadPrincipalId ?? false}
+								onChange={(value, _id) => (
+									onChange({ actividadPrincipalId: value.value }),
+									onChange({ actividadPrincipalDescripcion: value.label }),
+									setActividadEmpresa({...actividadEmpresa,label: value.label})
+								)}
+								options={actividadesOptions}
+								onTextChange={handlerOnTextChange}
+								required
+							/>*/}
 						</div> 
+
+
+						
+
+
+
 						{/*
 						<div className={classes.item3}>
 							<SearchSelectMaterial
@@ -235,7 +336,7 @@ const EmpresasForm = ({
 							helperText={errors.domicilioCalle ?? ""}
 							value={data.domicilioCalle} 
 							disabled={disabled.domicilioCalle ?? false}
-							onChange={(value, _id) => onChange({ domicilioCalle: value })}
+							onChange={(value, _id) => onChange({ domicilioCalle: value })} 
 							/>
 						</div>
 						<div className={classes.item5}>
@@ -247,7 +348,7 @@ const EmpresasForm = ({
 							helperText={errors.telefono ?? ""}
 							value={data.telefono} 
 							disabled={disabled.telefono ?? false}
-							onChange={(value, _id) => onChange({ telefono: value })}
+							onChange={(value, _id) => onChange({ telefono: value })}  
 							/>   
 						</div>  
 						<div className={classes.item6}>
@@ -259,7 +360,7 @@ const EmpresasForm = ({
 								helperText={errors.email ?? ""}
 								value={data.email}
 								disabled={disabled.email}
-								onChange={(value) => onChange({ email: value })}
+								onChange={(value) => onChange({ email: value })}  
 							/>  
 						</div>
 
@@ -273,7 +374,7 @@ const EmpresasForm = ({
 								helperText={errors.ciiU1Descripcion ?? ""}
 								value={data.ciiU1Descripcion}
 								disabled={disabled.ciiU1Descripcion}
-								onChange={(value) => onChange({ ciiU1Descripcion: value })}
+								onChange={(value) => onChange({ ciiU1Descripcion: value })}  
 							/>  
 						</div>
 					
@@ -286,7 +387,7 @@ const EmpresasForm = ({
 								helperText={errors.ciiU2Descripcion ?? ""}
 								value={data.ciiU2Descripcion}
 								disabled={disabled.ciiU2Descripcion}
-								onChange={(value) => onChange({ ciiU2Descripcion: value })}
+								onChange={(value) => onChange({ ciiU2Descripcion: value })} 
 							/>  
 						</div>
 

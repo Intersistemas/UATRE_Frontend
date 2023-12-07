@@ -286,7 +286,31 @@ const SiaruHandler = () => {
 					? { deletedObs: true }
 					: {}
 			}
+
+			/*
+			ValidarCUIT={(existe) =>{
+
+				existe ?
+				setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						request: "R",
+					},
+				}))
+				:
+				setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						request: "A",
+					},
+				}))
+			}}*/
+
 			onChange={(changes) =>{ //solo entra el campo que se está editando
+
+				console.log('changes:',changes);
 				setList((o) => ({
 					...o,
 					selection: {
@@ -307,7 +331,13 @@ const SiaruHandler = () => {
 
 			onClose={(confirm) => {
 
-				if (!["A", "B"].includes(list.selection.request)){
+				console.log('list',list);
+				/*if (list.selection.request === 'R'){
+					setEmpresaNueva()
+					return;
+				}*/
+
+				if (!["A", "R"].includes(list.selection.request)){
 					confirm = false}
 				if (!confirm) {
 					setList((o) => ({
