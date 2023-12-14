@@ -44,7 +44,8 @@ export const onDataChangeDef = (data = []) => {};
 const useLiquidacionesCabecera = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
-	loading = false,
+	loading,
+	error,
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
@@ -143,7 +144,7 @@ const useLiquidacionesCabecera = ({
 		params: {},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
-		error: null,
+		error,
 		selection: {
 			...selectionDef,
 			multi: multiInit,
@@ -160,9 +161,11 @@ const useLiquidacionesCabecera = ({
 		const changes = { loading: null, error: null };
 		if (!list.remote) {
 			const data = list.data;
+			const error = list.error;
 			const multi = list.selection.multi;
 			const record = list.selection.record;
 			changes.data = data;
+			changes.error = error;
 			changes.selection = {
 				...list.selection,
 				...selectionDef,
@@ -253,7 +256,8 @@ const useLiquidacionesCabecera = ({
 								: payload.clear
 								? []
 								: o.data,
-						error: null,
+						loadingOverride: payload.loading,
+						error: payload.error,
 						onLoadSelect:
 							"onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
 						selection: {
@@ -504,7 +508,7 @@ const useLiquidacionesCabecera = ({
 				data={list.data}
 				loading={!!list.loading || !!list.loadingOverride}
 				noDataIndication={
-					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
+					list.loading ?? list.loadingOverride ?? list.error?.message ?? "No existen datos para mostrar"
 				}
 				columns={columns}
 				mostrarBuscar={mostrarBuscar}

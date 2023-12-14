@@ -107,8 +107,8 @@ const LiquidacionCabecera = ({
 					value={data.interesesDiariosPosteriorVencimiento}
 					disabled={!!disabled.fechaPagoEstimada}
 					error={errors.fechaPagoEstimada}
-					onChange={(value) =>
-						onChange({ interesesDiariosPosteriorVencimiento: Round(value, 2) })
+					onChange={(interesesDiariosPosteriorVencimiento) =>
+						onChange({ interesesDiariosPosteriorVencimiento })
 					}
 				/>
 			</Grid>
@@ -505,6 +505,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		nominas: {
 			todas: [],
 			sinEstablecimiento: 0,
+			cantidadTrabajadores: 0,
+			totalRemuneraciones: 0,
 		},
 	});
 	useEffect(() => {
@@ -541,6 +543,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				...estado.nominas,
 				todas: [],
 				sinEstablecimiento: 0,
+				cantidadTrabajadores: 0,
+				totalRemuneraciones: 0,
 			},
 		};
 		tentativas.forEach((tentativa) => {
@@ -554,7 +558,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
 					esRural: !!nomina.esRural,
 					afiliadoId: nomina.afiliadoId ?? 0,
 					empresaEstablecimientoId: tentativa.empresaEstablecimientoId,
-					empresaEstablecimiento_Nombre: tentativa.empresaEstablecimiento_Nombre,
+					empresaEstablecimiento_Nombre:
+						tentativa.empresaEstablecimiento_Nombre,
 				});
 			});
 		});
@@ -597,7 +602,14 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				a.map(({ id }) => id).indexOf(v.id) === i
 		);
 
+		let sinEstablecimiento = 0;
+		let cantidadTrabajadores = 0;
+		let totalRemuneraciones = 0;
 		estado.nominas.todas.forEach((nomina) => {
+			if (!nomina.empresaEstablecimientoId) sinEstablecimiento += 1;
+			cantidadTrabajadores += 1;
+			totalRemuneraciones += nomina.remuneracionImponible ?? 0;
+
 			if (!nomina.empresaEstablecimientoId) return;
 			if (!nomina.esRural) return;
 
@@ -698,15 +710,17 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		cabecera.totalSindical = Round(cabecera.totalSindical, 2);
 		cabecera.totalSolidario = Round(cabecera.totalSolidario, 2);
 
+		totalRemuneraciones = Round(totalRemuneraciones, 2);
+		
 		setEstado((o) => ({
 			...o,
 			processing: null,
 			cabecera: { ...o.cabecera, ...cabecera },
 			nominas: {
 				...o.nominas,
-				sinEstablecimiento: o.nominas.todas.filter(
-					(r) => !r.empresaEstablecimientoId
-				).length,
+				sinEstablecimiento,
+				cantidadTrabajadores,
+				totalRemuneraciones,
 			},
 			liquidaciones: {
 				...o.liquidaciones,
@@ -753,12 +767,28 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		header: () => <Tab label="Nomina" />,
 		body: () => (
 			<Grid col full gap="inherit">
-				<Grid col width="full">{liqNomRender()}</Grid>
+				<Grid col width="full">
+					{liqNomRender()}
+				</Grid>
+				<Grid width="full" style={{ color: "blue" }}>
+					{[
+						"Cantidad de trabajadores:",
+						estado.nominas.cantidadTrabajadores,
+					].join(" ")}
+				</Grid>
+				<Grid width="full" style={{ color: "blue" }}>
+					{[
+						"Total remuneraciones:",
+						Formato.Moneda(estado.nominas.totalRemuneraciones),
+					].join(" ")}
+				</Grid>
 				{estado.nominas.sinEstablecimiento ? (
 					<Grid width="full" style={{ color: "red" }}>
-						Trabajadores sin establecimiento asignado que por consecuencia
-						serán excluidos de la liquidación:{" "}
-						{estado.nominas.sinEstablecimiento}
+						{[
+							"Trabajadores sin establecimiento asignado",
+							"que por consecuencia serán excluidos de la liquidación:",
+							estado.nominas.sinEstablecimiento,
+						].join(" ")}
 					</Grid>
 				) : null}
 				<Grid col full="width" gap="inherit">
@@ -787,7 +817,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 					/>
 				</Grid>
 			</Grid>
-		)
+		),
 	});
 	//#endregion
 

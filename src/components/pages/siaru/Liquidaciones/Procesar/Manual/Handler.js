@@ -94,7 +94,7 @@ const Handler = () => {
 		}
 	});
 
-	const [nomina, setNomina] = useState([]);
+	const [nominas, setNominas] = useState([]);
 	//#region mantenimiento de nomina
 	const {
 		render: liqNomRender,
@@ -105,7 +105,7 @@ const Handler = () => {
 		mostrarBuscar: true,
 		columns: (def = []) => def.filter((r) => r.dataField !== "afiliadoId"),
 		onDataChange: (data) =>
-			setNomina(
+			setNominas(
 				data
 					.filter((r) => !r.deletedDate)
 					.filter(
@@ -162,21 +162,14 @@ const Handler = () => {
 		setLiqNomActions(actions);
 	}, [liqNomRequest, liqNomSelected]);
 	useEffect(() => {
-		liqNomRequest("list", { data: nomina });
-	}, [nomina.data, liqNomRequest])
-	//#endregion
-
-	//#region modulo y acciones
-	const acciones = liqNomActions;
-	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
-	}, [dispatch, acciones]);
+		liqNomRequest("list", { data: nominas });
+	}, [nominas, liqNomRequest])
 	//#endregion
 
 	//#region declaración y carga de tentativas
 	const [tentativas, setTentativas] = useState({
 		loading: null,
-		body: { cuit: empresa?.cuit, periodo: periodo, nominas: nomina },
+		body: { cuit: empresa?.cuit, periodo, nominas },
 		data: null,
 		error: null,
 	});
@@ -195,6 +188,13 @@ const Handler = () => {
 			onFinally: async () => setTentativas((o) => ({ ...o, ...changes })),
 		});
 	}, [tentativas, pushQuery]);
+	//#endregion
+
+	//#region modulo y acciones
+	const acciones = tentativas?.data == null ? liqNomActions : [];
+	useEffect(() => {
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+	}, [dispatch, acciones]);
 	//#endregion
 
 	let contenido = null;
@@ -250,7 +250,7 @@ const Handler = () => {
 																loading: "Cargando...",
 																body: {
 																	...o.body,
-																	nominas: nomina.map((r) => ({
+																	nominas: nominas.map((r) => ({
 																		cuil: r.cuil,
 																		nombre: r.nombre,
 																		remuneracion: r.remuneracionImponible,

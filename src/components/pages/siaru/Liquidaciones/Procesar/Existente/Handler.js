@@ -210,15 +210,12 @@ const Handler = () => {
 		setLiqNomActions(actions);
 	}, [liqNomRequest, liqNomSelected]);
 	useEffect(() => {
-		liqNomRequest("list", { data: nomina.data, loading: nomina.loading });
-	}, [nomina.data, liqNomRequest])
-	//#endregion
-
-	//#region modulo y acciones
-	const acciones = liqNomActions;
-	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
-	}, [dispatch, acciones]);
+		liqNomRequest("list", {
+			data: nomina.data,
+			loading: nomina.loading,
+			error: nomina.error,
+		});
+	}, [nomina, liqNomRequest])
 	//#endregion
 
 	//#region declaración y carga de tentativas
@@ -243,6 +240,13 @@ const Handler = () => {
 			onFinally: async () => setTentativas((o) => ({ ...o, ...changes })),
 		});
 	}, [tentativas, pushQuery]);
+	//#endregion
+
+	//#region modulo y acciones
+	const acciones = tentativas?.data == null ? liqNomActions : [];
+	useEffect(() => {
+		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+	}, [dispatch, acciones]);
 	//#endregion
 
 	let contenido = null;
