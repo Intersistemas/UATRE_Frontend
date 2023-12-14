@@ -75,6 +75,7 @@ const CabeceraPrint = ({ data }) => {
 			.map((r) => r.empresaEstablecimientoId)
 			.filter((v, i, a) => v && a.indexOf(v) === i),
 		liquidaciones: AsArray(data?.liquidaciones).map(({ id }) => id),
+		tiposPago: AsArray(data?.liquidaciones).map(({tipoPagoId}) => tipoPagoId).filter(((v, i, a) => a.indexOf(v) === i)),
 		data: {
 			parametros: null,
 			empresa: null,

@@ -44,15 +44,18 @@ const SeccionalesForm = ({
 	errors ??= {};
 
 	onChange ??= onChangeDef;
+	
 	onClose ??= onCloseDef;
-
-	const { isLoading, error, sendRequest: request } = useHttp();
-
 
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	const [localidadBuscar, setLocalidadBuscar] = useState("");
-	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  	
+
+	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
+	const { isLoading, error, sendRequest: request } = useHttp();
+
+	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
+	
 	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 	
 
@@ -60,7 +63,7 @@ const SeccionalesForm = ({
 		const delegacion = delegaciones.find((c) => c.value === delegacionId)
 		return delegacion;
 	}
- 
+
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
 		disabled.estado && onChange({ estado: data.estado });
@@ -80,7 +83,6 @@ const SeccionalesForm = ({
 		);
 	},[]);
 
-	
 	useEffect(() => {
 		console.log('localidadBuscar',localidadBuscar)
 		if (localidadBuscar.length > 2) {
@@ -104,6 +106,7 @@ const SeccionalesForm = ({
 	const handlerOnTextChange = (event) => {
 		//console.log("text change", event.target.value);
 		 
+		
 		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
 		setLocalidadBuscar(event.target.value);
 		
@@ -147,10 +150,10 @@ const SeccionalesForm = ({
 							<FormControl sx={{ minWidth: '8rem' }}>
 								<InputLabel id="demo-simple-select-label">Estado</InputLabel>
 								<Select
-									labelId="demo-simple-select-label"
+									
 									id="estado"
 									value={data.estado}
-									label="Estado"
+									label="Estado12312"
 									onChange={(value, _id) => onChange({ estado: value })}
 									error={!!errors.estado}
 									helperText={errors.estado ?? ""}
@@ -178,25 +181,26 @@ const SeccionalesForm = ({
 
 						<div className={classes.item3}>
 							<SearchSelectMaterial
-								id="refLocalidadesId"
-								name="refLocalidadesId"
-								label="Localidad"
+							id="refLocalidadesId"
+							name="refLocalidadesId"
+							label="Localidad"
 
-								error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
-								helperText={errors.refLocalidadesId ?? ""}
-								value={localidadSeccional}
-								disabled={disabled.refLocalidadesId ?? false}
-								onChange={(value, _id) => (
-									onChange({ refLocalidadesId: value.value }),
-									onChange({ localidadNombre: value.label }),
-									setLocalidadSeccional({...localidadSeccional,label: value.label})
+							error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
+							helperText={errors.refLocalidadesId ?? ""}
+							value={localidadSeccional}
+							disabled={disabled.refLocalidadesId ?? false}
+							onChange={(value, _id) => (
+								onChange({ refLocalidadesId: value.value }),
+								onChange({ localidadNombre: value.label }),
+								setLocalidadSeccional({...localidadSeccional,label: value.label})
 								)}
-								options={localidadesOptions}
-								onTextChange={handlerOnTextChange}
-								required
+							
+							options={localidadesOptions}
+					
+							onTextChange={handlerOnTextChange}
+							required
 							/>
 						</div>
-
 						<div className={classes.item4}>
 							<InputMaterial
 							id="domicilio"

@@ -224,7 +224,7 @@ const EmpresasForm = ({
 										>
 										<h6>{!cuitLoading ? `Valida` : `...`}</h6>
 									</Button>	
-									</Grid>
+								</Grid>
 							</FormControl>		
 
 								
@@ -268,17 +268,6 @@ const EmpresasForm = ({
 
 						<div className={classes.item3}>
 
-							
-							<InputMaterial
-								id="actividadPrincipal"
-								label="Actividad"
-								error={!!errors.actividadPrincipalDescripcion} 
-								helperText={errors.actividadPrincipalDescripcion ?? ""}
-								value={data.actividadPrincipalDescripcion}
-								disabled={disabled.actividadPrincipalDescripcion}
-								onChange={(value, _id) => onChange({ actividadPrincipalDescripcion: value })}   
-							/>
-{/*
 							<SearchSelectMaterial
 								id="actividadPrincipal"
 								name="actividadPrincipal"
@@ -296,7 +285,7 @@ const EmpresasForm = ({
 								options={actividadesOptions}
 								onTextChange={handlerOnTextChange}
 								required
-							/>*/}
+							/>
 						</div> 
 
 
