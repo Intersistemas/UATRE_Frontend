@@ -68,7 +68,7 @@ const EstablecimientosForm = ({
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full" gap="inherit">
-						<Grid width="25%">
+						{/* <Grid width="25%">
 							{hide.nroSucursal ? null : (
 								<InputMaterial
 									id="nroSucursal"
@@ -82,7 +82,8 @@ const EstablecimientosForm = ({
 								/>
 							)}
 						</Grid>
-						<Grid width="75%">
+						<Grid width="75%"> */}
+						<Grid width>
 							{hide.nombre ? null : (
 								<InputMaterial
 									id="nombre"
@@ -96,7 +97,7 @@ const EstablecimientosForm = ({
 							)}
 						</Grid>
 					</Grid>
-					<Grid width="full" gap="inherit">
+					{/* <Grid width="full" gap="inherit">
 						<Grid width="50%">
 							{hide.telefono ? null : (
 								<InputMaterial
@@ -123,7 +124,7 @@ const EstablecimientosForm = ({
 								/>
 							)}
 						</Grid>
-					</Grid>
+					</Grid> */}
 					{hide.domicilio ? null : (
 						<Grid
 							col
