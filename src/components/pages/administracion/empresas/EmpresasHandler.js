@@ -136,11 +136,7 @@ const EmpresasHandler = () => {
 	});
 
 	useEffect(() => {
-
-
-
-		empresaChanger("list",
-		{params: { OrderBy: "razonSocial"}})
+		empresaChanger("list", { params: { orderBy: "razonSocial"} })
 	}, [empresaChanger]);
 	//#endregion
 

@@ -482,6 +482,23 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 							},
 						})),
 				}}
+				onTableChange={(type, newState) => {
+					switch (type) {
+						case "sort": {
+							const { sortField, sortOrder } = newState;
+							return setList((o) => ({
+								...o,
+								loading: "Cargando...",
+								params: {
+									...o.params,
+									orderBy: `${sortField}${sortOrder === "desc" ? "Desc" : ""}`,
+								},
+							}));
+						}
+						default:
+							return;
+					}
+				}}
 			/>
 			{form}
 		</>
