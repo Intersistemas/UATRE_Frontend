@@ -11,6 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import styles from "./LiquidacionesProcesarHandler.module.css";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
 const LiquidacionesProcesarHandler = () => {
 	const navigate = useNavigate();
@@ -24,6 +25,66 @@ const LiquidacionesProcesarHandler = () => {
 	useEffect(() => {
 		if (!empresa?.id) setRedirect({ to: "Siaru" });
 	}, [empresa]);
+
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetLiquidacionPeriodos": {
+				return {
+					config: {
+						baseURL: "SIARU",
+						method: "GET",
+						endpoint: `/Liquidaciones/Periodos`,
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
+	//#endregion
+	
+	//#region declaración y carga de dependencias
+	const [dependencias, setDependencias] = useState({
+		loading: "Cargando...",
+		empresaId: empresa.id,
+		data: {
+			periodos: null,
+		},
+		errors: null,
+	});
+	useEffect(() => {
+		if (!dependencias.loading) return;
+		const changes = {
+			loading: null,
+			data: { ...dependencias.data },
+			errors: null,
+		};
+		const setData = (value, error) => {
+			Object.keys(value).forEach((k) => {
+				changes.data[k] = value[k];
+				if (!error) return;
+				changes.errors ??= {};
+				changes.errors[k] = error;
+			});
+		};
+		const applyChanges = () => {
+			if (Object.keys(changes.data).filter((k) => !changes.data[k]).length)
+				return;
+			setDependencias((o) => ({ ...o, ...changes }));
+		};
+		if (!changes.data.periodos) {
+			const empresaId = dependencias.empresaId;
+			pushQuery({
+				action: "GetLiquidacionPeriodos",
+				params: { empresaId },
+				onOk: async (periodos) => setData({ periodos }),
+				onError: async (error) => setData({ periodos: [] }, error),
+				onFinally: async () => applyChanges(),
+			});
+		}
+	}, [dependencias, pushQuery]);
+	//#endregion
 
 	const { desdeArchivo, manual, existente } = useSelector(
 		(state) => state.liquidacionProcesar
@@ -42,6 +103,62 @@ const LiquidacionesProcesarHandler = () => {
 		existente: [],
 	});
 
+	const [avisos, setAvisos] = useState({
+		archivo: [],
+		manual: [],
+		existente: [],
+	});
+
+	let dependenciasRender
+	if (dependencias.loading) {
+		dependenciasRender = <Grid width="full">Cargando...</Grid>;
+	} else if (dependencias.errors) {
+		dependenciasRender = (
+			<Grid width="full" style={{ color: "red" }}>
+				Ocurrieron errores cargando dependencias
+			</Grid>
+		);
+	}
+
+	useEffect(() => {
+		if (dependencias.loading) return;
+		const changes = {
+			archivo: [],
+			manual: [],
+			existente: [],
+		};
+		const getDescripcion = (periodo) => (
+			<Grid>
+				Se realizará baja de la liquidación existente con período {Formato.Periodo(periodo)}
+			</Grid>
+		);
+		if (
+			desdeArchivo?.periodo &&
+			dependencias.data.periodos.includes(desdeArchivo.periodo)
+		) {
+			changes.archivo.push(getDescripcion(desdeArchivo.periodo));
+		}
+		if (
+			manual?.periodo &&
+			dependencias.data.periodos.includes(manual.periodo)
+		) {
+			changes.manual.push(getDescripcion(manual.periodo));
+		}
+		if (
+			existente?.periodoHacia &&
+			dependencias.data.periodos.includes(existente.periodoHacia)
+		) {
+			changes.existente.push(getDescripcion(existente.periodoHacia));
+		}
+		setAvisos((o) => ({ ...o, ...changes }));
+	}, [
+		dependencias.loading,
+		dependencias.data.periodos,
+		desdeArchivo?.periodo,
+		manual?.periodo,
+		existente?.periodoHacia,
+	]);
+
 	return (
 		<>
 			<div className="titulo">
@@ -56,6 +173,7 @@ const LiquidacionesProcesarHandler = () => {
 						</h2>
 					</Grid>
 					<Grid col gap="5px">
+						{dependenciasRender}
 						{/* Grupo "Liquidar desde archivo" */}
 						<Grid
 							className={`${styles.fondo} ${styles.grupo}`}
@@ -144,6 +262,9 @@ const LiquidacionesProcesarHandler = () => {
 							</Grid>
 							<Grid col full="width" style={{ color: "red" }}>
 								{errores.archivo}
+							</Grid>
+							<Grid col full="width" style={{ color: "orange" }}>
+								{avisos.archivo}
 							</Grid>
 						</Grid>
 
@@ -239,6 +360,9 @@ const LiquidacionesProcesarHandler = () => {
 							<Grid col full="width" style={{ color: "red" }}>
 								{errores.existente}
 							</Grid>
+							<Grid col full="width" style={{ color: "orange" }}>
+								{avisos.existente}
+							</Grid>
 						</Grid>
 
 						{/* Grupo "Liquidación manual" */}
@@ -298,6 +422,9 @@ const LiquidacionesProcesarHandler = () => {
 							</Grid>
 							<Grid col full="width" style={{ color: "red" }}>
 								{errores.manual}
+							</Grid>
+							<Grid col full="width" style={{ color: "orange" }}>
+								{avisos.manual}
 							</Grid>
 						</Grid>
 					</Grid>
