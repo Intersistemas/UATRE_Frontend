@@ -206,12 +206,17 @@ const EstablecimientosHandler = () => {
 						<Grid width="full" justify="between">
 							<Grid col height="full" justify="end">
 								<h5 style={{ margin: 0 }}>
-									{[
+									{/* {[
 										stats.total
 											? `Cantidad de establecimientos: ${stats.total}`
 											: null,
 										stats.bajas ? `de baja: ${stats.bajas}` : null,
-									].join(", ")}
+									].join(", ")} */}
+									{stats.total
+										? `Cantidad de establecimiento Activos: ${
+												stats.total - stats.bajas
+										  }`
+										: null}
 								</h5>
 							</Grid>
 							<Grid width="260px">
