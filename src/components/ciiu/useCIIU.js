@@ -5,7 +5,6 @@ import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import CIIUTable from "./CIIUTable";
 import CIIUForm from "./CIIUForm";
-import ValidarCUIT from "components/validators/ValidarCUIT";
 
 const selectionDef = {
 	action: "",

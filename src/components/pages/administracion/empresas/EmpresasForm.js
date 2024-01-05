@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+// import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import InputMask from "react-input-mask";
 
 import useHttp from "components/hooks/useHttp";
@@ -24,10 +24,10 @@ const EmpresasForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 	loading = {},
-	delegaciones = [],
+	// delegaciones = [],
 }) => {
 	data ??= {};
-	delegaciones ??= [];
+	// delegaciones ??= [];
 
 	disabled ??= {};
 	hide ??= {};
@@ -43,29 +43,29 @@ const EmpresasForm = ({
 	//#region Buscar Aactividades
 	const [actividadesTodas, setActividadesTodas] = useState([]);
 	const [actividadBuscar, setActividadBuscar] = useState("");
-	const [actividadesOptions, setActividadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
-	const [actividadEmpresa, setActividadEmpresa] = useState({
-		value: data?.actividadPrincipalId ?? 0,
-		label: data?.actividadPrincipalDescripcion,
-	});
+	// const [actividadesOptions, setActividadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
+	// const [actividadEmpresa, setActividadEmpresa] = useState({
+	// 	value: data?.actividadPrincipalId ?? 0,
+	// 	label: data?.actividadPrincipalDescripcion,
+	// });
 
 	const [cuitLoading, setCUITLoading] = useState(false);
 	const [cuitValidado, setCuitValidado] = useState("");
 
 	//#region Buscar Localidades
-	const [localidadesTodas, setLocalidadesTodas] = useState([]);
-	const [localidadBuscar, setLocalidadBuscar] = useState("");
-	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
-	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
-	const [localidadSeccional, setLocalidadSeccional] = useState({
-		value: data?.refLocalidadesId ?? 0,
-		label: data?.localidadNombre,
-	});
+	// const [localidadesTodas, setLocalidadesTodas] = useState([]);
+	// const [localidadBuscar, setLocalidadBuscar] = useState("");
+	// const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
+	// //const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
+	// const [localidadSeccional, setLocalidadSeccional] = useState({
+	// 	value: data?.refLocalidadesId ?? 0,
+	// 	label: data?.localidadNombre,
+	// });
 
-	const selectedDelegacion = (delegacionId) => {
-		const delegacion = delegaciones.find((c) => c.value === delegacionId);
-		return delegacion;
-	};
+	// const selectedDelegacion = (delegacionId) => {
+	// 	const delegacion = delegaciones.find((c) => c.value === delegacionId);
+	// 	return delegacion;
+	// };
 
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
@@ -153,21 +153,21 @@ const EmpresasForm = ({
 					return { value: actividad.id, label: actividad.descripcion };
 				});
 			//console.log("actividadesSelect", actividadesSelect, actividades);
-			setActividadesOptions(actividadesSelect);
+			// setActividadesOptions(actividadesSelect);
 		}
 
 		if (actividadBuscar === "") {
-			setActividadesOptions([]);
+			// setActividadesOptions([]);
 			setActividadBuscar("");
 		}
 	}, [actividadesTodas, actividadBuscar]);
 
-	const handlerOnTextChange = (event) => {
-		//console.log("text change", event.target.value);
+	// const handlerOnTextChange = (event) => {
+	// 	//console.log("text change", event.target.value);
 
-		setActividadEmpresa({ ...actividadEmpresa, label: event.target.value });
-		setActividadBuscar(event.target.value);
-	};
+	// 	setActividadEmpresa({ ...actividadEmpresa, label: event.target.value });
+	// 	setActividadBuscar(event.target.value);
+	// };
 	//#endregion
 
 	UseKeyPress(["Escape"], () => onClose());

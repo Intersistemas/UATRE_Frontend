@@ -15,7 +15,7 @@ const selectionDef = {
 	errors: null,
 };
 
-const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id === record?.id) ?? data.at(0) }) => {
+const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => data.find((r) => r.id === record?.id) ?? data.at(0) }) => {
 
 		
 	//#region Trato queries a APIs
@@ -61,7 +61,6 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 				};
 			}
 			case "Update": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -71,7 +70,6 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 				};
 			}
 			case "Delete": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -81,7 +79,6 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 				};
 			}
 			case "Reactiva": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -105,9 +102,8 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 		delegaciones: [],
 		error: null,
 		selection: {...selectionDef},
+		onLoadSelect: onLoadSelectInit,
 	});
-
-
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
@@ -122,7 +118,7 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 					console.log('data_empresas:',data)
 					const selection = {
 						record:
-							onLoadSelect({ data, record: o.selection.record }),
+							list.onLoadSelect({ data, record: o.selection.record }),
 						action: "",
 						request: "",
 						//record: data//.sort((a, b) => a.codigo > b.codigo ? 1 : -1)//.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
@@ -147,7 +143,7 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 					selection: { ...selectionDef },
 				})),
 		});
-	}, [pushQuery, list.loading, list.params]);
+	}, [pushQuery, list]);
 
 
 	/*
@@ -253,7 +249,7 @@ const useEmpresas = ({onLoadSelect = ({ data, record }) => data.find((r) => r.id
 			default:
 				return;
 		}
-	}, []);
+	}, [pushQuery]);
 
 	let form = null;
 	if (list.selection.request) {
