@@ -22,7 +22,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 	const Usuario = useContext(AuthContext).usuario;
 
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log('action & param: ', action," & ", params);
 		switch (action) {
 			case "GetList": {
 				return {
@@ -115,7 +114,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 			},
 			onOk: async ({index, size, count, data}) =>		
 				setList((o) => {
-					console.log('data_empresas:',data)
 					const selection = {
 						record:
 							list.onLoadSelect({ data, record: o.selection.record }),
@@ -179,7 +177,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 	//#endregion
 
 	const requestChanges = useCallback((type, payload = {}) => {
-		console.log('useEmpresas_RequestType:',type," payload:",payload)
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -212,7 +209,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 				}));
 			}
 			case "GetById": {
-				console.log('GetById_payload:',payload);
 				return pushQuery({
 					action: "GetById",
 					params: { ...payload.params },
@@ -221,7 +217,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 						{
 						let data = [];
 						data.push(obj);
-						console.log('data_Empresa',data);
 						setList((o) => {
 							const selection = {
 								action: "",
@@ -332,7 +327,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 						: {}
 				}
 				onChange={(changes) =>{ //solo entra el campo que se está editando
-					console.log('useEmpresas_changes:',changes)
 					setList((o) => ({
 						...o,
 						selection: {
@@ -388,16 +382,14 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 						if (!record.telefono) errors.telefono = "Dato requerido"; 
 						if (!record.email) errors.email = "Dato requerido"; 
 
-						if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
-						if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
-						if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
+						// if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
+						// if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
+						// if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
 
 						//if (!record.domicilioLocalidadesId || record.domicilioLocalidadesId === 0) errors.domicilioLocalidadesId = "Dato requerido";
 						//if (!record.domicilioProvinciasId || record.domicilioProvinciasId === 0) errors.domicilioProvinciasId = "Dato requerido";
 					}
 				
-					console.log('useEmpresas_errors',errors);
-
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
@@ -439,7 +431,6 @@ const useEmpresas = ({onLoadSelect: onLoadSelectInit = ({ data, record }) => dat
 						default:
 							break;
 					}
-					//console.log('useEmpresas_query',query);
 					pushQuery(query);
 				}}
 			/>

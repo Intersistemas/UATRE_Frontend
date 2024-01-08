@@ -2,18 +2,27 @@ import React, { useEffect, useState } from "react";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
-// import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import InputMask from "react-input-mask";
 
-import useHttp from "components/hooks/useHttp";
-import CIIULookup from "components/ciiu/CIIULookup";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
+
+const getCIIULabel = (ciiu) =>
+	[ciiu?.ciiu ?? "", ciiu?.descripcion ?? ""]
+		.filter((r) => r !== null)
+		.join(" - ");
+
+const getCIIUOption = (ciiu) => ({
+	value: ciiu?.ciiu,
+	label: getCIIULabel(ciiu),
+});
 
 const EmpresasForm = ({
 	data = {},
@@ -24,10 +33,8 @@ const EmpresasForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 	loading = {},
-	// delegaciones = [],
 }) => {
 	data ??= {};
-	// delegaciones ??= [];
 
 	disabled ??= {};
 	hide ??= {};
@@ -37,137 +44,253 @@ const EmpresasForm = ({
 
 	onClose ??= onCloseDef;
 
-	const { isLoading, error, sendRequest: request } = useHttp();
-	const [modal, setModal] = useState(null);
-
-	//#region Buscar Aactividades
-	const [actividadesTodas, setActividadesTodas] = useState([]);
-	const [actividadBuscar, setActividadBuscar] = useState("");
-	// const [actividadesOptions, setActividadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
-	// const [actividadEmpresa, setActividadEmpresa] = useState({
-	// 	value: data?.actividadPrincipalId ?? 0,
-	// 	label: data?.actividadPrincipalDescripcion,
-	// });
-
-	const [cuitLoading, setCUITLoading] = useState(false);
-	const [cuitValidado, setCuitValidado] = useState("");
-
-	//#region Buscar Localidades
-	// const [localidadesTodas, setLocalidadesTodas] = useState([]);
-	// const [localidadBuscar, setLocalidadBuscar] = useState("");
-	// const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES
-	// //const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
-	// const [localidadSeccional, setLocalidadSeccional] = useState({
-	// 	value: data?.refLocalidadesId ?? 0,
-	// 	label: data?.localidadNombre,
-	// });
-
-	// const selectedDelegacion = (delegacionId) => {
-	// 	const delegacion = delegaciones.find((c) => c.value === delegacionId);
-	// 	return delegacion;
-	// };
-
-	//TRAIGO TODAS LAS LOCALIDADES una vez
-	useEffect(() => {
-		disabled.estado && onChange({ estado: data.estado });
-
-		const processAactividades = async (actividadesObj) => {
-			console.log("actividadesObj", actividadesObj);
-			setActividadesTodas(actividadesObj);
-		};
-
-		request(
-			{
-				baseURL: "Comunes",
-				endpoint: "/RefCIIU",
-				method: "GET",
-			},
-			processAactividades
-		);
-	}, []);
-
-	const validarEmpresaCUITHandler = () => {
-		setCUITLoading(true);
-		setCuitValidado(0);
-		onChange({ existe: false });
-		errors.cuit = "";
-
-		onChange({ razonSocial: null });
-		onChange({ actividadPrincipalDescripcion: null });
-		//onChange({ domicilioCalle: padronObj.domicilios[0]?.direccion}); este es de AFIP CONSULTA
-		onChange({ domicilioCalle: null });
-		onChange({ telefono: null });
-		onChange({ email: null });
-		onChange({ ciiU1Descripcion: null });
-		onChange({ ciiU2Descripcion: null });
-		onChange({ ciiU3Descripcion: null });
-
-		const processConsultaPadron = async (padronObj) => {
-			console.log("padronObj", padronObj);
-			setCuitValidado(1);
-			onChange({ existe: true });
-			//setPadronEmpresaRespuesta(padronObj);
-
-			onChange({ cuit: padronObj.cuit });
-			onChange({ razonSocial: padronObj.razonSocial });
-			onChange({
-				actividadPrincipalDescripcion: padronObj.actividadPrincipalDescripcion,
-			});
-			//onChange({ domicilioCalle: padronObj.domicilios[0]?.direccion}); este es de AFIP CONSULTA
-			onChange({
-				domicilioCalle:
-					padronObj.domicilioCalle + " " + padronObj.domicilioNumero,
-			});
-			onChange({ telefono: padronObj.telefono });
-			onChange({ email: padronObj.email });
-			onChange({ ciiU1Descripcion: padronObj.ciiU1Descripcion });
-			onChange({ ciiU2Descripcion: padronObj.ciiU2Descripcion });
-			onChange({ ciiU3Descripcion: padronObj.ciiU3Descripcion });
-		};
-		setCUITLoading(false);
-
-		request(
-			{
-				baseURL: "Comunes",
-				//endpoint: `/AFIPConsulta?CUIT=${data.cuit}&VerificarHistorico=${true}`,
-				endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${
-					data.cuit
-				}&SoloActivos=${true}`,
-				method: "GET",
-			},
-			processConsultaPadron
-		);
-	};
+	//#region consultas API
+	const pushQuery = useQueryQueue((action, params) => {
+		switch (action) {
+			case "GetEmpresa": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/Empresas/GetEmpresaSpecs",
+						method: "GET",
+					},
+				};
+			}
+			case "GetCIIUs": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/RefCIIU",
+						method: "GET",
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
 	//#endregion
 
+	//#region declaracion y carga de actividades
+	const [ciius, setCIIUs] = useState({
+		loading: "Cargando actividades...",
+		data: [],
+		options: [],
+		error: null,
+	});
 	useEffect(() => {
-		console.log("actividadBuscar", actividadBuscar);
-		if (actividadBuscar.length > 2) {
-			const actividadesSelect = actividadesTodas
-				.filter((actividad) =>
-					actividad.descripcion
-						.toUpperCase()
-						.includes(actividadBuscar.toUpperCase())
-				)
-				.map((actividad) => {
-					return { value: actividad.id, label: actividad.descripcion };
+		if (!ciius.loading) return;
+		const changes = {
+			loading: null,
+			data: [],
+			options: [],
+			error: null,
+		};
+		pushQuery({
+			action: "GetCIIUs",
+			onOk: async (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", { GetCIIUs: data });
+				changes.data.push(...data);
+				changes.options.push(...data.map((ciiu) => getCIIUOption(ciiu)));
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setCIIUs((o) => ({ ...o, ...changes })),
+		});
+	}, [ciius, pushQuery]);
+	//#endregion
+
+	//#region Buscar Actividades
+
+	//#region Actividad Ppal.
+	const [actividadPrincipal, setActividadPrincipal] = useState({
+		buscar: "",
+		options: [],
+		selected: getCIIUOption({
+			ciiu: data?.actividadPrincipalId ?? 0,
+			descripcion: data?.actividadPrincipalDescripcion ?? "",
+		}),
+	});
+	// Buscador
+	useEffect(() => {
+		if (ciius.loading) return;
+		const options = ciius.data
+			.filter((r) =>
+				actividadPrincipal.buscar !== ""
+					? getCIIULabel(r)
+							.toLocaleLowerCase()
+							.includes(actividadPrincipal.buscar.toLocaleLowerCase())
+					: true
+			)
+			.map((r) => getCIIUOption(r));
+		setActividadPrincipal((o) => ({ ...o, options }));
+	}, [ciius, actividadPrincipal.buscar]);
+	// Refresca descripcion
+	useEffect(() => {
+		if (ciius.loading) return;
+		const actividadPrincipalDescripcion =
+			ciius.data.find((r) => r.ciiu === data.actividadPrincipalId)
+				?.descripcion ?? "";
+		if (data.actividadPrincipalDescripcion === actividadPrincipalDescripcion)
+			return;
+		onChange({ actividadPrincipalDescripcion });
+	}, [
+		ciius,
+		data.actividadPrincipalId,
+		data.actividadPrincipalDescripcion,
+		onChange,
+	]);
+	//#endregion
+
+	//#region ciiU1.
+	const [ciiu1, setCIIU1] = useState({
+		buscar: "",
+		options: [],
+		selected: getCIIUOption({
+			ciiu: data?.ciiU1 ?? 0,
+			descripcion: data?.ciiU1Descripcion ?? "",
+		}),
+	});
+	// Buscador
+	useEffect(() => {
+		if (ciius.loading) return;
+		const options = ciius.data
+			.filter((r) =>
+				ciiu1.buscar !== ""
+					? getCIIULabel(r)
+							.toLocaleLowerCase()
+							.includes(ciiu1.buscar.toLocaleLowerCase())
+					: true
+			)
+			.map((r) => getCIIUOption(r));
+		setCIIU1((o) => ({ ...o, options }));
+	}, [ciius, ciiu1.buscar]);
+	// Refresca descripcion
+	useEffect(() => {
+		if (ciius.loading) return;
+		const ciiU1Descripcion =
+			ciius.data.find((r) => r.ciiu === data.ciiU1)?.descripcion ?? "";
+		if (ciiU1Descripcion === data.ciiU1Descripcion) return;
+		onChange({ ciiU1Descripcion });
+	}, [ciius, data.ciiU1, data.ciiU1Descripcion, onChange]);
+	//#endregion
+
+	//#region ciiU2.
+	const [ciiu2, setCIIU2] = useState({
+		buscar: "",
+		options: [],
+		selected: getCIIUOption({
+			ciiu: data?.ciiU2 ?? 0,
+			descripcion: data?.ciiU2Descripcion ?? "",
+		}),
+	});
+	// Buscador
+	useEffect(() => {
+		if (ciius.loading) return;
+		const options = ciius.data
+			.filter((r) =>
+				ciiu2.buscar !== ""
+					? getCIIULabel(r)
+							.toLocaleLowerCase()
+							.includes(ciiu2.buscar.toLocaleLowerCase())
+					: true
+			)
+			.map((r) => getCIIUOption(r));
+		setCIIU2((o) => ({ ...o, options }));
+	}, [ciius, ciiu2.buscar]);
+	// Refresca descripcion
+	useEffect(() => {
+		if (ciius.loading) return;
+		const ciiU2Descripcion =
+			ciius.data.find((r) => r.ciiu === data.ciiU2)?.descripcion ?? "";
+		if (ciiU2Descripcion === data.ciiU2Descripcion) return;
+		onChange({ ciiU2Descripcion });
+	}, [ciius, data.ciiU2, data.ciiU2Descripcion, onChange]);
+	//#endregion
+
+	//#region ciiU3.
+	const [ciiu3, setCIIU3] = useState({
+		buscar: "",
+		options: [],
+		selected: getCIIUOption({
+			ciiu: data?.ciiU3 ?? 0,
+			descripcion: data?.ciiU3Descripcion ?? "",
+		}),
+	});
+	// Buscador
+	useEffect(() => {
+		if (ciius.loading) return;
+		const options = ciius.data
+			.filter((r) =>
+				ciiu3.buscar !== ""
+					? getCIIULabel(r)
+							.toLocaleLowerCase()
+							.includes(ciiu3.buscar.toLocaleLowerCase())
+					: true
+			)
+			.map((r) => getCIIUOption(r));
+		setCIIU3((o) => ({ ...o, options }));
+	}, [ciius, ciiu3.buscar]);
+	// Refresca descripcion
+	useEffect(() => {
+		if (ciius.loading) return;
+		const ciiU3Descripcion =
+			ciius.data.find((r) => r.ciiu === data.ciiU3)?.descripcion ?? "";
+		if (ciiU3Descripcion === data.ciiU3Descripcion) return;
+		onChange({ ciiU3Descripcion });
+	}, [ciius, data.ciiU3, data.ciiU3Descripcion, onChange]);
+	//#endregion
+
+	//#endregion
+
+	const [validacionCUIT, setValidacionCUIT] = useState({
+		loading: false,
+		validado: "",
+	});
+
+	const validarEmpresaCUITHandler = () => {
+		const changes = {
+			loading: true,
+			validado: 0,
+		};
+		setValidacionCUIT((o) => ({ ...o, ...changes }));
+
+		errors.cuit = "";
+		onChange({
+			existe: false,
+			razonSocial: null,
+			actividadPrincipalId: null,
+			domicilioCalle: null,
+			telefono: null,
+			email: null,
+			ciiU1: null,
+			ciiU2: null,
+			ciiU3: null,
+		});
+		pushQuery({
+			action: "GetEmpresa",
+			params: { cuit: data.cuit, soloActivos: true },
+			onOk: async (ok) => {
+				changes.validado = 1;
+				onChange({
+					existe: true,
+					cuit: ok.cuit,
+					razonSocial: ok.razonSocial,
+					actividadPrincipalId: ok.actividadPrincipalId,
+					domicilioCalle: ok.domicilioCalle + " " + ok.domicilioNumero,
+					telefono: ok.telefono,
+					email: ok.email,
+					ciiU1: ok.ciiU1,
+					ciiU2: ok.ciiU2,
+					ciiU3: ok.ciiU3,
 				});
-			//console.log("actividadesSelect", actividadesSelect, actividades);
-			// setActividadesOptions(actividadesSelect);
-		}
-
-		if (actividadBuscar === "") {
-			// setActividadesOptions([]);
-			setActividadBuscar("");
-		}
-	}, [actividadesTodas, actividadBuscar]);
-
-	// const handlerOnTextChange = (event) => {
-	// 	//console.log("text change", event.target.value);
-
-	// 	setActividadEmpresa({ ...actividadEmpresa, label: event.target.value });
-	// 	setActividadBuscar(event.target.value);
-	// };
+			},
+			onFinally: async () => {
+				changes.loading = false;
+				setValidacionCUIT((o) => ({ ...o, ...changes }));
+			},
+		});
+	};
 	//#endregion
 
 	UseKeyPress(["Escape"], () => onClose());
@@ -193,7 +316,7 @@ const EmpresasForm = ({
 									helperText={
 										errors.cuit
 											? errors.cuit
-											: cuitValidado
+											: validacionCUIT.validado
 											? "La Empresa ya existe!"
 											: "Se creará la Empresa"
 									}
@@ -207,11 +330,11 @@ const EmpresasForm = ({
 							<Grid col width="30%">
 								<Button
 									className="botonAzul"
-									disabled={!(data?.cuit?.length == 11)}
+									disabled={!(data?.cuit?.length === 11)}
 									onClick={validarEmpresaCUITHandler}
-									loading={cuitLoading}
+									loading={validacionCUIT.loading}
 								>
-									<h6>{!cuitLoading ? `Valida` : `...`}</h6>
+									<h6>{!validacionCUIT.loading ? `Valida` : `...`}</h6>
 								</Button>
 							</Grid>
 						</Grid>
@@ -223,7 +346,7 @@ const EmpresasForm = ({
 								helperText={errors.razonSocial ?? ""}
 								value={data.razonSocial}
 								disabled={disabled.razonSocial}
-								onChange={(value, _id) => onChange({ razonSocial: value })}
+								onChange={(razonSocial) => onChange({ razonSocial })}
 							/>
 						</Grid>
 					</Grid>
@@ -251,44 +374,33 @@ const EmpresasForm = ({
 							/>
 						</Grid>
 					</Grid>
-					{/* <Grid width="full" gap="inherit">
-						<Grid width="250px">
+					<Grid width="full" gap="inherit">
+						<Grid width="full">
 							<SearchSelectMaterial
-								id="actividadPrincipal"
-								name="actividadPrincipal"
+								id="actividadPrincipalId"
+								name="actividadPrincipalId"
 								label="Actividad"
-								error={
-									!!errors.actividadPrincipalId ||
-									data.actividadPrincipalDescripcion != actividadEmpresa.label
+								error={!!errors.actividadPrincipalId}
+								helperText={
+									ciius.loading ??
+									ciius.error?.message ??
+									errors.actividadPrincipalId ??
+									""
 								}
-								helperText={errors.actividadPrincipalId ?? ""}
-								value={actividadEmpresa}
+								value={actividadPrincipal.selected}
 								disabled={disabled.actividadPrincipalId ?? false}
-								onChange={(value, _id) => (
-									onChange({ actividadPrincipalId: value.value }),
-									onChange({ actividadPrincipalDescripcion: value.label }),
-									setActividadEmpresa({
-										...actividadEmpresa,
-										label: value.label,
-									})
-								)}
-								options={actividadesOptions}
-								onTextChange={handlerOnTextChange}
+								onChange={(selected) => {
+									setActividadPrincipal((o) => ({ ...o, selected }));
+									onChange({ actividadPrincipalId: selected?.value });
+								}}
+								options={actividadPrincipal.options}
+								onTextChange={({ target }) =>
+									setActividadPrincipal((o) => ({ ...o, buscar: target.value }))
+								}
 								required
 							/>
 						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="domicilioCalle"
-								label="Dirección"
-								error={!!errors.domicilioCalle}
-								helperText={errors.domicilioCalle ?? ""}
-								value={data.domicilioCalle}
-								disabled={disabled.domicilioCalle ?? false}
-								onChange={(value, _id) => onChange({ domicilioCalle: value })}
-							/>
-						</Grid>
-					</Grid> */}
+					</Grid>
 					<Grid width="full" gap="inherit">
 						<InputMaterial
 							id="domicilioCalle"
@@ -297,60 +409,8 @@ const EmpresasForm = ({
 							helperText={errors.domicilioCalle ?? ""}
 							value={data.domicilioCalle}
 							disabled={disabled.domicilioCalle ?? false}
-							onChange={(value, _id) => onChange({ domicilioCalle: value })}
+							onChange={(domicilioCalle) => onChange({ domicilioCalle })}
 						/>
-					</Grid>
-					<Grid width="full" gap="inherit">
-						<Grid width="250px">
-							<Grid width="full">
-								<InputMaterial
-									id="actividadPrincipalId"
-									name="actividadPrincipalId"
-									label="Actividad Ppal. - Código"
-									error={!!errors.actividadPrincipalId}
-									helperText={errors.actividadPrincipalId ?? ""}
-									value={data.actividadPrincipalId}
-									disabled={disabled.actividadPrincipalId}
-									/>
-							</Grid>
-							<Grid col width="40px" style={{ margin: "5px 0px 5px 5px" }}>
-								<Button
-									className="botonAmarillo"
-									style={{ padding: 0 }}
-									disabled={disabled.actividadPrincipalId}
-									onClick={() =>
-										setModal(
-											<CIIULookup
-												title="Elige Actividad Principal"
-												data={actividadesTodas}
-												onClose={(selected) => {
-													if (selected) {
-														onChange({
-															actividadPrincipalId: selected.ciiu,
-															actividadPrincipalDescripcion: selected.descripcion,
-														});
-													}
-													setModal(null);
-												}}
-											/>
-										)
-									}
-								>
-									...
-								</Button>
-							</Grid>
-						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="actividadPrincipalDescripcion"
-								name="actividadPrincipalDescripcion"
-								label="Actividad Ppal. - Descripción"
-								error={!!errors.actividadPrincipalDescripcion}
-								helperText={errors.actividadPrincipalDescripcion ?? ""}
-								value={data.actividadPrincipalDescripcion}
-								disabled={disabled.actividadPrincipalId}
-								/>
-						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
 						<Grid width="250px">
@@ -361,7 +421,7 @@ const EmpresasForm = ({
 								helperText={errors.telefono ?? ""}
 								value={data.telefono}
 								disabled={disabled.telefono ?? false}
-								onChange={(value, _id) => onChange({ telefono: value })}
+								onChange={(telefono) => onChange({ telefono })}
 							/>
 						</Grid>
 						<Grid grow>
@@ -373,164 +433,80 @@ const EmpresasForm = ({
 								helperText={errors.email ?? ""}
 								value={data.email}
 								disabled={disabled.email}
-								onChange={(value) => onChange({ email: value })}
+								onChange={(email) => onChange({ email })}
 							/>
 						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
-						<Grid width="250px">
-							<Grid width="full">
-								<InputMaterial
-									id="ciiU1"
-									name="ciiU1"
-									label="CIIU 1 - Código"
-									error={!!errors.ciiU1}
-									helperText={errors.ciiU1 ?? ""}
-									value={data.ciiU1}
-									disabled={disabled.ciiU1}
-									/>
-							</Grid>
-							<Grid col width="40px" style={{ margin: "5px 0px 5px 5px" }}>
-								<Button
-									className="botonAmarillo"
-									style={{ padding: 0 }}
-									disabled={disabled.ciiU1}
-									onClick={() =>
-										setModal(
-											<CIIULookup
-												title="Elige CIIU 1"
-												data={actividadesTodas}
-												onClose={(selected) => {
-													if (selected) {
-														onChange({
-															ciiU1: selected.ciiu,
-															ciiU1Descripcion: selected.descripcion,
-														});
-													}
-													setModal(null);
-												}}
-											/>
-										)
-									}
-								>
-									...
-								</Button>
-							</Grid>
-						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="ciiU1Descripcion"
-								name="ciiU1Descripcion"
-								label="CIIU 1 - Descripción"
-								error={!!errors.ciiU1Descripcion}
-								helperText={errors.ciiU1Descripcion ?? ""}
-								value={data.ciiU1Descripcion}
-								disabled={disabled.ciiU1}
-								/>
+						<Grid width="full">
+							<SearchSelectMaterial
+								id="ciiU1"
+								name="ciiU1"
+								label="CIIU 1"
+								error={!!errors.ciiU1}
+								helperText={
+									ciius.loading ?? ciius.error?.message ?? errors.ciiU1 ?? ""
+								}
+								value={ciiu1.selected}
+								disabled={disabled.ciiU1 ?? false}
+								onChange={(selected) => {
+									setCIIU1((o) => ({ ...o, selected }));
+									onChange({ ciiU1: selected?.value });
+								}}
+								options={ciiu1.options}
+								onTextChange={({ target }) =>
+									setCIIU1((o) => ({ ...o, buscar: target.value }))
+								}
+								required
+							/>
 						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
-						<Grid width="250px">
-							<Grid width="full">
-								<InputMaterial
-									id="ciiU2"
-									name="ciiU2"
-									label="CIIU 2 - Código"
-									error={!!errors.ciiU2}
-									helperText={errors.ciiU2 ?? ""}
-									value={data.ciiU2}
-									disabled={disabled.ciiU2}
-									/>
-							</Grid>
-							<Grid col width="40px" style={{ margin: "5px 0px 5px 5px" }}>
-								<Button
-									className="botonAmarillo"
-									style={{ padding: 0 }}
-									disabled={disabled.ciiU2}
-									onClick={() =>
-										setModal(
-											<CIIULookup
-												title="Elige CIIU 2"
-												data={actividadesTodas}
-												onClose={(selected) => {
-													if (selected) {
-														onChange({
-															ciiU2: selected.ciiu,
-															ciiU2Descripcion: selected.descripcion,
-														});
-													}
-													setModal(null);
-												}}
-											/>
-										)
-									}
-								>
-									...
-								</Button>
-							</Grid>
-						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="ciiU2Descripcion"
-								name="ciiU2Descripcion"
-								label="CIIU 2 - Descripción"
-								error={!!errors.ciiU2Descripcion}
-								helperText={errors.ciiU2Descripcion ?? ""}
-								value={data.ciiU2Descripcion}
-								disabled={disabled.ciiU2}
-								/>
+						<Grid width="full">
+							<SearchSelectMaterial
+								id="ciiU2"
+								name="ciiU2"
+								label="CIIU 2"
+								error={!!errors.ciiU2}
+								helperText={
+									ciius.loading ?? ciius.error?.message ?? errors.ciiU1 ?? ""
+								}
+								value={ciiu2.selected}
+								disabled={disabled.ciiU2 ?? false}
+								onChange={(selected) => {
+									setCIIU2((o) => ({ ...o, selected }));
+									onChange({ ciiU2: selected?.value });
+								}}
+								options={ciiu2.options}
+								onTextChange={({ target }) =>
+									setCIIU2((o) => ({ ...o, buscar: target.value }))
+								}
+								required
+							/>
 						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
-						<Grid width="250px">
-							<Grid width="full">
-								<InputMaterial
-									id="ciiU3"
-									name="ciiU3"
-									label="CIIU 3 - Código"
-									error={!!errors.ciiU3}
-									helperText={errors.ciiU3 ?? ""}
-									value={data.ciiU3}
-									disabled={disabled.ciiU3}
-									/>
-							</Grid>
-							<Grid col width="40px" style={{ margin: "5px 0px 5px 5px" }}>
-								<Button
-									className="botonAmarillo"
-									style={{ padding: 0 }}
-									disabled={disabled.ciiU3}
-									onClick={() =>
-										setModal(
-											<CIIULookup
-												title="Elige CIIU 3"
-												data={actividadesTodas}
-												onClose={(selected) => {
-													if (selected) {
-														onChange({
-															ciiU3: selected.ciiu,
-															ciiU3Descripcion: selected.descripcion,
-														});
-													}
-													setModal(null);
-												}}
-											/>
-										)
-									}
-								>
-									...
-								</Button>
-							</Grid>
-						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="ciiU3Descripcion"
-								name="ciiU3Descripcion"
-								label="CIIU 3 - Descripción"
-								error={!!errors.ciiU3Descripcion}
-								helperText={errors.ciiU3Descripcion ?? ""}
-								value={data.ciiU3Descripcion}
-								disabled={disabled.ciiU3}
-								/>
+						<Grid width="full">
+							<SearchSelectMaterial
+								id="ciiU3"
+								name="ciiU3"
+								label="CIIU 3"
+								error={!!errors.ciiU3}
+								helperText={
+									ciius.loading ?? ciius.error?.message ?? errors.ciiU3 ?? ""
+								}
+								value={ciiu3.selected}
+								disabled={disabled.ciiU3 ?? false}
+								onChange={(selected) => {
+									setCIIU3((o) => ({ ...o, selected }));
+									onChange({ ciiU3: selected?.value });
+								}}
+								options={ciiu3.options}
+								onTextChange={({ target }) =>
+									setCIIU3((o) => ({ ...o, buscar: target.value }))
+								}
+								required
+							/>
 						</Grid>
 					</Grid>
 					{hide.deletedObs ? null : (
@@ -543,7 +519,7 @@ const EmpresasForm = ({
 									helperText={errors.deletedDate ?? ""}
 									value={data.deletedDate}
 									disabled={disabled.deletedDate ?? false}
-									onChange={(value, _id) => onChange({ deletedDate: value })}
+									onChange={(deletedDate) => onChange({ deletedDate })}
 								/>
 							</Grid>
 							<Grid width="full">
@@ -554,7 +530,7 @@ const EmpresasForm = ({
 									helperText={errors.deletedBy ?? ""}
 									value={data.deletedBy}
 									disabled={disabled.deletedBy ?? false}
-									onChange={(value, _id) => onChange({ deletedBy: value })}
+									onChange={(deletedBy) => onChange({ deletedBy })}
 								/>
 							</Grid>
 							<Grid width="full">
@@ -565,12 +541,11 @@ const EmpresasForm = ({
 									helperText={errors.deletedObs ?? ""}
 									value={data.deletedObs}
 									disabled={disabled.deletedObs ?? false}
-									onChange={(value, _id) => onChange({ deletedObs: value })}
+									onChange={(deletedObs) => onChange({ deletedObs })}
 								/>
 							</Grid>
 						</Grid>
 					)}
-					{modal}
 				</Grid>
 			</Modal.Body>
 			<Modal.Footer>
@@ -578,7 +553,7 @@ const EmpresasForm = ({
 					className="botonAzul"
 					loading={loading}
 					width={25}
-					onClick={() => onClose(true)} //</Modal.Footer>handlerOnConfirmaClick}
+					onClick={() => onClose(true)}
 				>
 					CONFIRMA
 				</Button>
