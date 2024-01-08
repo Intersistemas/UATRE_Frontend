@@ -261,6 +261,9 @@ const EmpresasForm = ({
 			razonSocial: null,
 			actividadPrincipalId: null,
 			domicilioCalle: null,
+			domicilioNro: null,
+			domicilioPiso: null,
+			domicilioDpto: null,
 			telefono: null,
 			email: null,
 			ciiU1: null,
@@ -277,7 +280,10 @@ const EmpresasForm = ({
 					cuit: ok.cuit,
 					razonSocial: ok.razonSocial,
 					actividadPrincipalId: ok.actividadPrincipalId,
-					domicilioCalle: ok.domicilioCalle + " " + ok.domicilioNumero,
+					domicilioCalle: ok.domicilioCalle,
+					domicilioNro: ok.domicilioNro,
+					domicilioPiso: ok.domicilioPiso,
+					domicilioDpto: ok.domicilioDpto,
 					telefono: ok.telefono,
 					email: ok.email,
 					ciiU1: ok.ciiU1,
@@ -402,15 +408,46 @@ const EmpresasForm = ({
 						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
-						<InputMaterial
-							id="domicilioCalle"
-							label="Dirección"
-							error={!!errors.domicilioCalle}
-							helperText={errors.domicilioCalle ?? ""}
-							value={data.domicilioCalle}
-							disabled={disabled.domicilioCalle ?? false}
-							onChange={(domicilioCalle) => onChange({ domicilioCalle })}
-						/>
+						<Grid width="full">
+							<InputMaterial
+								id="domicilioCalle"
+								label="Dirección - Calle"
+								error={!!errors.domicilioCalle}
+								helperText={errors.domicilioCalle ?? ""}
+								value={data.domicilioCalle}
+								disabled={disabled.domicilioCalle ?? false}
+								onChange={(domicilioCalle) => onChange({ domicilioCalle })}
+							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="domicilioNumero"
+								label="Dir. - Nro."
+								error={!!errors.domicilioNumero}
+								helperText={errors.domicilioNumero ?? ""}
+								value={data.domicilioNumero}
+								disabled={disabled.domicilioNumero ?? false}
+								onChange={(domicilioNumero) => onChange({ domicilioNumero })}
+							/>
+							<InputMaterial
+								id="domicilioPiso"
+								label="Dir. - Piso"
+								error={!!errors.domicilioPiso}
+								helperText={errors.domicilioPiso ?? ""}
+								value={data.domicilioPiso}
+								disabled={disabled.domicilioPiso ?? false}
+								onChange={(domicilioPiso) => onChange({ domicilioPiso })}
+							/>
+							<InputMaterial
+								id="domicilioDpto"
+								label="Dir. - Dpto."
+								error={!!errors.domicilioDpto}
+								helperText={errors.domicilioDpto ?? ""}
+								value={data.domicilioDpto}
+								disabled={disabled.domicilioDpto ?? false}
+								onChange={(domicilioDpto) => onChange({ domicilioDpto })}
+							/>
+						</Grid>
 					</Grid>
 					<Grid width="full" gap="inherit">
 						<Grid width="250px">
