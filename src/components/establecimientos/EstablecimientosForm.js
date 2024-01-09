@@ -178,7 +178,7 @@ const EstablecimientosForm = ({
 								{hide.domicilioDpto ? null : (
 									<InputMaterial
 										id="domicilioDpto"
-										label="Piso"
+										label="Dpto."
 										disabled={disabled.domicilioDpto}
 										error={!!errors.domicilioDpto}
 										helperText={errors.domicilioDpto ?? ""}
