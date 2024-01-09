@@ -486,18 +486,18 @@ const SiaruHandler = () => {
 	//#endregion
 
 	return (
-		<>
-			<div className="titulo">
+		<Grid col height="100vh" gap="10px">
+			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
-			</div>
-			<div className="contenido">
+			</Grid>
+			<Grid className="contenido" width="full" grow>
 				<Grid
 					col
 					full
 					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
 				>
 					<Grid full="width">
-						<h2 className="subtitulo">Empresas</h2>
+						<h2 className="subtitulo" style={{ margin: 0 }}>Empresas</h2>
 					</Grid>
 					<Grid full="width" col grow gap="5px">
 						<Grid grow>
@@ -536,8 +536,8 @@ const SiaruHandler = () => {
 					</Grid>
 				</Grid>
 				{form}
-			</div>
-		</>
+			</Grid>
+		</Grid>
 	);
 };
 

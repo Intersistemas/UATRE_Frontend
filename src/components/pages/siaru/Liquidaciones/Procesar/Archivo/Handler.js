@@ -125,24 +125,22 @@ const Handler = () => {
 		switch (tentativas.error.code ?? 0) {
 			case 0:
 				contenido = (
-					<>
+					<Grid col width="full" gap="10px">
 						{contenido}
-						<br />
 						<h4>{tentativas.error.message}</h4>
-					</>
+					</Grid>
 				);
 				break;
 			default:
 				contenido = (
-					<>
+					<Grid col width="full" gap="10px">
 						{contenido}
-						<br />
 						<h4 style={{ color: "red" }}>
 							{"Error "}
 							{tentativas.error.code ? `${tentativas.error.code} - ` : ""}
 							{tentativas.error.message}
 						</h4>
-					</>
+					</Grid>
 				);
 		}
 	} else {
@@ -150,15 +148,15 @@ const Handler = () => {
 	}
 
 	return (
-		<>
-			<div className="titulo">
+		<Grid col height="100vh" gap="10px">
+			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
-			</div>
-			<div className="contenido">
+			</Grid>
+			<Grid className="contenido" width="full" grow>
 				{contenido}
 				{modal}
-			</div>
-		</>
+			</Grid>
+		</Grid>
 	);
 };
 

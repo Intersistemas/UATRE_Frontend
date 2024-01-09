@@ -261,76 +261,78 @@ const Handler = () => {
 				full
 				style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
 			>
-				<h2 className="subtitulo">
+				<h2 className="subtitulo" style={{ margin: 0 }}>
 					Generación liquidaciones de
 					{` ${Formato.Cuit(empresa?.cuit)} ${empresa?.razonSocial ?? ""} `}
 					para el período
 					{` ${Formato.Periodo(periodoHacia)} `}a partir del período
 					{` ${Formato.Periodo(periodoDesde)}`}
 				</h2>
-				<Grid width="full">{liqNomRender()}</Grid>
-				<Grid justify="center">
-					<Grid width="350px" height="50px">
-						<Button
-							className="botonAmarillo"
-							disabled={!liqNomSelected}
-							onClick={() => {
-								setModal(
-									<Modal size="lg" centered show onHide={() => setModal(null)}>
-										<Modal.Header
-											className={modalCss.modalCabecera}
-											closeButton
-										>
-											Inicia proceso de liquidación
-										</Modal.Header>
-										<Modal.Body>
-											<Grid width="full" justify="center">
-												<h4>
-													Al continuar no se podrá modificar la lista de
-													trabajadores.
-												</h4>
-											</Grid>
-										</Modal.Body>
-										<Modal.Footer>
-											<Grid gap="20px">
-												<Grid width="150px">
-													<Button
-														className="botonAzul"
-														onClick={() => {
-															setModal(null);
-															setTentativas((o) => ({
-																...o,
-																loading: "Cargando...",
-																body: {
-																	...o.body,
-																	nominas: nomina.data.map((r) => ({
-																		cuil: r.cuil,
-																		nombre: r.nombre,
-																		remuneracion: r.remuneracionImponible,
-																	})),
-																},
-															}));
-														}}
-													>
-														CONTINÚA
-													</Button>
+				<Grid col width="full" grow>
+					<Grid width="full" style={{ marginTop: "50px" }}>{liqNomRender()}</Grid>
+					<Grid justify="center">
+						<Grid width="350px" height="50px">
+							<Button
+								className="botonAmarillo"
+								disabled={!liqNomSelected}
+								onClick={() => {
+									setModal(
+										<Modal size="lg" centered show onHide={() => setModal(null)}>
+											<Modal.Header
+												className={modalCss.modalCabecera}
+												closeButton
+											>
+												Inicia proceso de liquidación
+											</Modal.Header>
+											<Modal.Body>
+												<Grid width="full" justify="center">
+													<h4>
+														Al continuar no se podrá modificar la lista de
+														trabajadores.
+													</h4>
 												</Grid>
-												<Grid width="150px">
-													<Button
-														className="botonAmarillo"
-														onClick={() => setModal(null)}
-													>
-														CANCELA
-													</Button>
+											</Modal.Body>
+											<Modal.Footer>
+												<Grid gap="20px">
+													<Grid width="150px">
+														<Button
+															className="botonAzul"
+															onClick={() => {
+																setModal(null);
+																setTentativas((o) => ({
+																	...o,
+																	loading: "Cargando...",
+																	body: {
+																		...o.body,
+																		nominas: nomina.data.map((r) => ({
+																			cuil: r.cuil,
+																			nombre: r.nombre,
+																			remuneracion: r.remuneracionImponible,
+																		})),
+																	},
+																}));
+															}}
+														>
+															CONTINÚA
+														</Button>
+													</Grid>
+													<Grid width="150px">
+														<Button
+															className="botonAmarillo"
+															onClick={() => setModal(null)}
+														>
+															CANCELA
+														</Button>
+													</Grid>
 												</Grid>
-											</Grid>
-										</Modal.Footer>
-									</Modal>
-								);
-							}}
-						>
-							Inicia proceso de liquidación
-						</Button>
+											</Modal.Footer>
+										</Modal>
+									);
+								}}
+							>
+								Inicia proceso de liquidación
+							</Button>
+						</Grid>
 					</Grid>
 				</Grid>
 				<KeyPress items={acciones} />
@@ -339,15 +341,15 @@ const Handler = () => {
 	}
 
 	return (
-		<>
-			<div className="titulo">
+		<Grid col height="100vh" gap="10px">
+			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
-			</div>
-			<div className="contenido">
+			</Grid>
+			<Grid className="contenido" width="full" grow>
 				{contenido}
 				{modal}
-			</div>
-		</>
+			</Grid>
+		</Grid>
 	);
 };
 

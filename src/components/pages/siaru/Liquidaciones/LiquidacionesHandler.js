@@ -304,18 +304,18 @@ const LiquidacionesHandler = () => {
 	//#endregion
 
 	return (
-		<>
+		<Grid col height="100vh" gap="10px">
 			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
 			</Grid>
-			<Grid className="contenido" width="full">
+			<Grid className="contenido" width="full" grow>
 				<Grid
 					col
 					full
 					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
 				>
 					<Grid full="width">
-						<h2 className="subtitulo">
+						<h2 className="subtitulo" style={{ margin: 0 }}>
 							{[
 								"Liquidaciones de",
 								Formato.Cuit(empresa.cuit),
@@ -354,7 +354,7 @@ const LiquidacionesHandler = () => {
 				{liquidacionPDFRender}
 			</Grid>
 			<KeyPress items={acciones} />
-		</>
+		</Grid>
 	);
 };
 

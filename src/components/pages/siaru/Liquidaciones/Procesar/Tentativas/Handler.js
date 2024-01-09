@@ -995,7 +995,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	return (
 		<Grid col full gap="15px">
 			<Grid full="width">
-				<h2 className="subtitulo">
+				<h2 className="subtitulo" style={{ margin: 0 }}>
 					Liquidar periodo {Formato.Periodo(periodo)} de
 					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
 				</h2>

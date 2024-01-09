@@ -160,14 +160,14 @@ const LiquidacionesProcesarHandler = () => {
 	]);
 
 	return (
-		<>
-			<div className="titulo">
+		<Grid col height="100vh" gap="10px">
+			<Grid className="titulo" width="full">
 				<h1>Sistema de Aportes Rurales</h1>
-			</div>
-			<div className="contenido">
+			</Grid>
+			<Grid className="contenido" width="full" grow>
 				<Grid col gap="5px" full>
 					<Grid full="width">
-						<h2 className="subtitulo">
+						<h2 className="subtitulo" style={{ margin: 0 }}>
 							Procesar liquidaciones de
 							{` ${Formato.Cuit(empresa?.cuit)} ${empresa?.razonSocial ?? ""}`}
 						</h2>
@@ -430,8 +430,8 @@ const LiquidacionesProcesarHandler = () => {
 					</Grid>
 					<Grid full></Grid>
 				</Grid>
-			</div>
-		</>
+			</Grid>
+		</Grid>
 	);
 };
 
