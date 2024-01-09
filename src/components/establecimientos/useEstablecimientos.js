@@ -390,6 +390,8 @@ const useEstablecimientos = () => {
 							errors.domicilioProvinciasId = "Dato requerido";
 						if (!record.domicilioLocalidadesId)
 							errors.domicilioLocalidadesId = "Dato requerido";
+						if (!record.domicilioCalle)
+							errors.domicilioCalle = "Dato requerido";
 					}
 					if (Object.keys(errors).length) {
 						setList((o) => ({
