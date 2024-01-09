@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
@@ -7,12 +7,18 @@ import Action from "components/helpers/Action";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 //import useAutoridades from "components/pages/administracion/empresas/autoridades/useAutoridades";
 import KeyPress from "components/keyPress/KeyPress";
-import useEmpresas from "./useEmpresas";
+import useEmpresas, { onLoadSelectKeepOrFirst } from "./useEmpresas";
 //import useEmpresaLocalidades from "./empresaLocalidades/useEmpresaLocalidades";
 import useHttp from "../../../hooks/useHttp";
+import dayjs from "dayjs";
+import AuthContext from "store/authContext";
+import Formato from "components/helpers/Formato";
 
 const EmpresasHandler = () => {
 	const dispatch = useDispatch();
+
+	const Usuario = useContext(AuthContext).usuario;
+
 	const { isLoading, error, sendRequest: request } = useHttp();
 
 	const tabs = [];
@@ -38,17 +44,24 @@ const EmpresasHandler = () => {
 	
 	
 	//#region Tab Empresas
-	const [empresasTab, empresaChanger, empresaSelected] = useEmpresas( {onLoadSelect: ({record})=> record});
+	const {
+		render: empresasTab,
+		request: empresaChanger,
+		selected: empresaSelected,
+	} = useEmpresas({ onLoadSelect: onLoadSelectKeepOrFirst });
 	const [empresasActions, setEmpresasActions] = useState([]);
 	
 	useEffect(() => {
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
+		const createAction = ({ action, request, record, ...x }) => {
+			const params = { action, request };
+			if (record) params.record = record;
+			return new Action({
 				name: action,
-				onExecute: (action) => empresaChanger("selected", { request, action }),
+				onExecute: () => empresaChanger("selected", params),
 				combination: "AltKey",
 				...x,
 			});
+		};
 		const actions = [
 			createAction({
 				action: `Agrega Empresa`,
@@ -58,23 +71,19 @@ const EmpresasHandler = () => {
 				underlineindex: 0,
 			}),
 		];
-		const desc = empresaSelected?.cuit ?? empresaSelected?.razonSocial;
+		const desc = Formato.Cuit(empresaSelected?.cuit) || empresaSelected?.razonSocial;
 
 		actions.push(
 			createAction({
 				action: `Consulta Empresa ${desc}`,
 				request: "C",
-
-				...(!empresaSelected?.id ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "o",
-					 underlineindex: 1
-					}
-				)
-		
+				...(!empresaSelected?.id
+					? { disabled: true }
+					: {
+							disabled: false,
+							keys: "o",
+							underlineindex: 1,
+					  }),
 			})
 		);
 		actions.push(
@@ -82,20 +91,15 @@ const EmpresasHandler = () => {
 				action: `Modifica Empresa ${desc}`,
 				request: "M",
 				tarea: "Empresa_Modifica",
-
-				...(empresaSelected?.deletedDate || !empresaSelected?.id ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "m",
-					 underlineindex: 0
-					}
-				)
+				...(empresaSelected?.deletedDate || !empresaSelected?.id
+					? { disabled: true }
+					: {
+							disabled: false,
+							keys: "m",
+							underlineindex: 0,
+					  }),
 			})
 		);
-
-
 
 		if (empresaSelected?.deletedDate) {
 			actions.push(
@@ -105,24 +109,26 @@ const EmpresasHandler = () => {
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
-			})
+				})
 			);
-		}else{
+		} else {
 			actions.push(
 				createAction({
 					action: `Baja Empresa ${desc}`,
 					request: "B",
+					record: {
+						...empresaSelected,
+						deletedDate: dayjs().format("YYYY-MM-DD"),
+						deletedBy: Usuario.nombre,
+					},
 					tarea: "Empresa_Baja",
-	
-					...(empresaSelected?.deletedDate || !empresaSelected?.id ? 
-						{disabled:  true}
-						:
-						{
-						 disabled:  false,
-						 keys: "b",
-						 underlineindex: 0
-						}
-					)
+					...(empresaSelected?.deletedDate || !empresaSelected?.id
+						? { disabled: true }
+						: {
+								disabled: false,
+								keys: "b",
+								underlineindex: 0,
+						  }),
 				})
 			);
 		}
