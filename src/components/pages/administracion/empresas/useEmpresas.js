@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import EmpresasTable from "./EmpresasTable";
-import AuthContext from "../../../../store/authContext";
 import EmpresasForm from "./EmpresasForm";
 import dayjs from "dayjs";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
+import Formato from "components/helpers/Formato";
 
 const selectionDef = {
 	action: "",
@@ -59,8 +59,6 @@ const useEmpresas = ({
 	mostrarBuscar = false,
 } = {}) => {
 	//#region Trato queries a APIs
-	const Usuario = useContext(AuthContext).usuario;
-
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetList": {
@@ -400,18 +398,43 @@ const useEmpresas = ({
 						? { deletedObs: true }
 						: {}
 				}
-				onChange={(edit) =>
+				onChange={(edit) => {
+					const changes = { edit: { ...edit }, errors: {}, help: {} };
+					if ("cuit" in edit) {
+						changes.errors.cuit = "";
+						changes.help.cuit = "";
+						if (edit.cuit && `${edit.cuit}`.length === 11) {
+							if (ValidarCUIT(edit.cuit)) {
+								changes.help.cuit = "Cargando...";
+								pushQuery({
+									action: "GetEmpresaSpecs",
+									params: { cuit: edit.cuit, soloActivos: false },
+									onOk: async (record) => {
+										const params = { record };
+										if (record.deletedDate) {
+											params.request = "R";
+											params.action = `Reactiva Empresa ${Formato.Cuit(record.cuit)}`;
+										} else {
+											params.request = "M";
+											params.action = `Modifica Empresa ${Formato.Cuit(record.cuit)}`;
+										}
+										request("selected", params);
+									}
+								})
+							} else {
+								changes.errors.cuit = "CUIT inválido";
+							}
+						}
+					}
 					setList((o) => ({
 						...o,
 						selection: {
 							...o.selection,
-							edit: {
-								...o.selection.edit,
-								...edit,
-							},
+							edit: { ...o.selection.edit, ...changes.edit },
+							errors: { ...o.selection.errors, ...changes.errors },
 						},
-					}))
-				}
+					}));
+				}}
 				onClose={(confirm) => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request)) {
 						confirm = false;
