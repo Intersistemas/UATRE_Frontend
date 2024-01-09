@@ -86,6 +86,7 @@ const EstablecimientosHandler = () => {
 			createAction({
 				action: `Modifica Establecimiento ${desc}`,
 				request: "M",
+				disabled: !!establecimientosSelected.deletedDate,
 				tarea: "Establecimiento_Modifica",
 				keys: "m",
 				underlineindex: 0,
