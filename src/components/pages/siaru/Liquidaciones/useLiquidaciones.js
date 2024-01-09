@@ -343,7 +343,7 @@ const useLiquidaciones = ({
 						switch (list.selection.request) {
 							case "A": {
 								record.id =
-									(Math.max(...changes.data.map((r) => r.id)) ?? 0) + 1;
+									(Math.max(0, ...changes.data.map((r) => r.id)) ?? 0) + 1;
 								changes.data.push(record);
 								break;
 							}
