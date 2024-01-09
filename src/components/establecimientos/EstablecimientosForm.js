@@ -4,6 +4,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 
 const dependeciesDef = {
@@ -64,7 +65,7 @@ const EstablecimientosForm = ({
 
 	return (
 		<Modal size="lg" centered show onHide={() => onClose()}>
-			<Modal.Header closeButton>{title}</Modal.Header>
+			<Modal.Header className={modalCss.modalCabecera} closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full" gap="inherit">
