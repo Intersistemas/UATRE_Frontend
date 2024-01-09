@@ -41,11 +41,11 @@ const EstablecimientosHandler = () => {
 	}, [empresa]);
 
 	//#region contenido Establecimientos
-	const [
-		establecimientosContent,
-		establecimientosChanger,
-		establecimientosSelected,
-	] = useEstablecimientos();
+	const {
+		render: establecimientosContent,
+		request: establecimientosChanger,
+		selected: establecimientosSelected,
+	} = useEstablecimientos();
 	const [acciones, setAcciones] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
