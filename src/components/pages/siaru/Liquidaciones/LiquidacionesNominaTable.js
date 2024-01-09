@@ -24,7 +24,7 @@ const LiquidacionesNominaTable = ({ columns, ...x } = {}) => {
 			sort: true,
 			headerStyle: { width: "120px" },
 			formatter: (value) =>
-				Formato.Booleano(value != null ? value !== 0 : null),
+				Formato.Booleano(!!value),
 			style: { textAlign: "center" },
 		},
 		{
