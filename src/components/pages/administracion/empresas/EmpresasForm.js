@@ -24,6 +24,16 @@ const getCIIUOption = (ciiu) => ({
 	label: getCIIULabel(ciiu),
 });
 
+const getProvinciaOption = (provincia) => ({
+	value: provincia?.id,
+	label: provincia?.nombre,
+});
+
+const getLocalidadOption = (localidad) => ({
+	value: localidad?.id,
+	label: localidad?.nombre,
+});
+
 const EmpresasForm = ({
 	data = {},
 	title = "",
@@ -35,14 +45,13 @@ const EmpresasForm = ({
 	loading = {},
 }) => {
 	data ??= {};
-
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
-
 	onChange ??= onChangeDef;
-
 	onClose ??= onCloseDef;
+
+	console.log('EmpresasForm:',data)
 
 	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
@@ -65,10 +74,122 @@ const EmpresasForm = ({
 					},
 				};
 			}
+
+			case "ConsultaAFIP":
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/AFIPConsulta",
+						method: "GET",
+					},
+				};
+
+			case "GetProvincias":
+				return{
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Provincia`,
+						method: "GET",
+					}
+				};
+			case "GetLocalidades":
+				return{
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/RefLocalidad`,
+						method: "GET",
+					}
+				}
+
 			default:
 				return null;
 		}
 	});
+	//#endregion
+
+	//#region Provincias
+	const [provincias, setProvincias] = useState({
+		loading: "Cargando provincias...",
+		provinciaEmpresa: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre},
+		data: [], //TODAS LAS EMPRESAS
+		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
+		buscar: "",
+		error: null,
+	});
+
+	const handlerOnTextChange = (event) => {
+
+		console.log('event_handlerOnTextChange',event);
+		
+		setProvincias(...provincias, {provinciaEmpresa: {value:event.target.value}})
+		setProvincias(...provincias, {buscar:event.target.value})
+		
+	  };
+
+
+
+	useEffect(() => {
+		if (!provincias.loading) return;
+		const changes = {
+			loading: null,
+			data: [],
+			options: [],
+			error: null,
+		};
+		pushQuery({
+			action: "GetProvincias",
+			onOk: async (data) => {
+				console.log('provincias_data:',data)
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", { GetProvincias: data });
+				changes.data.push(...data);
+				changes.options.push(...data.map((provincia) => getProvinciaOption(provincia))); //le doy formato al OPTION que voy a mostrar
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setProvincias((o) => ({ ...o, ...changes })),
+		});
+	}, [provincias, pushQuery]);
+	//#endregion
+
+
+	
+	//#region Localidades
+	const [localidades, setLocalidades] = useState({
+		loading: "Cargando localidades...",
+		localidadEmpresa: {value: data?.domicilioLocalidadesId ?? 0, label: data?.localidadNombre},
+		data: [], //TODAS LAS localidades de la provincia
+		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
+		buscar: "",
+		error: null,
+	});
+
+	useEffect(() => {
+		console.log('provincia Id', provincias.provinciaEmpresa)
+		if (!localidades.loading) return;
+		if (provincias?.provinciaEmpresa?.value === 0) return;
+		const changes = {
+			loading: null,
+			data: [],
+			options: [],
+			error: null,
+		};
+		pushQuery({
+			action: "GetLocalidades",
+			params: { domicilioProvinciasId: provincias?.provinciaEmpresa?.value, SoloActivos: true },
+			onOk: async (data) => {
+				console.log('localidades_data:',data)
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", { GetLocalidades: data });
+				changes.data.push(...data);
+				changes.options.push(...data.map((localidad) => getLocalidadOption(localidad))); //le doy formato al OPTION que voy a mostrar
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
+		});
+	}, [localidades, provincias.provinciaEmpresa.value, pushQuery]);
+
+
+
 	//#endregion
 
 	//#region declaracion y carga de actividades
@@ -78,6 +199,7 @@ const EmpresasForm = ({
 		options: [],
 		error: null,
 	});
+
 	useEffect(() => {
 		if (!ciius.loading) return;
 		const changes = {
@@ -101,7 +223,6 @@ const EmpresasForm = ({
 	//#endregion
 
 	//#region Buscar Actividades
-
 	//#region Actividad Ppal.
 	const [actividadPrincipal, setActividadPrincipal] = useState({
 		buscar: "",
@@ -261,15 +382,49 @@ const EmpresasForm = ({
 			razonSocial: null,
 			actividadPrincipalId: null,
 			domicilioCalle: null,
-			domicilioNro: null,
+			domicilioNumero: null,
 			domicilioPiso: null,
 			domicilioDpto: null,
 			telefono: null,
 			email: null,
+			email2: null,
 			ciiU1: null,
 			ciiU2: null,
 			ciiU3: null,
 		});
+
+		const validaAFIP = () => {
+			console.log('validaAFIP...')
+			pushQuery({
+				action: "ConsultaAFIP",
+				params: { cuit: data.cuit, VerificarHistorico: false },
+				onOk: async (ok) => {
+					changes.validado = 1;
+					onChange({
+						existe: true,
+						cuit: ok.cuit,
+						razonSocial: ok.razonSocial,
+						actividadPrincipalId: ok.idActividadPrincipal,
+						domicilioCalle: ok.domicilios[0].direccion,
+						domicilioNumero: ok.domicilios[0].numero,
+						domicilioPiso: ok.domicilios[0].piso,
+						domicilioDpto: ok.domicilios[0].oficinaDptoLocal,
+						telefono: ok.telefono,
+						email: ok.email,
+						email2: ok.email2,
+						ciiU1: ok.ciiU1,
+						ciiU2: ok.ciiU2,
+						ciiU3: ok.ciiU3,
+					});
+				},
+				onFinally: async () => {
+					changes.loading = false;
+					setValidacionCUIT((o) => ({ ...o, ...changes }));
+				},
+			})
+		}
+
+
 		pushQuery({
 			action: "GetEmpresa",
 			params: { cuit: data.cuit, soloActivos: true },
@@ -281,16 +436,20 @@ const EmpresasForm = ({
 					razonSocial: ok.razonSocial,
 					actividadPrincipalId: ok.actividadPrincipalId,
 					domicilioCalle: ok.domicilioCalle,
-					domicilioNro: ok.domicilioNro,
+					domicilioNumero: ok.domicilioNro,
 					domicilioPiso: ok.domicilioPiso,
 					domicilioDpto: ok.domicilioDpto,
 					telefono: ok.telefono,
 					email: ok.email,
+					email2: ok.email2,
 					ciiU1: ok.ciiU1,
 					ciiU2: ok.ciiU2,
 					ciiU3: ok.ciiU3,
 				});
 			},
+			onError: async (error) => (
+				validaAFIP()
+			),
 			onFinally: async () => {
 				changes.loading = false;
 				setValidacionCUIT((o) => ({ ...o, ...changes }));
@@ -340,7 +499,7 @@ const EmpresasForm = ({
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
-									<h6>{!validacionCUIT.loading ? `Valida` : `...`}</h6>
+									<h6>{!validacionCUIT.loading ? `Valida` : `Validando...`}</h6>
 								</Button>
 							</Grid>
 						</Grid>
@@ -358,25 +517,50 @@ const EmpresasForm = ({
 					</Grid>
 					<Grid width="full" gap="inherit">
 						<Grid width="250px">
-							<InputMaterial
-								id="provinciaDesc"
-								label="Provincia"
-								//error={!!errors.razonSocial}
-								//helperText={errors.razonSocial ?? ""}
-								//value={data.razonSocial}
-								//disabled={disabled.razonSocial}
-								//onChange={(value, _id) => onChange({ razonSocial: value })}
+
+							<SearchSelectMaterial
+							id="domicilioProvinciasId"
+							name="domicilioProvinciasId"
+							label="Provincia"
+
+							error={(!!errors.domicilioProvinciasId) || (data.provinciaNombre != provincias.provinciaEmpresa.label)} 
+							helperText={errors.domicilioProvinciasId ?? ""}
+							value={provincias.provinciaEmpresa}
+							disabled={disabled.domicilioProvinciasId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioProvinciasId: value.value }),
+								onChange({ provinciaNombre: value.label }),
+								setProvincias(...provincias, {provinciaEmpresa: {label: value.label}})
+								)}
+							
+							options={provincias.options}
+					
+							onTextChange={handlerOnTextChange}
+							required
 							/>
 						</Grid>
-						<Grid grow>
-							<InputMaterial
-								id="localidadDesc"
-								label="Localidad"
-								//error={!!errors.razonSocial}
-								//helperText={errors.razonSocial ?? ""}
-								//value={data.Localidad}
-								//disabled={disabled.razonSocial}
-								//onChange={(value, _id) => onChange({ razonSocial: value })}
+
+
+						<Grid width="250px">
+							<SearchSelectMaterial
+							id="domicilioLocalidadesId"
+							name="domicilioLocalidadesId"
+							label="Localidad"
+
+							error={(!!errors.domicilioLocalidadesId) || (data.localidadNombre != localidades.localidadEmpresa.label)} 
+							helperText={errors.domicilioLocalidadesId ?? ""}
+							value={localidades.localidadEmpresa}
+							disabled={disabled.domicilioLocalidadesId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioLocalidadesId: value.value }),
+								onChange({ localidadNombre: value.label }),
+								setLocalidades(...localidades, {localidadEmpresa: {label: value.label}})
+								)}
+							
+							options={localidades.options}
+					
+							onTextChange={handlerOnTextChange}
+							required
 							/>
 						</Grid>
 					</Grid>
@@ -471,6 +655,18 @@ const EmpresasForm = ({
 								value={data.email}
 								disabled={disabled.email}
 								onChange={(email) => onChange({ email })}
+							/>
+						</Grid>
+						<Grid grow>
+							<InputMaterial
+								id="email2"
+								name="email2"
+								label="Email Secundario"
+								error={!!errors.email2}
+								helperText={errors.email2 ?? ""}
+								value={data.email2}
+								disabled={disabled.email2}
+								onChange={(email2) => onChange({ email2 })}
 							/>
 						</Grid>
 					</Grid>
