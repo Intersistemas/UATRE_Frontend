@@ -24,6 +24,25 @@ const RangoDias = (desde, hasta) => {
 	return dias;
 };
 
+const calculosLiquidacion = ({ liquidacion = {}, cabecera = {} }) => {
+	const calculos = {};
+	calculos.interesNeto = Round(
+		liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
+		2
+	);
+	calculos.interesImporte = Round(
+		liquidacion.totalRemuneraciones *
+			(cabecera.interesesDiariosPosteriorVencimiento / 100) *
+			(cabecera.diasVencimiento ?? 0),
+		2
+	);
+	calculos.importeTotal = Round(
+		calculos.interesImporte + calculos.interesNeto,
+		2
+	);
+	return calculos;
+};
+
 //#region Controles personalizados
 const onChangeDef = (changes) => {};
 const LiquidacionCabecera = ({
@@ -656,20 +675,10 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			liquidacion.totalRemuneraciones = Round(retocada?.totalRemuneraciones ?? liquidacion.totalRemuneraciones, 2);
 			liquidacion.interesPorcentaje = Round(retocada?.interesPorcentaje ?? liquidacion.interesPorcentaje, 2);
 
-			liquidacion.interesNeto = Round(
-				liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
-				2
-			);
-			liquidacion.interesImporte = Round(
-				liquidacion.totalRemuneraciones *
-					(cabecera.interesesDiariosPosteriorVencimiento / 100) *
-					(cabecera.diasVencimiento ?? 0),
-				2
-			);
-			liquidacion.importeTotal = Round(
-				liquidacion.interesImporte + liquidacion.interesNeto,
-				2
-			);
+			const calculos = calculosLiquidacion({ liquidacion, cabecera });
+			liquidacion.interesNeto = calculos.interesNeto;
+			liquidacion.interesImporte = calculos.interesImporte;
+			liquidacion.importeTotal = calculos.importeTotal;
 
 			if (liqFind == null) {
 				liquidaciones.todas.push(liquidacion);
@@ -887,13 +896,27 @@ const Handler = ({ periodo, tentativas = [] }) => {
 								retocada.totalRemuneraciones = actual.totalRemuneraciones;
 
 							if (previa.interesPorcentaje !== actual.interesPorcentaje)
-							retocada.interesPorcentaje = actual.interesPorcentaje;
+								retocada.interesPorcentaje = actual.interesPorcentaje;
 
 							return retocada;
 						})
 						.filter((v, i, a) => v && a.indexOf(v) === i),
 				},
 			})),
+		onEditChange: ({ edit, changes }) => {
+			if (!("interesPorcentaje" in changes || "totalRemuneraciones" in changes))
+				return true;
+			
+			const liquidacion = { ...edit, ...changes };
+			const cabecera = { ...estado.cabecera };
+
+			const calculos = calculosLiquidacion({ liquidacion, cabecera });
+			changes.interesNeto = calculos.interesNeto;
+			changes.interesImporte = calculos.interesImporte;
+			changes.importeTotal = calculos.importeTotal;
+
+			return true;
+		},
 	});
 	useEffect(() => {
 		liqChanger("list", { data: estado.liquidaciones.todas });

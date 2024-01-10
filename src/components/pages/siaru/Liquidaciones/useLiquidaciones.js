@@ -41,6 +41,15 @@ export const onLoadSelectKeep = ({ record }) => record;
 
 export const onDataChangeDef = (data = []) => {};
 
+const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
+	true;
+const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+const onEditCompleteDef = ({
+	edit = {},
+	response = null,
+	request = "",
+} = {}) => {};
+
 const useLiquidaciones = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
@@ -50,6 +59,9 @@ const useLiquidaciones = ({
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
 	onDataChange: onDataChangeInit = onDataChangeDef,
+	onEditChange: onEditChangeInit = onEditChangeDef,
+	onEditValidate: onEditValidateInit = onEditValidateDef,
+	onEditComplete: onEditCompleteInit = onEditCompleteDef,
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -117,6 +129,9 @@ const useLiquidaciones = ({
 				? onLoadSelectSame
 				: onLoadSelectInit,
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
+		onEditChange: onEditChangeInit ?? onEditChangeDef,
+		onEditValidate: onEditValidateInit ?? onEditValidateDef,
+		onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
 	});
 
 	useEffect(() => {
@@ -282,16 +297,27 @@ const useLiquidaciones = ({
 					return r;
 				})()}
 				onChange={(changes) =>
-					setList((o) => ({
-						...o,
-						selection: {
-							...o.selection,
-							edit: {
-								...o.selection.edit,
-								...changes,
+					{
+						if (
+							!list.onEditChange({
+								edit: { ...list.selection.edit },
+								changes,
+								request: list.selection.request,
+							})
+						)
+							return;
+						
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								edit: {
+									...o.selection.edit,
+									...changes,
+								},
 							},
-						},
-					}))
+						}));
+					}
 				}
 				onClose={(confirm) => {
 					if (!["A", "B", "M"].includes(list.selection.request))
@@ -312,7 +338,7 @@ const useLiquidaciones = ({
 						return;
 					}
 
-					const record = list.selection.edit;
+					const record = { ...list.selection.edit };
 
 					//Validaciones
 					const errors = {};
@@ -324,6 +350,13 @@ const useLiquidaciones = ({
 						// 	errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
 						// if (record.esAuxiliar == null) errors.esAuxiliar = "Dato requerido";
 					}
+
+					list.onEditValidate({
+						edit: record,
+						errors,
+						request: list.selection.request,
+					});
+
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
@@ -416,6 +449,11 @@ const useLiquidaciones = ({
 							default:
 								break;
 						}
+						list.onEditComplete({
+							edit: { ...list.selection.edit },
+							response: record,
+							request: list.selection.request,
+						});
 						list.onDataChange(changes.data);
 						setList((o) => ({ ...o, ...changes }));
 						return;
@@ -423,8 +461,14 @@ const useLiquidaciones = ({
 
 					const query = {
 						config: {},
-						onOk: async () =>
-							setList((o) => ({ ...o, loading: "Cargando..." })),
+						onOk: async (response) => {
+							list.onEditComplete({
+								edit: { ...list.selection.edit },
+								response,
+								request: list.selection.request,
+							});
+							setList((o) => ({ ...o, loading: "Cargando..." }));
+						},
 						onError: async (err) => alert(err.message),
 					};
 					switch (list.selection.request) {

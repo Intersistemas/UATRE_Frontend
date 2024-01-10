@@ -273,7 +273,7 @@ const useLiquidacionesCabecera = ({
 						const multi = changes.selection.multi;
 						const record = o.selection.record;
 						changes.selection = {
-							...list.selection,
+							...o.selection,
 							...selectionDef,
 							record: changes.onLoadSelect({ data, multi, record }),
 						};
