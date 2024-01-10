@@ -77,7 +77,7 @@ const LiquidacionesProcesarHandler = () => {
 			const empresaId = dependencias.empresaId;
 			pushQuery({
 				action: "GetLiquidacionPeriodos",
-				params: { empresaId },
+				params: { empresaId, bajas: false },
 				onOk: async (periodos) => setData({ periodos }),
 				onError: async (error) => setData({ periodos: [] }, error),
 				onFinally: async () => applyChanges(),
