@@ -337,16 +337,7 @@ const useEmpresas = ({
 	if (list.selection.request) {
 		form = (
 			<EmpresasForm
-				data={(() => { 
-
-					//INIT DE DATOS DEL FORM
-				
-						return {...list.selection.edit, ...list.selection.request}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-					})()
-				}
-
-				//data={list.selection.edit}
-				
+				data={list.selection.edit}
 				delegaciones={list.delegaciones}
 				title={list.selection.action}
 				errors={list.selection.errors}
@@ -383,19 +374,15 @@ const useEmpresas = ({
 								domicilioEstado: true,
 								domicilioDatoAdicional: true,
 								domicilioDatoAdicionalTipo: true,
-								
 								ciiU1: true,
 								ciiU1Descripcion: true,
 								ciiU1EsRural: true,
-
 								ciiU2: true,
 								ciiU2Descripcion: true,
 								ciiU2EsRural: true,
-
 								ciiU3: true,
 								ciiU3Descripcion: true,
 								ciiU3EsRural: true,
-
 								localidadDescripcion: true,
 								provinciaDescripcion: true,
 								esEmpresaRural: true,
@@ -617,7 +604,6 @@ const useEmpresas = ({
 							break;
 					}
 					pushQuery(query);
-					//setList((o) => ({ ...o, loading: "Cargando..." }));
 				}}
 			/>
 		);
