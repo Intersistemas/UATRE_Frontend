@@ -21,8 +21,7 @@
     .item3{
         grid-row: span 1;
         grid-column: span 1;
-        /*max-width: 15rem;*/
-        padding: 0;
+        max-width: 15rem;
     }
     
     .item4{
