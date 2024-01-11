@@ -49,14 +49,15 @@ const SeccionalesForm = ({
 
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
+	
 	const [localidadBuscar, setLocalidadBuscar] = useState("");
-
 	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
+	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
+
 	const { isLoading, error, sendRequest: request } = useHttp();
 
 	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
 	
-	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 	
 
 	const selectedDelegacion = (delegacionId) =>{
@@ -153,7 +154,7 @@ const SeccionalesForm = ({
 									
 									id="estado"
 									value={data.estado}
-									label="Estado12312"
+									label="Estado"
 									onChange={(value, _id) => onChange({ estado: value })}
 									error={!!errors.estado}
 									helperText={errors.estado ?? ""}
@@ -201,6 +202,7 @@ const SeccionalesForm = ({
 							required
 							/>
 						</div>
+
 						<div className={classes.item4}>
 							<InputMaterial
 							id="domicilio"

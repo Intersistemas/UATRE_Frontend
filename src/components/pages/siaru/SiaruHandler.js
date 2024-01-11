@@ -240,7 +240,7 @@ const SiaruHandler = () => {
 							claveEstado	:true,
 							claveInactivaAsociada	:true,
 							actividadPrincipalDescripcion	:true,
-							actividadPrincipalId	:true,
+							actividadPrincipalId :true,
 							actividadPrincipalPeriodo	:true,
 							contratoSocialFecha	:true,
 							cierreMes	:true,
