@@ -44,6 +44,15 @@ export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
 
 export const onDataChangeDef = (data = []) => {};
 
+const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
+	true;
+const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+const onEditCompleteDef = ({
+	edit = {},
+	response = null,
+	request = "",
+} = {}) => {};
+
 const useEstablecimientos = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
@@ -53,6 +62,9 @@ const useEstablecimientos = ({
 	pagination: paginationInit = { index: 1, size: 5 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
 	onDataChange: onDataChangeInit = onDataChangeDef,
+	onEditChange: onEditChangeInit = onEditChangeDef,
+	onEditValidate: onEditValidateInit = onEditValidateDef,
+	onEditComplete: onEditCompleteInit = onEditCompleteDef,
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -244,6 +256,9 @@ const useEstablecimientos = ({
 				? onLoadSelectSame
 				: onLoadSelectInit,
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
+		onEditChange: onEditChangeInit ?? onEditChangeDef,
+		onEditValidate: onEditValidateInit ?? onEditValidateDef,
+		onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
 	});
 
 	useEffect(() => {
@@ -438,6 +453,14 @@ const useEstablecimientos = ({
 					return r;
 				})()}
 				onChange={(edit) => {
+					if (
+						!list.onEditChange({
+							edit: { ...list.selection.edit },
+							changes: edit,
+							request: list.selection.request,
+						})
+					)
+						return;
 					const changes = { edit: { ...edit }, errors: {} };
 					const applyChanges = ({ edit, errors } = changes) =>
 						setList((o) => ({
@@ -483,7 +506,7 @@ const useEstablecimientos = ({
 						return;
 					}
 
-					const record = list.selection.edit;
+					const record = { ...list.selection.edit };
 
 					//Validaciones
 					const errors = {};
@@ -503,6 +526,13 @@ const useEstablecimientos = ({
 						if (!record.domicilioCalle)
 							errors.domicilioCalle = "Dato requerido";
 					}
+					
+					list.onEditValidate({
+						edit: record,
+						errors,
+						request: list.selection.request,
+					});
+
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
@@ -585,6 +615,11 @@ const useEstablecimientos = ({
 							default:
 								break;
 						}
+						list.onEditComplete({
+							edit: { ...list.selection.edit },
+							response: record,
+							request: list.selection.request,
+						});
 						list.onDataChange(changes.data);
 						setList((o) => ({ ...o, ...changes }));
 						return;
@@ -592,8 +627,17 @@ const useEstablecimientos = ({
 
 					const query = {
 						config: {},
-						onOk: async (res) =>
-							setList((old) => ({ ...old, loading: "Cargando..." })),
+						onOk: async (response) => {
+							if (list.onEditComplete === onEditCompleteDef) {
+								request("list");
+							} else {
+								list.onEditComplete({
+									edit: { ...list.selection.edit },
+									response,
+									request: list.selection.request,
+								});
+							}
+						},
 						onError: async (err) => alert(err.message),
 					};
 					switch (list.selection.request) {
@@ -640,19 +684,26 @@ const useEstablecimientos = ({
 				data={list.data}
 				loading={!!list.loading}
 				noDataIndication={
-					list.loading ?? list.loadingOverride ?? list.error?.message ?? "No existen datos para mostrar"
+					list.loading ??
+					list.loadingOverride ??
+					list.error?.message ??
+					"No existen datos para mostrar"
 				}
 				columns={columns}
 				mostrarBuscar={mostrarBuscar}
 				pagination={{
 					...list.pagination,
 					onChange: ({ index, size }) =>
-						setList((o) => ({
-							...o,
-							loading: "Cargando...",
+						// setList((o) => ({
+						// 	...o,
+						// 	loading: "Cargando...",
+						// 	pagination: { index, size },
+						// 	data: o.remote ? [] : o.data,
+						// })),
+						request("list", {
 							pagination: { index, size },
-							data: o.remote ? [] : o.data,
-						})),
+							data: list.remote ? [] : list.data,
+						}),
 				}}
 				selection={{
 					mode: list.selection.multi ? "checkbox" : "radio",

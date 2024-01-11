@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import useEstablecimientos from "components/establecimientos/useEstablecimientos";
+import useEstablecimientos, { onLoadSelectKeepOrFirst } from "components/establecimientos/useEstablecimientos";
 import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
 import EstablecimientoDetails from "./EstablecimientoDetails";
@@ -41,11 +41,26 @@ const EstablecimientosHandler = () => {
 	}, [empresa]);
 
 	//#region contenido Establecimientos
+	const [establecimientosParams, setEstablecimientosParams] = useState({
+		empresaId: empresa.id,
+		select: null,
+	});
 	const {
 		render: establecimientosContent,
 		request: establecimientosChanger,
 		selected: establecimientosSelected,
-	} = useEstablecimientos();
+	} = useEstablecimientos({
+		onEditComplete: ({ edit, response, request }) => {
+			const params = { ...establecimientosParams };
+			if (request === "A") {
+				edit.id = response;
+				params.select = edit;
+			} else {
+				params.select = null;
+			}
+			setEstablecimientosParams(params);
+		},
+	});
 	const [acciones, setAcciones] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
@@ -115,18 +130,22 @@ const EstablecimientosHandler = () => {
 		}
 		setAcciones(actions);
 	}, [establecimientosChanger, establecimientosSelected, empresa?.id]);
-
-	const [establecimientosParams, setEstablecimientosParams] = useState({
-		empresaId: empresa.id,
-	});
-
 	useEffect(() => {
-		if (!establecimientosParams.empresaId)
+		const { select, ...params } = establecimientosParams;
+		if (!params.empresaId)
 			return establecimientosChanger("list", { clear: true });
-		establecimientosChanger("list", {
-			params: establecimientosParams,
+		const payload = {
+			params,
 			pagination: { size: 10 },
-		});
+			onLoadSelect: onLoadSelectKeepOrFirst,
+		}
+		if (select) {
+			payload.onLoadSelect = () => {
+				setEstablecimientosParams((o) => ({ ...o, select: null }));
+				return select;
+			}
+		}
+		establecimientosChanger("list", payload);
 	}, [establecimientosChanger, establecimientosParams]);
 	//#endregion
 
