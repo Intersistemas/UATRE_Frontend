@@ -231,10 +231,10 @@ const SiaruHandler = () => {
 			loading={!!list.loading}
 			
 			disabled={(() => {
-				const r = ["A", "M"].includes(list.selection.request)
+				const r = ["A","M"].includes(list.selection.request)
 					? { }
 					: {
-							cuit: true,
+							//cuit: true,
 							razonSocial	:true,
 							claveTipo	:true,
 							claveEstado	:true,
@@ -311,6 +311,19 @@ const SiaruHandler = () => {
 			onChange={(changes) =>{ //solo entra el campo que se está editando
 
 				console.log('changes:',changes);
+				 
+				if ((changes?.cuit?.length === 11) && !ValidarCUIT(changes?.cuit)) {
+					const errors = {};
+					errors.cuit = "CUIT Incorrecto";
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							errors,
+						},
+					}));
+				}
+
 				setList((o) => ({
 					...o,
 					selection: {
