@@ -193,7 +193,7 @@ const LiquidacionCabecera = ({
 					<Button
 						className="botonAmarillo"
 						onClick={onGenera}
-						disabled={!data.liquidaciones?.length}
+						disabled={disabled.genera}
 					>
 						Genera liquidación
 					</Button>
@@ -524,6 +524,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		nominas: {
 			todas: [],
 			sinEstablecimiento: 0,
+			ruralesSinEstablecimiento: 0,
 			cantidadTrabajadores: 0,
 			totalRemuneraciones: 0,
 		},
@@ -562,6 +563,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				...estado.nominas,
 				todas: [],
 				sinEstablecimiento: 0,
+				ruralesSinEstablecimiento: 0,
 				cantidadTrabajadores: 0,
 				totalRemuneraciones: 0,
 			},
@@ -622,10 +624,14 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		);
 
 		let sinEstablecimiento = 0;
+		let ruralesSinEstablecimiento = 0
 		let cantidadTrabajadores = 0;
 		let totalRemuneraciones = 0;
 		estado.nominas.todas.forEach((nomina) => {
-			if (!nomina.empresaEstablecimientoId) sinEstablecimiento += 1;
+			if (!nomina.empresaEstablecimientoId) {
+				sinEstablecimiento += 1;
+				if (nomina.esRural) ruralesSinEstablecimiento += 1;
+			}
 			cantidadTrabajadores += 1;
 			totalRemuneraciones += nomina.remuneracionImponible ?? 0;
 
@@ -728,6 +734,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			nominas: {
 				...o.nominas,
 				sinEstablecimiento,
+				ruralesSinEstablecimiento,
 				cantidadTrabajadores,
 				totalRemuneraciones,
 			},
@@ -791,12 +798,12 @@ const Handler = ({ periodo, tentativas = [] }) => {
 						Formato.Moneda(estado.nominas.totalRemuneraciones),
 					].join(" ")}
 				</Grid>
-				{estado.nominas.sinEstablecimiento ? (
+				{estado.nominas.ruralesSinEstablecimiento ? (
 					<Grid width="full" style={{ color: "red" }}>
 						{[
-							"Trabajadores sin establecimiento asignado",
-							"que por consecuencia serán excluidos de la liquidación:",
-							estado.nominas.sinEstablecimiento,
+							"No es posible generar la liquidación",
+							`porque existen (${estado.nominas.ruralesSinEstablecimiento})`,
+							"empleados Rurales que no tienen establecimiento asignado",
 						].join(" ")}
 					</Grid>
 				) : null}
@@ -979,6 +986,11 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				<Grid col full="width" gap="inherit">
 					<LiquidacionCabecera
 						data={estado.cabecera}
+						disabled={{
+							genera:
+								!estado.cabecera.liquidaciones?.length ||
+								!!estado.nominas.ruralesSinEstablecimiento,
+						}}
 						onChange={(changes) =>
 							setEstado((o) => ({
 								...o,
