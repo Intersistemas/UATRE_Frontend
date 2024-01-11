@@ -227,6 +227,10 @@ border: 1.5px solid rgb(53, 149, 210);
   font-weight: 600 !important;
 }
 
+[role="combobox"]{
+    height: 3rem !important;
+}
+
 .MuiTabs-indicator{
   background-color: rgb(30, 89, 128);
   height: 5%;
