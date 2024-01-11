@@ -51,7 +51,26 @@ const EmpresasForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	console.log('EmpresasForm:',data)
+	console.log('EmpresasForm_data:',data)
+	console.log('EmpresasForm_errors:',errors)
+
+	useEffect(() => {
+		validarEmpresaCUITHandler();
+	},[])
+
+	useEffect(()=> {
+				
+		if (data?.cuit?.length !== 11) return;
+
+		if (!ValidarCUIT(data?.cuit ?? 0)) {
+			errors.cuit = 'CUIT Incorrecto';
+			return;
+		}
+
+		validarEmpresaCUITHandler();
+
+	},[data.cuit])
+
 
 	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
@@ -110,7 +129,7 @@ const EmpresasForm = ({
 	//#region Provincias
 	const [provincias, setProvincias] = useState({
 		loading: "Cargando provincias...",
-		provinciaEmpresa: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre},
+		provinciaSelected: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaDescripcion}, 
 		data: [], //TODAS LAS EMPRESAS
 		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
 		buscar: "",
@@ -129,6 +148,7 @@ const EmpresasForm = ({
 
 
 	useEffect(() => {
+
 		if (!provincias.loading) return;
 		const changes = {
 			loading: null,
@@ -138,12 +158,13 @@ const EmpresasForm = ({
 		};
 		pushQuery({
 			action: "GetProvincias",
-			onOk: async (data) => {
-				console.log('provincias_data:',data)
-				if (!Array.isArray(data))
+			onOk: async (ok) => {
+				console.log('provincias_data--:',ok)
+				if (!Array.isArray(ok))
 					return console.error("Se esperaba un arreglo", { GetProvincias: data });
-				changes.data.push(...data);
-				changes.options.push(...data.map((provincia) => getProvinciaOption(provincia))); //le doy formato al OPTION que voy a mostrar
+				changes.data.push(...ok);
+				changes.options.push(...ok.map((provincia) => getProvinciaOption(provincia))); //le doy formato al OPTION que voy a mostrar
+				changes.provinciaSelected = {value: data?.domicilioProvinciasId ?? 0, label: ok.find((p)=> p.id === data?.domicilioProvinciasId)?.nombre}
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setProvincias((o) => ({ ...o, ...changes })),
@@ -156,7 +177,7 @@ const EmpresasForm = ({
 	//#region Localidades
 	const [localidades, setLocalidades] = useState({
 		loading: "Cargando localidades...",
-		localidadEmpresa: {value: data?.domicilioLocalidadesId ?? 0, label: data?.localidadNombre},
+		localidadSelected: {value: data?.domicilioLocalidadesId ?? 0, label: data?.localidadDescripcion},
 		data: [], //TODAS LAS localidades de la provincia
 		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
 		buscar: "",
@@ -164,24 +185,28 @@ const EmpresasForm = ({
 	});
 
 	useEffect(() => {
-		console.log('provincia Id', provincias.provinciaEmpresa)
+
 		if (!localidades.loading) return;
 		if (provincias?.provinciaEmpresa?.value === 0) return;
 		const changes = {
 			loading: null,
+			localidadSelected: {},
 			data: [],
 			options: [],
 			error: null,
 		};
 		pushQuery({
 			action: "GetLocalidades",
-			params: { domicilioProvinciasId: provincias?.provinciaEmpresa?.value, SoloActivos: true },
-			onOk: async (data) => {
-				console.log('localidades_data:',data)
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", { GetLocalidades: data });
-				changes.data.push(...data);
-				changes.options.push(...data.map((localidad) => getLocalidadOption(localidad))); //le doy formato al OPTION que voy a mostrar
+
+			params: { ProvinciaId:  data?.domicilioProvinciasId, SoloActivos: true },
+			onOk: async (ok) => {
+				console.log('localidades_data:',ok)
+				if (!Array.isArray(ok))
+					return console.error("Se esperaba un arreglo", { GetLocalidades: ok });
+				changes.data.push(...ok);
+				changes.options.push(...ok.map((localidad) => getLocalidadOption(localidad))); //le doy formato al OPTION que voy a mostrar
+				changes.localidadSelected = {value: data?.domicilioLocalidadesId ?? 0, label: ok?.find((p)=> p.id === data?.domicilioLocalidadesId)?.nombre}				
+
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
@@ -289,11 +314,17 @@ const EmpresasForm = ({
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		const ciiU1Descripcion =
-			ciius.data.find((r) => r.ciiu === data.ciiU1)?.descripcion ?? "";
-		if (ciiU1Descripcion === data.ciiU1Descripcion) return;
-		onChange({ ciiU1Descripcion });
-	}, [ciius, data.ciiU1, data.ciiU1Descripcion, onChange]);
+		if (data.ciiU1 === ciiu1.selected.value) return;
+
+		const cambios = {
+			ciiu1: ciiu1.selected.value,
+		};
+		cambios.ciiU1Descripcion =
+			ciius.data.find((r) => r.ciiu === cambios.ciiu1)
+				?.descripcion ?? "";
+		onChange(cambios);
+
+	}, [ciiu1.selected, ciius, data.ciiU1]);
 	//#endregion
 
 	//#region ciiU2.
@@ -326,7 +357,7 @@ const EmpresasForm = ({
 			ciius.data.find((r) => r.ciiu === data.ciiU2)?.descripcion ?? "";
 		if (ciiU2Descripcion === data.ciiU2Descripcion) return;
 		onChange({ ciiU2Descripcion });
-	}, [ciius, data.ciiU2, data.ciiU2Descripcion, onChange]);
+	}, [ciiu2.selected, ciius, data.ciiU2]);
 	//#endregion
 
 	//#region ciiU3.
@@ -359,20 +390,23 @@ const EmpresasForm = ({
 			ciius.data.find((r) => r.ciiu === data.ciiU3)?.descripcion ?? "";
 		if (ciiU3Descripcion === data.ciiU3Descripcion) return;
 		onChange({ ciiU3Descripcion });
-	}, [ciius, data.ciiU3, data.ciiU3Descripcion, onChange]);
+	}, [ciiu3.selected, ciius, data.ciiU3]);
 	//#endregion
 
 	//#endregion
 
 	const [validacionCUIT, setValidacionCUIT] = useState({
 		loading: false,
-		validado: "",
+		validado: "Se creará la Empresa",
+		datoAFIP: "",
 	});
 
 	const validarEmpresaCUITHandler = () => {
 		const changes = {
 			loading: true,
-			validado: 0,
+			validado: "",
+			datoAFIP: "",
+
 		};
 		setValidacionCUIT((o) => ({ ...o, ...changes }));
 
@@ -399,12 +433,21 @@ const EmpresasForm = ({
 				action: "ConsultaAFIP",
 				params: { cuit: data.cuit, VerificarHistorico: false },
 				onOk: async (ok) => {
-					changes.validado = 1;
+
+					changes.validado = "Se creará la Empresa";
+					changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`
+
 					onChange({
 						existe: true,
 						cuit: ok.cuit,
 						razonSocial: ok.razonSocial,
+
 						actividadPrincipalId: ok.idActividadPrincipal,
+
+						actividadPrincipalDescripcion: ok?.descripcionActividadPrincipal,
+
+						domicilioProvinciasId: provincias?.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0]?.idProvincia)?.id,
+
 						domicilioCalle: ok.domicilios[0].direccion,
 						domicilioNumero: ok.domicilios[0].numero,
 						domicilioPiso: ok.domicilios[0].piso,
@@ -412,10 +455,61 @@ const EmpresasForm = ({
 						telefono: ok.telefono,
 						email: ok.email,
 						email2: ok.email2,
+
 						ciiU1: ok.ciiU1,
+						ciiU1Descripcion: ok.ciiU1Descripcion,
+
 						ciiU2: ok.ciiU2,
+						ciiU2Descripcion: ok.ciiU2Descripcion,
+
 						ciiU3: ok.ciiU3,
+						ciiU3Descripcion: ok.ciiU3Descripcion,
+
 					});
+
+					setProvincias((o) => ({ 
+						...o,
+						provinciaSelected: {value: provincias?.data?.find((p)=> p?.idProvinciaAFIP === ok?.domicilios[0].idProvincia)?.id, label:  provincias?.data?.find((p)=> p?.idProvinciaAFIP === ok?.domicilios[0]?.idProvincia)?.nombre }
+					   }));
+
+					setActividadPrincipal((o) => ({
+						...o,
+						selected:
+							ciius.options.find((r) => r.value === ok.idActividadPrincipal) ??
+							getCIIUOption({
+								ciiu: ok.idActividadPrincipal,
+								descripcion: ok.descripcionActividadPrincipal,
+							}),
+					}))
+
+					setCIIU1((o) => ({
+						...o,
+						selected:
+							ciius.options.find((r) => r.value === ok.ciiU1) ??
+							getCIIUOption({
+								ciiu: ok.ciiU1,
+								descripcion: ok.ciiU1Descripcion,
+							}),
+					}))
+					setCIIU2((o) => ({
+						...o,
+						selected:
+							ciius.options.find((r) => r.value === ok.ciiU2) ??
+							getCIIUOption({
+								ciiu: ok.ciiU2,
+								descripcion: ok.ciiU2Descripcion,
+							}),
+					}))
+					setCIIU3((o) => ({
+						...o,
+						selected:
+							ciius.options.find((r) => r.value === ok.ciiU3) ??
+							getCIIUOption({
+								ciiu: ok.ciiU3,
+								descripcion: ok.ciiU3Descripcion,
+							}),
+					}))
+
 				},
 				onFinally: async () => {
 					changes.loading = false;
@@ -429,7 +523,11 @@ const EmpresasForm = ({
 			action: "GetEmpresa",
 			params: { cuit: data.cuit, soloActivos: true },
 			onOk: async (ok) => {
-				changes.validado = 1;
+				changes.validado = "Empresa existente (UATRE)";
+				changes.datoAFIP = "";
+				//provinciaSelected: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre}, setProvincias(...provincias, {provinciaSelected: {value:event.target.value}})
+
+
 				onChange({
 					existe: true,
 					cuit: ok.cuit,
@@ -442,10 +540,58 @@ const EmpresasForm = ({
 					telefono: ok.telefono,
 					email: ok.email,
 					email2: ok.email2,
+					
 					ciiU1: ok.ciiU1,
+					ciiU1Descripcion: ok.ciiU1Descripcion,
+
 					ciiU2: ok.ciiU2,
+					ciiU2Descripcion: ok.ciiU2Descripcion,
+
 					ciiU3: ok.ciiU3,
+					ciiU3Descripcion: ok.ciiU3Descripcion,
 				});
+
+				setProvincias((o) => ({ 
+					 ...o,
+					 provinciaSelected: {value: ok?.domicilioProvinciasId, label:  provincias?.data?.find((c) => c.id === ok?.domicilioProvinciasId)?.nombre }
+					}));
+
+				setActividadPrincipal((o) => ({
+					...o,
+					selected:
+						ciius.options.find((r) => r.value === ok.actividadPrincipalId) ??
+						getCIIUOption({
+							ciiu: ok.actividadPrincipalId,
+							descripcion: ok.actividadPrincipalDescripcion,
+						}),
+				}))
+				setCIIU1((o) => ({
+					...o,
+					selected:
+						ciius.options.find((r) => r.value === ok.ciiU1) ??
+						getCIIUOption({
+							ciiu: ok.ciiU1,
+							descripcion: ok.ciiU1Descripcion,
+						}),
+				}))
+				setCIIU2((o) => ({
+					...o,
+					selected:
+						ciius.options.find((r) => r.value === ok.ciiU2) ??
+						getCIIUOption({
+							ciiu: ok.ciiU2,
+							descripcion: ok.ciiU2Descripcion,
+						}),
+				}))
+				setCIIU3((o) => ({
+					...o,
+					selected:
+						ciius.options.find((r) => r.value === ok.ciiU3) ??
+						getCIIUOption({
+							ciiu: ok.ciiU3,
+							descripcion: ok.ciiU3Descripcion,
+						}),
+				}))
 			},
 			onError: async (error) => (
 				validaAFIP()
@@ -482,8 +628,6 @@ const EmpresasForm = ({
 										errors.cuit
 											? errors.cuit
 											: validacionCUIT.validado
-											? "La Empresa ya existe!"
-											: "Se creará la Empresa"
 									}
 									value={data.cuit}
 									disabled={disabled.cuit}
@@ -495,11 +639,13 @@ const EmpresasForm = ({
 							<Grid col width="30%">
 								<Button
 									className="botonAzul"
-									disabled={!(data?.cuit?.length === 11)}
+									//disabled={!(data?.cuit?.length === 11)}
+									disabled={(data?.cuit?.length === 11) || (errors.cuit !== "")}
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
-									<h6>{!validacionCUIT.loading ? `Valida` : `Validando...`}</h6>
+									<h6>{!validacionCUIT.loading ? `Valida` : ` `}</h6>
+
 								</Button>
 							</Grid>
 						</Grid>
@@ -512,82 +658,6 @@ const EmpresasForm = ({
 								value={data.razonSocial}
 								disabled={disabled.razonSocial}
 								onChange={(razonSocial) => onChange({ razonSocial })}
-							/>
-						</Grid>
-					</Grid>
-					<Grid width="full" gap="inherit">
-						<Grid width="250px">
-
-							<SearchSelectMaterial
-							id="domicilioProvinciasId"
-							name="domicilioProvinciasId"
-							label="Provincia"
-
-							error={(!!errors.domicilioProvinciasId) || (data.provinciaNombre != provincias.provinciaEmpresa.label)} 
-							helperText={errors.domicilioProvinciasId ?? ""}
-							value={provincias.provinciaEmpresa}
-							disabled={disabled.domicilioProvinciasId ?? false}
-							onChange={(value, _id) => (
-								onChange({ domicilioProvinciasId: value.value }),
-								onChange({ provinciaNombre: value.label }),
-								setProvincias(...provincias, {provinciaEmpresa: {label: value.label}})
-								)}
-							
-							options={provincias.options}
-					
-							onTextChange={handlerOnTextChange}
-							required
-							/>
-						</Grid>
-
-
-						<Grid width="250px">
-							<SearchSelectMaterial
-							id="domicilioLocalidadesId"
-							name="domicilioLocalidadesId"
-							label="Localidad"
-
-							error={(!!errors.domicilioLocalidadesId) || (data.localidadNombre != localidades.localidadEmpresa.label)} 
-							helperText={errors.domicilioLocalidadesId ?? ""}
-							value={localidades.localidadEmpresa}
-							disabled={disabled.domicilioLocalidadesId ?? false}
-							onChange={(value, _id) => (
-								onChange({ domicilioLocalidadesId: value.value }),
-								onChange({ localidadNombre: value.label }),
-								setLocalidades(...localidades, {localidadEmpresa: {label: value.label}})
-								)}
-							
-							options={localidades.options}
-					
-							onTextChange={handlerOnTextChange}
-							required
-							/>
-						</Grid>
-					</Grid>
-					<Grid width="full" gap="inherit">
-						<Grid width="full">
-							<SearchSelectMaterial
-								id="actividadPrincipalId"
-								name="actividadPrincipalId"
-								label="Actividad"
-								error={!!errors.actividadPrincipalId}
-								helperText={
-									ciius.loading ??
-									ciius.error?.message ??
-									errors.actividadPrincipalId ??
-									""
-								}
-								value={actividadPrincipal.selected}
-								disabled={disabled.actividadPrincipalId ?? false}
-								onChange={(selected) => {
-									setActividadPrincipal((o) => ({ ...o, selected }));
-									onChange({ actividadPrincipalId: selected?.value });
-								}}
-								options={actividadPrincipal.options}
-								onTextChange={({ target }) =>
-									setActividadPrincipal((o) => ({ ...o, buscar: target.value }))
-								}
-								required
 							/>
 						</Grid>
 					</Grid>
@@ -633,6 +703,60 @@ const EmpresasForm = ({
 							/>
 						</Grid>
 					</Grid>
+
+
+			
+					<Grid width="full" gap="inherit">
+						<Grid width="250px">
+
+							<SearchSelectMaterial
+							id="domicilioProvinciasId"
+							name="domicilioProvinciasId"
+							label="Provincia"
+
+							error={(!!errors.domicilioProvinciasId)} 
+
+							helperText={errors.domicilioProvinciasId ?? ""}
+							value={provincias.provinciaEmpresa}
+							disabled={disabled.domicilioProvinciasId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioProvinciasId: value.value }),
+								onChange({ provinciaNombre: value.label }),
+								setProvincias(...provincias, {provinciaEmpresa: {label: value.label}})
+								)}
+							
+							options={provincias.options}
+							onTextChange={handlerOnTextChange}
+							required
+							/>
+						</Grid>
+
+
+						<Grid width="250px">
+							<SearchSelectMaterial
+							id="domicilioLocalidadesId"
+							name="domicilioLocalidadesId"
+							label="Localidad"
+
+							error={(!!errors.domicilioLocalidadesId)} 
+							helperText={errors.domicilioLocalidadesId ?? ""}							
+							value={localidades.localidadSelected}
+							disabled={disabled.domicilioLocalidadesId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioLocalidadesId: value.value }),
+								onChange({ localidadNombre: value.label }),
+								setLocalidades((o) => ({ ...o, localidadSelected: {label: value.label}}))
+								)}
+							
+							options={localidades.options}
+					
+							onTextChange={handlerOnTextChange}
+							required
+							/>
+							
+						</Grid>
+						<h7>{validacionCUIT.datoAFIP}</h7>
+					</Grid>
 					<Grid width="full" gap="inherit">
 						<Grid width="250px">
 							<InputMaterial
@@ -667,6 +791,33 @@ const EmpresasForm = ({
 								value={data.email2}
 								disabled={disabled.email2}
 								onChange={(email2) => onChange({ email2 })}
+							/>
+						</Grid>
+					</Grid>
+					<Grid width="full" gap="inherit">
+						<Grid width="full">
+							<SearchSelectMaterial
+								id="actividadPrincipalId"
+								name="actividadPrincipalId"
+								label="Actividad"
+								error={!!errors.actividadPrincipalId}
+								helperText={
+									ciius.loading ??
+									ciius.error?.message ??
+									errors.actividadPrincipalId ??
+									""
+								}
+								value={actividadPrincipal.selected}
+								disabled={disabled.actividadPrincipalId ?? false}
+								onChange={(selected) => {
+									setActividadPrincipal((o) => ({ ...o, selected }));
+									onChange({ actividadPrincipalId: selected?.value });
+								}}
+								options={actividadPrincipal.options}
+								onTextChange={({ target }) =>
+									setActividadPrincipal((o) => ({ ...o, buscar: target.value }))
+								}
+								required
 							/>
 						</Grid>
 					</Grid>
