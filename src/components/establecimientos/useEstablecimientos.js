@@ -216,7 +216,7 @@ const useEstablecimientos = ({
 				changes.data.push(
 					...data
 						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-						.map((r) => ({ label: r.nombre, value: r.id }))
+						.map((r) => ({ label: `${r.codPostal} - ${r.nombre}`, value: r.id }))
 				),
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
