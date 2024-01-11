@@ -371,6 +371,8 @@ const useLiquidacionesCabecera = ({
 					if (list.selection.request === "B") {
 						if (!record.refMotivoBajaId)
 							errors.refMotivoBajaId = "Dato requerido";
+						if (!record.deletedObs)
+							errors.deletedObs = "Dato requerido";
 					} else {
 						// if (!record.afiliadoId)
 						// 	errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
@@ -467,7 +469,15 @@ const useLiquidacionesCabecera = ({
 						config: {},
 						onOk: async () =>
 							setList((o) => ({ ...o, loading: "Cargando..." })),
-						onError: async (err) => alert(err.message),
+						onError: async (err) => {
+							alert(
+								typeof err.message === "object"
+									? Object.keys(err.message)
+											.map((k) => `${k}: ${err.message[k]}`)
+											.join("\n")
+									: err.message
+							);
+						},
 					};
 					switch (list.selection.request) {
 						case "A": {
