@@ -366,15 +366,17 @@ const SiaruHandler = () => {
 					if (!record.cuit) errors.cuit = "Dato requerido";
 					if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
+					if (!record.actividadPrincipalId) errors.actividadPrincipalId = "Dato requerido";
+
 					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
+
+					if (!record.domicilioLocalidadesId) errors.domicilioLocalidadesId = "Dato requerido";
+					if (!record.domicilioProvinciasId) errors.domicilioProvinciasId = "Dato requerido";
+					
 					//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
 					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalDescripcion = "Dato requerido";
 					if (!record.telefono) errors.telefono = "Dato requerido"; 
 					if (!record.email) errors.email = "Dato requerido"; 
-
-					if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
-					if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
-					if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
 
 					//if (!record.domicilioLocalidadesId || record.domicilioLocalidadesId === 0) errors.domicilioLocalidadesId = "Dato requerido";
 					//if (!record.domicilioProvinciasId || record.domicilioProvinciasId === 0) errors.domicilioProvinciasId = "Dato requerido";
