@@ -158,6 +158,7 @@ const EstablecimientosForm = ({
 									<InputMaterial
 										id="domicilioNumero"
 										label="Número"
+										type="number"
 										disabled={disabled.domicilioNumero}
 										error={!!errors.domicilioNumero}
 										helperText={errors.domicilioNumero ?? ""}
