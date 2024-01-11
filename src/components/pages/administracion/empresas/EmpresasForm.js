@@ -8,6 +8,7 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import InputMask from "react-input-mask";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 import useQueryQueue from "components/hooks/useQueryQueue";
 
@@ -211,7 +212,7 @@ const EmpresasForm = ({
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
 		});
-	}, [localidades, provincias.provinciaEmpresa.value, pushQuery]);
+	}, [localidades, data?.domicilioProvinciasId, pushQuery]);
 
 
 
@@ -406,7 +407,6 @@ const EmpresasForm = ({
 			loading: true,
 			validado: "",
 			datoAFIP: "",
-
 		};
 		setValidacionCUIT((o) => ({ ...o, ...changes }));
 
@@ -433,10 +433,8 @@ const EmpresasForm = ({
 				action: "ConsultaAFIP",
 				params: { cuit: data.cuit, VerificarHistorico: false },
 				onOk: async (ok) => {
-
 					changes.validado = "Se creará la Empresa";
 					changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`
-
 					onChange({
 						existe: true,
 						cuit: ok.cuit,
@@ -641,6 +639,8 @@ const EmpresasForm = ({
 									className="botonAzul"
 									//disabled={!(data?.cuit?.length === 11)}
 									disabled={(data?.cuit?.length === 11) || (errors.cuit !== "")}
+									//disabled={!(data?.cuit?.length === 11)}
+									disabled={(data?.cuit?.length === 11) || (errors.cuit !== "")}
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
@@ -702,6 +702,59 @@ const EmpresasForm = ({
 								onChange={(domicilioDpto) => onChange({ domicilioDpto })}
 							/>
 						</Grid>
+					</Grid>
+
+
+			
+					<Grid width="full" gap="inherit">
+						<Grid width="250px">
+
+							<SearchSelectMaterial
+							id="domicilioProvinciasId"
+							name="domicilioProvinciasId"
+							label="Provincia"
+							error={(!!errors.domicilioProvinciasId)} 
+							helperText={errors.domicilioProvinciasId ?? ""}
+							value={provincias.provinciaSelected}
+							
+							disabled={disabled.domicilioProvinciasId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioProvinciasId: value?.value }),
+								onChange({ provinciaNombre: value?.label }),
+								setLocalidades((o) => ({ ...o, loading:"Cargando localidades..."})),//hago esto para que me filtre las localidades de la provincia seleccionada.
+								setProvincias((o) => ({ ...o, provinciaSelected: value}))
+								)}
+							options={provincias.options}
+							onTextChange={handlerOnTextChange}
+							required
+							/>
+						</Grid>
+
+
+						<Grid width="250px">
+							<SearchSelectMaterial
+							id="domicilioLocalidadesId"
+							name="domicilioLocalidadesId"
+							label="Localidad"
+
+							error={(!!errors.domicilioLocalidadesId)} 
+							helperText={errors.domicilioLocalidadesId ?? ""}							
+							value={localidades.localidadSelected}
+							disabled={disabled.domicilioLocalidadesId ?? false}
+							onChange={(value, _id) => (
+								onChange({ domicilioLocalidadesId: value.value }),
+								onChange({ localidadNombre: value.label }),
+								setLocalidades((o) => ({ ...o, localidadSelected: {label: value.label}}))
+								)}
+							
+							options={localidades.options}
+					
+							onTextChange={handlerOnTextChange}
+							required
+							/>
+							
+						</Grid>
+						<h7>{validacionCUIT.datoAFIP}</h7>
 					</Grid>
 
 
