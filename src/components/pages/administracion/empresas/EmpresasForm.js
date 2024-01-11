@@ -8,7 +8,6 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import InputMask from "react-input-mask";
-import ValidarCUIT from "components/validators/ValidarCUIT";
 
 import useQueryQueue from "components/hooks/useQueryQueue";
 
@@ -25,7 +24,6 @@ const getCIIUOption = (ciiu) => ({
 	label: getCIIULabel(ciiu),
 });
 
-
 const getProvinciaOption = (provincia) => ({
 	value: provincia?.id,
 	label: provincia?.nombre,
@@ -35,7 +33,6 @@ const getLocalidadOption = (localidad) => ({
 	value: localidad?.id,
 	label: localidad?.nombre,
 });
-
 
 const EmpresasForm = ({
 	data = {},
@@ -55,28 +52,6 @@ const EmpresasForm = ({
 	onClose ??= onCloseDef;
 
 	console.log('EmpresasForm:',data)
-
-
-
-
-	useEffect(()=> {
-
-		console.log('lenght: ',data?.cuit?.length)
-		console.log('cuit---', data.cuit); 
-	
-		if (!data?.cuit?.length == 11) return;
-		
-
-		if (!ValidarCUIT(data?.cuit ?? 0)) {
-			console.log('CUIT INCORRECTO--')
-			errors.cuit = "CUIT Incorrecto"
-			return
-		}
-
-		validarEmpresaCUITHandler();
-
-
-	},[data.cuit])
 
 	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
@@ -135,7 +110,7 @@ const EmpresasForm = ({
 	//#region Provincias
 	const [provincias, setProvincias] = useState({
 		loading: "Cargando provincias...",
-		provinciaSelected: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre}, 
+		provinciaEmpresa: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre},
 		data: [], //TODAS LAS EMPRESAS
 		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
 		buscar: "",
@@ -146,8 +121,8 @@ const EmpresasForm = ({
 
 		console.log('event_handlerOnTextChange',event);
 		
-		setProvincias(...provincias, {provinciaSelected: {value:event.target.value}})
-		setProvincias(...provincias, {buscar: event.target.value})
+		setProvincias(...provincias, {provinciaEmpresa: {value:event.target.value}})
+		setProvincias(...provincias, {buscar:event.target.value})
 		
 	  };
 
@@ -157,10 +132,8 @@ const EmpresasForm = ({
 		if (!provincias.loading) return;
 		const changes = {
 			loading: null,
-			provinciaSelected: {},
 			data: [],
 			options: [],
-			buscar: "",
 			error: null,
 		};
 		pushQuery({
@@ -191,35 +164,29 @@ const EmpresasForm = ({
 	});
 
 	useEffect(() => {
-
-		console.log('provincia Id data', data?.domicilioProvinciasId)
-		console.log('localidades.loading',localidades.loading)
+		console.log('provincia Id', provincias.provinciaEmpresa)
 		if (!localidades.loading) return;
-		if (!data?.domicilioProvinciasId || data?.domicilioProvinciasId === 0) return;
-
+		if (provincias?.provinciaEmpresa?.value === 0) return;
 		const changes = {
 			loading: null,
-			localidadEmpresa: {},
 			data: [],
 			options: [],
-			buscar: "",
 			error: null,
 		};
 		pushQuery({
 			action: "GetLocalidades",
-			params: { ProvinciaId:  data?.domicilioProvinciasId, SoloActivos: true },
+			params: { domicilioProvinciasId: provincias?.provinciaEmpresa?.value, SoloActivos: true },
 			onOk: async (data) => {
 				console.log('localidades_data:',data)
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", { GetLocalidades: data });
 				changes.data.push(...data);
 				changes.options.push(...data.map((localidad) => getLocalidadOption(localidad))); //le doy formato al OPTION que voy a mostrar
-
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
 		});
-	}, [localidades, data?.domicilioProvinciasId, pushQuery]);
+	}, [localidades, provincias.provinciaEmpresa.value, pushQuery]);
 
 
 
@@ -279,19 +246,21 @@ const EmpresasForm = ({
 			.map((r) => getCIIUOption(r));
 		setActividadPrincipal((o) => ({ ...o, options }));
 	}, [ciius, actividadPrincipal.buscar]);
-
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		if (data.actividadPrincipalId === actividadPrincipal.selected.value) return;
-		const cambios = {
-			actividadPrincipalId: actividadPrincipal.selected.value,
-		};
-		cambios.actividadPrincipalDescripcion =
-			ciius.data.find((r) => r.ciiu === cambios.actividadPrincipalId)
+		const actividadPrincipalDescripcion =
+			ciius.data.find((r) => r.ciiu === data.actividadPrincipalId)
 				?.descripcion ?? "";
-		onChange(cambios);
-	}, [actividadPrincipal.selected, ciius, data.actividadPrincipalId, onChange]);
+		if (data.actividadPrincipalDescripcion === actividadPrincipalDescripcion)
+			return;
+		onChange({ actividadPrincipalDescripcion });
+	}, [
+		ciius,
+		data.actividadPrincipalId,
+		data.actividadPrincipalDescripcion,
+		onChange,
+	]);
 	//#endregion
 
 	//#region ciiU1.
@@ -403,7 +372,7 @@ const EmpresasForm = ({
 	const validarEmpresaCUITHandler = () => {
 		const changes = {
 			loading: true,
-			validado: "",
+			validado: 0,
 		};
 		setValidacionCUIT((o) => ({ ...o, ...changes }));
 
@@ -412,14 +381,10 @@ const EmpresasForm = ({
 			existe: false,
 			razonSocial: null,
 			actividadPrincipalId: null,
-			domicilioProvinciasId: null,
-			domicilioLocalidadesId: null,
-
 			domicilioCalle: null,
 			domicilioNumero: null,
 			domicilioPiso: null,
 			domicilioDpto: null,
-
 			telefono: null,
 			email: null,
 			email2: null,
@@ -429,25 +394,21 @@ const EmpresasForm = ({
 		});
 
 		const validaAFIP = () => {
+			console.log('validaAFIP...')
 			pushQuery({
 				action: "ConsultaAFIP",
 				params: { cuit: data.cuit, VerificarHistorico: false },
 				onOk: async (ok) => {
-					changes.validado = "AFIP";
+					changes.validado = 1;
 					onChange({
 						existe: true,
 						cuit: ok.cuit,
 						razonSocial: ok.razonSocial,
 						actividadPrincipalId: ok.idActividadPrincipal,
-						actividadPrincipalDescripcion: ok?.descripcionActividadPrincipal,
-
-						domicilioProvinciasId: provincias.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0]?.idProvincia).id,
-						
 						domicilioCalle: ok.domicilios[0].direccion,
 						domicilioNumero: ok.domicilios[0].numero,
 						domicilioPiso: ok.domicilios[0].piso,
 						domicilioDpto: ok.domicilios[0].oficinaDptoLocal,
-
 						telefono: ok.telefono,
 						email: ok.email,
 						email2: ok.email2,
@@ -455,20 +416,6 @@ const EmpresasForm = ({
 						ciiU2: ok.ciiU2,
 						ciiU3: ok.ciiU3,
 					});
-					setProvincias((o) => ({ 
-						...o,
-						provinciaSelected: {value: provincias.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0].idProvincia).id, label:  provincias.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0].idProvincia).nombre }
-					   }));
-
-				   setActividadPrincipal((o) => ({
-					   ...o,
-					   selected:
-						   ciius.options.find((r) => r.value === ok.idActividadPrincipal) ??
-						   getCIIUOption({
-							   ciiu: ok.idActividadPrincipal,
-							   descripcion: ok.descripcionActividadPrincipal,
-						   }),
-				   }))
 				},
 				onFinally: async () => {
 					changes.loading = false;
@@ -482,19 +429,12 @@ const EmpresasForm = ({
 			action: "GetEmpresa",
 			params: { cuit: data.cuit, soloActivos: true },
 			onOk: async (ok) => {
-				changes.validado = "UATRE";
-				//provinciaSelected: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaNombre}, setProvincias(...provincias, {provinciaSelected: {value:event.target.value}})
-
+				changes.validado = 1;
 				onChange({
 					existe: true,
 					cuit: ok.cuit,
 					razonSocial: ok.razonSocial,
 					actividadPrincipalId: ok.actividadPrincipalId,
-					actividadPrincipalDescripcion: ok?.actividadPrincipalDescripcion,
-
-					domicilioProvinciasId: ok.domicilioProvinciasId,
-					domicilioLocalidadesId: ok.domicilioLocalidadesId,
-
 					domicilioCalle: ok.domicilioCalle,
 					domicilioNumero: ok.domicilioNro,
 					domicilioPiso: ok.domicilioPiso,
@@ -506,19 +446,6 @@ const EmpresasForm = ({
 					ciiU2: ok.ciiU2,
 					ciiU3: ok.ciiU3,
 				});
-				setProvincias((o) => ({ 
-					 ...o,
-					 provinciaSelected: {value: ok?.domicilioProvinciasId, label:  provincias?.data?.find((c) => c.id === ok?.domicilioProvinciasId)?.nombre }
-					}));
-				setActividadPrincipal((o) => ({
-					...o,
-					selected:
-						ciius.options.find((r) => r.value === ok.actividadPrincipalId) ??
-						getCIIUOption({
-							ciiu: ok.actividadPrincipalId,
-							descripcion: ok.actividadPrincipalDescripcion,
-						}),
-				}))
 			},
 			onError: async (error) => (
 				validaAFIP()
@@ -531,8 +458,6 @@ const EmpresasForm = ({
 	};
 	//#endregion
 
-	
-
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
@@ -544,7 +469,7 @@ const EmpresasForm = ({
 			<Modal.Body>
 				<Grid col width="full" gap="15px">
 					<Grid width="full" gap="inherit">
-						<Grid width="270px">
+						<Grid width="250px">
 							<Grid width="full">
 								<InputMaterial
 									id="cuitEmpresa"
@@ -557,7 +482,7 @@ const EmpresasForm = ({
 										errors.cuit
 											? errors.cuit
 											: validacionCUIT.validado
-											? `Empresa existente (${(validacionCUIT.validado)})`
+											? "La Empresa ya existe!"
 											: "Se creará la Empresa"
 									}
 									value={data.cuit}
@@ -574,7 +499,7 @@ const EmpresasForm = ({
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
-									<h6>{!validacionCUIT.loading ? `Valida` : `...`}</h6>
+									<h6>{!validacionCUIT.loading ? `Valida` : `Validando...`}</h6>
 								</Button>
 							</Grid>
 						</Grid>
@@ -598,17 +523,16 @@ const EmpresasForm = ({
 							name="domicilioProvinciasId"
 							label="Provincia"
 
-							error={(!!errors.domicilioProvinciasId) || (data?.provinciaNombre !== provincias?.provinciaSelected?.label)} 
+							error={(!!errors.domicilioProvinciasId) || (data.provinciaNombre != provincias.provinciaEmpresa.label)} 
 							helperText={errors.domicilioProvinciasId ?? ""}
-							value={provincias.provinciaSelected}
-							
+							value={provincias.provinciaEmpresa}
 							disabled={disabled.domicilioProvinciasId ?? false}
 							onChange={(value, _id) => (
-								onChange({ domicilioProvinciasId: value?.value }),
-								onChange({ provinciaNombre: value?.label }),
-								setLocalidades((o) => ({ ...o, loading:"Cargando localidades..."})),//hago esto para que me filtre las localidades de la provincia seleccionada.
-								setProvincias((o) => ({ ...o, provinciaSelected: value}))
+								onChange({ domicilioProvinciasId: value.value }),
+								onChange({ provinciaNombre: value.label }),
+								setProvincias(...provincias, {provinciaEmpresa: {label: value.label}})
 								)}
+							
 							options={provincias.options}
 					
 							onTextChange={handlerOnTextChange}
@@ -623,14 +547,14 @@ const EmpresasForm = ({
 							name="domicilioLocalidadesId"
 							label="Localidad"
 
-							error={(!!errors.domicilioLocalidadesId) || (data?.localidadNombre != localidades?.localidadEmpresa?.label)} 
+							error={(!!errors.domicilioLocalidadesId) || (data.localidadNombre != localidades.localidadEmpresa.label)} 
 							helperText={errors.domicilioLocalidadesId ?? ""}
 							value={localidades.localidadEmpresa}
 							disabled={disabled.domicilioLocalidadesId ?? false}
 							onChange={(value, _id) => (
 								onChange({ domicilioLocalidadesId: value.value }),
 								onChange({ localidadNombre: value.label }),
-								setLocalidades((o) => ({ ...o, localidadEmpresa: {label: value.label}}))
+								setLocalidades(...localidades, {localidadEmpresa: {label: value.label}})
 								)}
 							
 							options={localidades.options}
