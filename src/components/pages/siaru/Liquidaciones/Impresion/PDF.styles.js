@@ -3,11 +3,11 @@ import { StyleSheet } from "@react-pdf/renderer";
 const border = {
 	color: "black",
 	style: "solid",
-	size: "2px",
+	size: "1px",
 };
 const gap = "10px";
-const margin = 10;
-const padding = 10;
+const margin = 5;
+const padding = 5;
 
 const styles = StyleSheet.create({
 	flex: { display: "flex" },
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 		width: "100%",
 		height: "100%",
 		fontFamily: "Helvetica",
-		fontSize: "12pt",
+		fontSize: "8pt",
 	},
 });
 

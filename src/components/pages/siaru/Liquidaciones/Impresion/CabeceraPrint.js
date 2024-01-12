@@ -22,6 +22,26 @@ const CabeceraPrint = ({ data }) => {
 					params: paramOthers,
 				};
 			}
+			case "GetSeccional": {
+				const { id, ...others } = params;
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional/${id}`,
+						method: "GET",
+					},
+					params: others,
+				};
+			}
+			case "GetProvincias": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Provincia`,
+						method: "GET",
+					},
+				};
+			}
 			case "GetEmpresa": {
 				return {
 					config: {
@@ -40,6 +60,15 @@ const CabeceraPrint = ({ data }) => {
 					},
 				};
 			}
+			case "GetSeccionalesSpecs": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional/GetSeccionalesSpecs`,
+						method: "POST",
+					},
+				};
+			}
 			case "GetLiquidacionesTiposPagos": {
 				return {
 					config: {
@@ -48,27 +77,6 @@ const CabeceraPrint = ({ data }) => {
 						method: "GET",
 					},
 				};
-			}
-			// case "GetBarcode": {
-			// 	return {
-			// 		config: {
-			// 			baseURL: "SIARU",
-			// 			endpoint: `/Liquidaciones/GenerarCodigoBarras`,
-			// 			method: "PATCH",
-			// 			okType: "text",
-			// 		},
-			// 	};
-			// }
-			case "GetSeccional": {
-				const { id, ...others } = params;
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional/${id}`,
-						method: "GET",
-					},
-					params: others,
-				}
 			}
 			default:
 				return null;
@@ -89,24 +97,16 @@ const CabeceraPrint = ({ data }) => {
 			.map((r) => r.empresaEstablecimientoId)
 			.filter((v, i, a) => v && a.indexOf(v) === i),
 		liquidaciones: AsArray(data?.liquidaciones).map(({ id }) => id),
-		// barras: {
-		// 	convenio: "0080",
-		// 	tipoLiquidacion: `${data.tipoLiquidacion ?? 0}`,
-		// 	periodoActa: Formato.Mascara((data.tipoLiquidacion ?? 0) === 0 ? data.periodo ?? 0 : data.acta ?? 0, "######"),
-		// 	cuit: Formato.Mascara(data.empresaCUIT, "###########"),
-		// 	fechaVencimiento: dayjs(data.fechaVencimiento)?.format("YYYYMMDD") ?? "00000000",
-		// 	nroBoleta: Formato.Mascara(data.id, "########"),
-		// },
 		tiposPago: AsArray(data?.liquidaciones)
 			.map(({ liquidacionTipoPagoId }) => liquidacionTipoPagoId)
 			.filter((v, i, a) => a.indexOf(v) === i),
 		data: {
 			parametros: null,
+			seccional: null,
 			empresa: null,
 			establecimientos: null,
+			seccionales: null,
 			tiposPago: null,
-			// codigosBarra: null,
-			seccional: null,
 		},
 		errors: null,
 	});
@@ -117,12 +117,12 @@ const CabeceraPrint = ({ data }) => {
 			data: { ...dependencias.data },
 			errors: null,
 		};
-		const setData = (value, error) => {
+		const setData = (value, error = {}) => {
 			Object.keys(value).forEach((k) => {
 				changes.data[k] = value[k];
-				if (!error) return;
+				if (!error[k]) return;
 				changes.errors ??= {};
-				changes.errors[k] = error;
+				changes.errors[k] = error[k];
 			});
 		};
 		const applyChanges = () => {
@@ -130,23 +130,24 @@ const CabeceraPrint = ({ data }) => {
 				return;
 			setDependencias((o) => ({ ...o, ...changes }));
 		};
-		const onLoadParam = (paramName) => {
-			switch (paramName) {
-				case "SeccionalIdPorDefecto": {
-					if (changes.data.seccional) return;
-					pushQuery({
-						action: "GetSeccional",
-						params: { id: changes.data.parametros[paramName] },
-						onOk: async (seccional) => setData({ seccional }),
-						onError: async (error) => setData({ seccional: {} }, error),
-						onFinally: async () => applyChanges(),
-					});
-				}
-				default:
-					return;
-			}
-		};
 		if (!changes.data.parametros) {
+			const onLoadParam = (paramName) => {
+				switch (paramName) {
+					case "SeccionalIdPorDefecto": {
+						if (changes.data.seccional) return;
+						return pushQuery({
+							action: "GetSeccional",
+							params: { id: changes.data.parametros[paramName] },
+							onOk: async (seccional) => setData({ seccional }),
+							onError: async (seccional) =>
+								setData({ seccional: {} }, { seccional }),
+							onFinally: async () => applyChanges(),
+						});
+					}
+					default:
+						return;
+				}
+			};
 			const parametros = {};
 			const errores = [];
 			const setParam = ({ nombre, valor }) =>
@@ -172,10 +173,22 @@ const CabeceraPrint = ({ data }) => {
 							Object.keys(parametros).length
 						)
 							return;
-						setData({ parametros }, errores.length ? errores : null);
+						setData(
+							{ parametros },
+							{ parametros: errores.length ? errores : null }
+						);
 						onLoadParam(paramName);
 					},
 				});
+			});
+		}
+		if (!changes.data.provincias) {
+			pushQuery({
+				action: "GetProvincias",
+				onOk: async (provincias) => setData({ provincias }),
+				onError: async (provincias) =>
+					setData({ provincias: [] }, { provincias }),
+				onFinally: async () => applyChanges(),
 			});
 		}
 		if (!changes.data.empresa) {
@@ -184,32 +197,82 @@ const CabeceraPrint = ({ data }) => {
 				action: "GetEmpresa",
 				params: { cuit },
 				onOk: async (empresa) => setData({ empresa }),
-				onError: async (error) => setData({ empresa: {} }, error),
+				onError: async (empresa) => setData({ empresa: {} }, { empresa }),
 				onFinally: async () => applyChanges(),
 			});
 		}
 		if (!changes.data.establecimientos) {
 			const establecimientos = [];
-			const errores = [];
+			const erroresEstab = [];
+			const seccionales = [];
+			const erroresSecc = [];
 			dependencias.establecimientos.forEach((id) => {
 				pushQuery({
 					action: "GetEstablecimiento",
 					params: { id },
-					onOk: async (ok) => establecimientos.push(ok),
-					onError: async (error) => errores.push(error),
+					onOk: async (establecimiento) =>
+						establecimientos.push(establecimiento),
+					onError: async (error) => erroresEstab.push(error),
 					onFinally: async () => {
 						if (
 							dependencias.establecimientos.length !==
-							establecimientos.length + errores.length
+							establecimientos.length + erroresEstab.length
 						)
 							return;
-						setData({ establecimientos }, errores.length ? errores : null);
-						applyChanges();
+						const estabLoc = establecimientos
+							.map((r) => r.domicilioLocalidadesId)
+							.filter((v, i, a) => v && i === a.indexOf(v));
+						const estabLocSecc = [];
+						const applyEstab = () => {
+							setData(
+								{
+									establecimientos,
+									seccionales: seccionales.filter(
+										(v, i, a) =>
+											i === a.indexOf(seccionales.find(({ id }) => id === v.id))
+									),
+								},
+								{
+									establecimientos: erroresEstab.length ? erroresEstab : null,
+									seccionales: erroresSecc.length ? erroresSecc : null,
+								}
+							);
+							applyChanges();
+						};
+						estabLoc.forEach((localidadId) => {
+							pushQuery({
+								action: "GetSeccionalesSpecs",
+								config: {
+									body: {
+										localidadId,
+										soloActivos: true,
+										pageIndex: 1,
+										pageSize: 1,
+									},
+								},
+								onOk: async ({ data }) => {
+									if (!Array.isArray(data) || !data.length) return;
+									establecimientos
+										.filter((r) => r.domicilioLocalidadesId === localidadId)
+										.forEach((estab) => (estab.seccionalId = data[0].id));
+									seccionales.push(data[0]);
+								},
+								onError: async (error) => erroresSecc.push(error),
+								onFinally: async () => {
+									estabLocSecc.push(localidadId);
+									if (estabLocSecc.length !== estabLoc.length) return;
+									applyEstab();
+								},
+							});
+						});
+						if (estabLoc.length === 0) {
+							applyEstab();
+						}
 					},
 				});
 			});
 			if (!dependencias.establecimientos.length) {
-				setData({ establecimientos });
+				setData({ establecimientos, seccionales });
 				applyChanges();
 			}
 		}
@@ -225,31 +288,10 @@ const CabeceraPrint = ({ data }) => {
 								}
 						),
 					}),
-				onError: async (error) => setData({ tiposPago: [] }, error),
+				onError: async (tiposPago) => setData({ tiposPago: [] }, { tiposPago }),
 				onFinally: async () => applyChanges(),
 			});
 		}
-		// if (!changes.data.codigosBarra) {
-		// 	const codigosBarra = [];
-		// 	const errores = [];
-		// 	dependencias.tiposPago.forEach((id) => {
-		// 		// pushQuery({
-		// 		// 	action: "GetBarcode",
-		// 		// 	params: { id: data.id, tiposPagoId: id },
-		// 		// 	onOk: async (codigoBarra) => codigosBarra.push({ id, codigoBarra }),
-		// 		// 	onError: async (error) => errores.push(error),
-		// 		// 	onFinally: async () => {
-		// 		// 		if (
-		// 		// 			dependencias.tiposPago.length !=
-		// 		// 			codigosBarra.length + errores.length
-		// 		// 		)
-		// 		// 			return;
-		// 		// 		setData({ codigosBarra }, errores.length ? errores : null);
-		// 		// 		applyChanges();
-		// 		// 	},
-		// 		// });
-		// 	});
-		// }
 	}, [dependencias, pushQuery]);
 	//#endregion
 
@@ -257,49 +299,15 @@ const CabeceraPrint = ({ data }) => {
 
 	if (dependencias.errors) console.error({ errors: dependencias.errors });
 
-	const { empresa, tiposPago, seccional/*, establecimientos, codigosBarra, parametros*/ } =
-		dependencias.data;
+	const {
+		empresa,
+		tiposPago,
+		seccional,
+		seccionales,
+		establecimientos /*, parametros*/,
+	} = dependencias.data;
 
-	// const { totalAporte, totalIntereses } = data;
-	// data.totalImporte = Round(totalAporte + totalIntereses, 2)
-
-	// data.totalSindical = 0;
-	// data.totalSolidario = 0;
 	const liquidaciones = AsArray(data.liquidaciones);
-	// liquidaciones.forEach((liquidacion) => {
-	// 	liquidacion.establecimiento =
-	// 		establecimientos.find(
-	// 			({ id }) => id === liquidacion.empresaEstablecimientoId
-	// 		) ?? {};
-
-	// 	liquidacion.tipoPago =
-	// 		tiposPago.find(({ id }) => id === liquidacion.liquidacionTipoPagoId) ??
-	// 		{};
-
-	// 	const { interesImporte = 0, interesNeto = 0 } = liquidacion;
-	// 	const { LiquidacionTipoPagoIdSindical, LiquidacionTipoPagoIdSolidario } =
-	// 		parametros;
-
-	// 	liquidacion.importeTotal = Round(interesImporte + interesNeto, 2);
-	// 	liquidacion.codigoBarra =
-	// 		codigosBarra.find(({ id }) => id === liquidacion.id)?.codigoBarra ?? "";
-
-	// 	switch (liquidacion.liquidacionTipoPagoId) {
-	// 		case LiquidacionTipoPagoIdSindical: {
-	// 			data.totalSindical += liquidacion.importeTotal;
-	// 			break;
-	// 		}
-	// 		case LiquidacionTipoPagoIdSolidario: {
-	// 			data.totalSolidario += liquidacion.importeTotal;
-	// 			break;
-	// 		}
-	// 		default: {
-	// 			break;
-	// 		}
-	// 	}
-	// });
-	// data.totalSindical = Round(data.totalSindical, 2);
-	// data.totalSolidario = Round(data.totalSolidario, 2);
 
 	tiposPago.forEach((tipoPago) => {
 		tipoPago.trabajadores = 0;
@@ -307,6 +315,7 @@ const CabeceraPrint = ({ data }) => {
 		tipoPago.capital = 0;
 		tipoPago.intereses = 0;
 		tipoPago.total = 0;
+		tipoPago.seccionales = [];
 		liquidaciones
 			.filter(
 				({ liquidacionTipoPagoId }) => liquidacionTipoPagoId === tipoPago.id
@@ -316,6 +325,33 @@ const CabeceraPrint = ({ data }) => {
 				tipoPago.remuneraciones += liquidacion.totalRemuneraciones ?? 0;
 				tipoPago.capital += liquidacion.interesNeto ?? 0;
 				tipoPago.intereses += liquidacion.interesImporte ?? 0;
+
+				const establecimiento =
+					establecimientos.find(
+						({ id }) => id === liquidacion.empresaEstablecimientoId
+					) ?? {};
+				const estabSecc =
+					seccionales.find(({ id }) => id === establecimiento.seccionalId) ??
+					seccional;
+				let tipoPagoSecc = tipoPago.seccionales.find(
+					({ id }) => id === estabSecc.id
+				);
+				if (!tipoPagoSecc) {
+					tipoPagoSecc = {
+						...estabSecc,
+						trabajadores: 0,
+						remuneraciones: 0,
+						capital: 0,
+						intereses: 0,
+						total: 0,
+					};
+					tipoPago.seccionales.push(tipoPagoSecc);
+				}
+
+				tipoPagoSecc.trabajadores += liquidacion.cantidadTrabajadores ?? 0;
+				tipoPagoSecc.remuneraciones += liquidacion.totalRemuneraciones ?? 0;
+				tipoPagoSecc.capital += liquidacion.interesNeto ?? 0;
+				tipoPagoSecc.intereses += liquidacion.interesImporte ?? 0;
 			});
 		tipoPago.remuneraciones = Round(tipoPago.remuneraciones, 2);
 		tipoPago.capital = Round(tipoPago.capital, 2);
@@ -350,6 +386,15 @@ const CabeceraPrint = ({ data }) => {
 			secc +
 			digitoVerif +
 			completa)();
+		tipoPago.seccionales.forEach((tipoPagoSecc) => {
+			tipoPagoSecc.remuneraciones = Round(tipoPagoSecc.remuneraciones, 2);
+			tipoPagoSecc.capital = Round(tipoPagoSecc.capital, 2);
+			tipoPagoSecc.intereses = Round(tipoPagoSecc.intereses, 2);
+			tipoPagoSecc.total = Round(
+				tipoPagoSecc.capital + tipoPagoSecc.intereses,
+				2
+			);
+		});
 	});
 
 	const cabecera = { ...data, empresa, tiposPago, seccional };
