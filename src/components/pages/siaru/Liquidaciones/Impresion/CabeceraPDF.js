@@ -19,7 +19,7 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 			<Grid gap="5">
 				<Image src={logo1} style={{ width: "40", height: "40" }} />
 				<Grid col justify="end">
-					<Text style={{ ...styles.titulo, fontSize: "40pt" }}>U.A.T.R.E.</Text>
+					<Text style={{ ...styles.titulo, fontSize: "40pt" }}>UATRE</Text>
 				</Grid>
 			</Grid>
 			<Grid col style={{ ...styles.titulo, fontSize: "8pt" }}>
@@ -269,7 +269,11 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 							</Grid>
 						</Grid>
 						<Grid col grow justify="end" style={styles.paddingBox}>
-							{barcode}
+							<Grid width justify="center">
+								<Grid width="400">
+									{barcode}
+								</Grid>
+							</Grid>
 						</Grid>
 					</Grid>
 				</MyPage>
