@@ -7,14 +7,14 @@ import Formato from "components/helpers/Formato.js";
 import UIGrid from "components/ui/Grid/Grid.js";
 import styles from "components/pages/siaru/liquidaciones/impresion/PDF.styles.js";
 
-const CabeceraPDF = ({ data = {} } = {}) => {
-	const { empresa = {}, tiposPago = [], seccional = {} } = data;
+const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
+	const { empresa = {}, tiposPago = [] /*, seccional = {}*/ } = cabecera;
 
 	const Grid = ({ style, ...p }) => (
 		<UIGrid render={View} style={{ ...style, ...styles.border }} {...p} />
 	);
 
-	const Header = () => (
+	const Header = ({ pagina = "" }) => (
 		<Grid col>
 			<Grid gap="5">
 				<Image src={logo1} style={{ width: "40", height: "40" }} />
@@ -22,19 +22,24 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 					<Text style={{ ...styles.titulo, fontSize: "40pt" }}>UATRE</Text>
 				</Grid>
 			</Grid>
-			<Grid col style={{ ...styles.titulo, fontSize: "8pt" }}>
-				<Text>Union Argentina de Trabajadores</Text>
-				<Text>Rurales y Estibadores</Text>
+			<Grid col width>
+				<Text style={{ ...styles.titulo, fontSize: "8pt" }}>Union Argentina de Trabajadores</Text>
+				<Grid width>
+					<Text style={{ ...styles.titulo, fontSize: "8pt" }}>Rurales y Estibadores</Text>
+					<Grid grow justify="end">
+						<Text>{pagina}</Text>
+					</Grid>
+				</Grid>
 			</Grid>
 		</Grid>
 	);
 
 	const Footer = () => <></>;
 
-	const MyPage = ({ children, ...x }) => (
+	const MyPage = ({ children, headerProps, ...x }) => (
 		<Page style={styles.page} size="A5" orientation="landscape" {...x}>
 			<Grid col grow gap="5">
-				<Header />
+				<Header {...headerProps} />
 				<Grid col grow gap="10px">
 					{children}
 				</Grid>
@@ -47,17 +52,40 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 
 	//#region paginas por tipo de pago (concepto)
 	let canvas = document.createElement("canvas");
+	const tiposSplit = [];
+	AsArray(tiposPago).forEach((tipoPago) => {
+		const seccionales = [...AsArray(tipoPago.seccionales)];
+		const pagination = {
+			index: 1,
+			pages: 1,
+			size: 8,
+			count: seccionales.length,
+			data: tipoPago,
+		};
+		if (pagination.count <= pagination.size) return tiposSplit.push(pagination);
+
+		pagination.pages = Math.ceil(pagination.count / pagination.size);
+		for (let index = 0; index < pagination.pages; index++) {
+			pagination.index = index + 1;
+			pagination.data = {
+				...tipoPago,
+				seccionales: seccionales.splice(0, pagination.size),
+			};
+			tiposSplit.push({ ...pagination });
+		}
+	});
 	pages.push(
-		...AsArray(tiposPago).map(({ codigoBarra, ...tipoPago }) => {
+		...AsArray(tiposSplit).map(({ index, pages, data }) => {
+			const { codigoBarra, ...tipoPago } = data;
 			let barcode;
 			if (codigoBarra) {
 				JsBarcode(canvas, codigoBarra);
 				barcode = canvas.toDataURL();
 			}
-			if (barcode) barcode = <Image src={barcode} />;
+			if (barcode) barcode = <Image src={barcode} style={{ width: 400, height: 45 }}/>;
 
 			return (
-				<MyPage>
+				<MyPage headerProps={{ pagina: `Página ${index} / ${pages}` }}>
 					<Grid col width gap="10" grow style={styles.borderBox}>
 						<Grid width style={styles.borderBottom}>
 							<Grid
@@ -100,7 +128,7 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 											[
 												[periodo.slice(4, 6), periodo.slice(0, 4)].join("-"),
 												sec,
-											].join("/"))(`${data.periodo || "      "}`, 0)}
+											].join("/"))(`${cabecera.periodo || "      "}`, 0)}
 									</Text>
 								</Grid>
 							</Grid>
@@ -113,7 +141,7 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 									<Text style={styles.titulo}>ACTA NRO:</Text>
 								</Grid>
 								<Grid justify="center" style={styles.titulo}>
-									<Text>{Formato.Mascara(data.acta, "###") || "000"}</Text>
+									<Text>{Formato.Mascara(cabecera.acta, "###") || "000"}</Text>
 								</Grid>
 							</Grid>
 							<Grid
@@ -125,7 +153,7 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 									<Text style={styles.titulo}>VENCIMIENTO:</Text>
 								</Grid>
 								<Grid justify="center">
-									<Text>{Formato.Fecha(data.fechaVencimiento)}</Text>
+									<Text>{Formato.Fecha(cabecera.fechaVencimiento)}</Text>
 								</Grid>
 							</Grid>
 							<Grid
@@ -256,7 +284,7 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 								}}
 							>
 								<Text style={styles.titulo}>NRO DE LIQUIDACION:</Text>
-								<Text>{Formato.Mascara(data.id, "#".repeat(10))}</Text>
+								<Text>{Formato.Mascara(cabecera.id, "#".repeat(10))}</Text>
 							</Grid>
 							<Grid width="310" justify="center" style={styles.paddingBox}>
 								<Text style={styles.titulo}>
@@ -268,11 +296,9 @@ const CabeceraPDF = ({ data = {} } = {}) => {
 								<Text>{Formato.Moneda(tipoPago.total)}</Text>
 							</Grid>
 						</Grid>
-						<Grid col grow justify="end" style={styles.paddingBox}>
+						<Grid col grow justify="end">
 							<Grid width justify="center">
-								<Grid width="400">
-									{barcode}
-								</Grid>
+								{barcode}
 							</Grid>
 						</Grid>
 					</Grid>
