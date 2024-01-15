@@ -61,39 +61,30 @@ const EstablecimientosForm = ({
 
 	const getValue = (v) => data[v] ?? "";
 
-	//#region select Provincia
-	const [provincia, setProvincia] = useState({
-		buscar: "",
-		options: provincias.data,
-		selected: provincias.data.find(
-			({ value }) => value === data.domicilioProvinciasId
-		) ?? { value: 0, label: "" },
-	});
-	// Buscador
-	useEffect(() => {
-		if (provincias.loading) return;
-		const options = provincias.data.filter((r) =>
-			provincia.buscar !== ""
-				? r.label
-						.toLocaleLowerCase()
-						.includes(provincia.buscar.toLocaleLowerCase())
-				: true
-		);
-		setProvincia((o) => ({ ...o, options }));
-	}, [provincias, provincia.buscar]);
-	//#endregion
-
 	//#region select Localidad
 	const [localidad, setLocalidad] = useState({
 		buscar: "",
-		options: localidades.data,
-		selected: localidades.data.find(
-			({ value }) => value === data.domicilioLocalidadesId
-		) ?? { value: 0, label: "" },
+		options: [],
+		selected: { value: 0, label: "" },
+		inicio: true,
 	});
+	// Inicio
+	useEffect(() => {
+		if (localidades.loading) return;
+		if (!localidad.inicio) return;
+		const changes = {
+			options: localidades.data,
+			selected: localidades.data.find(
+				({ value }) => value === data.domicilioLocalidadesId
+			) ?? { value: 0, label: "" },
+			inicio: false,
+		};
+		setLocalidad((o) => ({ ...o, ...changes }));
+	}, [localidades, localidad, data.domicilioLocalidadesId]);
 	// Buscador
 	useEffect(() => {
 		if (localidades.loading) return;
+		if (localidad.inicio) return;
 		const options = localidades.data.filter((r) =>
 			localidad.buscar !== ""
 				? r.label
@@ -103,7 +94,59 @@ const EstablecimientosForm = ({
 		);
 		setLocalidad((o) => ({ ...o, options }));
 	}, [localidades, localidad.buscar]);
-	//#endregion select Provincia
+	// Change
+	useEffect(() => {
+		if (localidades.loading) return;
+		if (localidad.inicio) return;
+		if ((localidad.selected?.value ?? 0) === (data.domicilioLocalidadesId ?? 0))
+			return;
+		onChange({ domicilioLocalidadesId: localidad.selected?.value ?? 0 });
+	}, [localidades, localidad, data.domicilioLocalidadesId, onChange]);
+	//#endregion
+
+	//#region select Provincia
+	const [provincia, setProvincia] = useState({
+		buscar: "",
+		options: [],
+		selected: { value: 0, label: "" },
+		inicio: true,
+	});
+	// Inicio
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (!provincia.inicio) return;
+		const changes = {
+			options: provincias.data,
+			selected: provincias.data.find(
+				({ value }) => value === data.domicilioProvinciasId
+			) ?? { value: 0, label: "" },
+			inicio: false,
+		};
+		setProvincia((o) => ({ ...o, ...changes }));
+	}, [provincias, provincia, data.domicilioProvinciasId]);
+	// Buscador
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (provincia.inicio) return;
+		const options = provincias.data.filter((r) =>
+			provincia.buscar !== ""
+				? r.label
+						.toLocaleLowerCase()
+						.includes(provincia.buscar.toLocaleLowerCase())
+				: true
+		);
+		setProvincia((o) => ({ ...o, options }));
+	}, [provincias, provincia.buscar]);
+	// Change
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (provincia.inicio) return;
+		if ((provincia.selected?.value ?? 0) === (data.domicilioProvinciasId ?? 0))
+			return;
+		onChange({ domicilioProvinciasId: provincia.selected?.value ?? 0 });
+		setLocalidad((o) => ({ ...o, selected: { value: 0, label: "" } }));
+	}, [provincias, provincia, data.domicilioProvinciasId, onChange]);
+	//#endregion
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
@@ -116,21 +159,6 @@ const EstablecimientosForm = ({
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full" gap="inherit">
-						{/* <Grid width="25%">
-							{hide.nroSucursal ? null : (
-								<InputMaterial
-									id="nroSucursal"
-									label="Nro. de Estab."
-									type="number"
-									disabled={disabled.nroSucursal}
-									error={!!errors.nroSucursal}
-									helperText={errors.nroSucursal ?? ""}
-									value={getValue("nroSucursal")}
-									onChange={(nroSucursal) => onChange({ nroSucursal })}
-								/>
-							)}
-						</Grid>
-						<Grid width="75%"> */}
 						<Grid width>
 							{hide.nombre ? null : (
 								<InputMaterial
@@ -145,34 +173,6 @@ const EstablecimientosForm = ({
 							)}
 						</Grid>
 					</Grid>
-					{/* <Grid width="full" gap="inherit">
-						<Grid width="50%">
-							{hide.telefono ? null : (
-								<InputMaterial
-									id="telefono"
-									label="Teléfono"
-									disabled={disabled.telefono}
-									error={!!errors.telefono}
-									helperText={errors.telefono ?? ""}
-									value={getValue("telefono")}
-									onChange={(telefono) => onChange({ telefono })}
-								/>
-							)}
-						</Grid>
-						<Grid width="50%">
-							{hide.email ? null : (
-								<InputMaterial
-									id="email"
-									label="Correo"
-									disabled={disabled.email}
-									error={!!errors.email}
-									helperText={errors.email ?? ""}
-									value={getValue("email")}
-									onChange={(email) => onChange({ email })}
-								/>
-							)}
-						</Grid>
-					</Grid> */}
 					{hide.domicilio ? null : (
 						<Grid
 							col
@@ -241,20 +241,6 @@ const EstablecimientosForm = ({
 							<Grid width="full" gap="inherit">
 								<Grid width="50%">
 									{hide.domicilioProvinciasId ? null : (
-										// <SelectMaterial
-										// 	name="domicilioProvinciasId"
-										// 	label="Provincia"
-										// 	options={provincias.data}
-										// 	value={data.domicilioProvinciasId ?? 0}
-										// 	error={
-										// 		provincias.loading ??
-										// 		provincias.error?.message ??
-										// 		errors.domicilioProvinciasId ??
-										// 		""
-										// 	}
-										// 	disabled={disabled.domicilioProvinciasId}
-										// 	onChange={(domicilioProvinciasId) => onChange({ domicilioProvinciasId })}
-										// />
 										<SearchSelectMaterial
 											id="domicilioProvinciasId"
 											name="domicilioProvinciasId"
@@ -268,16 +254,12 @@ const EstablecimientosForm = ({
 											}
 											value={provincia.selected}
 											disabled={disabled.domicilioProvinciasId ?? false}
-											onChange={(selected) => {
-												setProvincia((o) => ({ ...o, selected }));
-												onChange({ domicilioProvinciasId: selected?.value });
-											}}
+											onChange={(selected) =>
+												setProvincia((o) => ({ ...o, selected }))
+											}
 											options={provincia.options}
 											onTextChange={({ target }) =>
-												setProvincia((o) => ({
-													...o,
-													buscar: target.value,
-												}))
+												setProvincia((o) => ({ ...o, buscar: target.value }))
 											}
 											required
 										/>
@@ -285,22 +267,6 @@ const EstablecimientosForm = ({
 								</Grid>
 								<Grid width="50%">
 									{hide.domicilioLocalidadesId ? null : (
-										// <SelectMaterial
-										// 	name="domicilioLocalidadesId"
-										// 	label="Localidad"
-										// 	options={localidades.data}
-										// 	value={data.domicilioLocalidadesId ?? 0}
-										// 	error={
-										// 		localidades.loading ??
-										// 		localidades.error?.message ??
-										// 		errors.domicilioLocalidadesId ??
-										// 		""
-										// 	}
-										// 	disabled={disabled.domicilioLocalidadesId}
-										// 	onChange={(domicilioLocalidadesId) =>
-										// 		onChange({ domicilioLocalidadesId })
-										// 	}
-										// />
 										<SearchSelectMaterial
 											id="domicilioLocalidadesId"
 											name="domicilioLocalidadesId"
@@ -312,18 +278,14 @@ const EstablecimientosForm = ({
 												errors.domicilioLocalidadesId ??
 												""
 											}
-											value={localidades.selected}
+											value={localidad.selected}
 											disabled={disabled.domicilioLocalidadesId ?? false}
-											onChange={(selected) => {
-												setLocalidad((o) => ({ ...o, selected }));
-												onChange({ domicilioLocalidadesId: selected?.value });
-											}}
+											onChange={(selected) =>
+												setLocalidad((o) => ({ ...o, selected }))
+											}
 											options={localidad.options}
 											onTextChange={({ target }) =>
-												setLocalidad((o) => ({
-													...o,
-													buscar: target.value,
-												}))
+												setLocalidad((o) => ({ ...o, buscar: target.value }))
 											}
 											required
 										/>
