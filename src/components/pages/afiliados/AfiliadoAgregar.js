@@ -288,6 +288,7 @@ const telefonoReducer = (state, action) => {
 const onLoadedDef = ({ data, error }) => {};
 //#endregion
 
+
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -656,47 +657,73 @@ const AfiliadoAgregar = (props) => {
               : afiliadoObj.tipoDocumentoId,
         });
 
-        console.log('init_despachaProv_provincias',provincias)
-        const provinciaSelected = provincias.data.find(
+        console.log('init_despachaProv_provincia',provincias)
+
+        console.log('afiliadoObj.provinciaId',afiliadoObj.provinciaId)
+ /*       const provinciaSelected = provincias.data.find(
           (prov) => prov.value === afiliadoObj.provinciaId
         ) ?? "";
-
-
+*/
 				/*const provinciaId = afiliadoObj.provinciaId
 					? afiliadoObj.provinciaId
 					: "";
         */
+
 				const localidadId = afiliadoObj.refLocalidadId
 					? afiliadoObj.refLocalidadId
 					: "";
 				const seccionalId =
 					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
-        console.log('init_despachaProv:',provinciaSelected)
-        dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-				setLocalidades((o) => ({
-					...o,
-					loading: "Cargando...",
-					params: provinciaSelected.value  ?? null,
-					onLoaded: ({ data }) => {
-						if (!Array.isArray(data)) return;
-						const myLocalidadId =
-							data.find((r) => r.value === localidadId)?.value ?? "";
-						dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
-						setSeccionales((o) => ({
-							...o,
-							loading: "Cargando...",
-							params: myLocalidadId ? { localidadId: myLocalidadId } : null,
-							onLoaded: ({ data }) => {
-								if (!Array.isArray(data)) return;
-								const mySeccionalId =
-									data.find((r) => r.value === seccionalId)?.value ??
-									data.at(0)?.value ??
-									"";
-								dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
-							},
-						}));
-					},
-				}));
+
+        //dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+
+        console.log('localidadId**',localidadId)
+        console.log('seccionalId**',)
+        
+        setProvincias((o) => ({
+          ...o,
+          loading: "Cargando...",
+          
+          onLoaded: ({data}) => {
+            console.log('data del Ok:',data)
+
+            const provinciaSelected = data.find(
+              (prov) => prov.value === afiliadoObj.provinciaId
+            ) ?? "";
+                
+            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+            setLocalidades((o) => ({
+              ...o,
+              loading: "Cargando...",
+              params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
+              onLoaded: ({ data }) => {
+                console.log('init_Localidades_Data:',data)
+                if (!Array.isArray(data)) return;
+                const myLocalidadId =
+                  data.find((r) => r.value === localidadId)?.value ?? "";
+  
+                const sinAsignar = data.at(0)?.value === localidadId ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId} 
+
+                 console.log('sinAsignar:',sinAsignar) 
+                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+                setSeccionales((o) => ({
+                  ...o,
+                  loading: "Cargando...",
+                  params: sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                  onLoaded: ({ data }) => {
+                    console.log('init_Seccionales_Data:',data)
+                    if (!Array.isArray(data)) return;
+                    const mySeccionalId =
+                      data.find((r) => r.value === seccionalId)?.value ??
+                      data.at(0)?.value ??
+                      "";
+                    dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
+                  },
+                }));
+              },
+            }));
+          },
+        }));
 
         dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
         dispatchFechaNacimiento({
@@ -748,7 +775,7 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
-        console.log('empresaObj',empresaObj)
+        //console.log('empresaObj',empresaObj)
 
         setPadronEmpresaRespuesta(empresaObj);
         setRazonSocialEmpresa(empresaObj.razonSocial);
@@ -953,19 +980,20 @@ const AfiliadoAgregar = (props) => {
 				method: "GET",
 			},
 			async (ok) =>
-				(
-          changes.data.push(
-            {
-              value : 99999,
-              label: "Localidad Sin Asignar",
-          }
-          ),
-          changes.data.push(
-            ...ok
-              .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-              .map((r) => ({ value: r.id, label: r.nombre }))
-          )
-        ),
+      {
+      
+        const sinAsigacion = ok.find((o) => o.codPostal === 99999) //99999 CP de Localidad SinAsignar para cada provincia
+
+        changes.data.push(
+          { value: sinAsigacion.id, label: sinAsigacion.nombre }
+        )
+        changes.data.push(
+          ...ok
+            .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+            .map((r) => ( r.codPostal !== 99999 ? { value: r.id, label: r.nombre } : ""))
+        )
+      },
+
 			async (error) => (changes.error = error),
 			async () => applyChanges()
 		);
@@ -1322,8 +1350,9 @@ const AfiliadoAgregar = (props) => {
 
         //localidad
         const processLocalidades = async (localidadesObj) => {
-          console.log('localidadesObj',localidadesObj)
-          console.log('domicilioReal',domicilioReal)
+
+          console.log('validarAfiliado_processLocalidades',processLocalidades)
+
           const localidadId = localidadesObj.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
             (localidad) =>
               localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
@@ -1334,31 +1363,36 @@ const AfiliadoAgregar = (props) => {
               localidad.nombre.includes(domicilioReal.localidad)  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
           )?.id
           ??
-          99999;
+          "";
 
-          console.log('provinciaId_despacha',provinciaId)
+          console.log('validarAfiliado_provinciaId:',provinciaId)
+          console.log('validarAfiliado__localidadId',localidadId)
 
 					setLocalidades((o) => ({
 						...o,
 						loading: "Cargando...",
-						params: provinciaId ? { provinciaId: provinciaId.value } : null,
+						params: provinciaId ? { provinciaId: provinciaId.value } : null,  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
 						onLoaded: ({ data }) => {
               console.log('ValidarAfiliado_setLocalidades_data',data)
+
 							if (!Array.isArray(data)) return;
-							const myLocalidadId =
-								data.find((r) => r.value === localidadId)?.value ?? "";
+							const myLocalidadId = localidadId ?
+								data.find((r) => r.value === localidadId)?.value : data.at(0)?.value;
+
               console.log('ValidarAfiliado_setLocalidades_myLocalidadId',myLocalidadId)
+
 							dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+
 							setSeccionales((o) => ({
 								...o,
 								loading: "Cargando...",
-								params: myLocalidadId === 99999 ? {provinciaId: provinciaId.value} : {localidadId: myLocalidadId} ?? {},
+								params: localidadId ? {localidadId: localidadId} : {provinciaId: provinciaId?.value} ?? {},
 								onLoaded: ({ data }) => {
-									if (!Array.isArray(data)) return;
-									dispatchSeccional({
-										type: "USER_INPUT",
-										value: data.at(0)?.value ?? {value: provinciaId.seccionalIdPorDefecto , label: provinciaId.seccionalDescripcionPorDefecto},
-									});
+                  console.log('ValidarAfiliado_setSeccionales_data',data)
+									//if (!Array.isArray(data)) return;
+                  const mySeccionalId = !localidadId ? data.at(0)?.value : data.at(1)?.value ? data.at(1)?.value : data.at(0)?.value;
+
+									dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
 								},
 							}));
 						},
@@ -1440,7 +1474,8 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handlers change select
-  const handleChangeSelect = (value, name) => {
+  const handleChangeSelect = (value, name, target) => {
+    console.log('handleChangeSelect_target',target)
     console.log('handleChangeSelect_value',value)
     console.log('handleChangeSelect_name',name)
     switch (name) {
@@ -1479,16 +1514,17 @@ const AfiliadoAgregar = (props) => {
 				setLocalidades((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: value ? { provinciaId: value?.value  } : {},
+					params: value ? { provinciaId: value?.value  } : {}, //CARGO EN EL COMBO DE LOCALIDADES, TODAS LAS LOCALIDADDES DE LA PROV
 					onLoaded: ({ data }) => {
+            //
 						if (!Array.isArray(data)) return;
-						dispatchLocalidad({ type: "USER_INPUT", value: "" });
+						dispatchLocalidad({ type: "USER_INPUT", value: data.at(0)?.value });
 						setSeccionales((o) => ({
 							...o,
 							loading: "Cargando...",
-							params: null,
+							params: value ? {provinciaId: value?.value} : {},
 							onLoaded: ({ data }) => {
-                console.log('data.at(0)?.value')
+                //console.log('provinciaSelect_SeccionalesData:',data)
 								if (!Array.isArray(data)) return;
 								dispatchSeccional({
 									type: "USER_INPUT",
@@ -1502,17 +1538,24 @@ const AfiliadoAgregar = (props) => {
 
       case "localidadSelect":
 				if(localidadState.value === value) break;
+
+        
         dispatchLocalidad({ type: "USER_INPUT", value });
+
+        console.log('localidadSelect_localidades0',localidades)
+        console.log('localidadSelect_localidades',localidades?.data?.at(0).value)
+        console.log('localidadSelect_value',value)
+         
 
 				setSeccionales((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: value === 99999 ? {provinciaId: provinciaState?.value?.value} : { localidadId: value } ?? {},
+					params: localidades?.data?.at(0).value === value ? {provinciaId: provinciaState?.value?.value} : { localidadId: value } ?? {},
 					onLoaded: ({ data }) => {
-            console.log('localidadSelect_data',data)
-            
 
-            const mySeccionalId = value === 99999 ? data.at(0)?.value : data.at(1)?.value ? data.at(1)?.value : data.at(0)?.value;
+            console.log('localidadSelect_data',data)
+
+            const mySeccionalId = value === localidades?.data?.at(0).value ? data.at(0)?.value : data.at(1)?.value ? data.at(1)?.value : data.at(0)?.value;
             
 						dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
 					},
