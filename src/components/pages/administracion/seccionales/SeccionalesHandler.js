@@ -39,7 +39,11 @@ const SeccionalesHandler = () => {
 	
 	
 	//#region Tab Seccionales
-	const [seccionalesTab, seccionalChanger, seccionalSelected] = useSeccionales();
+	const {
+		render: seccionalesTab,
+		request: seccionalChanger,
+		selected: seccionalSelected,
+	} = useSeccionales();
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	
 	useEffect(() => {
