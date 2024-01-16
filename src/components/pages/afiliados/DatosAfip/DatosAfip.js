@@ -16,16 +16,20 @@ const DatosAfip = (props) => {
   const [domicilioRealAFIP, setDomicilioRealAFIP] = useState("");
   const [tipoPersonaAFIP, setTipoPersonaAFIP] = useState("");
   const [tipoClaveAFIP, setTipoClaveAFIP] = useState("");
-  const [
-    descripcionActividadPrincipalAFIP,
-    setDescripcionActividadPrincipalAFIP,
-  ] = useState("");
+  const [descripcionActividadPrincipalAFIP,setDescripcionActividadPrincipalAFIP ] = useState("");
+
+  const [provinciaAFIP,setProvinciaAFIP] = useState("");
+  const [localidadAFIP,setLocalidadAFIP] = useState("");
+  
+
   const [idActividadPrincipalAFIP, setIdActividadPrincipalAFIP] = useState("");
   const [periodoActividadPrincipalAFIP, setPeriodoActividadPrincipalAFIP] =
     useState("");
   const [mesCierreAFIP, setMesCierreAFIP] = useState("");
   
   useEffect(() => {
+
+    console.log('props.padronRespuesta')
      if (props.padronRespuesta !== null) {
       const domicilioReal = props.padronRespuesta?.domicilios?.find(
         (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
@@ -47,6 +51,12 @@ const DatosAfip = (props) => {
       setTipoClaveAFIP(props.padronRespuesta?.tipoClave);
       setDescripcionActividadPrincipalAFIP(
         props.padronRespuesta?.descripcionActividadPrincipal
+      );
+      setProvinciaAFIP(
+        domicilioReal?.descripcionProvincia
+      );
+      setLocalidadAFIP(
+        `${domicilioReal?.codigoPostal} - ${domicilioReal?.localidad}`
       );
       setIdActividadPrincipalAFIP(props.padronRespuesta?.idActividadPrincipal);
       setPeriodoActividadPrincipalAFIP(
@@ -217,6 +227,52 @@ const DatosAfip = (props) => {
           />
         </div>
       </div>
+      
+
+      <div className={classes.renglon}>
+        <div className={classes.input}>
+          <InputMaterial
+            id="provinciaAFIP"
+            value={provinciaAFIP}
+            label="Provincia"
+            readOnly={true}
+            color={
+              provinciaAFIP !== "" &&
+              provinciaAFIP !==
+                props.afiliado?.afipPeriodoActividadPrincipal
+                ? "warning"
+                : ""
+            }
+            focused={
+              provinciaAFIP !== "" &&
+              provinciaAFIP !== props.afiliado?.afipDomicilio
+                ? true
+                : false
+            }
+          />
+        </div>
+        <div className={classes.input}>
+          <InputMaterial
+            id="localidadAFIP"
+            value={localidadAFIP}
+            label="Localidad"
+            readOnly={true}
+            color={
+              localidadAFIP !== "" &&
+              localidadAFIP !== props.afiliado?.afipTipoPersona
+                ? "warning"
+                : ""
+            }
+            focused={
+              localidadAFIP !== "" &&
+              localidadAFIP !== props.afiliado?.afipTipoPersona
+                ? true
+                : false
+            }
+          />
+        </div>
+      </div>
+      
 
       <div className={classes.renglon}>
         <div className={classes.input33}>
