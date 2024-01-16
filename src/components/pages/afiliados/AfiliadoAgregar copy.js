@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import moment from "moment";
 import {
   Dialog,
@@ -606,8 +606,6 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (cuilState.value && cuilState.isValid) {
       const processGetAfiliado = async (afiliadoObj) => {
-        console.log('afiliadoObj',afiliadoObj)
-
         setAfiliado(afiliadoObj);
         setCuilValidado(true);
         setNuevoAfiliadoResponse(afiliadoObj);
@@ -656,42 +654,39 @@ const AfiliadoAgregar = (props) => {
               : afiliadoObj.tipoDocumentoId,
         });
 
-        console.log('init_despachaProv_provincias',provincias)
-        const provinciaSelected = provincias.data.find(
-          (prov) => prov.value === afiliadoObj.provinciaId
-        ) ?? "";
-
-
-				/*const provinciaId = afiliadoObj.provinciaId
+				const provinciaId = afiliadoObj.provinciaId
 					? afiliadoObj.provinciaId
 					: "";
-        */
 				const localidadId = afiliadoObj.refLocalidadId
 					? afiliadoObj.refLocalidadId
 					: "";
 				const seccionalId =
 					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
-        console.log('init_despachaProv:',provinciaSelected)
-        dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+        dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+
+        console.log('1_provinciaId',provinciaId)
 				setLocalidades((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: provinciaSelected.value  ?? null,
+					params: provinciaId ? { provinciaId } : null,
 					onLoaded: ({ data }) => {
 						if (!Array.isArray(data)) return;
 						const myLocalidadId =
 							data.find((r) => r.value === localidadId)?.value ?? "";
+            console.log('1_myLocalidadId',myLocalidadId)
 						dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+
 						setSeccionales((o) => ({
 							...o,
 							loading: "Cargando...",
-							params: myLocalidadId ? { localidadId: myLocalidadId } : null,
+							params: myLocalidadId ? { localidadId: myLocalidadId.value } : null,
 							onLoaded: ({ data }) => {
 								if (!Array.isArray(data)) return;
 								const mySeccionalId =
 									data.find((r) => r.value === seccionalId)?.value ??
 									data.at(0)?.value ??
 									"";
+                console.log('2_mySeccionalId',mySeccionalId)
 								dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
 							},
 						}));
@@ -748,12 +743,12 @@ const AfiliadoAgregar = (props) => {
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
-        console.log('empresaObj',empresaObj)
-
         setPadronEmpresaRespuesta(empresaObj);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
-        setDomicilioEmpresa(`${empresaObj.domicilioCalle} ${empresaObj.domicilioNumero}`);
+        setDomicilioEmpresa(
+          `${empresaObj.domicilioCalle} ${empresaObj.domicilioNumero}`
+        );
         setLocalidadEmpresa("");
         setTelefonoEmpresa(empresaObj.telefono ?? "");
         setCorreoEmpresa(empresaObj.email ?? "");
@@ -953,19 +948,11 @@ const AfiliadoAgregar = (props) => {
 				method: "GET",
 			},
 			async (ok) =>
-				(
-          changes.data.push(
-            {
-              value : 99999,
-              label: "Localidad Sin Asignar",
-          }
-          ),
-          changes.data.push(
-            ...ok
-              .sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
-              .map((r) => ({ value: r.id, label: r.nombre }))
-          )
-        ),
+				changes.data.push(
+					...ok
+						.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+						.map((r) => ({ value: r.id, label: r.nombre }))
+				),
 			async (error) => (changes.error = error),
 			async () => applyChanges()
 		);
@@ -998,11 +985,6 @@ const AfiliadoAgregar = (props) => {
 				method: "POST",
 			},
 			async (ok) =>
-      (console.log('GetSeccionalesSpecs_ok',ok),
-        changes.data.push(
-          {value: provinciaState?.value?.seccionalIdPorDefecto,
-          label: provinciaState?.value?.seccionalDescripcionPorDefecto}
-        ),
 				changes.data.push(
 					...ok.data
 						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
@@ -1010,10 +992,8 @@ const AfiliadoAgregar = (props) => {
 							value: r.id,
 							label: `${r.codigo} ${r.descripcion}`,
 						}))
-				)
-      ),
-			async (error) => (
-        (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
+				),
+			async (error) => (changes.error = error),
 			async () => applyChanges()
 		);
 	}, [request, seccionales, provincias]);
@@ -1059,7 +1039,6 @@ const AfiliadoAgregar = (props) => {
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
     //event.preventDefault();
-    console.log('***')
     setInputsTouched(true);
     if (!formularioIsValid || !formularioEmpleadorIsValid) {
       //console.log("formularioIsValid", formularioIsValid);
@@ -1240,9 +1219,9 @@ const AfiliadoAgregar = (props) => {
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
-    console.log("afiliado", afiliado);
+  
     const processConsultaPadron = async (padronObj) => {
-      console.log("padronObj", padronObj);
+     
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
         setDialogTexto(`Error validando CUIL - Persona fallecida`);
@@ -1253,6 +1232,8 @@ const AfiliadoAgregar = (props) => {
 
       setCuilValidado(true);
       setPadronRespuesta(padronObj);
+
+     
       //Solo actualizo los datos principales si estoy agregando solicitud
       // fecha ingreso
       if (!fechaIngresoState.isValid) {
@@ -1320,10 +1301,9 @@ const AfiliadoAgregar = (props) => {
         ) ?? "";
         dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
 
+
         //localidad
         const processLocalidades = async (localidadesObj) => {
-          console.log('localidadesObj',localidadesObj)
-          console.log('domicilioReal',domicilioReal)
           const localidadId = localidadesObj.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
             (localidad) =>
               localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
@@ -1334,43 +1314,47 @@ const AfiliadoAgregar = (props) => {
               localidad.nombre.includes(domicilioReal.localidad)  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
           )?.id
           ??
-          99999;
-
-          console.log('provinciaId_despacha',provinciaId)
-
+          "";
+          
 					setLocalidades((o) => ({
 						...o,
 						loading: "Cargando...",
-						params: provinciaId ? { provinciaId: provinciaId.value } : null,
+						params: provinciaId ? {provinciaId: provinciaId.value} : null,
 						onLoaded: ({ data }) => {
-              console.log('ValidarAfiliado_setLocalidades_data',data)
 							if (!Array.isArray(data)) return;
 							const myLocalidadId =
-								data.find((r) => r.value === localidadId)?.value ?? "";
-              console.log('ValidarAfiliado_setLocalidades_myLocalidadId',myLocalidadId)
+								data.find((r) => r.value === localidadId) ?? "";
 							dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+              
+              console.log('2_myLocalidadId',myLocalidadId)
+              console.log('*data',data)
 							setSeccionales((o) => ({
 								...o,
 								loading: "Cargando...",
-								params: myLocalidadId === 99999 ? {provinciaId: provinciaId.value} : {localidadId: myLocalidadId} ?? {},
+								params: myLocalidadId ? { localidadId: myLocalidadId?.value } : null,
+                
 								onLoaded: ({ data }) => {
 									if (!Array.isArray(data)) return;
 									dispatchSeccional({
 										type: "USER_INPUT",
-										value: data.at(0)?.value ?? {value: provinciaId.seccionalIdPorDefecto , label: provinciaId.seccionalDescripcionPorDefecto},
+										value: data.at(0)?.value ?? "",
 									});
 								},
 							}));
 						},
 					}));
         };
-
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/RefLocalidad?CodigoPostal=${parseInt(
+            /*endpoint: `/RefLocalidad?CodigoPostal=${parseInt(
               domicilioReal?.codigoPostal
-            )}`,
+            )}`,*/
+            endpoint: `/RefLocalidad?provinciaId=${
+              provincias.data.find(
+                (provincia) => provincia?.idProvinciaAFIP === domicilioReal?.idProvincia
+              ).value ?? ""
+            }`,
             method: "GET",
           },
           processLocalidades
@@ -1407,7 +1391,6 @@ const AfiliadoAgregar = (props) => {
   const validarEmpresaCUITHandler = () => {
     setCUITLoading(true);
     const processConsultaPadron = async (padronObj) => {
-      console.log('validarEmpresaCUITHandler_padronObj',padronObj)
       setCuitValidado(true);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
@@ -1416,7 +1399,7 @@ const AfiliadoAgregar = (props) => {
       );
       setActividadEmpresa(padronObj?.descripcionActividadPrincipal ?? "");
       setDomicilioEmpresa(
-        padronObj ? `${padronObj?.domicilios[0]?.direccion}` : ""
+        padronObj ? `${padronObj?.domicilios[1]?.direccion}` : ""
       );
       setLocalidadEmpresa(
         padronObj
@@ -1441,8 +1424,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
-    console.log('handleChangeSelect_value',value)
-    console.log('handleChangeSelect_name',name)
+
     switch (name) {
       case "actividadSelect":
         dispatchActividad({ type: "USER_INPUT", value: value });
@@ -1476,10 +1458,11 @@ const AfiliadoAgregar = (props) => {
       case "provinciaSelect":
 				if(provinciaState.value === value) break;
         dispatchProvincia({ type: "USER_INPUT", value });
+  
 				setLocalidades((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: value ? { provinciaId: value?.value  } : {},
+					params: value ? { provinciaId: value?.value } : null,
 					onLoaded: ({ data }) => {
 						if (!Array.isArray(data)) return;
 						dispatchLocalidad({ type: "USER_INPUT", value: "" });
@@ -1488,11 +1471,10 @@ const AfiliadoAgregar = (props) => {
 							loading: "Cargando...",
 							params: null,
 							onLoaded: ({ data }) => {
-                console.log('data.at(0)?.value')
 								if (!Array.isArray(data)) return;
 								dispatchSeccional({
 									type: "USER_INPUT",
-									value: data.at(0)?.value ?? "",
+									value: data.at(0)?.value ?? {},
 								});
 							},
 						}));
@@ -1503,21 +1485,22 @@ const AfiliadoAgregar = (props) => {
       case "localidadSelect":
 				if(localidadState.value === value) break;
         dispatchLocalidad({ type: "USER_INPUT", value });
-
+        console.log('3_myLocalidadId',value)
 				setSeccionales((o) => ({
 					...o,
 					loading: "Cargando...",
-					params: value === 99999 ? {provinciaId: provinciaState?.value?.value} : { localidadId: value } ?? {},
+					params: value ? { localidadId: value?.value} : {},
 					onLoaded: ({ data }) => {
-            console.log('localidadSelect_data',data)
-            
+						if (!Array.isArray(data)) return;
+						const mySeccionalId = data.at(0)?.value ?? "";
 
-            const mySeccionalId = value === 99999 ? data.at(0)?.value : data.at(1)?.value ? data.at(1)?.value : data.at(0)?.value;
-            
+            console.log('1_mySeccionalId',mySeccionalId)
 						dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
 					},
 				}));
         break;
+
+
 
       default:
         break;
@@ -2252,7 +2235,7 @@ const AfiliadoAgregar = (props) => {
 							</div>
 
 							<div className={classes.input}>
-								<SearchSelectMaterial
+								<SearchSelectMaterial //NO TOCAR!!!
 									name="provinciaSelect"
 									label="Provincia"
 									options={provincias.data}
@@ -2265,7 +2248,7 @@ const AfiliadoAgregar = (props) => {
 								/>
 							</div>
 							<div className={classes.input}>
-								<SelectMaterial
+								<SearchSelectMaterial
 									name="localidadSelect"
 									label="Localidad"
 									options={localidades.data}
@@ -2281,7 +2264,7 @@ const AfiliadoAgregar = (props) => {
 
 						<div className={classes.renglon}>
 							<div className={classes.input}>
-								<SelectMaterial
+								<SearchSelectMaterial
 									name="seccionalSelect"
 									label="Seccional"
 									options={seccionales.data}

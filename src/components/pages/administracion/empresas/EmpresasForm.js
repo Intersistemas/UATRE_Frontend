@@ -440,6 +440,7 @@ const EmpresasForm = ({
 						actividadPrincipalDescripcion: ok?.descripcionActividadPrincipal,
 
 						domicilioProvinciasId: provincias?.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0]?.idProvincia)?.id,
+
 						domicilioCalle: ok.domicilios[0].direccion,
 						domicilioNumero: ok.domicilios[0].numero,
 						domicilioPiso: ok.domicilios[0].piso,
@@ -605,7 +606,7 @@ const EmpresasForm = ({
 			<Modal.Body>
 				<Grid col width="full" gap="15px">
 					<Grid width="full" gap="inherit">
-						<Grid width="250px">
+						<Grid width="270px">
 							<Grid width="full">
 								<InputMaterial
 									id="cuitEmpresa"
@@ -694,25 +695,24 @@ const EmpresasForm = ({
 			
 					<Grid width="full" gap="inherit">
 						<Grid width="250px">
-
 							<SearchSelectMaterial
-							id="domicilioProvinciasId"
-							name="domicilioProvinciasId"
-							label="Provincia"
-							error={(!!errors.domicilioProvinciasId)} 
-							helperText={errors.domicilioProvinciasId ?? ""}
-							value={provincias.provinciaSelected}
-							
-							disabled={disabled.domicilioProvinciasId ?? false}
-							onChange={(value, _id) => (
-								onChange({ domicilioProvinciasId: value?.value }),
-								onChange({ provinciaNombre: value?.label }),
-								setLocalidades((o) => ({ ...o, loading:"Cargando localidades..."})),//hago esto para que me filtre las localidades de la provincia seleccionada.
-								setProvincias((o) => ({ ...o, provinciaSelected: value}))
-								)}
-							options={provincias.options}
-							onTextChange={handlerOnTextChange}
-							required
+								id="domicilioProvinciasId"
+								name="domicilioProvinciasId"
+								label="Provincia"
+								error={(!!errors.domicilioProvinciasId)} 
+								helperText={errors.domicilioProvinciasId ?? ""}
+								value={provincias.provinciaSelected}
+								
+								disabled={disabled.domicilioProvinciasId ?? false}
+								onChange={(value, _id) => (
+									onChange({ domicilioProvinciasId: value?.value }),
+									onChange({ provinciaNombre: value?.label }),
+									setLocalidades((o) => ({ ...o, loading:"Cargando localidades..."})),//hago esto para que me filtre las localidades de la provincia seleccionada.
+									setProvincias((o) => ({ ...o, provinciaSelected: value}))
+									)}
+								options={provincias.options}
+								onTextChange={handlerOnTextChange}
+								required
 							/>
 						</Grid>
 
@@ -722,7 +722,6 @@ const EmpresasForm = ({
 							id="domicilioLocalidadesId"
 							name="domicilioLocalidadesId"
 							label="Localidad"
-
 							error={(!!errors.domicilioLocalidadesId)} 
 							helperText={errors.domicilioLocalidadesId ?? ""}							
 							value={localidades.localidadSelected}
@@ -734,7 +733,6 @@ const EmpresasForm = ({
 								)}
 							
 							options={localidades.options}
-					
 							onTextChange={handlerOnTextChange}
 							required
 							/>
