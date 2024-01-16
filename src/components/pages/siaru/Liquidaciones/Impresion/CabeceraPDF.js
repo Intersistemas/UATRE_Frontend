@@ -23,9 +23,13 @@ const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
 				</Grid>
 			</Grid>
 			<Grid col width>
-				<Text style={{ ...styles.titulo, fontSize: "8pt" }}>Union Argentina de Trabajadores</Text>
+				<Text style={{ ...styles.titulo, fontSize: "8pt" }}>
+					Union Argentina de Trabajadores
+				</Text>
 				<Grid width>
-					<Text style={{ ...styles.titulo, fontSize: "8pt" }}>Rurales y Estibadores</Text>
+					<Text style={{ ...styles.titulo, fontSize: "8pt" }}>
+						Rurales y Estibadores
+					</Text>
 					<Grid grow justify="end">
 						<Text>{pagina}</Text>
 					</Grid>
@@ -34,16 +38,16 @@ const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
 		</Grid>
 	);
 
-	const Footer = () => <></>;
+	const Footer = ({ children }) => <>{children}</>;
 
-	const MyPage = ({ children, headerProps, ...x }) => (
+	const MyPage = ({ children, header, footer, ...x }) => (
 		<Page style={styles.page} size="A5" orientation="landscape" {...x}>
 			<Grid col grow gap="5">
-				<Header {...headerProps} />
+				<Header {...header} />
 				<Grid col grow gap="10px">
 					{children}
 				</Grid>
-				<Footer />
+				<Footer {...footer} />
 			</Grid>
 		</Page>
 	);
@@ -82,10 +86,11 @@ const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
 				JsBarcode(canvas, codigoBarra);
 				barcode = canvas.toDataURL();
 			}
-			if (barcode) barcode = <Image src={barcode} style={{ width: 400, height: 45 }}/>;
+			if (barcode)
+				barcode = <Image src={barcode} style={{ width: 400, height: 45 }} />;
 
 			return (
-				<MyPage headerProps={{ pagina: `Página ${index} / ${pages}` }}>
+				<MyPage header={{ pagina: `Página ${index} / ${pages}` }}>
 					<Grid col width gap="10" grow style={styles.borderBox}>
 						<Grid width style={styles.borderBottom}>
 							<Grid
@@ -308,7 +313,11 @@ const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
 	);
 	//#endregion
 
-	return <Document style={styles.grow}>{pages}</Document>;
+	return (
+		<Document title={`Liquidación ${cabecera.id}`} style={styles.grow}>
+			{pages}
+		</Document>
+	);
 };
 
 export default CabeceraPDF;
