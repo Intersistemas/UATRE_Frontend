@@ -8,6 +8,7 @@ import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useDelegaciones from "./useDelegaciones";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
+import useSeccionales from "../seccionales/useSeccionales";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -249,6 +250,87 @@ const DelegacionesHandler = () => {
 			params: { refDelegacionId: delegacionSelected?.id },
 		});
 	}, [delegacionSelected?.id, colaboradoresChanger]);
+	//#endregion
+
+	//#region Tab seccionales
+	const {
+		render: seccionalesRender,
+		request: seccionalesRequest,
+		selected: seccionalesSelected,
+	} = useSeccionales();
+	const [seccionalesActions, setSeccionalesActions] = useState([]);
+	useEffect(() => {
+		const actions = [];
+		const dele = delegacionSelected?.id;
+		if (!dele) {
+			setSeccionalesActions(actions);
+			return;
+		}
+		const deleDesc = `para Delegación ${dele}`;
+		const createAction = ({ action, request, ...x }) =>
+			new Action({
+				name: action,
+				onExecute: (action) =>
+					seccionalesRequest("selected", {
+						request,
+						action,
+						record: { refDelegacionId: delegacionSelected?.id },
+					}),
+				combination: "AltKey",
+				...x,
+			});
+		actions.push(
+			createAction({
+				action: `Agrega Seccional ${deleDesc}`,
+				request: "A",
+				keys: "a",
+				underlineindex: 0,
+			})
+		);
+		const selected = seccionalesSelected?.id;
+		if (!selected) {
+			setSeccionalesActions(actions);
+			return;
+		}
+		const selectedDesc = `${selected} ${deleDesc}`;
+		actions.push(
+			createAction({
+				action: `Consulta Seccional ${selectedDesc}`,
+				request: "C",
+				keys: "o",
+				underlineindex: 1,
+			})
+		);
+		// actions.push(
+		// 	createAction({
+		// 		action: `Modifica Seccional ${selectedDesc}`,
+		// 		request: "M",
+		// 		keys: "m",
+		// 		underlineindex: 0,
+		// 	})
+		// );
+		// actions.push(
+		// 	createAction({
+		// 		action: `Baja Seccional ${selectedDesc}`,
+		// 		request: "B",
+		// 		keys: "b",
+		// 		underlineindex: 0,
+		// 	})
+		// );
+		setSeccionalesActions(actions);
+	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id]);
+	tabs.push({
+		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected} />,
+		body: seccionalesRender,
+		actions: seccionalesActions,
+	});
+	// Si cambia delegación, refresco lista de seccionales
+	useEffect(() => {
+		seccionalesRequest("list", {
+			clear: !delegacionSelected?.id,
+			body: { refDelegacionId: delegacionSelected?.id },
+		});
+	}, [delegacionSelected?.id, seccionalesRequest]);
 	//#endregion
 
 	//#region modulo y acciones
