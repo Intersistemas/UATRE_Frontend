@@ -229,7 +229,7 @@ const CabeceraPDF = ({ data: cabecera = {} } = {}) => {
 									>
 										<Text>
 											{[
-												seccional.provinciaNombre || "{Provincia}",
+												seccional.provinciaDescripcion || " NO ESPECIFICADO",
 												`(${seccional.localidadCodPostal}) ${seccional.localidadNombre}`,
 											].join(" / ")}
 										</Text>
