@@ -16,11 +16,30 @@ export function Mascara(numero, patron) {
 	return r;
 }
 
-export function Moneda(numero) {
+export function Numero(numero) {
+	if (numero == null) return "";
+	return Intl.NumberFormat("es-AR").format(numero);
+}
+
+export function Porcentaje(numero) {
+	if (numero == null) return "";
+	return Intl.NumberFormat("es-AR", { style: "percent" }).format(numero);
+}
+
+export function Unidad(numero, unidad = null, display = "short") {
+	if (numero == null) return "";
+	return Intl.NumberFormat("es-AR", {
+		style: "unit",
+		unit: unidad,
+		unitDisplay: display,
+	}).format(numero);
+}
+
+export function Moneda(numero, codigo = "ARS") {
 	if (numero == null) return "";
 	return Intl.NumberFormat("es-AR", {
 		style: "currency",
-		currency: "ARS",
+		currency: codigo,
 	}).format(numero);
 }
 
@@ -91,6 +110,9 @@ export function Decimal(numero) {
 
 class _Formato {
 	Mascara = Mascara;
+	Numero = Numero;
+	Porcentaje = Porcentaje;
+	Unidad = Unidad;
 	Moneda = Moneda;
 	Booleano = Booleano;
 	Fecha = Fecha;
