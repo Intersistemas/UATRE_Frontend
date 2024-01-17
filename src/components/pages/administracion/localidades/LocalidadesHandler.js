@@ -7,6 +7,7 @@ import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import useLocalidades, { onLoadSelectKeepOrFirst } from "./useLocalidades";
+import Formato from "components/helpers/Formato";
 
 const LocalidadesHandler = () => {
 	const dispatch = useDispatch();
@@ -47,15 +48,15 @@ const LocalidadesHandler = () => {
 				...x,
 			});
 		const actions = [
-			createAction({
-				action: `Agrega Localidad`,
-				request: "A",
-				tarea: "Localidad_Agrega",
-				keys: "a",
-				underlineindex: 0,
-			}),
+			// createAction({
+			// 	action: `Agrega Localidad`,
+			// 	request: "A",
+			// 	tarea: "Localidad_Agrega",
+			// 	keys: "a",
+			// 	underlineindex: 0,
+			// }),
 		];
-		const desc = ((v) => (v != null ? `CP ${v}` : null))(
+		const desc = ((v) => (v != null ? `C.P. ${Formato.Numero(v)}` : null))(
 			localidadesSelected?.codPostal
 		);
 		if (!desc) {
@@ -70,37 +71,38 @@ const LocalidadesHandler = () => {
 				underlineindex: 1,
 			})
 		);
-		actions.push(
-			createAction({
-				action: `Modifica Localidad ${desc}`,
-				request: "M",
-				disabled: !!localidadesSelected.deletedDate,
-				tarea: "Localidad_Modifica",
-				keys: "m",
-				underlineindex: 0,
-			})
-		);
-		if (localidadesSelected.deletedDate) {
-			// actions.push(
-			// 	createAction({
-			// 		action: `Reactiva Localidad ${desc}`,
-			// 		request: "R",
-			// 		tarea: "Localidad_Reactiva",
-			// 		keys: "r",
-			// 		underlineindex: 0,
-			// 	})
-			// );
-		} else {
-			actions.push(
-				createAction({
-					action: `Baja Localidad ${desc}`,
-					request: "B",
-					tarea: "Localidad_Baja",
-					keys: "b",
-					underlineindex: 0,
-				})
-			);
-		}
+		// actions.push(
+		// 	createAction({
+		// 		action: `Modifica Localidad ${desc}`,
+		// 		request: "M",
+		// 		disabled: !!localidadesSelected.deletedDate,
+		// 		tarea: "Localidad_Modifica",
+		// 		keys: "m",
+		// 		underlineindex: 0,
+		// 	})
+		// );
+		// if (localidadesSelected.deletedDate) {
+		// 	actions.push(
+		// 		createAction({
+		// 			action: `Reactiva Localidad ${desc}`,
+		// 			request: "R",
+		// 			tarea: "Localidad_Reactiva",
+		// 			keys: "r",
+		// 			underlineindex: 0,
+		// 		})
+		// 	);
+		// } else {
+		// 	actions.push(
+		// 		createAction({
+		// 			action: `Baja Localidad ${desc}`,
+		// 			request: "B",
+		// 			tarea: "Localidad_Baja",
+		// 			keys: "b",
+		// 			underlineindex: 0,
+		// 		})
+		// 	);
+		// }
+		
 		setLocalidadesActions(actions);
 	}, [localidadesRequest, localidadesSelected]);
 	useEffect(() => {

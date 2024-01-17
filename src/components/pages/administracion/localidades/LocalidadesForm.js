@@ -11,6 +11,8 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 // import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 //#endregion
 
 const onChangeDef = (changes = {}) => {};
@@ -18,7 +20,7 @@ const onCloseDef = (confirm = false) => {};
 
 const LocalidadesForm = ({
 	data = {},
-	title = "",
+	title = <></>,
 	disabled = {},
 	hide = {},
 	errors = {},
@@ -44,26 +46,23 @@ const LocalidadesForm = ({
 			</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
-					{/* <Grid width="full" gap="inherit">
-						<Grid width="25%">
-							{hide.cuil ? null : (
+					<Grid width="full" gap="inherit">
+						<Grid width="35%">
+							{hide.codPostal ? null : (
 								<InputMaterial
-									label="CUIL"
-									disabled={disabled.cuil}
-									error={!!errors.cuil}
-									helperText={errors.cuil ?? ""}
-									value={data.cuil}
-									onChange={(v) =>
-										onChange({ cuil: Number(v.replace(/[^\d]/gim, "")) })
-									}
-									mask="99\-99\.999\.999\-9"
+									type="number"
+									label="C.P."
+									disabled={disabled.codPostal}
+									error={!!errors.codPostal}
+									helperText={errors.codPostal ?? ""}
+									value={data.codPostal}
+									onChange={(codPostal) => onChange({ codPostal })}
 								/>
 							)}
 						</Grid>
-						<Grid width="75%">
+						<Grid width>
 							{hide.nombre ? null : (
 								<InputMaterial
-									id="nombre"
 									label="Nombre"
 									disabled={disabled.nombre}
 									error={!!errors.nombre}
@@ -73,22 +72,57 @@ const LocalidadesForm = ({
 								/>
 							)}
 						</Grid>
-					</Grid> */}
-					{/* <Grid width="full">
-						{hide.remuneracionImponible ? null : (
+					</Grid>
+					<Grid width>
+						{hide.provincia ? null : (
 							<InputMaterial
-								type="number"
-								label="Remuneracion"
-								value={data.remuneracionImponible}
-								disabled={!!disabled.remuneracionImponible}
-								error={!!errors.remuneracionImponible}
-								helperText={errors.remuneracionImponible}
-								onChange={(value) =>
-									onChange({ remuneracionImponible: Formato.Decimal(value) })
-								}
+								label="Provincia"
+								disabled={disabled.provincia}
+								error={!!errors.provincia}
+								helperText={errors.provincia ?? ""}
+								value={data.provincia}
+								onChange={(provincia) => onChange({ provincia })}
 							/>
 						)}
-					</Grid> */}
+					</Grid>
+					{hide.deletedDate ? null : (
+						<Grid width gap="inherit" col>
+							<Grid width gap="inherit">
+								<Grid width="35%">
+									{hide.deletedDate ? null : (
+										<DateTimePicker
+											type="date"
+											label="Fecha de baja"
+											value={data.deletedDate}
+											disabled={disabled.deletedDate}
+										/>
+									)}
+								</Grid>
+								<Grid width>
+									{hide.deletedBy ? null : (
+										<InputMaterial
+											label="Baja realizada por"
+											disabled={disabled.deletedBy}
+											error={!!errors.deletedBy}
+											helperText={errors.deletedBy ?? ""}
+											value={data.deletedBy}
+											onChange={(deletedBy) => onChange({ deletedBy })}
+										/>
+									)}
+								</Grid>
+							</Grid>
+							<Grid width>
+								<InputMaterial
+									label="Observaciones de baja"
+									disabled={disabled.deletedObs}
+									error={!!errors.deletedObs}
+									helperText={errors.deletedObs ?? ""}
+									value={data.deletedObs}
+									onChange={(deletedObs) => onChange({ deletedObs })}
+								/>
+							</Grid>
+						</Grid>
+					)}
 				</Grid>
 			</Modal.Body>
 			<Modal.Footer>

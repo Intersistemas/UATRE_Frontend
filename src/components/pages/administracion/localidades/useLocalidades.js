@@ -283,40 +283,35 @@ const useLocalidades = ({
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
-				// dependecies={{ motivosBaja, provincias, localidades }}
 				disabled={(() => {
-					// const r = ["A", "M"].includes(list.selection.request)
-					// 	? {}
-					// 	: {
-					// 			nroSucursal: true,
-					// 			nombre: true,
-					// 			telefono: true,
-					// 			email: true,
-					// 			domicilioCalle: true,
-					// 			domicilioNumero: true,
-					// 			domicilioPiso: true,
-					// 			domicilioDpto: true,
-					// 			domicilioProvinciasId: true,
-					// 			domicilioLocalidadesId: true,
-					// 	  };
-					// if (list.selection.request !== "B") {
-					// 	r.refMotivosBajaId = true;
-					// 	r.deletedObs = true;
-					// }
-					// return r;
+					const r = ["A", "M"].includes(list.selection.request)
+						? {}
+						: {
+								codPostal: true,
+								nombre: true,
+								provincia: true,
+								email: true,
+						  };
+					if (list.selection.request !== "B") {
+						r.deletedDate = true;
+						r.deletedBy = true;
+						r.deletedObs = true;
+					}
+					return r;
 				})()}
 				hide={(() => {
-					// const r = ["A", "M"].includes(list.selection.request)
-					// 	? { refMotivosBajaId: true, deletedObs: true }
-					// 	: {};
-					// if (list.selection.request === "C") {
-					// 	if (!list.selection.record.deletedDate) {
-					// 		r.refMotivosBajaId = true;
-					// 		r.deletedObs = true;
-					// 	}
-					// }
-					// if (list.selection.request !== "R") r.obs = true;
-					// return r;
+					const r = ["A", "M"].includes(list.selection.request)
+						? { deletedDate: true, deletedBy: true, deletedObs: true }
+						: {};
+					if (list.selection.request === "C") {
+						if (!list.selection.record.deletedDate) {
+							r.deletedDate = true;
+							r.deletedBy = true;
+							r.deletedObs = true;
+						}
+					}
+					if (list.selection.request !== "R") r.obs = true;
+					return r;
 				})()}
 				onChange={(edit) => {
 					if (
@@ -327,7 +322,7 @@ const useLocalidades = ({
 						})
 					)
 						return;
-					const changes = { edit: { ...edit }, errors: {} };
+					// const changes = { edit: { ...edit }, errors: {} };
 					// const applyChanges = ({ edit, errors } = changes) =>
 					// 	setList((o) => ({
 					// 		...o,
@@ -491,53 +486,53 @@ const useLocalidades = ({
 						return;
 					}
 
-					const query = {
-						config: {},
-						onOk: async (response) => {
-							if (list.onEditComplete === onEditCompleteDef) {
-								request("list");
-							} else {
-								list.onEditComplete({
-									edit: { ...list.selection.edit },
-									response,
-									request: list.selection.request,
-								});
-							}
-						},
-						onError: async (err) => alert(err.message),
-					};
-					switch (list.selection.request) {
-						case "A": {
-							query.action = "Create";
-							query.config.body = record;
-							break;
-						}
-						case "M": {
-							query.action = "Update";
-							query.config.body = record;
-							break;
-						}
-						// case "B": {
-						// 	query.action = "Delete";
-						// 	query.config.body = {
-						// 		id: record.id,
-						// 		refMotivosBajaId: record.refMotivosBajaId,
-						// 		deletedObs: record.deletedObs,
-						// 	};
-						// 	break;
-						// }
-						// case "R": {
-						// 	query.action = "Reactivate";
-						// 	query.config.body = {
-						// 		id: record.id,
-						// 		obs: record.obs,
-						// 	};
-						// 	break;
-						// }
-						default:
-							break;
-					}
-					pushQuery(query);
+					// const query = {
+					// 	config: {},
+					// 	onOk: async (response) => {
+					// 		if (list.onEditComplete === onEditCompleteDef) {
+					// 			request("list");
+					// 		} else {
+					// 			list.onEditComplete({
+					// 				edit: { ...list.selection.edit },
+					// 				response,
+					// 				request: list.selection.request,
+					// 			});
+					// 		}
+					// 	},
+					// 	onError: async (err) => alert(err.message),
+					// };
+					// switch (list.selection.request) {
+					// 	case "A": {
+					// 		query.action = "Create";
+					// 		query.config.body = record;
+					// 		break;
+					// 	}
+					// 	case "M": {
+					// 		query.action = "Update";
+					// 		query.config.body = record;
+					// 		break;
+					// 	}
+					// 	case "B": {
+					// 		query.action = "Delete";
+					// 		query.config.body = {
+					// 			id: record.id,
+					// 			refMotivosBajaId: record.refMotivosBajaId,
+					// 			deletedObs: record.deletedObs,
+					// 		};
+					// 		break;
+					// 	}
+					// 	case "R": {
+					// 		query.action = "Reactivate";
+					// 		query.config.body = {
+					// 			id: record.id,
+					// 			obs: record.obs,
+					// 		};
+					// 		break;
+					// 	}
+					// 	default:
+					// 		break;
+					// }
+					// pushQuery(query);
 				}}
 			/>
 		);

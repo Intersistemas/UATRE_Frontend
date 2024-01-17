@@ -1,6 +1,7 @@
 import React from "react";
 import AsArray from "components/helpers/AsArray";
 import Table from "components/ui/Table/Table";
+import Formato from "components/helpers/Formato";
 
 const LocalidadesTable = ({ columns, ...x } = {}) => {
 	const columnsDef = [
@@ -9,6 +10,7 @@ const LocalidadesTable = ({ columns, ...x } = {}) => {
 			text: "C.P.",
 			sort: true,
 			headerStyle: { width: "80px" },
+			formatter: Formato.Numero,
 		},
 		{
 			dataField: "nombre",
