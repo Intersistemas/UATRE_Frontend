@@ -8,8 +8,13 @@ const SearchSelectMaterial = (props) => {
 
   const handleChange = (event, newValue) => {   
     //console.log("SearchSelectMaterial_event.target", event.target)
-    props.onChange(newValue, props.name);
-    //props.onChange(event.target.value, event.target.name);
+    
+    console.log('newValue',newValue)
+    console.log('handleChange_props',props)
+
+    newValue !==null ? props.onChange(newValue, props.name) : props.onChange(props.options[0], props.name);
+
+    //props.onChange(newValue, props.name)
   };
 
   return (
