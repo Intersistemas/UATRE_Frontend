@@ -1,18 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 
 //#region components/helpers
-// import Formato from "components/helpers/Formato";
+import AsArray from "components/helpers/AsArray";
 import UseKeyPress from "components/helpers/UseKeyPress";
 //#endregion
 
 //#region components/ui
+import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
-import Grid from "components/ui/Grid/Grid";
-// import InputMaterial from "components/ui/Input/InputMaterial";
-import modalCss from "components/ui/Modal/Modal.module.css";
-import InputMaterial from "components/ui/Input/InputMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 //#endregion
 
 const onChangeDef = (changes = {}) => {};
@@ -35,6 +36,78 @@ const LocalidadesForm = ({
 
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+
+	const pushQuery = useQueryQueue((action) => {
+		switch (action) {
+			case "GetProvincias": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/Provincia`,
+					},
+				};
+			}
+		}
+	});
+
+	//#region select Provincia
+	const [provincias, setProvincias] = useState({
+		loading: "Cargando...",
+		params: {},
+		data: [],
+		error: null,
+		buscar: "",
+		buscado: "",
+		options: [],
+		selected: { value: data.provinciaId, label: data.provincia },
+	});
+	useEffect(() => {
+		if (!provincias.loading) return;
+		const changes = {
+			loading: null,
+			data: [],
+			error: null,
+			options: [],
+			selected: { value: 0, label: "" },
+		};
+		pushQuery({
+			action: "GetProvincias",
+			params: provincias.params,
+			onOk: async (data) => {
+				changes.data = AsArray(data)
+					.sort((a, b) => (a.nombre > b.nombre ? 1 : -1))
+					.map((r) => ({ label: r.nombre, value: r.id }));
+				changes.options = changes.data;
+				changes.selected =
+					changes.data.find(
+						({ value }) => value === provincias.selected.value
+					) ?? provincias.selected;
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () => setProvincias((o) => ({ ...o, ...changes })),
+		});
+	}, [pushQuery, provincias]);
+	// Buscador
+	useEffect(() => {
+		if (provincias.loading) return;
+		if (provincias.buscar === provincias.buscado) return;
+		const options = provincias.data.filter((r) =>
+			provincias.buscar !== ""
+				? r.label
+						.toLocaleLowerCase()
+						.includes(provincias.buscar.toLocaleLowerCase())
+				: true
+		);
+		setProvincias((o) => ({ ...o, options, buscado: o.buscar }));
+	}, [provincias]);
+	// Change
+	useEffect(() => {
+		if (provincias.loading) return;
+		if ((provincias.selected?.value ?? 0) === (data.provinciaId ?? 0)) return;
+		onChange({ provinciaId: provincias.selected?.value ?? 0 });
+	}, [provincias, data.provinciaId, onChange]);
+	//#endregion
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
@@ -74,14 +147,28 @@ const LocalidadesForm = ({
 						</Grid>
 					</Grid>
 					<Grid width>
-						{hide.provincia ? null : (
-							<InputMaterial
+						{hide.provinciaId ? null : (
+							<SearchSelectMaterial
+								id="provinciaId"
+								name="provinciaId"
 								label="Provincia"
-								disabled={disabled.provincia}
-								error={!!errors.provincia}
-								helperText={errors.provincia ?? ""}
-								value={data.provincia}
-								onChange={(provincia) => onChange({ provincia })}
+								error={!!errors.provinciaId}
+								helperText={
+									provincias.loading ??
+									provincias.error?.message ??
+									errors.provinciaId ??
+									""
+								}
+								value={provincias.selected}
+								disabled={disabled.provinciaId ?? false}
+								onChange={(selected) =>
+									setProvincias((o) => ({ ...o, selected }))
+								}
+								options={provincias.options}
+								onTextChange={({ target }) =>
+									setProvincias((o) => ({ ...o, buscar: target.value }))
+								}
+								required
 							/>
 						)}
 					</Grid>

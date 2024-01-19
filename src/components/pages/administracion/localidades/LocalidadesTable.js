@@ -21,7 +21,7 @@ const LocalidadesTable = ({ columns, ...x } = {}) => {
 		{
 			dataField: "provincia",
 			text: "Provincia",
-			sort: true,
+			sort: false,
 			headerStyle: { width: "200px" },
 			style: { textAlign: "left" },
 		},

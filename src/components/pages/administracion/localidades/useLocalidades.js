@@ -76,7 +76,7 @@ const useLocalidades = ({
 					config: {
 						baseURL: "Afiliaciones",
 						method: "GET",
-						endpoint: `/RefLocalidad`,
+						endpoint: `/RefLocalidad/GetRefLocalidadesPaginationSpecs`,
 					},
 				};
 			}
@@ -98,15 +98,24 @@ const useLocalidades = ({
 					},
 				};
 			}
-			// case "Delete": {
-			// 	return {
-			// 		config: {
-			// 			baseURL: "Afiliaciones",
-			// 			method: "DELETE",
-			// 			endpoint: `/RefLocalidad`,
-			// 		},
-			// 	};
-			// }
+			case "Delete": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "PATCH",
+						endpoint: `/RefLocalidad/DarDeBaja`,
+					},
+				};
+			}
+			case "Reactivate": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "PATCH",
+						endpoint: `/RefLocalidad/Reactivar`,
+					},
+				};
+			}
 			default:
 				return null;
 		}
@@ -122,7 +131,7 @@ const useLocalidades = ({
 		loading: null,
 		remote: remoteInit,
 		loadingOverride: loading,
-		params: {},
+		params: { sortBy: "nombre" },
 		pagination: { index: 1, size: 15, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
 		error,
@@ -173,7 +182,7 @@ const useLocalidades = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data = data
+				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
 				changes.pagination = { index, size, count };
@@ -289,12 +298,12 @@ const useLocalidades = ({
 						: {
 								codPostal: true,
 								nombre: true,
-								provincia: true,
+								provinciaId: true,
 								email: true,
+								deletedDate: true,
+								deletedBy: true,
 						  };
 					if (list.selection.request !== "B") {
-						r.deletedDate = true;
-						r.deletedBy = true;
 						r.deletedObs = true;
 					}
 					return r;
@@ -322,16 +331,16 @@ const useLocalidades = ({
 						})
 					)
 						return;
-					// const changes = { edit: { ...edit }, errors: {} };
-					// const applyChanges = ({ edit, errors } = changes) =>
-					// 	setList((o) => ({
-					// 		...o,
-					// 		selection: {
-					// 			...o.selection,
-					// 			edit: { ...o.selection.edit, ...edit },
-					// 			errors: { ...o.selection.errors, ...errors },
-					// 		},
-					// 	}));
+					const changes = { edit: { ...edit }, errors: {} };
+					const applyChanges = ({ edit, errors } = changes) =>
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								edit: { ...o.selection.edit, ...edit },
+								errors: { ...o.selection.errors, ...errors },
+							},
+						}));
 					// if ("domicilioProvinciasId" in edit) {
 					// 	if (edit.domicilioProvinciasId) {
 					// 		setLocalidades((o) => ({
@@ -346,7 +355,7 @@ const useLocalidades = ({
 					// 			"Debe seleccionar una provincia";
 					// 	}
 					// }
-					// applyChanges();
+					applyChanges();
 				}}
 				onClose={(confirm) => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request))
@@ -372,22 +381,14 @@ const useLocalidades = ({
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
-						// if (!record.refMotivosBajaId)
-						// 	errors.refMotivosBajaId = "Dato requerido";
+						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					} else if (list.selection.request === "R") {
 					} else {
-						// if (!record.empresaId) errors.empresaId = "Dato requerido";
-						// if (!record.nombre) errors.nombre = "Dato requerido";
-						// if (!!record.email && !ValidarEmail(record.email))
-						// 	errors.email = "El correo ingresado tiene un formato incorrecto.";
-						// if (!record.domicilioProvinciasId)
-						// 	errors.domicilioProvinciasId = "Dato requerido";
-						// if (!record.domicilioLocalidadesId)
-						// 	errors.domicilioLocalidadesId = "Dato requerido";
-						// if (!record.domicilioCalle)
-						// 	errors.domicilioCalle = "Dato requerido";
+						if (!record.codPostal) errors.codPostal = "Dato requerido";
+						if (!record.nombre) errors.nombre = "Dato requerido";
+						if (!record.provinciaId) errors.provinciaId = "Dato requerido";
 					}
-					
+
 					list.onEditValidate({
 						edit: record,
 						errors,
@@ -486,53 +487,59 @@ const useLocalidades = ({
 						return;
 					}
 
-					// const query = {
-					// 	config: {},
-					// 	onOk: async (response) => {
-					// 		if (list.onEditComplete === onEditCompleteDef) {
-					// 			request("list");
-					// 		} else {
-					// 			list.onEditComplete({
-					// 				edit: { ...list.selection.edit },
-					// 				response,
-					// 				request: list.selection.request,
-					// 			});
-					// 		}
-					// 	},
-					// 	onError: async (err) => alert(err.message),
-					// };
-					// switch (list.selection.request) {
-					// 	case "A": {
-					// 		query.action = "Create";
-					// 		query.config.body = record;
-					// 		break;
-					// 	}
-					// 	case "M": {
-					// 		query.action = "Update";
-					// 		query.config.body = record;
-					// 		break;
-					// 	}
-					// 	case "B": {
-					// 		query.action = "Delete";
-					// 		query.config.body = {
-					// 			id: record.id,
-					// 			refMotivosBajaId: record.refMotivosBajaId,
-					// 			deletedObs: record.deletedObs,
-					// 		};
-					// 		break;
-					// 	}
-					// 	case "R": {
-					// 		query.action = "Reactivate";
-					// 		query.config.body = {
-					// 			id: record.id,
-					// 			obs: record.obs,
-					// 		};
-					// 		break;
-					// 	}
-					// 	default:
-					// 		break;
-					// }
-					// pushQuery(query);
+					const query = {
+						config: {},
+						onOk: async (response) => {
+							if (list.onEditComplete === onEditCompleteDef) {
+								request("list");
+							} else {
+								list.onEditComplete({
+									edit: { ...list.selection.edit },
+									response,
+									request: list.selection.request,
+								});
+							}
+						},
+						onError: async (err) =>
+							alert(
+								typeof err.message === "object"
+									? Object.keys(err.message)
+											.map((k) => `${k}: ${err.message[k]}`)
+											.join("\n")
+									: err.message
+							),
+						onFinally: async () => {
+							console.log("onFinally")
+						}
+					};
+					switch (list.selection.request) {
+						case "A": {
+							query.action = "Create";
+							query.config.body = record;
+							break;
+						}
+						case "M": {
+							query.action = "Update";
+							query.config.body = record;
+							break;
+						}
+						case "B": {
+							query.action = "Delete";
+							query.config.body = {
+								id: record.id,
+								deletedObs: record.deletedObs,
+							};
+							break;
+						}
+						case "R": {
+							query.action = "Reactivate";
+							query.config.body = { id: record.id };
+							break;
+						}
+						default:
+							break;
+					}
+					pushQuery(query);
 				}}
 			/>
 		);
@@ -636,7 +643,7 @@ const useLocalidades = ({
 								loading: "Cargando...",
 								params: {
 									...o.params,
-									orderBy: `${sortField}.${sortOrder}`,
+									sortBy: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
 								},
 							}));
 						}
