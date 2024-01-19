@@ -1087,7 +1087,7 @@ const AfiliadoAgregar = (props) => {
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
     //event.preventDefault();
-    console.log('***')
+    
     setInputsTouched(true);
     if (!formularioIsValid || !formularioEmpleadorIsValid) {
       //console.log("formularioIsValid", formularioIsValid);
@@ -1155,7 +1155,7 @@ const AfiliadoAgregar = (props) => {
 				fechaEgreso: null,
 				nacionalidadId: +nacionalidadState.value,
 				//empresaId: +empresaId,
-				seccionalId: +seccionalState.value,
+				seccionalId: +seccionalState.value.value,
 				sexoId: +sexoState.value,
 				tipoDocumentoId: +tipoDocumentoState.value,
 				documento: +numeroDocumentoState.value,
@@ -1166,7 +1166,7 @@ const AfiliadoAgregar = (props) => {
 					? "Validación Automática"
 					: null,
 				estadoCivilId: +estadoCivilState.value,
-				refLocalidadId: +localidadState.value,
+				refLocalidadId: +localidadState.value.value,
 				domicilio: domicilioState.value,
 				telefono: telefonoState.value,
 				correo: emailState.value,
@@ -1187,8 +1187,7 @@ const AfiliadoAgregar = (props) => {
 				afipFormaJuridica: padronRespuesta?.formaJuridica,
 				afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
 				afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
-				afipPeriodoActividadPrincipal:
-					padronRespuesta?.periodoActividadPrincipal,
+				afipPeriodoActividadPrincipal: padronRespuesta?.periodoActividadPrincipal,
 				afipFechaContratoSocial: padronRespuesta?.fechaContratoSocial,
 				afipMesCierre: padronRespuesta?.mesCierre,
 				afipDomicilioDireccion: domicilioRealAFIP?.direccion,
@@ -1235,8 +1234,10 @@ const AfiliadoAgregar = (props) => {
 				}
 				//pasa a resolver solicitud
 				else {
-					setDialogTexto(AFILIADO_AGREGADO);
-				}
+					setDialogTexto(
+            AFILIADO_AGREGADO); //SE AGREGAN LOS ITEMS QUE NO CUMPLE EL AFILIADO
+          
+        }
 			};
 
 			request(
@@ -2048,6 +2049,16 @@ const AfiliadoAgregar = (props) => {
 				<Dialog onClose={handleCloseDialog} open={openDialog}>
 					<DialogContent dividers>
 						<Typography gutterBottom>{dialogTexto}</Typography>
+            {props?.accion === "Agrega" && !afiliadoExiste && nuevoAfiliadoResponse?.estadoSolicitudId === 1
+             &&
+              (
+              <div>
+                <Typography gutterBottom> {`El Afiliado NO debe tener una afiliación anterior con fecha de BAJA - ✔️`}</Typography>
+                <Typography gutterBottom> {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${(ultimaDDJJ?.data?.actividadTipo === "D" && ultimaDDJJ?.data?.modalidadTipo === "D") ? "✔️" : "❌"}`}</Typography>
+                <Typography gutterBottom> {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${padronEmpresaRespuesta?.ciiU1EsRural ||padronEmpresaRespuesta?.ciiU2EsRural ||padronEmpresaRespuesta?.ciiU3EsRural ? "✔️" : "❌"}`}</Typography>
+              </div>
+              )
+            }
 					</DialogContent>
 					<DialogActions>
 						<Button className="botonAmarillo" onClick={handleCloseDialog}>
@@ -2321,7 +2332,6 @@ const AfiliadoAgregar = (props) => {
 									error={
 										!localidadState.isValid && inputsTouched ? true : false
 									}
-
                   //defaultValue={localidades[0]?.value ?? {}}
 								/>
 							</div>
