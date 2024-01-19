@@ -13,6 +13,7 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import useLocalidades, { onLoadSelectKeepOrFirst } from "./useLocalidades";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import AuthContext from "store/authContext";
+import AsignaSeccionalLocalidadHandler from "./AsignaSeccionalLocalidadHandler";
 
 const LocalidadesHandler = () => {
 	const dispatch = useDispatch();
@@ -33,6 +34,24 @@ const LocalidadesHandler = () => {
 						endpoint: `/Provincia`,
 					},
 				};
+			}
+			case "GetSeccionalLocalidad": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "GET",
+						endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId`,
+					},
+				};
+			}
+			case "UpdateSeccionalLocalidad": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						method: "PUT",
+						endpoint: `/SeccionalLocalidad/UpdateRecordSeccionalLocalidad`
+					}
+				}
 			}
 		}
 	});
@@ -149,8 +168,40 @@ const LocalidadesHandler = () => {
 				},
 			});
 			return def;
-		}
+		},
 	});
+
+	// Seccional de la localidad
+	const [seccionalLocalidad, setSeccionalLocalidad] = useState({
+		loading: null,
+		params: {},
+		data: null,
+		error: null,
+	});
+	useEffect(() => {
+		if (!seccionalLocalidad.loading) return;
+		const changes = {
+			loading: null,
+			data: null,
+			error: null,
+		};
+		pushQuery({
+			action: "GetSeccionalLocalidad",
+			params: { ...seccionalLocalidad.params },
+			onOk: async (rta) => {
+				if (!Array.isArray(rta))
+					return console.error("Se esperaba un arreglo.", { rta });
+				changes.data = rta.splice(0, 1).find(() => true);
+			},
+			onError: async (error) => (changes.error = error),
+			onFinally: async () =>
+				setSeccionalLocalidad((o) => ({ ...o, ...changes })),
+		});
+	}, [seccionalLocalidad, pushQuery]);
+
+	const [despliegaAsignaSeccional, setDespliegaAsignaSeccional] =
+		useState(null);
+
 	const [localidadesActions, setLocalidadesActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ payload = { action: "", request: "" }, ...x }) =>
@@ -173,6 +224,12 @@ const LocalidadesHandler = () => {
 		);
 		if (!desc) {
 			setLocalidadesActions(actions);
+			setSeccionalLocalidad((o) => ({
+				...o,
+				loadig: null,
+				params: {},
+				data: null,
+			}));
 			return;
 		}
 		actions.push(
@@ -209,7 +266,7 @@ const LocalidadesHandler = () => {
 						record: {
 							deletedDate: dayjs().format("YYYY-MM-DD"),
 							deletedBy: usuario.nombre,
-							deletedObs: ""
+							deletedObs: "",
 						},
 					},
 					tarea: "Localidad_Baja",
@@ -218,9 +275,40 @@ const LocalidadesHandler = () => {
 				})
 			);
 		}
-
+		if (seccionalLocalidad.loading) {
+			setDespliegaAsignaSeccional(null);
+		} else {
+			if (
+				seccionalLocalidad.params.refLocalidadId !== localidadesSelected?.id
+			) {
+				setSeccionalLocalidad((o) => ({
+					...o,
+					loading: "Cargando...",
+					params: { refLocalidadId: localidadesSelected.id, soloActivos: true },
+				}));
+			} else {
+				actions.push(
+					new Action({
+						name: `Modifica Seccional Localidad ${desc}`,
+						onExecute: (name) =>
+							setDespliegaAsignaSeccional({
+								title: name,
+								data: { ...seccionalLocalidad.data },
+								errors: {},
+								dependencies: { provinciaId: localidadesSelected.provinciaId },
+							}),
+						disabled:
+							!!localidadesSelected.deletedDate ||
+							localidadesSelected.provinciaId == null ||
+							seccionalLocalidad.data == null,
+					})
+				);
+			}
+		}
 		setLocalidadesActions(actions);
-	}, [localidadesRequest, localidadesSelected]);
+	}, [localidadesRequest, localidadesSelected, seccionalLocalidad]);
+
+	//Carga de lista según parametros
 	useEffect(() => {
 		const { provinciaId, filtro, select, ...params } = localidadesParams;
 		const payload = {
@@ -241,8 +329,56 @@ const LocalidadesHandler = () => {
 	//#endregion
 
 	//#region Tab Localidades
+	let asignaSeccionalForm = null;
+	if (despliegaAsignaSeccional) {
+		asignaSeccionalForm = (
+			<AsignaSeccionalLocalidadHandler
+				title={despliegaAsignaSeccional.title}
+				data={despliegaAsignaSeccional.data}
+				errors={despliegaAsignaSeccional.errors}
+				dependencies={despliegaAsignaSeccional.dependencies}
+				onChange={(changes) => {
+					setDespliegaAsignaSeccional((o) => ({
+						...o,
+						data: { ...o.data, ...changes },
+					}));
+				}}
+				onClose={(confirm) => {
+					if (!confirm) return setDespliegaAsignaSeccional(null);
+					
+					const { data = {} } = despliegaAsignaSeccional;
+
+					const errors = {}
+					if (!data.seccionalId) errors.seccionalId = "Dato requerido";
+
+
+					if (Object.keys(errors).length)
+						return setDespliegaAsignaSeccional((o) => ({ ...o, errors }));
+
+					pushQuery({
+						action: "UpdateSeccionalLocalidad",
+						config: {
+							body: { ...data },
+						},
+						onOk: async () => {
+							setDespliegaAsignaSeccional(null);
+							setSeccionalLocalidad((o) => ({ ...o, loading: "Cargando..." }));
+						},
+						onError: async (err) =>
+							alert(
+								typeof err.message === "object"
+									? Object.keys(err.message)
+											.map((k) => `${k}: ${err.message[k]}`)
+											.join("\n")
+									: err.message
+							),
+					});
+				}}
+			/>
+		);
+	}
 	tabs.push({
-		header: () => <Tab label="Localidades" disabled={!localidadesSelected} />,
+		header: () => <Tab label="Localidades" />,
 		body: () => (
 			<Grid width col gap="10px">
 				<Grid />
@@ -251,7 +387,6 @@ const LocalidadesHandler = () => {
 						label="Filtro por C.P. / Nombre"
 						value={localidadesParams.filtro}
 						onChange={(filtro) => {
-							console.log({ filtro });
 							setLocalidadesParams((o) => ({ ...o, filtro }));
 						}}
 					/>
@@ -268,6 +403,7 @@ const LocalidadesHandler = () => {
 					/>
 				</Grid>
 				{localidadesRender()}
+				{asignaSeccionalForm}
 			</Grid>
 		),
 		actions: localidadesActions,
