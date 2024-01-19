@@ -1402,7 +1402,7 @@ const AfiliadoAgregar = (props) => {
         request(
           {
             baseURL: "Afiliaciones",
-            endpoint: `/RefLocalidad?CodigoPostal=${parseInt(
+            endpoint: `/RefLocalidad?CodigoPostalUATRE=${parseInt(
               domicilioReal?.codigoPostal
             )}`,
             method: "GET",

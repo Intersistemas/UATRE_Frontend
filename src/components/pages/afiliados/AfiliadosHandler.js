@@ -347,7 +347,7 @@ const AfiliadosHandler = () => {
             onClose={onCloseAfiliadoAgregarHandler}
             estadosSolicitudes={estadosSolicitudes}
             accion={accionSeleccionada}
-            cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado.cuil : 0}
+            cuil={afiliadoSeleccionado !== null ? afiliadoSeleccionado?.cuil : 0}
             afiliadoSeleccionado = {afiliadoSeleccionado}
           />
         )}
