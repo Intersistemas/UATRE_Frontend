@@ -116,6 +116,7 @@ const LocalidadesHandler = () => {
 		provinciaId: provincias.selected?.value,
 		filtro: "",
 		select: null,
+		sortBy: "%2Bnombre"
 	});
 	// Change
 	useEffect(() => {

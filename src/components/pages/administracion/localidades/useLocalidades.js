@@ -643,7 +643,7 @@ const useLocalidades = ({
 								loading: "Cargando...",
 								params: {
 									...o.params,
-									sortBy: `${sortOrder === "desc" ? "-" : ""}${sortField}`,
+									sortBy: `${sortOrder === "desc" ? "-" : "%2B"}${sortField}`,
 								},
 							}));
 						}
