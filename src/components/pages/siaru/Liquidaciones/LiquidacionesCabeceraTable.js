@@ -45,7 +45,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 		{
 			dataField: "totalRemuneraciones",
 			text: "T. Remun.",
-			formatter: Formato.Moneda,
+			formatter: (v) => Formato.Moneda(v),
 			sort: true,
 			headerStyle: { width: "120px" },
 			style: { textAlign: "right" },
@@ -53,7 +53,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 		{
 			dataField: "totalAporte",
 			text: "T. aporte",
-			formatter: Formato.Moneda,
+			formatter: (v) => Formato.Moneda(v),
 			sort: true,
 			headerStyle: { width: "120px" },
 			style: { textAlign: "right" },
@@ -61,7 +61,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 		{
 			dataField: "totalIntereses",
 			text: "T. intereses",
-			formatter: Formato.Moneda,
+			formatter: (v) => Formato.Moneda(v),
 			sort: true,
 			headerStyle: { width: "140px" },
 			style: { textAlign: "right" },

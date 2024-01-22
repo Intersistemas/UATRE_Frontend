@@ -40,7 +40,7 @@ const LiquidacionesNominaTable = ({ columns, ...x } = {}) => {
 			text: "Remuneración",
 			sort: true,
 			headerStyle: { width: "155px" },
-			formatter: Formato.Moneda,
+			formatter: (v) => Formato.Moneda(v),
 			style: { textAlign: "right" },
 		},
 	];

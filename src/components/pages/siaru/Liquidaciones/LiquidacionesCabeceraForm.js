@@ -292,7 +292,7 @@ const LiquidacionesCabeceraForm = ({
 			{
 				dataField: "interesImporte",
 				text: "Total Intereses",
-				formatter: Formato.Moneda,
+				formatter: (v) => Formato.Moneda(v),
 				headerStyle: { width: "150px" },
 				style: { textAlign: "right" },
 			},

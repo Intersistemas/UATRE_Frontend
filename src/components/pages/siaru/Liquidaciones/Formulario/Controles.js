@@ -319,7 +319,7 @@ const Controles = ({
 					text: "Remuneración",
 					sort: true,
 					headerStyle: (_colum, _colIndex) => ({ width: "140px" }),
-					formatter: Formato.Moneda,
+					formatter: (v) => Formato.Moneda(v),
 					style: { ...cs, textAlign: "right" },
 				},
 			];

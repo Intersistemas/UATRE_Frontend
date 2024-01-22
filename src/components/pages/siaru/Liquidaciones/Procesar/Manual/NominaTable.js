@@ -29,7 +29,7 @@ const NominaTable = ({
 			dataField: "remuneracion",
 			text: "Remuneración",
 			sort: true,
-			formatter: Formato.Moneda,
+			formatter: (v) => Formato.Moneda(v),
 			headerStyle: (_colum, _colIndex) => ({ width: "180px" }),
 			style: { textAlign: "right" },
 		},
