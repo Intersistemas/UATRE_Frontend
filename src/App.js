@@ -38,6 +38,7 @@ import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/Pantal
 
 import fondo from './media/Background/color3.png';
 import DelegacionesHandler from 'components/pages/administracion/delegaciones/DelegacionesHandler';
+import LocalidadesHandler from 'components/pages/administracion/localidades/LocalidadesHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/
@@ -100,6 +101,7 @@ const App = () => {
               <Route path="Inicio/Administracion/Empresas" element={<EmpresasHandler />} />
               <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
               <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
+              <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
 
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />

@@ -5,9 +5,16 @@ import styles from "./SearchSelectMaterial.module.css";
 // const ITEM_PADDING_TOP = 8;
 
 const SearchSelectMaterial = (props) => {
+
   const handleChange = (event, newValue) => {   
-    //console.log("event.target.name", event.target)
-    props.onChange(newValue, props.name);
+    //console.log("SearchSelectMaterial_event.target", event.target)
+    
+    console.log('newValue',newValue)
+    console.log('handleChange_props',props)
+
+    newValue !==null ? props.onChange(newValue, props.name) : props.onChange(props.options[0], props.name);
+
+    //props.onChange(newValue, props.name)
   };
 
   return (
@@ -40,7 +47,6 @@ const SearchSelectMaterial = (props) => {
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
-          
           <TextField
             error={props.error}
             style={{'max-height': '40px'}}

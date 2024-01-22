@@ -13,7 +13,10 @@ const MenuProps = {
 };
 
 const SelectMaterial = (props) => {
+	//console.log('SelectMaterial_props',props)
+	
   const handleChange = (event) => {
+	//console.log('SelectMaterial_event',event)
     props.onChange(event.target.value, event.target.name);
   };
 

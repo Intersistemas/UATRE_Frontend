@@ -5,8 +5,6 @@ import AuthContext from "../../../../store/authContext";
 import SeccionalesForm from "./SeccionalesForm";
 import dayjs from "dayjs";
 
-
-
 const selectionDef = {
 	action: "",
 	request: "",
@@ -20,7 +18,6 @@ const useSeccionales = () => {
 	const Usuario = useContext(AuthContext).usuario;
 
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log('action & param: ', action," & ", params);
 		switch (action) {
 			case "GetList": {
 				return {
@@ -28,13 +25,6 @@ const useSeccionales = () => {
 						baseURL: "Afiliaciones",
 						endpoint: "/Seccional/GetSeccionalesSpecs",
 						method: "POST",
-						body: {
-							soloActivos: "false",
-							ambitoTodos: Usuario.ambitoTodos,
-							ambitoProvincias: Usuario.ambitoProvincias,
-							ambitoDelegaciones: Usuario.ambitoDelegaciones,
-							ambitoSeccionales: Usuario.ambitoSeccionales,
-						 },
 					},
 				};
 			}
@@ -59,7 +49,6 @@ const useSeccionales = () => {
 				};
 			}
 			case "Update": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Afiliaciones",
@@ -69,7 +58,6 @@ const useSeccionales = () => {
 				};
 			}
 			case "Delete": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Afiliaciones",
@@ -79,7 +67,6 @@ const useSeccionales = () => {
 				};
 			}
 			case "Reactiva": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Afiliaciones",
@@ -107,27 +94,34 @@ const useSeccionales = () => {
 	const [list, setList] = useState({
 		loading: null,
 		params: {},
+		bodyDef: {
+			soloActivos: false,
+			ambitoTodos: Usuario.ambitoTodos,
+			ambitoProvincias: Usuario.ambitoProvincias,
+			ambitoDelegaciones: Usuario.ambitoDelegaciones,
+			ambitoSeccionales: Usuario.ambitoSeccionales,
+		},
+		body: {},
 		data: [],
 		delegaciones: [],
 		error: null,
-		selection: {...selectionDef},
+		selection: { ...selectionDef },
 	});
-
 
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
 			params: { ...list.params },
-			onOk: async ({data}) =>
-			
-			
+			config: {
+				body: { ...list.bodyDef, ...list.body },
+			},
+			onOk: async ({ data }) =>
 				setList((o) => {
-					console.log('data:',data)
 					const selection = {
 						action: "",
 						request: "",
-						record: data.sort((a, b) => a.codigo > b.codigo ? 1 : -1)//.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
+						record: data.sort((a, b) => (a.codigo > b.codigo ? 1 : -1)), //.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
 					};
 					if (selection.record)
 						selection.index = data.indexOf(selection.record);
@@ -150,7 +144,6 @@ const useSeccionales = () => {
 		});
 	}, [pushQuery, list.loading, list.params]);
 
-
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
@@ -158,11 +151,12 @@ const useSeccionales = () => {
 
 			onOk: async (data) =>
 				setList((o) => {
-					//console.log('delegaciones_useSeccionales:',data)
-
 					const delegaciones = data.map((refDelegacion) => {
-						return { value: refDelegacion.id, label: `${refDelegacion.codigoDelegacion}-${refDelegacion.nombre}` };
-					 });	
+						return {
+							value: refDelegacion.id,
+							label: `${refDelegacion.codigoDelegacion}-${refDelegacion.nombre}`,
+						};
+					});
 					return {
 						...o,
 						loading: null,
@@ -182,8 +176,7 @@ const useSeccionales = () => {
 	}, [pushQuery, list]);
 	//#endregion
 
-	const requestChanges = useCallback((type, payload = {}) => {
-		console.log('useSeccionales_RequestType:',type," payload:",payload)
+	const request = useCallback((type, payload = {}) => {
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -212,20 +205,17 @@ const useSeccionales = () => {
 					...o,
 					loading: "Cargando...",
 					params: { ...payload.params },
+					body: { ...payload.body },
 					data: [],
 				}));
 			}
 			case "GetById": {
-				console.log('GetById_payload:',payload);
 				return pushQuery({
 					action: "GetById",
 					params: { ...payload.params },
-					onOk: async (obj) =>
-						
-						{
+					onOk: async (obj) => {
 						let data = [];
 						data.push(obj);
-						console.log('data_Seccional',data);
 						setList((o) => {
 							const selection = {
 								action: "",
@@ -239,7 +229,8 @@ const useSeccionales = () => {
 								error: null,
 								selection,
 							};
-						})},
+						});
+					},
 					onError: async (err) =>
 						setList((o) => ({
 							...o,
@@ -259,31 +250,27 @@ const useSeccionales = () => {
 	if (list.selection.request) {
 		form = (
 			<SeccionalesForm
-				data={(() => { 
-
+				data={(() => {
 					//INIT DE DATOS DEL FORM
-					const data =
-					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
-						{
-							estado: "Activa",
-						}:
-						["B"].includes(list.selection.request) ? //INIT PARA BAJA
-							{
+					const data = ["A"].includes(list.selection.request) //INIT PARA ALTA
+						? {
+								estado: "Activa",
+						  }
+						: ["B"].includes(list.selection.request) //INIT PARA BAJA
+						? {
 								estado: "Inactiva",
 								deletedDate: dayjs().format("YYYY-MM-DD"),
 								deletedBy: Usuario.nombre,
-							}:
-							{}
+						  }
+						: {};
 
-						return {...list.selection.record, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-					})()
-				}
+					return { ...list.selection.record, ...data }; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
+				})()}
 				delegaciones={list.delegaciones}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				loading={!!list.loading}
 				disabled={(() => {
-
 					const r = ["A", "M"].includes(list.selection.request)
 						? { estado: true }
 						: {
@@ -294,11 +281,10 @@ const useSeccionales = () => {
 								refLocalidadesId: true,
 								domicilio: true,
 								observaciones: true,
-								
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
-					r.deletedBy=true;
-					r.deletedDate=true;
+					r.deletedBy = true;
+					r.deletedDate = true;
 
 					return r;
 				})()}
@@ -307,8 +293,9 @@ const useSeccionales = () => {
 						? { deletedObs: true }
 						: {}
 				}
-				onChange={(changes) =>{ //solo entra el campo que se está editando
-					
+				onChange={(changes) => {
+					//solo entra el campo que se está editando
+
 					setList((o) => ({
 						...o,
 						selection: {
@@ -318,19 +305,17 @@ const useSeccionales = () => {
 								...changes,
 							},
 						},
-					}))
-					}
-				}
-
+					}));
+				}}
 				/*onTextChange={(partialText)=>{
 					console.log('partialText',partialText);
 					//setLocalidadBuscar(partialText);
 				}}*/
 
 				onClose={(confirm) => {
-					
-					if (!["A", "B", "M"].includes(list.selection.request)){
-						confirm = false}
+					if (!["A", "B", "M"].includes(list.selection.request)) {
+						confirm = false;
+					}
 					if (!confirm) {
 						setList((o) => ({
 							...o,
@@ -344,24 +329,25 @@ const useSeccionales = () => {
 						}));
 						return;
 					}
-					
+
 					const record = { ...list.selection.record };
 
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
-						 if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					} else {
-						
 						if (!record.codigo) errors.codigo = "Dato requerido";
 						//if (!record.observaciones) errors.observaciones = "Dato requerido";
 						if (!record.domicilio) errors.domicilio = "Dato requerido";
-						if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
-						if (!record.refDelegacionId || record.refDelegacionId == 0) errors.refDelegacionId = "Dato requerido";
+						if (!record.refLocalidadesId || record.refLocalidadesId == 0)
+							errors.refLocalidadesId = "Dato requerido";
+						if (!record.refDelegacionId || record.refDelegacionId == 0)
+							errors.refDelegacionId = "Dato requerido";
 						if (!record.descripcion) errors.descripcion = "Dato requerido";
-						if (!record.estado) errors.estado = "Dato requerido"; 
+						if (!record.estado) errors.estado = "Dato requerido";
 					}
-				
+
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
@@ -393,7 +379,10 @@ const useSeccionales = () => {
 						case "B":
 							query.action = "Delete";
 							query.params = { id: record.id };
-							query.config.body = { id: record.id, deletedObs: record.deletedObs };
+							query.config.body = {
+								id: record.id,
+								deletedObs: record.deletedObs,
+							};
 							break;
 						case "R":
 							query.action = "Reactiva";
@@ -435,7 +424,7 @@ const useSeccionales = () => {
 		</>
 	);
 
-	return [render, requestChanges, list.selection.record];
+	return { render, request, selected: list.selection.record };
 };
 
 export default useSeccionales;

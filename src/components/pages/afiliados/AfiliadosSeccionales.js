@@ -17,7 +17,11 @@ const AfiliadosSeccionales = (props) => {
 
 	console.log('props.afiliado:',props.afiliado);
 	//#region Tab Seccionales
-	const [seccionalesTab, seccionalChanger, seccionalSelected] = useSeccionales();
+	const {
+		render: seccionalesTab,
+		request: seccionalChanger,
+		selected: seccionalSelected,
+	} = useSeccionales();
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	
 
