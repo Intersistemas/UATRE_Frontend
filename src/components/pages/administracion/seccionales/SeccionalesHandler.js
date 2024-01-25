@@ -219,7 +219,7 @@ const SeccionalesHandler = () => {
 						}
 					)
 			})
-			);
+			); 
 		}
 		setAutoridadesActions(actions);
 	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);

@@ -657,35 +657,19 @@ const AfiliadoAgregar = (props) => {
               : afiliadoObj.tipoDocumentoId,
         });
 
-        console.log('init_despachaProv_provincia',provincias)
-
-        console.log('afiliadoObj.provinciaId',afiliadoObj.provinciaId)
- /*       const provinciaSelected = provincias.data.find(
-          (prov) => prov.value === afiliadoObj.provinciaId
-        ) ?? "";
-*/
-				/*const provinciaId = afiliadoObj.provinciaId
-					? afiliadoObj.provinciaId
-					: "";
-        */
-
-				const localidadId = afiliadoObj.refLocalidadId
+        const localidadId = afiliadoObj.refLocalidadId
 					? afiliadoObj.refLocalidadId
 					: "";
 				const seccionalId =
 					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
 
         //dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
-
-        console.log('localidadId**',localidadId)
-        console.log('seccionalId**',)
         
         setProvincias((o) => ({
           ...o,
           loading: "Cargando...",
           
           onLoaded: ({data}) => {
-            console.log('data del Ok:',data)
 
             const provinciaSelected = data.find(
               (prov) => prov.value === afiliadoObj.provinciaId
@@ -697,21 +681,18 @@ const AfiliadoAgregar = (props) => {
               loading: "Cargando...",
               params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
               onLoaded: ({ data }) => {
-                console.log('init_Localidades_Data:',data)
+           
                 if (!Array.isArray(data)) return;
                 const myLocalidadId =
                   data.find((r) => r.value === localidadId) ?? {};
   
                 const sinAsignar = data.at(0)?.value === localidadId ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId} 
-
-                 console.log('sinAsignar:',sinAsignar) 
                 dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
                 setSeccionales((o) => ({
                   ...o,
                   loading: "Cargando...",
                   params: sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
                   onLoaded: ({ data }) => {
-                    console.log('init_Seccionales_Data:',data)
                     if (!Array.isArray(data)) return;
                     const mySeccionalId =
                       data.find((r) => r.value === seccionalId) ??
@@ -1214,8 +1195,6 @@ const AfiliadoAgregar = (props) => {
 					entidadId: 0,
 				})),
 				};
-
-			console.log("POST", nuevoAfiliado);
 			const afiliadoAgregar = async (afiliadoResponseObj) => {
 
 				setNuevoAfiliadoResponse({
@@ -1327,9 +1306,11 @@ const AfiliadoAgregar = (props) => {
           type: "USER_INPUT",
           value: domicilioReal.direccion,
         });
+        const argentina  = nacionalidades?.find((nacionalidad) => nacionalidad.label.toUpperCase() === ("ARGENTINA"))
+      
         dispatchNacionalidad({
           type: "USER_INPUT",
-          value: nacionalidades[5].value,
+          value: argentina?.value
         });
 
         dispatchActividad({
@@ -1352,7 +1333,6 @@ const AfiliadoAgregar = (props) => {
         //localidad
         const processLocalidades = async (localidadesObj) => {
 
-          console.log('validarAfiliado_processLocalidades',processLocalidades)
 
           const localidadId = localidadesObj.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
             (localidad) =>
@@ -1365,22 +1345,14 @@ const AfiliadoAgregar = (props) => {
           )?.id
           ??
           "";
-
-          console.log('validarAfiliado_provinciaId:',provinciaId)
-          console.log('validarAfiliado__localidadId',localidadId)
-
 					setLocalidades((o) => ({
 						...o,
 						loading: "Cargando...",
 						params: provinciaId ? { provinciaId: provinciaId.value } : null,  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
 						onLoaded: ({ data }) => {
-              console.log('ValidarAfiliado_setLocalidades_data',data)
-
 							if (!Array.isArray(data)) return;
 							const myLocalidadId = localidadId ?
 								data.find((r) => r.value === localidadId) : data.at(0);
-
-              console.log('ValidarAfiliado_setLocalidades_myLocalidadId',myLocalidadId)
 
 							dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
 
@@ -1389,8 +1361,6 @@ const AfiliadoAgregar = (props) => {
 								loading: "Cargando...",
 								params: localidadId ? {localidadId: localidadId} : {provinciaId: provinciaId?.value} ?? {},
 								onLoaded: ({ data }) => {
-                  console.log('ValidarAfiliado_setSeccionales_data',data)
-									//if (!Array.isArray(data)) return;
                   const mySeccionalId = !localidadId ? data.at(0) : data.at(1) ? data.at(1) : data.at(0);
 
 									dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
@@ -1475,8 +1445,7 @@ const AfiliadoAgregar = (props) => {
   //#endregion
 
   //#region handlers change select
-  const handleChangeSelect = (value, name, target) => {
-    console.log('handleChangeSelect_target',target)
+  const handleChangeSelect = (value, name, ) => {
     console.log('handleChangeSelect_value',value)
     console.log('handleChangeSelect_name',name)
     switch (name) {
@@ -1538,27 +1507,14 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "localidadSelect":
-        console.log('localidadState',localidadState)
-
         dispatchLocalidad({ type: "USER_INPUT", value });
 
 				if(localidadState.value === value) break;
-
-  
-
-        console.log('localidadSelect_localidades0',localidades)
-        console.log('localidadSelect_localidades',localidades?.data?.at(0).value)
-        console.log('localidadSelect_value',value)
-         
-
 				setSeccionales((o) => ({
 					...o,
 					loading: "Cargando...",
 					params: localidades?.data?.at(0) === value ? {provinciaId: provinciaState?.value?.value} : { localidadId: value?.value } ?? {},
 					onLoaded: ({ data }) => {
-
-            console.log('localidadSelect_data',data)
-
             const mySeccionalId = value === localidades?.data?.at(0) ? data.at(0) : data.at(1) ? data.at(1) : data.at(0);
             
 						dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
@@ -1660,7 +1616,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle Focus
   const handleOnFocus = (id) => {
-    console.log("foco en", id);
+    //console.log("foco en", id);
     // switch (id) {
     //   case "cuil":
     //     setCuilTouched(true);
