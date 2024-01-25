@@ -4,47 +4,47 @@ import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import useDelegaciones from "./useDelegaciones";
+import useTareas from "./tareas/useTareas";
+import useUsuarios from "./useUsuarios";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
 
-const DelegacionesHandler = () => {
+const UsuariosHandler = () => {
 	const dispatch = useDispatch();
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
-	//#region Tab delegaciones
-	const [delegacionesTab, delegacionChanger, delegacionSelected] =
-		useDelegaciones();
-	const [delegacionesActions, setDelegacionesActions] = useState([]);
+	//#region Tab usuarios
+	const [usuariosTab, usuarioChanger, usuarioSelected] =
+		useUsuarios();
+	const [usuariosActions, setUsuariosActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					delegacionChanger("selected", { request, action }),
+					usuarioChanger("selected", { request, action }),
 				combination: "AltKey",
 				...x,
 			});
 		const actions = [
 			createAction({
-				action: `Agrega Delegación`,
+				action: `Agrega Usuario`,
 				request: "A",
-				tarea: "Delegacion_Agrega",
+				tarea: "Usuario_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
 		];
-		const desc = delegacionSelected?.id;
+		const desc = usuarioSelected?.userName;
 		if (!desc) {
-			setDelegacionesActions(actions);
+			setUsuariosActions(actions);
 			return;
 		}
 		actions.push(
 			createAction({
-				action: `Consulta Delegación ${desc}`,
+				action: `Consulta Usuario ${desc}`,
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
@@ -52,77 +52,77 @@ const DelegacionesHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Delegación ${desc}`,
+				action: `Modifica Usuario ${desc}`,
 				request: "M",
-				tarea: "Delegacion_Modifica",
+				tarea: "Usuario_Modifica",
 				keys: "m",
 				underlineindex: 0,
 			})
 		);
 		actions.push(
 			createAction({
-				action: `Baja Delegación ${desc}`,
+				action: `Baja Usuario ${desc}`,
 				request: "B",
-				tarea: "Delegacion_Baja",
+				tarea: "Usuario_Baja",
 				keys: "b",
 				underlineindex: 0,
 			})
 		);
-		setDelegacionesActions(actions);
-	}, [delegacionChanger, delegacionSelected]);
+		setUsuariosActions(actions);
+	}, [usuarioChanger, usuarioSelected]);
 	tabs.push({
-		header: () => <Tab label="Delegaciones" />,
-		body: delegacionesTab,
-		actions: delegacionesActions,
+		header: () => <Tab label="Usuarios" />,
+		body: usuariosTab,
+		actions: usuariosActions,
 	});
 
 	useEffect(() => {
-		delegacionChanger("list",
-		{
-		params: { SoloActivos: false }});
-	}, [delegacionChanger]);
+		usuarioChanger("list");
+	}, [usuarioChanger]);
 	//#endregion
 
-	//#region Tab documentaciones
-	const [documentacionesTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
-	const [documentacionesActions, setDocumentacionesActions] = useState([]);
+	
+	//#region Tab tareas
+	const [tareasTab, tareaChanger, tareaSelected] = useTareas();
+	const [tareasActions, setTareasActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
-		if (!dele) {
-			setDocumentacionesActions(actions);
+
+		const userName = usuarioSelected?.userName;
+		if (!userName) {
+			setTareasActions(actions);
 			return;
 		}
-		const deleDesc = `para Delegación ${dele}`;
+		const deleDesc = `para Usuario ${userName}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					documentacionChanger("selected", {
+					tareaChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+						record: { usuarioId: usuarioSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
 			});
 		actions.push(
 			createAction({
-				action: `Agrega Documentación ${deleDesc}`,
+				action: `Agrega Tarea ${deleDesc}`,
 				request: "A",
 				keys: "a",
 				underlineindex: 0,
 			})
 		);
-		const docu = documentacionSelected?.id;
-		if (!docu) {
-			setDocumentacionesActions(actions);
+		const nombreTarea = tareaSelected?.nombreTarea;
+		if (!nombreTarea) {
+			setTareasActions(actions);
 			return;
 		}
-		const docuDesc = `${docu} ${deleDesc}`;
+		const tareaDesc = `${nombreTarea} ${deleDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Documentación ${docuDesc}`,
+				action: `Consulta Tarea ${tareaDesc}`,
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
@@ -130,7 +130,7 @@ const DelegacionesHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Documentación ${docuDesc}`,
+				action: `Modifica Tarea ${tareaDesc}`,
 				request: "M",
 				keys: "m",
 				underlineindex: 0,
@@ -138,41 +138,45 @@ const DelegacionesHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Baja Documentación ${docuDesc}`,
+				action: `Quita Tarea ${tareaDesc}`,
 				request: "B",
 				keys: "b",
 				underlineindex: 0,
 			})
 		);
-		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id]);
+		setTareasActions(actions);
+	}, [tareaChanger, tareaSelected, usuarioSelected?.id]);
+
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!delegacionSelected} />,
-		body: documentacionesTab,
-		actions: documentacionesActions,
+		header: () => <Tab label="Tareas" disabled={!usuarioSelected} />,
+		body: tareasTab,
+		actions: tareasActions,
 	});
 
-	// Si cambia delegación, refresco lista de documentación
+	// Si cambia usuario, refresco lista de tareas
 	useEffect(() => {
-		documentacionChanger("list", {
-			clear: !delegacionSelected?.id,
-			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+		tareaChanger("list", {
+			clear: !usuarioSelected?.id,
+			params: { usuarioId: usuarioSelected?.id },
 		});
-	}, [delegacionSelected?.id, documentacionChanger]);
+	}, [usuarioSelected?.id, tareaChanger]);
 	//#endregion
+	
+	
 
+	/*
 	//#region Tab colaboradores
 	const [colaboradoresTab, colaboradoresChanger, colaboradorSelected] =
 		useColaboradores();
 	const [colaboradoresActions, setColaboradoresActions] = useState([]);
-	useEffect(() => {
+	/*useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
+		const dele = usuarioSelected?.id;
 		if (!dele) {
 			setColaboradoresActions(actions);
 			return;
 		}
-		const deleDesc = `para Delegación ${dele}`;
+		const deleDesc = `para Usuario ${dele}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -180,7 +184,7 @@ const DelegacionesHandler = () => {
 					colaboradoresChanger("selected", {
 						request,
 						action,
-						record: { refDelegacionId: delegacionSelected?.id },
+						record: { refUsuarioId: usuarioSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -235,20 +239,21 @@ const DelegacionesHandler = () => {
 			);
 		}
 		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id]);
+	}, [colaboradoresChanger, colaboradorSelected, usuarioSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected} />,
+		header: () => <Tab label="Colaboradores" disabled={!usuarioSelected} />,
 		body: colaboradoresTab,
 		actions: colaboradoresActions,
-	}); 
+	}); */
 
-	// Si cambia delegación, refresco lista de colaboradores
+	/*
+	// Si cambia usuario, refresco lista de colaboradores
 	useEffect(() => {
 		colaboradoresChanger("list", {
-			clear: !delegacionSelected?.id,
-			params: { refDelegacionId: delegacionSelected?.id },
+			clear: !usuarioSelected?.id,
+			params: { refUsuarioId: usuarioSelected?.id },
 		});
-	}, [delegacionSelected?.id, colaboradoresChanger]);
+	}, [usuarioSelected?.id, colaboradoresChanger]);
 	//#endregion
 
 	//#region Tab seccionales
@@ -260,12 +265,12 @@ const DelegacionesHandler = () => {
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
+		const dele = usuarioSelected?.id;
 		if (!dele) {
 			setSeccionalesActions(actions);
 			return;
 		}
-		const deleDesc = `para Delegación ${dele}`;
+		const deleDesc = `para Usuario ${dele}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -273,7 +278,7 @@ const DelegacionesHandler = () => {
 					seccionalesRequest("selected", {
 						request,
 						action,
-						record: { refDelegacionId: delegacionSelected?.id },
+						record: { refUsuarioId: usuarioSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -317,25 +322,25 @@ const DelegacionesHandler = () => {
 		// 	})
 		// );
 		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id]);
+	}, [seccionalesRequest, seccionalesSelected, usuarioSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected} />,
 		body: seccionalesRender,
 		actions: seccionalesActions,
 	});
-	// Si cambia delegación, refresco lista de seccionales
+	// Si cambia usuario, refresco lista de seccionales
 	useEffect(() => {
 		seccionalesRequest("list", {
-			clear: !delegacionSelected?.id,
-			body: { refDelegacionId: delegacionSelected?.id },
+			clear: !usuarioSelected?.id,
+			body: { refUsuarioId: usuarioSelected?.id },
 		});
-	}, [delegacionSelected?.id, seccionalesRequest]);
-	//#endregion
+	}, [usuarioSelected?.id, seccionalesRequest]);
+	//#endregion*/
 
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "Delegaciones", acciones }));
+		dispatch(handleModuloSeleccionar({ nombre: "Usuarios", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
 
@@ -343,11 +348,11 @@ const DelegacionesHandler = () => {
 
 		<Grid full col>
 			<Grid className="titulo">
-				<h1 >Delegaciones</h1>
+				<h1 >Usuarios</h1>
 			</Grid>
 
 			<div className="tabs">
-				<text>{delegacionSelected?.nombre ? delegacionSelected.nombre  : " " }</text>
+				<text>{usuarioSelected?.nombre ? usuarioSelected.nombre  : " " }</text>
 
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
 					{tabs.map((r) => r.header())}
@@ -360,4 +365,4 @@ const DelegacionesHandler = () => {
 	);
 };
 
-export default DelegacionesHandler;
+export default UsuariosHandler;

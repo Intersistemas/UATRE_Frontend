@@ -26,7 +26,7 @@ import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquida
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
 import SeccionalesHandler from "./components/pages/administracion/seccionales/SeccionalesHandler";
 import EmpresasHandler from "./components/pages/administracion/empresas/EmpresasHandler";
-import AccesosHandler from "./components/pages/accesos/AccesosHandler";
+import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHandler";
 
 
 //---AFILIADOS---

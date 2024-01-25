@@ -104,7 +104,6 @@ const useAutoridades = () => {
 	const [list, setList] = useState({
 		loading: null,
 		params: {},
-		//pagination: { index: 1, size: 5 },
 		cargos: [],
 		data: [],
 		error: null,

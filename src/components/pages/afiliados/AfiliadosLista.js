@@ -674,7 +674,7 @@ const AfiliadosLista = (props ) => {
                 {selectedTab === 1 && ( //DDJJ
                   <DeclaracionesJuradas
                     cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
-                    cuit={afiliadoSeleccionado.empresaCUIT}
+                    //cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
                     infoCompleta={true}
                     onSeleccionRegistro={rowEvents}
                     onDeclaracionesGeneradas={null}
