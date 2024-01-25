@@ -30,7 +30,7 @@ const Handler = () => {
 	}
 
 	useEffect(() => {
-		if (!empresa?.cuit) setRedirect({ to: "Siaru" });
+		if (!empresa?.cuit) setRedirect({ to: "Empresas" });
 		else if (!periodo)
 			setRedirect({ to: "Procesar" });
 	}, [empresa, periodo]);

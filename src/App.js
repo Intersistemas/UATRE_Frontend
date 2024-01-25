@@ -88,13 +88,13 @@ const App = () => {
               <Route path="Inicio" element={<InicioHandler/>} />
               <Route path="Inicio/Afiliaciones" element={<AfiliadosHandler/>} />
               <Route path="Inicio/Afiliaciones/:id" element={<Afiliado/>} />
-              <Route path="Inicio/Siaru" element={<SiaruHandler/>} />
-              <Route path="Inicio/Siaru/Establecimientos" element={<EstablecimientosHandler/>} />
-              <Route path="Inicio/Siaru/Liquidaciones" element={<LiquidacionesHandler/>} />
-              <Route path="Inicio/Siaru/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler/>} />
-              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
-              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
-              <Route path="Inicio/Siaru/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="Inicio/Empresas" element={<SiaruHandler/>} />
+              <Route path="Inicio/Empresas/Establecimientos" element={<EstablecimientosHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones" element={<LiquidacionesHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
 
               <Route path="Inicio/Administracion" element={<AdministracionHandler />}/>
               <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />

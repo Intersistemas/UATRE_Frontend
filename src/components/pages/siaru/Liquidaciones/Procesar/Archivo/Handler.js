@@ -25,7 +25,7 @@ const Handler = () => {
 	}
 
 	useEffect(() => {
-		if (!empresa?.cuit) setRedirect({ to: "Siaru" });
+		if (!empresa?.cuit) setRedirect({ to: "Empresas" });
 		else if (!(periodo || archivo))
 			setRedirect({ to: "Procesar" });
 	}, [empresa, periodo, archivo]);

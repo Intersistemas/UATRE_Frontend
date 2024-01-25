@@ -23,7 +23,7 @@ const LiquidacionesProcesarHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "Siaru" });
+		if (!empresa?.id) setRedirect({ to: "Empresas" });
 	}, [empresa]);
 
 	//#region Trato queries a APIs
@@ -350,7 +350,7 @@ const LiquidacionesProcesarHandler = () => {
 												);
 											setErrores((old) => ({ ...old, existente: newErrores }));
 											if (newErrores.length === 0)
-												setRedirect({ to: "existente" });
+												setRedirect({ to: "Existente" });
 										}}
 									>
 										Inicia

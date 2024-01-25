@@ -12,7 +12,7 @@ const Inicio = ({ modulos = [] }) => {
 
 
 	UseKeyPress(['a'], ()=>navigate("Afiliaciones"), 'AltKey');
-	UseKeyPress(['s'], ()=>navigate("Siaru"), 'AltKey');
+	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	
 	useEffect(() => {
@@ -26,7 +26,7 @@ const Inicio = ({ modulos = [] }) => {
 					break;
 				case "Siaru":
 					acceso.nombre = <><text className="underline">S</text>istema de Aportes Rurales</>;
-					acceso.accion = () => navigate("Siaru");
+					acceso.accion = () => navigate("Empresas");
 					break;
 				case "Administracion de Datos":
 					acceso.nombre = <>Administración de Da<text className="underline">t</text>os</>;

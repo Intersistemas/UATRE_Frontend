@@ -302,7 +302,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	const [redirect, setRedirect] = useState({ to: "", options: null });
 	if (redirect.to) navigate(redirect.to, redirect.options);
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/Inicio/Siaru" });
+		if (!empresa?.id) setRedirect({ to: "/Inicio/Empresas" });
 	}, [empresa]);
 
 	const [tab, setTab] = useState(0);
@@ -1012,7 +1012,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 						size="xl"
 						centered
 						show
-						onHide={() => setRedirect({ to: "/Inicio/Siaru/Liquidaciones" })}
+						onHide={() => setRedirect({ to: "/Inicio/Empresas/Liquidaciones" })}
 					>
 						<Modal.Header closeButton>Liquidacion Generada</Modal.Header>
 						<Modal.Body style={{ height: "80vh" }}>

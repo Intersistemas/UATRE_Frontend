@@ -37,7 +37,7 @@ const EstablecimientosHandler = () => {
 	if (redirect.to) navigate(redirect.to, redirect.options);
 
 	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "Siaru" });
+		if (!empresa?.id) setRedirect({ to: "Empresas" });
 	}, [empresa]);
 
 	//#region contenido Establecimientos
