@@ -161,7 +161,7 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 			</Modal.Body>
 			<Modal.Footer>
 				<Grid gap="20px" justify="end">
-					<Grid width="150px">
+					<Grid width="250px">
 						<Button className="botonAmarillo" onClick={() => onCSV()}>
 							GENERA ARCHIVO CSV
 						</Button>

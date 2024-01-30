@@ -171,7 +171,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 			<Modal.Footer>
 				<Grid col gap="5px">
 					<Grid gap="20px" justify="end">
-						<Grid width="150px">
+						<Grid width="250px">
 							<Button
 								className="botonAmarillo"
 								loading={!!csv.loading}
