@@ -61,7 +61,17 @@ const UsuariosTable = ({
 			text: "Email Confirmado",
 			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
 			style: {...cs, textAlign: "center" },
+			formatter: (value, row) => 
+				 value ? 'Si' : 'No'
 		},
+
+		{
+			dataField: "phoneNumber",
+			text: "Teléfono",
+			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
+			style: {...cs, textAlign: "center" },
+		},
+		
 		
 		{
 			headerTitle: (column, colIndex) => `Fecha Baja`,

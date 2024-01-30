@@ -87,7 +87,7 @@ const InputMaterialMask = (props) => {
         FormHelperTextProps={{ style: { marginTop: "0px", color: "red" } }}
         error={props.error ?? false}
         color={props.color}
-        focused={props.focused || false}
+        //focused={props.focused || false}
         //onFocus={handleOnFocus}
         //onBlur={onBlur}
       />

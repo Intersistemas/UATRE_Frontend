@@ -6,15 +6,11 @@ const InputMaterial = (props) => {
   //Validaciones
 	props = { ...props };
 	props.onChange ??= ((_value, _id) => {});
-  
+ 
+
   const handleChange = (event) => { 
+
     switch (props.id) {
-      case "cuil":   
-      var reCUIL = /^[0-9\b]+$/;     
-        if (event.target.value === "" || reCUIL.test(event.target.value)) {
-          props.onChange(event.target.value, props.id);
-        }
-        break;
  
       case "cuit":
         const reCUIT = /^[0-9\b]+$/;
@@ -32,11 +28,13 @@ const InputMaterial = (props) => {
         break;
 
       default:
+
+        
         props.onChange(event.target.value, props.id);
         break;
     }
   };
-	
+
   return (
 
     <InputMask
@@ -44,7 +42,7 @@ const InputMaterial = (props) => {
       className={styles.input}
       value={props.value || ""}
       onChange={handleChange}
-      disabled={props.disabled}
+      disabled={props.disabled} 
     >
     {() =>
         <TextField
@@ -61,6 +59,7 @@ const InputMaterial = (props) => {
           style={{...props.style,
             width: props.width != null ? `${props.width}%` : "100%",
             padding: `${props.padding}`,
+            //border: '1px solid red',
           }}
           type={props.type || "text"}
           inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
@@ -74,7 +73,8 @@ const InputMaterial = (props) => {
           FormHelperTextProps={{ style: { marginTop: "0px" } }}
           error={props.error || false}
           color={props.color}
-          focused={props.focused || false}
+          placeholder={props.placeholder}
+          //focused={props.focused || false}  //ESTA PROP ME MATA LA PROP BORDER (COLOR) de los elementos(inputs/selects) seleccionados
           //onFocus={handleOnFocus}
         >
         </TextField>}

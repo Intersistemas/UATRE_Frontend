@@ -221,6 +221,11 @@ const AfiliadosHandler = () => {
             console.log('No es Agrega');
           }
       }
+
+      if (accion === "Agrega"){
+        setAfiliadoAgregarShow(true);
+        setAccionSeleccionada("Agrega");
+      }
       
   };
 
