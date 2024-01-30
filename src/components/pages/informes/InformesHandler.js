@@ -3,6 +3,7 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import AfiliadosEstados from "./afiliadosEstados/AfiliadosEstados";
+import AfiliadosEstadosDelegacion from "./afiliadosEstadosDelegacion/AfiliadosEstadosDelegacion";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -25,7 +26,11 @@ const InformesHandler = () => {
 					>
 						Estado de afiliados
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosDelegacion onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por delegación
 					</Button>
 					<Button className="botonAmarillo" width="32">
