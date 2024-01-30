@@ -49,6 +49,9 @@ const useHttp = () => {
           case 'Seguridad':
               url = `http://${servidor}.intersistemas.net:8800/api`;
               break;
+          case 'Estadisticas':
+              url = `http://svr-v4:8205/api`;
+              break;
 					default:
 							break;
         }

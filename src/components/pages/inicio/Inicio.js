@@ -14,6 +14,7 @@ const Inicio = ({ modulos = [] }) => {
 	UseKeyPress(['a'], ()=>navigate("Afiliaciones"), 'AltKey');
 	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
+	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
 	
 	useEffect(() => {
 		const newAccesos = [];
@@ -35,6 +36,10 @@ const Inicio = ({ modulos = [] }) => {
 				case "Expedientes":
 					acceso.nombre = <><text className="underline">E</text>xpedientes</>;
 					acceso.accion = () => navigate("Expedientes");
+					break;
+				case "Informes":
+					acceso.nombre = <><text className="underline">I</text>nformes</>;
+					acceso.accion = () => navigate("Informes");
 					break;
 				default:
 					return;
