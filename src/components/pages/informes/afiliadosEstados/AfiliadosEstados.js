@@ -64,7 +64,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 	const [csv, setCSV] = useState({
 		loading: null,
 		params: {},
-		data: [["Estado", "Total"]],
+		data: [["Estado", "Cantidad"]],
 		error: null,
 	});
 
@@ -128,15 +128,16 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 							setList((o) => ({
 								...o,
 								loading: "Cargando...",
-								params: params,
+								params,
 							}));
-							setCSV((o) => ({ ...o, params: params }));
+							setCSV((o) => ({ ...o, params }));
 						}}
 					/>
 					<Table
 						keyField="estadoSolicitudId"
 						data={list.data}
 						mostrarBuscar={false}
+						pagination={{ size: 10 }}
 						noDataIndication={
 							list.loading ||
 							((error) =>
@@ -158,7 +159,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 							},
 							{
 								dataField: "total",
-								text: "Total",
+								text: "Cantidad",
 								// sort: true,
 								formatter: (v) => Formato.Numero(v),
 								style: { textAlign: "right" },
@@ -176,7 +177,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 								loading={!!csv.loading}
 								onClick={() => onCSV()}
 							>
-								CSV
+								GENERA ARCHIVO CSV
 							</Button>
 						</Grid>
 						<Grid width="150px">
