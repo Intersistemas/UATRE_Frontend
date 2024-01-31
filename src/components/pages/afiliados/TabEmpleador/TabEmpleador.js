@@ -44,6 +44,7 @@ const TabEmpleador = (props) => {
           disabled={!props.cuitState.isValid}
           onClick={props.onValidarEmpresaCUITHandler}
           loading={props.cuitLoading}
+          underlineindex = {0}
         >
           {!props.cuitLoading ? `Valida CUIT` : `Validando...`}
         </Button>

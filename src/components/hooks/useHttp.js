@@ -29,8 +29,8 @@ const useHttp = () => {
         //DONDE HARÁ EL DEPLOY??
         //const servidor =  process.env.SERVIDOR;
         const servidor =  //process.env.REACT_APP_URL_BASE;
-        'uatredesa';
-        //'uatretest';
+        //'uatredesa';
+        'uatretest';
         //'uatre';
 
         switch (baseURL) {

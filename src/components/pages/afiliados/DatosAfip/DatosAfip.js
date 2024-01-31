@@ -218,12 +218,6 @@ const DatosAfip = (props) => {
                 ? "warning"
                 : ""
             }
-            focused={
-              tipoClaveAFIP !== "" &&
-              tipoClaveAFIP !== props.afiliado?.afipTipoClave
-                ? true
-                : false
-            }
           />
         </div>
       </div>
@@ -243,12 +237,6 @@ const DatosAfip = (props) => {
                 ? "warning"
                 : ""
             }
-            focused={
-              provinciaAFIP !== "" &&
-              provinciaAFIP !== props.afiliado?.afipDomicilio
-                ? true
-                : false
-            }
           />
         </div>
         <div className={classes.input}>
@@ -262,12 +250,6 @@ const DatosAfip = (props) => {
               localidadAFIP !== props.afiliado?.afipTipoPersona
                 ? "warning"
                 : ""
-            }
-            focused={
-              localidadAFIP !== "" &&
-              localidadAFIP !== props.afiliado?.afipTipoPersona
-                ? true
-                : false
             }
           />
         </div>
@@ -287,12 +269,6 @@ const DatosAfip = (props) => {
                 props.afiliado?.afipPeriodoActividadPrincipal
                 ? "warning"
                 : ""
-            }
-            focused={
-              domicilioRealAFIP !== "" &&
-              domicilioRealAFIP !== props.afiliado?.afipDomicilio
-                ? true
-                : false
             }
           />
         </div>

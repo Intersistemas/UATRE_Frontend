@@ -109,6 +109,6 @@
 } */
 
 .modal fieldset{
-  border-color: var(--gris2) !important;
+  /*border-color: var(--gris2) !important;*/
 }
 

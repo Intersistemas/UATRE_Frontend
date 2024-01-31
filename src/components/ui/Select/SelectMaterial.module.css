@@ -20,6 +20,6 @@
     font-family: var(--fuente)!important;
     color: black !important;
     font-size: 1.2rem !important;
-    border: 1px solid gris1 !important;
+    /*border: 1px solid red !important;*/
   }
 /*#endregion --ENTRY/INPUT--*/

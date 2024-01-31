@@ -15,7 +15,6 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
-import InputMaterialMask from "components/ui/Input/InputMaterialMask";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
@@ -51,6 +50,24 @@ const cuilReducer = (state, action) => {
   }
   if (action.type === "USER_BLUR") {
     return { value: state.value, isValid: ValidarCUIT(state.value) };
+  }
+  return { value: "", isValid: false };
+};
+
+const numeroDocumentoReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return {
+      value: action.value,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+    };
+  }
+  if (action.type === "USER_BLUR") {
+    return {
+      value: state.value,
+      isValid:
+        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
+    };
   }
   return { value: "", isValid: false };
 };
@@ -156,24 +173,6 @@ const tipoDocumentoReducer = (state, action) => {
     return {
       value: state.value,
       isValid: state.value !== "" ? true : false,
-    };
-  }
-  return { value: "", isValid: false };
-};
-
-const numeroDocumentoReducer = (state, action) => {
-  if (action.type === "USER_INPUT") {
-    return {
-      value: action.value,
-      isValid:
-        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
-    };
-  }
-  if (action.type === "USER_BLUR") {
-    return {
-      value: state.value,
-      isValid:
-        parseInt(action.value) !== 0 && action.value !== "" ? true : false,
     };
   }
   return { value: "", isValid: false };
@@ -289,6 +288,8 @@ const onLoadedDef = ({ data, error }) => {};
 //#endregion
 
 
+
+
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -299,10 +300,119 @@ const AfiliadoAgregar = (props) => {
   const [dialogTexto, setDialogTexto] = useState("");
   //#endregion
 
-  UseKeyPress(['Escape'], () => handleCerrarModal());
- // UseKeyPress(['a'], ()=>btnconfirmar(), 'AltKey');
+//#region manejo de validaciones
+const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
+  value: "",
+  isValid: false,
+});
 
+const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [numeroDocumentoState, dispatchNumeroDocumento] = useReducer(
+  numeroDocumentoReducer,
+  {
+    value: "",
+    isValid: false,
+  }
+);
+
+const [nombreState, dispatchNombre] = useReducer(nombreReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [cuitState, dispatchCUIT] = useReducer(cuitReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [emailState, dispatchEmail] = useReducer(emailReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [nacionalidadState, dispatchNacionalidad] = useReducer(
+  nacionalidadReducer,
+  {
+    value: "",
+    isValid: false,
+  }
+);
+
+const [fechaNacimientoState, dispatchFechaNacimiento] = useReducer(
+  fechaNacimientoReducer,
+  {
+    value: "",
+    isValid: false,
+  }
+);
+
+const [estadoCivilState, dispatchEstadoCivil] = useReducer(
+  estadoCivilReducer,
+  {
+    value: "",
+    isValid: false,
+  }
+);
+
+const [sexoState, dispatchSexo] = useReducer(sexoReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [tipoDocumentoState, dispatchTipoDocumento] = useReducer(
+  tipoDocumentoReducer,
+  {
+    value: "",
+    isValid: false,
+  }
+);
+
+const [domicilioState, dispatchDomicilio] = useReducer(domicilioReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [provinciaState, dispatchProvincia] = useReducer(provinciaReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [localidadState, dispatchLocalidad] = useReducer(localidadReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [seccionalState, dispatchSeccional] = useReducer(seccionalReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [puestoState, dispatchPuesto] = useReducer(puestoReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
+  value: "",
+  isValid: false,
+});
+//#ENDREGION
+  
+
+  UseKeyPress(['Escape'], () => handleCerrarModal());
   UseKeyPress(['Enter'], () => afiliadoAgregarHandler(), 'AltKey');
+
+  UseKeyPress(['v'], (selectedTab === 0 && cuilState.isValid) ? () => validarAfiliadoCUILHandler() : "", 'AltKey');
+  UseKeyPress(['v'], (selectedTab === 1 && cuitState.isValid) ? ()=> validarEmpresaCUITHandler() : "", 'AltKey');
 
   //#region Texto completar campos
   const TextCompletarCampos = () => {
@@ -355,7 +465,6 @@ const AfiliadoAgregar = (props) => {
         setOpenDialog(true);
       }
 
-      
       return;
     }    
   }, [error]);
@@ -422,113 +531,6 @@ const AfiliadoAgregar = (props) => {
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
   //const [empresaId, setEmpresaId] = useState(0);
   //#endregion
-
-  //#region manejo de validaciones
-  const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [cuilState, dispatchCUIL] = useReducer(cuilReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [nombreState, dispatchNombre] = useReducer(nombreReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [cuitState, dispatchCUIT] = useReducer(cuitReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [emailState, dispatchEmail] = useReducer(emailReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [nacionalidadState, dispatchNacionalidad] = useReducer(
-    nacionalidadReducer,
-    {
-      value: "",
-      isValid: false,
-    }
-  );
-
-  const [fechaNacimientoState, dispatchFechaNacimiento] = useReducer(
-    fechaNacimientoReducer,
-    {
-      value: "",
-      isValid: false,
-    }
-  );
-
-  const [estadoCivilState, dispatchEstadoCivil] = useReducer(
-    estadoCivilReducer,
-    {
-      value: "",
-      isValid: false,
-    }
-  );
-
-  const [sexoState, dispatchSexo] = useReducer(sexoReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [tipoDocumentoState, dispatchTipoDocumento] = useReducer(
-    tipoDocumentoReducer,
-    {
-      value: "",
-      isValid: false,
-    }
-  );
-
-  const [numeroDocumentoState, dispatchNumeroDocumento] = useReducer(
-    numeroDocumentoReducer,
-    {
-      value: "",
-      isValid: false,
-    }
-  );
-
-  const [domicilioState, dispatchDomicilio] = useReducer(domicilioReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [provinciaState, dispatchProvincia] = useReducer(provinciaReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [localidadState, dispatchLocalidad] = useReducer(localidadReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [seccionalState, dispatchSeccional] = useReducer(seccionalReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [puestoState, dispatchPuesto] = useReducer(puestoReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
-    value: "",
-    isValid: false,
-  });
-
-  const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
-    value: "",
-    isValid: false,
-  });
-  //#ENDREGION
 
   //checking
   useEffect(() => {
@@ -610,7 +612,7 @@ const AfiliadoAgregar = (props) => {
         console.log('afiliadoObj',afiliadoObj)
 
         setAfiliado(afiliadoObj);
-        setCuilValidado(true);
+        setCuilValidado(afiliadoObj.cuilValidado ? true : false);
         setNuevoAfiliadoResponse(afiliadoObj);
         setAfiliadoExiste(true);
 
@@ -670,39 +672,36 @@ const AfiliadoAgregar = (props) => {
           loading: "Cargando...",
           
           onLoaded: ({data}) => {
-
-            const provinciaSelected = data.find(
-              (prov) => prov.value === afiliadoObj.provinciaId
-            ) ?? "";
-                
-            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-            setLocalidades((o) => ({
-              ...o,
-              loading: "Cargando...",
-              params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
-              onLoaded: ({ data }) => {
-           
-                if (!Array.isArray(data)) return;
-                const myLocalidadId =
-                  data.find((r) => r.value === localidadId) ?? {};
-  
-                const sinAsignar = data.at(0)?.value === localidadId ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId} 
-                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
-                setSeccionales((o) => ({
-                  ...o,
-                  loading: "Cargando...",
-                  params: sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
-                  onLoaded: ({ data }) => {
-                    if (!Array.isArray(data)) return;
-                    const mySeccionalId =
-                      data.find((r) => r.value === seccionalId) ??
-                      data.at(0) ??
-                      {};
-                    dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
-                  },
-                }));
-              },
-            }));
+              const provinciaSelected = data.find(
+                (prov) => prov.value === afiliadoObj.provinciaId
+              ) ?? "";
+                  
+              dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+              setLocalidades((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
+                onLoaded: ({ data }) => {
+                  if (!Array.isArray(data)) return;
+                  const myLocalidadId = data.find((r) => r.value === localidadId) ?? {};
+    
+                  const sinAsignar = data.at(0)?.value === localidadId ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
+                  dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+                  setSeccionales((o) => ({
+                    ...o,
+                    loading: "Cargando...",
+                    params: sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                    onLoaded: ({ data }) => {
+                      if (!Array.isArray(data)) return;
+                      const mySeccionalId =
+                        data.find((r) => r.value === seccionalId) ??
+                        data.at(0) ??
+                        {};
+                      dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
+                    },
+                  }));
+                },
+              }));
           },
         }));
 
@@ -786,8 +785,10 @@ const AfiliadoAgregar = (props) => {
 	useEffect(() => {
 		if (!cuilState.isValid) return;
 		if (!cuitState.isValid) return;
-		let { cuil, cuit, data } = { cuil: cuilState.value, cuit: cuitState.value };
+		let { cuil, cuit, data } = { cuil: afiliado?.cuilValidado ?? 0 /*cuilState?.value*/, cuit: cuitState.value };
 		if (ultimaDDJJ.cuil === cuil && ultimaDDJJ.cuit === cuit) return;
+
+    console.log('cuil para DDJJ',cuil)
 		request(
 			{
 				baseURL: "DDJJ",
@@ -1017,7 +1018,7 @@ const AfiliadoAgregar = (props) => {
 						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
 						.map((r) => ({
 							value: r.id,
-							label: `${r.codigo} ${r.descripcion}`,
+							label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
 						}))
 				)
       ),
@@ -1188,6 +1189,7 @@ const AfiliadoAgregar = (props) => {
 				afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
 				afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
 				empresa: empresa,
+        cuilValidado: +cuilState.value,
 				documentacion: documentacionList.map((r) => ({
 					...r,
 					id: 0,
@@ -1530,6 +1532,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region handles Inputs
   const handleInputChange = (value, id) => {
+    console.log('handleInputChange_id',id)
+    console.log('handleInputChange_value',value)
     switch (id) {
       case "fechaIngreso":
         dispatchFechaIngreso({ type: "USER_INPUT", value: value });
@@ -1541,7 +1545,7 @@ const AfiliadoAgregar = (props) => {
         setDialogTexto("");
         setPadronRespuesta(null);
         setCUITEmpresa("");
-        dispatchCUIL({ type: "USER_INPUT", value: value });
+        dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") });
 
         dispatchNombre({ type: "USER_INPUT", value: "" });
         dispatchNacionalidad({ type: "USER_INPUT", value: "" });
@@ -1566,6 +1570,23 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "fechaNacimiento":
+
+        const today = new Date();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+				const year = today.getFullYear();
+				const day = today.getDate().toString().padStart(2, '0');
+
+				const fechaFormateadaHoy = year + "-" + month + "-" + day;
+
+
+        if (fechaFormateadaHoy === value) {
+          setDialogTexto(
+            `La fecha de nacimiento ${value} es incorrecta`
+          );
+          setOpenDialog(true);
+         break;
+        }
+
         dispatchFechaNacimiento({ type: "USER_INPUT", value: value });
         break;
 
@@ -1638,11 +1659,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region handle Close
   const handleCerrarModal = (refresh) => {
-    console.log("nuevoAfiliadoResponse*", nuevoAfiliadoResponse);
-    console.log('props.accion:',props.accion);
-    console.log('dialogTexto',dialogTexto);
 
-    if (dialogTexto == "") 
+    if (dialogTexto === "") 
       props.onClose(false, "Cancela");
     else{
       (props.accion == "Modifica") ?
@@ -1663,6 +1681,10 @@ const AfiliadoAgregar = (props) => {
   //#region Handle tab change
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);
+    if (newValue === 2 && (afiliado?.cuilValidado === 0 && !cuilValidado)) {//-->TAB 2 = "DDJJ UATRE"
+      setDialogTexto(`El Afiliado NO posee un CUIL VALIDADO`);
+      setOpenDialog(true);
+    }
   };
   //#endregion
 
@@ -1676,7 +1698,12 @@ const AfiliadoAgregar = (props) => {
   };
 
   const InputDisabled = (input) => {
+
     if (input !== "cuil" && cuilState.value === "") {
+      return true;
+    }
+
+    if (!input && !cuilState.isValid) {
       return true;
     }
 
@@ -1699,15 +1726,7 @@ const AfiliadoAgregar = (props) => {
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
 
-		switch (props.accion) {
-			case "Agrega": {
-				if (afiliadoExiste) disable = true;
-				break;
-			}
-			default: {
-				break;
-			}
-		}
+    console.log('AgregarModificarAfiliadoDisableHandler',props.accion,afiliadoExiste)
 
 		// El fomulario debe ser valido para continuar
 		if (!formularioIsValid) disable = true;
@@ -1723,8 +1742,10 @@ const AfiliadoAgregar = (props) => {
 		if (
 			props.accion === "Modifica" ||
 			(props.accion === "Agrega" && afiliadoExiste)
-		)
+		){
+      AgregarModificarAfiliadoDisableHandler();
 			return "MODIFICA AFILIADO";
+    }
 		
     return "AGREGA SOLICITUD"
   };
@@ -1999,6 +2020,7 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
+  
   return (
 		<>
 			<div>
@@ -2066,25 +2088,16 @@ const AfiliadoAgregar = (props) => {
 					<div className={classes.div}>
 						<div className={classes.renglon}>
 							<div className={classes.input25}>
-								<InputMaterialMask
+                <InputMaterial
 									id="cuil"
 									onFocus={handleOnFocus}
-									value={cuilState.value.toString()}
+									value={cuilState.value}
 									label="CUIL"
-									disabled={
-										InputDisabled("cuil") || afiliado?.estadoSolicitudId === 2
-									}
-									width={98}
+                  mask="99\-99\.999\.999\-9"
+									disabled={InputDisabled("cuil")}
 									onChange={handleInputChange}
-									helperText={
-										!cuilState.isValid && cuilState.value !== ""
-											? "CUIL con formato incorrecto"
-											: ""
-									}
 									error={
-										!cuilState.isValid &&
-										cuilState.value !== "" &&
-										inputsTouched
+										!cuilState.isValid && inputsTouched
 											? true
 											: false
 									}
@@ -2098,6 +2111,7 @@ const AfiliadoAgregar = (props) => {
 									disabled={deshabilitarBotonValidarCUIL()}
 									onClick={validarAfiliadoCUILHandler}
 									loading={cuilLoading}
+                  underlineindex = {0}
 								>
 									{!cuilLoading ? `Valida CUIL` : `Validando...`}
 								</Button>
@@ -2112,14 +2126,6 @@ const AfiliadoAgregar = (props) => {
 								/>
 							</div>
 							<div className={classes.input25}>
-								{/* <InputMaterial
-									id="fechaIngreso"
-									value={fechaIngresoState.value}
-									label="Fecha Ingreso"
-									onChange={handleInputChange}
-									type="date"
-									//readOnly={!afiliadoExiste}
-								/> */}
 								<DateTimePicker
 									type="date"
 									id="fechaIngreso"
@@ -2395,7 +2401,8 @@ const AfiliadoAgregar = (props) => {
 
 					// DeclaracionesJuradas
 					<DeclaracionesJuradas
-						cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
+						cuil={afiliado?.cuilValidado}
+            //cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
 						cuit={cuitEmpresa}
 						onSeleccionRegistro={handleSeleccionDDJJ}
 						infoCompleta={true}
