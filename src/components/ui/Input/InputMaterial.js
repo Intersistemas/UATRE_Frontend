@@ -67,7 +67,8 @@ const InputMaterial = (props) => {
             shrink: true,
           }}
           InputProps={{
-            readOnly: props.readOnly || false,          
+            ...props.InputProps,
+            readOnly: props.readOnly || false, 
           }}
           helperText={props.helperText ?? ""}
           FormHelperTextProps={{ style: { marginTop: "0px" } }}

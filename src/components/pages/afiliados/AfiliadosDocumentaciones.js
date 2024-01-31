@@ -46,7 +46,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
-				tarea: "Documentacion_Agrega",
+				tarea: "Afiliaciones_DocumentacionAgrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -61,6 +61,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Consulta Documentación ${docuDesc}`,
 				request: "C",
+				tarea: "Afiliaciones_DocumentacionConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -69,7 +70,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
-				tarea: "Documentacion_Modifica",
+				tarea: "Afiliaciones_DocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -78,7 +79,7 @@ const AfiliadosDocumentaciones = (props) => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
-				tarea: "Documentacion_Baja",
+				tarea: "Afiliaciones_DocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
 			})
