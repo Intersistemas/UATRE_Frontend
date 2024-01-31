@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
-import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -33,11 +32,14 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 	});
 	//#endregion
 
-	//#region data
+	const [filtros, setFiltros] = useState({});
+
+	//#region list
 	const [list, setList] = useState({
 		loading: "Cargando...",
-		params: {},
+		filtros: {},
 		data: [],
+		filtrado: [],
 		error: null,
 	});
 
@@ -46,66 +48,52 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 		const changes = { loading: null, data: [], error: null };
 		pushQuery({
 			action: "GetData",
-			params: list.params,
-			config: {
-				errorType: "response",
-			},
-			onOk: async (data) => (changes.data = data),
-			onError: async (error) =>
-				(changes.error = {
-					message: `Error ${error.code}: "${error.data.message ?? error.type}"`,
-				}),
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
-	}, [list, pushQuery]);
-	//#endregion
-
-	//#region CSV
-	const [csv, setCSV] = useState({
-		loading: null,
-		params: {},
-		data: [["Estado", "Cantidad"]],
-		error: null,
-	});
-
-	useEffect(() => {
-		if (!csv.loading) return;
-		const titulos = csv.data[0];
-		const changes = {
-			loading: null,
-			data: [titulos],
-			error: null,
-		};
-		pushQuery({
-			action: "GetData",
-			params: csv.params,
 			config: {
 				errorType: "response",
 			},
 			onOk: async (data) => {
-				changes.data = [
-					titulos,
-					...AsArray(data).map((r) => [r.descripcion, r.total]),
-				];
+				changes.data = data;
+				changes.filtrado = changes.data;
 			},
-			onError: async (error) =>
-				(changes.error = {
-					message: `Error ${error.code}: "${error.data.message ?? error.type}"`,
-				}),
-			onFinally: async () => {
-				setCSV((o) => ({ ...o, ...changes }));
-				if (changes.error) return;
-				downloadjs(
-					ArrayToCSV(changes.data),
-					"EstadosSolicitudes.csv",
-					"text/csv"
-				);
+			onError: async (error) => {
+				console.log({error})
+				changes.error = {
+					message: `Error ${error.code}: "${error.data?.message ?? error.type}"`,
+				}
 			},
+			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
-	}, [csv, pushQuery]);
+	}, [list, pushQuery]);
+
+	useEffect(() => {
+		if (list.loading) return;
+		setList((o) => ({
+			...o,
+			filtrado: o.data.filter(
+				(r) =>
+					[
+						r.descripcion,
+					].findIndex(
+						(f) =>
+							!o.filtro ||
+							`${f ?? ""}`
+								.toLowerCase()
+								.includes(`${o.filtro ?? ""}`.toLowerCase())
+					) > -1
+			),
+		}));
+	}, [list.loading, list.filtro]);
 	//#endregion
 
-	const onCSV = () => setCSV((o) => ({ ...o, loading: "Procesando..." }));
+	const onCSV = () =>
+		downloadjs(
+			ArrayToCSV([
+				["Estado", "Cantidad"],
+				...list.filtrado.map((r) => [r.descripcion, r.total]),
+			]),
+			"EstadosSolicitudes.csv",
+			"text/csv"
+		);
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
@@ -117,25 +105,63 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 			</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
-					<InputMaterial
-						label="Filtro"
-						value={list.params.descripcion}
-						onChange={(descripcion) => {
-							const params = { ...list.params };
-							if (descripcion) params.descripcion = descripcion;
-							else delete params.descripcion;
-
-							setList((o) => ({
-								...o,
-								loading: "Cargando...",
-								params,
-							}));
-							setCSV((o) => ({ ...o, params }));
-						}}
-					/>
+					<Grid width gap="inherit">
+						<InputMaterial
+							label="Estado de solicitud"
+							value={filtros.descripcion}
+							onChange={(descripcion) =>
+								setFiltros((o) => {
+									const r = { ...o, descripcion };
+									if (!descripcion)
+										delete r.descripcion;
+									return r;
+								})
+							}
+						/>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={
+									JSON.stringify(list.filtros) === JSON.stringify(filtros)
+								}
+								onClick={() => {
+									setList((o) => ({
+										...o,
+										filtros,
+										filtrado: o.data.filter((r) => {
+											const k = Object.keys(filtros);
+											const match = k.filter((k) =>
+												`${r[k] ?? ""}`
+													.toLowerCase()
+													.includes(filtros[k].toLowerCase())
+											);
+											return k.length === match.length;
+										}),
+									}));
+								}}
+							>
+								Aplica filtros
+							</Button>
+						</Grid>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={Object.keys(filtros).length === 0}
+								onClick={() => {
+									const filtros = {};
+									setFiltros(filtros);
+									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+										return;
+									setList((o) => ({ ...o, filtros, filtrado: [...o.data] }));
+								}}
+							>
+								Limpia filtros
+							</Button>
+						</Grid>
+					</Grid>
 					<Table
 						keyField="estadoSolicitudId"
-						data={list.data}
+						data={list.filtrado}
 						mostrarBuscar={false}
 						pagination={{ size: 10 }}
 						noDataIndication={
@@ -169,28 +195,17 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 				</Grid>
 			</Modal.Body>
 			<Modal.Footer>
-				<Grid col gap="5px">
-					<Grid gap="20px" justify="end">
-						<Grid width="250px">
-							<Button
-								className="botonAmarillo"
-								loading={!!csv.loading}
-								onClick={() => onCSV()}
-							>
-								GENERA ARCHIVO CSV
-							</Button>
-						</Grid>
-						<Grid width="150px">
-							<Button className="botonAmarillo" onClick={() => onClose()}>
-								FINALIZA
-							</Button>
-						</Grid>
+				<Grid gap="20px" justify="end">
+					<Grid width="250px">
+						<Button className="botonAmarillo" onClick={() => onCSV()}>
+							GENERA ARCHIVO CSV
+						</Button>
 					</Grid>
-					{csv.error ? (
-						<text style={{ color: "red" }}>
-							{csv.error == null ? null : csv.error.message}
-						</text>
-					) : null}
+					<Grid width="150px">
+						<Button className="botonAmarillo" onClick={() => onClose()}>
+							FINALIZA
+						</Button>
+					</Grid>
 				</Grid>
 			</Modal.Footer>
 		</Modal>

@@ -4,6 +4,11 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import AfiliadosEstados from "./afiliadosEstados/AfiliadosEstados";
 import AfiliadosEstadosDelegacion from "./afiliadosEstadosDelegacion/AfiliadosEstadosDelegacion";
+import AfiliadosEstadosDelegacionSeccional from "./afiliadosEstadosDelegacionSeccional/AfiliadosEstadosDelegacionSeccional";
+import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDelegacionSeccionalLocalidad/AfiliadosEstadosDelegacionSeccionalLocalidad";
+import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstadosEmpresas";
+import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
+import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -33,15 +38,27 @@ const InformesHandler = () => {
 					>
 						Afiliados por delegación
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccional onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por delegación y seccional
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccionalLocalidad onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por delegación, seccional y localidad
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosEmpresas onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por empresa
 					</Button>
 					<Button className="botonAmarillo" width="32">
@@ -49,10 +66,18 @@ const InformesHandler = () => {
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosPuestoSexo onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por oficio y sexo
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosEmpresasSeccionales onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por empresa y cantidad de seccionales
 					</Button>
 				</Grid>

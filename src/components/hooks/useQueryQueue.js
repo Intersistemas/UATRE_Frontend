@@ -36,7 +36,7 @@ const useQueryQueue = (
 			[
 				path,
 				Object.keys(pars)
-					.map((k) => `${k}=${pars[k]}`)
+					.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(pars[k])}`)
 					.join("&"),
 			]
 				.filter((e) => e)

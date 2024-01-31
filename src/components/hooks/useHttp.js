@@ -50,8 +50,7 @@ const useHttp = () => {
               url = `http://${servidor}.intersistemas.net:8800/api`;
               break;
           case 'Estadisticas':
-			  url = `http://${servidor}.intersistemas.net:8205/api`;
-              //url = `http://svr-v4:8205/api`;
+			        url = `http://${servidor}.intersistemas.net:8205/api`;
               break;
 		  default:
 			  break;
