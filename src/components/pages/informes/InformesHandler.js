@@ -7,6 +7,7 @@ import AfiliadosEstadosDelegacion from "./afiliadosEstadosDelegacion/AfiliadosEs
 import AfiliadosEstadosDelegacionSeccional from "./afiliadosEstadosDelegacionSeccional/AfiliadosEstadosDelegacionSeccional";
 import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDelegacionSeccionalLocalidad/AfiliadosEstadosDelegacionSeccionalLocalidad";
 import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstadosEmpresas";
+import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -64,7 +65,11 @@ const InformesHandler = () => {
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosPuestoSexo onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por oficio y sexo
 					</Button>
 					<Button className="botonAmarillo" width="32">
