@@ -14,6 +14,7 @@ const InicioHandler = () => {
     );
     
     let modulos = [];
+    let tareas = usuarioLogueado?.modulosTareas;
     usuarioLogueado?.modulosTareas.forEach((mod) => {
       if (modulos.includes(mod.nombreModulo)) return;
       modulos.push(mod.nombreModulo);
@@ -22,7 +23,7 @@ const InicioHandler = () => {
     return (
       <div>
         {console.log('**modulos del usuario**',modulos)}
-        <Inicio modulos={modulos} />
+        <Inicio modulos={modulos} tareas={tareas} />
       </div>
     );
 };

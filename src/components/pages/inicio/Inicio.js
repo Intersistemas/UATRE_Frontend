@@ -6,7 +6,7 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useEffect } from "react";
 import UseKeyPress from '../../helpers/UseKeyPress';
 
-const Inicio = ({ modulos = [] }) => {
+const Inicio = ({ modulos = [], tareas = [] }) => {
 	const navigate = useNavigate();
 	const [accesos, setAccesos] = useState([]);
 
@@ -15,6 +15,8 @@ const Inicio = ({ modulos = [] }) => {
 	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
+	
+	console.log('tareas del usuario: ',tareas);
 	
 	useEffect(() => {
 		const newAccesos = [];

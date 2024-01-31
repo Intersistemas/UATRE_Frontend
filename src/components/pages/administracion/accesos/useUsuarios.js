@@ -34,29 +34,39 @@ const useUsuarios = ({
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/RefDelegacion`,
+						endpoint: `/Usuario/registrar`,
 						method: "POST",
 					},
 				};
 			}
 			case "Update": {
+				
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/Usuario`,
+						method: "PATCH",
+					}
+				};
+			}
+			case "DarDeBaja": {
 				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/RefDelegacion/${id}`,
+						endpoint: `/Usuario/DarDeBaja`,
 						method: "PUT",
 					},
 					params: otherParams,
 				};
 			}
-			case "Delete": {
+			case "Reactivar": {
 				const { id, ...otherParams } = params;
 				return {
 					config: {
-						baseURL: "Comunes",
-						endpoint: `/RefDelegacion/${id}`,
-						method: "DELETE",
+						baseURL: "Seguridad",
+						endpoint: `/Usuario/Reactivar`,
+						method: "PUT",
 					},
 					params: otherParams,
 				};
@@ -167,16 +177,34 @@ const useUsuarios = ({
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
-								codigoDelegacion: true,
+								
 								nombre: true,
+								cuit: true,
+								userName: true,
+								email: true,
+								emailConfirmed: true,
+								phoneNumber: true,
+								password: true,
+								confirmPassword: true,
+
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
 				})()}
-				hide={
-					["A", "M"].includes(list.selection.request)
-						? { deletedObs: true }
-						: {}
+				hide={(()=>{
+					
+					const h = ["A", "M"].includes(list.selection.request) ?
+						{ deletedObs: true }
+						: 
+						{}
+
+					if (!["A"].includes(list.selection.request)) {
+						h.password= true
+						h.confirmPassword= true
+					}
+					return h
+				})()
+					
 				}
 				onChange={(changes) =>
 					setList((o) => ({
@@ -191,7 +219,7 @@ const useUsuarios = ({
 					}))
 				}
 				onClose={(confirm) => {
-					if (!["A", "B", "M"].includes(list.selection.request))
+					if (!["A", "B", "M","R"].includes(list.selection.request))
 						confirm = false;
 					if (!confirm) {
 						setList((o) => ({
@@ -209,16 +237,28 @@ const useUsuarios = ({
 					}
 
 					const record = list.selection.edit;
-
 					//Validaciones
 					const errors = {};
-					if (list.selection.request === "B") {
-						// if (!record.deletedObs)
-						// 	errors.deletedObs = "Dato requerido";
+					if (list.selection.request === "B" || list.selection.request === "R") {
+						 if (!record.deletedObs)
+						 	errors.deletedObs = "Dato requerido";
 					} else {
-						if (!record.codigoDelegacion)
-							errors.codigoDelegacion = "Dato requerido";
+
+						if (!record.cuit) errors.cuit = "Dato requerido";
 						if (!record.nombre) errors.nombre = "Dato requerido";
+						if (!record.userName) errors.userName = "Dato requerido";
+						if (!record.email) errors.email = "Dato requerido";
+
+						if (list.selection.request === "A") {
+							if (!record.password) errors.password = "Dato requerido";
+							if (!record.confirmPassword) errors.confirmPassword = "Dato requerido";
+
+							if (record.password !== record.confirmPassword){
+								errors.password = "Las Claves deben ser idénticas";
+								errors.confirmPassword = "Las Claves deben ser idénticas";
+							} 
+						}
+
 					}
 					if (Object.keys(errors).length) {
 						setList((o) => ({
@@ -230,6 +270,10 @@ const useUsuarios = ({
 						}));
 						return;
 					}
+
+					//ESTOS DELETE  DEBEN DESAPARECER CUANDO CIRO AGREGUE LOS CAMPOS DEL OBJ AL ENDPOINT
+					delete record.confirmPassword;
+		
 
 					const query = {
 						config: {},
@@ -245,13 +289,17 @@ const useUsuarios = ({
 							break;
 						case "M":
 							query.action = "Update";
-							query.params = { id: record.id };
 							query.config.body = record;
 							break;
 						case "B":
-							query.action = "Delete";
-							query.params = { id: record.id };
-							query.config.body = record.deletedObs;
+							query.action = "DarDeBaja";
+							//query.params = { id: record.id };
+							query.config.body = {id: record.id, deletedObs: record.deletedObs};
+							break;
+						case "R":
+							query.action = "Reactivar";
+							//query.params = { id: record.id };
+							query.config.body = { id: record.id };
 							break;
 						default:
 							break;
@@ -277,7 +325,7 @@ const useUsuarios = ({
 						setList((o) => ({
 							...o,
 							loading: "Cargando...",
-							pagination: { index, size },
+							pagination: { ...o.pagination, index, size },
 							data: o.remote ? [] : o.data,
 						})),
 				}}
