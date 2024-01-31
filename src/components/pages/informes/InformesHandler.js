@@ -8,6 +8,7 @@ import AfiliadosEstadosDelegacionSeccional from "./afiliadosEstadosDelegacionSec
 import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDelegacionSeccionalLocalidad/AfiliadosEstadosDelegacionSeccionalLocalidad";
 import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstadosEmpresas";
 import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
+import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -72,7 +73,11 @@ const InformesHandler = () => {
 					>
 						Afiliados por oficio y sexo
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosEmpresasSeccionales onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por empresa y cantidad de seccionales
 					</Button>
 				</Grid>
