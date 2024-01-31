@@ -32,10 +32,12 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 	});
 	//#endregion
 
-	//#region data
+	const [filtros, setFiltros] = useState({});
+
+	//#region list
 	const [list, setList] = useState({
 		loading: "Cargando...",
-		filtro: "",
+		filtros: {},
 		data: [],
 		filtrado: [],
 		error: null,
@@ -60,27 +62,6 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
 	}, [list, pushQuery]);
-
-	useEffect(() => {
-		if (list.loading) return;
-		setList((o) => ({
-			...o,
-			filtrado: o.data.filter(
-				(r) =>
-					[
-						r.refDelegacionCodigo,
-						r.refDelegacionNombre,
-						r.estadoSolicitudDescripcion,
-					].findIndex(
-						(f) =>
-							!o.filtro ||
-							`${f ?? ""}`
-								.toLowerCase()
-								.includes(`${o.filtro ?? ""}`.toLowerCase())
-					) > -1
-			),
-		}));
-	}, [list.loading, list.filtro]);
 	//#endregion
 
 	const onCSV = () =>
@@ -108,11 +89,88 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 			</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
-					<InputMaterial
-						label="Filtro"
-						value={list.filtro}
-						onChange={(filtro) => setList((o) => ({ ...o, filtro }))}
-					/>
+					<Grid width gap="inherit">
+						<Grid width="25%">
+							<InputMaterial
+								label="Código delegación"
+								value={filtros.refDelegacionCodigo}
+								onChange={(refDelegacionCodigo) =>
+									setFiltros((o) => {
+										const r = { ...o, refDelegacionCodigo };
+										if (!refDelegacionCodigo) delete r.refDelegacionCodigo;
+										return r;
+									})
+								}
+							/>
+						</Grid>
+						<Grid width>
+							<InputMaterial
+								label="Nombre delegación"
+								value={filtros.refDelegacionNombre}
+								onChange={(refDelegacionNombre) =>
+									setFiltros((o) => {
+										const r = { ...o, refDelegacionNombre };
+										if (!refDelegacionNombre) delete r.refDelegacionNombre;
+										return r;
+									})
+								}
+							/>
+						</Grid>
+					</Grid>
+					<Grid width gap="inherit">
+						<InputMaterial
+							label="Estado de solicitud"
+							value={filtros.estadoSolicitudDescripcion}
+							onChange={(estadoSolicitudDescripcion) =>
+								setFiltros((o) => {
+									const r = { ...o, estadoSolicitudDescripcion };
+									if (!estadoSolicitudDescripcion)
+										delete r.estadoSolicitudDescripcion;
+									return r;
+								})
+							}
+						/>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={
+									JSON.stringify(list.filtros) === JSON.stringify(filtros)
+								}
+								onClick={() => {
+									setList((o) => ({
+										...o,
+										filtros,
+										filtrado: o.data.filter((r) => {
+											const k = Object.keys(filtros);
+											const match = k.filter((k) =>
+												`${r[k] ?? ""}`
+													.toLowerCase()
+													.includes(filtros[k].toLowerCase())
+											);
+											return k.length === match.length;
+										}),
+									}));
+								}}
+							>
+								Aplica filtros
+							</Button>
+						</Grid>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={Object.keys(filtros).length === 0}
+								onClick={() => {
+									const filtros = {};
+									setFiltros(filtros);
+									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+										return;
+									setList((o) => ({ ...o, filtros, filtrado: [...o.data] }));
+								}}
+							>
+								Limpia filtros
+							</Button>
+						</Grid>
+					</Grid>
 					<Table
 						keyField="id"
 						data={list.filtrado}

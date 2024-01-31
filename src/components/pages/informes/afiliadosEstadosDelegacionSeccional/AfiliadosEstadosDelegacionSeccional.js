@@ -33,10 +33,13 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 	});
 	//#endregion
 
+	const [filtros, setFiltros] = useState({});
+
 	//#region list
 	const [list, setList] = useState({
 		loading: "Cargando...",
 		pagination: { index: 1, size: 10 },
+		filtros: {},
 		params: {},
 		data: [],
 		error: null,
@@ -49,6 +52,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 			action: "GetData",
 			params: {
 				...list.params,
+				...list.filtros,
 				pageIndex: list.pagination.index,
 				pageSize: list.pagination.size,
 			},
@@ -75,6 +79,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 	//#region CSV
 	const [csv, setCSV] = useState({
 		loading: null,
+		filtros: {},
 		params: {},
 		data: [
 			[
@@ -99,7 +104,10 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 		};
 		const query = {
 			action: "GetData",
-			params: { ...csv.params },
+			params: {
+				...csv.params,
+				...csv.filtros,
+			},
 			config: {
 				errorType: "response",
 			},
@@ -123,6 +131,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 				changes.loading = "Cargando...";
 				query.params = {
 					...csv.params,
+					...csv.filtros,
 					pageIndex: index + 1,
 					pageSize: size,
 				};
@@ -167,37 +176,27 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 						<Grid width="25%">
 							<InputMaterial
 								label="Código delegación"
-								value={list.params.refDelegacionCodigo}
-								onChange={(refDelegacionCodigo) => {
-									const params = { ...list.params };
-									if (refDelegacionCodigo)
-										params.refDelegacionCodigo = refDelegacionCodigo;
-									else delete params.refDelegacionCodigo;
-									setList((o) => ({
-										...o,
-										loading: "Cargando...",
-										params,
-									}));
-									setCSV((o) => ({ ...o, params }));
-								}}
+								value={filtros.refDelegacionCodigo}
+								onChange={(refDelegacionCodigo) =>
+									setFiltros((o) => {
+										const r = { ...o, refDelegacionCodigo };
+										if (!refDelegacionCodigo) delete r.refDelegacionCodigo;
+										return r;
+									})
+								}
 							/>
 						</Grid>
 						<Grid width>
 							<InputMaterial
 								label="Nombre delegación"
-								value={list.params.refDelegacionNombre}
-								onChange={(refDelegacionNombre) => {
-									const params = { ...list.params };
-									if (refDelegacionNombre)
-										params.refDelegacionNombre = refDelegacionNombre;
-									else delete params.refDelegacionNombre;
-									setList((o) => ({
-										...o,
-										loading: "Cargando...",
-										params,
-									}));
-									setCSV((o) => ({ ...o, params }));
-								}}
+								value={filtros.refDelegacionNombre}
+								onChange={(refDelegacionNombre) =>
+									setFiltros((o) => {
+										const r = { ...o, refDelegacionNombre };
+										if (!refDelegacionNombre) delete r.refDelegacionNombre;
+										return r;
+									})
+								}
 							/>
 						</Grid>
 					</Grid>
@@ -205,54 +204,85 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 						<Grid width="25%">
 							<InputMaterial
 								label="Código seccional"
-								value={list.params.seccionalCodigo}
-								onChange={(seccionalCodigo) => {
-									const params = { ...list.params };
-									if (seccionalCodigo) params.seccionalCodigo = seccionalCodigo;
-									else delete params.seccionalCodigo;
-									setList((o) => ({
-										...o,
-										loading: "Cargando...",
-										params,
-									}));
-									setCSV((o) => ({ ...o, params }));
-								}}
+								value={filtros.seccionalCodigo}
+								onChange={(seccionalCodigo) =>
+									setFiltros((o) => {
+										const r = { ...o, seccionalCodigo };
+										if (!seccionalCodigo) delete r.seccionalCodigo;
+										return r;
+									})
+								}
 							/>
 						</Grid>
 						<Grid width>
 							<InputMaterial
 								label="Nombre seccional"
-								value={list.params.seccionalNombre}
-								onChange={(seccionalNombre) => {
-									const params = { ...list.params };
-									if (seccionalNombre) params.seccionalNombre = seccionalNombre;
-									else delete params.seccionalNombre;
-									setList((o) => ({
-										...o,
-										loading: "Cargando...",
-										params,
-									}));
-									setCSV((o) => ({ ...o, params }));
-								}}
+								value={filtros.seccionalNombre}
+								onChange={(seccionalNombre) =>
+									setFiltros((o) => {
+										const r = { ...o, seccionalNombre };
+										if (!seccionalNombre) delete r.seccionalNombre;
+										return r;
+									})
+								}
 							/>
 						</Grid>
 					</Grid>
-					<InputMaterial
-						label="Estado de solicitud"
-						value={list.params.estadoSolicitudDescripcion}
-						onChange={(estadoSolicitudDescripcion) => {
-							const params = { ...list.params };
-							if (estadoSolicitudDescripcion)
-								params.estadoSolicitudDescripcion = estadoSolicitudDescripcion;
-							else delete params.estadoSolicitudDescripcion;
-							setList((o) => ({
-								...o,
-								loading: "Cargando...",
-								params,
-							}));
-							setCSV((o) => ({ ...o, params }));
-						}}
-					/>
+					<Grid width gap="inherit">
+						<InputMaterial
+							label="Estado de solicitud"
+							value={filtros.estadoSolicitudDescripcion}
+							onChange={(estadoSolicitudDescripcion) =>
+								setFiltros((o) => {
+									const r = { ...o, estadoSolicitudDescripcion };
+									if (!estadoSolicitudDescripcion) delete r.estadoSolicitudDescripcion;
+									return r;
+								})
+							}
+						/>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={
+									JSON.stringify(list.filtros) === JSON.stringify(filtros)
+								}
+								onClick={() => {
+									setList((o) => ({
+										...o,
+										filtros,
+										data: [],
+										error: null,
+										loading: "Cargando...",
+									}));
+									setCSV((o) => ({ ...o, filtros }));
+								}}
+							>
+								Aplica filtros
+							</Button>
+						</Grid>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={Object.keys(filtros).length === 0}
+								onClick={() => {
+									const filtros = {};
+									setFiltros(filtros);
+									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+										return;
+									setList((o) => ({
+										...o,
+										filtros,
+										data: [],
+										error: null,
+										loading: "Cargando...",
+									}));
+									setCSV((o) => ({ ...o, filtros }));
+								}}
+							>
+								Limpia filtros
+							</Button>
+						</Grid>
+					</Grid>
 					<Table
 						remote
 						keyField="id"
@@ -316,7 +346,9 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 									sortField =
 										{ seccionalDescripcion: "seccionalNombre" }[sortField] ??
 										sortField;
-									const sortBy = `${sortOrder === "desc" ? "-" : "+"}${sortField}`;
+									const sortBy = `${
+										sortOrder === "desc" ? "-" : "+"
+									}${sortField}`;
 									setList((o) => ({
 										...o,
 										loading: "Cargando...",

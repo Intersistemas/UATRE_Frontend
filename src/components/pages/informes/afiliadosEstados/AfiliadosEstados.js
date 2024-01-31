@@ -32,10 +32,12 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 	});
 	//#endregion
 
-	//#region data
+	const [filtros, setFiltros] = useState({});
+
+	//#region list
 	const [list, setList] = useState({
 		loading: "Cargando...",
-		filtro: "",
+		filtros: {},
 		data: [],
 		filtrado: [],
 		error: null,
@@ -103,11 +105,60 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 			</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
-					<InputMaterial
-						label="Filtro"
-						value={list.filtro}
-						onChange={(filtro) => setList((o) => ({ ...o, filtro }))}
-					/>
+					<Grid width gap="inherit">
+						<InputMaterial
+							label="Estado de solicitud"
+							value={filtros.descripcion}
+							onChange={(descripcion) =>
+								setFiltros((o) => {
+									const r = { ...o, descripcion };
+									if (!descripcion)
+										delete r.descripcion;
+									return r;
+								})
+							}
+						/>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={
+									JSON.stringify(list.filtros) === JSON.stringify(filtros)
+								}
+								onClick={() => {
+									setList((o) => ({
+										...o,
+										filtros,
+										filtrado: o.data.filter((r) => {
+											const k = Object.keys(filtros);
+											const match = k.filter((k) =>
+												`${r[k] ?? ""}`
+													.toLowerCase()
+													.includes(filtros[k].toLowerCase())
+											);
+											return k.length === match.length;
+										}),
+									}));
+								}}
+							>
+								Aplica filtros
+							</Button>
+						</Grid>
+						<Grid width="200px">
+							<Button
+								className="botonAzul"
+								disabled={Object.keys(filtros).length === 0}
+								onClick={() => {
+									const filtros = {};
+									setFiltros(filtros);
+									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+										return;
+									setList((o) => ({ ...o, filtros, filtrado: [...o.data] }));
+								}}
+							>
+								Limpia filtros
+							</Button>
+						</Grid>
+					</Grid>
 					<Table
 						keyField="estadoSolicitudId"
 						data={list.filtrado}
