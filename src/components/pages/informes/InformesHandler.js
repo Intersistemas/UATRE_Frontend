@@ -5,6 +5,7 @@ import Button from "components/ui/Button/Button";
 import AfiliadosEstados from "./afiliadosEstados/AfiliadosEstados";
 import AfiliadosEstadosDelegacion from "./afiliadosEstadosDelegacion/AfiliadosEstadosDelegacion";
 import AfiliadosEstadosDelegacionSeccional from "./afiliadosEstadosDelegacionSeccional/AfiliadosEstadosDelegacionSeccional";
+import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDelegacionSeccionalLocalidad/AfiliadosEstadosDelegacionSeccionalLocalidad";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -43,7 +44,11 @@ const InformesHandler = () => {
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccionalLocalidad onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por delegación, seccional y localidad
 					</Button>
 					<Button className="botonAmarillo" width="32">
