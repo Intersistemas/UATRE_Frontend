@@ -316,9 +316,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 									sortField =
 										{ seccionalDescripcion: "seccionalNombre" }[sortField] ??
 										sortField;
-									const sortBy = encodeURIComponent(
-										`${sortOrder === "desc" ? "-" : "+"}${sortField}`
-									);
+									const sortBy = `${sortOrder === "desc" ? "-" : "+"}${sortField}`;
 									setList((o) => ({
 										...o,
 										loading: "Cargando...",
