@@ -69,7 +69,7 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 			},
 			onError: async (error) =>
 				(changes.error = `Error ${error.code}: "${
-					error.data.message ?? error.type
+					error.data?.message ?? error.type
 				}"`),
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});

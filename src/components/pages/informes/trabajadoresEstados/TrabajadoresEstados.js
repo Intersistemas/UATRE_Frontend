@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
+import dayjs from "dayjs";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
 import Formato from "components/helpers/Formato";
@@ -94,10 +95,16 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 							<DateTimePicker
 								label="Período"
 								type="month"
+								minDate={dayjs().subtract(12, "month").format("YYYY-MM-DD")}
+								maxDate={dayjs().subtract(1, "month").format("YYYY-MM-DD")}
 								value={Formato.Mascara(filtros?.periodo, "####-##-01") ?? ""}
 								onChange={(periodo) =>
 									setFiltros((o) => {
-										console.log({ periodo });
+										console.log({
+											periodo,
+											minDate: dayjs().subtract(12, "month").format("YYYY-MM-DD"),
+											maxDate: dayjs().subtract(1, "month").format("YYYY-MM-DD"),
+										});
 										const r = {
 											...o,
 											periodo: Formato.Entero(periodo?.format("YYYYMM")),
