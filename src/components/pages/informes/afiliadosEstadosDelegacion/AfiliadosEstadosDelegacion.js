@@ -56,9 +56,9 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 				changes.filtrado = changes.data;
 			},
 			onError: async (error) =>
-				(changes.error = {
-					message: `Error ${error.code}: "${error.data.message ?? error.type}"`,
-				}),
+				(changes.error = `Error ${error.code}: "${
+					error.data?.message ?? error.type
+				}"`),
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
 	}, [list, pushQuery]);
@@ -145,7 +145,7 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 											const match = k.filter((k) =>
 												`${r[k] ?? ""}`
 													.toLowerCase()
-													.includes(filtros[k].toLowerCase())
+													.includes(`${filtros[k] ?? ""}`.toLowerCase())
 											);
 											return k.length === match.length;
 										}),
@@ -177,16 +177,7 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 						mostrarBuscar={false}
 						pagination={{ size: 10 }}
 						noDataIndication={
-							list.loading ||
-							((error) =>
-								error == null
-									? null
-									: typeof list.error.message === "object"
-									? Object.keys(list.error.message)
-											.map((k) => `${k}: ${list.error.message[k]}`)
-											.join("\n")
-									: list.error.message)(list.error) ||
-							"No existen datos para mostrar "
+							list.loading || list.error || "No existen datos para mostrar "
 						}
 						columns={[
 							{

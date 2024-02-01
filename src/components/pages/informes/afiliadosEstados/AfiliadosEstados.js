@@ -55,34 +55,13 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 				changes.data = data;
 				changes.filtrado = changes.data;
 			},
-			onError: async (error) => {
-				console.log({error})
-				changes.error = {
-					message: `Error ${error.code}: "${error.data?.message ?? error.type}"`,
-				}
-			},
+			onError: async (error) =>
+				(changes.error = `Error ${error.code}: "${
+					error.data?.message ?? error.type
+				}"`),
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
 	}, [list, pushQuery]);
-
-	useEffect(() => {
-		if (list.loading) return;
-		setList((o) => ({
-			...o,
-			filtrado: o.data.filter(
-				(r) =>
-					[
-						r.descripcion,
-					].findIndex(
-						(f) =>
-							!o.filtro ||
-							`${f ?? ""}`
-								.toLowerCase()
-								.includes(`${o.filtro ?? ""}`.toLowerCase())
-					) > -1
-			),
-		}));
-	}, [list.loading, list.filtro]);
 	//#endregion
 
 	const onCSV = () =>
@@ -133,7 +112,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 											const match = k.filter((k) =>
 												`${r[k] ?? ""}`
 													.toLowerCase()
-													.includes(filtros[k].toLowerCase())
+													.includes(`${filtros[k] ?? ""}`.toLowerCase())
 											);
 											return k.length === match.length;
 										}),
@@ -165,16 +144,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 						mostrarBuscar={false}
 						pagination={{ size: 10 }}
 						noDataIndication={
-							list.loading ||
-							((error) =>
-								error == null
-									? null
-									: typeof list.error.message === "object"
-									? Object.keys(list.error.message)
-											.map((k) => `${k}: ${list.error.message[k]}`)
-											.join("\n")
-									: list.error.message)(list.error) ||
-							"No existen datos para mostrar "
+							list.loading || list.error || "No existen datos para mostrar "
 						}
 						columns={[
 							{
