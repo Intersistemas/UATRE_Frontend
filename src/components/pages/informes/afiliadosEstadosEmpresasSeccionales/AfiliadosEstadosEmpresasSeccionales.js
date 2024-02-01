@@ -84,7 +84,7 @@ const AfiliadosEstadosEmpresasSeccionales = ({ onClose = onCloseDef }) => {
 		data: [
 			[
 				"CUIT empresa",
-				"Razon social empresa",
+				"Razón social empresa",
 				"Seccionales",
 				"Estado",
 				"Cantidad",

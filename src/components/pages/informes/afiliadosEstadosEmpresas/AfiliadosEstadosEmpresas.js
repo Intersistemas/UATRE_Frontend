@@ -81,7 +81,7 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 		loading: null,
 		filtros: {},
 		params: {},
-		data: [["CUIT empresa", "Razon social empresa", "Estado", "Cantidad"]],
+		data: [["CUIT empresa", "Razón social empresa", "Estado", "Cantidad"]],
 		error: null,
 	});
 
@@ -274,7 +274,7 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 							},
 							{
 								dataField: "empresaRazonSocial",
-								text: "Razon social empresa",
+								text: "Razón social empresa",
 								sort: true,
 								style: { textAlign: "left" },
 							},
