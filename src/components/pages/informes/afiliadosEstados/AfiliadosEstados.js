@@ -85,18 +85,20 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
-						<InputMaterial
-							label="Estado de solicitud"
-							value={filtros.descripcion}
-							onChange={(descripcion) =>
-								setFiltros((o) => {
-									const r = { ...o, descripcion };
-									if (!descripcion)
-										delete r.descripcion;
-									return r;
-								})
-							}
-						/>
+						<Grid grow>
+							<InputMaterial
+								label="Estado de solicitud"
+								value={filtros.descripcion}
+								onChange={(descripcion) =>
+									setFiltros((o) => {
+										const r = { ...o, descripcion };
+										if (!descripcion)
+											delete r.descripcion;
+										return r;
+									})
+								}
+							/>
+						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"

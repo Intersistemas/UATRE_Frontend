@@ -178,7 +178,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="Código delegación"
 								value={filtros.refDelegacionCodigo}
@@ -191,7 +191,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Nombre delegación"
 								value={filtros.refDelegacionNombre}
@@ -206,7 +206,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="Código seccional"
 								value={filtros.seccionalCodigo}
@@ -219,7 +219,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Nombre seccional"
 								value={filtros.seccionalNombre}
@@ -234,7 +234,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="C.P. localidad"
 								value={filtros.refLocalidadCP}
@@ -247,7 +247,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Nombre localidad"
 								value={filtros.refLocalidadNombre}
@@ -262,17 +262,20 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<InputMaterial
-							label="Estado de solicitud"
-							value={filtros.estadoSolicitudDescripcion}
-							onChange={(estadoSolicitudDescripcion) =>
-								setFiltros((o) => {
-									const r = { ...o, estadoSolicitudDescripcion };
-									if (!estadoSolicitudDescripcion) delete r.estadoSolicitudDescripcion;
-									return r;
-								})
-							}
-						/>
+						<Grid grow>
+							<InputMaterial
+								label="Estado de solicitud"
+								value={filtros.estadoSolicitudDescripcion}
+								onChange={(estadoSolicitudDescripcion) =>
+									setFiltros((o) => {
+										const r = { ...o, estadoSolicitudDescripcion };
+										if (!estadoSolicitudDescripcion)
+											delete r.estadoSolicitudDescripcion;
+										return r;
+									})
+								}
+							/>
+						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"

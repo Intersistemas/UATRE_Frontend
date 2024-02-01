@@ -163,12 +163,14 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="CUIT empresa"
+								mask="99\-99.999.999\-9"
 								value={filtros.cuit}
 								onChange={(cuit) =>
 									setFiltros((o) => {
+										cuit = cuit.replace(/[^0-9]+/g, "");
 										const r = { ...o, cuit };
 										if (!cuit) delete r.cuit;
 										return r;
@@ -176,7 +178,7 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Razón social empresa"
 								value={filtros.razonSocial}
@@ -191,18 +193,20 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<InputMaterial
-							label="Estado de solicitud"
-							value={filtros.estadoSolicitudDescripcion}
-							onChange={(estadoSolicitudDescripcion) =>
-								setFiltros((o) => {
-									const r = { ...o, estadoSolicitudDescripcion };
-									if (!estadoSolicitudDescripcion)
-										delete r.estadoSolicitudDescripcion;
-									return r;
-								})
-							}
-						/>
+						<Grid grow>
+							<InputMaterial
+								label="Estado de solicitud"
+								value={filtros.estadoSolicitudDescripcion}
+								onChange={(estadoSolicitudDescripcion) =>
+									setFiltros((o) => {
+										const r = { ...o, estadoSolicitudDescripcion };
+										if (!estadoSolicitudDescripcion)
+											delete r.estadoSolicitudDescripcion;
+										return r;
+									})
+								}
+							/>
+						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"
@@ -307,6 +311,8 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 										...o,
 										loading: "Cargando...",
 										params: { ...o.params, sortBy },
+										data: [],
+										error: null,
 									}));
 									setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
 									return;

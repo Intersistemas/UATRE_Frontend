@@ -174,7 +174,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="Código delegación"
 								value={filtros.refDelegacionCodigo}
@@ -187,7 +187,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Nombre delegación"
 								value={filtros.refDelegacionNombre}
@@ -202,7 +202,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<Grid width="25%">
+						<Grid width="200px">
 							<InputMaterial
 								label="Código seccional"
 								value={filtros.seccionalCodigo}
@@ -215,7 +215,7 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Nombre seccional"
 								value={filtros.seccionalNombre}
@@ -230,17 +230,20 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<InputMaterial
-							label="Estado de solicitud"
-							value={filtros.estadoSolicitudDescripcion}
-							onChange={(estadoSolicitudDescripcion) =>
-								setFiltros((o) => {
-									const r = { ...o, estadoSolicitudDescripcion };
-									if (!estadoSolicitudDescripcion) delete r.estadoSolicitudDescripcion;
-									return r;
-								})
-							}
-						/>
+						<Grid grow>
+							<InputMaterial
+								label="Estado de solicitud"
+								value={filtros.estadoSolicitudDescripcion}
+								onChange={(estadoSolicitudDescripcion) =>
+									setFiltros((o) => {
+										const r = { ...o, estadoSolicitudDescripcion };
+										if (!estadoSolicitudDescripcion)
+											delete r.estadoSolicitudDescripcion;
+										return r;
+									})
+								}
+							/>
+						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"
@@ -355,6 +358,8 @@ const AfiliadosEstadosDelegacionSeccional = ({ onClose = onCloseDef }) => {
 										...o,
 										loading: "Cargando...",
 										params: { ...o.params, sortBy },
+										data: [],
+										error: null,
 									}));
 									setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
 									return;

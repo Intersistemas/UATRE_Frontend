@@ -163,7 +163,7 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Actividad"
 								value={filtros.actividadDescripcion}
@@ -176,7 +176,7 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
-						<Grid width>
+						<Grid grow>
 							<InputMaterial
 								label="Sexo"
 								value={filtros.sexoDescripcion}
@@ -191,18 +191,20 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
-						<InputMaterial
-							label="Estado de solicitud"
-							value={filtros.estadoSolicitudDescripcion}
-							onChange={(estadoSolicitudDescripcion) =>
-								setFiltros((o) => {
-									const r = { ...o, estadoSolicitudDescripcion };
-									if (!estadoSolicitudDescripcion)
-										delete r.estadoSolicitudDescripcion;
-									return r;
-								})
-							}
-						/>
+						<Grid grow>
+							<InputMaterial
+								label="Estado de solicitud"
+								value={filtros.estadoSolicitudDescripcion}
+								onChange={(estadoSolicitudDescripcion) =>
+									setFiltros((o) => {
+										const r = { ...o, estadoSolicitudDescripcion };
+										if (!estadoSolicitudDescripcion)
+											delete r.estadoSolicitudDescripcion;
+										return r;
+									})
+								}
+							/>
+						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"
@@ -302,6 +304,8 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 										...o,
 										loading: "Cargando...",
 										params: { ...o.params, sortBy },
+										data: [],
+										error: null,
 									}));
 									setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
 									return;
