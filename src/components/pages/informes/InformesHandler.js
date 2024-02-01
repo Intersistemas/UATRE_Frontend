@@ -11,6 +11,7 @@ import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEs
 import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
 import AfiliadosEstadosActividadSexo from "./afiliadosEstadosActividadSexo/AfiliadosEstadosActividadSexo";
 import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
+import TrabajadoresEstadosEmpresas from "./trabajadoresEstadosEmpresas/TrabajadoresEstadosEmpresas";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -107,7 +108,13 @@ const InformesHandler = () => {
 					>
 						Trabajadores declarados
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() =>
+							setInforme(<TrabajadoresEstadosEmpresas onClose={() => setInforme(null)} />)
+						}
+						width="32"
+					>
 						Trabajadores declarados por empresa
 					</Button>
 					<Button className="botonAmarillo" width="32">
