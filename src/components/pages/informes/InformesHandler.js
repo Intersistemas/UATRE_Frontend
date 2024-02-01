@@ -9,6 +9,7 @@ import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDele
 import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstadosEmpresas";
 import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
 import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
+import AfiliadosEstadosActividadSexo from "./afiliadosEstadosActividadSexo/AfiliadosEstadosActividadSexo";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -61,7 +62,11 @@ const InformesHandler = () => {
 					>
 						Afiliados por empresa
 					</Button>
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosEstadosActividadSexo onClose={() => setInforme(null)} />)}
+						width="32"
+					>
 						Afiliados por actividad y sexo
 					</Button>
 				</Grid>
