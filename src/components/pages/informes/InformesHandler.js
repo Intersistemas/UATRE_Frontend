@@ -10,6 +10,7 @@ import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstado
 import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
 import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
 import AfiliadosEstadosActividadSexo from "./afiliadosEstadosActividadSexo/AfiliadosEstadosActividadSexo";
+import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -97,7 +98,13 @@ const InformesHandler = () => {
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
-					<Button className="botonAmarillo" width="32">
+					<Button
+						className="botonAmarillo"
+						onClick={() =>
+							setInforme(<TrabajadoresEstados onClose={() => setInforme(null)} />)
+						}
+						width="32"
+					>
 						Trabajadores declarados
 					</Button>
 					<Button className="botonAmarillo" width="32">
