@@ -286,6 +286,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 										data: [],
 										error: null,
 										loading: "Cargando...",
+										pagination: {...o.pagination, index: 1 },
 									}));
 									setCSV((o) => ({ ...o, filtros }));
 								}}
