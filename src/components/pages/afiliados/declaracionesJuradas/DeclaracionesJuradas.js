@@ -10,9 +10,10 @@ const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
   const [idPrimerRegistroDelGrid, setIdPrimerRegistroDelGrid] = useState(0);
-  const { cuil, cuit, infoCompleta, mostrarBuscar, registros } = props.cuil && props;
+  const { cuil, cuit, infoCompleta, mostrarBuscar, registros } = props ?? 0;//props.cuil && props;
 
   useEffect(() => {
+    console.log('DeclaracionesJuradas_props',props)
     if (cuil > 0) {
       const processDDJJUatre = async (ddJJUatreObj) => {
         setIdPrimerRegistroDelGrid(ddJJUatreObj[0]?.id ?? 0);

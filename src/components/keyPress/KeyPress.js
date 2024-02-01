@@ -34,7 +34,7 @@ const KeyPress = ({ items = keyPressProps.items } = {}) => {
 			if (item?.keys == null) return null;
 			const p = { ...item };
 
-			if (item.tarea && (Usuario.rol !== "Administrador")){
+			if (item.tarea && (Usuario?.roles?.find((r) => r === "Administrador") == null)){
 				if (Usuario.modulosTareas.find(t => t.nombreTarea == item.tarea)){ p.callback ??= item instanceof Action ? item.execute : null; }
 				else  p.callback = null
 			}else{
