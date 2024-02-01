@@ -59,6 +59,17 @@ const UsuariosHandler = () => {
 				underlineindex: 0,
 			})
 		);
+		if (usuarioSelected?.deletedDate) {
+			actions.push(
+				createAction({
+					action: `Reactiva Usuario ${desc}`,
+					request: "R",
+					tarea: "Usuario_Baja",
+					keys: "r",
+					underlineindex: 0,
+				})
+			);
+		} else {
 		actions.push(
 			createAction({
 				action: `Baja Usuario ${desc}`,
@@ -68,6 +79,7 @@ const UsuariosHandler = () => {
 				underlineindex: 0,
 			})
 		);
+		}
 		setUsuariosActions(actions);
 	}, [usuarioChanger, usuarioSelected]);
 	tabs.push({

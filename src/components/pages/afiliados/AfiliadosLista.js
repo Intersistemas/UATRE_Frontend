@@ -84,7 +84,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Agrega Afiliado`,
           request: "A",
-          tarea: "Afiliado_Agrega",
+          tarea: "Afiliaciones_AfiliadoAgrega",
           keys: "a",
           underlineindex: 0,
         }),
@@ -96,8 +96,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Modifica Afiliado ${desc}`,
           request: "M",
-          tarea: "Afiliado_Modifica",
-
+          tarea: "Afiliaciones_AfiliadoModifica",
           ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
             {disabled:  true}
             :
@@ -114,7 +113,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Resuelve Solicitud ${desc}`,
           request: "S",
-          tarea: "Afiliado_Revsuelve",
+          tarea: "Afiliaciones_AfiliadoResuelve",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
@@ -132,7 +131,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Imprime Carnet de Afiliación ${desc}`,
           request: "I",
-          tarea: "Afiliado_ImpCarnet",
+          tarea: "Afiliaciones_AfiliadoCarnet",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
             {disabled:  true}
@@ -150,7 +149,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Baja Afiliado ${desc}`,
           request: "B",
-          tarea: "Afiliado_Baja",
+          tarea: "Afiliaciones_AfiliadoBaja",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
             {disabled:  true}
@@ -168,7 +167,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Reactiva Afiliado ${desc}`,
           request: "R",
-          tarea: "Afiliado_Reactiva",
+          tarea: "Afiliaciones_AfiliadoReactiva",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
             {disabled:  true}
             :
@@ -185,6 +184,7 @@ const AfiliadosLista = (props ) => {
         createAction({
           action: `Localiza Afiliado ${desc}`,
           request: "L",
+          tarea: "Afiliaciones_AfiliadoLocaliza",
           disabled:  false,
           keys: "l",
           underlineindex: 0,
