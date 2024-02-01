@@ -78,6 +78,7 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 
 	//#region CSV
 	const [csv, setCSV] = useState({
+		reload: null,
 		loading: null,
 		filtros: {},
 		params: {},
@@ -86,10 +87,11 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 	});
 
 	useEffect(() => {
-		if (!csv.loading) return;
+		if (!csv.reload) return;
 		const titulos = csv.data[0];
 		const changes = {
-			loading: null,
+			reload: null,
+			loading: "Cargando bloque 1...",
 			data: [titulos],
 			error: null,
 		};
@@ -117,7 +119,7 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 				console.error("Se esperaba un arreglo", data);
 			}
 			if (index < pages) {
-				changes.loading = "Cargando...";
+				changes.loading = `Cargando bloque ${index + 1} de ${pages}...`;
 				query.params = {
 					...csv.params,
 					...csv.filtros,
@@ -131,13 +133,11 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 		};
 		query.onError = async (error) => {
 			changes.loading = null;
-			changes.error = {
-				message: `Error ${error.code}: "${error.data.message ?? error.type}"`,
-			};
+			changes.error = `Error ${error.code}: "${error.data?.message ?? error.type}"`
 		};
 		query.onFinally = async () => {
-			if (changes.loading) return;
 			setCSV((o) => ({ ...o, ...changes }));
+			if (changes.loading) return;
 			if (changes.error) return;
 			downloadjs(
 				ArrayToCSV(changes.data),
@@ -145,11 +145,12 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 				"text/csv"
 			);
 		};
+		setCSV((o) => ({ ...o, ...changes }));
 		pushQuery(query);
 	}, [csv, pushQuery]);
 	//#endregion
 
-	const onCSV = () => setCSV((o) => ({ ...o, loading: "Procesando..." }));
+	const onCSV = () => setCSV((o) => ({ ...o, reload: true }));
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
@@ -329,8 +330,11 @@ const AfiliadosEstadosPuestoSexo = ({ onClose = onCloseDef }) => {
 							</Button>
 						</Grid>
 					</Grid>
+					{csv.loading == null ? null : (
+						<text style={{ color: "green" }}>{csv.loading}</text>
+					)}
 					{csv.error == null ? null : (
-						<text style={{ color: "red" }}>{csv.error.message}</text>
+						<text style={{ color: "red" }}>{csv.error}</text>
 					)}
 				</Grid>
 			</Modal.Footer>
