@@ -11,6 +11,9 @@ import {
 import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
 import useHttp from "components/hooks/useHttp";
+
+import TareaUsuario from "components/helpers/TareaUsuario";
+
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
@@ -666,6 +669,10 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
 
         //dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+
+        dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.localidadId, label: afiliadoObj?.localidad}});
+
+        dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoObj?.seccionalId, label: afiliadoObj?.seccional}});
         
         setProvincias((o) => ({
           ...o,
@@ -1069,7 +1076,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
     //event.preventDefault();
-    
+    console.log('afiliadoAgregarHandler_seccionalState',seccionalState);
+    console.log('afiliadoAgregarHandler_localidadState',localidadState);
     setInputsTouched(true);
     if (!formularioIsValid || !formularioEmpleadorIsValid) {
       //console.log("formularioIsValid", formularioIsValid);
@@ -1148,7 +1156,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 					? "Validación Automática"
 					: null,
 				estadoCivilId: +estadoCivilState.value,
-				refLocalidadId: +localidadState.value.value,
+				refLocalidadId: localidadState.value.value,
 				domicilio: domicilioState.value,
 				telefono: telefonoState.value,
 				correo: emailState.value,
@@ -1509,6 +1517,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
         break;
 
       case "localidadSelect":
+
         dispatchLocalidad({ type: "USER_INPUT", value });
 
 				if(localidadState.value === value) break;
@@ -1726,8 +1735,6 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
 
-    console.log('AgregarModificarAfiliadoDisableHandler',props.accion,afiliadoExiste)
-
 		// El fomulario debe ser valido para continuar
 		if (!formularioIsValid) disable = true;
 		// Debe cargar un cuil valido y un cuit valido para continuar
@@ -1794,6 +1801,9 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 
     const domicilioRealAFIP = padronRespuesta?.domicilios.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
     );
+
+    console.log('afiliadoModificado_seccionalState',seccionalState)
+    console.log('afiliadoModificado_localidadState',localidadState)
 		
     const afiliadoModificado = {
 			id: nuevoAfiliadoResponse.id,
@@ -1805,7 +1815,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 			fechaEgreso: afiliado.fechaEgreso,
 			nacionalidadId: +nacionalidadState.value,
 			//empresaCUIT: +cuitEmpresa,
-			seccionalId: +seccionalState.value,
+			seccionalId: +seccionalState.value.value,
 			sexoId: +sexoState.value,
 			tipoDocumentoId: +tipoDocumentoState.value,
 			documento: +numeroDocumentoState.value,
@@ -1814,7 +1824,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 			estadoSolicitudId: +afiliado.estadoSolicitudId,
 			estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
 			estadoCivilId: +estadoCivilState.value,
-			refLocalidadId: +localidadState.value,
+			refLocalidadId: +localidadState.value.value,
 			domicilio: domicilioState.value,
 			telefono: telefonoState.value,
 			correo: emailState.value,
@@ -2108,7 +2118,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 									className="botonAzul"
 									width={80}
 									heigth={70}
-									disabled={deshabilitarBotonValidarCUIL()}
+									disabled={!TareaUsuario("Afiliaciones_ValidaCUIL") || deshabilitarBotonValidarCUIL()}
 									onClick={validarAfiliadoCUILHandler}
 									loading={cuilLoading}
                   underlineindex = {0}
@@ -2401,8 +2411,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 
 					// DeclaracionesJuradas
 					<DeclaracionesJuradas
-						cuil={afiliado?.cuilValidado}
-            //cuil={afiliado !== null ? afiliado.cuilValidado : cuilState.value}
+						cuil={afiliado !== null ? afiliado?.cuilValidado : padronRespuesta?.cuit ? padronRespuesta?.cuit : 0} //EL CUIL de AFIP SE GUARDA EN EL padronRespuesta.CUIT
+            
 						cuit={cuitEmpresa}
 						onSeleccionRegistro={handleSeleccionDDJJ}
 						infoCompleta={true}
