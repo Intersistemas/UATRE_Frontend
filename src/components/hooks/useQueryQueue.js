@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import useHttp from "./useHttp";
+import useHttp, {
+	takeErrorAsync,
+	takeFinallyAsync,
+	takeOkAsync,
+} from "./useHttp";
 
 const useQueryQueue = (
 	getConfig = (action = "", params = {}) => ({
@@ -19,9 +23,9 @@ const useQueryQueue = (
 				action: "",
 				params: {},
 				config: {},
-				onOk: async (_response) => {},
-				onError: async (_error) => {},
-				onFinally: async () => {},
+				onOk: takeOkAsync,
+				onError: takeErrorAsync,
+				onFinally: takeFinallyAsync,
 			}
 		) => setQueryQueue((old) => [...old, query]),
 		[]

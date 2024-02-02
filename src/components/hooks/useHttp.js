@@ -1,6 +1,47 @@
 import { useCallback, useState } from 'react';
 import getStoredToken from '../../store/getSoredToken';
 
+export class UseHttpError {
+	constructor(base = {}) {
+		this.type = null;
+		this.code = null;
+		this.message = null;
+		Object.assign(this, base);
+	}
+
+	errorQuote(e, o = '"', c = o) {
+		return e ? (e === "Error" ? null : o + e + c) : e;
+	}
+
+	toString() {
+		return [
+			["Error", this.errorQuote(this.type, "(", ")")].join(" "),
+			[this.code, this.errorQuote(this.message)].filter((r) => r).join(": "),
+		].join(" ");
+	}
+}
+
+export const takeOk = (data) => {};
+export const takeOkAsync = async (data) => {};
+/**
+ * @param {UseHttpError} error
+ */
+export const takeError = (error) => {};
+/**
+ * @param {UseHttpError} error
+ */
+export const takeErrorAsync = async (error) => {};
+export const takeFinally = () => {};
+export const takeFinallyAsync = async () => {};
+const def = {
+	takeOk,
+	takeOkAsync,
+	takeError,
+	takeErrorAsync,
+	takeFinally,
+	takeFinallyAsync,
+};
+
 const useHttp = () => {   
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null)
@@ -18,9 +59,9 @@ const useHttp = () => {
 					body,
 					...configRequest
 				},
-				takeOk = (data) => {},
-				takeError = (error) => {},
-				takeFinally = () => {}
+				takeOk = def.takeOk,
+				takeError = def.takeError,
+				takeFinally = def.takeFinally,
 			) => {
         setIsLoading(true);
         setError(null)
@@ -75,7 +116,7 @@ const useHttp = () => {
 				if (config.headers.Authorization === true)
 					config.headers.Authorization = `Bearer ${getStoredToken().token}`;
 
-				const errorBase = {};
+				const take = { ok: false, data: null, error: null };
 				try {
 					const response = await fetch(`${url}${endpoint}`, config);
 
@@ -97,30 +138,34 @@ const useHttp = () => {
 					}
 
 					const data = await decodeType(response.ok ? okType : errorType);
-					if (!response.ok) {
-						errorBase.type = response.statusText;
-						errorBase.code = response.status;
-						errorBase.message =
+					if (response.ok) {
+						take.ok = true;
+					} else {
+						take.error = {};
+						take.error.type = response.statusText;
+						take.error.code = response.status;
+						take.error.message =
 							typeof data === "object" && data != null
 								? data.Message ||
 								  data.Mensaje ||
 								  data.message ||
 								  data.mensaje ||
 								  data.errors
-								: (errorBase.message = data);
-						errorBase.data = data;
-						throw Object.assign(new Error(errorBase.message), errorBase);
+								: (take.error.message = data);
+						take.error.data = data;
+						throw Object.assign(new Error(take.error.message), take.error);
 					}
-					takeOk(data);
+					take.data = data;
 				} catch (error) {
-					error = { ...errorBase, ...error };
-					error.type ??= "Error";
-					error.code ??= 0;
-					error.message ??= "Error";
-					takeError(error);
-					setError(error);
+					take.error = new UseHttpError({ ...take.error, ...error });
+					take.error.type ??= error.type ?? "Error";
+					take.error.code ??= error.code ?? 0;
+					take.error.message ??= error.message ?? "Error";
 				} finally {
+					if (take.ok) takeOk(take.data);
+					else takeError(take.error);
 					takeFinally();
+					setError(take.error);
 					setIsLoading(false);
 				}
 			},
