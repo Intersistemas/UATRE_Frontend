@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Button from "../../ui/Button/Button";
 import Grid from "../../ui/Grid/Grid"; 
@@ -5,53 +6,37 @@ import { useNavigate } from "react-router-dom";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useEffect } from "react";
 import UseKeyPress from '../../helpers/UseKeyPress';
+import  tareaUsuario from "components/helpers/TareaUsuario";
 
-const Inicio = ({ modulos = [], tareas = [] }) => {
+const Inicio = ({ modulos = [], tareas = [], roles = [] }) => {
 	const navigate = useNavigate();
-	const [accesos, setAccesos] = useState([]);
+
+	
+	const accesos = [];
+		
+			tareaUsuario("Afiliaciones_Tabla") && accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Afiliaciones")}>  <><text className="underline">A</text>filiaciones</></Button>); 
+			tareaUsuario("Siaru_Tabla") && 		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>	   <><text className="underline">S</text>istema de Aportes Rurales</></Button>);
+			tareaUsuario("Datos_Tabla") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
+			tareaUsuario("Expedientes_Tabla") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}    disabled={!tareaUsuario("Expedientes_Tabla")}><><text className="underline">E</text>xpedientes</></Button>);
+			tareaUsuario("Informes_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}       disabled={!tareaUsuario("Informes_Tabla")}><><text className="underline">I</text>nformes</></Button>);
+		
+
+	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
+
+
 
 
 	UseKeyPress(['a'], ()=>navigate("Afiliaciones"), 'AltKey');
 	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
-	
-	console.log('tareas del usuario: ',tareas);
+		
 	
 	useEffect(() => {
-		const newAccesos = [];
-		modulos.forEach((modulo) => {
-			let acceso = {};
-			switch (modulo) {
-				case "Afiliaciones":
-					acceso.nombre = <><text className="underline">A</text>filiaciones</>;
-					acceso.accion = () => navigate("Afiliaciones");
-					break;
-				case "Siaru":
-					acceso.nombre = <><text className="underline">S</text>istema de Aportes Rurales</>;
-					acceso.accion = () => navigate("Empresas");
-					break;
-				case "Administracion de Datos":
-					acceso.nombre = <>Administración de Da<text className="underline">t</text>os</>;
-					acceso.accion = () => navigate("Administracion");
-					break;
-				case "Expedientes":
-					acceso.nombre = <><text className="underline">E</text>xpedientes</>;
-					acceso.accion = () => navigate("Expedientes");
-					break;
-				case "Informes":
-					acceso.nombre = <><text className="underline">I</text>nformes</>;
-					acceso.accion = () => navigate("Informes");
-					break;
-				default:
-					return;
-			}
-			newAccesos.push(<Button className="botonAmarillo" onClick={acceso.accion}>{acceso.nombre}</Button>);
-		});
+		console.log('botonesAccesos',botonesAccesos)
+		if (botonesAccesos.length === 1) botonesAccesos[0].props.onClick();
 
-		if (newAccesos.length === 1) newAccesos[0].props.onClick();
-		else setAccesos(newAccesos);
-	}, [modulos, navigate]);
+	}, []);
 
 	return (
 		<>	
@@ -59,7 +44,7 @@ const Inicio = ({ modulos = [], tareas = [] }) => {
 				<h1 >Sistema Integral de UATRE</h1>
 			</div>
 			<Grid col gap="20px" style={{ margin: "10px" }}>
-				{accesos}
+				{botonesAccesos}
 			</Grid>
 		</>
 	);
