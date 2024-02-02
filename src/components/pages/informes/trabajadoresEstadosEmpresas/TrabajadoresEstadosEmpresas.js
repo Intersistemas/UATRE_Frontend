@@ -68,10 +68,7 @@ const TrabajadoresEstadosEmpresas = ({ onClose = onCloseDef }) => {
 					console.error("Se esperaba un arreglo", data);
 				}
 			},
-			onError: async (error) =>
-				(changes.error = `Error ${error.code}: "${
-					error.data?.message ?? error.type
-				}"`),
+			onError: async (error) => (changes.error = error.toString()),
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
 	}, [list, pushQuery]);
@@ -135,7 +132,7 @@ const TrabajadoresEstadosEmpresas = ({ onClose = onCloseDef }) => {
 		};
 		query.onError = async (error) => {
 			changes.loading = null;
-			changes.error = `Error ${error.code}: "${error.data?.message ?? error.type}"`;
+			changes.error = error.toString();
 		};
 		query.onFinally = async () => {
 			setCSV((o) => ({ ...o, ...changes }));

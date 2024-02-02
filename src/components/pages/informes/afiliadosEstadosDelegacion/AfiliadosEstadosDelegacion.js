@@ -55,10 +55,7 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 				changes.data = data;
 				changes.filtrado = changes.data;
 			},
-			onError: async (error) =>
-				(changes.error = `Error ${error.code}: "${
-					error.data?.message ?? error.type
-				}"`),
+			onError: async (error) => (changes.error = error.toString()),
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
 	}, [list, pushQuery]);
