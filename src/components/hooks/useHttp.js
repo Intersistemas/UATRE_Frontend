@@ -9,14 +9,14 @@ export class UseHttpError {
 		Object.assign(this, base);
 	}
 
-	errorQuote(e, o = '"', c = o) {
+	#errorQuote(e, o = '"', c = o) {
 		return e ? (e === "Error" ? null : o + e + c) : e;
 	}
 
 	toString() {
 		return [
-			["Error", this.errorQuote(this.type, "(", ")")].join(" "),
-			[this.code, this.errorQuote(this.message)].filter((r) => r).join(": "),
+			["Error", this.#errorQuote(this.type, "(", ")")].join(" "),
+			[this.code, this.#errorQuote(this.message)].filter((r) => r).join(": "),
 		].join(" ");
 	}
 }
