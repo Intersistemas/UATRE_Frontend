@@ -182,6 +182,7 @@ const LiquidacionesHandler = () => {
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
+				tarea: "Siaru_EmpresaLiquidacionConsulta"
 			})
 		);
 		if (!liqCabSelected.deletedDate) {
@@ -191,6 +192,7 @@ const LiquidacionesHandler = () => {
 					request: "M",
 					keys: "m",
 					underlineindex: 0,
+					tarea: "Siaru_EmpresaLiquidacionModifica"
 				})
 			);
 			actions.push(
@@ -199,6 +201,7 @@ const LiquidacionesHandler = () => {
 					request: "B",
 					keys: "b",
 					underlineindex: 0,
+					tarea: "Siaru_EmpresaLiquidacionBaja",
 				})
 			);
 			actions.push(
@@ -207,6 +210,7 @@ const LiquidacionesHandler = () => {
 					keys: "i",
 					underlineindex: 0,
 					onExecute: (_) => setDespliegaPDF(liqCabSelected),
+					tarea: "Siaru_EmpresaLiquidacionImprime",
 				})
 			);
 			actions.push(
@@ -215,6 +219,7 @@ const LiquidacionesHandler = () => {
 					keys: "a",
 					underlineindex: 0,
 					onExecute: (_) => alert("Proximamente"),
+					tarea: "Siaru_EmpresaLiquidacionPaga",
 				})
 			);
 		}
@@ -292,6 +297,7 @@ const LiquidacionesHandler = () => {
 				underlineindex: 0,
 				combination: "AltKey",
 				onExecute: (_) => setRedirect({ to: "Procesar" }),
+				tarea: "Siaru_EmpresaLiquidacionProcesa"
 			}),
 			...liqCabActions,
 			...liqActions,

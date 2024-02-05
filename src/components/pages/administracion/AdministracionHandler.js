@@ -5,6 +5,7 @@ import { Link, useNavigate, Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "../../../redux/actions";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
+import TareaUsuario from 'components/helpers/TareaUsuario';
 
 const AdministracionHandler = () => {
 
@@ -12,27 +13,17 @@ const AdministracionHandler = () => {
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
-	const usuarioLogueado = useSelector(
-		(state) => state.usuarioLogueado
-	  );
 	  
-	  let modulos = [];
-	  usuarioLogueado?.modulosTareas.forEach((mod) => {
-		if (modulos.includes(mod.nombreModulo)) return;
-		modulos.push(mod.nombreModulo);
-	  });
 
-	useEffect(() => {
-		const newAccesos = [];
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Seccionales")}>Seccionales</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>Empresas</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Delegaciones")}>Delegaciones</Button>)
-		newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
-		modulos.includes("Administracion de Accesos") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)
-		setAccesos(newAccesos);	
+	const newAccesos = [];
+		TareaUsuario("Datos_Seccional")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Seccionales")}>Seccionales</Button>)
+		TareaUsuario("Datos_Empresa")    && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>Empresas</Button>)
+		TareaUsuario("Datos_Delegacion") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Delegaciones")}>Delegaciones</Button>)
+		TareaUsuario("Datos_Localidad")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
+		TareaUsuario("Datos_Permisos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)	
 
-		dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	},[])
+	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+
 
 
 	return (
@@ -43,7 +34,7 @@ const AdministracionHandler = () => {
 			
 
 			<Grid col gap="20px" style={{ margin: "10px" }}>
-				{accesos}
+				{newAccesos}
 			</Grid>
 
 		</>

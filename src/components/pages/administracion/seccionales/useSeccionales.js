@@ -254,11 +254,11 @@ const useSeccionales = () => {
 					//INIT DE DATOS DEL FORM
 					const data = ["A"].includes(list.selection.request) //INIT PARA ALTA
 						? {
-								estado: "Activa",
+								//estado: "NORMALIZADA",
 						  }
 						: ["B"].includes(list.selection.request) //INIT PARA BAJA
 						? {
-								estado: "Inactiva",
+								estado: "BAJA",
 								deletedDate: dayjs().format("YYYY-MM-DD"),
 								deletedBy: Usuario.nombre,
 						  }
@@ -272,7 +272,7 @@ const useSeccionales = () => {
 				loading={!!list.loading}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
-						? { estado: true }
+						? { /*estado: true*/ }
 						: {
 								codigo: true,
 								estado: true,
@@ -295,7 +295,7 @@ const useSeccionales = () => {
 				}
 				onChange={(changes) => {
 					//solo entra el campo que se está editando
-
+					console.log('useSeccionales_changes',changes);
 					setList((o) => ({
 						...o,
 						selection: {
