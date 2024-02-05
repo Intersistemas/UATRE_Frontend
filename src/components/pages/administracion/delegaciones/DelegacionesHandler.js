@@ -9,11 +9,16 @@ import useDelegaciones from "./useDelegaciones";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
+import TareaUsuario from "components/helpers/TareaUsuario";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
 	const tabs = [];
 	const [tab, setTab] = useState(0);
+
+	const disableTabDocumentacion = !TareaUsuario("Datos_DelegacionDocumentacion");
+	const disableTabColaborador = !TareaUsuario("Datos_DelegacionColaborador");
+	const disableTabSeccional = !TareaUsuario("Datos_DelegacionSeccional");
 
 	//#region Tab delegaciones
 	const [delegacionesTab, delegacionChanger, delegacionSelected] =
@@ -32,7 +37,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Agrega Delegación`,
 				request: "A",
-				tarea: "Delegacion_Agrega",
+				tarea: "Datos_DelegacionAgrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -46,6 +51,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Consulta Delegación ${desc}`,
 				request: "C",
+				tarea: "Datos_DelegacionConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -54,7 +60,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Modifica Delegación ${desc}`,
 				request: "M",
-				tarea: "Delegacion_Modifica",
+				tarea: "Datos_DelegacionModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -63,7 +69,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Baja Delegación ${desc}`,
 				request: "B",
-				tarea: "Delegacion_Baja",
+				tarea: "Datos_DelegacionBaja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -110,6 +116,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Agrega Documentación ${deleDesc}`,
 				request: "A",
+				tarea: "Datos_DelegacionDocumentacionAgrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -124,6 +131,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Consulta Documentación ${docuDesc}`,
 				request: "C",
+				tarea: "Datos_DelegacionDocumentacionConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -132,6 +140,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
+				tarea: "Datos_DelegacionDocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -140,6 +149,7 @@ const DelegacionesHandler = () => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
+				tarea: "Datos_DelegacionDocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -147,7 +157,7 @@ const DelegacionesHandler = () => {
 		setDocumentacionesActions(actions);
 	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!delegacionSelected} />,
+		header: () => <Tab label="Documentacion" disabled={!delegacionSelected || disableTabDocumentacion} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -190,6 +200,7 @@ const DelegacionesHandler = () => {
 				action: `Agrega Colaborador ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				tarea: "Datos_DelegacionColaboradorAgrega",
 				underlineindex: 0,
 			})
 		);
@@ -204,6 +215,7 @@ const DelegacionesHandler = () => {
 				action: `Consulta Colaborador ${seleDesc}`,
 				request: "C",
 				keys: "o",
+				tarea:"Datos_DelegacionColaboradorConsulta",
 				underlineindex: 1,
 			})
 		);
@@ -212,6 +224,7 @@ const DelegacionesHandler = () => {
 				action: `Modifica Colaborador ${seleDesc}`,
 				request: "M",
 				keys: "m",
+				tarea:"Datos_DelegacionColaboradorModifica",
 				underlineindex: 0,
 			})
 		);
@@ -221,6 +234,7 @@ const DelegacionesHandler = () => {
 					action: `Reactiva Colaborador ${seleDesc}`,
 					request: "R",
 					keys: "r",
+					tarea:"Datos_DelegacionColaboradorReactiva",
 					underlineindex: 0,
 				})
 			);
@@ -230,6 +244,7 @@ const DelegacionesHandler = () => {
 					action: `Baja Colaborador ${seleDesc}`,
 					request: "B",
 					keys: "b",
+					tarea:"Datos_DelegacionColaboradorBaja",
 					underlineindex: 0,
 				})
 			);
@@ -237,7 +252,7 @@ const DelegacionesHandler = () => {
 		setColaboradoresActions(actions);
 	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected} />,
+		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected || disableTabColaborador} />,
 		body: colaboradoresTab,
 		actions: colaboradoresActions,
 	}); 
@@ -283,6 +298,7 @@ const DelegacionesHandler = () => {
 				action: `Agrega Seccional ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				tarea: "Datos_DelegacionSeccionalAgrega",
 				underlineindex: 0,
 			})
 		);
@@ -297,6 +313,7 @@ const DelegacionesHandler = () => {
 				action: `Consulta Seccional ${selectedDesc}`,
 				request: "C",
 				keys: "o",
+				tarea: "Datos_DelegacionSeccionalConsulta",
 				underlineindex: 1,
 			})
 		);
@@ -305,6 +322,7 @@ const DelegacionesHandler = () => {
 		// 		action: `Modifica Seccional ${selectedDesc}`,
 		// 		request: "M",
 		// 		keys: "m",
+		//		tarea: "Datos_DelegacionSeccionalModifica",
 		// 		underlineindex: 0,
 		// 	})
 		// );
@@ -313,13 +331,14 @@ const DelegacionesHandler = () => {
 		// 		action: `Baja Seccional ${selectedDesc}`,
 		// 		request: "B",
 		// 		keys: "b",
+		//		tarea: "Datos_DelegacionSeccionalBaja",
 		// 		underlineindex: 0,
 		// 	})
 		// );
 		setSeccionalesActions(actions);
 	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected} />,
+		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
 		body: seccionalesRender,
 		actions: seccionalesActions,
 	});

@@ -4,6 +4,9 @@ import UsuariosTable from "./UsuariosTable";
 import UsuariosForm from "./UsuariosForm";
 import AsArray from "components/helpers/AsArray";
 
+import { useDispatch, useSelector } from "react-redux";
+
+
 const selectionDef = {
 	action: "",
 	request: "",
@@ -18,6 +21,16 @@ const useUsuarios = ({
 	onLoadSelect = ({ data, record }) => AsArray(data)?.find((r) => r?.id === record?.id) ?? AsArray(data)?.at(0),
 	remote: remoteInit = true,
 } = {}) => {
+
+
+    //Obtengo los modulos del usuario logueado  
+    const usuarioLogueado = useSelector(
+      (state) => state.usuarioLogueado
+    );
+
+	const filtrarTipo = usuarioLogueado?.roles?.find((u) => u === "Administrador") != null ? false : (usuarioLogueado?.tipo !== ""  &&  usuarioLogueado?.tipo !== null) ? true : false	
+
+
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -90,12 +103,15 @@ const useUsuarios = ({
 
 	useEffect(() => {
 		if (!list.loading) return;
+
+		console.log('list.params',list.params)
 		pushQuery({
 			action: "GetList",
 			params: { 
 					...list.params,
 					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size, 
+					pageSize: list.pagination.size,
+					tipo: filtrarTipo ? usuarioLogueado.tipo : "", 
 					},
 			onOk: async ({ index, size, count, data }) =>
 			(console.log('usuarios_Data',data),

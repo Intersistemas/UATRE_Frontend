@@ -79,7 +79,7 @@ const EstablecimientosHandler = () => {
 			createAction({
 				action: `Agrega Establecimiento`,
 				request: "A",
-				tarea: "Establecimiento_Agrega",
+				tarea: "Siaru_EmpresaEstablecimientoAgrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -93,6 +93,7 @@ const EstablecimientosHandler = () => {
 			createAction({
 				action: `Consulta Establecimiento ${desc}`,
 				request: "C",
+				tarea: "Siaru_EmpresaEstablecimientoConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -102,7 +103,7 @@ const EstablecimientosHandler = () => {
 				action: `Modifica Establecimiento ${desc}`,
 				request: "M",
 				disabled: !!establecimientosSelected.deletedDate,
-				tarea: "Establecimiento_Modifica",
+				tarea: "Siaru_EmpresaEstablecimientoModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -112,7 +113,7 @@ const EstablecimientosHandler = () => {
 				createAction({
 					action: `Reactiva Establecimiento ${desc}`,
 					request: "R",
-					tarea: "Establecimiento_Reactiva",
+					tarea: "Siaru_EmpresaEstablecimientoReactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
@@ -122,7 +123,7 @@ const EstablecimientosHandler = () => {
 				createAction({
 					action: `Baja Establecimiento ${desc}`,
 					request: "B",
-					tarea: "Establecimiento_Baja",
+					tarea: "Siaru_EmpresaEstablecimientoBaja",
 					keys: "b",
 					underlineindex: 0,
 				})
