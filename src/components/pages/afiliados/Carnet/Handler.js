@@ -9,13 +9,15 @@ import PDF from "./PDF";
 const Handler = ({ afiliado = {}, onClose = () => {} } = {}) => {
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
-			case "GetSeccionales": {
+			case "GetSeccional": {
+				const { id, ...others} = params
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/Seccional/GetSeccionalesSpecs`,
-						method: "POST",
+						endpoint: `/Seccional/${id}`,
+						method: "GET",
 					},
+					params: others,
 				};
 			}
 			default:
@@ -26,22 +28,20 @@ const Handler = ({ afiliado = {}, onClose = () => {} } = {}) => {
 	//#region declaracion y carga de seccionales
 	const [seccional, setSeccional] = useState({
 		loading: "Cargando...",
-		// params: { localidadId: afiliado.refLocalidadId },
-		params: {},
-		seccionalId: afiliado.seccionalId,
+		params: { id: afiliado.seccionalId},
 		data: {},
 		error: {},
 	});
 	useEffect(() => {
 		if (!seccional.loading) return;
 		pushQuery({
-			action: "GetSeccionales",
-			body: seccional.params,
+			action: "GetSeccional",
+			params: seccional.params,
 			onOk: async (res) =>
 				setSeccional((old) => ({
 					...old,
 					loading: null,
-					data: res.find((r) => r.id === seccional.seccionalId) ?? {},
+					data: res ?? {},
 					error: null,
 				})),
 			onError: async (err) =>
