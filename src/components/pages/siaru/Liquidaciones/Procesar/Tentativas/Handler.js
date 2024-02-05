@@ -17,6 +17,7 @@ import Button from "components/ui/Button/Button";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
 import CabeceraPrint from "../../impresion/CabeceraPrint";
+import TareaUsuario from "components/helpers/TareaUsuario";
 
 const RangoDias = (desde, hasta) => {
 	const dias = dayjs(hasta).diff(desde, "days");
@@ -193,7 +194,7 @@ const LiquidacionCabecera = ({
 					<Button
 						className="botonAmarillo"
 						onClick={onGenera}
-						disabled={disabled.genera}
+						disabled={disabled.genera || !TareaUsuario("Siaru_EmpresaLiquidacionGenera")}
 					>
 						Genera liquidación
 					</Button>
@@ -853,7 +854,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				text: "Acciones",
 				isDummyField: true,
 				formatter: () => (
-					<Button className="botonAmarillo" style={{ padding: 0 }}>
+					<Button className="botonAmarillo" style={{ padding: 0 }} disabled={!TareaUsuario("Siaru_EmpresaRuralidadModifica")}>
 						Modifica
 					</Button>
 				),

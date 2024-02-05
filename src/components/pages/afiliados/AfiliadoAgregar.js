@@ -337,6 +337,11 @@ const [emailState, dispatchEmail] = useReducer(emailReducer, {
   isValid: false,
 });
 
+const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
+  value: "",
+  isValid: false,
+});
+
 const [nacionalidadState, dispatchNacionalidad] = useReducer(
   nacionalidadReducer,
   {
@@ -400,11 +405,6 @@ const [puestoState, dispatchPuesto] = useReducer(puestoReducer, {
 });
 
 const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
-  value: "",
-  isValid: false,
-});
-
-const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   value: "",
   isValid: false,
 });
@@ -729,6 +729,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
           value: afiliadoObj.domicilio ?? "",
         });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
+
+        dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
 
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
@@ -1125,12 +1127,12 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 				ciiU2: padronEmpresaRespuesta.ciiU2,
 				ciiU3: padronEmpresaRespuesta.ciiU3,
 			};
-
+ 
 			const validaAutomatica =
 				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
 				(padronEmpresaRespuesta?.ciiU1EsRural ||
 					padronEmpresaRespuesta?.ciiU2EsRural ||
-					padronEmpresaRespuesta?.ciiU3EsRural);
+					padronEmpresaRespuesta?.ciiU3EsRural) && TareaUsuario("Afiliaciones_AfiliadoAutoValida");
 			
 			const domicilioRealAFIP = padronRespuesta.domicilios.find(
 				(domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
@@ -1588,7 +1590,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 				const fechaFormateadaHoy = year + "-" + month + "-" + day;
 
 
-        if (fechaFormateadaHoy === value) {
+        if (fechaFormateadaHoy === value || value === fechaIngresoState.value){
           setDialogTexto(
             `La fecha de nacimiento ${value} es incorrecta`
           );
@@ -1608,7 +1610,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
         break;
 
       case "telefono":
-        dispatchTelefono({ type: "USER_INPUT", value });
+        dispatchTelefono({ type: "USER_INPUT", value:value });
         break;
 
       case "correo":
@@ -2044,6 +2046,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
                 <Typography gutterBottom> {`El Afiliado NO debe tener una afiliación anterior con fecha de BAJA - ✔️`}</Typography>
                 <Typography gutterBottom> {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${(ultimaDDJJ?.data?.actividadTipo === "D" && ultimaDDJJ?.data?.modalidadTipo === "D") ? "✔️" : "❌"}`}</Typography>
                 <Typography gutterBottom> {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${padronEmpresaRespuesta?.ciiU1EsRural ||padronEmpresaRespuesta?.ciiU2EsRural ||padronEmpresaRespuesta?.ciiU3EsRural ? "✔️" : "❌"}`}</Typography>
+                <Typography gutterBottom> {`Operador con permisos de Autovalidación ${TareaUsuario("Afiliaciones_AfiliadoAutoValida") ? "✔️" : "❌"}`}</Typography>
+                
               </div>
               )
             }
