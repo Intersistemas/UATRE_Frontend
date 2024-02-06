@@ -129,6 +129,7 @@ const UsuariosHandler = () => {
 				keys: "a",
 				tarea: "Accesos_UsuarioTareasAgrega",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		const nombreTarea = tareaSelected?.nombreTarea;
@@ -144,6 +145,7 @@ const UsuariosHandler = () => {
 				keys: "o",
 				tarea: "Accesos_UsuarioTareasConsulta",
 				underlineindex: 1,
+				ellipsis: true,
 			})
 		);
 		actions.push(
@@ -153,6 +155,7 @@ const UsuariosHandler = () => {
 				keys: "m",
 				tarea: "Accesos_UsuarioTareasModifica",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		actions.push(
@@ -162,6 +165,7 @@ const UsuariosHandler = () => {
 				keys: "b",
 				tarea: "Accesos_UsuarioTareasBorra",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		setTareasActions(actions);

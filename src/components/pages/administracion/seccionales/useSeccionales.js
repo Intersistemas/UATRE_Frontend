@@ -269,7 +269,7 @@ const useSeccionales = () => {
 				delegaciones={list.delegaciones}
 				title={list.selection.action}
 				errors={list.selection.errors}
-				loading={!!list.loading}
+				loading={!!list.loading} 
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? { /*estado: true*/ }
