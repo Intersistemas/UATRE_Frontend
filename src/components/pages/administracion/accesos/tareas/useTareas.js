@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import TareaTable from "./TareaTable";
-import TareaForm from "./TareaModal";
+import TareaForm from "./TareaForm";
 
 const selectionDef = {
 	action: "",
@@ -170,9 +170,8 @@ const useTareas = () => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
-								refTipoTareaId: true,
-								archivo: true,
-								observaciones: true,
+								nombre: true,
+								moduloId: true,
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
@@ -214,13 +213,12 @@ const useTareas = () => {
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
-						// if (!record.deletedObs)
-						// 	errors.deletedObs = "Dato requerido";
+						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					} else {
-						if (!record.refTipoTareaId)
-							errors.refTipoTareaId = "Dato requerido";
-						if (!record.archivo) errors.archivo = "Dato requerido";
+						if (!record.nombre) errors.nombre = "Dato requerido";
+						if (!record.moduloId) errors.nombre = "Dato requerido";
 					}
+					
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,

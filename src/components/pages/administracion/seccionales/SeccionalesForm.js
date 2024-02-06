@@ -34,7 +34,7 @@ const SeccionalesForm = ({
 }) => {
 	data ??= {}; 
 	delegaciones ??= [];
-	// console.log('Form_seccional_data:',data)
+	 console.log('Form_seccional_data:',data)
 	 //console.log('data_seccional:',data)
 	 //console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
