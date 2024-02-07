@@ -19,7 +19,8 @@ const Inicio = ({ modulos = [], tareas = [], roles = [] }) => {
 			tareaUsuario("Datos_Tabla") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
 			tareaUsuario("Expedientes_Tabla") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}    disabled={!tareaUsuario("Expedientes_Tabla")}><><text className="underline">E</text>xpedientes</></Button>);
 			tareaUsuario("Informes_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}       disabled={!tareaUsuario("Informes_Tabla")}><><text className="underline">I</text>nformes</></Button>);
-		
+			tareaUsuario("Consultas_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}      disabled={!tareaUsuario("Consultas_Tabla")}><>Co<text className="underline">n</text>sultas</></Button>);
+			
 
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
 
@@ -30,6 +31,7 @@ const Inicio = ({ modulos = [], tareas = [], roles = [] }) => {
 	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
+	UseKeyPress(['c'], ()=>navigate("Consultas"), 'AltKey');
 		
 	
 	useEffect(() => {
