@@ -32,7 +32,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			case "GetLiquidacionFormasPago": {
 				return {
 					config: {
-						baseURL: "SIARU",
+						baseURL: "MOCK-SIARU",
 						endpoint: `/LiquidacionesFormasPago`,
 						method: "GET",
 					},
@@ -41,7 +41,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			case "CreateLiquidacionFormasPago": {
 				return {
 					config: {
-						baseURL: "SIARU",
+						baseURL: "MOCK-SIARU",
 						endpoint: `/LiquidacionFormasPago`,
 						method: "POST",
 					},

@@ -93,6 +93,9 @@ const useHttp = () => {
           case 'Estadisticas':
 			        url = `http://${servidor}.intersistemas.net:8205/api`;
               break;
+          case "MOCK-SIARU":
+              url = `https://b1b923bc-149b-4f82-9ce4-2c1d0e7dec43.mock.pstmn.io/api`;
+              break;
 		  default:
 			  break;
         }
