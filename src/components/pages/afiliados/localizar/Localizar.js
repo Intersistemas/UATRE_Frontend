@@ -184,7 +184,9 @@ const Localizar = ({ onClose = onCloseDef }) => {
 							{
 								dataField: "seccional",
 								text: "Seccional",
+								formatter: (v, row) => `${row.seccionalCodigo} ${v}`,
 							},
+		
 						]}
 					/>
 					<Grid
@@ -217,8 +219,8 @@ const Localizar = ({ onClose = onCloseDef }) => {
 										.join(" ")}
 								/>
 							</Grid>
-							<InputMaterialDetail label="Seccional" value={selected.seccional} />
-							<InputMaterialDetail label="Nombre" value={selected.nombre} />
+							<InputMaterialDetail label="Seccional" value={`${selected?.seccionalCodigo} ${selected?.seccional}`} />
+							<InputMaterialDetail label="Nombre" value={selected?.nombre} />
 						</Grid>
 					</Grid>
 				</Grid>
