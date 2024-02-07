@@ -213,19 +213,29 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	if (formasPago.loading || formaPago.loading) {
 		contenido = <text>Cargando...</text>;
 	} else if (formaPago.data == null) {
+		console.log({
+			formaPagoSelect_loading: formaPagoSelect.loading,
+			formaPagoSelect_error: formaPagoSelect.error,
+			formasPago_error: formasPago.error,
+		});
 		contenido = (
-			<SearchSelectMaterial
-				label="Forma de pago"
-				error={!!formaPagoSelect.error}
-				helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
-				value={formaPagoSelect.selected}
-				onChange={(selected) => setFormaPagoSelect((o) => ({ ...o, selected }))}
-				options={formaPagoSelect.options}
-				onTextChange={({ target }) =>
-					setFormaPagoSelect((o) => ({ ...o, buscar: target.value }))
-				}
-				required
-			/>
+			<Grid width col>
+				<SearchSelectMaterial
+					label="Forma de pago"
+					error={!!formaPagoSelect.error}
+					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
+					value={formaPagoSelect.selected}
+					onChange={(selected) => setFormaPagoSelect((o) => ({ ...o, selected }))}
+					options={formaPagoSelect.options}
+					onTextChange={({ target }) =>
+						setFormaPagoSelect((o) => ({ ...o, buscar: target.value }))
+					}
+					required
+				/>
+				{formaPagoSelect.error == null ? null : (
+					<text style={{ color: "red" }}>{formaPagoSelect.error}</text>
+				)}
+			</Grid>
 		);
 	} else {
 		contenido = (
@@ -270,9 +280,6 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 							</Button>
 						</Grid>
 					</Grid>
-					{formasPago.error == null ? null : (
-						<text style={{ color: "red" }}>{formasPago.error}</text>
-					)}
 					{formaPago.error == null ? null : (
 						<text style={{ color: "red" }}>{formaPago.error}</text>
 					)}
