@@ -1,13 +1,16 @@
 import React from 'react';
 import Boton from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+import useTareasUsuario from 'components/hooks/useTareasUsuario';
 import classes from './Button.module.css';
 
- 
 const Button = (props) => {
 
+	const tareas = useTareasUsuario();
 
-  console.log("Button_props",props)
+	let disabled = props.disabled;
+	if (props.tarea) disabled = disabled || !tareas.hasTarea(props.tarea);
+
   //#region texto de boton
   const texto = () => {
       
@@ -29,8 +32,6 @@ const Button = (props) => {
   }  
   //#endregion
 
-
-
   return (
 
       <Boton
@@ -42,7 +43,7 @@ const Button = (props) => {
         }
         style={{ ...props.style, width: props.width != null ? `${props.width}%`:"100%"}}
         onClick={props.onClick}
-        disabled={props.disabled || false}
+        disabled={disabled || false}
         overlay="asd"
       >
           {props.loading && <Spinner
