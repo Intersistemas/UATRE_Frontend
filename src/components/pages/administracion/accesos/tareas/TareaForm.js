@@ -29,7 +29,6 @@ const TareasForm = ({
 	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
-	loading = {},
 
 }) => {
 	data ??= {}; 
@@ -47,7 +46,7 @@ const TareasForm = ({
 	
 	//#region Buscar Localidades
 
-	const [modulosOptions, setModulosOptions] = useState([""]); //LISTA DE TODOS LOS MODULOS  
+	const [modulosOptions, setModulosOptions] = useState([]); //LISTA DE TODOS LOS MODULOS  
 
 	const { isLoading, error, sendRequest: request } = useHttp();
 
@@ -62,13 +61,16 @@ const TareasForm = ({
 
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
-		disabled.estado && onChange({ estado: data.estado });
-
+		
 		const processModulos = async (moduloObj) => {
 			
-			setModulosOptions(moduloObj);
+			const modulos = moduloObj.map((modulo) => {
+			return { value: modulo.id, label: modulo.nombre };
+			});
+			console.log('modulos',modulos);
+			setModulosOptions(modulos);
 		};
-		console.log('moduloObj',modulosOptions);
+		
 	
 		request(
 			{
@@ -174,11 +176,9 @@ const TareasForm = ({
 			</Modal.Body>
 			<Modal.Footer>
 				<Button
-				className="botonAzul"
-				loading={loading}
-				width={25}
-				onClick={() => (onClose(true))
-				}
+					className="botonAzul"
+					width={25}
+					onClick={() => (onClose(true))}
 				>
 					CONFIRMA
 				</Button>

@@ -36,7 +36,7 @@ const SeccionalesForm = ({
 	delegaciones ??= [];
 	 console.log('Form_seccional_data:',data)
 	 //console.log('data_seccional:',data)
-	 //console.log('delegaciones_seccional:',delegaciones)
+	 console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
 	
 	disabled ??= {};
@@ -222,7 +222,7 @@ const SeccionalesForm = ({
 							disabled={disabled.domicilio ?? false}
 							onChange={(value, _id) => onChange({ domicilio: value })}
 							/>
-						</div>
+						</div> 
 						<div className={classes.item5}>
 							<SelectMaterial
 								id="refDelegacionId"

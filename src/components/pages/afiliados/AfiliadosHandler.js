@@ -310,7 +310,7 @@ const AfiliadosHandler = () => {
 					setModal(null);
 				}}/>)
 				return;
-			}
+			} 
 			case "Localiza": {
 				setModal(
 					<Localizar
