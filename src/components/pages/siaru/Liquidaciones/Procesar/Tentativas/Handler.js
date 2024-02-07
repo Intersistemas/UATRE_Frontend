@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Modal } from "react-bootstrap";
 import { Tab, Tabs } from "@mui/material";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AsArray from "components/helpers/AsArray";
@@ -16,7 +15,7 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
-import CabeceraPrint from "../../impresion/CabeceraPrint";
+import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 
 const RangoDias = (desde, hasta) => {
 	const dias = dayjs(hasta).diff(desde, "days");
@@ -1008,19 +1007,12 @@ const Handler = ({ periodo, tentativas = [] }) => {
 					/>
 				</Grid>
 				{!liqCab.data ? null : (
-					<Modal
-						size="xl"
-						centered
-						show
-						onHide={() => setRedirect({ to: "/Inicio/Empresas/Liquidaciones" })}
-					>
-						<Modal.Header closeButton>Liquidacion Generada</Modal.Header>
-						<Modal.Body style={{ height: "80vh" }}>
-							<Grid full>
-								<CabeceraPrint data={liqCab.data} />
-							</Grid>
-						</Modal.Body>
-					</Modal>
+					<FormaPagoPrint
+						liquidacionCabecera={liqCab.data}
+						onClose={() =>
+							setRedirect({ to: "/Inicio/Empresas/Liquidaciones" })
+						}
+					/>
 				)}
 			</Grid>
 		),

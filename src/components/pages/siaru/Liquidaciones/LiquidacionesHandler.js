@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
-import { Modal } from "react-bootstrap";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
@@ -11,8 +10,8 @@ import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
 import useLiquidaciones from "./useLiquidaciones";
-import CabeceraPrint from "./impresion/CabeceraPrint";
 import LiquidacionDetails from "./LiquidacionDetails";
+import FormaPagoPrint from "./impresion/FormaPagoPrint";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();
@@ -148,14 +147,7 @@ const LiquidacionesHandler = () => {
 	let liquidacionPDFRender;
 	if (despliegaPDF) {
 		liquidacionPDFRender = (
-			<Modal size="xl" centered show onHide={() => setDespliegaPDF(null)}>
-				<Modal.Header closeButton>Impresión de liquidación</Modal.Header>
-				<Modal.Body style={{ height: "80vh" }}>
-					<Grid full>
-						<CabeceraPrint data={despliegaPDF} />
-					</Grid>
-				</Modal.Body>
-			</Modal>
+			<FormaPagoPrint liquidacionCabecera={despliegaPDF} onClose={() => setDespliegaPDF(null)}/>
 		);
 	}
 	//#endregion
