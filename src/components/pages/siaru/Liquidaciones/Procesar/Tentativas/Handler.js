@@ -8,14 +8,15 @@ import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import JoinOjects from "components/helpers/JoinObjects";
 import Round from "components/helpers/Round";
+import TareaUsuario from "components/helpers/TareaUsuario";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
+import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
-import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 
 const RangoDias = (desde, hasta) => {
 	const dias = dayjs(hasta).diff(desde, "days");
@@ -192,7 +193,7 @@ const LiquidacionCabecera = ({
 					<Button
 						className="botonAmarillo"
 						onClick={onGenera}
-						disabled={disabled.genera}
+						disabled={disabled.genera || !TareaUsuario("Siaru_EmpresaLiquidacionGenera")}
 					>
 						Genera liquidación
 					</Button>
@@ -852,7 +853,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				text: "Acciones",
 				isDummyField: true,
 				formatter: () => (
-					<Button className="botonAmarillo" style={{ padding: 0 }}>
+					<Button className="botonAmarillo" style={{ padding: 0 }} disabled={!TareaUsuario("Siaru_EmpresaRuralidadModifica")}>
 						Modifica
 					</Button>
 				),

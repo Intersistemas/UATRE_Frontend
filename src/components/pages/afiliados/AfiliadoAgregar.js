@@ -291,8 +291,6 @@ const onLoadedDef = ({ data, error }) => {};
 //#endregion
 
 
-
-
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -303,6 +301,8 @@ const AfiliadoAgregar = (props) => {
   const [dialogTexto, setDialogTexto] = useState("");
   //#endregion
 
+
+  const usuarioTareaValidacionAutomatica = TareaUsuario("Afiliaciones_AfiliadoAutoValida");
 //#region manejo de validaciones
 const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
   value: "",
@@ -333,6 +333,11 @@ const [cuitState, dispatchCUIT] = useReducer(cuitReducer, {
 });
 
 const [emailState, dispatchEmail] = useReducer(emailReducer, {
+  value: "",
+  isValid: false,
+});
+
+const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   value: "",
   isValid: false,
 });
@@ -400,11 +405,6 @@ const [puestoState, dispatchPuesto] = useReducer(puestoReducer, {
 });
 
 const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
-  value: "",
-  isValid: false,
-});
-
-const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   value: "",
   isValid: false,
 });
@@ -730,6 +730,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
         });
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
+        dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
+
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
         setCuitValidado(true);
@@ -928,9 +930,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 						.map((r) => ({
 							value: r.id,
 							label: r.nombre,
-							idProvinciaAFIP: r.idProvinciaAFIP,
-							seccionalIdPorDefecto: r.seccionalIdPorDefecto,
-							seccionalDescripcionPorDefecto: r.seccionalDescripcionPorDefecto,
+              ...r,
 						}))
 				),
 			async (error) => (changes.error = error),
@@ -1023,10 +1023,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 				changes.data.push(
 					...ok.data
 						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-						.map((r) => ({
-							value: r.id,
-							label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-						}))
+						.map((r) => ( r.localidadCodPostal !== 99999  && {value: r.id, label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+						))
 				)
       ),
 			async (error) => (
@@ -1125,12 +1123,12 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 				ciiU2: padronEmpresaRespuesta.ciiU2,
 				ciiU3: padronEmpresaRespuesta.ciiU3,
 			};
-
+ 
 			const validaAutomatica =
 				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
 				(padronEmpresaRespuesta?.ciiU1EsRural ||
 					padronEmpresaRespuesta?.ciiU2EsRural ||
-					padronEmpresaRespuesta?.ciiU3EsRural);
+					padronEmpresaRespuesta?.ciiU3EsRural) && TareaUsuario("Afiliaciones_AfiliadoAutoValida");
 			
 			const domicilioRealAFIP = padronRespuesta.domicilios.find(
 				(domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
@@ -1156,7 +1154,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 					? "Validación Automática"
 					: null,
 				estadoCivilId: +estadoCivilState.value,
-				refLocalidadId: localidadState.value.value,
+				refLocalidadId: localidadState?.value?.value,
 				domicilio: domicilioState.value,
 				telefono: telefonoState.value,
 				correo: emailState.value,
@@ -1333,63 +1331,78 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 						type: "USER_INPUT",
 						value: 99999,
 					});
+          //provincia
+         console.log('provincias',provincias);
 
-        //provincia
-        const provinciaId = provincias.data.find(
-          (provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia
-        ) ?? "";
-        dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+        const provinciaSelected = 
+          (domicilioReal.idProvincia === 0 && (domicilioReal.descripcionProvincia === null || domicilioReal.descripcionProvincia === "")) // SI NO ENCUENTRO, va prov sin asignar
+          ?
+            provincias.data.find((provincia) => provincia.idProvinciaAFIP === 99999) // BUSCO EL ID de Provincia "Sin Asignar" mediante el IdProvinciaAFIP 99999
+          :
+            provincias.data.find((provincia) => provincia.idProvinciaAFIP === domicilioReal.idProvincia) // IDPROVINCIAAFIP = 0 PARA CABA SEGUN AFIP
 
-        //localidad
-        const processLocalidades = async (localidadesObj) => {
+          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+          if (provinciaSelected.idProvinciaAFIP === 99999){ //SI LA PROVINCIA ES POR DEFECTO (SIN ASIGNAR), TODO POR DEFECTO(SIN ASIGNAR)!
+              dispatchLocalidad({ type: "USER_INPUT", value:provinciaSelected.localidadIdPorDefecto, label:provinciaSelected.localidadDescripcionPorDefecto})
+              dispatchSeccional({ type: "USER_INPUT", value:provinciaSelected.seccionalIdPorDefecto, label: provinciaSelected.seccionalDescripcionPorDefecto })
+          }else{ //SELECCIONÓ UNA PROVINCIA QUE NO ES POR DEFECTO
+            const localidadCodPostal = domicilioReal.codigoPostal !== "0000" ? domicilioReal.codigoPostal : null
+            //localidad
+            const processLocalidades = async (localidadesObj) => {
 
+              console.log('localidadesObj',localidadesObj)
+              console.log('provinciaSelected',provinciaSelected)
 
-          const localidadId = localidadesObj.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
-            (localidad) =>
-              localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
-          )?.id
-          ?? 
-          localidadesObj.find( //SINO VERIFICO POR NOMBRE DE LOCALIDAD APROXIMADO + 4 primeros digitos del CP.
-            (localidad) =>
-              localidad.nombre.includes(domicilioReal.localidad)  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)
-          )?.id
-          ??
-          "";
-					setLocalidades((o) => ({
-						...o,
-						loading: "Cargando...",
-						params: provinciaId ? { provinciaId: provinciaId.value } : null,  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
-						onLoaded: ({ data }) => {
-							if (!Array.isArray(data)) return;
-							const myLocalidadId = localidadId ?
-								data.find((r) => r.value === localidadId) : data.at(0);
+              const localidad = localidadesObj?.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
+              (localidad) =>localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal))
+              ?? 
+              localidadesObj?.find( //SINO VERIFICO POR NOMBRE DE LOCALIDAD APROXIMADO + 4 primeros digitos del CP.
+                (localidad) => localidad.nombre.includes(domicilioReal.localidad)  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal))
+              ??
+              //({id: provinciaSelected?.localidadIdPorDefecto}) // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
+              localidadesObj?.find( // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
+                (localidad) => localidad.id === provinciaSelected?.localidadIdPorDefecto)
+                
+                ??
+               ({id: provinciaSelected?.localidadIdPorDefecto})
 
-							dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+                console.log('localidad',localidad)
+              setLocalidades((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: provinciaSelected ? { provinciaId: provinciaSelected?.id } : null,  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
+                onLoaded: ({ data }) => {
+                  if (!Array.isArray(data)) return;
+                  const myLocalidad = localidad?.id !==  provinciaSelected?.localidadIdPorDefecto?
+                    data.find((r) => r.value === localidad?.id) : data.at(0);
+    
+                  dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
 
-							setSeccionales((o) => ({
-								...o,
-								loading: "Cargando...",
-								params: localidadId ? {localidadId: localidadId} : {provinciaId: provinciaId?.value} ?? {},
-								onLoaded: ({ data }) => {
-                  const mySeccionalId = !localidadId ? data.at(0) : data.at(1) ? data.at(1) : data.at(0);
+                  setSeccionales((o) => ({
+                    ...o,
+                    loading: "Cargando...",
+                    params: myLocalidad?.value !== provinciaSelected?.localidadIdPorDefecto ? {localidadId: myLocalidad?.value} : {provinciaId: provinciaSelected?.id} ?? {},
+                    onLoaded: ({ data }) => {
+                      const mySeccionalId = myLocalidad?.value === provinciaSelected?.localidadIdPorDefecto ? data.at(0) : data.at(1) ? data.at(1) : data.at(0);
+    
+                      dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
+                    },
+                  }));
+                },
+              }));
+          };
 
-									dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
-								},
-							}));
-						},
-					}));
-        };
-
-        request(
-          {
-            baseURL: "Afiliaciones",
-            endpoint: `/RefLocalidad?CodigoPostalUATRE=${parseInt(
-              domicilioReal?.codigoPostal
-            )}`,
-            method: "GET",
-          },
-          processLocalidades
-        );
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: localidadCodPostal ? `/RefLocalidad?ProvinciaId=${provinciaSelected.id}&CodigoPostalUATRE=${parseInt(localidadCodPostal)}` :
+              `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
+              //endpoint: `/RefLocalidad/GetRefLocalidadesPaginationSpecs?ProvinciaId=${provinciaSelected.id}&FilterByCPNombre=${localidadQuery}`,
+              method: "GET",
+            },
+            processLocalidades
+          );
+        }
       }
 
       if (props.accion === "Modifica") {
@@ -1458,6 +1471,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   const handleChangeSelect = (value, name, ) => {
     console.log('handleChangeSelect_value',value)
     console.log('handleChangeSelect_name',name)
+
     switch (name) {
       case "actividadSelect":
         dispatchActividad({ type: "USER_INPUT", value: value });
@@ -1490,6 +1504,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 
       case "provinciaSelect":
 				if(provinciaState.value === value) break;
+
         dispatchProvincia({ type: "USER_INPUT", value });
 				setLocalidades((o) => ({
 					...o,
@@ -1521,6 +1536,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
         dispatchLocalidad({ type: "USER_INPUT", value });
 
 				if(localidadState.value === value) break;
+
 				setSeccionales((o) => ({
 					...o,
 					loading: "Cargando...",
@@ -1588,7 +1604,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
 				const fechaFormateadaHoy = year + "-" + month + "-" + day;
 
 
-        if (fechaFormateadaHoy === value) {
+        if (fechaFormateadaHoy === value || value === fechaIngresoState.value){
           setDialogTexto(
             `La fecha de nacimiento ${value} es incorrecta`
           );
@@ -1608,7 +1624,7 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
         break;
 
       case "telefono":
-        dispatchTelefono({ type: "USER_INPUT", value });
+        dispatchTelefono({ type: "USER_INPUT", value:value });
         break;
 
       case "correo":
@@ -2044,6 +2060,8 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
                 <Typography gutterBottom> {`El Afiliado NO debe tener una afiliación anterior con fecha de BAJA - ✔️`}</Typography>
                 <Typography gutterBottom> {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${(ultimaDDJJ?.data?.actividadTipo === "D" && ultimaDDJJ?.data?.modalidadTipo === "D") ? "✔️" : "❌"}`}</Typography>
                 <Typography gutterBottom> {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${padronEmpresaRespuesta?.ciiU1EsRural ||padronEmpresaRespuesta?.ciiU2EsRural ||padronEmpresaRespuesta?.ciiU3EsRural ? "✔️" : "❌"}`}</Typography>
+                <Typography gutterBottom> {`Operador con permisos de Autovalidación ${usuarioTareaValidacionAutomatica ? "✔️" : "❌"}`}</Typography>
+                
               </div>
               )
             }

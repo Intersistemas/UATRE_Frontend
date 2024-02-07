@@ -34,19 +34,28 @@ const SeccionalesForm = ({
 }) => {
 	data ??= {}; 
 	delegaciones ??= [];
-	// console.log('Form_seccional_data:',data)
-	// console.log('data_seccional:',data)
-	// console.log('delegaciones_seccional:',delegaciones)
+	 console.log('Form_seccional_data:',data)
+	 //console.log('data_seccional:',data)
+	 console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
 	
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
-
 	onChange ??= onChangeDef;
-	
 	onClose ??= onCloseDef;
 
+	const estados = [
+		{value: "NORMALIZADA", label: "NORMALIZADA"},
+		{value: "TRANSITORIA", label: "TRANSITORIA"},
+		{value: "EN LITIGIO", label: "EN LITIGIO"},
+		{value: "INACTIVA", label: "INACTIVA"},
+		//{value: "BAJA", label: "BAJA"},
+		{value: "ABSORBIDA", label: "ABSORBIDA"},
+	];
+
+	title.includes("Baja") && estados.push({value: "BAJA", label: "BAJA"});
+	
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	
@@ -131,9 +140,8 @@ const SeccionalesForm = ({
 				<div className={classes.div}>
 					<div className={classes.container}>
 						
-						<div className={classes.item1}>
-
-							<FormControl sx={{mr: 2, maxWidth: '6rem' }}>
+						<div className={classes.item0}>
+							
 								<InputMaterial
 									id="codigo"
 									label="Codigo"
@@ -146,25 +154,26 @@ const SeccionalesForm = ({
 									disabled={disabled.codigo}
 									onChange={(value, _id) => onChange({ codigo: value })}
 								/>
-							</FormControl>
+							
+						</div>
+						<div className={classes.item1}>
 
-							<FormControl sx={{ minWidth: '8rem' }}>
-								<InputLabel id="demo-simple-select-label">Estado</InputLabel>
-								<Select
-									
-									id="estado"
-									value={data.estado}
-									label="Estado"
-									onChange={(value, _id) => onChange({ estado: value })}
-									error={!!errors.estado}
-									helperText={errors.estado ?? ""}
-									disabled={disabled.estado ?? false}
-								>
-									<MenuItem value={"Activa"}>Activa</MenuItem>
-									<MenuItem value={"Pendiente"}>Pendiente</MenuItem>
-									<MenuItem value={"Inactiva"}>Baja</MenuItem>
-								</Select>
-							</FormControl>  
+							<SelectMaterial
+								id="estado"
+								name="estado"
+								label="Estado"
+								error={!!errors.estado} 
+								helperText={errors.estado ?? ""}
+								value={data.estado}
+								disabled={disabled.estado ?? false}
+								onChange={(value) => onChange({ estado: value })}
+								defaultValue="NORMALIZADA"
+								options={estados}
+								required
+							/>     
+
+
+							  
 						</div>
 
 						<div className={classes.item2}>
@@ -213,7 +222,7 @@ const SeccionalesForm = ({
 							disabled={disabled.domicilio ?? false}
 							onChange={(value, _id) => onChange({ domicilio: value })}
 							/>
-						</div>
+						</div> 
 						<div className={classes.item5}>
 							<SelectMaterial
 								id="refDelegacionId"

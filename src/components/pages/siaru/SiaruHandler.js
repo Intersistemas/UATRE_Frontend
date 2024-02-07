@@ -431,7 +431,7 @@ const SiaruHandler = () => {
 					default:
 						break;
 				}
-				console.log('SiaruHandler_query',query);
+
 				pushQuery(query);
 
 
@@ -441,7 +441,7 @@ const SiaruHandler = () => {
 }
 	//#region declaracion y carga de acciones
 	const [acciones, setAcciones] = useState([]);
-
+ 
 	useEffect(() => {
 		const acciones = [];
 
@@ -449,13 +449,16 @@ const SiaruHandler = () => {
 			name = "",
 			onExecute = (name) => {},
 			keys = "",
-			combination = "AltKey"
+			tarea = "",
+			combination = "AltKey",
+			
 		) =>
 			acciones.push(
 				new Action({
 					name,
 					onExecute,
 					keys,
+					tarea,
 					underlineindex: name.toLowerCase().indexOf(keys),
 					combination,
 				})
@@ -473,7 +476,8 @@ const SiaruHandler = () => {
 					},
 				}))
 			),
-			"r"
+			"r",
+			"Siaru_EmpresaRelaciona",
 		);
 
 		const desc = ((r) =>
@@ -485,12 +489,14 @@ const SiaruHandler = () => {
 			addAction(
 				`Establecimientos de ${desc}`,
 				(_) => navigate("Establecimientos"),
-				"s"
+				"s",
+				"Siaru_EmpresaEstablecimiento",
 			);
 			addAction(
 				`Liquidaciones de ${desc}`,
 				(_) => navigate("Liquidaciones"),
-				"q"
+				"q",
+				"Siaru_EmpresaLiquidaciones",
 			);
 		}
 		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));

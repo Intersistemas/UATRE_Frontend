@@ -9,12 +9,15 @@ import useUsuarios from "./useUsuarios";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
+import TareaUsuario from "components/helpers/TareaUsuario";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
+
+	const disableTabTareas = !TareaUsuario("Accesos_UsuarioTareas")
 	//#region Tab usuarios
 	const [usuariosTab, usuarioChanger, usuarioSelected] =
 		useUsuarios();
@@ -32,7 +35,7 @@ const UsuariosHandler = () => {
 			createAction({
 				action: `Agrega Usuario`,
 				request: "A",
-				tarea: "Usuario_Agrega",
+				tarea: "Accesos_UsuarioAlta",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -46,6 +49,7 @@ const UsuariosHandler = () => {
 			createAction({
 				action: `Consulta Usuario ${desc}`,
 				request: "C",
+				tarea: "Accesos_UsuarioConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -54,7 +58,7 @@ const UsuariosHandler = () => {
 			createAction({
 				action: `Modifica Usuario ${desc}`,
 				request: "M",
-				tarea: "Usuario_Modifica",
+				tarea: "Accesos_UsuarioModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -64,7 +68,7 @@ const UsuariosHandler = () => {
 				createAction({
 					action: `Reactiva Usuario ${desc}`,
 					request: "R",
-					tarea: "Usuario_Baja",
+					tarea: "Accesos_UsuarioReactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
@@ -74,7 +78,7 @@ const UsuariosHandler = () => {
 			createAction({
 				action: `Baja Usuario ${desc}`,
 				request: "B",
-				tarea: "Usuario_Baja",
+				tarea: "Accesos_UsuarioBaja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -123,7 +127,9 @@ const UsuariosHandler = () => {
 				action: `Agrega Tarea ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				tarea: "Accesos_UsuarioTareasAgrega",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		const nombreTarea = tareaSelected?.nombreTarea;
@@ -137,7 +143,9 @@ const UsuariosHandler = () => {
 				action: `Consulta Tarea ${tareaDesc}`,
 				request: "C",
 				keys: "o",
+				tarea: "Accesos_UsuarioTareasConsulta",
 				underlineindex: 1,
+				ellipsis: true,
 			})
 		);
 		actions.push(
@@ -145,22 +153,26 @@ const UsuariosHandler = () => {
 				action: `Modifica Tarea ${tareaDesc}`,
 				request: "M",
 				keys: "m",
+				tarea: "Accesos_UsuarioTareasModifica",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		actions.push(
 			createAction({
-				action: `Quita Tarea ${tareaDesc}`,
+				action: `Borra Tarea ${tareaDesc}`,
 				request: "B",
 				keys: "b",
+				tarea: "Accesos_UsuarioTareasBorra",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
 		setTareasActions(actions);
 	}, [tareaChanger, tareaSelected, usuarioSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Tareas" disabled={!usuarioSelected} />,
+		header: () => <Tab label="Tareas" disabled={!usuarioSelected || disableTabTareas} />,
 		body: tareasTab,
 		actions: tareasActions,
 	});

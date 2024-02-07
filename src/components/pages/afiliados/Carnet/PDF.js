@@ -53,7 +53,7 @@ const PDF = ({ afiliado = {}, seccional = {} } = {}) => {
 								{((v) => (v ? `Secc. Nro. ${v}` : ""))(seccional.codigo)}
 							</P>
 							<P size={12} align="center" bold>
-								{afiliado.localidad}
+								{seccional.descripcion}
 							</P>
 						</Grid>
 					</Grid>

@@ -10,6 +10,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "./useSeccionales";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
 import useHttp from "../../../hooks/useHttp";
+import TareaUsuario from "components/helpers/TareaUsuario";
 
 const SeccionalesHandler = () => {
 	const dispatch = useDispatch();
@@ -19,6 +20,10 @@ const SeccionalesHandler = () => {
 	const [tab, setTab] = useState(0);
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	
+
+	const disableTabAutoridades = !TareaUsuario("Datos_SeccionalAutoridades");
+	const disableTabDocumentacion = !TareaUsuario("Datos_SeccionalDocumentacion");
+	const disableTabLocalidad = !TareaUsuario("Datos_SeccionalLocalidad");
 
 	useEffect(()=>{
 
@@ -58,7 +63,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Seccional`,
 				request: "A",
-				tarea: "Seccional_Agrega",
+				tarea: "Datos_SeccionalAgrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -69,7 +74,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Consulta Seccional ${desc}`,
 				request: "C",
-
+				tarea: "Datos_SeccionalConsulta",
 				...(!seccionalSelected?.id ? 
 					{disabled:  true}
 					:
@@ -86,7 +91,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Seccional ${desc}`,
 				request: "M",
-				tarea: "Seccional_Modifica",
+				tarea: "Datos_SeccionalModifica",
 
 				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
 					{disabled:  true}
@@ -103,7 +108,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Baja Seccional ${desc}`,
 				request: "B",
-				tarea: "Seccional_Baja",
+				tarea: "Datos_SeccionalBaja",
 
 				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
 					{disabled:  true}
@@ -157,7 +162,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Autoridad ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Autoridad_Agrega",
+				tarea: "Datos_SeccionalAutoridadesAgrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -172,6 +177,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Consulta Autoridad ${seleDesc}`,
 				request: "C",
+				tarea: "Datos_SeccionalAutoridadesConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -180,7 +186,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
-				tarea: "Seccional_Autoridad_Modifica",
+				tarea: "Datos_SeccionalAutoridadesModifica",
 
 				...(autoridadSelected?.deletedDate ? 
 					{disabled:  true}
@@ -198,7 +204,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Reactiva Autoridad ${seleDesc}`,
 					request: "R",
-					tarea: "Seccional_Autoridad_Reactiva",
+					tarea: "Datos_SeccionalAutoridadesReactiva",
 					keys: "r",
 					underlineindex: 0,
 			})
@@ -208,7 +214,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
-					tarea: "Seccional_Autoridad_Baja",
+					tarea: "Datos_SeccionalAutoridadesBaja",
 					...(autoridadSelected?.deletedDate ? 
 						{disabled:  true}
 						:
@@ -224,7 +230,7 @@ const SeccionalesHandler = () => {
 		setAutoridadesActions(actions);
 	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
 		body: autoridadesTab,
 		actions: autoridadesActions,
 	});
@@ -268,7 +274,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Documentacion_Agrega",
+				tarea: "Datos_SeccionalDocumentacionAgrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -283,6 +289,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Consulta Documentación ${docuDesc}`,
 				request: "C",
+				tarea: "Datos_SeccionalDocumentacionConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -291,7 +298,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
-				tarea: "Seccional_Documentacion_Modifica",
+				tarea: "Datos_SeccionalDocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -300,7 +307,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
-				tarea: "Seccional_Documentacion_Baja",
+				tarea: "Datos_SeccionalDocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
 			})
@@ -310,7 +317,7 @@ const SeccionalesHandler = () => {
 
 
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Documentacion" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabDocumentacion} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -356,7 +363,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Agrega Localidad ${seccDesc}`,
 				request: "A",
-				tarea: "Seccional_Localidad_Agrega",
+				tarea: "Datos_SeccionalLocalidadAgrega",
 				keys: "a",
 				underlineindex: 0,
 			})
@@ -371,6 +378,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Consulta Localidad ${docuDesc}`,
 				request: "C",
+				tarea: "Datos_SeccionalLocalidadConsulta",
 				keys: "o",
 				underlineindex: 1,
 			})
@@ -379,6 +387,7 @@ const SeccionalesHandler = () => {
 			createAction({
 				action: `Modifica Localidad ${docuDesc}`,
 				request: "M",
+				tarea: "Datos_SeccionalLocalidadModifica",
 				keys: "m",
 				underlineindex: 0,
 			})
@@ -388,7 +397,7 @@ const SeccionalesHandler = () => {
 			actions.push(
 				createAction({
 					action: `Reactiva Localidad ${docuDesc}`,
-					tarea: "Seccional_Localidad_Reactiva",
+					tarea: "Datos_SeccionalLocalidadReactiva",
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
@@ -399,7 +408,7 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Baja Localidad ${docuDesc}`,
 					request: "B",
-					tarea: "Seccional_Localidad_Baja",
+					tarea: "Datos_SeccionalLocalidadBaja",
 					...(seccionalLocalidadesSelected?.deletedDate ? 
 						{disabled:  true}
 						:
@@ -418,7 +427,7 @@ const SeccionalesHandler = () => {
 
 
 	tabs.push({
-		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate} />,
+		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabLocalidad } />,
 		body: seccionalLocalidadesTab,
 		actions: seccionalLocalidadesActions,
 	});

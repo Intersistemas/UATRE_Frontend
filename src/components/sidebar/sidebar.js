@@ -135,7 +135,13 @@ const Sidebar = ({children}) => {
                                 botones.map((item, index)=>(   
                                     <div  key={index} className='d-flex align-items-center'>
                                         <FaChevronRight/>
-                                        <Button className="botonAmarillo" underlineindex={item.underlineindex} disabled = {(item.tarea && (Usuario?.roles?.find((r) => r === "Administrador") == null)) ? (!Usuario.modulosTareas.find(t => t.nombreTarea == item.tarea)) || item.disabled : item.disabled}  key={index} onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
+                                        <Button 
+                                            className="botonAmarillo" 
+                                            underlineindex={item.underlineindex} 
+                                            ellipsis={item.ellipsis}
+                                            disabled = {(item.tarea && (Usuario?.roles?.find((r) => r === "Administrador") == null)) ? (!Usuario.modulosTareas.find(t => t.nombreTarea == item.tarea)) || item.disabled : item.disabled}  
+                                            key={index} 
+                                            onClick={ () => item instanceof Action ? item.execute() : despacharAcciones(item)}> 
                                             {item.name}
                                         </Button>
                                     </div>

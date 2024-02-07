@@ -12,6 +12,7 @@ import Button from "components/ui/Button/Button";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import styles from "./LiquidacionesProcesarHandler.module.css";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import TareaUsuario from "components/helpers/TareaUsuario";
 
 const LiquidacionesProcesarHandler = () => {
 	const navigate = useNavigate();
@@ -255,6 +256,7 @@ const LiquidacionesProcesarHandler = () => {
 											if (newErrores.length === 0)
 												setRedirect({ to: "Archivo" });
 										}}
+										disabled={!TareaUsuario("Siaru_EmpresaLiquidacionArchivo")}
 									>
 										Inicia
 									</Button>
@@ -352,6 +354,7 @@ const LiquidacionesProcesarHandler = () => {
 											if (newErrores.length === 0)
 												setRedirect({ to: "Existente" });
 										}}
+										disabled = {!TareaUsuario("Siaru_EmpresaLiquidacionCopia")}
 									>
 										Inicia
 									</Button>
@@ -415,6 +418,7 @@ const LiquidacionesProcesarHandler = () => {
 											if (newErrores.length === 0)
 												setRedirect({ to: "Manual" });
 										}}
+										disabled = {!TareaUsuario("Siaru_EmpresaLiquidacionManual")}
 									>
 										Inicia
 									</Button>

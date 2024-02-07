@@ -66,7 +66,7 @@ const EmpresasHandler = () => {
 			createAction({
 				action: `Agrega Empresa`,
 				request: "A",
-				tarea: "Empresa_Agrega",
+				tarea: "Datos_EmpresaAgrega",
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -76,6 +76,7 @@ const EmpresasHandler = () => {
 		actions.push(
 			createAction({
 				action: `Consulta Empresa ${desc}`,
+				tarea: "Datos_EmpresaConsulta",
 				request: "C",
 				...(!empresaSelected?.id
 					? { disabled: true }
@@ -90,7 +91,7 @@ const EmpresasHandler = () => {
 			createAction({
 				action: `Modifica Empresa ${desc}`,
 				request: "M",
-				tarea: "Empresa_Modifica",
+				tarea: "Datos_EmpresaModifica",
 				...(empresaSelected?.deletedDate || !empresaSelected?.id
 					? { disabled: true }
 					: {
@@ -105,7 +106,7 @@ const EmpresasHandler = () => {
 			actions.push(
 				createAction({
 					action: `Reactiva Empresa ${desc}`,
-					tarea: "Empresa_Reactiva",
+					tarea: "Datos_EmpresaReactiva",
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
@@ -121,7 +122,7 @@ const EmpresasHandler = () => {
 						deletedDate: dayjs().format("YYYY-MM-DD"),
 						deletedBy: Usuario.nombre,
 					},
-					tarea: "Empresa_Baja",
+					tarea: "Datos_EmpresaBaja",
 					...(empresaSelected?.deletedDate || !empresaSelected?.id
 						? { disabled: true }
 						: {

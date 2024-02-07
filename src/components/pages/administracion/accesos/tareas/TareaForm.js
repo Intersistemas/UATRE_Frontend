@@ -1,118 +1,195 @@
-import React, { useRef } from "react";
-import Button from "../ui/Button/Button";
-import Grid from "../ui/Grid/Grid";
-import InputMaterial from "../ui/Input/InputMaterial";
-import SelectMaterial from "../ui/Select/SelectMaterial";
-// import InputMaterialMask from "../ui/Input/InputMaterialMask";
+import React, { useEffect,useState } from "react";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import Grid from "components/ui/Grid/Grid";
+import Button from "components/ui/Button/Button";
+import classes from "./TareasForm.module.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import {Modal} from 'react-bootstrap';
+import UseKeyPress from "components/helpers/UseKeyPress";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import InputMask from 'react-input-mask';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 
-const TareaForm = ({
-	record = {},
-	tipoList = [],
-	disabled = false,
-	onChange = (changes) => {},
-	onCancel = () => {},
-	onConfirm = () => {},
-	request,
+import useHttp from "../../../../hooks/useHttp";
+import SelectMaterial from "components/ui/Select/SelectMaterial";
+
+const onChangeDef = (changes = {}) => {};
+const onCloseDef = (confirm = false) => {};
+ 
+
+const TareasForm = ({
+	data = {},
+	title = "",
+	disabled = {},
+	hide = {},
+	errors = {},
+	onChange = onChangeDef,
+	onClose = onCloseDef,
+
 }) => {
-	const archivoRef = useRef(null);
+	data ??= {}; 
+	console.log('Form_tarea_data:',data)
+	 //console.log('data_tarea:',data)
+	 //console.log('delegaciones_tarea:',delegaciones)
+	// console.log('Form_tarea_errors:',errors)
+	
+	disabled ??= {};
+	hide ??= {};
+	errors ??= {};
+	onChange ??= onChangeDef;
+	onClose ??= onCloseDef;
 
-	const getValue = (v) => record[v] ?? "";
+	
+	//#region Buscar Localidades
 
-	const tipoListData = tipoList.map((r) => ({
-		value: r.id,
-		label: r.descripcion,
-	}));
+	const [modulosOptions, setModulosOptions] = useState([]); //LISTA DE TODOS LOS MODULOS  
 
+	const { isLoading, error, sendRequest: request } = useHttp();
+
+	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
+	
+	
+
+	const selectModulo = (moduloId) =>{
+		const modulo = modulosOptions.find((c) => c.id === moduloId)
+		return modulo;
+	}
+
+	//TRAIGO TODAS LAS LOCALIDADES una vez
+	useEffect(() => {
+		
+		const processModulos = async (moduloObj) => {
+			
+			const modulos = moduloObj.map((modulo) => {
+			return { value: modulo.id, label: modulo.nombre };
+			});
+			console.log('modulos',modulos);
+			setModulosOptions(modulos);
+		};
+		
+	
+		request(
+			{
+			baseURL: "Seguridad",
+			endpoint: "/Modulos",
+			method: "GET",
+			},
+			processModulos
+		);
+	},[]);
+
+	//#endregion
+
+
+	UseKeyPress(['Escape'], () => onClose());
+	UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
+ 
 	return (
-		<Grid col full gap="10px">
-			<Grid full="width" gap="10px">
-				<Grid width="50%">
-					<SelectMaterial
-						name="refTipoTareaId"
-						label="Tipo de tarea"
-						disabled={disabled}
-						options={tipoListData}
-						value={getValue("refTipoTareaId")}
-						defaultValue={tipoListData[0]}
-						onChange={(v) => onChange({ refTipoTareaId: v })}
-					/>
-				</Grid>
-				<Grid grow><a download={getValue("nombreArchivo")} href={`data:image/*;base64,${getValue("archivo")}`}>{getValue("nombreArchivo")}</a></Grid>
-				<Grid width="150px">
-					<input
-						ref={archivoRef}
-						type="file"
-						hidden
-						disabled={disabled}
-						onChange={(e) => {
-							if (e.target.files.length === 0) return;
-							const archivo = e.target.files[0];
-							const reader = new FileReader();
-							reader.readAsDataURL(archivo);
-							reader.onload = () => {
-								console.log({result: reader.result})
-								onChange({
-									archivo: reader.result?.split("base64,")[1],
-									nombreArchivo: archivo.name,
-								});
-							};
-						}}
-						onClick={(e) => {
-							e.target.value = null;
-						}}
-					/>
-					<Button
-						className="botonAmarillo"
-						onClick={() => archivoRef.current?.click()}
-						disabled={disabled}
-					>
-						Subir archivo
-					</Button>
-				</Grid>
-			</Grid> 
-			<Grid full="width">
-				{/* <InputMaterialMask
-					id="observaciones"
-					label="Observaciones"
-					disabled={disabled}
-					value={getValue("observaciones")}
-					onChange={(v) => onChange({ observaciones: v })}
-					width={100}
-				/> */}
-				<InputMaterial
-					id="observaciones"
-					label="Observaciones"
-					disabled={disabled}
-					value={getValue("observaciones")}
-					onChange={(v) => onChange({ observaciones: v })}
-					width={100}
-				/>
-			</Grid>
-			<Grid full="width" justify="center" gap="50px">
-				<Grid>
-					<Button className="botonAmarillo" onClick={() => onConfirm()} disabled={disabled}>
-						{(() => {
-							switch (request) {
-								case 1:
-									return "Agrega";
-								case 2:
-									return "Modifica";
-								case 3:
-									return "Borra";
-								default:
-									return "Confirma";
-							}
-						})()}
-					</Button>
-				</Grid>
-				<Grid>
-					<Button className="botonAmarillo" onClick={() => onCancel()} disabled={disabled}>
-						Cancela
-					</Button>
-				</Grid>
-			</Grid>
-		</Grid>
+		<div>
+			<Modal
+			show
+			onHide={() => onClose()}
+			size="lg"
+			centered
+			>
+				<Modal.Header closeButton><h3>{title}</h3></Modal.Header>
+				<Modal.Body>
+				<div className={classes.div}>
+					<div className={classes.container}>
+						
+						<div className={classes.item1}>
+							
+								<InputMaterial
+									id="tarea"
+									label="Nombre Tarea"
+									as={InputMask}
+									required 
+									error={!!errors.tarea}
+									helperText={errors.tarea ?? ""}
+									value={data.tarea}
+									disabled={disabled.tarea}
+									onChange={(value, _id) => onChange({ tarea: value })}
+								/>
+							
+						</div>
+						<div className={classes.item2}>
+
+							<SelectMaterial
+								id="modulo"
+								name="modulo"
+								label="Modulo"
+								error={!!errors.estado} 
+								helperText={errors.estado ?? ""}
+								value={selectModulo(data.refDelegacionId)?.value}
+								disabled={disabled.estado ?? false}
+								onChange={(value, id) => onChange({ estado: id })}
+								//defaultValue="Afilia"
+								options={modulosOptions}
+								required
+							/>     
+						</div>
+
+						{!hide.deletedObs &&
+						<>
+						<div className={classes.item7}>
+							<InputMaterial
+							id="deletedDate"
+							label="Fecha Baja"
+							error={!!errors.deletedDate}
+							helperText={errors.deletedDate ?? ""}
+							value={data.deletedDate}
+							disabled={disabled.deletedDate ?? false}
+							onChange={(value, _id) => onChange({ deletedDate: value })}
+							/>
+						</div>
+						<div className={classes.item8}>
+							<InputMaterial
+							id="deletedBy"
+							label="Usuario Baja"
+							error={!!errors.deletedBy}
+							helperText={errors.deletedBy ?? ""}
+							value={data.deletedBy}
+							disabled={disabled.deletedBy ?? false}
+							onChange={(value, _id) => onChange({ deletedBy: value })}
+							/>
+						</div>
+						<div className={classes.item9}>
+							<InputMaterial 
+							id="deletedObs"
+							label="Observaciones Baja"
+							error={!!errors.deletedObs}
+							helperText={errors.deletedObs ?? ""}
+							value={data.deletedObs}
+							disabled={disabled.deletedObs ?? false}
+							onChange={(value, _id) => onChange({ deletedObs: value })}
+							/>
+						</div>
+						</>}
+					</div>
+			
+				</div>
+			
+			</Modal.Body>
+			<Modal.Footer>
+				<Button
+					className="botonAzul"
+					width={25}
+					onClick={() => (onClose(true))}
+				>
+					CONFIRMA
+				</Button>
+
+				<Button className="botonAmarillo" width={25} onClick={()=>onClose()}>
+					CIERRA
+				</Button>
+			</Modal.Footer>
+		</Modal>
+		</div>
 	);
 };
 
-export default TareaForm;
+export default TareasForm;
