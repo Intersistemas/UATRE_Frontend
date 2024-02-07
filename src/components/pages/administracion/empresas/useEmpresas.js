@@ -7,6 +7,7 @@ import ValidarCUIT from "components/validators/ValidarCUIT";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import Formato from "components/helpers/Formato";
+import { matchIsValidTel } from "mui-tel-input";
 
 const selectionDef = {
 	action: "",
@@ -478,7 +479,7 @@ const useEmpresas = ({
 
 					if (["A", "M"].includes(list.selection.request)) {
 						if (!record.cuit) errors.cuit = "Dato requerido";
-						if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
+						else if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 						if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 						if (!record.domicilioCalle)
 							errors.domicilioCalle = "Dato requerido";
@@ -486,6 +487,7 @@ const useEmpresas = ({
 						if (!record.actividadPrincipalDescripcion)
 							errors.actividadPrincipalDescripcion = "Dato requerido";
 						if (!record.telefono) errors.telefono = "Dato requerido";
+						else if (!matchIsValidTel(record.telefono)) errors.telefono = "Dato incorrecto";
 						if (!record.email) errors.email = "Dato requerido";
 
 						// if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";

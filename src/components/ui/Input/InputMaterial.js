@@ -1,87 +1,68 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
 import InputMask from 'react-input-mask';
+import { MuiTelInput } from "mui-tel-input";
 
-const InputMaterial = (props) => {
-  //Validaciones
-	props = { ...props };
-	props.onChange ??= ((_value, _id) => {});
- 
+const onChangeDef = (value, id) => {};
 
-  const handleChange = (event) => { 
+const InputMaterial = ({
+	id,
+	mask = "",
+	type = "text",
+	size = "small",
+	readOnly = false,
+	width = "100%",
+	disabled = false,
+	onChange = onChangeDef,
+	...x
+}) => {
+	const props = {
+		className: styles.input,
+		id,
+		size,
+		...x,
+		style: { width: isNaN(width) ? width : `${width}%`, ...x.style },
+		InputLabelProps: { shrink: true, ...x.InputLabelProps },
+		InputProps: { readOnly, ...x.InputProps },
+		onChange: (v) => onChange(v, id),
+	};
+	props.FormHelperTextProps ??= {};
+	props.FormHelperTextProps.style = {
+		marginTop: "0px",
+		...props.FormHelperTextProps.style,
+	};
 
-    switch (props.id) {
- 
-      case "cuit":
-        const reCUIT = /^[0-9\b]+$/;
-        if (event.target.value === "" || reCUIT.test(event.target.value)) {
-          props.onChange(event.target.value, props.id);
-        }
-        break;
+	if (type === "tel") return <MuiTelInput disabled={disabled} {...props} />;
 
-      // case "numeroDocumento": 
-      case "telefono":
-        const reNumero = /^[0-9\b]+$/;
-        if (event.target.value === "" || reNumero.test(event.target.value)) {
-          props.onChange(event.target.value, props.id);
-        }
-        break;
+	if (id === "cuil" && !"autoFocus" in props) props.autoFocus = true;
 
-      default:
+	if (type === "date") props.inputFormat ??= "DD/MM/YYYY";
 
-        
-        props.onChange(event.target.value, props.id);
-        break;
-    }
-  };
+	props.type = type;
+	props.onChange = ({ target }) => {
+		switch (id) {
+			case "cuit":
+				const reCUIT = /^[0-9\b]+$/;
+				if (target?.value === "" || reCUIT.test(target?.value)) {
+					onChange(target?.value, id);
+				}
+				break;
+			default:
+				onChange(target?.value, id);
+				break;
+		}
+	};
 
-  return (
-
-    <InputMask
-      mask={props.mask}
-      className={styles.input}
-      value={props.value || ""}
-      onChange={handleChange}
-      disabled={props.disabled} 
-    >
-    {() =>
-        <TextField
-          disabled={props.disabled}
-          variant={props.variant}
-          size={props.size ? props.size : "small"}
-          autoFocus={props.id === "cuil" ? true : false}
-          id={props.id}
-          //error={!props.isValid}
-          label={props.label}
-          className={styles.input}
-          value={props.value || ""}
-          onChange={handleChange}
-          style={{...props.style,
-            width: props.width != null ? `${props.width}%` : "100%",
-            padding: `${props.padding}`,
-            //border: '1px solid red',
-          }}
-          type={props.type || "text"}
-          inputFormat={props.type === "date" ? "DD/MM/YYYY" : null}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          InputProps={{
-            ...props.InputProps,
-            readOnly: props.readOnly || false, 
-          }}
-          helperText={props.helperText ?? ""}
-          FormHelperTextProps={{ style: { marginTop: "0px" } }}
-          error={props.error || false}
-          color={props.color}
-          placeholder={props.placeholder}
-          //focused={props.focused || false}  //ESTA PROP ME MATA LA PROP BORDER (COLOR) de los elementos(inputs/selects) seleccionados
-          //onFocus={handleOnFocus}
-        >
-        </TextField>}
-    </InputMask>
-    
-  );
+	return (
+		<InputMask
+			className={props.className}
+			mask={mask}
+			disabled={disabled}
+			value={props.value}
+			onChange={props.onChange}
+		>
+			{() => <TextField {...props} />}
+		</InputMask>
+	);
 };
-
 export default InputMaterial;
