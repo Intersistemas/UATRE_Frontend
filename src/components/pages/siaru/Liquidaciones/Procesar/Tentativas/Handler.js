@@ -8,7 +8,6 @@ import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import JoinOjects from "components/helpers/JoinObjects";
 import Round from "components/helpers/Round";
-import TareaUsuario from "components/helpers/TareaUsuario";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
@@ -192,8 +191,9 @@ const LiquidacionCabecera = ({
 				<Grid width="200px">
 					<Button
 						className="botonAmarillo"
+						tarea="Siaru_EmpresaLiquidacionGenera"
 						onClick={onGenera}
-						disabled={disabled.genera || !TareaUsuario("Siaru_EmpresaLiquidacionGenera")}
+						disabled={disabled.genera}
 					>
 						Genera liquidación
 					</Button>
@@ -853,7 +853,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				text: "Acciones",
 				isDummyField: true,
 				formatter: () => (
-					<Button className="botonAmarillo" style={{ padding: 0 }} disabled={!TareaUsuario("Siaru_EmpresaRuralidadModifica")}>
+					<Button className="botonAmarillo" style={{ padding: 0 }} tarea="Siaru_EmpresaRuralidadModifica">
 						Modifica
 					</Button>
 				),
