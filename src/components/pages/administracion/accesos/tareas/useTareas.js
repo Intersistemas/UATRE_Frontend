@@ -11,7 +11,7 @@ const selectionDef = {
 	edit: null,
 	errors: null,
 };
-
+ 
 const useTareas = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
@@ -39,7 +39,7 @@ const useTareas = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: ``,
+						//endpoint: `/UsuariosModulosTareas`,
 						method: "POST",
 					},
 				};
@@ -170,7 +170,7 @@ const useTareas = () => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
 						: {
-								nombre: true,
+								tareasId: true,
 								moduloId: true,
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
@@ -212,11 +212,12 @@ const useTareas = () => {
 
 					//Validaciones
 					const errors = {};
+
+					if (!record.tareasId) errors.tareasId = "Dato requerido";
+					if (!record.moduloId) errors.moduloId = "Dato requerido";
+
 					if (list.selection.request === "B") {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-					} else {
-						if (!record.nombre) errors.nombre = "Dato requerido";
-						if (!record.moduloId) errors.nombre = "Dato requerido";
 					}
 					
 					if (Object.keys(errors).length) {

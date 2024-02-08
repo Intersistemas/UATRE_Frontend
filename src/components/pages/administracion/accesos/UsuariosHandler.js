@@ -6,18 +6,17 @@ import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 import useTareas from "./tareas/useTareas";
 import useUsuarios from "./useUsuarios";
-import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "../seccionales/useSeccionales";
-import TareaUsuario from "components/helpers/TareaUsuario";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
 	const tabs = [];
 	const [tab, setTab] = useState(0);
+	
+	const tarea = useTareasUsuario();
 
-
-	const disableTabTareas = !TareaUsuario("Accesos_UsuarioTareas")
+	const disableTabTareas = !tarea.hasTarea("Accesos_UsuarioTareas");
 	//#region Tab usuarios
 	const [usuariosTab, usuarioChanger, usuarioSelected] =
 		useUsuarios();
