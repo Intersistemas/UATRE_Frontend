@@ -18,7 +18,7 @@ const onCloseDef = () => {};
  */
 const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	//#region configuraciones API
-	const pushQuery = useQueryQueue((action) => {
+	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetFormasPago": {
 				return {
@@ -30,19 +30,21 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 				};
 			}
 			case "GetLiquidacionFormasPago": {
+				const { liquidacionCabeceraId, ...others } = params;
 				return {
 					config: {
-						baseURL: "MOCK-SIARU",
-						endpoint: `/LiquidacionesFormasPago`,
+						baseURL: "SIARU",
+						endpoint: `/LiquidacionesFormasPago/LiqCabId/${liquidacionCabeceraId}`,
 						method: "GET",
 					},
+					params: others,
 				};
 			}
 			case "CreateLiquidacionFormasPago": {
 				return {
 					config: {
-						baseURL: "MOCK-SIARU",
-						endpoint: `/LiquidacionFormasPago`,
+						baseURL: "SIARU",
+						endpoint: `/LiquidacionesFormasPago`,
 						method: "POST",
 					},
 				};
