@@ -1,7 +1,12 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-
+/**
+ * Verifica si el usuario logueado posee determinada tarea
+ * @deprecated usar useTareasUsuario en su lugar
+ * @param {string} tarea tarea a verificar
+ * @returns {boolean} true si el usuario posee la tarea
+ */
 export default function TareaUsuario(tarea) {
 
 	const usuarioLogueado = useSelector(
@@ -18,4 +23,6 @@ export default function TareaUsuario(tarea) {
 	return  encuentraTarea;
 }
 
-
+export function AsignarTareas(obj) {
+	Object.keys(obj).forEach((k) => (obj[k] = TareaUsuario(k)));
+}
