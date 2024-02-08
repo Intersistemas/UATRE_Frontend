@@ -215,11 +215,6 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	if (formasPago.loading || formaPago.loading) {
 		contenido = <text>Cargando...</text>;
 	} else if (formaPago.data == null) {
-		console.log({
-			formaPagoSelect_loading: formaPagoSelect.loading,
-			formaPagoSelect_error: formaPagoSelect.error,
-			formasPago_error: formasPago.error,
-		});
 		contenido = (
 			<Grid width col>
 				<SearchSelectMaterial
