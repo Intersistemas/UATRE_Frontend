@@ -6,36 +6,34 @@ import { useNavigate } from "react-router-dom";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useEffect } from "react";
 import UseKeyPress from '../../helpers/UseKeyPress';
-import  tareaUsuario from "components/helpers/TareaUsuario";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
-const Inicio = ({ modulos = [], tareas = [], roles = [] }) => {
+const Inicio = () => {
 	const navigate = useNavigate();
 
+	const tareas = useTareasUsuario();
 	
 	const accesos = [];
 		
-			tareaUsuario("Afiliaciones_Tabla") && accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Afiliaciones")}>  <><text className="underline">A</text>filiaciones</></Button>); 
-			tareaUsuario("Siaru_Tabla") && 		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>	   <><text className="underline">S</text>istema de Aportes Rurales</></Button>);
-			tareaUsuario("Datos_Tabla") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
-			tareaUsuario("Expedientes_Tabla") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}    disabled={!tareaUsuario("Expedientes_Tabla")}><><text className="underline">E</text>xpedientes</></Button>);
-			tareaUsuario("Informes_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}       disabled={!tareaUsuario("Informes_Tabla")}><><text className="underline">I</text>nformes</></Button>);
-			tareaUsuario("Consultas_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}      disabled={!tareaUsuario("Consultas_Tabla")}><>Co<text className="underline">n</text>sultas</></Button>);
+			tareas.hasTarea("Afiliaciones_Tabla") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Afiliaciones")}  ><><text className="underline">A</text>filiaciones</></Button>); 
+			tareas.hasTarea("Siaru_Tabla") && 		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}      ><><text className="underline">S</text>istema de Aportes Rurales</></Button>);
+			tareas.hasTarea("Datos_Tabla") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
+			tareas.hasTarea("Expedientes_Tabla") &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}   ><><text className="underline">E</text>xpedientes</></Button>);
+			tareas.hasTarea("Informes_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}      ><><text className="underline">I</text>nformes</></Button>);
+			tareas.hasTarea("Consultas_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
 			
 
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
-
-
-
 
 	UseKeyPress(['a'], ()=>navigate("Afiliaciones"), 'AltKey');
 	UseKeyPress(['s'], ()=>navigate("Empresas"), 'AltKey');
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
-	UseKeyPress(['c'], ()=>navigate("Consultas"), 'AltKey');
+	UseKeyPress(['n'], ()=>navigate("Consultas"), 'AltKey');
 		
 	
 	useEffect(() => {
-		console.log('botonesAccesos',botonesAccesos)
+		
 		if (botonesAccesos.length === 1) botonesAccesos[0].props.onClick();
 
 	}, []);

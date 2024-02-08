@@ -22,7 +22,6 @@ const InicioHandler = () => {
     
     return (
       <div>
-        {console.log('**modulos del usuario**',modulos)}
         <Inicio modulos={modulos} tareas={usuarioLogueado?.modulosTareas} roles={usuarioLogueado?.roles}/>
       </div>
     );

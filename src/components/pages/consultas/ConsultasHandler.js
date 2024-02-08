@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import TareaUsuario from "components/helpers/TareaUsuario";
 import Localizar from "../afiliados/localizar/Localizar";
 
 const ConsultasHandler = () => {
@@ -10,8 +9,6 @@ const ConsultasHandler = () => {
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
-
-	const disableLocaliza = !TareaUsuario("Consultas_AfiliadoLocaliza");
 
 	// Afiliados
 	tabs.push({
@@ -25,7 +22,7 @@ const ConsultasHandler = () => {
 							setConsulta(<Localizar onClose={() => setConsulta(null)} />)
 						}
 						width="32"
-						disabled={disableLocaliza}
+						tarea="Consultas_AfiliadoLocaliza"
 					>
 						Localiza Afiliado
 					</Button>

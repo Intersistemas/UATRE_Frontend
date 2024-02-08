@@ -10,7 +10,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "./useSeccionales";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
 import useHttp from "../../../hooks/useHttp";
-import TareaUsuario from "components/helpers/TareaUsuario";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const SeccionalesHandler = () => {
 	const dispatch = useDispatch();
@@ -20,10 +20,10 @@ const SeccionalesHandler = () => {
 	const [tab, setTab] = useState(0);
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	
-
-	const disableTabAutoridades = !TareaUsuario("Datos_SeccionalAutoridades");
-	const disableTabDocumentacion = !TareaUsuario("Datos_SeccionalDocumentacion");
-	const disableTabLocalidad = !TareaUsuario("Datos_SeccionalLocalidad");
+	const tarea = useTareasUsuario();
+	const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
+	const disableTabDocumentacion = !tarea.hasTarea("Datos_SeccionalDocumentacion");
+	const disableTabLocalidad = !tarea.hasTarea("Datos_SeccionalLocalidad");
 
 	useEffect(()=>{
 
