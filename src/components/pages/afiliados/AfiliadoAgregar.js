@@ -11,9 +11,6 @@ import {
 import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
 import useHttp from "components/hooks/useHttp";
-
-import TareaUsuario from "components/helpers/TareaUsuario";
-
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
@@ -35,6 +32,7 @@ import DatosAfip from "./DatosAfip/DatosAfip";
 import { ActualizarDatosAfip } from "./DatosAfip/ActualizarDatosAfip";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 //#region Reducers
 const fechaIngresoReducer = (state, action) => {
@@ -301,8 +299,9 @@ const AfiliadoAgregar = (props) => {
   const [dialogTexto, setDialogTexto] = useState("");
   //#endregion
 
+  const tarea = useTareasUsuario()    
 
-  const usuarioTareaValidacionAutomatica = TareaUsuario("Afiliaciones_AfiliadoAutoValida");
+  const usuarioTareaValidacionAutomatica = tarea.hasTarea("Afiliaciones_AfiliadoAutoValida");
 //#region manejo de validaciones
 const [fechaIngresoState, dispatchFechaIngreso] = useReducer(fechaIngresoReducer, {
   value: "",
@@ -1000,7 +999,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 			setSeccionales((o) => ({ ...o, ...changes }));
 		}
 		if (!seccionales.params) return applyChanges();
-		request(
+		request( 
 			{
 				baseURL: "Afiliaciones",
 				endpoint: "/Seccional/GetSeccionalesSpecs",
@@ -1121,7 +1120,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
 				(padronEmpresaRespuesta?.ciiU1EsRural ||
 					padronEmpresaRespuesta?.ciiU2EsRural ||
-					padronEmpresaRespuesta?.ciiU3EsRural) && TareaUsuario("Afiliaciones_AfiliadoAutoValida");
+					padronEmpresaRespuesta?.ciiU3EsRural) && tarea.hasTarea("Afiliaciones_AfiliadoAutoValida");
 			
 			const domicilioRealAFIP = padronRespuesta.domicilios.find(
 				(domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
@@ -2135,7 +2134,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 									className="botonAzul"
 									width={80}
 									heigth={70}
-									disabled={!TareaUsuario("Afiliaciones_ValidaCUIL") || deshabilitarBotonValidarCUIL()}
+									disabled={deshabilitarBotonValidarCUIL()}
+                  tarea="Afiliaciones_ValidaCUIL"
 									onClick={validarAfiliadoCUILHandler}
 									loading={cuilLoading}
                   underlineindex = {0}
