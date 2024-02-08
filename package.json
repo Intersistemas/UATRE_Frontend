@@ -24,6 +24,7 @@
     "imask": "^7.3.0",
     "jsbarcode": "^3.11.5",
     "moment": "^2.29.4",
+    "mui-tel-input": "^5.0.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.0",
     "react-bootstrap-table-next": "^4.0.3",

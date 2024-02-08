@@ -661,39 +661,32 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
               ? ""
               : afiliadoObj.tipoDocumentoId,
         });
-
-        const localidadId = afiliadoObj.refLocalidadId
-					? afiliadoObj.refLocalidadId
-					: "";
-				const seccionalId =
-					afiliadoObj.seccionalId && localidadId ? afiliadoObj.seccionalId : "";
-
         //dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
 
-        dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.localidadId, label: afiliadoObj?.localidad}});
-
+        dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.refLocalidadId, label: afiliadoObj?.localidad}});
         dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoObj?.seccionalId, label: afiliadoObj?.seccional}});
         
         setProvincias((o) => ({
           ...o,
           loading: "Cargando...",
-          
           onLoaded: ({data}) => {
               const provinciaSelected = data.find(
                 (prov) => prov.value === afiliadoObj.provinciaId
               ) ?? "";
                   
               dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+
               setLocalidades((o) => ({
                 ...o,
                 loading: "Cargando...",
                 params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
                 onLoaded: ({ data }) => {
                   if (!Array.isArray(data)) return;
-                  const myLocalidadId = data.find((r) => r.value === localidadId) ?? {};
-    
-                  const sinAsignar = data.at(0)?.value === localidadId ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
+
+                  const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+                  const sinAsignar = myLocalidadId?.value === provinciaSelected?.localidadIdPorDefecto ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
                   dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+
                   setSeccionales((o) => ({
                     ...o,
                     loading: "Cargando...",
@@ -701,7 +694,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
                     onLoaded: ({ data }) => {
                       if (!Array.isArray(data)) return;
                       const mySeccionalId =
-                        data.find((r) => r.value === seccionalId) ??
+                        data.find((r) => r.value === afiliadoObj?.seccionalId) ??
                         data.at(0) ??
                         {};
                       dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
@@ -1154,7 +1147,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 					? "Validación Automática"
 					: null,
 				estadoCivilId: +estadoCivilState.value,
-				refLocalidadId: localidadState?.value?.value,
+				refLocalidadId: localidadState?.value?.value, //?? padronRespuesta?.localidadId,
 				domicilio: domicilioState.value,
 				telefono: telefonoState.value,
 				correo: emailState.value,
@@ -1350,9 +1343,6 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
             //localidad
             const processLocalidades = async (localidadesObj) => {
 
-              console.log('localidadesObj',localidadesObj)
-              console.log('provinciaSelected',provinciaSelected)
-
               const localidad = localidadesObj?.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
               (localidad) =>localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal))
               ?? 
@@ -1366,15 +1356,18 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
                 ??
                ({id: provinciaSelected?.localidadIdPorDefecto})
 
-                console.log('localidad',localidad)
               setLocalidades((o) => ({
                 ...o,
                 loading: "Cargando...",
-                params: provinciaSelected ? { provinciaId: provinciaSelected?.id } : null,  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
+                params: provinciaSelected ? { provinciaId: provinciaSelected?.id } : {},  //TRAIGO TODAS LAS LOCS de LA PROVINCIA
                 onLoaded: ({ data }) => {
                   if (!Array.isArray(data)) return;
-                  const myLocalidad = localidad?.id !==  provinciaSelected?.localidadIdPorDefecto?
-                    data.find((r) => r.value === localidad?.id) : data.at(0);
+                  //const myLocalidad = localidad?.id !==  provinciaSelected?.localidadIdPorDefecto ? data.find((r) => r.value === localidad?.id) : data.at(0);
+
+                  console.log("data_localidades",data)
+                  console.log("localidad22",localidad)
+
+                  const myLocalidad = data.find((l) => l.value === localidad?.id) ?? data.at(0) ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
     
                   dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
 
@@ -1506,6 +1499,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				if(provinciaState.value === value) break;
 
         dispatchProvincia({ type: "USER_INPUT", value });
+
 				setLocalidades((o) => ({
 					...o,
 					loading: "Cargando...",
@@ -1513,7 +1507,12 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 					onLoaded: ({ data }) => {
             //
 						if (!Array.isArray(data)) return;
+
+            //const myLocalidad = data.find((l) => l.value === localidad?.id) ?? data.at(0) ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+
+            console.log("data_localidades_change",data)
 						dispatchLocalidad({ type: "USER_INPUT", value: data.at(0) ?? {} });
+
 						setSeccionales((o) => ({
 							...o,
 							loading: "Cargando...",
@@ -1840,7 +1839,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 			estadoSolicitudId: +afiliado.estadoSolicitudId,
 			estadoSolicitudObservacion: afiliado.estadoSolicitudObservacion,
 			estadoCivilId: +estadoCivilState.value,
-			refLocalidadId: +localidadState.value.value,
+			refLocalidadId: +localidadState.value.value, //?? padronRespuesta.localidadId,
 			domicilio: domicilioState.value,
 			telefono: telefonoState.value,
 			correo: emailState.value,

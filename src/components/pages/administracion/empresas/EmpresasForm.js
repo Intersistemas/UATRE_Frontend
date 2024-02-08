@@ -7,7 +7,7 @@ import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
-import InputMask from "react-input-mask";
+// import InputMask from "react-input-mask";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -611,7 +611,7 @@ const EmpresasForm = ({
 								<InputMaterial
 									id="cuitEmpresa"
 									label="CUIT"
-									as={InputMask}
+									// as={InputMask}
 									mask="99-99.999.999-9"
 									required
 									error={!!errors.cuit}
@@ -745,11 +745,12 @@ const EmpresasForm = ({
 							<InputMaterial
 								id="telefono"
 								label="Teléfono"
+								type="tel"
 								error={!!errors.telefono}
 								helperText={errors.telefono ?? ""}
 								value={data.telefono}
 								disabled={disabled.telefono ?? false}
-								onChange={(telefono) => onChange({ telefono })}
+								onChange={(telefono) => { console.log({telefono}); onChange({ telefono })}}
 							/>
 						</Grid>
 						<Grid grow>
