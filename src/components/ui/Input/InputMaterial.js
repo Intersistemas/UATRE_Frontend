@@ -1,6 +1,6 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
-import InputMask from 'react-input-mask';
+import InputMask from "react-input-mask";
 import { MuiTelInput } from "mui-tel-input";
 
 const onChangeDef = (value, id) => {};
@@ -32,9 +32,11 @@ const InputMaterial = ({
 		...textFieldProps.FormHelperTextProps.style,
 	};
 
-	if (type === "tel") return <MuiTelInput disabled={disabled} {...textFieldProps} />;
+	if (type === "tel")
+		return <MuiTelInput disabled={disabled} {...textFieldProps} />;
 
-	if (id === "cuil" && !"autoFocus" in textFieldProps) textFieldProps.autoFocus = true;
+	if (id === "cuil" && !"autoFocus" in textFieldProps)
+		textFieldProps.autoFocus = true;
 
 	if (type === "date") textFieldProps.inputFormat ??= "DD/MM/YYYY";
 
@@ -59,11 +61,12 @@ const InputMaterial = ({
 		disabled,
 		value: textFieldProps.value,
 		onChange: textFieldProps.onChange,
-	}
+	};
 	if (textFieldProps.onFocus) {
 		inputMaskProps.onFocus = textFieldProps.onFocus;
 		delete textFieldProps.onFocus;
 	}
+	if (textFieldProps.as === InputMask) delete textFieldProps.as;
 
 	return (
 		<InputMask {...inputMaskProps}>
