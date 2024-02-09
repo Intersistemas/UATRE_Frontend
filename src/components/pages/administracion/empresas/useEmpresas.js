@@ -193,8 +193,7 @@ const useEmpresas = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data.push(...data);
-				data = changes.data;
+				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
 				changes.pagination = { index, size, count };
@@ -220,120 +219,117 @@ const useEmpresas = ({
 	}, [pushQuery, list]);
 	//#endregion
 
-	const request = useCallback(
-		(type, payload = {}) => {
-			switch (type) {
-				case "selected": {
-					return setList((o) => {
-						const apply = [];
-						if (payload.request !== "A") {
-							apply.push(
-								...AsArray(
-									"record" in payload ? payload.record : o.selection.record,
-									true
-								)
-									.map(({ id }) => id)
-									.filter((r) => r)
-							);
-						}
-						const edit = {
-							...(payload.request === "A"
-								? {}
-								: JoinOjects(o.selection.record)),
-							...JoinOjects(payload.record),
-						};
-						return {
-							...o,
-							selection: {
-								...o.selection,
-								request: payload.request,
-								action: payload.action,
-								edit,
-								apply,
-							},
-						};
-					});
-				}
-				case "list": {
-					return setList((o) => {
-						const changes = {
-							loading: null,
-							data:
-								"data" in payload && Array.isArray(payload.data)
-									? [...payload.data]
-									: payload.clear
-									? []
-									: o.data,
-							loadingOverride: payload.loading,
-							error: payload.error,
-							onLoadSelect:
-								"onLoadSelect" in payload
-									? payload.onLoadSelect
-									: o.onLoadSelect,
-							selection: {
-								...o.selection,
-								multi: "multi" in payload ? !!payload.multi : o.selection.multi,
-							},
-						};
-						if (payload.params) changes.params = payload.params;
-						if (payload.pagination)
-							changes.pagination = { ...o.pagination, ...payload.pagination };
-						if (payload.clear) {
-							const data = changes.data;
-							const multi = changes.selection.multi;
-							const record = o.selection.record;
-							changes.selection = {
-								...changes.selection,
-								...selectionDef,
-								record: changes.onLoadSelect({ data, multi, record }),
-							};
-							changes.selection.index = multi
-								? changes.selection.record?.map((r) => changes.data.indexOf(r))
-								: changes.data.indexOf(changes.selection.record);
-						} else {
-							changes.loading = "Cargando...";
-						}
-						return { ...o, ...changes };
-					});
-				}
-				case "GetById": {
-					return pushQuery({
-						action: "GetById",
-						params: { ...payload.params },
-						onOk: async (obj) => {
-							let data = [];
-							data.push(obj);
-							setList((o) => {
-								const selection = {
-									action: "",
-									request: "",
-									record: data,
-								};
-								return {
-									...o,
-									loading: null,
-									data,
-									error: null,
-									selection,
-								};
-							});
+	const request = useCallback((type, payload = {}) => {
+		switch (type) {
+			case "selected": {
+				return setList((o) => {
+					const apply = [];
+					if (payload.request !== "A") {
+						apply.push(
+							...AsArray(
+								"record" in payload ? payload.record : o.selection.record,
+								true
+							)
+								.map(({ id }) => id)
+								.filter((r) => r)
+						);
+					}
+					const edit = {
+						...(payload.request === "A"
+							? {}
+							: JoinOjects(o.selection.record)),
+						...JoinOjects(payload.record),
+					};
+					return {
+						...o,
+						selection: {
+							...o.selection,
+							request: payload.request,
+							action: payload.action,
+							edit,
+							apply,
 						},
-						onError: async (err) =>
-							setList((o) => ({
+					};
+				});
+			}
+			case "list": {
+				return setList((o) => {
+					const changes = {
+						loading: null,
+						data:
+							"data" in payload && Array.isArray(payload.data)
+								? [...payload.data]
+								: payload.clear
+								? []
+								: o.data,
+						loadingOverride: payload.loading,
+						error: payload.error,
+						onLoadSelect:
+							"onLoadSelect" in payload
+								? payload.onLoadSelect
+								: o.onLoadSelect,
+						selection: {
+							...o.selection,
+							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
+						},
+					};
+					if (payload.params) changes.params = payload.params;
+					if (payload.pagination)
+						changes.pagination = { ...o.pagination, ...payload.pagination };
+					if (payload.clear) {
+						const data = changes.data;
+						const multi = changes.selection.multi;
+						const record = o.selection.record;
+						changes.selection = {
+							...changes.selection,
+							...selectionDef,
+							record: changes.onLoadSelect({ data, multi, record }),
+						};
+						changes.selection.index = multi
+							? changes.selection.record?.map((r) => changes.data.indexOf(r))
+							: changes.data.indexOf(changes.selection.record);
+					} else {
+						changes.loading = "Cargando...";
+					}
+					return { ...o, ...changes };
+				});
+			}
+			case "GetById": {
+				return pushQuery({
+					action: "GetById",
+					params: { ...payload.params },
+					onOk: async (obj) => {
+						let data = [];
+						data.push(obj);
+						setList((o) => {
+							const selection = {
+								action: "",
+								request: "",
+								record: data,
+							};
+							return {
 								...o,
 								loading: null,
-								data: [],
-								error: err.code === 404 ? null : err,
-								selection: { ...selectionDef },
-							})),
-					});
-				}
-				default:
-					return;
+								data,
+								error: null,
+								selection,
+							};
+						});
+					},
+					onError: async (err) =>
+						setList((o) => ({
+							...o,
+							loading: null,
+							data: [],
+							error: err.code === 404 ? null : err,
+							selection: { ...selectionDef },
+						})),
+				});
 			}
-		},
-		[pushQuery]
-	);
+			default:
+				return;
+		}
+	}, [pushQuery]);
 
 	let form = null;
 	if (list.selection.request) {
@@ -727,7 +723,8 @@ const useEmpresas = ({
 				onTableChange={(type, newState) => {
 					switch (type) {
 						case "sort": {
-							const { sortField, sortOrder } = newState;
+							let { sortField, sortOrder } = newState;
+							sortField = { cuit: "CUIT" }[sortField] ?? sortField;
 							return setList((o) => ({
 								...o,
 								loading: "Cargando...",
