@@ -52,9 +52,6 @@ const EmpresasForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	console.log('EmpresasForm_data:',data)
-	console.log('EmpresasForm_errors:',errors)
-
 	useEffect(() => {
 		validarEmpresaCUITHandler();
 	},[])
@@ -138,8 +135,6 @@ const EmpresasForm = ({
 
 	const handlerOnTextChange = (event) => {
 
-		console.log('event_handlerOnTextChange',event);
-		
 		setProvincias(...provincias, {provinciaEmpresa: {value:event.target.value}})
 		setProvincias(...provincias, {buscar:event.target.value})
 		
@@ -159,7 +154,6 @@ const EmpresasForm = ({
 		pushQuery({
 			action: "GetProvincias",
 			onOk: async (ok) => {
-				console.log('provincias_data--:',ok)
 				if (!Array.isArray(ok))
 					return console.error("Se esperaba un arreglo", { GetProvincias: data });
 				changes.data.push(...ok);
@@ -198,7 +192,6 @@ const EmpresasForm = ({
 			action: "GetLocalidades",
 			params: { ProvinciaId:  data?.domicilioProvinciasId, SoloActivos: true },
 			onOk: async (ok) => {
-				console.log('localidades_data:',ok)
 				if (!Array.isArray(ok))
 					return console.error("Se esperaba un arreglo", { GetLocalidades: ok });
 				changes.data.push(...ok);
@@ -424,7 +417,6 @@ const EmpresasForm = ({
 		});
 
 		const validaAFIP = () => {
-			console.log('validaAFIP...')
 			pushQuery({
 				action: "ConsultaAFIP",
 				params: { cuit: data.cuit, VerificarHistorico: false },
@@ -693,8 +685,8 @@ const EmpresasForm = ({
 						</Grid>
 					</Grid>
 			
-					<Grid width="full" gap="inherit">
-						<Grid width="250px">
+					<Grid width gap="inherit">
+						<Grid col width>
 							<SearchSelectMaterial
 								id="domicilioProvinciasId"
 								name="domicilioProvinciasId"
@@ -717,20 +709,30 @@ const EmpresasForm = ({
 						</Grid>
 
 
-						<Grid width="250px">
+						<Grid width>
 							<SearchSelectMaterial
 							id="domicilioLocalidadesId"
 							name="domicilioLocalidadesId"
 							label="Localidad"
 							error={(!!errors.domicilioLocalidadesId)} 
-							helperText={errors.domicilioLocalidadesId ?? ""}							
+							helperText={[
+								errors.domicilioLocalidadesId,
+								validacionCUIT.datoAFIP,
+							]
+								.filter((r) => r)
+								.join("\n")}
 							value={localidades.localidadSelected}
 							disabled={disabled.domicilioLocalidadesId ?? false}
-							onChange={(value, _id) => (
-								onChange({ domicilioLocalidadesId: value.value }),
-								onChange({ localidadNombre: value.label }),
-								setLocalidades((o) => ({ ...o, localidadSelected: {label: value.label}}))
-								)}
+							onChange={(value, _id) => {
+								onChange({
+									domicilioLocalidadesId: value.value,
+									localidadNombre: value.label,
+								});
+								setLocalidades((o) => ({
+									...o,
+									localidadSelected: { label: value.label },
+								}));
+							}}
 							
 							options={localidades.options}
 							onTextChange={handlerOnTextChange}
@@ -738,10 +740,7 @@ const EmpresasForm = ({
 							/>
 							
 						</Grid>
-						<h7>{validacionCUIT.datoAFIP}</h7>
-					</Grid>
-					<Grid width="full" gap="inherit">
-						<Grid width="250px">
+						<Grid width>
 							<InputMaterial
 								id="telefono"
 								label="Teléfono"
@@ -750,10 +749,12 @@ const EmpresasForm = ({
 								helperText={errors.telefono ?? ""}
 								value={data.telefono}
 								disabled={disabled.telefono ?? false}
-								onChange={(telefono) => { console.log({telefono}); onChange({ telefono })}}
+								onChange={(telefono) => onChange({ telefono })}
 							/>
 						</Grid>
-						<Grid grow>
+					</Grid>
+					<Grid width="full" gap="inherit">
+						<Grid width>
 							<InputMaterial
 								id="email"
 								name="email"
@@ -765,7 +766,7 @@ const EmpresasForm = ({
 								onChange={(email) => onChange({ email })}
 							/>
 						</Grid>
-						<Grid grow>
+						<Grid width>
 							<InputMaterial
 								id="email2"
 								name="email2"

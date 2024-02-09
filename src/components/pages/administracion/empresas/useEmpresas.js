@@ -8,6 +8,7 @@ import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import Formato from "components/helpers/Formato";
 import { matchIsValidTel } from "mui-tel-input";
+import ValidarEmail from "components/validators/ValidarEmail";
 
 const selectionDef = {
 	action: "",
@@ -483,12 +484,19 @@ const useEmpresas = ({
 						if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 						if (!record.domicilioCalle)
 							errors.domicilioCalle = "Dato requerido";
-						//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
+						if ((record.domicilioProvinciasId ?? 0) === 0)
+							errors.domicilioProvinciasId = "Dato requerido";
+						if ((record.domicilioLocalidadesId ?? 0) === 0)
+							errors.domicilioLocalidadesId = "Dato requerido";
 						if (!record.actividadPrincipalDescripcion)
 							errors.actividadPrincipalDescripcion = "Dato requerido";
 						if (!record.telefono) errors.telefono = "Dato requerido";
 						else if (!matchIsValidTel(record.telefono)) errors.telefono = "Dato incorrecto";
 						if (!record.email) errors.email = "Dato requerido";
+						else if (!ValidarEmail(record.email))
+							errors.email = "Dato incorrecto";
+						if (record.email2 && !ValidarEmail(record.email2))
+							errors.email2 = "Dato incorrecto";
 
 						// if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
 						// if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
