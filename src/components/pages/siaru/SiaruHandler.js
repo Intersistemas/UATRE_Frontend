@@ -32,10 +32,7 @@ const SiaruHandler = () => {
 	const [empresaNueva,setEmpresaNueva] = useState();
 
 	const pushQuery = useQueryQueue((action, params) => {
-
-		console.log('siaru_pushQuery',action, "&",params)
 		switch (action) {
-
 			case "GetList": {
 				const { usuarioId , ...otherParams } = params;
 				return {
@@ -47,7 +44,6 @@ const SiaruHandler = () => {
 					params: otherParams,
 				};
 			}
-
 			case "GetEmpresa": {
 				return {
 					config: {
@@ -57,7 +53,6 @@ const SiaruHandler = () => {
 					},
 				};
 			}
-
 			case "CreateUsuarioEmpresa": {
 				return {
 					config: {
@@ -67,7 +62,6 @@ const SiaruHandler = () => {
 					},
 				};
 			}
-
 			case "Create": {
 				return {
 					config: {
@@ -78,7 +72,6 @@ const SiaruHandler = () => {
 				};
 			}
 			case "Update": {
-				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Comunes",
@@ -107,9 +100,7 @@ const SiaruHandler = () => {
 
 
 	useEffect(()=>{
-		
 		if (!empresaNueva) return
-		console.log('onFinally')
 		pushQuery({				
 			onError: async (err) => alert(err.message),
 			action: "CreateUsuarioEmpresa",
@@ -120,7 +111,6 @@ const SiaruHandler = () => {
 				} //debo pasarle IsUsuario y IdEmpresa
 			},
 		})
-
 	},[empresaNueva, pushQuery,authContext])
 
 
@@ -141,7 +131,6 @@ const SiaruHandler = () => {
 			},
 			onOk: async (data) =>		
 				setList((o) => {
-					console.log('data_empresas:',data)
 					const selection = {
 						record: {},//o.selection.record,
 						action: "",
@@ -286,32 +275,7 @@ const SiaruHandler = () => {
 					? { deletedObs: true }
 					: {}
 			}
-
-			/*
-			ValidarCUIT={(existe) =>{
-
-				existe ?
-				setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						request: "R",
-					},
-				}))
-				:
-				setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						request: "A",
-					},
-				}))
-			}}*/
-
 			onChange={(changes) =>{ //solo entra el campo que se está editando
-
-				console.log('changes:',changes);
-				 
 				if ((changes?.cuit?.length === 11) && !ValidarCUIT(changes?.cuit)) {
 					const errors = {};
 					errors.cuit = "CUIT Incorrecto";
@@ -323,7 +287,6 @@ const SiaruHandler = () => {
 						},
 					}));
 				}
-
 				setList((o) => ({
 					...o,
 					selection: {
@@ -336,20 +299,7 @@ const SiaruHandler = () => {
 				}))
 				}
 			}
-
-			/*onTextChange={(partialText)=>{
-				console.log('partialText',partialText);
-				//setLocalidadBuscar(partialText);
-			}}*/
-
 			onClose={(confirm) => {
-
-				console.log('list',list);
-				/*if (list.selection.request === 'R'){
-					setEmpresaNueva()
-					return;
-				}*/
-
 				if (!["A", "R"].includes(list.selection.request)){
 					confirm = false}
 				if (!confirm) {
@@ -393,8 +343,6 @@ const SiaruHandler = () => {
 					//if (!record.domicilioProvinciasId || record.domicilioProvinciasId === 0) errors.domicilioProvinciasId = "Dato requerido";
 				}
 			
-				console.log('useEmpresas_errors',errors);
-
 				if (Object.keys(errors).length) {
 					setList((o) => ({
 						...o,
@@ -431,10 +379,7 @@ const SiaruHandler = () => {
 					default:
 						break;
 				}
-
 				pushQuery(query);
-
-
 			}}
 		/>
 	);

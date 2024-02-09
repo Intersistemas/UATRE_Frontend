@@ -1,3 +1,4 @@
+import React from "react";
 import { FormControl, Autocomplete } from "@mui/material";
 import InputMaterial from "../Input/InputMaterial";
 import styles from "./SearchSelectMaterial.module.css";
@@ -42,16 +43,14 @@ const SearchSelectMaterial = (props) => {
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
-          <InputMaterial
-            error={props.error}
+					<InputMaterial
+						error={props.error}
 						helperText={props.helperText}
-            {...params}
-            label={props.label}
-            key={props.value}
-            onChange={props.onTextChange}
-            value={props.value || ""}
-          />
-        )}
+						label={props.label}
+						{...params}
+						onChange={props.onTextChange}
+					/>
+				)}
       />
     </FormControl>
   );
