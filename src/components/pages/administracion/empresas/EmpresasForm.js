@@ -133,15 +133,6 @@ const EmpresasForm = ({
 		error: null,
 	});
 
-	const handlerOnTextChange = (event) => {
-
-		setProvincias(...provincias, {provinciaEmpresa: {value:event.target.value}})
-		setProvincias(...provincias, {buscar:event.target.value})
-		
-	  };
-
-
-
 	useEffect(() => {
 
 		if (!provincias.loading) return;
@@ -701,7 +692,7 @@ const EmpresasForm = ({
 									setProvincias((o) => ({ ...o, provinciaSelected: value}))
 									)}
 								options={provincias.options}
-								onTextChange={handlerOnTextChange}
+								onTextChange={(buscar) => setProvincias((o) => ({ ...o, buscar }))}
 								required
 							/>
 						</Grid>
@@ -733,7 +724,7 @@ const EmpresasForm = ({
 							}}
 							
 							options={localidades.options}
-							onTextChange={handlerOnTextChange}
+							onTextChange={(buscar) => setLocalidades((o) => ({ ...o, buscar }))}
 							required
 							/>
 							
