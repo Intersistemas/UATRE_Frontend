@@ -1,6 +1,6 @@
 import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
-import InputMask from 'react-input-mask';
+import InputMask from "react-input-mask";
 import { MuiTelInput } from "mui-tel-input";
 
 const onChangeDef = (value, id) => {};
@@ -16,7 +16,7 @@ const InputMaterial = ({
 	onChange = onChangeDef,
 	...x
 }) => {
-	const props = {
+	const textFieldProps = {
 		className: styles.input,
 		id,
 		size,
@@ -26,20 +26,22 @@ const InputMaterial = ({
 		InputProps: { readOnly, ...x.InputProps },
 		onChange: (v) => onChange(v, id),
 	};
-	props.FormHelperTextProps ??= {};
-	props.FormHelperTextProps.style = {
+	textFieldProps.FormHelperTextProps ??= {};
+	textFieldProps.FormHelperTextProps.style = {
 		marginTop: "0px",
-		...props.FormHelperTextProps.style,
+		...textFieldProps.FormHelperTextProps.style,
 	};
 
-	if (type === "tel") return <MuiTelInput disabled={disabled} {...props} />;
+	if (type === "tel")
+		return <MuiTelInput disabled={disabled} {...textFieldProps} />;
 
-	if (id === "cuil" && !"autoFocus" in props) props.autoFocus = true;
+	if (id === "cuil" && !"autoFocus" in textFieldProps)
+		textFieldProps.autoFocus = true;
 
-	if (type === "date") props.inputFormat ??= "DD/MM/YYYY";
+	if (type === "date") textFieldProps.inputFormat ??= "DD/MM/YYYY";
 
-	props.type = type;
-	props.onChange = ({ target }) => {
+	textFieldProps.type = type;
+	textFieldProps.onChange = ({ target }) => {
 		switch (id) {
 			case "cuit":
 				const reCUIT = /^[0-9\b]+$/;
@@ -53,15 +55,22 @@ const InputMaterial = ({
 		}
 	};
 
+	const inputMaskProps = {
+		className: textFieldProps.className,
+		mask,
+		disabled,
+		value: textFieldProps.value,
+		onChange: textFieldProps.onChange,
+	};
+	if (textFieldProps.onFocus) {
+		inputMaskProps.onFocus = textFieldProps.onFocus;
+		delete textFieldProps.onFocus;
+	}
+	if (textFieldProps.as === InputMask) delete textFieldProps.as;
+
 	return (
-		<InputMask
-			className={props.className}
-			mask={mask}
-			disabled={disabled}
-			value={props.value}
-			onChange={props.onChange}
-		>
-			{() => <TextField {...props} />}
+		<InputMask {...inputMaskProps}>
+			{() => <TextField {...textFieldProps} />}
 		</InputMask>
 	);
 };

@@ -9,16 +9,17 @@ import useDelegaciones from "./useDelegaciones";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
-import TareaUsuario from "components/helpers/TareaUsuario";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
-	const disableTabDocumentacion = !TareaUsuario("Datos_DelegacionDocumentacion");
-	const disableTabColaborador = !TareaUsuario("Datos_DelegacionColaborador");
-	const disableTabSeccional = !TareaUsuario("Datos_DelegacionSeccional");
+	const tarea = useTareasUsuario();
+	const disableTabDocumentacion = !tarea.hasTarea("Datos_DelegacionDocumentacion");
+	const disableTabColaborador = !tarea.hasTarea("Datos_DelegacionColaborador");
+	const disableTabSeccional = !tarea.hasTarea("Datos_DelegacionSeccional");
 
 	//#region Tab delegaciones
 	const [delegacionesTab, delegacionChanger, delegacionSelected] =
