@@ -1,18 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
-import { Tabs, Tab } from "@mui/material";
-import Grid from "components/ui/Grid/Grid";
-import Action from "components/helpers/Action";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
-//import useAutoridades from "components/pages/administracion/empresas/autoridades/useAutoridades";
-import KeyPress from "components/keyPress/KeyPress";
-import useEmpresas, { onLoadSelectKeepOrFirst } from "./useEmpresas";
-//import useEmpresaLocalidades from "./empresaLocalidades/useEmpresaLocalidades";
-import useHttp from "../../../hooks/useHttp";
 import dayjs from "dayjs";
+import { Tabs, Tab } from "@mui/material";
 import AuthContext from "store/authContext";
+import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import KeyPress from "components/keyPress/KeyPress";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import useEmpresas, { onLoadSelectKeepOrFirst } from "./useEmpresas";
 
 const EmpresasHandler = () => {
 	const dispatch = useDispatch();
@@ -42,7 +40,13 @@ const EmpresasHandler = () => {
 		);
 	},[]);
 	
-	
+	//#region Localidades Params
+	const [empresasParams, setEmpresasParams] = useState({
+		filtro: "",
+		orderBy: "razonSocial"
+	});
+	//#endregion
+
 	//#region Tab Empresas
 	const {
 		render: empresasTab,
@@ -138,13 +142,36 @@ const EmpresasHandler = () => {
 
 	tabs.push({
 		header: () => <Tab label="Empresas" />,
-		body: empresasTab,
+		body: () => empresasTab(),
+		body: () => (
+			<Grid width col gap="10px">
+				<Grid />
+				<Grid gap="inherit">
+					<InputMaterial
+						label="Filtro por CUIT / Razón social"
+						value={empresasParams.filtro}
+						onChange={(filtro) => {
+							setEmpresasParams((o) => ({ ...o, filtro }));
+						}}
+					/>
+				</Grid>
+				{empresasTab()}
+			</Grid>
+		),
 		actions: empresasActions,
 	});
 
+	//Carga de lista según parametros
 	useEffect(() => {
-		empresaChanger("list", { params: { orderBy: "razonSocial"} })
-	}, [empresaChanger]);
+		const { filtro, ...params } = empresasParams;
+		const payload = {
+			params,
+			pagination: { size: 15 },
+			onLoadSelect: onLoadSelectKeepOrFirst,
+		};
+		if (filtro) params.filtro = filtro;
+		empresaChanger("list", payload);
+	}, [empresaChanger, empresasParams]);
 	//#endregion
 
 	//#region Tab Autoridades 

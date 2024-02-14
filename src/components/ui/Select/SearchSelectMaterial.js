@@ -1,4 +1,6 @@
-import { FormControl, Autocomplete, TextField } from "@mui/material";
+import React from "react";
+import { FormControl, Autocomplete } from "@mui/material";
+import InputMaterial from "../Input/InputMaterial";
 import styles from "./SearchSelectMaterial.module.css";
 
 // const ITEM_HEIGHT = 48;
@@ -7,13 +9,7 @@ import styles from "./SearchSelectMaterial.module.css";
 const SearchSelectMaterial = (props) => {
 
   const handleChange = (event, newValue) => {   
-    //console.log("SearchSelectMaterial_event.target", event.target)
-    
-    console.log('newValue',newValue)
-    console.log('handleChange_props',props)
-
     newValue !==null ? props.onChange(newValue, props.name) : props.onChange(props.options[0], props.name);
-
     //props.onChange(newValue, props.name)
   };
 
@@ -47,16 +43,14 @@ const SearchSelectMaterial = (props) => {
         getOptionLabel={(option) => option.label || ""}
         //defaultValue={props.defaultValue}
         renderInput={(params) => (
-          <TextField
-            error={props.error}
-            style={{'max-height': '40px'}}
-            {...params}
-            label={props.label}
-            key={props.value}
-            onChange={props.onTextChange}
-            value={props.value || ""}
-          />
-        )}
+					<InputMaterial
+						error={props.error}
+						helperText={props.helperText}
+						label={props.label}
+						{...params}
+						onChange={props.onTextChange}
+					/>
+				)}
       />
     </FormControl>
   );
