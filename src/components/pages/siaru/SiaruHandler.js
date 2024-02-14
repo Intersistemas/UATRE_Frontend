@@ -275,17 +275,17 @@ const SiaruHandler = () => {
 					? { deletedObs: true }
 					: {}
 			}
-			onChange={(changes) =>{ //solo entra el campo que se está editando
-				if ((changes?.cuit?.length === 11) && !ValidarCUIT(changes?.cuit)) {
-					const errors = {};
-					errors.cuit = "CUIT Incorrecto";
-					setList((o) => ({
-						...o,
-						selection: {
-							...o.selection,
-							errors,
-						},
-					}));
+			onChange={(changes) => { //solo entra el campo que se está editando
+				const errors = {};
+				if ("cuit" in changes) {
+					errors.cuit = ""
+					if ((changes?.cuit?.length === 11)) {
+						if (ValidarCUIT(changes?.cuit)) {
+							//ToDo: Si existe la empresa relacionada, cambiar a modificar
+						} else {
+							errors.cuit = "CUIT Incorrecto";
+						}
+					}
 				}
 				setList((o) => ({
 					...o,
@@ -295,10 +295,13 @@ const SiaruHandler = () => {
 							...o.selection.record,
 							...changes,
 						},
+						errors: {
+							...o.selection.errors,
+							...errors
+						},
 					},
 				}))
-				}
-			}
+			}}
 			onClose={(confirm) => {
 				if (!["A", "R"].includes(list.selection.request)){
 					confirm = false}
@@ -327,7 +330,7 @@ const SiaruHandler = () => {
 				if (["A", "M"].includes(list.selection.request)){
 					
 					if (!record.cuit) errors.cuit = "Dato requerido";
-					if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
+					else if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
 					//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
