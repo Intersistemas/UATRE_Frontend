@@ -8,6 +8,8 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useHttp from "../../../../hooks/useHttp";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterialNuevo from "components/ui/Select/SearchSelectMaterialNuevo";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -24,18 +26,17 @@ const TareaUsuarioForm = ({
 
 }) => {
 	data ??= {}; 
-	//console.log('Form_tarea_data:',data)
+	console.log('Form_tarea_data:',data)
 	 //console.log('data_tarea:',data)
 	 //console.log('delegaciones_tarea:',delegaciones)
 	//console.log('Form_tarea_errors:',errors)
-	console.log('Form_tarea_disabled:',disabled)
+	//console.log('Form_tarea_disabled:',disabled)
 	
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
-
 
 	const [modulos, setModulos] = useState({
 		loading: "Cargando...",
@@ -45,7 +46,7 @@ const TareaUsuarioForm = ({
 		buscar: "",
 		buscado: "",
 		options: [],
-		selected:  data.modulosId,
+		selected: {value:data.modulosId,label:data.nombreModulo}
 	});
 
 	const [tareas, setTareas] = useState({
@@ -56,9 +57,11 @@ const TareaUsuarioForm = ({
 		buscar: "",
 		buscado: "",
 		options: [],
-		selected: data.tareasId,
+		selected: {value:data.tareasId, label:data.nombreTarea},
 	});
 	
+	console.log("tareas_selected",tareas?.selected);
+	console.log("modulos_selected",modulos.selected)
 
 	const { isLoading, error, sendRequest: request } = useHttp();	
 
@@ -66,7 +69,6 @@ const TareaUsuarioForm = ({
 	useEffect(() => {
 		
 		const processModulos = async (moduloObj) => {
-			
 			const modulosTodos = moduloObj.map((modulo) => {
 			return { value: modulo.id, label: modulo.nombre };
 			});
@@ -99,7 +101,7 @@ const TareaUsuarioForm = ({
 		request(
 			{
 			baseURL: "Seguridad",
-			endpoint: `/Tareas?ModulosId=${data.modulosId}`,
+			endpoint: `/Tareas?ModulosId=${data?.modulosId}`,
 			method: "GET",
 			},
 			async (ok) => (processTareas(ok)),
@@ -108,6 +110,34 @@ const TareaUsuarioForm = ({
 		);
 	},[data.modulosId]);
 	//#endregion
+
+	// Buscador
+	useEffect(() => {
+		if (modulos.loading) return;
+		if (modulos.buscar === modulos.buscado) return;
+		const options = modulos.data.filter((r) =>
+			modulos.buscar !== ""
+				? r.label
+						.toLocaleLowerCase()
+						.includes(modulos.buscar.toLocaleLowerCase())
+				: true
+		);
+		setModulos((o) => ({ ...o, options, buscado: o.buscar }));
+	}, [modulos]);
+
+	// Buscador
+	useEffect(() => {
+		if (tareas.loading) return;
+		if (tareas.buscar === tareas.buscado) return;
+		const options = tareas.data.filter((r) =>
+			tareas.buscar !== ""
+				? r.label
+						.toLocaleLowerCase()
+						.includes(tareas.buscar.toLocaleLowerCase())
+				: true
+		);
+		setTareas((o) => ({ ...o, options, buscado: o.buscar }));
+	}, [tareas]);
 
 	UseKeyPress(['Escape'], () => onClose());
 	UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
@@ -125,7 +155,7 @@ const TareaUsuarioForm = ({
 					<Grid col full gap="15px">
 						<Grid width="full" gap="inherit">
 							<Grid width="50%">
-								<SelectMaterial
+								<SearchSelectMaterialNuevo
 									id="modulosId"
 									name="modulosId"
 									label="Modulo"
@@ -137,17 +167,20 @@ const TareaUsuarioForm = ({
 								
 											setTareas((o) => ({ ...o, selected:{} })),
 											setModulos((o) => ({ ...o, selected })),
-											onChange({modulosId: selected}),
+											onChange({modulosId: selected.value}),
 											onChange({tareasId: ""})
 										)									
 									}
 									//defaultValue="Afilia"
 									options={modulos.options}
+									onTextChange={({ buscar }) =>
+										setModulos((o) => ({ ...o, buscar }))
+									}
 									required
 								/>     
 							</Grid>
 							<Grid width="50%">
-								<SelectMaterial
+								<SearchSelectMaterialNuevo
 									id="tareasId"
 									name="tareasId"
 									label="Tarea"
@@ -158,11 +191,14 @@ const TareaUsuarioForm = ({
 									onChange={(selected) =>
 										(
 											setTareas((o) => ({ ...o, selected })),
-											onChange({tareasId: selected})
+											onChange({tareasId: selected.value})
 										)
 									}
 									//defaultValue="Afilia"
 									options={tareas.options}
+									onTextChange={({ buscar }) =>
+										setTareas((o) => ({ ...o, buscar }))
+									}
 									required
 								/>     
 							</Grid>

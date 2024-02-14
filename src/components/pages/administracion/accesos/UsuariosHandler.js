@@ -171,7 +171,7 @@ const UsuariosHandler = () => {
 	}, [tareaChanger, tareaSelected, usuarioSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Tareas" disabled={!usuarioSelected || disableTabTareas} />,
+		header: () => <Tab label="Usuario Tareas" disabled={!usuarioSelected || disableTabTareas} />,
 		body: tareasTab,
 		actions: tareasActions,
 	});
@@ -187,16 +187,17 @@ const UsuariosHandler = () => {
 	
 	
 
-	/*
-	//#region Tab colaboradores
-	const [colaboradoresTab, colaboradoresChanger, colaboradorSelected] =
-		useColaboradores();
-	const [colaboradoresActions, setColaboradoresActions] = useState([]);
-	/*useEffect(() => {
+	
+	//#region Tab ambitos
+	
+	const [ambitosActions, setAmbitosActions] = useState([]);
+/*
+	const [ambitosTab, ambitosChanger, ambitoSelected] = useAmbitos();
+	useEffect(() => {
 		const actions = [];
 		const dele = usuarioSelected?.id;
 		if (!dele) {
-			setColaboradoresActions(actions);
+			setAmbitosActions(actions);
 			return;
 		}
 		const deleDesc = `para Usuario ${dele}`;
@@ -204,7 +205,7 @@ const UsuariosHandler = () => {
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					colaboradoresChanger("selected", {
+					ambitosChanger("selected", {
 						request,
 						action,
 						record: { refUsuarioId: usuarioSelected?.id },
@@ -214,21 +215,21 @@ const UsuariosHandler = () => {
 			});
 		actions.push(
 			createAction({
-				action: `Agrega Colaborador ${deleDesc}`,
+				action: `Agrega Ambito ${deleDesc}`,
 				request: "A",
 				keys: "a",
 				underlineindex: 0,
 			})
 		);
-		const sele = colaboradorSelected?.id;
+		const sele = ambitoSelected?.id;
 		if (!sele) {
-			setColaboradoresActions(actions);
+			setAmbitosActions(actions);
 			return;
 		}
 		const seleDesc = `${sele} ${deleDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Colaborador ${seleDesc}`,
+				action: `Consulta Ambito ${seleDesc}`,
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
@@ -236,16 +237,16 @@ const UsuariosHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Colaborador ${seleDesc}`,
+				action: `Modifica Ambito ${seleDesc}`,
 				request: "M",
 				keys: "m",
 				underlineindex: 0,
 			})
 		);
-		if (colaboradorSelected?.deletedDate) {
+		if (ambitoSelected?.deletedDate) {
 			actions.push(
 				createAction({
-					action: `Reactiva Colaborador ${seleDesc}`,
+					action: `Reactiva Ambito ${seleDesc}`,
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
@@ -254,29 +255,31 @@ const UsuariosHandler = () => {
 		} else {
 			actions.push(
 				createAction({
-					action: `Baja Colaborador ${seleDesc}`,
+					action: `Baja Ambito ${seleDesc}`,
 					request: "B",
 					keys: "b",
 					underlineindex: 0,
 				})
 			);
 		}
-		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, usuarioSelected?.id]);
+		setAmbitosActions(actions);
+	}, [ambitosChanger, ambitoSelected, usuarioSelected?.id]);
+	*/
+
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!usuarioSelected} />,
-		body: colaboradoresTab,
-		actions: colaboradoresActions,
-	}); */
+		header: () => <Tab label="Usuario Ambitos" disabled={true} />,
+		//body: ambitosTab,
+		//actions: ambitosActions,
+	}); 
 
 	/*
-	// Si cambia usuario, refresco lista de colaboradores
+	// Si cambia usuario, refresco lista de ambitos
 	useEffect(() => {
-		colaboradoresChanger("list", {
+		ambitosChanger("list", {
 			clear: !usuarioSelected?.id,
 			params: { refUsuarioId: usuarioSelected?.id },
 		});
-	}, [usuarioSelected?.id, colaboradoresChanger]);
+	}, [usuarioSelected?.id, ambitosChanger]);
 	//#endregion
 
 	//#region Tab seccionales
