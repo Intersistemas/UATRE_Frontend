@@ -256,7 +256,11 @@ const EmpresasForm = ({
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		if (actividadPrincipal.selected.value === data.actividadPrincipalId) return;
+		if (
+			(actividadPrincipal.selected.value ?? 0) ===
+			(data.actividadPrincipalId ?? 0)
+		)
+			return;
 		const cambios = {
 			actividadPrincipalId: actividadPrincipal.selected.value,
 		};
@@ -264,7 +268,12 @@ const EmpresasForm = ({
 			ciius.data.find((r) => r.ciiu === cambios.actividadPrincipalId)
 				?.descripcion ?? "";
 		onChange(cambios);
-	}, [ciius, actividadPrincipal.selected, data.actividadPrincipalId, onChange]);
+	}, [
+		ciius,
+		actividadPrincipal.selected.value,
+		data.actividadPrincipalId,
+		onChange,
+	]);
 	//#endregion
 
 	//#region ciiU1.
@@ -293,13 +302,12 @@ const EmpresasForm = ({
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		if (ciiu1.selected.value === data.ciiU1) return;
+		if ((ciiu1.selected.value ?? 0) === (data.ciiU1 ?? 0)) return;
 		const cambios = { ciiu1: ciiu1.selected.value };
 		cambios.ciiU1Descripcion =
-			ciius.data.find((r) => r.ciiu === cambios.ciiu1)
-				?.descripcion ?? "";
+			ciius.data.find((r) => r.ciiu === cambios.ciiu1)?.descripcion ?? "";
 		onChange(cambios);
-	}, [ciius, ciiu1.selected, data.ciiU1, onChange]);
+	}, [ciius, ciiu1.selected.value, data.ciiU1, onChange]);
 	//#endregion
 
 	//#region ciiU2.
@@ -328,13 +336,12 @@ const EmpresasForm = ({
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		if (ciiu2.selected.value === data.ciiU2) return;
+		if ((ciiu2.selected.value ?? 0) === (data.ciiU2 ?? 0)) return;
 		const cambios = { ciiu2: ciiu2.selected.value };
 		cambios.ciiU2Descripcion =
-			ciius.data.find((r) => r.ciiu === cambios.ciiu2)
-				?.descripcion ?? "";
+			ciius.data.find((r) => r.ciiu === cambios.ciiu2)?.descripcion ?? "";
 		onChange(cambios);
-	}, [ciius, ciiu2.selected, data.ciiU2, onChange]);
+	}, [ciius, ciiu2.selected.value, data.ciiU2, onChange]);
 	//#endregion
 
 	//#region ciiU3.
@@ -363,13 +370,12 @@ const EmpresasForm = ({
 	// Refresca descripcion
 	useEffect(() => {
 		if (ciius.loading) return;
-		if (ciiu3.selected.value === data.ciiU3) return;
+		if ((ciiu3.selected.value ?? 0) === (data.ciiU3 ?? 0)) return;
 		const cambios = { ciiu3: ciiu3.selected.value };
 		cambios.ciiU3Descripcion =
-			ciius.data.find((r) => r.ciiu === cambios.ciiu3)
-				?.descripcion ?? "";
+			ciius.data.find((r) => r.ciiu === cambios.ciiu3)?.descripcion ?? "";
 		onChange(cambios);
-	}, [ciius, ciiu3.selected, data.ciiU3, onChange]);
+	}, [ciius, ciiu3.selected.value, data.ciiU3, onChange]);
 	//#endregion
 
 	//#endregion
@@ -686,11 +692,16 @@ const EmpresasForm = ({
 								
 								disabled={disabled.domicilioProvinciasId ?? false}
 								onChange={(value, _id) => (
-									onChange({ domicilioProvinciasId: value?.value }),
-									onChange({ provinciaNombre: value?.label }),
-									setLocalidades((o) => ({ ...o, loading:"Cargando localidades..."})),//hago esto para que me filtre las localidades de la provincia seleccionada.
-									setProvincias((o) => ({ ...o, provinciaSelected: value}))
-									)}
+									onChange({
+										domicilioProvinciasId: value?.value,
+										provinciaNombre: value?.label,
+									}),
+									setLocalidades((o) => ({
+										...o,
+										loading: "Cargando localidades...",
+									})), //hago esto para que me filtre las localidades de la provincia seleccionada.
+									setProvincias((o) => ({ ...o, provinciaSelected: value }))
+								)}
 								options={provincias.options}
 								onTextChange={(buscar) => setProvincias((o) => ({ ...o, buscar }))}
 								required
