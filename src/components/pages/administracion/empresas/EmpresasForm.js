@@ -126,7 +126,10 @@ const EmpresasForm = ({
 	//#region Provincias
 	const [provincias, setProvincias] = useState({
 		loading: "Cargando provincias...",
-		provinciaSelected: {value: data?.domicilioProvinciasId ?? 0, label: data?.provinciaDescripcion}, 
+		provinciaSelected: getProvinciaOption({
+			id: data?.domicilioProvinciasId ?? 0,
+			nombre: data?.provinciaDescripcion,
+		}),
 		data: [], //TODAS LAS EMPRESAS
 		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
 		buscar: "",
@@ -147,9 +150,14 @@ const EmpresasForm = ({
 			onOk: async (ok) => {
 				if (!Array.isArray(ok))
 					return console.error("Se esperaba un arreglo", { GetProvincias: data });
-				changes.data.push(...ok);
-				changes.options.push(...ok.map((provincia) => getProvinciaOption(provincia))); //le doy formato al OPTION que voy a mostrar
-				changes.provinciaSelected = {value: data?.domicilioProvinciasId ?? 0, label: ok.find((p)=> p.id === data?.domicilioProvinciasId)?.nombre}
+				changes.data = ok;
+				changes.options = ok.map((provincia) => getProvinciaOption(provincia)); //le doy formato al OPTION que voy a mostrar
+				changes.provinciaSelected = getProvinciaOption(
+					ok.find((p) => p.id === data?.domicilioProvinciasId) ?? {
+						id: data?.domicilioProvinciasId ?? 0,
+						nombre: data?.provinciaDescripcion,
+					}
+				);
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setProvincias((o) => ({ ...o, ...changes })),
@@ -162,7 +170,10 @@ const EmpresasForm = ({
 	//#region Localidades
 	const [localidades, setLocalidades] = useState({
 		loading: "Cargando localidades...",
-		localidadSelected: {value: data?.domicilioLocalidadesId ?? 0, label: data?.localidadDescripcion},
+		localidadSelected: getLocalidadOption({
+			id: data?.domicilioLocalidadesId ?? 0,
+			nombre: data?.localidadDescripcion,
+		}),
 		data: [], //TODAS LAS localidades de la provincia
 		options: [], //DEPENDE DEL CAMPO "BUSCAR", si tiene algo ese campo, voy filtrando las OPTIONS
 		buscar: "",
@@ -185,9 +196,14 @@ const EmpresasForm = ({
 			onOk: async (ok) => {
 				if (!Array.isArray(ok))
 					return console.error("Se esperaba un arreglo", { GetLocalidades: ok });
-				changes.data.push(...ok);
-				changes.options.push(...ok.map((localidad) => getLocalidadOption(localidad))); //le doy formato al OPTION que voy a mostrar
-				changes.localidadSelected = {value: data?.domicilioLocalidadesId ?? 0, label: ok?.find((p)=> p.id === data?.domicilioLocalidadesId)?.nombre}				
+				changes.data = ok;
+				changes.options = ok.map((localidad) => getLocalidadOption(localidad)); //le doy formato al OPTION que voy a mostrar
+				changes.localidadSelected = getLocalidadOption(
+					ok.find((p) => p.id === data?.domicilioLocalidadesId) ?? {
+						id: data?.domicilioLocalidadesId ?? 0,
+						nombre: data?.localidadDescripcion,
+					}
+				);
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => setLocalidades((o) => ({ ...o, ...changes })),
@@ -421,29 +437,29 @@ const EmpresasForm = ({
 					onChange({
 						existe: true,
 						cuit: ok.cuit,
-						razonSocial: ok.razonSocial,
+						razonSocial: ok.razonSocial ?? "",
 
-						actividadPrincipalId: ok.idActividadPrincipal,
-						actividadPrincipalDescripcion: ok?.descripcionActividadPrincipal,
+						actividadPrincipalId: ok.idActividadPrincipal ?? 0,
+						actividadPrincipalDescripcion: ok?.descripcionActividadPrincipal ?? "",
 
 						domicilioProvinciasId: provincias?.data.find((p)=> p.idProvinciaAFIP === ok?.domicilios[0]?.idProvincia)?.id,
 
-						domicilioCalle: ok.domicilios[0].direccion,
-						domicilioNumero: ok.domicilios[0].numero,
-						domicilioPiso: ok.domicilios[0].piso,
-						domicilioDpto: ok.domicilios[0].oficinaDptoLocal,
-						telefono: ok.telefono,
-						email: ok.email,
-						email2: ok.email2,
+						domicilioCalle: ok.domicilios[0].direccion ?? "",
+						domicilioNumero: ok.domicilios[0].numero ?? "",
+						domicilioPiso: ok.domicilios[0].piso ?? "",
+						domicilioDpto: ok.domicilios[0].oficinaDptoLocal ?? "",
+						telefono: ok.telefono ?? "",
+						email: ok.email ?? "",
+						email2: ok.email2 ?? "",
 
-						ciiU1: ok.ciiU1,
-						ciiU1Descripcion: ok.ciiU1Descripcion,
+						ciiU1: ok.ciiU1 ?? 0,
+						ciiU1Descripcion: ok.ciiU1Descripcion ?? "",
 
-						ciiU2: ok.ciiU2,
-						ciiU2Descripcion: ok.ciiU2Descripcion,
+						ciiU2: ok.ciiU2 ?? 0,
+						ciiU2Descripcion: ok.ciiU2Descripcion ?? "",
 
-						ciiU3: ok.ciiU3,
-						ciiU3Descripcion: ok.ciiU3Descripcion,
+						ciiU3: ok.ciiU3 ?? 0,
+						ciiU3Descripcion: ok.ciiU3Descripcion ?? "",
 
 					});
 					setProvincias((o) => ({ 
@@ -509,30 +525,45 @@ const EmpresasForm = ({
 				onChange({
 					existe: true,
 					cuit: ok.cuit,
-					razonSocial: ok.razonSocial,
-					actividadPrincipalId: ok.actividadPrincipalId,
-					domicilioCalle: ok.domicilioCalle,
-					domicilioNumero: ok.domicilioNro,
-					domicilioPiso: ok.domicilioPiso,
-					domicilioDpto: ok.domicilioDpto,
-					telefono: ok.telefono,
-					email: ok.email,
-					email2: ok.email2,
+					razonSocial: ok.razonSocial ?? "",
+					actividadPrincipalId: ok.actividadPrincipalId ?? 0,
+					domicilioCalle: ok.domicilioCalle ?? "",
+					domicilioNumero: ok.domicilioNro ?? "",
+					domicilioPiso: ok.domicilioPiso ?? "",
+					domicilioDpto: ok.domicilioDpto ?? "",
+					telefono: ok.telefono ?? "",
+					email: ok.email ?? "",
+					email2: ok.email2 ?? "",
 					
-					ciiU1: ok.ciiU1,
-					ciiU1Descripcion: ok.ciiU1Descripcion,
+					ciiU1: ok.ciiU1 ?? 0,
+					ciiU1Descripcion: ok.ciiU1Descripcion ?? "",
 
-					ciiU2: ok.ciiU2,
-					ciiU2Descripcion: ok.ciiU2Descripcion,
+					ciiU2: ok.ciiU2 ?? 0,
+					ciiU2Descripcion: ok.ciiU2Descripcion ?? "",
 
-					ciiU3: ok.ciiU3,
-					ciiU3Descripcion: ok.ciiU3Descripcion,
+					ciiU3: ok.ciiU3 ?? 0,
+					ciiU3Descripcion: ok.ciiU3Descripcion ?? "",
 				});
 
-				setProvincias((o) => ({ 
-					 ...o,
-					 provinciaSelected: {value: ok?.domicilioProvinciasId, label:  provincias?.data?.find((c) => c.id === ok?.domicilioProvinciasId)?.nombre }
-					}));
+				setProvincias((o) => ({
+					...o,
+					provinciaSelected: getProvinciaOption(
+						provincias.data.find((p) => p.id === data?.domicilioProvinciasId) ?? {
+							id: data?.domicilioProvinciasId ?? 0,
+							nombre: data?.provinciaDescripcion,
+						}
+					),
+				}));
+
+				setLocalidades((o) => ({
+					...o,
+					localidadSelected: getLocalidadOption(
+						localidades.data.find((p) => p.id === data?.domicilioLocalidadesId) ?? {
+							id: data?.domicilioLocalidadesId ?? 0,
+							nombre: data?.localidadDescripcion,
+						}
+					),
+				}));
 
 				setActividadPrincipal((o) => ({
 					...o,
