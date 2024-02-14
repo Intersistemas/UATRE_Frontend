@@ -113,12 +113,11 @@ const SeccionalesForm = ({
 		}    
 	}, [localidadesTodas, localidadBuscar]);
 
-	const handlerOnTextChange = (event) => {
+	const handlerOnTextChange = (buscar) => {
 		//console.log("text change", event.target.value);
 		 
-		
-		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
-		setLocalidadBuscar(event.target.value);
+		setLocalidadSeccional({...localidadSeccional, label: buscar});
+		setLocalidadBuscar(buscar);
 		
 	  };
 	//#endregion
@@ -141,23 +140,20 @@ const SeccionalesForm = ({
 					<div className={classes.container}>
 						
 						<div className={classes.item0}>
-							
-								<InputMaterial
-									id="codigo"
-									label="Codigo"
-									as={InputMask}
-									mask="S-9999"
-									required 
-									error={!!errors.codigo}
-									helperText={errors.codigo ?? ""}
-									value={data.codigo}
-									disabled={disabled.codigo}
-									onChange={(value, _id) => onChange({ codigo: value })}
-								/>
-							
+							<InputMaterial
+								id="codigo"
+								label="Codigo"
+								as={InputMask}
+								mask="S-9999"
+								required 
+								error={!!errors.codigo}
+								helperText={errors.codigo ?? ""}
+								value={data.codigo}
+								disabled={disabled.codigo}
+								onChange={(value, _id) => onChange({ codigo: value })}
+							/>
 						</div>
 						<div className={classes.item1}>
-
 							<SelectMaterial
 								id="estado"
 								name="estado"
@@ -171,9 +167,6 @@ const SeccionalesForm = ({
 								options={estados}
 								required
 							/>     
-
-
-							  
 						</div>
 
 						<div className={classes.item2}>
@@ -191,24 +184,24 @@ const SeccionalesForm = ({
 
 						<div className={classes.item3}>
 							<SearchSelectMaterial
-							id="refLocalidadesId"
-							name="refLocalidadesId"
-							label="Localidad"
+								id="refLocalidadesId"
+								name="refLocalidadesId"
+								label="Localidad"
 
-							error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
-							helperText={errors.refLocalidadesId ?? ""}
-							value={localidadSeccional}
-							disabled={disabled.refLocalidadesId ?? false}
-							onChange={(value, _id) => (
-								onChange({ refLocalidadesId: value.value }),
-								onChange({ localidadNombre: value.label }),
-								setLocalidadSeccional({...localidadSeccional,label: value.label})
-								)}
-							
-							options={localidadesOptions}
-					
-							onTextChange={handlerOnTextChange}
-							required
+								error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
+								helperText={errors.refLocalidadesId ?? ""}
+								value={localidadSeccional}
+								disabled={disabled.refLocalidadesId ?? false}
+								onChange={(value, _id) => (
+									onChange({ refLocalidadesId: value.value }),
+									onChange({ localidadNombre: value.label }),
+									setLocalidadSeccional({...localidadSeccional,label: value.label})
+									)}
+								
+								options={localidadesOptions}
+						
+								onTextChange={handlerOnTextChange}
+								required
 							/>
 						</div>
 
