@@ -560,8 +560,6 @@ const EmpresasForm = ({
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
-	console.log("render EmpresasForm");
-
 	return (
 		<Modal show onHide={() => onClose()} size="lg" centered>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
