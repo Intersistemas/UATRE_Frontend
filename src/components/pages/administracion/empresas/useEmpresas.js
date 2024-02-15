@@ -335,15 +335,7 @@ const useEmpresas = ({
 	if (list.selection.request) {
 		form = (
 			<EmpresasForm
-				data={(() => { 
-
-					//INIT DE DATOS DEL FORM
-				
-						return {...list.selection.edit, ...list.selection.request}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-					})()
-				}
-
-				//data={list.selection.edit}
+				data={list.selection.edit}
 				
 				delegaciones={list.delegaciones}
 				title={list.selection.action}
