@@ -111,7 +111,7 @@ const AfiliadosHandler = () => {
     sortOrder,
   ]);
 
-
+ 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
       const estadosSolicitudesTable = estadosSolicitudesObj.map(

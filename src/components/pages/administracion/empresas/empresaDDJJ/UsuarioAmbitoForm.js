@@ -13,7 +13,7 @@ const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
  
 
-const TareaUsuarioForm = ({
+const UsuarioAmbitoForm = ({
 	data = {},
 	title = "",
 	disabled = {},
@@ -24,11 +24,11 @@ const TareaUsuarioForm = ({
 
 }) => {
 	data ??= {}; 
-	console.log('Form_tarea_data:',data)
-	 //console.log('data_tarea:',data)
-	 //console.log('delegaciones_tarea:',delegaciones)
-	//console.log('Form_tarea_errors:',errors)
-	//console.log('Form_tarea_disabled:',disabled)
+	console.log('Form_ambito_data:',data)
+	 //console.log('data_ambito:',data)
+	 //console.log('delegaciones_ambito:',delegaciones)
+	//console.log('Form_ambito_errors:',errors)
+	//console.log('Form_ambito_disabled:',disabled)
 	
 	disabled ??= {};
 	hide ??= {};
@@ -36,18 +36,33 @@ const TareaUsuarioForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	const [modulos, setModulos] = useState({
+
+
+	//#region TRAIGO TODOS LOS MODULOS DE UNA VEZ
+		
+	const ambitosTipoTodos =
+	[
+		{value: "T", label: "Todos"},
+		{value: "S", label: "Seccionales"},
+		{value: "D", label: "Delegaciones"},
+		{value: "P", label: "Provincias"},			
+	]
+
+	//#endregion
+
+
+	const [ambitosTipo, setAmbitosTipo] = useState({
 		loading: "Cargando...",
 		params: {},
 		data: [],
 		error: null,
 		buscar: "",
 		buscado: "",
-		options: [],
-		selected: {value:data.modulosId,label:data.nombreModulo}
+		options: ambitosTipoTodos,
+		selected: {value:data.ambitoTipo, label: ambitosTipoTodos.find((a)=> a.value === data?.ambitoTipo)?.label} 
 	});
 
-	const [tareas, setTareas] = useState({
+	const [ambitos, setAmbitos] = useState({
 		loading: "Cargando...",
 		params: {},
 		data: [],
@@ -55,87 +70,83 @@ const TareaUsuarioForm = ({
 		buscar: "",
 		buscado: "",
 		options: [],
-		selected: {value:data.tareasId, label:data.nombreTarea},
+		selected: {value:data.ambitosId, label:data.nombreAmbito},
 	});
-	
-	console.log("tareas_selected",tareas?.selected);
-	console.log("modulos_selected",modulos.selected)
 
 	const { isLoading, error, sendRequest: request } = useHttp();	
 
-	//#region TRAIGO TODOS LOS MODULOS DE UNA VEZ
-	useEffect(() => {
-		
-		const processModulos = async (moduloObj) => {
-			const modulosTodos = moduloObj.map((modulo) => {
-			return { value: modulo.id, label: modulo.nombre };
-			});
-			console.log('modulos',modulos);
-			setModulos((o) => ({...o, options: modulosTodos}));
-		};
-
-		request(
-			{
-			baseURL: "Seguridad",
-			endpoint: "/Modulos",
-			method: "GET",
-			},
-			processModulos
-		);
-	},[]);
-	//#endregion
+	
 
 
-	//#region TRAIGO TODAS LAS TAREAS DEL MODULO
+	//#region TRAIGO TODOS LOS AMBITOS DEL TIPO DE AMBITO
 	useEffect(() => {
 
-		const processTareas = async (tareasObj) => {
-			const tareasModulo = tareasObj?.map((tarea) => {
-				return { value: tarea.id, label: tarea.nombre };
+			const query = {
+				baseURL: "",
+				endpoint: ``,
+				method: ""
+			}
+
+			switch (data?.ambitoTipo) {
+				case "T":
+					query.baseURL = "";
+					query.endpoint = "";
+					query.method = "";
+					break; 
+				case "S":
+					query.baseURL = "Seccionales";
+					query.endpoint = `Seccionales`;
+					query.method = `Get`;
+					break;
+				case "D":
+					query.baseURL = "Delegaciones";
+					query.endpoint = `Delegaciones`;
+					query.method = `Get`;
+					break;
+				case "P":
+					query.baseURL = "Provincias";
+					query.endpoint = `Provincias`;
+					query.method = `Get`;
+					break;
+				default:
+					break;
+			}
+
+
+		const processAmbitos = async (ambitosObj) => {
+			const ambitos = ambitosObj?.map((ambito) => {
+				return { value: ambito.id, label: ambito.nombre };
 			});
-			console.log('tareasModulo',tareasModulo)
-			setTareas((o)=>({...o,options:tareasModulo}))
+			console.log('ambitos',ambitos)
+			setAmbitos((o)=>({...o,options:ambitos}))
 		};
 		request(
 			{
-			baseURL: "Seguridad",
-			endpoint: `/Tareas?ModulosId=${data?.modulosId}`,
-			method: "GET",
+			query	
+			//baseURL: "Seguridad",
+			//endpoint: `/Ambitos?ModulosId=${data?.modulosId}`,
+			//method: "GET",
 			},
-			async (ok) => (processTareas(ok)),
-			async (error) => ((console.log('GetTareas?ModulosId_error',error))),
-			async () => (console.log('GetTareas?ModulosId_vacio')),
+			async (ok) => (processAmbitos(ok)),
+			async (error) => ((console.log('GetAmbitos?ModulosId_error',error))),
+			async () => (console.log('GetAmbitos?ModulosId_vacio')),
 		);
-	},[data.modulosId]);
+	},[data?.ambitoTipo]);
 	//#endregion
 
 	// Buscador
 	useEffect(() => {
-		if (modulos.loading) return;
-		if (modulos.buscar === modulos.buscado) return;
-		const options = modulos.data.filter((r) =>
-			modulos.buscar !== ""
+		if (ambitos.loading) return;
+		if (ambitos.buscar === ambitos.buscado) return;
+		const options = ambitos.data.filter((r) =>
+			ambitos.buscar !== ""
 				? r.label
 						.toLocaleLowerCase()
-						.includes(modulos.buscar.toLocaleLowerCase())
+						.includes(ambitos.buscar.toLocaleLowerCase())
 				: true
 		);
-		setModulos((o) => ({ ...o, options, buscado: o.buscar }));
-	}, [modulos]);
-
-	// Buscador
-	useEffect(() => {
-		if (tareas.loading) return;
-		if (tareas.buscar === tareas.buscado) return;
-		const options = tareas.data.filter((r) =>
-			tareas.buscar !== ""
-				? r.label
-						.toLocaleLowerCase()
-						.includes(tareas.buscar.toLocaleLowerCase())
-				: true
-		);
-		setTareas((o) => ({ ...o, options, buscado: o.buscar }));
-	}, [tareas]);
+		setAmbitos((o) => ({ ...o, options, buscado: o.buscar }));
+	}, [ambitos]);
 
 	UseKeyPress(['Escape'], () => onClose());
 	UseKeyPress(['Enter'], () => onClose(true), 'AltKey');
@@ -154,48 +165,43 @@ const TareaUsuarioForm = ({
 						<Grid width="full" gap="inherit">
 							<Grid width="50%">
 								<SearchSelectMaterial
-									id="modulosId"
-									name="modulosId"
-									label="Modulo"
-									error={errors.modulosId} 
-									helperText={errors.modulosId ?? ""}
-									value={modulos.selected}
-									disabled={disabled.modulosId ?? false}
+									id="ambitoTipo"
+									name="ambitoTipo"
+									label="Ambitos"
+									error={errors.ambitoTipo} 
+									helperText={errors.ambitoTipo ?? ""}
+									value={ambitosTipo.selected}
+									disabled={disabled.ambitoTipo ?? false}
 									onChange={(selected) => (
-								
-											setTareas((o) => ({ ...o, selected:{} })),
-											setModulos((o) => ({ ...o, selected })),
-											onChange({modulosId: selected.value}),
-											onChange({tareasId: ""})
+											setAmbitos((o) => ({ ...o, selected:{} })),
+											setAmbitosTipo((o) => ({ ...o, selected })),
+											onChange({ambitoTipo: selected.value}),
+											onChange({ambitoId: 0})
 										)									
 									}
-									//defaultValue="Afilia"
-									options={modulos.options}
-									onTextChange={( buscar ) =>
-										setModulos((o) => ({ ...o, buscar }))
-									}
+									options={ambitosTipo.options}
 									required
 								/>     
 							</Grid>
 							<Grid width="50%">
 								<SearchSelectMaterial
-									id="tareasId"
-									name="tareasId"
-									label="Tarea"
-									error={errors.tareasId} 
-									helperText={errors.tareasId ?? ""}
-									value={tareas.selected}
-									disabled={disabled.tareasId ?? false}
+									id="ambitosId"
+									name="ambitosId"
+									label="Cod. Ambito"
+									error={errors.ambitosId} 
+									helperText={errors.ambitosId ?? ""}
+									value={ambitos.selected}
+									disabled={disabled.ambitosId ?? false}
 									onChange={(selected) =>
 										(
-											setTareas((o) => ({ ...o, selected })),
-											onChange({tareasId: selected.value})
+											setAmbitos((o) => ({ ...o, selected })),
+											onChange({ambitosId: selected.value})
 										)
 									}
 									//defaultValue="Afilia"
-									options={tareas.options}
+									options={ambitos.options}
 									onTextChange={( buscar ) =>
-										setTareas((o) => ({ ...o, buscar }))
+										setAmbitos((o) => ({ ...o, buscar }))
 									}
 									required
 								/>     
@@ -248,7 +254,7 @@ const TareaUsuarioForm = ({
 					className="botonAzul"
 					width={25}
 					onClick={() => (onClose(true))}
-					disabled ={errors?.tareaExiste}
+					disabled ={errors?.ambitoExiste}
 				>
 					CONFIRMA
 				</Button>
@@ -262,4 +268,4 @@ const TareaUsuarioForm = ({
 	);
 };
 
-export default TareaUsuarioForm;
+export default UsuarioAmbitoForm;

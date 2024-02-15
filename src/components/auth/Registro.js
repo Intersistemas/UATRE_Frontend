@@ -300,7 +300,7 @@ const Registro = () => {
             {!isLoading ? (
               <div>
                 <Button type="submit" className="botonAzul" underlineindex={0}>
-                  Registrar
+                  Registra
                 </Button>
               </div>
             ) : (

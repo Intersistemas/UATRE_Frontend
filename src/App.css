@@ -88,6 +88,15 @@ border: 1.5px solid rgb(53, 149, 210);
   }
 }
 
+@media (max-width: 900px) {
+  .container {
+    max-width: 800px !important;
+    margin: 0 !important;
+    /*color: blue !important;*/
+  }
+}
+
+
 .container:before {
   opacity: 0.5;
   max-width: 100%;
@@ -184,6 +193,23 @@ border: 1.5px solid rgb(53, 149, 210);
       zoom: 50%;
   }
 }
+
+@media (max-width: 1000px) {
+  .contenido, .titulo, .sidebar, .tabs {
+      zoom: 40%;
+  }
+}
+@media (max-width: 830px) {
+  .contenido, .titulo, .sidebar, .tabs {
+      zoom: 30%;
+  }
+}
+@media (max-width: 650px) {
+  .contenido, .titulo, .sidebar, .tabs {
+      zoom: 20%;
+  }
+}
+
 
 /*SE QUITA EL TEXTO/LABEL DE "FILTER BY"*/
 .filter-label span{

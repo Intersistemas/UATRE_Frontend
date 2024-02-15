@@ -8,6 +8,7 @@ import useTareas from "./tareas/useTareas";
 import useUsuarios from "./useUsuarios";
 import KeyPress from "components/keyPress/KeyPress";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import useAmbitos from "./usuarioAmbitos/useAmbitos";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
@@ -17,6 +18,8 @@ const UsuariosHandler = () => {
 	const tarea = useTareasUsuario();
 
 	const disableTabTareas = !tarea.hasTarea("Accesos_UsuarioTareas");
+	const disableTabAmbitos = !tarea.hasTarea("Accesos_UsuarioAmbitos");
+	
 	//#region Tab usuarios
 	const [usuariosTab, usuarioChanger, usuarioSelected] =
 		useUsuarios();
@@ -189,26 +192,25 @@ const UsuariosHandler = () => {
 
 	
 	//#region Tab ambitos
-	
+	const [ambitosTab, ambitoChanger, ambitoSelected] = useAmbitos();
 	const [ambitosActions, setAmbitosActions] = useState([]);
-/*
-	const [ambitosTab, ambitosChanger, ambitoSelected] = useAmbitos();
 	useEffect(() => {
 		const actions = [];
-		const dele = usuarioSelected?.id;
-		if (!dele) {
+
+		const userName = usuarioSelected?.userName;
+		if (!userName) {
 			setAmbitosActions(actions);
 			return;
 		}
-		const deleDesc = `para Usuario ${dele}`;
+		const deleDesc = `para Usuario ${userName}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					ambitosChanger("selected", {
+					ambitoChanger("selected", {
 						request,
 						action,
-						record: { refUsuarioId: usuarioSelected?.id },
+						record: { usuarioId: usuarioSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -218,70 +220,68 @@ const UsuariosHandler = () => {
 				action: `Agrega Ambito ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				tarea: "Accesos_UsuarioAmbitoAgrega",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
-		const sele = ambitoSelected?.id;
-		if (!sele) {
+		const nombreAmbito = ambitoSelected?.nombreAmbito;
+		if (!nombreAmbito) {
 			setAmbitosActions(actions);
 			return;
 		}
-		const seleDesc = `${sele} ${deleDesc}`;
+		const ambitoDesc = `${nombreAmbito} ${deleDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Ambito ${seleDesc}`,
+				action: `Consulta Ambito ${ambitoDesc}`,
 				request: "C",
 				keys: "o",
+				tarea: "Accesos_UsuarioAmbitoConsulta",
 				underlineindex: 1,
+				ellipsis: true,
 			})
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Ambito ${seleDesc}`,
+				action: `Modifica Ambito ${ambitoDesc}`,
 				request: "M",
 				keys: "m",
+				tarea: "Accesos_UsuarioAmbitoModifica",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
-		if (ambitoSelected?.deletedDate) {
-			actions.push(
-				createAction({
-					action: `Reactiva Ambito ${seleDesc}`,
-					request: "R",
-					keys: "r",
-					underlineindex: 0,
-				})
-			);
-		} else {
-			actions.push(
-				createAction({
-					action: `Baja Ambito ${seleDesc}`,
-					request: "B",
-					keys: "b",
-					underlineindex: 0,
-				})
-			);
-		}
+		actions.push(
+			createAction({
+				action: `Borra Ambito ${ambitoDesc}`,
+				request: "B",
+				keys: "b",
+				tarea: "Accesos_UsuarioAmbitoBorra",
+				underlineindex: 0,
+				ellipsis: true,
+			})
+		);
 		setAmbitosActions(actions);
-	}, [ambitosChanger, ambitoSelected, usuarioSelected?.id]);
-	*/
+	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Usuario Ambitos" disabled={true} />,
-		//body: ambitosTab,
-		//actions: ambitosActions,
-	}); 
+		header: () => <Tab label="Usuario Ambitos" disabled={!usuarioSelected || disableTabAmbitos} />,
+		body: ambitosTab,
+		actions: ambitosActions,
+	});
 
-	/*
-	// Si cambia usuario, refresco lista de ambitos
+	// Si cambia usuario, refresco lista de tareas
 	useEffect(() => {
-		ambitosChanger("list", {
+		ambitoChanger("list", {
 			clear: !usuarioSelected?.id,
-			params: { refUsuarioId: usuarioSelected?.id },
+			params: { usuarioId: usuarioSelected?.id },
 		});
-	}, [usuarioSelected?.id, ambitosChanger]);
+	}, [usuarioSelected?.id, ambitoChanger]);
 	//#endregion
 
+
+
+	/*
 	//#region Tab seccionales
 	const {
 		render: seccionalesRender,
