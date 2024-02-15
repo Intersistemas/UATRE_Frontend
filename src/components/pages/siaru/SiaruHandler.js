@@ -28,9 +28,9 @@ const selectionDef = {
 const SiaruHandler = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const authContext = useContext(AuthContext);
-	const [empresaNueva,setEmpresaNueva] = useState();
+	const { usuario = {} } = useContext(AuthContext);
 
+	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetList": {
@@ -53,15 +53,6 @@ const SiaruHandler = () => {
 					},
 				};
 			}
-			case "CreateUsuarioEmpresa": {
-				return {
-					config: {
-						baseURL: "Seguridad",
-						endpoint: `/UsuarioEmpresas`,
-						method: "POST",
-					},
-				};
-			}
 			case "Create": {
 				return {
 					config: {
@@ -80,14 +71,51 @@ const SiaruHandler = () => {
 					},
 				};
 			}
+			case "Reactivate": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/Empresas/Reactivar`,
+						method: "PATCH",
+					},
+				};
+			}
+			case "CreateUsuarioEmpresa": {
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/UsuarioEmpresas`,
+						method: "POST",
+					},
+				};
+			}
+			case "UpdateUsuarioEmpresa": {
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/UsuarioEmpresas`,
+						method: "PUT",
+					},
+				};
+			}
+			case "ReactivateUsuarioEmpresa": {
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/UsuarioEmpresas/Reactivar`,
+						method: "PATCH",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
+	//#endregion consultas API
 
 	const [list, setList] = useState({
-		loading: null,
-		params: {},
+		loading: "Cargando...",
+		params: { usuarioId: usuario.id },
 		data: [],
 		pagination: { index: 1, size: 15, count: 0 }, 
 		delegaciones: [],
@@ -97,38 +125,13 @@ const SiaruHandler = () => {
 
 	//#region declaración y carga de empresas
 	const [empresas, setEmpresas] = useState({ data: [], selected: null });
-
-
-	useEffect(()=>{
-		if (!empresaNueva) return
-		pushQuery({				
-			onError: async (err) => alert(err.message),
-			action: "CreateUsuarioEmpresa",
-			config:{
-				body:{
-						"usuarioId": authContext?.usuario?.id,
-						"empresaId": empresaNueva
-				} //debo pasarle IsUsuario y IdEmpresa
-			},
-		})
-	},[empresaNueva, pushQuery,authContext])
-
-
-	useEffect(() => {
-		setList((o) => ({
-			...o,
-			loading: "Cargando...",
-			data: [],
-		}));
-	},[]);
+	//#endregion declaración y carga de empresas
 
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
 			action: "GetList",
-			params: {
-				usuarioId : authContext.usuario.id,
-			},
+			params: list.params,
 			onOk: async (data) =>		
 				setList((o) => {
 					const selection = {
@@ -157,13 +160,11 @@ const SiaruHandler = () => {
 					...o,
 					loading: null,
 					data: [],
-					error: err.code === 404 ? null : err,
+					error: err.code === 404 ? null : err.toString(),
 					selection: { ...selectionDef },
 				})),
 		});
-	}, [pushQuery, list.loading, list.params, authContext.usuario]);
-
-
+	}, [pushQuery, list]);
 
 	//#region declaración y carga de empresa
 	const [empresa, setEmpresa] = useState({
@@ -174,22 +175,21 @@ const SiaruHandler = () => {
 	});
 
 	useEffect(() => {
-
 		if (!empresa.loading) return;
 		const result = { loading: null, data: null, error: null };
 		pushQuery({
 			action: "GetEmpresa",
 			params: empresa.params,
 			onOk: (data) => (result.data = data),
-			onError: (error) => (result.error = error),
+			onError: (error) => (result.error = error.toString()),
 			onFinally: () => {
 				dispatch(handleEmpresaSeleccionar(result.data));
 				setEmpresa((o) => ({ ...o, ...result }));
 			},
 		});
-
-		
 	}, [empresa, pushQuery, dispatch]);
+	//#endregion declaración y carga de empresa
+	
 	// Cargo empresa cuando cambia la selección de empresas
 	useEffect(() => {
 		const empresa = {
@@ -203,19 +203,12 @@ const SiaruHandler = () => {
 	}, [empresas.selected?.cuitEmpresa]);
 	//#endregion
 
-
 	let form = null;
 	if (list.selection.request) {
 		 form = (
 		<EmpresasForm
-			data={(() => { 
-
-				//INIT DE DATOS DEL FORM
-				const data = {}  //INIT PARA ALTA
-					return {...list.selection.record, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-				})()
-			}
-			title={"Relaciona Empresa al usuario: "+authContext.usuario.cuit}
+			data={list.selection.record}
+			title={`Relaciona Empresa al usuario: ${Formato.Cuit(usuario.cuit)}`}
 			errors={list.selection.errors}
 			loading={!!list.loading}
 			
@@ -275,35 +268,52 @@ const SiaruHandler = () => {
 					? { deletedObs: true }
 					: {}
 			}
-			onChange={(changes) => { //solo entra el campo que se está editando
-				const errors = {};
-				if ("cuit" in changes) {
-					errors.cuit = ""
-					if ((changes?.cuit?.length === 11)) {
-						if (ValidarCUIT(changes?.cuit)) {
-							//ToDo: Si existe la empresa relacionada, cambiar a modificar
+			onChange={(edit) => { //solo entra el campo que se está editando
+				const changes = { record: { ...edit }, errors: {} };
+				const applyChanges = () =>
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							request: changes.request || o.selection.request,
+							record: { ...o.selection.record, ...changes.record },
+							errors: { ...o.selection.errors, ...changes.errors },
+						},
+					}));
+				let query = null;
+				if ("cuit" in edit) {
+					changes.errors.cuit = "";
+					if (edit.cuit && `${edit.cuit}`.length === 11) {
+						if (ValidarCUIT(edit.cuit)) {
+							query = {
+								action: "GetEmpresa",
+								params: { cuit: edit.cuit, soloActivos: false },
+								onOk: async (record) => {
+									changes.record = {
+										...record,
+										...edit,
+									};
+									if (record.deletedDate) {
+										changes.request = "R";
+									} else {
+										changes.request = "M";
+									}
+								},
+								onError: async () => {
+									changes.request = "A";
+								},
+								onFinally: async () => applyChanges(),
+							};
 						} else {
-							errors.cuit = "CUIT Incorrecto";
+							changes.errors.cuit = "CUIT inválido";
 						}
 					}
 				}
-				setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						record: {
-							...o.selection.record,
-							...changes,
-						},
-						errors: {
-							...o.selection.errors,
-							...errors
-						},
-					},
-				}))
+				if (query == null) applyChanges();
+				else pushQuery(query);
 			}}
 			onClose={(confirm) => {
-				if (!["A", "R"].includes(list.selection.request)){
+				if (!["A", "M", "R"].includes(list.selection.request)){
 					confirm = false}
 				if (!confirm) {
 					setList((o) => ({
@@ -333,7 +343,7 @@ const SiaruHandler = () => {
 					else if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
-					//if (!record.refLocalidadesId || record.refLocalidadesId == 0) errors.refLocalidadesId = "Dato requerido";
+
 					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalDescripcion = "Dato requerido";
 					if (!record.telefono) errors.telefono = "Dato requerido"; 
 					if (!record.email) errors.email = "Dato requerido"; 
@@ -341,9 +351,6 @@ const SiaruHandler = () => {
 					if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
 					if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
 					if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
-
-					//if (!record.domicilioLocalidadesId || record.domicilioLocalidadesId === 0) errors.domicilioLocalidadesId = "Dato requerido";
-					//if (!record.domicilioProvinciasId || record.domicilioProvinciasId === 0) errors.domicilioProvinciasId = "Dato requerido";
 				}
 			
 				if (Object.keys(errors).length) {
@@ -357,28 +364,57 @@ const SiaruHandler = () => {
 					return;
 				}
 
-				
 				const query = {
 					config: {},
-					onOk: async (_res) =>(
-						setEmpresaNueva(_res),
-						setList((old) => ({ ...old, loading: "...Cargando" }))
-					),
-					onError: async (err) => alert(err.message),
-					onFinally: () => {
+					onOk: async (id) => {
+						if (query.action !== "Create") return;
+						record.id = id;
+					},
+					onError: async (error) => alert(`Error (${query.action}) generando empresa:\n${error.toString()}`),
+					onFinally: async () => {
+						if (!record.id) return;
+						const usrEmp = list.data.find(r => r.empresaId === record.id) ?? {};
+						const id = usrEmp.id;
+						const usuarioId = usuario.id;
+						const empresaId = record.id;
+						const query = {
+							onOk: async (ok) => console.log(query.action, { ok }),
+							onError: async (error) => alert(`Error (${query.action}) relacionando empresa:\n${error.toString()}`),
+							onFinally: async () =>
+								setList((o) => ({ ...o, loading: "Cargando...", data: [] })),
+						};
+						if (usrEmp.id) {
+							if (usrEmp.deletedDate) {
+								query.action = "ReactivateUsuarioEmpresa"
+								query.config = { body: { id } };
+							} else {
+								query.action = "UpdateUsuarioEmpresa"
+								query.config = { body: { id, usuarioId, empresaId } };
+							}
+						} else {
+							query.action = "CreateUsuarioEmpresa"
+							query.config = { body: { usuarioId, empresaId } };
+						}
+						pushQuery(query);
 					},
 				};
 
 				switch (list.selection.request) {
-					case "A":
+					case "A": {
 						query.action = "Create";
 						query.config.body = record;
 						break;
-					case "M":
+					}
+					case "M": {
 						query.action = "Update";
 						query.params = { id: record.id };
 						query.config.body = record;
 						break;
+					}
+					case "R": {
+						query.action = "Reactivate";
+						query.config.body = { id: record.id };
+					}
 					default:
 						break;
 				}
@@ -464,38 +500,36 @@ const SiaruHandler = () => {
 					style={{ position: "absolute", left: 0, top: 0, padding: "10px" }}
 				>
 					<Grid full="width">
-						<h2 className="subtitulo" style={{ margin: 0 }}>Empresas</h2>
+						<h2 className="subtitulo" style={{ margin: 0 }}>
+							Empresas
+						</h2>
 					</Grid>
 					<Grid full="width" col grow gap="5px">
 						<Grid grow>
 							<EmpresasList
 								data={list.data}
 								loading={!!list.loading}
-								pagination={{index:1,size:10}}
+								noDataIndication={list.loading || list.error}
+								pagination={{ index: 1, size: 10 }}
 								selection={{
-									//selected: [empresas.selected?.cuitEmpresa].filter((r) => r),
 									selected: [list.selection.record?.id].filter((r) => r),
-									//onSelect: (selected) =>
-										//setEmpresas((o) => ({ ...o, selected })),
-									onSelect: (record, isSelect, index, e) =>{
-									setList((o) => ({
-										...o,
-										selection: {
-											action: "",
-											request: "",
-											index,
-											record,
-										},
-									}))
-									setEmpresa((o)=>({
-										...o,
-										 loading:"cargando",
-										 params:{cuit:record.cuitEmpresa}
-										}))
-									//dispatch(handleEmpresaSeleccionar(record));
-								}
+									onSelect: (record, isSelect, index, e) => {
+										setList((o) => ({
+											...o,
+											selection: {
+												action: "",
+												request: "",
+												index,
+												record,
+											},
+										}));
+										setEmpresa((o) => ({
+											...o,
+											loading: "cargando",
+											params: { cuit: record.cuitEmpresa },
+										}));
+									},
 								}}
-
 							/>
 						</Grid>
 						<EmpresaDetails />
