@@ -146,7 +146,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			label: r.descripcion,
 			data: {
 				...r,
-				impresionLiquidacion: { InterBanking: 1 }[r.descripcion] ?? 0, //ToDo: una vez que se implemente el campo impresionLiquidacion, solo asignar `data: r`
+				modeloImpresionLiquidacion: { InterBanking: 1 }[r.descripcion] ?? 0, //ToDo: una vez que se implemente el campo modeloImpresionLiquidacion, solo asignar `data: r`
 			},
 		}));
 		const changes = {
