@@ -6,7 +6,8 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
-import FormaPagoViewer from "./FormaPagoViewer";
+import FormaPagoViewer0 from "./0/FormaPagoViewer";
+import FormaPagoViewer1 from "./1/FormaPagoViewer";
 
 const onCloseDef = () => {};
 /**
@@ -133,7 +134,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		buscar: "",
 		data: [],
 		options: [],
-		selected: { value: 0, label: "" },
+		selected: { value: 0, label: "", data: null },
 		error: null,
 	});
 	// Inicio
@@ -143,7 +144,10 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		const data = formasPago.data.map((r) => ({
 			value: r.id,
 			label: r.descripcion,
-			data: r,
+			data: {
+				...r,
+				impresionLiquidacion: { InterBanking: 1 }[r.descripcion] ?? 0, //ToDo: una vez que se implemente el campo impresionLiquidacion, solo asignar `data: r`
+			},
 		}));
 		const changes = {
 			loading: null,
@@ -222,7 +226,11 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 					error={!!formaPagoSelect.error}
 					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
 					value={formaPagoSelect.selected}
-					onChange={(selected) => setFormaPagoSelect((o) => ({ ...o, selected }))}
+					// onChange={(selected) => setFormaPagoSelect((o) => ({ ...o, selected }))}
+					onChange={(selected) => {
+						console.log({selected})
+						setFormaPagoSelect((o) => ({ ...o, selected }));
+					}}
 					options={formaPagoSelect.options}
 					onTextChange={({ target }) =>
 						setFormaPagoSelect((o) => ({ ...o, buscar: target.value }))
@@ -235,8 +243,13 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			</Grid>
 		);
 	} else {
+		const Viewer =
+			{ 1: FormaPagoViewer1 }[
+				formaPagoSelect.selected.data.modeloImpresionLiquidacion
+			] ?? FormaPagoViewer0;
+		console.log({ "formaPago.data": formaPago.data });
 		contenido = (
-			<FormaPagoViewer
+			<Viewer
 				cabecera={liquidacionCabecera}
 				formasPago={formaPago.data}
 			/>
