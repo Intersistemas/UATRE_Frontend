@@ -1187,7 +1187,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
 				afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
 				empresa: empresa,
-        cuilValidado: +cuilState.value,
+        cuilValidado: 0, //+cuilState.value, FER me pide que cuando es INSERT, no se guarde el CUILValidado.
 				documentacion: documentacionList.map((r) => ({
 					...r,
 					id: 0,

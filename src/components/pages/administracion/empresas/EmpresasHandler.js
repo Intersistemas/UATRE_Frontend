@@ -80,8 +80,9 @@ const EmpresasHandler = () => {
 		actions.push(
 			createAction({
 				action: `Consulta Empresa ${desc}`,
-				tarea: "Datos_EmpresaConsulta",
 				request: "C",
+				tarea: "Datos_EmpresaConsulta",
+				record: {},
 				...(!empresaSelected?.id
 					? { disabled: true }
 					: {
@@ -95,6 +96,7 @@ const EmpresasHandler = () => {
 			createAction({
 				action: `Modifica Empresa ${desc}`,
 				request: "M",
+				record: {},
 				tarea: "Datos_EmpresaModifica",
 				...(empresaSelected?.deletedDate || !empresaSelected?.id
 					? { disabled: true }
@@ -110,8 +112,9 @@ const EmpresasHandler = () => {
 			actions.push(
 				createAction({
 					action: `Reactiva Empresa ${desc}`,
-					tarea: "Datos_EmpresaReactiva",
 					request: "R",
+					record: {},
+					tarea: "Datos_EmpresaReactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
@@ -174,15 +177,15 @@ const EmpresasHandler = () => {
 	}, [empresaChanger, empresasParams]);
 	//#endregion
 
-	//#region Tab Autoridades 
 	/*
-	const [autoridadesTab, autoridadesChanger, autoridadSelected] = useAutoridades();
-	const [autoridadesActions, setAutoridadesActions] = useState([]);
+	//#region Tab DDJJ 
+	const [DDJJTab, DDJJChanger, DDJJSelected] = useDDJJ();
+	const [DDJJActions, setDDJJActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
 		const secc = empresaSelected?.codigo != "" ? empresaSelected?.codigo : empresaSelected?.id;
 		if (!secc) {
-			setAutoridadesActions(actions);
+			setDDJJActions(actions);
 			return;
 		}
 		const seccDesc = `para Empresa ${secc}`;
@@ -190,7 +193,7 @@ const EmpresasHandler = () => {
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					autoridadesChanger("selected", {
+					DDJJChanger("selected", {
 						request,
 						action,
 						record: { empresaId: empresaSelected?.id },
@@ -200,22 +203,22 @@ const EmpresasHandler = () => {
 			});
 		actions.push(
 			createAction({
-				action: `Agrega Autoridad ${seccDesc}`,
+				action: `Agrega DDJJ ${seccDesc}`,
 				request: "A",
-				tarea: "Empresa_Autoridad_Agrega",
+				tarea: "Empresa_DDJJ_Agrega",
 				keys: "a",
 				underlineindex: 0,
 			})
 		);
-		const sele = autoridadSelected?.id;
+		const sele = DDJJSelected?.id;
 		if (!sele) {
-			setAutoridadesActions(actions);
+			setDDJJActions(actions);
 			return;
 		}
 		const seleDesc = `${sele} ${seccDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Autoridad ${seleDesc}`,
+				action: `Consulta DDJJ ${seleDesc}`,
 				request: "C",
 				keys: "o",
 				underlineindex: 1,
@@ -223,11 +226,11 @@ const EmpresasHandler = () => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Autoridad ${seleDesc}`,
+				action: `Modifica DDJJ ${seleDesc}`,
 				request: "M",
-				tarea: "Empresa_Autoridad_Modifica",
+				tarea: "Empresa_DDJJ_Modifica",
 
-				...(autoridadSelected?.deletedDate ? 
+				...(DDJJSelected?.deletedDate ? 
 					{disabled:  true}
 					:
 					{
@@ -238,12 +241,12 @@ const EmpresasHandler = () => {
 				)
 			})
 		);
-		if (autoridadSelected?.deletedDate) {
+		if (DDJJSelected?.deletedDate) {
 			actions.push(
 				createAction({
-					action: `Reactiva Autoridad ${seleDesc}`,
+					action: `Reactiva DDJJ ${seleDesc}`,
 					request: "R",
-					tarea: "Empresa_Autoridad_Reactiva",
+					tarea: "Empresa_DDJJ_Reactiva",
 					keys: "r",
 					underlineindex: 0,
 			})
@@ -251,10 +254,10 @@ const EmpresasHandler = () => {
 		} else {
 			actions.push(
 				createAction({
-					action: `Baja Autoridad ${seleDesc}`,
+					action: `Baja DDJJ ${seleDesc}`,
 					request: "B",
-					tarea: "Empresa_Autoridad_Baja",
-					...(autoridadSelected?.deletedDate ? 
+					tarea: "Empresa_DDJJ_Baja",
+					...(DDJJSelected?.deletedDate ? 
 						{disabled:  true}
 						:
 						{
@@ -266,21 +269,21 @@ const EmpresasHandler = () => {
 			})
 			);
 		}
-		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, empresaSelected?.id]);
+		setDDJJActions(actions);
+	}, [DDJJChanger, DDJJSelected, empresaSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Autoridades" disabled={!empresaSelected?.id || empresaSelected.deletedDate} />,
-		body: autoridadesTab,
-		actions: autoridadesActions,
+		header: () => <Tab label="DDJJ" disabled={!empresaSelected?.id || empresaSelected.deletedDate} />,
+		body: DDJJTab,
+		actions: DDJJActions,
 	});
 
-	// Si cambia Empresa, refresco lista de autoridades
+	// Si cambia Empresa, refresco lista de DDJJ
 	useEffect(() => {
-		autoridadesChanger("list", {
+		DDJJChanger("list", {
 			clear: !empresaSelected?.id,
 			params: { empresaId: empresaSelected?.id },
 		});
-	}, [empresaSelected?.id, autoridadesChanger]);
+	}, [empresaSelected?.id, DDJJChanger]);
 	//#endregion*/
 
 

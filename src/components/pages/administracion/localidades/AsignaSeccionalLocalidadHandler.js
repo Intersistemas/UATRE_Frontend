@@ -175,8 +175,8 @@ const AsignaSeccionalLocalidadHandler = ({
 								setSeccionales((o) => ({ ...o, selected }))
 							}
 							options={seccionales.options}
-							onTextChange={({ target }) =>
-								setSeccionales((o) => ({ ...o, buscar: target.value }))
+							onTextChange={(buscar) =>
+								setSeccionales((o) => ({ ...o, buscar }))
 							}
 						/>
 					</Grid>

@@ -159,7 +159,7 @@ const Login = () => {
             {!isLoading ? (
               <div>
                 <Button active type="submit" className="botonAzul" underlineindex={0}>
-                  Ingresar
+                  Ingresa
                 </Button>
                 <p />
                 

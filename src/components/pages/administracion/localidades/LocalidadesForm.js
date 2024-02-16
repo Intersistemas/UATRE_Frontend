@@ -165,8 +165,8 @@ const LocalidadesForm = ({
 									setProvincias((o) => ({ ...o, selected }))
 								}
 								options={provincias.options}
-								onTextChange={({ target }) =>
-									setProvincias((o) => ({ ...o, buscar: target.value }))
+								onTextChange={(buscar) =>
+									setProvincias((o) => ({ ...o, buscar}))
 								}
 								required
 							/>

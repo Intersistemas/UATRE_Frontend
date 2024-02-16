@@ -232,8 +232,8 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 						setFormaPagoSelect((o) => ({ ...o, selected }));
 					}}
 					options={formaPagoSelect.options}
-					onTextChange={({ target }) =>
-						setFormaPagoSelect((o) => ({ ...o, buscar: target.value }))
+					onTextChange={(buscar) =>
+						setFormaPagoSelect((o) => ({ ...o, buscar}))
 					}
 					required
 				/>
