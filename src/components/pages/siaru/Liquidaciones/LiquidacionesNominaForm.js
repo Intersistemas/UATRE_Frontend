@@ -64,11 +64,11 @@ const LiquidacionesNominaForm = ({
 									disabled={disabled.cuil}
 									error={!!errors.cuil}
 									helperText={errors.cuil ?? ""}
-									value={data.cuil}
+									value={data.cuil || ""}
 									onChange={(v) =>
 										onChange({ cuil: Number(v.replace(/[^\d]/gim, "")) })
 									}
-									mask="99\-99\.999\.999\-9"
+									mask="99\-99.999.999\-9"
 								/>
 							)}
 						</Grid>
