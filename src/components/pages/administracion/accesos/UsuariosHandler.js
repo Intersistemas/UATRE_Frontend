@@ -265,7 +265,7 @@ const UsuariosHandler = () => {
 	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Usuario Ambitos" disabled={!usuarioSelected || disableTabAmbitos} />,
+		header: () => <Tab label="Usuario Ambito" disabled={!usuarioSelected || disableTabAmbitos} />,
 		body: ambitosTab,
 		actions: ambitosActions,
 	});

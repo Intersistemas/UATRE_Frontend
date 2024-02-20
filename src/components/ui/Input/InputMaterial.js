@@ -2,6 +2,7 @@ import { TextField, Tooltip } from "@mui/material";
 import styles from "./InputMaterial.module.css";
 import InputMask from "react-input-mask";
 import { MuiTelInput } from "mui-tel-input";
+import { fontWeight } from "@mui/system";
 
 const onChangeDef = (value, id) => {};
 
@@ -16,6 +17,7 @@ const InputMaterial = ({
 	onChange = onChangeDef,
 	...x
 }) => {
+	//console.log('InputMaterial_parametros ',x)
 	const textFieldProps = {
 		className: styles.input,
 		id,
@@ -54,6 +56,8 @@ const InputMaterial = ({
 				break;
 		}
 	};
+
+	textFieldProps.value ??= ""
 
 	const inputMaskProps = {
 		className: textFieldProps.className,
