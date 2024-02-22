@@ -195,7 +195,7 @@ const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
 //#endregion estadoSelectOptions
 
 //#region provinciaSelectOptions
-const provinciaSelectTodos = { value: 0, label: "Todas" };
+const provinciaSelectTodos = { value: null, label: "Todas" };
 const provinciaSelectMap = (r) => ({ value: r.id, label: r.nombre });
 const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
@@ -527,11 +527,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 										setFiltros((o) => {
 											const filtros = {
 												...o,
-												ambitoDelegaciones: ((v) => (!v ? null : { ids: [v] }))(
-													selected.value
-												),
+												ambitoDelegaciones: { ids: [selected.value ?? 0] },
 											};
-											if (!filtros.ambitoDelegaciones)
+											if (selected === delegacionSelectTodos)
 												delete filtros.ambitoDelegaciones;
 											return filtros;
 										});
@@ -556,9 +554,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 										setFiltros((o) => {
 											const filtros = {
 												...o,
-												ambitoProvincias: ((v) => (!v ? null : { ids: [v] }))(
-													selected.value
-												),
+												ambitoProvincias: selected.value ?? 0,
 											};
 											if (!filtros.ambitoProvincias)
 												delete filtros.ambitoProvincias;
@@ -589,7 +585,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 												...o,
 												estadoSolicitudId: selected.value ?? 0,
 											};
-											if (!filtros.estadoSolicitudId)
+											if (selected === estadoSelectTodos)
 												delete filtros.estadoSolicitudId;
 											return filtros;
 										});
@@ -614,11 +610,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 										setFiltros((o) => {
 											const filtros = {
 												...o,
-												ambitoProvincias: ((v) => (!v ? null : { ids: [v] }))(
-													selected.value
-												),
+												ambitoProvincias: { ids: [selected.value ?? 0] },
 											};
-											if (!filtros.ambitoProvincias)
+											if (selected === provinciaSelectTodos)
 												delete filtros.ambitoProvincias;
 											return filtros;
 										});
