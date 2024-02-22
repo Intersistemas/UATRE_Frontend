@@ -254,11 +254,11 @@ const useSeccionales = () => {
 					//INIT DE DATOS DEL FORM
 					const data = ["A"].includes(list.selection.request) //INIT PARA ALTA
 						? {
-								//estado: "NORMALIZADA",
+								
 						  }
 						: ["B"].includes(list.selection.request) //INIT PARA BAJA
 						? {
-								estado: "BAJA",
+								seccionalEstadoId: 5,// esto lo defino en el form
 								deletedDate: dayjs().format("YYYY-MM-DD"),
 								deletedBy: Usuario.nombre,
 						  }
@@ -275,7 +275,7 @@ const useSeccionales = () => {
 						? { /*estado: true*/ }
 						: {
 								codigo: true,
-								estado: true,
+								seccionalEstadoId: true,
 								descripcion: true,
 								refDelegacionId: true,
 								refLocalidadesId: true,
@@ -295,7 +295,7 @@ const useSeccionales = () => {
 				}
 				onChange={(changes) => {
 					//solo entra el campo que se está editando
-					console.log('useSeccionales_changes',changes);
+//					console.log('useSeccionales_changes',changes);
 					setList((o) => ({
 						...o,
 						selection: {
@@ -345,7 +345,7 @@ const useSeccionales = () => {
 						if (!record.refDelegacionId || record.refDelegacionId == 0)
 							errors.refDelegacionId = "Dato requerido";
 						if (!record.descripcion) errors.descripcion = "Dato requerido";
-						if (!record.estado) errors.estado = "Dato requerido";
+						if (!record.seccionalEstadoId) errors.seccionalEstadoId = "Dato requerido";
 					}
 
 					if (Object.keys(errors).length) {
@@ -387,7 +387,7 @@ const useSeccionales = () => {
 						case "R":
 							query.action = "Reactiva";
 							query.params = { id: record.id };
-							query.config.body = record.estado;
+							query.config.body = record.seccionalEstadoId;
 							break;
 						default:
 							break;

@@ -36,7 +36,7 @@ const SeccionalesForm = ({
 	delegaciones ??= [];
 	 console.log('Form_seccional_data:',data)
 	 //console.log('data_seccional:',data)
-	 console.log('delegaciones_seccional:',delegaciones)
+	 //console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
 	
 	disabled ??= {};
@@ -45,17 +45,9 @@ const SeccionalesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	const estados = [
-		{value: "NORMALIZADA", label: "NORMALIZADA"},
-		{value: "TRANSITORIA", label: "TRANSITORIA"},
-		{value: "EN LITIGIO", label: "EN LITIGIO"},
-		{value: "INACTIVA", label: "INACTIVA"},
-		//{value: "BAJA", label: "BAJA"},
-		{value: "ABSORBIDA", label: "ABSORBIDA"},
-	];
-
-	title.includes("Baja") && estados.push({value: "BAJA", label: "BAJA"});
+	//	!!title.includes("Baja") && estados.push({value: "BAJA", label: "BAJA"});  REVISAR
 	
+
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	
@@ -63,12 +55,11 @@ const SeccionalesForm = ({
 	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
 	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 
+	const [estadosOptions, setEstadosOptions] = useState([]);
+			
+
 	const { isLoading, error, sendRequest: request } = useHttp();
-
-	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
 	
-	
-
 	const selectedDelegacion = (delegacionId) =>{
 		const delegacion = delegaciones.find((c) => c.value === delegacionId)
 		return delegacion;
@@ -77,12 +68,9 @@ const SeccionalesForm = ({
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
 		disabled.estado && onChange({ estado: data.estado });
-
 		const processLocalidades = async (localidadesObj) => {
-			
 			setLocalidadesTodas(localidadesObj);
 		};
-	
 		request(
 			{
 			baseURL: "Afiliaciones",
@@ -93,8 +81,25 @@ const SeccionalesForm = ({
 		);
 	},[]);
 
+	//#region TRAIGO TODOS LOS ESTADOS una vez
 	useEffect(() => {
-		console.log('localidadBuscar',localidadBuscar)
+		const processEstados = async (estadosObj) => {
+			const estados = estadosObj.map((e)=> ({value: e.id, label: e.descripcion}))
+			console.log("estados",estados);
+			setEstadosOptions(estados);
+		};
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: "/SeccionalEstado",
+				method: "GET",
+			},
+			processEstados
+		);
+	},[]);
+	//#endregion
+
+	useEffect(() => {
 		if (localidadBuscar.length > 2) {
 		const localidadesSelect = localidadesTodas
 			.filter((localidad) =>
@@ -103,10 +108,8 @@ const SeccionalesForm = ({
 			.map((localidad) => {
 			return { value: localidad.id, label: localidad.nombre };
 			});
-			//console.log("localidadesSelect", localidadesSelect, localidades);
 			setLocalidadesOptions(localidadesSelect);
 		}     
-
 		if (localidadBuscar === ""){
 			setLocalidadesOptions([])
 			setLocalidadBuscar("")
@@ -114,11 +117,8 @@ const SeccionalesForm = ({
 	}, [localidadesTodas, localidadBuscar]);
 
 	const handlerOnTextChange = (buscar) => {
-		//console.log("text change", event.target.value);
-		 
 		setLocalidadSeccional({...localidadSeccional, label: buscar});
 		setLocalidadBuscar(buscar);
-		
 	  };
 	//#endregion
 
@@ -155,16 +155,16 @@ const SeccionalesForm = ({
 						</div>
 						<div className={classes.item1}>
 							<SelectMaterial
-								id="estado"
-								name="estado"
+								id="seccionalEstadoId"
+								name="seccionalEstadoId"
 								label="Estado"
-								error={!!errors.estado} 
-								helperText={errors.estado ?? ""}
-								value={data.estado}
+								error={!!errors.seccionalEstadoId} 
+								helperText={errors.seccionalEstadoId ?? ""}
+								value={data.seccionalEstadoId}
 								disabled={disabled.estado ?? false}
-								onChange={(value) => onChange({ estado: value })}
-								defaultValue="NORMALIZADA"
-								options={estados}
+								onChange={(value) => onChange({ seccionalEstadoId: value })}
+								defaultValue={0}
+								options={estadosOptions}
 								required
 							/>     
 						</div>
