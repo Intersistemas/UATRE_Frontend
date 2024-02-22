@@ -226,14 +226,12 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 					error={!!formaPagoSelect.error}
 					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
 					value={formaPagoSelect.selected}
-					// onChange={(selected) => setFormaPagoSelect((o) => ({ ...o, selected }))}
-					onChange={(selected) => {
-						console.log({selected})
-						setFormaPagoSelect((o) => ({ ...o, selected }));
-					}}
+					onChange={(selected) =>
+						setFormaPagoSelect((o) => ({ ...o, selected }))
+					}
 					options={formaPagoSelect.options}
 					onTextChange={(buscar) =>
-						setFormaPagoSelect((o) => ({ ...o, buscar}))
+						setFormaPagoSelect((o) => ({ ...o, buscar }))
 					}
 					required
 				/>
@@ -247,7 +245,6 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			{ 1: FormaPagoViewer1 }[
 				formaPagoSelect.selected.data.modeloImpresionLiquidacion
 			] ?? FormaPagoViewer0;
-		console.log({ "formaPago.data": formaPago.data });
 		contenido = (
 			<Viewer
 				cabecera={liquidacionCabecera}

@@ -144,7 +144,7 @@ const FormaPagoPDF = ({
 									</Text>
 								</Grid>
 							</Grid>
-							<Grid
+							{/* <Grid
 								col
 								width="60"
 								style={{ ...styles.paddingBox, ...styles.borderRight }}
@@ -155,7 +155,7 @@ const FormaPagoPDF = ({
 								<Grid justify="center" style={styles.titulo}>
 									<Text>{Formato.Mascara(cabecera.acta, "###") || "000"}</Text>
 								</Grid>
-							</Grid>
+							</Grid> */}
 							<Grid
 								col
 								width="110"
@@ -299,10 +299,11 @@ const FormaPagoPDF = ({
 									...styles.borderRight,
 									...styles.borderTop,
 									...styles.borderBottom,
+									fontSize: "10pt",
 								}}
 							>
 								<Text style={styles.titulo}>Código de pago:</Text>
-								<Text>{Formato.Mascara(formaPago.identificadorDeudaInformado, "#".repeat(10))}</Text>
+								<Text style={styles.titulo}>{Formato.Mascara(formaPago.identificadorDeudaInformado, "#".repeat(10))}</Text>
 							</Grid>
 							<Grid width="310" justify="center" style={styles.paddingBox}>
 								<Text style={styles.titulo}>
@@ -316,11 +317,11 @@ const FormaPagoPDF = ({
 								<Text>{Formato.Moneda(formaPago.total)}</Text>
 							</Grid>
 						</Grid>
-						<Grid col grow justify="end">
+						{/* <Grid col grow justify="end">
 							<Grid width justify="center">
 								{barcode}
 							</Grid>
-						</Grid>
+						</Grid> */}
 					</Grid>
 				</MyPage>
 			);
