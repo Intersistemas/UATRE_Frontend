@@ -16,16 +16,18 @@ import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import AlertTitle from '@mui/material/AlertTitle';
-import CloseIcon from '@mui/icons-material/Close';
-import InputMask from 'react-input-mask'; 
+import CloseIcon from '@mui/icons-material/Close'; 
 import Spinner from 'react-bootstrap/Spinner';
 import UseKeyPress from '../helpers/UseKeyPress';
+import MaskedInput from "react-text-mask";
 
 const Registro = () => {
   console.log("Registro");
 
   const { isLoading, error, sendRequest: request } = useHttp();
   //const [userLoggedIn, setUserLoggedIn] = useState(null)
+
+  const [enteredCUIT2, setEnteredCUIT2] = useState();
 
   const [enteredCUIT, setEnteredCUIT] = useState('');
   const [cuitIsValid, setCUITIsValid] = useState(false);
@@ -113,10 +115,20 @@ const Registro = () => {
 
   const cuitChangeHandler = (event) => {
     setEnteredCUIT(event.target.value.replace(/[^0-9]+/g, "")); //GUARDO SOLO NUMEROS
-   
     console.log('-enteredCUIT:',enteredCUIT);
-
   };
+
+  const normalizeCardNumber = (event) => {
+    //setEnteredCUIT2(event.target.value.replace(/\s/g, "").match(/.{1,4}/g)?.join(" ").substr(0, 19) || "")
+
+    let val = event.target.value;
+    val = val.replace(/\D/g, "");
+    console.log("val**",val)
+    val = val.replace(/^(\d{2})(\d)/, "$1-$2");
+    event.target.value = val
+    setEnteredCUIT2(val)
+    
+  }
 
   const emailChangeHandler = (event) => {
     setEnteredEmail(event.target.value);
@@ -198,33 +210,34 @@ const Registro = () => {
               <strong>CUIT</strong>
             </Form.Label>
 
-          <InputGroup>
-            <Form.Control
-                required
-                type="text"
-                placeholder="Cuit"
-                id="cuit"
-                as={InputMask}
-                mask="99-99.999.999-9"
-                value={enteredCUIT}
-                onChange={cuitChangeHandler}
-                onBlur={validateCUITHandler}
-                disabled={isLoading}
-              />
+            <InputGroup>
+              <Form.Control
+                  required
+                  type="text"
+                  placeholder="Cuit"
+                  id="cuit"
+                  as={MaskedInput}
+                  mask={[/\d/, /\d/, "-", /\d/, /\d/, ".", /\d/, /\d/, /\d/,".",/\d/,/\d/,/\d/,"-",/\d/]}
+                  value={enteredCUIT}
+                  onChange={cuitChangeHandler}
+                  onBlur={validateCUITHandler}
+                  disabled={isLoading}
+                />
 
-              <InputGroup.Text>
-                  {/*cuitIsValid &&
-                  <Spinner
-                    variant="primary"
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  />*/}
-                  
-              </InputGroup.Text>
-              </InputGroup>
+                <InputGroup.Text>
+                    {/*cuitIsValid &&
+                    <Spinner
+                      variant="primary"
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />*/}
+                    
+                </InputGroup.Text>
+            </InputGroup>
+
           </Form.Group>
 
           <Form.Group className="mt-3">

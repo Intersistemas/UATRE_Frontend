@@ -734,8 +734,9 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
         //alert
         if (props.accion === "Agrega") {
+          console.log("MODIFICAR: afiliadoObj",afiliadoObj)
           setDialogTexto(
-            `El afiliado ya está cargado para la seccional ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}`
+            `El Afiliado: ${afiliadoObj?.nombre} ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}`
           );
           setOpenDialog(true);
           return;

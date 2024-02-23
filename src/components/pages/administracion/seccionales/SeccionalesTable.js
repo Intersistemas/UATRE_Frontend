@@ -25,7 +25,7 @@ const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 		},
 		{
 			headerTitle: (column, colIndex) => `Estado`,
-			dataField: "estado",
+			dataField: "seccionalEstadoDescripcion",
 			text: "Estado",
 			sort: true,
 			searchable: false,

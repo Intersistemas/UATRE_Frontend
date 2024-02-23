@@ -28,7 +28,7 @@ const TareaUsuarioForm = ({
 	 //console.log('data_tarea:',data)
 	 //console.log('delegaciones_tarea:',delegaciones)
 	//console.log('Form_tarea_errors:',errors)
-	//console.log('Form_tarea_disabled:',disabled)
+	console.log('Form_tarea_disabled:',disabled)
 	
 	disabled ??= {};
 	hide ??= {};

@@ -9,6 +9,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 import styles from "./Localizar.module.css";
+import moment from "moment";
 
 const onCloseDef = () => {};
 
@@ -46,10 +47,11 @@ const Localizar = ({ onClose = onCloseDef }) => {
 		data: [],
 		selection: { selected: [] },
 		error: null,
+		selected: {}
 	});
-	const selected =
-		afiliados.data.find((r) => afiliados.selection.selected.includes(r.id)) ??
-		{};
+	
+	//const selected2 = afiliados.data.find((r) => afiliados.selection.selected.includes(r.id)) ?? {};
+	
 	useEffect(() => {
 		if (!afiliados.loading) return;
 		pushQuery({
@@ -63,22 +65,25 @@ const Localizar = ({ onClose = onCloseDef }) => {
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
-				setAfiliados((o) => ({
-					...o,
-					loading: null,
-					pagination: { index, size, count },
-					data,
-					selection: {
-						selected: ((a) => (a.length ? a : data.length ? [data[0].id] : []))(
-							data
-								.filter((r) => o.selection.selected.includes(r.id))
-								.map((r) => r.id)
-						),
-					},
-					error: null,
-				})),
+				{
+					setAfiliados((o) => ({
+						...o,
+						loading: null,
+						pagination: { index, size, count },
+						data,
+						selection: {
+							selected: ((a) => (a.length ? a : data.length ? [data[0].id] : []))(
+								data
+									.filter((r) => o.selection.selected.includes(r.id))
+									.map((r) => r.id)
+							),
+						},
+						selected: data.length ? data[0] : {},
+						error: null,
+					}));
+				},
 			onError: (e) =>
-				setAfiliados((o) => ({ ...o, loading: null, data: [], error: e })),
+					setAfiliados((o) => ({ ...o, loading: null, data: [], selected: {} ,error: e }))
 		});
 	}, [pushQuery, afiliados]);
 
@@ -119,6 +124,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 										params: {},
 										data: [],
 										selection: { selected: [] },
+										selected: {},
 									};
 
 									if (state.nroAfiliado)
@@ -159,7 +165,8 @@ const Localizar = ({ onClose = onCloseDef }) => {
 								setAfiliados((o) => ({
 									...o,
 									selection: { ...o.selection, selected: [row.id] },
-								})),
+									selected: row
+								}))
 						}}
 						noDataIndication={
 							afiliados.loading ||
@@ -202,25 +209,35 @@ const Localizar = ({ onClose = onCloseDef }) => {
 							<Grid width="full" gap="inherit">
 								<InputMaterialDetail
 									label="Nro. afiliado"
-									value={selected.nroAfiliado}
+									value={afiliados.selected.nroAfiliado}
 								/>
 								<InputMaterialDetail
 									label="CUIL"
 									mask="99-99.999.999-9"
-									value={selected.cuil}
+									value={afiliados.selected.cuil}
 								/>
 								<InputMaterialDetail
 									label="Documento"
 									value={[
-										selected.afipTipoDocumento,
-										Formato.DNI(selected.afipNumeroDocumento),
-									]
+										afiliados.selected.afipTipoDocumento,
+										Formato.DNI(afiliados.selected.afipNumeroDocumento),
+										]
 										.filter((r) => r)
 										.join(" ")}
 								/>
 							</Grid>
-							<InputMaterialDetail label="Seccional" value={`${selected?.seccionalCodigo} ${selected?.seccional}`} />
-							<InputMaterialDetail label="Nombre" value={selected?.nombre} />
+							<Grid width="full" gap="inherit">
+								<InputMaterialDetail  style={{"-webkit-text-stroke": "medium"}} label="Nombre" value={afiliados.selected?.nombre}/>
+								<InputMaterialDetail label="Seccional" value={!!afiliados.selected?.seccionalCodigo && !!afiliados.selected?.seccional ? `${afiliados.selected?.seccionalCodigo} ${afiliados.selected?.seccional}` : ""} />
+							</Grid>
+							<Grid width="full" gap="inherit">
+								<InputMaterialDetail label="Estado" value={afiliados.selected?.estadoSolicitud} />
+								<InputMaterialDetail label="Fecha Ingreso" value={afiliados.selected?.fechaIngreso ? moment(afiliados.selected?.fechaIngreso).format("yyyy-MM-DD"): ""} />
+								{!!afiliados.selected?.fechaEgreso && <InputMaterialDetail label="Fecha Egreso" value={moment(afiliados.selected?.fechaEgreso).format("yyyy-MM-DD")} />}
+							</Grid>
+							{!!afiliados.selected?.estadoSolicitudObservaciones && <InputMaterialDetail label="Observación" value={afiliados.selected?.estadoSolicitudObservaciones} />}
+							
+							
 						</Grid>
 					</Grid>
 				</Grid>
