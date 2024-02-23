@@ -8,7 +8,6 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
 import SearchSelectMaterial, {
@@ -34,7 +33,7 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: Formato.Cuit,
+		formatter: (v) => Formato.Cuit(v),
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
 	},
@@ -166,28 +165,57 @@ const columns = [
 		headerStyle: { width: "10em", textAlign: "center" },
 		csvFormat: (v) => v,
 	},
+	{
+		dataField: "refMotivoBajaDescripcion",
+		text: "Motivo de baja",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+		csvFormat: (v) => v,
+	},
 ];
 
 //#region delegacionSelectOptions
 const delegacionSelectTodos = { value: 0, label: "Todas" };
-const delegacionSelectMap = (r) => ({ value: r.id, label: r.nombre });
 const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
-		map: delegacionSelectMap,
+		map: (r) => ({ value: r.id, label: r.nombre }),
 		filter: (r) => includeSearch(r, buscar),
 		start: [delegacionSelectTodos],
 		...x,
 	});
-//#endregion estadoSelectOptions
+//#endregion delegacionSelectOptions
+
+//#region seccionalSelectOptions
+const seccionalSelectTodos = { value: 0, label: "Todas" };
+const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion }),
+		filter: (r) => includeSearch(r, buscar),
+		start: [seccionalSelectTodos],
+		...x,
+	});
+//#endregion seccionalSelectOptions
+
+//#region motivosBajaSelectOptions
+const motivosBajaSelectTodos = { value: 0, label: "Todos" };
+const motivosBajaSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion }),
+		filter: (r) => includeSearch(r, buscar),
+		start: [motivosBajaSelectTodos],
+		...x,
+	});
+//#endregion motivosBajaSelectOptions
 
 //#region estadoSelectOptions
 const estadoSelectTodos = { value: 0, label: "Todos" };
-const estadoSelectMap = (r) => ({ value: r.id, label: r.descripcion });
 const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
-		map: estadoSelectMap,
+		map: (r) => ({ value: r.id, label: r.descripcion }),
 		filter: (r) => includeSearch(r, buscar),
 		start: [estadoSelectTodos],
 		...x,
@@ -196,11 +224,10 @@ const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#region provinciaSelectOptions
 const provinciaSelectTodos = { value: null, label: "Todas" };
-const provinciaSelectMap = (r) => ({ value: r.id, label: r.nombre });
 const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
-		map: provinciaSelectMap,
+		map: (r) => ({ value: r.id, label: r.nombre }),
 		filter: (r) => includeSearch(r, buscar),
 		start: [provinciaSelectTodos],
 		...x,
@@ -226,8 +253,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 						baseURL: "Afiliaciones",
 						endpoint: `/EstadoSolicitud`,
 						method: "GET",
-					}
-				}
+					},
+				};
 			}
 			case "GetProvincias": {
 				return {
@@ -235,8 +262,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 						baseURL: "Afiliaciones",
 						endpoint: `/Provincia`,
 						method: "GET",
-					}
-				}
+					},
+				};
 			}
 			case "GetDelegaciones": {
 				return {
@@ -244,8 +271,26 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 						baseURL: "Comunes",
 						endpoint: `/RefDelegacion/GetAll`,
 						method: "GET",
-					}
-				}
+					},
+				};
+			}
+			case "GetSeccionales": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional/GetSeccionalesSpecs`,
+						method: "POST",
+					},
+				};
+			}
+			case "GetMotivosBaja": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefMotivoBaja/GetByTipo`,
+						method: "GET",
+					},
+				};
 			}
 			default:
 				return null;
@@ -265,8 +310,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		error: null,
 		buscar: "",
 		options: [],
-		selected: delegacionSelectTodos
-	})
+		selected: delegacionSelectTodos,
+	});
 
 	useEffect(() => {
 		if (!delegacionSelect.reload) return;
@@ -289,7 +334,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			},
 			onError: (error) => (changes.error = error.toString()),
 			onFinally: () =>
-			setDelegacionSelect((o) => ({ ...o, ...changes, loading: null })),
+				setDelegacionSelect((o) => ({ ...o, ...changes, loading: null })),
 		});
 	}, [delegacionSelect, pushQuery]);
 	// Buscador
@@ -297,8 +342,127 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		if (delegacionSelect.reload) return;
 		if (delegacionSelect.loading) return;
 		setDelegacionSelect((o) => ({ ...o, options: delegacionSelectOptions(o) }));
-	}, [delegacionSelect.reload, delegacionSelect.loading, delegacionSelect.buscar]);
-	//#endregion filtro estado
+	}, [
+		delegacionSelect.reload,
+		delegacionSelect.loading,
+		delegacionSelect.buscar,
+	]);
+	//#endregion filtro delegacion
+
+	//#region filtro seccional
+	const [seccionalSelect, setSeccionalSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { soloActivos: true },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: seccionalSelectTodos,
+	});
+
+	useEffect(() => {
+		if (!seccionalSelect.reload) return;
+		const changes = {
+			reload: null,
+			loading:
+				"refDelegacionId" in seccionalSelect.params ? "Cargando..." : null,
+			data: [],
+			error: null,
+			buscar: "",
+			options: [],
+		};
+		setSeccionalSelect((o) => ({ ...o, ...changes }));
+		if (!changes.loading) return;
+		const query = {
+			action: "GetSeccionales",
+			config: {
+				body: { ...seccionalSelect.params, pageIndex: 1 },
+			},
+		};
+		query.onOk = ({ data, pages }) => {
+			if (!Array.isArray(data))
+				return console.error("Se esperaba un arreglo", data);
+			changes.data.push(...data);
+			if (query.config.body.pageIndex < pages) {
+				query.config.body.pageIndex += 1;
+				changes.loading = `Cargando bloque ${query.config.body.pageIndex} de ${pages}...`;
+				return;
+			} else {
+				changes.loading = null;
+			}
+		};
+		query.onError = (error) => {
+			changes.loading = null;
+			changes.error = error.toString();
+		};
+		query.onFinally = () => {
+			if (changes.loading) {
+				pushQuery({ ...query });
+				return;
+			}
+			setSeccionalSelect((o) => ({ ...o, ...changes }));
+		};
+		pushQuery(query);
+	}, [seccionalSelect, pushQuery]);
+	// Buscador
+	useEffect(() => {
+		if (seccionalSelect.reload) return;
+		if (seccionalSelect.loading) return;
+		setSeccionalSelect((o) => ({ ...o, options: seccionalSelectOptions(o) }));
+	}, [seccionalSelect.reload, seccionalSelect.loading, seccionalSelect.buscar]);
+	//#endregion filtro seccional
+
+	//#region filtro motivosBaja
+	const [motivosBajaSelect, setMotivosBajaSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { tipo: "A" },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: motivosBajaSelectTodos,
+	});
+
+	useEffect(() => {
+		if (!motivosBajaSelect.reload) return;
+		const changes = {
+			reload: null,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+			buscar: "",
+			options: [],
+		};
+		setMotivosBajaSelect((o) => ({ ...o, ...changes }));
+		pushQuery({
+			action: "GetMotivosBaja",
+			params: { ...motivosBajaSelect.params },
+			onOk: (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data = data;
+			},
+			onError: (error) => (changes.error = error.toString()),
+			onFinally: () =>
+				setMotivosBajaSelect((o) => ({ ...o, ...changes, loading: null })),
+		});
+	}, [motivosBajaSelect, pushQuery]);
+	// Buscador
+	useEffect(() => {
+		if (motivosBajaSelect.reload) return;
+		if (motivosBajaSelect.loading) return;
+		setMotivosBajaSelect((o) => ({
+			...o,
+			options: motivosBajaSelectOptions(o),
+		}));
+	}, [
+		motivosBajaSelect.reload,
+		motivosBajaSelect.loading,
+		motivosBajaSelect.buscar,
+	]);
+	//#endregion filtro motivos baja
 
 	//#region filtro estado
 	const [estadoSelect, setEstadoSelect] = useState({
@@ -309,8 +473,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		error: null,
 		buscar: "",
 		options: [],
-		selected: estadoSelectTodos
-	})
+		selected: estadoSelectTodos,
+	});
 
 	useEffect(() => {
 		if (!estadoSelect.reload) return;
@@ -353,8 +517,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		error: null,
 		buscar: "",
 		options: [],
-		selected: provinciaSelectTodos
-	})
+		selected: provinciaSelectTodos,
+	});
 
 	useEffect(() => {
 		if (!provinciaSelect.reload) return;
@@ -377,7 +541,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			},
 			onError: (error) => (changes.error = error.toString()),
 			onFinally: () =>
-			setProvinciaSelect((o) => ({ ...o, ...changes, loading: null })),
+				setProvinciaSelect((o) => ({ ...o, ...changes, loading: null })),
 		});
 	}, [provinciaSelect, pushQuery]);
 	// Buscador
@@ -428,7 +592,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				changes.pagination = pagination;
 			},
 			onError: async (error) => (changes.error = error.toString()),
-			onFinally: async () => setList((o) => ({ ...o, ...changes, loading: null })),
+			onFinally: async () =>
+				setList((o) => ({ ...o, ...changes, loading: null })),
 		});
 	}, [list, pushQuery]);
 	//#endregion
@@ -439,9 +604,10 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		loading: null,
 		params: {},
 		data: [columns.map((r) => r.text)],
-		formatters: [
-			columns.map(({ dataField, csvFormat }) => ({ dataField, csvFormat })),
-		],
+		formatters: columns.map(({ dataField, csvFormat }) => ({
+			dataField,
+			csvFormat,
+		})),
 		error: null,
 	});
 
@@ -463,6 +629,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		};
 		query.onOk = async ({ index, pages, size, data }) => {
 			if (Array.isArray(data)) {
+				console.log({ "csv.formatters": csv.formatters });
 				changes.data.push(
 					...AsArray(data).map((r) =>
 						csv.formatters.map((f) => f.csvFormat(r[f.dataField], r))
@@ -521,53 +688,85 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								error={!!delegacionSelect.error}
 								helperText={delegacionSelect.loading ?? delegacionSelect.error}
 								value={delegacionSelect.selected}
-								onChange={(selected) =>
-									{
-										setDelegacionSelect((o) => ({ ...o, selected }));
-										setFiltros((o) => {
-											const filtros = {
-												...o,
-												ambitoDelegaciones: { ids: [selected.value ?? 0] },
-											};
-											if (selected === delegacionSelectTodos)
-												delete filtros.ambitoDelegaciones;
-											return filtros;
-										});
-									}
-								}
+								onChange={(selected) => {
+									setDelegacionSelect((o) => ({ ...o, selected }));
+									setSeccionalSelect((o) => {
+										const seccionalSelect = { ...o, reload: true };
+										if (selected === delegacionSelectTodos) {
+											delete seccionalSelect.params.refDelegacionId;
+										} else {
+											seccionalSelect.params.refDelegacionId = selected.value;
+										}
+										return seccionalSelect;
+									});
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											ambitoDelegaciones: { ids: [selected.value] },
+										};
+										if (selected === delegacionSelectTodos)
+											delete filtros.ambitoDelegaciones;
+										return filtros;
+									});
+								}}
 								options={delegacionSelect.options}
 								onTextChange={(buscar) =>
 									setDelegacionSelect((o) => ({ ...o, buscar }))
 								}
 							/>
 						</Grid>
-						{/* <Grid grow>
+						<Grid grow>
 							<SearchSelectMaterial
-								id="provinciaSelect"
-								label="Provincia"
-								error={!!provinciaSelect.error}
-								helperText={provinciaSelect.loading ?? provinciaSelect.error}
-								value={provinciaSelect.selected}
-								onChange={(selected) =>
-									{
-										setProvinciaSelect((o) => ({ ...o, selected }));
-										setFiltros((o) => {
-											const filtros = {
-												...o,
-												ambitoProvincias: selected.value ?? 0,
-											};
-											if (!filtros.ambitoProvincias)
-												delete filtros.ambitoProvincias;
-											return filtros;
-										});
-									}
-								}
-								options={provinciaSelect.options}
+								id="seccionalSelect"
+								label="Seccional"
+								error={!!seccionalSelect.error}
+								helperText={seccionalSelect.loading ?? seccionalSelect.error}
+								value={seccionalSelect.selected}
+								onChange={(selected) => {
+									setSeccionalSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											ambitoSeccionales: { ids: [selected.value] },
+										};
+										if (selected === seccionalSelectTodos)
+											delete filtros.ambitoSeccionales;
+										return filtros;
+									});
+								}}
+								options={seccionalSelect.options}
 								onTextChange={(buscar) =>
-									setProvinciaSelect((o) => ({ ...o, buscar }))
+									setSeccionalSelect((o) => ({ ...o, buscar }))
 								}
 							/>
-						</Grid> */}
+						</Grid>
+						<Grid grow>
+							<SearchSelectMaterial
+								id="motivosBajaSelect"
+								label="Motivo de baja"
+								error={!!motivosBajaSelect.error}
+								helperText={
+									motivosBajaSelect.loading ?? motivosBajaSelect.error
+								}
+								value={motivosBajaSelect.selected}
+								onChange={(selected) => {
+									setMotivosBajaSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											refMotivoBajaId: selected.value,
+										};
+										if (selected === motivosBajaSelectTodos)
+											delete filtros.refMotivoBajaId;
+										return filtros;
+									});
+								}}
+								options={motivosBajaSelect.options}
+								onTextChange={(buscar) =>
+									setMotivosBajaSelect((o) => ({ ...o, buscar }))
+								}
+							/>
+						</Grid>
 					</Grid>
 					<Grid width gap="inherit">
 						<Grid grow>
@@ -577,20 +776,18 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								error={!!estadoSelect.error}
 								helperText={estadoSelect.loading ?? estadoSelect.error}
 								value={estadoSelect.selected}
-								onChange={(selected) =>
-									{
-										setEstadoSelect((o) => ({ ...o, selected }));
-										setFiltros((o) => {
-											const filtros = {
-												...o,
-												estadoSolicitudId: selected.value ?? 0,
-											};
-											if (selected === estadoSelectTodos)
-												delete filtros.estadoSolicitudId;
-											return filtros;
-										});
-									}
-								}
+								onChange={(selected) => {
+									setEstadoSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											estadoSolicitudId: selected.value,
+										};
+										if (selected === estadoSelectTodos)
+											delete filtros.estadoSolicitudId;
+										return filtros;
+									});
+								}}
 								options={estadoSelect.options}
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
@@ -604,20 +801,18 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								error={!!provinciaSelect.error}
 								helperText={provinciaSelect.loading ?? provinciaSelect.error}
 								value={provinciaSelect.selected}
-								onChange={(selected) =>
-									{
-										setProvinciaSelect((o) => ({ ...o, selected }));
-										setFiltros((o) => {
-											const filtros = {
-												...o,
-												ambitoProvincias: { ids: [selected.value ?? 0] },
-											};
-											if (selected === provinciaSelectTodos)
-												delete filtros.ambitoProvincias;
-											return filtros;
-										});
-									}
-								}
+								onChange={(selected) => {
+									setProvinciaSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											ambitoProvincias: { ids: [selected.value] },
+										};
+										if (selected === provinciaSelectTodos)
+											delete filtros.ambitoProvincias;
+										return filtros;
+									});
+								}}
 								options={provinciaSelect.options}
 								onTextChange={(buscar) =>
 									setProvinciaSelect((o) => ({ ...o, buscar }))
@@ -651,9 +846,18 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								disabled={Object.keys(filtros).length === 0}
 								onClick={() => {
 									const filtros = {};
-									setDelegacionSelect((o) => ({ ...o, selected: delegacionSelectTodos }));
-									setEstadoSelect((o) => ({ ...o, selected: estadoSelectTodos }));
-									setProvinciaSelect((o) => ({ ...o, selected: provinciaSelectTodos }));
+									setDelegacionSelect((o) => ({
+										...o,
+										selected: delegacionSelectTodos,
+									}));
+									setEstadoSelect((o) => ({
+										...o,
+										selected: estadoSelectTodos,
+									}));
+									setProvinciaSelect((o) => ({
+										...o,
+										selected: provinciaSelectTodos,
+									}));
 									setFiltros(filtros);
 									if (JSON.stringify(list.params) === JSON.stringify(filtros))
 										return;
@@ -692,7 +896,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 							list.loading || list.error || "No existen datos para mostrar "
 						}
 						selection={{
-							onSelect: (row) => console.log({row})
+							onSelect: (row) => console.log({ row }),
 						}}
 						columns={columns}
 						onTableChange={(type, { sortOrder, sortField }) => {
@@ -708,7 +912,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 										sort,
 										data: [],
 										error: null,
-										pagination: {...o.pagination, count: 0}
+										pagination: { ...o.pagination, count: 0 },
 									}));
 									setCSV((o) => ({ ...o, params: { ...o.params, sort } }));
 									return;
