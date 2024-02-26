@@ -11,7 +11,7 @@ import {
 import Button from "components/ui/Button/Button";
 import Modal from "components/ui/Modal/Modal";
 import useHttp from "components/hooks/useHttp";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask, DNIMask } from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
@@ -2120,7 +2120,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 									onFocus={handleOnFocus}
 									value={cuilState.value}
 									label="CUIL"
-                  mask="99\-99\.999\.999\-9"
+                  //mask="99\-99\.999\.999\-9"
+                  mask={CUITMask}
 									disabled={InputDisabled("cuil")}
 									onChange={handleInputChange}
 									error={
@@ -2200,7 +2201,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 									value={numeroDocumentoState.value}
 									label="Numero Documento"
 									disabled={InputDisabled()}
-									mask="99\.999\.999"
+									mask={DNIMask}
 									//width={96}
 									onChange={handleInputChange}
 									error={

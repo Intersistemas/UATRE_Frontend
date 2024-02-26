@@ -13,7 +13,7 @@ const AfiliadoDetails = (props) => {
 	const empresa = config.empresa ?? {};
 	const seccional = config.seccional ?? {};
 	const [hotField, setHotField] = useState();
-	
+	console.log("AfiliadoDetails_data",data)
 
 	const _ = require('lodash');
 
@@ -64,6 +64,8 @@ const AfiliadoDetails = (props) => {
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={validar(data.estadoCivil)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={validar(data.nacionalidad)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha de carga" value={validar(data.createdDate)}/>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Puesto" value={validar(data.puesto)}/>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={validar(data.activdad)}/>
 								</Grid>		
 							</Grid>
 						</Grid>

@@ -6,6 +6,8 @@ import MaskedInput from "react-text-mask";
 const onChangeDef = (value, id) => {};
 
 export const CUITMask = Object.freeze([/\d/, /\d/, "-", /\d/, /\d/, ".", /\d/, /\d/, /\d/,".",/\d/,/\d/,/\d/,"-",/\d/]);
+export const DNIMask = Object.freeze([/\d/, /\d/, ".", /\d/, /\d/, /\d/,".",/\d/,/\d/,/\d/]);
+export const CodSeccional = Object.freeze(['S', "-",/\d/,/\d/,/\d/,/\d/]);
 
 const InputMaterial = ({
 	id,
@@ -64,6 +66,7 @@ const InputMaterial = ({
 		return (
 			<MaskedInput
 				{...textFieldProps}
+				guide={true}
 				render={(ref, props) => <TextField inputRef={ref} {...props} />}
 			/>
 		);

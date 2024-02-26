@@ -8,7 +8,7 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
 
@@ -172,7 +172,8 @@ const AfiliadosEstadosEmpresasSeccionales = ({ onClose = onCloseDef }) => {
 						<Grid width="200x">
 							<InputMaterial
 								label="CUIT empresa"
-								mask="99\-99.999.999\-9"
+								//mask="99\-99.999.999\-9"
+								mask={CUITMask}
 								value={filtros.cuit}
 								onChange={(cuit) =>
 									setFiltros((o) => {
