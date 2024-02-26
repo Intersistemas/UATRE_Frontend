@@ -6,9 +6,8 @@ import classes from "./SeccionalesForm.module.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {Modal} from 'react-bootstrap';
 import UseKeyPress from "components/helpers/UseKeyPress";
-import InputMaterial from "../../../ui/Input/InputMaterial";
+import InputMaterial, { CodSeccional } from "../../../ui/Input/InputMaterial";
 import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
-import InputMask from 'react-input-mask';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
@@ -143,8 +142,8 @@ const SeccionalesForm = ({
 							<InputMaterial
 								id="codigo"
 								label="Codigo"
-								as={InputMask}
-								mask="S-9999"
+								mask={CodSeccional}
+								placeholder={"S-____"}
 								required 
 								error={!!errors.codigo}
 								helperText={errors.codigo ?? ""}

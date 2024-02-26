@@ -52,7 +52,7 @@ const ColaboradoresForm = ({
 											afiliadoCUIL: Number(v.replace(/[^\d]/gim, "")),
 										})
 									}
-									mask="99\-99\.999\.999\-9"
+									
 									width={100}
 								/>
 							)}

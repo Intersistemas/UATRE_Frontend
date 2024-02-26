@@ -4,7 +4,7 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 
@@ -573,7 +573,8 @@ const EmpresasForm = ({
 								<InputMaterial
 									id="cuitEmpresa"
 									label="CUIT"
-									mask="99-99.999.999-9"
+									//mask="99-99.999.999-9"
+									mask={CUITMask}
 									required
 									error={!!errors.cuit}
 									helperText={
@@ -583,7 +584,7 @@ const EmpresasForm = ({
 									disabled={disabled.cuit}
 									onChange={(value, _id) =>
 										onChange({ cuit: value.replace(/[^0-9]+/g, "") })
-									}
+									} 
 								/>
 							</Grid>
 							<Grid col width="30%">

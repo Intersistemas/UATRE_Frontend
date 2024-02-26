@@ -221,7 +221,7 @@ const AfiliadosLista = (props ) => {
       text: "Nro.Afil.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "7rem", textAlign: "center" };
+        return { width: "6rem", textAlign: "center" };
       },
     },
     {
@@ -239,7 +239,7 @@ const AfiliadosLista = (props ) => {
       dataField: "cuilValidado",
       text: "Val.",
       headerStyle: (colum, colIndex) => {
-        return { width: "5rem", textAlign: "center" };
+        return { width: "3rem", textAlign: "center" };
       },
       formatter: (value, row) => ( 
         value == 0 ? "N" : (value == row.cuil) ? 'V' : 'D'
@@ -252,7 +252,7 @@ const AfiliadosLista = (props ) => {
       text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "7rem", textAlign: "center" };
       },
       formatter: Formato.DNI,
     },
@@ -268,33 +268,6 @@ const AfiliadosLista = (props ) => {
         return { textAlign: "left" };
       },
     },
-    /*
-    {
-      headerTitle: true,
-      dataField: "sexo",
-      text: "Sexo",
-      headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: (column, colIndex) => `Estado Civil`,
-      dataField: "estadoCivil",
-      text: "Est.Civil",
-      headerStyle: (colum, colIndex) => {
-        return { width: "5%", textAlign: "center" };
-      },
-    },
-
-    {
-
-      headerTitle: true,
-      dataField: "nacionalidad",
-      text: "Nac.",
-      headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
-      },
-    },*/
     {
       headerTitle: (colum, colIndex) => (`Situación del Afiliado`),
       dataField: "estadoSolicitud",
@@ -339,6 +312,17 @@ const AfiliadosLista = (props ) => {
         withoutEmptyOption: true,
       }),
     },
+    {
+      headerTitle: true,
+      dataField: "seccionalCodigo",
+      text: "Cod.Seccional",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "5%", textAlign: "center" };
+      },
+    },
+
+    
     {
       headerTitle: true,
       dataField: "seccional",
@@ -391,15 +375,6 @@ const AfiliadosLista = (props ) => {
 
     {
       headerTitle: true,
-      dataField: "puesto",
-      text: "Puesto",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: true,
       dataField: "empresaCUIT",
       text: "CUIT",
       //sort: true,
@@ -414,7 +389,17 @@ const AfiliadosLista = (props ) => {
       text: "Empresa",
       //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
+        return { width: "20%", textAlign: "center" };
+      },
+    },
+
+     /*{
+      headerTitle: true,
+      dataField: "puesto",
+      text: "Puesto",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "7%", textAlign: "center" };
       },
     },
     {
@@ -425,7 +410,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10%", textAlign: "center" };
       },
-    },
+    },*/
     
   ];
   

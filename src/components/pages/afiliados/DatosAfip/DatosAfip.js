@@ -1,7 +1,6 @@
 import React from "react";
 import classes from "../AfiliadoAgregar.module.css";
-import InputMaterial from "../../../ui/Input/InputMaterial";
-import InputMaterialMask from "../../../ui/Input/InputMaterialMask";
+import InputMaterial, { CUITMask, DNIMask } from "../../../ui/Input/InputMaterial";
 import { useState } from "react";
 import { useEffect } from "react";
 import moment from "moment";
@@ -105,7 +104,8 @@ const DatosAfip = (props) => {
           />
         </div>
         <div className={classes.input20}>
-          <InputMaterialMask
+          <InputMaterial
+            mask={CUITMask}
             id="cuilAFIP"
             value={cuilAFIP.toString()}
             label="CUIL"
@@ -139,7 +139,8 @@ const DatosAfip = (props) => {
             value={numeroDocumentoAFIP}
             label="Documento"
             readOnly={true}
-						mask="99.999.999"
+						//mask="99.999.999"
+            mask={DNIMask}
             color={
               numeroDocumentoAFIP !== "" &&
               numeroDocumentoAFIP !== props.afiliado?.afipNumeroDocumento

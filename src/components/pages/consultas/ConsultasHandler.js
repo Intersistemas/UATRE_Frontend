@@ -3,6 +3,7 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import Localizar from "../afiliados/localizar/Localizar";
+import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 
 const ConsultasHandler = () => {
 	const [consulta, setConsulta] = useState();
@@ -33,6 +34,19 @@ const ConsultasHandler = () => {
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
 			
+				</Grid>
+			</>
+		),
+		// actions,
+	});
+
+	// Afiliados
+	tabs.push({
+		header: () => <Tab label="Seccionales" />,
+		body: () => (
+			<>
+				<Grid width gap="inherit" justify="evenly">
+					<SeccionalesMap/>
 				</Grid>
 			</>
 		),
