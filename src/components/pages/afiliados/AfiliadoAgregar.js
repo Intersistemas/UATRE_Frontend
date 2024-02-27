@@ -285,6 +285,18 @@ const telefonoReducer = (state, action) => {
   return { value: "", isValid: false };
 };
 
+
+const seccionalSolicitudAfiliacionReducer = (state, action) => {
+  if (action.type === "USER_INPUT") {
+    return { value: action.value, isValid: action.value ? true : false };
+  }
+  if (action.type === "USER_BLUR") {
+    return { value: state.value, isValid: state.value ? true : false };
+  }
+  return { value: "", isValid: false };
+};
+
+
 const onLoadedDef = ({ data, error }) => {};
 //#endregion
 
@@ -340,6 +352,12 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   value: "",
   isValid: false,
 });
+
+const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] = useReducer(seccionalSolicitudAfiliacionReducer, {
+  value: "",
+  isValid: false,
+});
+
 
 const [nacionalidadState, dispatchNacionalidad] = useReducer(
   nacionalidadReducer,
@@ -407,6 +425,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   value: "",
   isValid: false,
 });
+
 //#ENDREGION
   
 
@@ -617,7 +636,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         setCuilValidado(afiliadoObj.cuilValidado ? true : false);
         setNuevoAfiliadoResponse(afiliadoObj);
         setAfiliadoExiste(true);
-
+        
         //dispatches para validar los campos
         dispatchFechaNacimiento({
           type: "USER_INPUT",
@@ -686,6 +705,19 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
                   const sinAsignar = myLocalidadId?.value === provinciaSelected?.localidadIdPorDefecto ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
                   dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
 
+
+                  //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
+                  /*
+                  const today = new Date();
+                  const month = afiliadoObj?.fechaIngreso.getMonth() + 1;
+                  const year = afiliadoObj?.fechaIngreso.getFullYear();
+                  const day = afiliadoObj?.fechaIngreso.getDate();
+                  const fechaIngreso = year + "-" + month + "-" + day;
+                  console.log("fechaIngreso",fechaIngreso)
+                  console.log("today",today);
+                  //2024-02-05 afiliadoObj?.fechaIngreso
+                  */
+                 
                   setSeccionales((o) => ({
                     ...o,
                     loading: "Cargando...",
@@ -723,6 +755,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
         dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: `${afiliadoObj.seccionalCodigoSolicitudAfiliacion} ${afiliadoObj.seccionalDescripcionSolicitudAfiliacion}`});
 
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
@@ -1188,7 +1221,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
 				afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
 				empresa: empresa,
-        cuilValidado: 0, //+cuilState.value, FER me pide que cuando es INSERT, no se guarde el CUILValidado.
+        cuilValidado: +cuilState.value, //FER me pide que cuando es INSERT, no se guarde el CUILValidado.
 				documentacion: documentacionList.map((r) => ({
 					...r,
 					id: 0,
@@ -1583,6 +1616,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchLocalidad({ type: "USER_INPUT", value: "" });
         dispatchSeccional({ type: "USER_INPUT", value: "" });
         dispatchTelefono({ type: "USER_INPUT", value: "" });
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: ""});
         dispatchEmail({ type: "USER_INPUT", value: "" });
         dispatchPuesto({ type: "USER_INPUT", value: "" });
         dispatchActividad({ type: "USER_INPUT", value: "" });
@@ -2401,6 +2435,16 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 											? true
 											: false
 									}
+								/>
+							</div>
+              <div className={classes.input}>
+								<InputMaterial
+									id="seccionalDescripcionSolicitudAfiliacion"
+									value={seccionalSolicitudAfiliacionState.value}
+									label="Seccional Solicita Afiliación"
+									disabled={true}
+									width={100}
+									//onChange={handleInputChange}
 								/>
 							</div>
 						</div>

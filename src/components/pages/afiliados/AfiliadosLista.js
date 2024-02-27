@@ -318,7 +318,7 @@ const AfiliadosLista = (props ) => {
       text: "Cod.Seccional",
       //sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "5%", textAlign: "center" };
+        return { width: "6%", textAlign: "center" };
       },
     },
 

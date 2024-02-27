@@ -1,9 +1,8 @@
 import React from 'react';
 import usePlacesAutocomplete, {getGeocode, getLatLng} from "use-places-autocomplete";
 import { Autocomplete, TextField } from '@mui/material';
-import { width } from '@mui/system';
 import "./seccionalesMap.css";
-import SearchSelectMaterialGMaps from 'components/ui/Select/SearchSelectMaterialGMaps';
+
 
 const SeccionalesMapSearcher = (props) => {
 

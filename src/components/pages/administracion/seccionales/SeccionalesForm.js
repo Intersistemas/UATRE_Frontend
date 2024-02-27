@@ -135,10 +135,8 @@ const SeccionalesForm = ({
 			>
 				<Modal.Header closeButton><h3>{title}</h3></Modal.Header>
 				<Modal.Body>
-				<div className={classes.div}>
-					<div className={classes.container}>
-						
-						<div className={classes.item0}>
+					<Grid col full gap="15px">
+						<Grid  gap="inherit">
 							<InputMaterial
 								id="codigo"
 								label="Codigo"
@@ -151,8 +149,8 @@ const SeccionalesForm = ({
 								disabled={disabled.codigo}
 								onChange={(value, _id) => onChange({ codigo: value })}
 							/>
-						</div>
-						<div className={classes.item1}>
+						</Grid>
+						<Grid width="full" gap="inherit">
 							<SelectMaterial
 								id="seccionalEstadoId"
 								name="seccionalEstadoId"
@@ -166,9 +164,7 @@ const SeccionalesForm = ({
 								options={estadosOptions}
 								required
 							/>     
-						</div>
 
-						<div className={classes.item2}>
 							<InputMaterial
 							id="descripcion"
 							label="Nombre"
@@ -179,9 +175,9 @@ const SeccionalesForm = ({
 							
 							onChange={(value, _id) => onChange({ descripcion: value })}
 							/>
-						</div> 
-
-						<div className={classes.item3}>
+						</Grid>
+						
+						<Grid width="full" gap="inherit">
 							<SearchSelectMaterial
 								id="refLocalidadesId"
 								name="refLocalidadesId"
@@ -202,9 +198,7 @@ const SeccionalesForm = ({
 								onTextChange={handlerOnTextChange}
 								required
 							/>
-						</div>
 
-						<div className={classes.item4}>
 							<InputMaterial
 							id="domicilio"
 							label="Dirección"
@@ -214,8 +208,10 @@ const SeccionalesForm = ({
 							disabled={disabled.domicilio ?? false}
 							onChange={(value, _id) => onChange({ domicilio: value })}
 							/>
-						</div> 
-						<div className={classes.item5}>
+						</Grid>
+
+						<Grid width="full" gap="inherit">
+							
 							<SelectMaterial
 								id="refDelegacionId"
 								name="refDelegacionId"
@@ -229,8 +225,19 @@ const SeccionalesForm = ({
 								options={delegaciones}
 								required
 							/>      
-						</div>  
-						<div className={classes.item6}>
+						
+							<InputMaterial
+							id="email"
+							type="email"
+							label="Email"
+							error={!!errors.email}
+							helperText={errors.email ?? ""}
+							value={data.email} 
+							disabled={disabled.email ?? false}
+							onChange={(value, _id) => onChange({ email: value })}
+							/>
+						</Grid> 
+						
 							<InputMaterial
 							id="observaciones"
 							label="Observaciones"
@@ -240,7 +247,7 @@ const SeccionalesForm = ({
 							disabled={disabled.observaciones ?? false}
 							onChange={(value, _id) => onChange({ observaciones: value })}
 							/>
-						</div>
+			
 
 						{!hide.deletedObs &&
 						<>
@@ -278,9 +285,7 @@ const SeccionalesForm = ({
 							/>
 						</div>
 						</>}
-					</div>
-			
-				</div>
+				</Grid>
 			
 			</Modal.Body>
 			<Modal.Footer>
