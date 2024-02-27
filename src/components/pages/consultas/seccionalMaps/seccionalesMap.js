@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { mapOptions, seccionalesPines } from './seccionalesMapCfg';
-import pinIcon from "media/icon.png"
-import logo from "media/UATRE_Logo.png"
+import pinIcon from "media/map_IconTrigo.png"
+import pinUATRE from "media/map_IconUatre.png"
+
+
 import { Button } from 'react-bootstrap';
 import "./seccionalesMap.css";
 //import {Combobox, ComboboxInput, ComboboxPopover, ComboboxList, ComboboxOption} from "@reach/combobox"
@@ -45,7 +47,7 @@ const SeccionalesMap = () => {
       <SeccionalesMapSearcher panTo={panTo}/>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
-        zoom={6}
+        zoom={pan ? 10 : 6}
         center={pan ? pan : center}
         options={{
           mapTypeControl: false,
@@ -70,7 +72,9 @@ const SeccionalesMap = () => {
               </div>
             );
           })}
-          <Marker position={center}/>
+          <Marker position={center}  options={{
+                    icon:pinUATRE,
+                  }}/>
           {pan && <Marker position={pan}/> }
 
         {selectedMarker &&

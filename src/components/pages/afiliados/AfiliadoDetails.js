@@ -55,17 +55,22 @@ const AfiliadoDetails = (props) => {
 					</Grid>
 						<Grid className={styles.grupo} col full>
 							
-							<Grid className={styles.titulo} grow>
-								Datos UATRE:
+							<Grid className={styles.titulo}>
+								
+								<div style={{minWidth: "max-content"}}>
+									Datos UATRE:
+								</div>
 						
-								<Grid style={{ padding: "0rem 1rem"}}>
+								<Grid full style={{ padding: "0rem 1rem"}}>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="CUIL Validado"  value={data.cuilValidado == 0 ? " ":Formato.Cuit(data.cuilValidado)} /> 	
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Sexo"  value={validar(data.sexo)} /> 													
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Civil" value={validar(data.estadoCivil)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nacionalidad" value={validar(data.nacionalidad)}/>
-									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha de carga" value={validar(data.createdDate)}/>
+									{/*<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha de carga" value={validar(data.createdDate)}/>*/}
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Puesto" value={validar(data.puesto)}/>
 									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad" value={validar(data.activdad)}/>
+									<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Motivo de Baja" value={validar(data.refMotivoBajaDescripcion)}/>
+									<InputMaterial padding="0rem 0.5rem" width="100%" variant="standard" size="small" label="Seccional Solicita Afiliación" value={`${validar(data.seccionalCodigoSolicitudAfiliacion)} ${validar(data.seccionalDescripcionSolicitudAfiliacion)}`}/>
 								</Grid>		
 							</Grid>
 						</Grid>
@@ -81,7 +86,7 @@ const AfiliadoDetails = (props) => {
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Tipo y Nro. Documento" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? "-"}`}/>
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Nombre Real" value={validar(data.afipApellido)}/>
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Tipo Clave" value={validar(data.afipTipoClave)} />	
-								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Clave" value={validar(data.afipEstadoClave)} />							
+								{/*<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Estado Clave" value={validar(data.afipEstadoClave)} />*/}
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Fecha Fallecimiento" value={validar(data.afipFechaFallecimiento)} />
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Actividad Principal" value={validar(data.afipActividadPrincipal)}/>
 							</Grid>
@@ -92,8 +97,8 @@ const AfiliadoDetails = (props) => {
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Localidad" value={validar(data.afipDomicilioLocalidad)}/>
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Codigo Postal" value={validar(data.afipDomicilioCodigoPostal)}/>
 								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Povincia" value={validar(data.afipDomicilioProvincia)}/>
-								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Domicilio Adicional" value={validar(data.afipDomicilioDatoAdicional)}/>
-								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Domicilio Tipo Adicional" value={validar(data.afipDomicilioTipoDatoAdicional)}/>
+								<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Domicilio Adicional" value={`${validar(data.afipDomicilioTipoDatoAdicional)} ${validar(data.afipDomicilioDatoAdicional)}`}/>
+								{/*<InputMaterial padding="0rem 0.5rem"  variant="standard" size="small" label="Domicilio Tipo Adicional" value={validar(data.afipDomicilioTipoDatoAdicional)}/>*/}
 							</Grid>
 						</Grid>
 					</Grid>

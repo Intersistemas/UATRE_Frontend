@@ -4,12 +4,17 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const ConsultasHandler = () => {
 	const [consulta, setConsulta] = useState();
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
+
+	const tarea = useTareasUsuario();
+	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
+	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
 	// Afiliados
 	tabs.push({
@@ -30,10 +35,29 @@ const ConsultasHandler = () => {
 					
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					
+					<Button
+						className="botonAmarillo"
+						onClick={() =>							
+							alert("En desarrollo")//setConsulta(<Localizar onClose={() => setConsulta(null)} />)
+						}
+						width="32"
+						tarea="Consultas_SolicitudAfiliacion"
+					>
+						Solicitud de Afiliación
+					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-			
+					<Button
+						className="botonAmarillo"
+						onClick={() =>							
+							alert("En desarrollo")//setConsulta(<Localizar onClose={() => setConsulta(null)} />)
+						}
+						width="32"
+						tarea="Consultas_SolicitudCambioSeccional"
+					>
+						Solicitud de Cambio de Seccional
+					</Button>
+				
 				</Grid>
 			</>
 		),
@@ -42,7 +66,7 @@ const ConsultasHandler = () => {
 
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Seccionales" />,
+		header: () => <Tab label="Seccionales" disable={disableTabSeccionales} />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
