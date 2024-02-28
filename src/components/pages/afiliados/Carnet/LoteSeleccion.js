@@ -117,6 +117,8 @@ const columns = [
 	},
 ];
 
+const filtrosDef = { estadoSolicitudId: 2 };
+
 //#region delegacionSelectOptions
 const delegacionSelectTodos = { value: 0, label: "Todas" };
 const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
@@ -206,7 +208,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 	//#endregion
 
 	//#region filtros
-	const [filtros, setFiltros] = useState({});
+	const [filtros, setFiltros] = useState({ ...filtrosDef });
 
 	//#region filtro delegacion
 	const [delegacionSelect, setDelegacionSelect] = useState({
@@ -435,7 +437,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 		loading: null,
 		pagination: { index: 1, size: 10 },
 		sort: "nroAfiliadoDesc",
-		params: {},
+		params: { ...filtrosDef },
 		data: [],
 		selected: [],
 		error: null,
@@ -455,7 +457,6 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 			config: {
 				body: {
 					...list.params,
-					estadoSolicitudId: 2,
 					sort: list.sort,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
@@ -495,7 +496,6 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 			config: {
 				body: {
 					...newSelection.params,
-					estadoSolicitudId: 2,
 					pageIndex: 1,
 				},
 				errorType: "response",
@@ -517,6 +517,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 				query.config = {
 					body: {
 						...newSelection.params,
+						estadoSolicitudId: 2,
 						pageIndex: index + 1,
 						pageSize: size,
 					},
@@ -696,9 +697,13 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 							<Grid width="200px">
 								<Button
 									className="botonAzul"
-									disabled={Object.keys(filtros).length === 0}
+									disabled={
+										Object.keys(filtros).filter(
+											(k) => !Object.keys(filtrosDef).includes(k)
+										).length === 0
+									}
 									onClick={() => {
-										const filtros = {};
+										const filtros = { ...filtrosDef };
 										setDelegacionSelect((o) => ({
 											...o,
 											selected: delegacionSelectTodos,
@@ -830,6 +835,9 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 								</Grid>
 								<Grid justify="center" style={{ color: "green" }}>
 									{newSelection.loading}
+								</Grid>
+								<Grid justify="center" style={{ color: "red" }}>
+									{newSelection.error}
 								</Grid>
 							</Grid>
 							<Grid width="150px">
