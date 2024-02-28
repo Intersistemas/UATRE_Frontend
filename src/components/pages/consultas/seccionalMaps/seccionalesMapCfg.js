@@ -1,6 +1,5 @@
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAP_API_KEY;
 
-//AIzaSyAP-2UML3J9q5sQqJpUDFqJrTD4AxojvKg
 export const mapOptions = {
   googleMapAPiKey: GOOGLE_MAPS_API_KEY
 }

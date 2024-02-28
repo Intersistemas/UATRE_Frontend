@@ -114,7 +114,6 @@ const AfiliadosLista = (props ) => {
           action: `Resuelve Solicitud ${desc}`,
           request: "S",
           tarea: "Afiliaciones_AfiliadoResuelve",
-
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
             :

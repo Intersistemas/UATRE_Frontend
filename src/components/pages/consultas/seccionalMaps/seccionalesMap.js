@@ -26,7 +26,7 @@ const SeccionalesMap = () => {
   const [pan, setPan] = useState();
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyAP-2UML3J9q5sQqJpUDFqJrTD4AxojvKg',
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAP_API_KEY,//'AIzaSyAP-2UML3J9q5sQqJpUDFqJrTD4AxojvKg',
     libraries,
   });
 
