@@ -68,12 +68,8 @@ const useHttp = () => {
         let url = ''
 
         //DONDE HARÁ EL DEPLOY??
-        //const servidor =  process.env.SERVIDOR;
-        const servidor =  //process.env.REACT_APP_URL_BASE;
-        //'uatredesa';
-        //'uatretest';
-        'uatre';
-
+        const servidor =  process.env.REACT_APP_URL_BASE; 
+	
         switch (baseURL) {
           case "Comunes":
               url = `http://${servidor}.intersistemas.net:8202/api`;
