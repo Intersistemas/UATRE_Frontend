@@ -4,7 +4,7 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
@@ -213,7 +213,8 @@ const Localizar = ({ onClose = onCloseDef }) => {
 								/>
 								<InputMaterialDetail
 									label="CUIL"
-									mask="99-99.999.999-9"
+									//mask="99-99.999.999-9"
+									mask={CUITMask}
 									value={afiliados.selected.cuil}
 								/>
 								<InputMaterialDetail

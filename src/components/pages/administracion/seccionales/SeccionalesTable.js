@@ -11,7 +11,7 @@ const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 			text: "Código",
 			sort: true,
 			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
+				return { width: "3rem", textAlign: "center" };
 			},
 		},
 		{
@@ -30,7 +30,7 @@ const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 			sort: true,
 			searchable: false,
 			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
+				return { width: "5rem", textAlign: "center" };
 			},
 			formatter: (value, row) =>
 				row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value,
@@ -43,6 +43,16 @@ const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 			searchable: false,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
+			},
+		},
+		{
+			headerTitle: (column, colIndex) => `Email`,
+			dataField: "email",
+			text: "Email",
+			sort: true,
+			searchable: false,
+			headerStyle: (colum, colIndex) => {
+				return { width: "4rem", textAlign: "center" };
 			},
 		},
 		{

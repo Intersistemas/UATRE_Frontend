@@ -280,6 +280,7 @@ const useSeccionales = () => {
 								refDelegacionId: true,
 								refLocalidadesId: true,
 								domicilio: true,
+								email: true,
 								observaciones: true,
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
@@ -338,7 +339,7 @@ const useSeccionales = () => {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					} else {
 						if (!record.codigo) errors.codigo = "Dato requerido";
-						//if (!record.observaciones) errors.observaciones = "Dato requerido";
+						if (!record.email) errors.email = "Dato requerido";
 						if (!record.domicilio) errors.domicilio = "Dato requerido";
 						if (!record.refLocalidadesId || record.refLocalidadesId == 0)
 							errors.refLocalidadesId = "Dato requerido";

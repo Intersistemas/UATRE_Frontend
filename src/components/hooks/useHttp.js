@@ -71,8 +71,8 @@ const useHttp = () => {
         //const servidor =  process.env.SERVIDOR;
         const servidor =  //process.env.REACT_APP_URL_BASE;
         //'uatredesa';
-        'uatretest';
-        //'uatre';
+        //'uatretest';
+        'uatre';
 
         switch (baseURL) {
           case "Comunes":

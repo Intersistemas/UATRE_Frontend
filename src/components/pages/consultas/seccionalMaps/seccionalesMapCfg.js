@@ -125,10 +125,64 @@ export const seccionalesPines = [
       lng: -61.177045
     }
   },
+//-----------BS AS
+  {
+    nombre: "UATRE - BS AS - CHIVILCOY",
+    loc:{
+      lat: -34.8985584,
+      lng: -60.0215719
+    }
+  },
+  {
+    nombre: "UATRE - BS AS - PINZON",
+    loc:{
+      lat: -33.995195,
+      lng: -60.7329388
+    }
+  },
+  {
+    nombre: "UATRE - BS AS - ASCENSION",
+    loc:{
+      lat: -34.2342638,
+      lng: -61.1071743
+    }
+  },
+  {
+    nombre: "UATRE - BS AS - ARRIBEÑOS",
+    loc:{
+      lat: -34.2125732,
+      lng: -61.360471
+    }
+  },
 
- 
+  {
+    nombre: "UATRE - BS AS - CAPITAN SARMIENTO",
+    loc:{
+      lat: -34.1713636,
+      lng: -59.7894058
+    }
+  },
+  {
+    nombre: "UATRE - BS AS - FERRE",
+    loc:{
+      lat: -34.1210171,
+      lng: -61.1357542
+    }
+  },
+  
+  {
+    nombre: "UATRE - BS AS - EL SOCORRO",
+    loc:{
+      lat: -33.661824,
+      lng: -60.7088398
+    }
+  },
 
-
-
-
+  {
+    nombre: "UATRE - BS AS - RIO TALA",
+    loc:{
+      lat: -33.7655653,
+      lng: -59.6368739
+    }
+  },
 ]
