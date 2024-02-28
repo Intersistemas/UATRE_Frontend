@@ -190,6 +190,17 @@ const AfiliadosLista = (props ) => {
           underlineindex: 0,
         })
       );
+
+			actions.push(
+				createAction({
+					action: `Imprime Carnet de Afiliación en Lote`,
+					request: "E",
+					tarea: "Afiliaciones_AfiliadoCarnet",
+					disabled: false,
+					keys: "e",
+					underlineindex: 6,
+				})
+			);
     }
 
     const acciones = actions;

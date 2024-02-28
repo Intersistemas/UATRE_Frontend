@@ -14,6 +14,7 @@ import Carnet from "./Carnet/Handler";
 import Localizar from "./localizar/Localizar";
 import AuthContext from "../../../store/authContext"; 
 import { getListItemAvatarUtilityClass } from "@mui/material";
+import LoteSeleccion from "./Carnet/LoteSeleccion";
 
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
@@ -190,6 +191,9 @@ const AfiliadosHandler = () => {
       // alert('Funcionalidad de Imprimir En desarrollo ');
       // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
 
+			case "E":
+				setAccionSeleccionada("Lote");
+				break;
       default:
         break;
     }
@@ -311,6 +315,18 @@ const AfiliadosHandler = () => {
 				}}/>)
 				return;
 			} 
+			case "Lote": {
+				//Imprime lote de credenciales
+				setModal(
+					<LoteSeleccion
+						onClose={() => {
+							setAccionSeleccionada("");
+							setModal(null);
+						}}
+					/>
+				);
+				return;
+			}
 			case "Localiza": {
 				setModal(
 					<Localizar
