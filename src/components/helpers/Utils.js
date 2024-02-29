@@ -6,6 +6,8 @@ export const eq = (a, ...b) => b.findIndex((r) => r !== a) === -1;
 export const or = (...a) => a.findIndex((r) => !not(r)) !== -1;
 /** Si se cumplen todos los parámetros */
 export const and = (...a) => a.findIndex((r) => not(r)) === -1;
+/** Si se cumple algun parámetro pero no todos */
+export const xor = (...a) => or(...a) && !and(...a);
 
 /**
  * Compara a contra b.
