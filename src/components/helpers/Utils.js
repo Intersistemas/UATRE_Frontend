@@ -1,11 +1,11 @@
 /** !a */
 export const not = (a) => !(typeof a === "function" ? a() : a);
 /** Si todos los parámetros son iguales */
-export const eq = (a, ...b) => b.find((r) => r !== a) == null;
+export const eq = (a, ...b) => b.findIndex((r) => r !== a) === -1;
 /** Si se cumple algun parámetro */
-export const or = (...a) => a.find((r) => !not(r)) != null;
+export const or = (...a) => a.findIndex((r) => !not(r)) !== -1;
 /** Si se cumplen todos los parámetros */
-export const and = (...a) => a.find((r) => not(r)) == null;
+export const and = (...a) => a.findIndex((r) => not(r)) === -1;
 
 /**
  * Compara a contra b.
