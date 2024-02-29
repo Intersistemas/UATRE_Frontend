@@ -1,11 +1,11 @@
 /** !a */
-export const negation = (a) => !(typeof a === "function" ? a() : a);
+export const not = (a) => !(typeof a === "function" ? a() : a);
 /** Si todos los parámetros son iguales */
 export const eq = (a, ...b) => b.find((r) => r !== a) == null;
 /** Si se cumple algun parámetro */
-export const or = (...a) => a.find((r) => !negation(r)) != null;
+export const or = (...a) => a.find((r) => !not(r)) != null;
 /** Si se cumplen todos los parámetros */
-export const and = (...a) => a.find((r) => negation(r)) == null;
+export const and = (...a) => a.find((r) => not(r)) == null;
 
 /**
  * Compara a contra b.
