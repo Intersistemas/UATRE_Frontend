@@ -260,6 +260,9 @@ const AfiliadoDetails = (props) => {
 					</Grid>)
 	  			//#endregion
 				break;
+			case 5:	// Tab Estados
+					setHotField()
+				break;
 			default:
 			  break;
 		  }
