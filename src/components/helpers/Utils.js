@@ -145,3 +145,17 @@ export const range = (data, a, b, c = comparator, low = ge, high = le) => {
 	let max = c(a, b) > 0 ? a : b;
 	return data.filter((r) => low(r, min, c) && high(r, max, c));
 };
+
+/**
+ * Evalua si algún `pass` en el arreglo es `false`.
+ * De existir alguno, `pass` en el objeto devuelto es `false`, en caso contrario es `true`.
+ * @param {{ pass: boolean }[]} test Conjunto de evaluaciones.
+ * @returns {{ pass: boolean, test: { pass: boolean }[]}} Evaluación resultado
+ * con las siguientes propiedades:
+ * * `pass`: `true` si se cumplen todas las evaluaciones.
+ * * `test`: Conjunto de evaluaciones origen.
+ */
+export const pass = (test) => ({
+	pass: test.findIndex((v) => v && !v?.pass) === -1,
+	test,
+});
