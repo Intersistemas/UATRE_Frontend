@@ -147,15 +147,15 @@ export const range = (data, a, b, c = comparator, low = ge, high = le) => {
 };
 
 /**
- * Evalua si algún `pass` en el arreglo es `false`.
+ * Evalua si algún `pass` en los parametros es `false`.
  * De existir alguno, `pass` en el objeto devuelto es `false`, en caso contrario es `true`.
- * @param {{ pass: boolean }[]} test Conjunto de evaluaciones.
+ * @param {{ pass: boolean }} test Conjunto de evaluaciones.
  * @returns {{ pass: boolean, test: { pass: boolean }[]}} Evaluación resultado
  * con las siguientes propiedades:
  * * `pass`: `true` si se cumplen todas las evaluaciones.
  * * `test`: Conjunto de evaluaciones origen.
  */
-export const pass = (test) => ({
+export const pass = (...test) => ({
 	pass: test.findIndex((v) => v && !v?.pass) === -1,
 	test,
 });
