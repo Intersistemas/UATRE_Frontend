@@ -822,7 +822,7 @@ console.log(
 				name: "Logical equivalences involving conditional statements",
 				...pass(...[false, true].map((q) => ({
 					q,
-					...pass(...[
+					...pass(
 						{ name: "p -> q <=> -p or q", pass: iff(then(p, q), or(not(p), q)) },
 						{ name: "p -> q <=> -q -> -p", pass: iff(then(p, q), then(not(q), not(p))) },
 						{ name: "p or q <=> -p -> q", pass: iff(or(p, q), then(not(p), q)) },
@@ -837,7 +837,7 @@ console.log(
 								{ name: "(p -> t) or (q -> r) <=> (p and q) -> r", pass: iff(or(then(p, r), then(q, r)), then(and(p, q), r)) }
 							)
 						})))
-					])
+					)
 				})))
 			},
 			{
