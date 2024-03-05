@@ -92,25 +92,6 @@ const Contacto = () => {
     
   };
 
-  const sendRegistrarHandler = async () => {
-    setMessage("");
-    sendLoginRequest(
-      {
-        baseURL: "Seguridad",
-        endpoint: "/Usuario/registrarViaEmail",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-        },
-        body: {
-          
-        },
-      },
-      processRegistro
-    );
-  };
-
   const submitHandler = async (event) => {
     setEnviando(true);
     event.preventDefault();
