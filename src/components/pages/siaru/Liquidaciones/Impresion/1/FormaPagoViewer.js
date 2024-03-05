@@ -188,7 +188,7 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [] }) => {
 		AsArray(formaPago.lineas).forEach(
 			(linea) =>
 				(linea.seccional =
-					seccionales.find((id) => id === linea.seccionalId) ?? seccional)
+					seccionales.find(({ id }) => id === linea.seccionalId) ?? seccional)
 		)
 	);
 
