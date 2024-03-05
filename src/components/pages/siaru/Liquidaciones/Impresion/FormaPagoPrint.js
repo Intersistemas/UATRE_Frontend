@@ -8,6 +8,8 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import FormaPagoViewer0 from "./0/FormaPagoViewer";
 import FormaPagoViewer1 from "./1/FormaPagoViewer";
+import dayjs from "dayjs";
+import Formato from "components/helpers/Formato";
 
 const onCloseDef = () => {};
 /**
@@ -56,11 +58,14 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	});
 	//#endregion configuraciones API
 
+	const sinFechaVencimiento = liquidacionCabecera.fechaVencimiento == null;
+	const vencido = sinFechaVencimiento || dayjs(liquidacionCabecera.fechaVencimiento) < dayjs();
+
 	//#region dependencias
 
 	//#region formasPago
 	const [formasPago, setFormasPago] = useState({
-		reload: true,
+		reload: !vencido,
 		loading: null,
 		liquidacionCabeceraId: liquidacionCabecera.id,
 		data: [],
@@ -130,7 +135,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 
 	//#region select formaPago
 	const [formaPagoSelect, setFormaPagoSelect] = useState({
-		loading: "Cargando...",
+		loading: vencido ? null : "Cargando...",
 		buscar: "",
 		data: [],
 		options: [],
@@ -216,7 +221,21 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	};
 
 	let contenido = null;
-	if (formasPago.loading || formaPago.loading) {
+	if (sinFechaVencimiento) {
+		contenido = (
+			<text
+				style={{ color: "red" }}
+			>{`No se puede imprimir porque la boleta no tiene fecha de vencimiento`}</text>
+		);
+	} else if (vencido) {
+		contenido = (
+			<text
+				style={{ color: "red" }}
+			>{`No se puede imprimir una boleta vencida (Fecha de vencimiento: ${Formato.Fecha(
+				liquidacionCabecera.fechaVencimiento
+			)})`}</text>
+		);
+	} else if (formasPago.loading || formaPago.loading) {
 		contenido = <text>Cargando...</text>;
 	} else if (formaPago.data == null) {
 		contenido = (
@@ -246,10 +265,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 				formaPagoSelect.selected.data.modeloImpresionLiquidacion
 			] ?? FormaPagoViewer0;
 		contenido = (
-			<Viewer
-				cabecera={liquidacionCabecera}
-				formasPago={formaPago.data}
-			/>
+			<Viewer cabecera={liquidacionCabecera} formasPago={formaPago.data} />
 		);
 	}
 
@@ -273,7 +289,9 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 							{formaPago.data != null ? null : (
 								<Button
 									className="botonAmarillo"
-									disabled={(formaPagoSelect.selected?.value ?? 0) === 0}
+									disabled={
+										(formaPagoSelect.selected?.value ?? 0) === 0 || vencido
+									}
 									loading={formaPago.loading}
 									onClick={() => onImprime()}
 								>
