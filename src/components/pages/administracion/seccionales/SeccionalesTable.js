@@ -112,7 +112,11 @@ const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
 	];
 	//#endregion
 
-	return <Table keyField="id" columns={columns} {...x} />;
+	return <Table
+			 keyField="id"
+			 columns={columns}
+			  {...x} 
+			  />;
 };
 
 export default SeccionalesTable;

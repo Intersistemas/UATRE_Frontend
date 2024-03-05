@@ -298,10 +298,11 @@ const useUsuarios = ({
 						onError: async (err) => alert(err.message),
 					};
 
+					console.log("useUsuarios_record",record)
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";
-							query.config.body = record;
+							query.config.body = {...record, tipo: "Usuario", rol:"Basico", tareas: [], cuit: parseInt(record.cuit)};
 							break;
 						case "M":
 							query.action = "Update";

@@ -111,6 +111,7 @@ const Sidebar = ({children}) => {
                             <img src={logo} width="100" height="100" onClick={toggle}/>
                             <a>UATRE</a>
                         </h1>
+                        {process.env.REACT_APP_URL_BASE != "uatre" && <h5 style={{textShadow: '1px 1px 15px yellow'}}>Ambiente: {process.env.REACT_APP_URL_BASE.toUpperCase()}</h5>}
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
                         </div> 
