@@ -34,6 +34,7 @@ const SeccionalesForm = ({
 	data ??= {}; 
 	delegaciones ??= [];
 	 console.log('Form_seccional_data:',data)
+	 console.log('Form_seccional_disable:',disabled)
 	 //console.log('data_seccional:',data)
 	 //console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
@@ -43,9 +44,6 @@ const SeccionalesForm = ({
 	errors ??= {};
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
-
-	//	!!title.includes("Baja") && estados.push({value: "BAJA", label: "BAJA"});  REVISAR
-	
 
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
@@ -66,7 +64,7 @@ const SeccionalesForm = ({
 
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
-		disabled.estado && onChange({ estado: data.estado });
+		disabled.seccionalEstadoId && onChange({ seccionalEstadoId: data.seccionalEstadoId });
 		const processLocalidades = async (localidadesObj) => {
 			setLocalidadesTodas(localidadesObj);
 		};
@@ -147,7 +145,7 @@ const SeccionalesForm = ({
 								helperText={errors.codigo ?? ""}
 								value={data.codigo}
 								disabled={disabled.codigo}
-								onChange={(value, _id) => onChange({ codigo: value })}
+								onChange={(codigo) => onChange({codigo})}
 							/>
 						</Grid>
 						<Grid width="full" gap="inherit">
@@ -158,7 +156,7 @@ const SeccionalesForm = ({
 								error={!!errors.seccionalEstadoId} 
 								helperText={errors.seccionalEstadoId ?? ""}
 								value={data.seccionalEstadoId}
-								disabled={disabled.estado ?? false}
+								disabled={disabled.seccionalEstadoId ?? false}
 								onChange={(value) => onChange({ seccionalEstadoId: value })}
 								defaultValue={0}
 								options={estadosOptions}

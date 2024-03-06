@@ -341,20 +341,7 @@ const useLocalidades = ({
 								errors: { ...o.selection.errors, ...errors },
 							},
 						}));
-					// if ("domicilioProvinciasId" in edit) {
-					// 	if (edit.domicilioProvinciasId) {
-					// 		setLocalidades((o) => ({
-					// 			...o,
-					// 			loading: "Cargando...",
-					// 			params: { provinciaId: edit.domicilioProvinciasId },
-					// 			data: [],
-					// 			error: null,
-					// 		}));
-					// 	} else {
-					// 		changes.errors.domicilioProvinciasId =
-					// 			"Debe seleccionar una provincia";
-					// 	}
-					// }
+
 					applyChanges();
 				}}
 				onClose={(confirm) => {
@@ -558,7 +545,7 @@ const useLocalidades = ({
 					"No existen datos para mostrar"
 				}
 				columns={columns}
-				mostrarBuscar={mostrarBuscar}
+				mostrarBuscar={mostrarBuscar} 
 				pagination={{
 					...list.pagination,
 					onChange: ({ index, size }) =>

@@ -50,12 +50,12 @@
   },
   "scripts": {
     "start": "env-cmd -e desa react-scripts start",
-    "build": "env-cmd -e desa react-scripts build",
+   
     "eject": "react-scripts eject",
 
-    "build desa": "env-cmd -e desa react-scripts build",
-    "build test": "env-cmd -e test react-scripts build",
-    "build prod": "env-cmd -e prod react-scripts build",
+    "builddesa": "env-cmd -e desa react-scripts build",
+    "buildtest": "env-cmd -e test react-scripts build",
+    "buildprod": "env-cmd -e prod react-scripts build",
 
     "desa": "env-cmd -e desa react-scripts start",
     "test": "env-cmd -e test react-scripts start",

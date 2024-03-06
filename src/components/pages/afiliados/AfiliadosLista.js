@@ -32,6 +32,7 @@ import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../red
 import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
+import AfiliadoEstados from "./AfiliadoEstados";
 
 
 
@@ -653,7 +654,14 @@ const AfiliadosLista = (props ) => {
                     style={{backgroundColor: "#186090"}}
                     label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
                       disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />                 
+                    />
+										
+										<Tab
+											className={styles.tab}
+											style={{ backgroundColor: "#186090" }}
+											label= 'Estados del afiliado'
+											disabled={afiliadoSeleccionado?.id ? false : true}
+										/>
                 </Tabs>
               </div>
             </div> 
@@ -691,6 +699,10 @@ const AfiliadosLista = (props ) => {
                     onSeleccionRegistro={rowEvents}
                   />        
                 )}
+								
+								{selectedTab === 5 && (
+									<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+								)}
 
                 <AfiliadoDetails config={{
                   data: afiliadoSeleccionado,

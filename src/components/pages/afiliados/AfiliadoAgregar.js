@@ -707,21 +707,15 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
 
                   //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
-                  /*
-                  const today = new Date();
-                  const month = afiliadoObj?.fechaIngreso.getMonth() + 1;
-                  const year = afiliadoObj?.fechaIngreso.getFullYear();
-                  const day = afiliadoObj?.fechaIngreso.getDate();
-                  const fechaIngreso = year + "-" + month + "-" + day;
-                  console.log("fechaIngreso",fechaIngreso)
-                  console.log("today",today);
-                  //2024-02-05 afiliadoObj?.fechaIngreso
-                  */
+                  
+                  const fechaIngres= moment(afiliadoObj?.fechaIngreso).format("yyyy-MM-DD") 
+                  const esAnterior = moment(fechaIngres).isSameOrBefore("2024-02-05");
+                  console.log("esAnterior",esAnterior);
                  
                   setSeccionales((o) => ({
                     ...o,
                     loading: "Cargando...",
-                    params: sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                    params: esAnterior ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
                     onLoaded: ({ data }) => {
                       if (!Array.isArray(data)) return;
                       const mySeccionalId =
