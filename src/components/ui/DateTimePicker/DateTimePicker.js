@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	DateTimePicker as DTPicker,
 	DatePicker,
@@ -11,9 +11,15 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import styles from "../Input/InputMaterial.module.css";
 import { TextField } from "@mui/material";
 
+/**
+ * 
+ * @param {dayjs.Dayjs} value 
+ */
+const onChangeDef = (value) => {};
+
 const DateTimePicker = ({
 	type = "fechahora",
-	value = "",
+	value: myValue,
 	placeholder = "",
 	views,
 	error,
@@ -47,7 +53,6 @@ const DateTimePicker = ({
 
 		const inputProps = { ...renderProps.inputProps };
 		if (placeholder) inputProps.placeholder = placeholder;
-		if (!value) inputProps.value = "";
 
 		return (
 			<TextField
@@ -58,8 +63,17 @@ const DateTimePicker = ({
 			/>
 		);
 	},
+	onChange = onChangeDef,
 	...resto
 }) => {
+	
+	const [value, setValue] = useState(myValue ? dayjs(myValue) : null);
+
+	useEffect(() => {
+		const newValue = myValue ? dayjs(myValue) : null;
+		if (myValue === null || newValue?.isValid()) setValue(newValue);
+	}, [myValue])
+
 	let pViews, Picker;
 	switch (`${type}`.toLowerCase()) {
 		case "datetime":
@@ -112,7 +126,12 @@ const DateTimePicker = ({
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"es-mx"}>
 			<Picker
 				views={pViews}
-				value={dayjs(value)}
+				value={value}
+				onChange={(v) => setValue((o) => {
+					if (v?.isValid()) onChange(v);
+					else if (o?.isValid()) onChange(undefined);
+					return v;
+				})}
 				renderInput={renderInput}
 				{...resto}
 			/>
