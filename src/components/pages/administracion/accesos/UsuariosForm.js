@@ -26,10 +26,12 @@ const UsuariosForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
+	console.log("UsuariosForm_data",data)
 	data ??= {};
 	data.nombre ??= "";
 	
 	data.rol ??= "Usuario" ;
+	data.tipo ??= "Interno";
 
 	disabled ??= {};
 	hide ??= {};

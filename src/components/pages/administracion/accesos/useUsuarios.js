@@ -302,7 +302,7 @@ const useUsuarios = ({
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";
-							query.config.body = {...record, tipo: "Usuario", rol:"Basico", tareas: [], cuit: parseInt(record.cuit)};
+							query.config.body = {...record, tipo: "Interno", tareas: [], cuit: parseInt(record.cuit)};
 							break;
 						case "M":
 							query.action = "Update";
