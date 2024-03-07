@@ -181,7 +181,7 @@ const Registro = () => {
           email: enteredEmail,
           password: enteredPassword,
           confirmPassword: enteredRepeatPassword,
-          rol: "Empleador",
+          rol: "Usuario",
           tipo: "Externo",
           tareas: [] //Se debería selecciona de la lista de tareas
         },

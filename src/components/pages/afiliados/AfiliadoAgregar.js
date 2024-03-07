@@ -715,9 +715,9 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
                   setSeccionales((o) => ({
                     ...o,
                     loading: "Cargando...",
-                    params: esAnterior ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                    params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
                     onLoaded: ({ data }) => {
-                      if (!Array.isArray(data)) return;
+                      //if (!Array.isArray(data)) return;
                       const mySeccionalId =
                         data.find((r) => r.value === afiliadoObj?.seccionalId) ??
                         data.at(0) ??
@@ -1027,6 +1027,30 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 			setSeccionales((o) => ({ ...o, ...changes }));
 		}
 		if (!seccionales.params) return applyChanges();
+
+    seccionales.params.seccionalId ? // si busco solo la seccional ID
+    request( 
+			{
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional/${seccionales.params.seccionalId}`,
+        method: "GET",
+			},
+			async (ok) =>
+      (console.log('GetSeccionalesSpecs_ok',ok),
+        changes.data.push(
+          {value: provinciaState?.value?.seccionalIdPorDefecto,
+          label: provinciaState?.value?.seccionalDescripcionPorDefecto}
+        ),
+				changes.data.push(
+				ok.localidadCodPostal !== 99999  && {value: ok.id, label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`}
+				
+				)
+      ),
+			async (error) => (
+        (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
+			async () => applyChanges()
+		)
+    :
 		request( 
 			{
 				baseURL: "Afiliaciones",
