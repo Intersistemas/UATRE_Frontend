@@ -7,14 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
-import { Filter } from "@mui/icons-material";
-import UseKeyPress from '../../helpers/UseKeyPress';
 import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
-import Carnet from "./Carnet/Handler";
 import Localizar from "./localizar/Localizar";
 import AuthContext from "../../../store/authContext"; 
-import { getListItemAvatarUtilityClass } from "@mui/material";
 import LoteSeleccion from "./Carnet/LoteSeleccion";
+import LotePDFViewer from "./Carnet/LotePDFViewer";
 
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
@@ -309,7 +306,7 @@ const AfiliadosHandler = () => {
 			}
 			case "Imprime": {
 				//ToDo imprime credencial
-				setModal(<Carnet afiliado={afiliadoSeleccionado} onClose={() => {
+				setModal(<LotePDFViewer data={[afiliadoSeleccionado]} onClose={() => {
 					setAccionSeleccionada("");
 					setModal(null);
 				}}/>)
