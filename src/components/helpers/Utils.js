@@ -159,3 +159,31 @@ export const pass = (...test) => ({
 	pass: test.findIndex((v) => v && !v?.pass) === -1,
 	test,
 });
+
+/**
+ * Obtiene el tipo y subtipo de type
+ * @param {string} type Tipo con separador de subtipo
+ * @param {string} separator Cadena separadora de tipo y subtipo.
+ * 
+ * Por defecto: `":"`
+ * @returns {{ type: string, subtype?: string }} Descripcion de tipo y subtipo
+ * 
+ * @example
+ * // returns { type: "datetime" }
+ * getType("datetime")
+ * @example
+ * // returns { type: "datetime", subtype: "minutes" }
+ * getType("datetime:minutes")
+ * @example
+ * // returns { type: "datetime", subtype: "minutes:otro" }
+ * getType("datetime:minutes:otro")
+ * @example
+ * // returns { type: "datetime:minutes", subtype: "otro" }
+ * getType("datetime:minutes|otro", "|")
+ */
+export const getType = (type, separator = ":") => {
+	const types = type.split(separator);
+	const r = { type: types.shift() };
+	if (types.length) r.subtype = types.join(separator);
+	return r;
+}

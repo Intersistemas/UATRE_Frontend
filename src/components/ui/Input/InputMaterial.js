@@ -1,7 +1,9 @@
-import { TextField } from "@mui/material";
-import styles from "./InputMaterial.module.css";
-import { MuiTelInput } from "mui-tel-input";
 import MaskedInput from "react-text-mask";
+import { TextField } from "@mui/material";
+import { MuiTelInput } from "mui-tel-input";
+import { getType } from "components/helpers/Utils";
+import DateTimePicker from "../DateTimePicker/DateTimePicker";
+import styles from "./InputMaterial.module.css";
 
 const onChangeDef = (value, id) => {};
 
@@ -35,16 +37,32 @@ const InputMaterial = ({
 		marginTop: "0px",
 		...textFieldProps.FormHelperTextProps.style,
 	};
+	
+	let subtype = null;
+	({ type, subtype } = getType(type));
+	textFieldProps.type = subtype ?? type;
 
-	if (type === "tel")
-		return <MuiTelInput {...textFieldProps} />;
-
+	switch (type) {
+		case "tel": {
+			return <MuiTelInput {...textFieldProps} />;
+		}
+		case "date":
+		case "time":
+		case "month":
+		case "hours":
+		case "minutes":
+		case "datetime":
+		case "datehours":
+		case "dateminutes": {
+			return <DateTimePicker {...textFieldProps} />;
+		}
+		default:
+			break;
+	}
+	
 	if (id === "cuil" && !("autoFocus" in textFieldProps))
 		textFieldProps.autoFocus = true;
 
-	if (type === "date") textFieldProps.inputFormat ??= "DD/MM/YYYY";
-
-	textFieldProps.type = type;
 	textFieldProps.onChange = ({ target }) => {
 		switch (id) {
 			case "cuit":
