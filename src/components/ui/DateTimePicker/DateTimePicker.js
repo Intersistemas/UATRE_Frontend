@@ -11,16 +11,26 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import styles from "../Input/InputMaterial.module.css";
 import { TextField } from "@mui/material";
 
-/**
- * 
- * @param {dayjs.Dayjs} value 
- */
-const onChangeDef = (value) => {};
-
+ /**
+	* 
+	* @param {object} props
+	* @param {string} props.type
+	* @param {string} props.value
+	* @param {string} props.placeholder
+	* @param {((value: dayjs.Dayjs) => string) | string} props.format
+	* @param {string[]} props.views
+	* @param {string | JSX.Element} props.error
+	* @param {boolean} props.required
+	* @param {object} props.InputRenderProps
+	* @param {(props: object) => JSX.Element} props.renderInput
+	* @param {(value: dayjs.Dayjs | string) => void} props.onChange
+	* @returns 
+	*/
 const DateTimePicker = ({
-	type = "fechahora",
-	value: myValue,
+	type = "datetime",
+	value: myValue = "",
 	placeholder = "",
+	format,
 	views,
 	error,
 	required,
@@ -63,9 +73,9 @@ const DateTimePicker = ({
 			/>
 		);
 	},
-	onChange = onChangeDef,
-	...resto
-}) => {
+	onChange = () => {},
+	...x
+} = {}) => {
 	
 	const [value, setValue] = useState(myValue ? dayjs(myValue) : null);
 
@@ -128,12 +138,19 @@ const DateTimePicker = ({
 				views={pViews}
 				value={value}
 				onChange={(v) => setValue((o) => {
-					if (v?.isValid()) onChange(v);
+					if (v?.isValid())
+						onChange(
+							typeof format === "function"
+								? format(v)
+								: typeof format === "string"
+								? v?.format(format)
+								: v
+						);
 					else if (o?.isValid()) onChange(undefined);
 					return v;
 				})}
 				renderInput={renderInput}
-				{...resto}
+				{...x}
 			/>
 		</LocalizationProvider>
 	);
