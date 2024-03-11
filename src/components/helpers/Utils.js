@@ -187,3 +187,29 @@ export const getType = (type, separator = ":") => {
 	if (types.length) r.subtype = types.join(separator);
 	return r;
 }
+
+/**
+ * Separa data en páginas.
+ * @param {object} params
+ * @param {array} params.data Datos a paginar.
+ * @param {number} params.size Tamaño de página. Por defecto 10.
+ * @returns 
+ */
+export const paginate = ({ data, size = 10, detailed = false }) => {
+	data = [...data];
+	const pages = [];
+	const pagination = { index: 1, size, pages: 1, count: data.length, data };
+
+	if (pagination.count > pagination.size) {
+		pagination.pages = Math.ceil(pagination.count / pagination.size);
+		for (let index = 0; index < pagination.pages; index++) {
+			pagination.index = index + 1;
+			pagination.data = data.splice(0, pagination.size);
+			pages.push(detailed ? { ...pagination } : pagination.data);
+		}
+		return pages;
+	}
+
+	pages.push(detailed ? pagination : pagination.data);
+	return pages;
+};
