@@ -12,6 +12,7 @@ import Localizar from "./localizar/Localizar";
 import AuthContext from "../../../store/authContext"; 
 import LoteSeleccion from "./Carnet/LoteSeleccion";
 import LotePDFViewer from "./Carnet/LotePDFViewer";
+import ListadoImpresos from "./Carnet/ListadoImpresos";
 
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
@@ -308,7 +309,7 @@ const AfiliadosHandler = () => {
 				//ToDo imprime credencial
 				setModal(<LotePDFViewer data={[afiliadoSeleccionado]} onClose={() => {
 					setAccionSeleccionada("");
-					setModal(null);
+					setModal(<ListadoImpresos data={[afiliadoSeleccionado]} onClose={() => setModal(null)}/>);
 				}}/>)
 				return;
 			} 

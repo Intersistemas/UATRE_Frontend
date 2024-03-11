@@ -14,6 +14,7 @@ import SearchSelectMaterial, {
 import LotePDFViewer from "./LotePDFViewer";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import { comparator, range } from "components/helpers/Utils";
+import ListadoImpresos from "./ListadoImpresos";
 
 const onCloseDef = () => {};
 
@@ -545,7 +546,17 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 
 	const onImprime = () => {
 		setPrint(
-			<LotePDFViewer data={list.selected} onClose={() => setPrint(null)} />
+			<LotePDFViewer
+				data={list.selected}
+				onClose={() =>
+					setPrint(
+						<ListadoImpresos
+							data={list.selected}
+							onClose={() => setPrint(null)}
+						/>
+					)
+				}
+			/>
 		);
 	};
 
