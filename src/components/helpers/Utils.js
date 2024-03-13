@@ -213,3 +213,14 @@ export const paginate = ({ data, size = 10, detailed = false }) => {
 	pages.push(detailed ? pagination : pagination.data);
 	return pages;
 };
+
+/**
+ * Selecciona de `obj` propiedades presentes en `select`
+ * @param {object} obj Objeto desde el que obtener las propiedades
+ * @param {string[] | object} select Propiedades a obtener de `obj`
+ * @param {boolean} keep Mantener propiedades presentes en `select`
+ */
+export const pick = (obj, select, keep = false) => {
+	const keys = Array.isArray(select) ? select : Object.keys(select);
+	return Object.fromEntries(keys.filter((k) => keep || (k in obj)).map((k) => [k, obj[k]]));
+};
