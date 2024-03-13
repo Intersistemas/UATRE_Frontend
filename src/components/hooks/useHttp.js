@@ -86,6 +86,9 @@ const useHttp = () => {
           case 'Seguridad':
               url = `http://${servidor}.intersistemas.net:8800/api`;
               break;
+          case 'Auditoria':
+              url = `http://${servidor}.intersistemas.net:8802/api`;
+              break;
           case 'Estadisticas':
 			        url = `http://${servidor}.intersistemas.net:8205/api`;
               break;
