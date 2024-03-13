@@ -5,6 +5,8 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import LotePDF from "./LotePDF";
+import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
+import { pick } from "components/helpers/Utils";
 
 const onCloseDef = () => {};
 
@@ -14,6 +16,12 @@ const onCloseDef = () => {};
  * @param {onCloseDef} props.onClose Handler al cerrar el modal
  */
 const LotePDFViewer = ({ data, onClose = onCloseDef }) => {
+	useAuditoriaProceso({
+		proceso: "AfiliadoCarnet",
+		parametros: data.map((r) =>
+			pick(r, ["id", "cuil", "nroAfiliado", "nombre"])
+		),
+	});
 	return (
 		<Modal size="xl" centered show onHide={onClose}>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
