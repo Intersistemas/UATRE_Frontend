@@ -16,7 +16,8 @@ const onCloseDef = () => {};
  * @param {onCloseDef} props.onClose Handler al cerrar el modal
  */
 const LotePDFViewer = ({ data, onClose = onCloseDef }) => {
-	useAuditoriaProceso({
+	const { audit } = useAuditoriaProceso();
+	audit({
 		proceso: "AfiliadoCarnet",
 		parametros: data.map((r) =>
 			pick(r, ["id", "cuil", "nroAfiliado", "nombre"])

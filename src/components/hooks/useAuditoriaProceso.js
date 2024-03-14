@@ -19,28 +19,8 @@ const mapper = (v, n) => {
 	}
 	return null;
 };
-/**
- *
- * @param {object} props
- * @param {string?} props.usuario
- * @param {string?} props.modulo
- * @param {string} props.proceso
- * @param {any?} props.parametros
- * @param {string?} props.observaciones
- * @param {(ok: any) => void?} props.onOk
- * @param {(error: UseHttpError) => void?} props.onError
- * @param {() => void?} props.onFinally
- */
-export default function useAuditoriaProceso({
-	usuario: pUsuario,
-	modulo: pModulo,
-	proceso,
-	parametros,
-	observaciones,
-	onOk,
-	onError,
-	onFinally,
-}) {
+
+export default function useAuditoriaProceso() {
 	const { usuario, modulo } = useSelector((state) => ({
 		usuario: state.usuarioLogueado,
 		modulo: state.modulo,
@@ -61,33 +41,64 @@ export default function useAuditoriaProceso({
 		}
 	});
 
-	const body = {
-		usuario: pUsuario || (usuario?.id ?? ""),
-		modulo: pModulo || (modulo?.nombre ?? ""),
-		proceso,
-	};
-	if (parametros) {
-		let params = [];
-		if (Array.isArray(parametros)) {
-			params = parametros.map(mapper).filter((r) => r);
-		} else if (typeof parametros === "object") {
-			params = Object.entries(parametros)
-				.map((e) => mapper(...e))
-				.filter((r) => r);
-		} else {
-			params = [parametros].map(mapper).filter((r) => r);
-		}
-		if (params.length) body.parametros = params;
-	}
-	if (observaciones != null) body.observaciones = observaciones;
+	const [query, setQuery] = useState(null);
 
-	const init = { action: "AuditoriaProceso", config: { body } };
-	if (onOk) init.onOk = onOk;
-	if (onError) init.onError = onError;
-	if (onFinally) init.onFinally = onFinally;
-	const [query] = useState(init);
+	/**
+	 *
+	 * @param {object} props
+	 * @param {string?} props.usuario
+	 * @param {string?} props.modulo
+	 * @param {string} props.proceso
+	 * @param {any?} props.parametros
+	 * @param {string?} props.observaciones
+	 * @param {(ok: any) => void?} props.onOk
+	 * @param {(error: UseHttpError) => void?} props.onError
+	 * @param {() => void?} props.onFinally
+	 */
+	const audit = ({
+		usuario: pUsuario,
+		modulo: pModulo,
+		proceso,
+		parametros,
+		observaciones,
+		onOk,
+		onError,
+		onFinally
+	}) => {
+		const body = {
+			usuario: pUsuario || (usuario?.id ?? ""),
+			modulo: pModulo || (modulo?.nombre ?? ""),
+			proceso,
+		};
+		if (parametros) {
+			let params = [];
+			if (typeof parametros === "object") {
+				params = Object.entries(parametros)
+					.map(([k, v]) => mapper(v, k))
+					.filter((r) => r);
+			} else {
+				params = [parametros].map(mapper).filter((r) => r);
+			}
+			if (params.length) body.parametros = params;
+		}
+		if (observaciones != null) body.observaciones = observaciones;
+
+		if (JSON.stringify(query?.config?.body ?? {}) === JSON.stringify(body))
+			return;
+
+		setQuery(() => {
+			const query = { action: "AuditoriaProceso", config: { body } };
+			if (onOk) query.onOk = onOk;
+			if (onError) query.onError = onError;
+			if (onFinally) query.onFinally = onFinally;
+			return query;
+		});
+	};
 
 	useEffect(() => {
+		if (!query) return;
 		pushQuery(query);
 	}, [pushQuery, query]);
+
+	return { audit };
 }
