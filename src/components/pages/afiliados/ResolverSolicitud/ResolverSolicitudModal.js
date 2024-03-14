@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
+import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Formato from "components/helpers/Formato";
-import Modal from "components/ui/Modal/Modal";
-import modalCss from "components/ui/Modal/Modal.module.css";
+import { flatten } from "components/helpers/Utils";
+import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import DeclaracionesJuradas from "../declaracionesJuradas/DeclaracionesJuradas";
-import AfiliadosUltimaDDJJ from "../declaracionesJuradas/AfiliadosUltimaDDJJ";
+import Modal from "components/ui/Modal/Modal";
+import modalCss from "components/ui/Modal/Modal.module.css";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
-import Button from "components/ui/Button/Button";
+import AfiliadosUltimaDDJJ from "../declaracionesJuradas/AfiliadosUltimaDDJJ";
+import DeclaracionesJuradas from "../declaracionesJuradas/DeclaracionesJuradas";
 
 const ResolverSolicitudModal = ({
 	afiliado = {},
 	onClose = (cambios = null) => {},
 }) => {
+	const { audit } = useAuditoriaProceso();
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetEmpresa": {
@@ -57,8 +60,6 @@ const ResolverSolicitudModal = ({
 				return null;
 		}
 	});
-
-	console.log({afiliado})
 
 	//#region declaracion y carga datos empleador
 	const [empleador, setEmpleador] = useState({
@@ -290,28 +291,38 @@ const ResolverSolicitudModal = ({
 								setErrores(newErrores);
 								if (Object.keys(newErrores).length) return;
 
+								const config = {
+									params: { id: afiliado.id },
+									body: [
+										{
+											op: "replace",
+											path: "EstadoSolicitudId",
+											value: datos.estadoSolicitudId,
+										},
+										{ op: "replace", path: "FechaIngreso", value: null },
+										{ op: "replace", path: "NroAfiliado", value: "0" },
+										{
+											op: "replace",
+											path: "EstadoSolicitudObservaciones",
+											value: datos.estadoSolicitudObservaciones,
+										},
+										{ op: "replace", path: "FechaEgreso", value: null },
+									]
+								};
+
+								audit({
+									proceso: "AfiliadoResuelve",
+									parametros: flatten({ value: config }),
+								});
+
 								pushQuery({
 									action: "UpdateAfiliado",
-									params: { id: afiliado.id },
+									params: config.params,
 									config: {
 										headers: {
 											"Content-Type": "application/json-patch+json",
 										},
-										body: [
-											{
-												op: "replace",
-												path: "EstadoSolicitudId",
-												value: datos.estadoSolicitudId,
-											},
-											{ op: "replace", path: "FechaIngreso", value: null },
-											{ op: "replace", path: "NroAfiliado", value: "0" },
-											{
-												op: "replace",
-												path: "EstadoSolicitudObservaciones",
-												value: datos.estadoSolicitudObservaciones,
-											},
-											{ op: "replace", path: "FechaEgreso", value: null },
-										],
+										body: config.body,
 									},
 									onOk: async (_res) =>
 										pushQuery({
