@@ -6,6 +6,7 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
+
 const ConsultasHandler = () => {
 	const [consulta, setConsulta] = useState();
 
@@ -16,9 +17,24 @@ const ConsultasHandler = () => {
 	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
 	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
+
+	const onDownloadSolicitudAfiliacion = () => {
+		const link = document.createElement("a");
+		link.download = `SolicitudAfiliacion.pdf`;
+		link.href = "/Consultas/SolicitudAfiliacion.pdf";
+		link.click();
+	  };
+
+	const onDownloadSolicitudCambioSeccional = () => {
+		const link = document.createElement("a");
+		link.download = `Solicitud_Cambio_Seccional.pdf`;
+		link.href = "/Consultas/SolicitudCambioSeccional.pdf";
+		link.click();
+	  };
+
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Afiliados" />,
+		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*//>,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
@@ -37,9 +53,7 @@ const ConsultasHandler = () => {
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
-						onClick={() =>							
-							alert("En desarrollo")//setConsulta(<Localizar onClose={() => setConsulta(null)} />)
-						}
+						onClick={() =>onDownloadSolicitudAfiliacion()}
 						width="32"
 						tarea="Consultas_SolicitudAfiliacion"
 					>
@@ -49,9 +63,7 @@ const ConsultasHandler = () => {
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
-						onClick={() =>							
-							alert("En desarrollo")//setConsulta(<Localizar onClose={() => setConsulta(null)} />)
-						}
+						onClick={onDownloadSolicitudCambioSeccional}
 						width="32"
 						tarea="Consultas_SolicitudCambioSeccional"
 					>
@@ -79,7 +91,7 @@ const ConsultasHandler = () => {
 
 	// DDJJ
 	tabs.push({
-		header: () => <Tab label="Otras Consultas" />,
+		header: () => <Tab label="Otras Consultas"/>,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">

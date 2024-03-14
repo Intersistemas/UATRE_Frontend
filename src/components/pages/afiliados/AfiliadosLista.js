@@ -33,6 +33,9 @@ import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import AfiliadoEstados from "./AfiliadoEstados";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 
 
@@ -47,6 +50,8 @@ const AfiliadosLista = (props ) => {
   const [afiliadosActions, setAfiliadosActions] = useState();
   const {isLoading, error, sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
+
+  const tareas = useTareasUsuario();
 
   const handleSelectFilter = async (select,entry,obj) => {
     console.log('evento select y entry: ',select,entry,obj);
@@ -65,18 +70,17 @@ const AfiliadosLista = (props ) => {
 
   };
 
-
   useEffect(() => {
 
     console.log('selectedTab:',selectedTab);
     let actions = [];
 
     if (selectedTab == 0) {
-      const createAction = ({ action, request, ...x }) =>
+      const createAction = ({ action, request, onExecute, ...x }) =>
         new Action({
           name: action,
           //request: request,
-          onExecute: () =>  dispatch(handleModuloEjecutarAccion(request)),
+          onExecute: onExecute,//() =>  dispatch(handleModuloEjecutarAccion(request)),
           combination: "AltKey",
           ...x,
         });
@@ -84,7 +88,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Agrega Afiliado`,
-          request: "A",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("A")),//request: "A",
           tarea: "Afiliaciones_AfiliadoAgrega",
           keys: "a",
           underlineindex: 0,
@@ -96,7 +100,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Modifica Afiliado ${desc}`,
-          request: "M",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("M")),//request: "M",
           tarea: "Afiliaciones_AfiliadoModifica",
           ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
             {disabled:  true}
@@ -113,7 +117,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Resuelve Solicitud ${desc}`,
-          request: "S",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("S")),//request: "S",
           tarea: "Afiliaciones_AfiliadoResuelve",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
@@ -129,26 +133,8 @@ const AfiliadosLista = (props ) => {
 
       actions.push(
         createAction({
-          action: `Imprime Carnet de Afiliación ${desc}`,
-          request: "I",
-          tarea: "Afiliaciones_AfiliadoCarnet",
-
-          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
-            {disabled:  true}
-            :
-            {
-            disabled:  false,
-            keys: "p",
-            underlineindex: 2,
-            }
-          )
-        })
-      );
-
-      actions.push(
-        createAction({
           action: `Baja Afiliado ${desc}`,
-          request: "B",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("B")),//request: "B",
           tarea: "Afiliaciones_AfiliadoBaja",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
@@ -166,7 +152,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Reactiva Afiliado ${desc}`,
-          request: "R",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("R")),//request: "R",
           tarea: "Afiliaciones_AfiliadoReactiva",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
             {disabled:  true}
@@ -183,7 +169,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Localiza Afiliado ${desc}`,
-          request: "L",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("L")),//request: "L",
           tarea: "Afiliaciones_AfiliadoLocaliza",
           disabled:  false,
           keys: "l",
@@ -191,16 +177,101 @@ const AfiliadosLista = (props ) => {
         })
       );
 
+      /*
+      actions.push(
+        createAction({
+          action: `Imprime Carnet de Afiliación ${desc}`,
+          onExecute: () => dispatch(handleModuloEjecutarAccion("I")),//request: "I",
+          tarea: "Afiliaciones_AfiliadoCarnet",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "p",
+            underlineindex: 2,
+            }
+          )
+        })
+      );
+
 			actions.push(
 				createAction({
 					action: `Imprime Carnet de Afiliación en Lote`,
-					request: "E",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("E")),//request: "E",
 					tarea: "Afiliaciones_AfiliadoCarnet",
 					disabled: false,
 					keys: "e",
 					underlineindex: 6,
 				})
 			);
+*/
+      actions.push(
+        createAction({
+          action: `Impresiones`,
+          //onExecute: (e) => handleClickBtn(e),//request: "X",
+          tarea: "Afiliaciones_Impresiones",
+          keys: "i",
+          underlineindex: 0,
+          ariaHaspopu: true,
+          ariaControls:'menu-impresiones',
+
+          menuItems: [
+            {
+              label: `Imprime Carnet de Afiliación ${desc}`,
+              onExecute: () => dispatch(handleModuloEjecutarAccion("I")),
+              ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" || !tareas.hasTarea("Afiliaciones_AfiliadoCarnet")? 
+              {disabled:  true}
+              :
+              {
+              disabled:  false,}),
+              keys: "e",
+              underlineindex: 6,
+            },
+            {
+              label: `Imprime Carnet de Afiliación en Lote`,
+              onExecute: () => dispatch(handleModuloEjecutarAccion("E")),
+              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoCarnetLote"),
+              keys: "l",
+              underlineindex: 32,
+              
+            },
+            {
+              label: `Guia de Afiliaciones`,
+              onExecute: () => ({}),
+              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoGuia"),
+              keys: "g",
+              underlineindex: 0,
+              //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
+              
+            }
+          ]
+        }),
+      );
+
+      /*
+      actions.push(
+        createAction({
+          action: `Instructivos`,
+          //onExecute: (e) => handleClickBtn(e),//request: "X",
+          tarea: "Afiliaciones_Instructvos",
+          keys: "n",
+          underlineindex: 1,
+          ariaHaspopu: true,
+          ariaControls:'menu-instructivos',
+
+          menuItems: [
+            {
+              label: `Guia de Afiliaciones`,
+              onExecute: () => ({}),
+              //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
+              
+            }
+          ]
+        }),
+      );*/
+
     }
 
     const acciones = actions;
@@ -712,8 +783,7 @@ const AfiliadosLista = (props ) => {
                   tab: selectedTab
                 }}/>
               </div> 
-           
-      </Grid>   
+      </Grid> 
     </div>
   );
 };
