@@ -8,7 +8,6 @@ import paginationFactory from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 
-import styles from "./AfiliadosLista.module.css";
 import AfiliadoDetails from './AfiliadoDetails';
 import filterFactory, {
   selectFilter,
@@ -24,8 +23,6 @@ import Table from "../../ui/Table/Table";
 import TableSegmentado from "../../ui/Table/TableRemote";
 import Formato from "../../helpers/Formato";
 import useHttp from "../../hooks/useHttp";
-import { styled } from '@mui/material/styles';
-import Documentacion from "./documentacion/Documentacion";
 import AfiliadoSeccional from './AfiliadosSeccionales'
 import Action from "components/helpers/Action";
 import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
@@ -33,8 +30,6 @@ import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import AfiliadoEstados from "./AfiliadoEstados";
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 
@@ -48,7 +43,7 @@ const AfiliadosLista = (props ) => {
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
   const [afiliadosActions, setAfiliadosActions] = useState();
-  const {isLoading, error, sendRequest: request } = useHttp();
+  const { sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
 
   const tareas = useTareasUsuario();
@@ -683,109 +678,123 @@ const AfiliadosLista = (props ) => {
   }
 
   return (
-    <div className="vh-100 d-flex flex-column"> 
-        <Grid full col>
-            <Grid className="titulo">
-              <h1>Afiliaciones</h1>
-            </Grid>
-    
-            <div className="tabs">
-              <text>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</text>
+		<Grid col height="100vh">
+			<Grid full col>
+				<Grid className="titulo">
+					<h1>Afiliaciones</h1>
+				</Grid>
 
-              <div style={{margin: '0% 0% 3rem 0%'}}>
-                <Tabs
-                  value={selectedTab}
-                  onChange={handleChangeTab}
-                  className={styles.tabs}
-                >
-                    <Tab  
-                    className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                    label= 'AFILIADOS'
-                    />
-                    <Tab className={styles.tab}  
-                      style={{backgroundColor: "#186090"}}        
-                      label= 'DDJJ UATRE'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
-                    
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                      label= 'Documentación'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
+				<Grid col className="tabs">
+					<text>
+						{afiliadoSeleccionado?.nombre ? (
+							`${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${
+								afiliadoSeleccionado?.nombre
+							}`
+						) : (
+							<>&nbsp;</>
+						)}
+					</text>
+					<Grid width>
+						<Tabs
+							value={selectedTab}
+							onChange={handleChangeTab}
+							variant="scrollable"
+							scrollButtons
+							allowScrollButtonsMobile
+							style={{ width: "100%" }}
+						>
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="AFILIADOS"
+							/>
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="DDJJ UATRE"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                      label= 'Cambios de Datos'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Documentación"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                    label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
-										
-										<Tab
-											className={styles.tab}
-											style={{ backgroundColor: "#186090" }}
-											label= 'Estados del afiliado'
-											disabled={afiliadoSeleccionado?.id ? false : true}
-										/>
-                </Tabs>
-              </div>
-            </div> 
-           
-              <div className="contenido table_and_detail">
-                {selectedTab === 0 && ( //AFILIADOS
-                  <div>
-                    <TableSegmentado {...tableProps}/>
-                    <KeyPress items={afiliadosActions} />
-                  </div> 
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Cambios de Datos"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                {selectedTab === 1 && ( //DDJJ
-                  <DeclaracionesJuradas
-                    cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
-                    //cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
-                    infoCompleta={true}
-                    onSeleccionRegistro={rowEvents}
-                    onDeclaracionesGeneradas={null}
-                  />        
-                )}
-                {selectedTab === 2 && (
-                  
-                  <AfiliadosDocumentaciones afiliado={afiliadoSeleccionado}/>
-                  
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Datos de la Seccional" //{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                {selectedTab === 3 && (
-                  <Table  {...tablePropsVacia1}/>
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Estados del afiliado"
+								disabled={afiliadoSeleccionado?.id ? false : true}
+							/>
+						</Tabs>
+						<Grid block flex="0 0 700px" />
+					</Grid>
+				</Grid>
 
-                {selectedTab === 4 && (
-                  <AfiliadoSeccional
-                    afiliado={afiliadoSeleccionado}
-                    onSeleccionRegistro={rowEvents}
-                  />        
-                )}
-								
-								{selectedTab === 5 && (
-									<AfiliadoEstados afiliado={afiliadoSeleccionado} />
-								)}
+				<Grid className="contenido" col gap="10px">
+					<Grid />
+					<Grid col grow justify="between">
+						{selectedTab === 0 && ( //AFILIADOS
+							<>
+								<TableSegmentado {...tableProps} />
+								<KeyPress items={afiliadosActions} />
+							</>
+						)}
 
-                <AfiliadoDetails config={{
-                  data: afiliadoSeleccionado,
-                  ddjj: ddjjUatreSeleccionado,
-                  empresa: empresaSeleccionada,
-                  seccional: seccionalSeleccionada,
-                  tab: selectedTab
-                }}/>
-              </div> 
-      </Grid> 
-    </div>
-  );
+						{selectedTab === 1 && ( //DDJJ
+							<DeclaracionesJuradas
+								cuil={
+									afiliadoSeleccionado.cuilValidado
+										? afiliadoSeleccionado.cuilValidado
+										: afiliadoSeleccionado.cuil
+								}
+								//cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
+								infoCompleta={true}
+								onSeleccionRegistro={rowEvents}
+								onDeclaracionesGeneradas={null}
+							/>
+						)}
+						{selectedTab === 2 && (
+							<AfiliadosDocumentaciones afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 3 && <Table {...tablePropsVacia1} />}
+
+						{selectedTab === 4 && (
+							<AfiliadoSeccional
+								afiliado={afiliadoSeleccionado}
+								onSeleccionRegistro={rowEvents}
+							/>
+						)}
+
+						{selectedTab === 5 && (
+							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+						)}
+
+						<AfiliadoDetails
+							config={{
+								data: afiliadoSeleccionado,
+								ddjj: ddjjUatreSeleccionado,
+								empresa: empresaSeleccionada,
+								seccional: seccionalSeleccionada,
+								tab: selectedTab,
+							}}
+						/>
+					</Grid>
+				</Grid>
+			</Grid>
+		</Grid>
+	);
 };
 
 export default AfiliadosLista;
