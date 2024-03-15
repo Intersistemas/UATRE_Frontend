@@ -701,7 +701,7 @@ const AfiliadosLista = (props ) => {
 							variant="scrollable"
 							scrollButtons
 							allowScrollButtonsMobile
-							style={{ width: "100%" }}
+							style={{ width: "100%", position: "relative", zIndex: 1 }}
 						>
 							<Tab
 								style={{ backgroundColor: "#186090" }}
