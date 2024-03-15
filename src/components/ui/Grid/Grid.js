@@ -10,26 +10,46 @@ const renderDef = (p) => <div {...p}/>;
  * @param {string} [props.direction] Por defecto la dirección del flex es fila.
  *
  * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.reverse] Determina si aplica "reverse" a `direction`.
  * @param {boolean} [props.col] Abreviatura para direction="column".
  *
  * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {string} [props.gap] Atajo para establecer `column-gap` y `row-gap`
  * @param {string} [props.rowGap] Espacio de fila entre componentes hijos (`row-gap`)
  * @param {string} [props.colGap] Espacio de columna entre componentes hijos. (`column-gap`)
- * @param {boolean} [props.grow] Permite expandir el div hasta ocupar el resto del espacio del componente padre.
+ * @param {string} [props.flex] Abreviatura que aplica `grow`, `shrink` y `basis`. (`flex`)
+ * @param {string} [props.grow] Factor de crecimiento. (`flex-grow`)
  *
  * 	Si hay componentes hermanos con esta propiedad, el espacio restante se promedia entre ellos.
  *
  * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.shrink] Factor de contracción. (`flex-shrink`)
+ *
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.basis] Tamaño inicial. (`flex-basis`)
+ *
+ * Posibles valores:
+ * * "width": Ocupar la misma cantidad que la propiedad width.
+ * * "height": Ocupar la misma cantidad que la propiedad height.
+ * * "full": Ocupar la misma cantidad que la propiedad full.
+ * * Cualquier otro valor: Asume unidad con medida.
+ * @param {string} [props.wrap] Especifica si los elementos "hijos" son obligados a permanecer en una misma línea o pueden fluir en varias líneas.. (`flex-wrap`)
+ *
+ * Posibles valores:
+ * * "wrap": Los elementos flex son colocados en varias líneas. El valor cross-start es equivalente a start o before según el valor de `direction`.
+ * * "no": Los elementos flex son distribuidos en una sola línea, lo cual puede llevar a que se desborde el contenedor flex. El valor cross-start es equivalente a start o before según el valor de `direction`.
+ * * "reverse": Actúa como wrap pero cross-start y cross-end están intercambiados.
+ * 
+ * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {string} [props.justify] Especifica el alineado de los componentes hijos.
  *
  * Posibles valores:
- * * "start": alineados al inicio del componente. (flex-start)
- * * "end": alineados al final del componente.	(flex-end)
+ * * "start": alineados al inicio del componente. (`flex-start`)
+ * * "end": alineados al final del componente.	(`flex-end`)
  * * "center": alineados al centro del componente.
- * * "around": espaciado alrededor. (space-around)
- * * "between": espaciado entre componentes. (space-between)
- * * "evenly": espaciado equitativamente. (space-evenly)
+ * * "around": espaciado alrededor. (`space-around`)
+ * * "between": espaciado entre componentes. (`space-between`)
+ * * "evenly": espaciado equitativamente. (`space-evenly`)
  *
  * Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {boolean} [props.block] Abreviatura para display="block".
@@ -45,14 +65,6 @@ const renderDef = (p) => <div {...p}/>;
  * * Si full=string se puede especificar en cualquier unidad y ocupará esa medida en ancho y alto. (%, px, vh, etc.). ej: full="50px".
  * * Si full=numero, ocupará n% de ancho y alto.
  * * Si full="full" o no se especifica medida, ocupará el 100% de ancho y alto.
- * @param {string} [props.basis] Tamaño inicial. (flex-basis)
- *
- * Posibles valores:
- * * "width": Ocupar la misma cantidad que la propiedad width.
- * * "height": Ocupar la misma cantidad que la propiedad height.
- * * "full": Ocupar la misma cantidad que la propiedad full.
- * * Cualquier otro valor: Asume unidad con medida.
- *
  * @param {function} [props.render] Componente a utilizar para renderizar. Por defecto `div`
  * @returns div
  **/
@@ -60,17 +72,20 @@ export const Grid = ({
 	style = {},
 	display = "flex",
 	direction = "row",
+	reverse = false,
 	col,
 	gap,
 	rowGap,
 	colGap,
+	flex,
 	grow,
+	shrink,
+	basis,
 	justify,
 	block,
 	width,
 	height,
 	full,
-	basis,
 	render: MyRender = renderDef,
 	// Todos los componentes hijos.
 	children,
@@ -122,43 +137,45 @@ export const Grid = ({
 	if (width) style.width = width;
 	if (height) style.height = height;
 
-	// Aplico tamaño inicial en caso de corresponder.
-	if (basis) {
-		switch (basis) {
-			case "width":
-				basis = width; // Mismo que width.
-				break;
-			case "height":
-				basis = height; // Mismo que height.
-				break;
-			case "full":
-				basis = full; // Mismo que full.
-				break;
-			default:
-				break;
-		}
-		style.flexBasis = basis;
-	}
-
 	// Abreviatura para display="block".
 	if (block) display = "block";
 
 	// Aplico display en caso de corresponder.
 	if (display) style.display = display;
 
+	// Aplico expandir en caso de corresponder.
+	if (flex) {
+		style.flex = flex;
+	} else {
+		if (grow) style.flexGrow = typeof grow === "boolean" ? 1 : grow;
+		if (shrink) style.flexShrink = typeof shrink === "boolean" ? 1 : shrink;
+		// Aplico tamaño inicial en caso de corresponder.
+		if (basis) {
+			switch (basis) {
+				case "width":
+					basis = width; // Mismo que width.
+					break;
+				case "height":
+					basis = height; // Mismo que height.
+					break;
+				case "full":
+					basis = full; // Mismo que full.
+					break;
+				default:
+					break;
+			}
+			style.flexBasis = typeof basis === "boolean" ? 1 : basis;
+		}
+	}
+	
 	// Abreviatura para direction="column".
 	if (col) direction = "column";
 
 	switch (direction) {
 		case "row":
-			style.flexDirection = "row";
-			// Si se especifica gap, aplicarlo como espaciado de columna.
-			// if (gap) style.columnGap = gap;
-			break;
 		case "column":
-			style.flexDirection = "column";
-			// Si se especifica gap, aplicarlo como espaciado de fila.
-			// if (gap) style.rowGap = gap;
+			if (reverse) reverse = "reverse";
+			style.flexDirection = [direction, reverse].filter((r) => r).join("-");
 			break;
 		default:
 			break;
@@ -171,9 +188,6 @@ export const Grid = ({
 	if (rowGap) style.rowGap = rowGap;
 	if (colGap) style.columnGap = colGap;
 	
-	// Aplico expandir en caso de corresponder.
-	if (grow) style.flexGrow = 1;
-
 	// Aplico alineado en caso de corresponder.
 	switch (justify) {
 		case "start":
