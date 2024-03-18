@@ -26,8 +26,8 @@ const StyledMenu = styled((props) => (
       elevation={0}
 
       anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'center',
+        vertical: 'buttom',
+        horizontal: 'left',
       }}
       transformOrigin={{
         vertical: 'top',
@@ -49,7 +49,7 @@ const StyledMenu = styled((props) => (
         theme.palette.mode === 'light' ? 'rgb(55, 65, 81)' : theme.palette.grey[300],
         backgroundColor: 'var(--amarillo1)',
         marginLeft: '50px',
-        marginTop: '-50px',
+        marginTop: '-30px',
       '& .MuiMenu-list': {
             padding: '4px 0',
             color: 'var(--color1)',
@@ -97,20 +97,18 @@ const Sidebar = ({children}) => {
     const[menuItems ,setMenuItems] = useState([]);
 
     const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
+    let open = Boolean(anchorEl);
     
-    const handleClickBtn = (items) => {
-        console.log("handleClickBtn_items",items)
-        setMenuItems(items);
-        handleClick()
-    };
+    const handleClickBtn = (event, menuItems) => {
 
-    const handleClick = (event, value) => {
+        console.log("handleClickBtn_event",event)
+        console.log("handleClickBtn_event2",event.currentTarget)
+        console.log("handleClickBtn_menuItems",menuItems)
 
-        console.log("handleClickBtn_event",event.currentTarget.children)
+
         setAnchorEl(event.currentTarget);
+        setMenuItems(menuItems)
     };
-   
     
   
     const handleCloseBtn = () => {
@@ -238,11 +236,11 @@ const Sidebar = ({children}) => {
                                                 aria-controls={open ? 'basic-menu' : undefined}
                                                 aria-haspopup= "true"
                                                 aria-expanded={open ? 'true' : undefined}
- 
-                                                onClick={handleClick}> 
+                                                onClick={(e)=>handleClickBtn(e, item.menuItems)}> 
                                                 {item.name}
                                                 <KeyboardArrowRightIcon />
                                             </Button>
+                                           {menuItems.length > 0 &&
                                             <StyledMenu
                                                 id="basic-menu"
                                                 anchorEl={anchorEl}
@@ -255,7 +253,7 @@ const Sidebar = ({children}) => {
                                             >
                                         
                                                 {
-                                                item.menuItems?.map((o,i)=>(
+                                                menuItems?.map((o,i)=>(
                                                     <MenuItem
                                                         key={i} 
                                                         onClick={o.onExecute}
@@ -265,7 +263,7 @@ const Sidebar = ({children}) => {
                                                 }
                                             
                                             </StyledMenu>
-                                            
+                                            }
                                         </>
                                         :
                                             (<Button 
