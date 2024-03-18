@@ -50,6 +50,8 @@
 }
 .logo{
   font-size: 40px;
+  display: inline-grid;
+  justify-items: center;
 }
 .bars{
   display: flex;
