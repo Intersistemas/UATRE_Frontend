@@ -264,3 +264,22 @@ export const flatten = ({
 	}
 	return target;
 };
+
+/**
+ * Trata de transformar string JSON en un objeto
+ * @param {string} string Cadena a transformar
+ * @param {(json: any) => void} onOk Callback en caso de transformar correctamente
+ * @param {(error: any) => void} onError Callback en caso de ocurrir un error
+ * @returns {any} Objecto transformado o `undefined`
+ */
+export const tryJSONParse = (string, onOk = () => {}, onError = () => {}) => {
+	let json = undefined;
+	try {
+		json = JSON.parse(string);
+	} catch (error) {
+		onError(error);
+		return json;
+	}
+	onOk(json);
+	return json;
+}
