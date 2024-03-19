@@ -26,6 +26,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import { InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import ValidarCUIT from "components/validators/ValidarCUIT";
 
 const Registro = () => {
   console.log("Registro");
@@ -213,7 +214,7 @@ const Registro = () => {
   const handleMouseDownPassword = (event) => {
 		event.preventDefault();
 	  };
-
+ 
 //#region aqui hago todas las validaciones
   const registraHandler = () => {
 
@@ -225,7 +226,7 @@ const Registro = () => {
 
     if (enteredPassword.trim().length < 6) {erroresValidacion = erroresValidacion.concat(`❌ Las claves deben tener al menos 6 caractéres. \n`)}
     
-    if(enteredCUIT.trim().length === 0) {erroresValidacion = erroresValidacion.concat("❌ Debe ingresar un CUIT/CUIL válido. \n")}
+    if(enteredCUIT.trim().length === 0 || !ValidarCUIT(enteredCUIT)) {erroresValidacion = erroresValidacion.concat("❌ Debe ingresar un CUIT/CUIL válido. \n")}
 
     if(enteredEmail.trim().length === 0 || !emailRegex.test(enteredEmail)) {erroresValidacion = erroresValidacion.concat(`❌ Debe ingresar un Email válido. \n`)}
     

@@ -74,7 +74,7 @@ const App = () => {
               }
               {
                   !isLoggedIn 
-                  && (<Route path="/*" element={<PantallaEnDesarrollo/>} />)
+                  && (<Route path="/*" element={<Login/>} />)
               }
               {
                   !isLoggedIn 
