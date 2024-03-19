@@ -31,6 +31,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import AfiliadoEstados from "./AfiliadoEstados";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import { FaBullseye } from "react-icons/fa";
 import AfiliadoHistorico from "./AfiliadoHistorico";
 
 
@@ -46,7 +47,16 @@ const AfiliadosLista = (props ) => {
   const [afiliadosActions, setAfiliadosActions] = useState();
   const { sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
+  const [openImpresiones, setOpenImpresiones] = useState(false);
+  
 
+  const onLinkToGuiaAfiliaciones = () => {
+		const link = document.createElement("a");
+    link.target="_blank";
+		link.href = "https://drive.google.com/file/d/12noBfSzK35joyhbE_taxcMOqw3xz8vkt/view?usp=sharing"; 
+		link.click();
+	  };
+  
   const tareas = useTareasUsuario();
 
   const handleSelectFilter = async (select,entry,obj) => {
@@ -203,19 +213,20 @@ const AfiliadosLista = (props ) => {
 				})
 			);
 */
+
       actions.push(
         createAction({
           action: `Impresiones`,
           //onExecute: (e) => handleClickBtn(e),//request: "X",
           tarea: "Afiliaciones_Impresiones",
-          keys: "i",
-          underlineindex: 0,
+          keys: "p",
+          underlineindex: 2,
           ariaHaspopu: true,
           ariaControls:'menu-impresiones',
 
           menuItems: [
             {
-              label: `Imprime Carnet de Afiliación ${desc}`,
+              label: `Carnet de Afiliación ${desc}`,
               onExecute: () => dispatch(handleModuloEjecutarAccion("I")),
               ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" || !tareas.hasTarea("Afiliaciones_AfiliadoCarnet")? 
               {disabled:  true}
@@ -226,27 +237,17 @@ const AfiliadosLista = (props ) => {
               underlineindex: 6,
             },
             {
-              label: `Imprime Carnet de Afiliación en Lote`,
+              label: `Carnet de Afiliación en Lote`,
               onExecute: () => dispatch(handleModuloEjecutarAccion("E")),
               disabled: !tareas.hasTarea("Afiliaciones_AfiliadoCarnetLote"),
               keys: "l",
               underlineindex: 32,
-              
-            },
-            {
-              label: `Guia de Afiliaciones`,
-              onExecute: () => ({}),
-              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoGuia"),
-              keys: "g",
-              underlineindex: 0,
-              //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
               
             }
           ]
         }),
       );
 
-      /*
       actions.push(
         createAction({
           action: `Instructivos`,
@@ -260,13 +261,15 @@ const AfiliadosLista = (props ) => {
           menuItems: [
             {
               label: `Guia de Afiliaciones`,
-              onExecute: () => ({}),
+              onExecute: onLinkToGuiaAfiliaciones,
+              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoGuia"),
+              keys: "g",
+              underlineindex: 0,
               //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
-              
             }
           ]
         }),
-      );*/
+      );
 
     }
 
