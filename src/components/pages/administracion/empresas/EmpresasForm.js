@@ -590,7 +590,7 @@ const EmpresasForm = ({
 							<Grid col width="30%">
 								<Button
 									className="botonAzul"
-									disabled={`${data.cuit ?? ""}`.length === 11 || errors.cuit}
+									disabled={`${data.cuit ?? ""}`.length !== 11 || errors.cuit}
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
@@ -823,7 +823,7 @@ const EmpresasForm = ({
 								label="CIIU 2"
 								error={!!errors.ciiU2}
 								helperText={
-									ciius.loading ?? ciius.error?.message ?? errors.ciiU1 ?? ""
+									ciius.loading ?? ciius.error?.message ?? errors.ciiU2 ?? ""
 								}
 								value={ciiu2.selected}
 								disabled={disabled.ciiU2 ?? false}
