@@ -31,6 +31,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import AfiliadoEstados from "./AfiliadoEstados";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import AfiliadoHistorico from "./AfiliadoHistorico";
 
 
 
@@ -736,6 +737,12 @@ const AfiliadosLista = (props ) => {
 								label="Estados del afiliado"
 								disabled={afiliadoSeleccionado?.id ? false : true}
 							/>
+
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Historico del afiliado"
+								disabled={afiliadoSeleccionado?.id ? false : true}
+							/>
 						</Tabs>
 						<Grid block flex="0 0 700px" />
 					</Grid>
@@ -779,6 +786,10 @@ const AfiliadosLista = (props ) => {
 
 						{selectedTab === 5 && (
 							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 6 && (
+							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
 						)}
 
 						<AfiliadoDetails

@@ -262,6 +262,8 @@ const AfiliadoDetails = (props) => {
 				break;
 			case 5:	// Tab Estados
 					setHotField()
+			case 6:	// Tab Historico
+					setHotField()
 				break;
 			default:
 			  break;
