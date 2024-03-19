@@ -343,21 +343,28 @@ const SiaruHandler = () => {
 					
 					if (!record.cuit) errors.cuit = "Dato requerido";
 					else if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
-					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
-					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
-					if (!record.provinciaNombre) errors.domicilioProvinciasId = "Dato requerido";
-					if (!record.localidadNombre) errors.domicilioLocalidadesId = "Dato requerido";
 
-					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalId = "Dato requerido";
+					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
+
+					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
+
+					if (!record.domicilioNumero) errors.domicilioNumero = "Dato requerido";
+
+					if (!record.domicilioProvinciasId) errors.domicilioProvinciasId = "Dato requerido";
+
+					if (!record.domicilioLocalidadesId) errors.domicilioLocalidadesId = "Dato requerido";
+
+					if (!record.actividadPrincipalId) errors.actividadPrincipalId = "Dato requerido";
+
 					if (!record.telefono) errors.telefono = "Dato requerido";
 					else if (!isPossiblePhoneNumber(record.telefono)) errors.telefono = "Dato inválido";
 
 					if (!record.email) errors.email = "Dato requerido";
 					else if (!ValidarEmail(record.email)) errors.email = "Dato inválido";
 
-					if (!record.ciiU1Descripcion) errors.ciiU1 = "Dato requerido";
-					if (!record.ciiU2Descripcion) errors.ciiU2 = "Dato requerido";
-					if (!record.ciiU3Descripcion) errors.ciiU3 = "Dato requerido";
+					// if (!record.ciiU1Descripcion) errors.ciiU1 = "Dato requerido";
+					// if (!record.ciiU2Descripcion) errors.ciiU2 = "Dato requerido";
+					// if (!record.ciiU3Descripcion) errors.ciiU3 = "Dato requerido";
 				}
 			
 				if (Object.keys(errors).length) {
@@ -456,7 +463,7 @@ const SiaruHandler = () => {
 		);
 
 		addAction(
-			`Relaciona Empresa`,
+			`Nueva Empresa`,
 			(_) => (
 				setList((o) => ({
 					...o,
