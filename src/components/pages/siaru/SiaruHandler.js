@@ -15,6 +15,8 @@ import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
 import EmpresasForm from "../administracion/empresas/EmpresasForm";
 import ValidarCUIT from "components/validators/ValidarCUIT";
+import ValidarEmail from "components/validators/ValidarEmail";
+import { isPossiblePhoneNumber } from "libphonenumber-js";
 
 
 const selectionDef = {
@@ -343,14 +345,19 @@ const SiaruHandler = () => {
 					else if (!ValidarCUIT(record.cuit)) errors.cuit = "CUIT Incorrecto";
 					if (!record.razonSocial) errors.razonSocial = "Dato requerido";
 					if (!record.domicilioCalle) errors.domicilioCalle = "Dato requerido";
+					if (!record.provinciaNombre) errors.domicilioProvinciasId = "Dato requerido";
+					if (!record.localidadNombre) errors.domicilioLocalidadesId = "Dato requerido";
 
-					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalDescripcion = "Dato requerido";
-					if (!record.telefono) errors.telefono = "Dato requerido"; 
-					if (!record.email) errors.email = "Dato requerido"; 
+					if (!record.actividadPrincipalDescripcion) errors.actividadPrincipalId = "Dato requerido";
+					if (!record.telefono) errors.telefono = "Dato requerido";
+					else if (!isPossiblePhoneNumber(record.telefono)) errors.telefono = "Dato inválido";
 
-					if (!record.ciiU1Descripcion) errors.ciiU1Descripcion = "Dato requerido";
-					if (!record.ciiU2Descripcion) errors.ciiU2Descripcion = "Dato requerido";
-					if (!record.ciiU3Descripcion) errors.ciiU3Descripcion = "Dato requerido";
+					if (!record.email) errors.email = "Dato requerido";
+					else if (!ValidarEmail(record.email)) errors.email = "Dato inválido";
+
+					if (!record.ciiU1Descripcion) errors.ciiU1 = "Dato requerido";
+					if (!record.ciiU2Descripcion) errors.ciiU2 = "Dato requerido";
+					if (!record.ciiU3Descripcion) errors.ciiU3 = "Dato requerido";
 				}
 			
 				if (Object.keys(errors).length) {
