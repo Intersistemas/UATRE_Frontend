@@ -308,7 +308,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10rem", textAlign: "center" };
       },
-      formatter: Formato.Cuit,
+      formatter: (v) => Formato.Cuit(v),
     },
     {
       headerTitle: true,
@@ -330,7 +330,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
-      formatter: Formato.DNI,
+      formatter: (v) => Formato.DNI(v),
     },
     {
       headerTitle: true,
@@ -432,7 +432,7 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaIngreso",
       text: "F.Ingreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
@@ -443,7 +443,7 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaEgreso",
       text: "F.Egreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
@@ -457,7 +457,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10rem", textAlign: "center" };
       },
-      formatter: Formato.Cuit,
+      formatter: (v) => Formato.Cuit(v),
     },
     {
       headerTitle: true,
