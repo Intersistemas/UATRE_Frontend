@@ -720,7 +720,10 @@ const AfiliadosLista = (props ) => {
 						<Grid
 							block
 							shrink="0"
-							basis={{ 0: "700px", 1: "25%", 2: "25%" }[selectedTab] ?? "0px"}
+							basis={
+								{ 0: "700px", 1: "25%", 2: "25%", 4: "25%" }[selectedTab] ??
+								"0px"
+							}
 						/>
 					</Grid>
 				</Grid>
