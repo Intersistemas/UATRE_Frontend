@@ -292,8 +292,8 @@ const ResolverSolicitudModal = ({
 								if (Object.keys(newErrores).length) return;
 
 								const config = {
-									params: { id: afiliado.id },
-									body: [
+									afiliado: { id: afiliado.id },
+									cambios: [
 										{
 											op: "replace",
 											path: "EstadoSolicitudId",
@@ -307,22 +307,30 @@ const ResolverSolicitudModal = ({
 											value: datos.estadoSolicitudObservaciones,
 										},
 										{ op: "replace", path: "FechaEgreso", value: null },
-									]
+									],
 								};
 
+								const valueFormat = ({ key, path, target, child }) => {
+									if (path.length === 2 && path[0] === "cambios") {
+										target[key] = JSON.stringify(child.value);
+										return;
+									}
+									flatten({ value: child.value, key, path, target, valueFormat });
+								};
+								
 								audit({
 									proceso: "AfiliadoResuelve",
-									parametros: flatten({ value: config }),
+									parametros: flatten({ value: config, valueFormat }),
 								});
 
 								pushQuery({
 									action: "UpdateAfiliado",
-									params: config.params,
+									params: config.afiliado,
 									config: {
 										headers: {
 											"Content-Type": "application/json-patch+json",
 										},
-										body: config.body,
+										body: config.cambios,
 									},
 									onOk: async (_res) =>
 										pushQuery({
