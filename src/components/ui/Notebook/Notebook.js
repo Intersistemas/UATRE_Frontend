@@ -91,6 +91,7 @@ const PaginationRender = ({
  *  position?: "top" | "bottom" | "left" | "right"
  *  render?: PaginationRender,
  * 	onChange?: (changes: { index: number, size: number }) => void,
+ *  wrapProps?: object,
  * }} [props.pagination] Información de paginacion.
  */
 const Notebook = ({
@@ -154,15 +155,16 @@ const Notebook = ({
 		body = renderBody(children);
 	}
 
-	const { render: paginationRender, ...paginationInfo } = pagination;
+	const { render: paginationRender, wrapProps, ...paginationInfo } = pagination;
 	const paginationRendered = paginationRender({
 		...paginationInfo,
 		onChange: onChangeDef,
 	});
+
 	switch (pagination.position) {
 		case "top": {
 			return (
-				<Grid col>
+				<Grid col {...wrapProps}>
 					{paginationRendered}
 					{body}
 				</Grid>
@@ -170,7 +172,7 @@ const Notebook = ({
 		}
 		case "left": {
 			return (
-				<Grid>
+				<Grid {...wrapProps}>
 					{paginationRendered}
 					{body}
 				</Grid>
@@ -178,7 +180,7 @@ const Notebook = ({
 		}
 		case "right": {
 			return (
-				<Grid>
+				<Grid {...wrapProps}>
 					{body}
 					{paginationRendered}
 				</Grid>
@@ -186,7 +188,7 @@ const Notebook = ({
 		}
 		default: {
 			return (
-				<Grid col>
+				<Grid col {...wrapProps}>
 					{body}
 					{paginationRendered}
 				</Grid>
