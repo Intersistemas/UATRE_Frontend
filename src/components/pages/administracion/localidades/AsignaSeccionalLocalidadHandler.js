@@ -151,7 +151,7 @@ const AsignaSeccionalLocalidadHandler = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				{title}
 			</Modal.Header>
