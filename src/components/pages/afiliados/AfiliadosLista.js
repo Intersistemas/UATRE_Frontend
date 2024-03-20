@@ -717,7 +717,11 @@ const AfiliadosLista = (props ) => {
 								disabled={afiliadoSeleccionado?.id ? false : true}
 							/>
 						</Tabs>
-						<Grid block flex="0 0 700px" />
+						<Grid
+							block
+							shrink="0"
+							basis={{ 0: "700px", 1: "25%", 2: "25%" }[selectedTab] ?? "0px"}
+						/>
 					</Grid>
 				</Grid>
 
