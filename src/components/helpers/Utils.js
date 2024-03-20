@@ -228,17 +228,19 @@ export const pick = (obj, select, keep = false) => {
 /**
  * "Aplana" `value`. Esto es, si value es un objeto, transforma todas sus propiedades en tipos simples.
  * @param {object} params
- * @param {any} params.value Valor a aplanar.
- * @param {string?} params.key Clave identificadora de `value`.
- * @param {object?} params.target Objeto destino donde se acumularán las propiedades.
- * @param {(context: { key: string, parent: { key: string, value: any } }) => string?} params.keyFormat Funcion de formateo de claves `destino`.
- * @param {(context: { key: string, target: object, child: { key: string, value: any }, parent: { key: string, value: any } }) => void?} params.valueFormat Función de formateo de valores `destino`.
+ * @param {any} [params.value] Valor a aplanar.
+ * @param {string} [params.key] Clave identificadora de `value`.
+ * @param {string[]} [params.path] Camino de priopiedades actual.
+ * @param {object} [params.target] Objeto destino donde se acumularán las propiedades.
+ * @param {(context: { key: string, parent: { key: string, value: any } }) => string} [params.keyFormat] Funcion de formateo de claves `destino`.
+ * @param {(context: { key: string, path: string[], target: object, child: { key: string, value: any }, parent: { key: string, value: any } }) => void} [params.valueFormat] Función de formateo de valores `destino`.
  * @returns {object} Objeto destino (`target` o nuevo objeto).
  */
 export const flatten = ({
 	value,
 	key = null,
-	target = null,
+	target = {},
+	path = [],
 	keyFormat = ({ key, parent }) =>
 		parent.key
 			? Array.isArray(parent.value)
@@ -247,16 +249,16 @@ export const flatten = ({
 			: key,
 	valueFormat = null,
 }) => {
-	target ??= {};
-	valueFormat ??= ({ key, target, child }) => {
-		flatten({ value: child.value, key, target, keyFormat, valueFormat });
+	valueFormat ??= ({ key, target, child, path }) => {
+		flatten({ value: child.value, key, path, target, keyFormat, valueFormat });
 	};
 	if (typeof value !== "object" || value == null) {
 		if (key == null) return value;
 		target[key] = value;
 	} else {
 		Object.entries(value).forEach(([k, v]) => valueFormat({
-			key: keyFormat({ key: k, parent: { key, value }}),
+			key: keyFormat({ key: k, parent: { key, value } }),
+			path: [...path, k],
 			target,
 			child: { key: k, value: v },
 			parent: { key, value },
