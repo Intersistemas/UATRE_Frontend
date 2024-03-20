@@ -417,6 +417,13 @@ const EmpresasForm = ({
 
 	//#endregion
 
+	useEffect(() => {
+		const changes = {};
+		if (data.telefono == null) changes.telefono = "+54 9"
+		if (Object.entries(changes).length === 0) return;
+		onChange(changes);
+	}, [onChange, data])
+
 	const [validacionCUIT, setValidacionCUIT] = useState({
 		loading: false,
 		validado: "",
