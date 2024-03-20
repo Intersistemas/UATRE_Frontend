@@ -8,9 +8,9 @@ import Notebook from "components/ui/Notebook/Notebook";
 const columns = [
 	{
 		dataField: "fechaHoraAuditoria",
-		text: "Movimiento fecha y hora",
+		text: "Fecha y hora de movimiento",
 		// sort: true,
-		headerStyle: { width: "15em", textAlign: "center" },
+		headerStyle: { width: "17em", textAlign: "center" },
 		formatter: (v) => Formato.FechaHora(v),
 		style: { textAlign: "center" },
 	},

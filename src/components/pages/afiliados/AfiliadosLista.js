@@ -657,25 +657,6 @@ const AfiliadosLista = (props ) => {
       entryValue: props.entryValue,
   }
 
-
-  const tablePropsVacia0 = {
-    promptBuscar:"Buscar en Afiliados:",
-    keyField: "nroAfiliado",
-    data: [],
-    columns: columnsVacia,
-    noDataIndication: <h4>No existe documentación relacionada al Afiliado seleccionado.</h4>,
-    filter: filterFactory(),
-}
-
-  const tablePropsVacia1 = {
-      promptBuscar:"Buscar en Afiliados:",
-      keyField: "nroAfiliado",
-      data: [],
-      columns: columnsVacia,
-      noDataIndication: <h4>No se registran cambios de datos en el Afiliado seleccionado.</h4>,
-      filter: filterFactory(),
-  }
-
   return (
 		<Grid col height="100vh">
 			<Grid full col>
@@ -735,12 +716,6 @@ const AfiliadosLista = (props ) => {
 								label="Estados del afiliado"
 								disabled={afiliadoSeleccionado?.id ? false : true}
 							/>
-
-							<Tab
-								style={{ backgroundColor: "#186090" }}
-								label="Historico del afiliado"
-								disabled={afiliadoSeleccionado?.id ? false : true}
-							/>
 						</Tabs>
 						<Grid block flex="0 0 700px" />
 					</Grid>
@@ -773,7 +748,9 @@ const AfiliadosLista = (props ) => {
 							<AfiliadosDocumentaciones afiliado={afiliadoSeleccionado} />
 						)}
 
-						{selectedTab === 3 && <Table {...tablePropsVacia1} />}
+						{selectedTab === 3 && (
+							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
+						)}
 
 						{selectedTab === 4 && (
 							<AfiliadoSeccional
@@ -784,10 +761,6 @@ const AfiliadosLista = (props ) => {
 
 						{selectedTab === 5 && (
 							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
-						)}
-
-						{selectedTab === 6 && (
-							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
 						)}
 
 						<AfiliadoDetails
