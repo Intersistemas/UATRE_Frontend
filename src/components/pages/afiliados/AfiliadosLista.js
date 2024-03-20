@@ -1,40 +1,35 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-
-//import overlayFactory from "react-bootstrap-table2-overlay";
-import React, { useEffect } from "react";
-import paginationFactory from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-
-import AfiliadoDetails from './AfiliadoDetails';
-import filterFactory, {
-  selectFilter,
-  Comparator,
-} from "react-bootstrap-table2-filter";
-import FormatearFecha from "../../helpers/FormatearFecha";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { handleAfiliadoSeleccionar } from "../../../redux/actions";
-import { useState } from "react";
+import {
+	handleModuloSeleccionar,
+	handleAfiliadoSeleccionar,
+	handleModuloEjecutarAccion,
+} from "redux/actions";
+import paginationFactory from "react-bootstrap-table2-paginator";
+import filterFactory, {
+	selectFilter,
+	Comparator,
+} from "react-bootstrap-table2-filter";
 import { Tab, Tabs } from "@mui/material";
-import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import Table from "../../ui/Table/Table";
-import TableSegmentado from "../../ui/Table/TableRemote";
-import Formato from "../../helpers/Formato";
-import useHttp from "../../hooks/useHttp";
-import AfiliadoSeccional from './AfiliadosSeccionales'
 import Action from "components/helpers/Action";
-import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
-import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
+import Table from "components/ui/Table/Table";
+import TableSegmentado from "components/ui/Table/TableRemote";
+import AfiliadoDetails from "./AfiliadoDetails";
 import AfiliadoEstados from "./AfiliadoEstados";
-import useTareasUsuario from "components/hooks/useTareasUsuario";
-import { FaBullseye } from "react-icons/fa";
 import AfiliadoHistorico from "./AfiliadoHistorico";
-
-
+import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import AfiliadoSeccional from "./AfiliadosSeccionales";
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 
 const AfiliadosLista = (props ) => {
 
