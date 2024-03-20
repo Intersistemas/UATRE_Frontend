@@ -186,7 +186,7 @@ const PantallaBajaReactivacion = (props) => {
 					</DialogActions>
 				</Dialog>
 			</div>
-			<Modal size="lg" centered show onHide={props.onClose}>
+			<Modal size="lg" centered show /*onHide={props.onClose}*/>
 				<Modal.Header className={modalCss.modalCabecera}>
 					<Grid col width="full">
 						<Grid width="full" justify="center">

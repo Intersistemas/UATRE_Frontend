@@ -273,7 +273,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	UseKeyPress(["Enter"], () => onImprime(), "AltKey");
 
 	return (
-		<Modal size="xl" centered show onHide={() => onClose()}>
+		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Imprime liquidación
 			</Modal.Header>

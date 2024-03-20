@@ -88,7 +88,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 	}, [pushQuery, afiliados]);
 
 	return (
-		<Modal size="lg" centered show onHide={onClose}> 
+		<Modal size="lg" centered show /*onHide={onClose}*/> 
 			<Modal.Header className={modalCss.modalCabecera}>
 				<Grid width="full" justify="center">
 					<h4>Localiza Afiliado</h4>

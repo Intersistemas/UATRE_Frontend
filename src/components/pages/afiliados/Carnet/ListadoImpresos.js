@@ -143,7 +143,7 @@ const ListadoImpresos = ({ data, onClose = onCloseDef }) => {
 
 	//ToDo consultar seccionales para obtener sus provincias.
 	return (
-		<Modal size="xl" centered show onHide={onClose}>
+		<Modal size="xl" centered show /*onHide={onClose}*/>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Credenciales impresas de afiliados
 			</Modal.Header>

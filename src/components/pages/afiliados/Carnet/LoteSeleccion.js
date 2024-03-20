@@ -565,7 +565,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 
 	return (
 		<>
-			<Modal size="xl" centered show onHide={() => onClose()}>
+			<Modal size="xl" centered show /*onHide={() => onClose()}*/>
 				<Modal.Header className={modalCss.modalCabecera} closeButton>
 					Afiliados
 				</Modal.Header>
