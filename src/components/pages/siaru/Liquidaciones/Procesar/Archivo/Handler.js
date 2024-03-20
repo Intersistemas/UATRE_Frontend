@@ -37,7 +37,7 @@ const Handler = () => {
 		dispatch(
 			handleSetNavFunction(({ go }) => {
 				setModal(
-					<Modal size="lg" centered show onHide={() => setModal(null)}>
+					<Modal size="lg" centered show>
 						<Modal.Header
 							className={modalCss.modalCabecera}
 							closeButton

@@ -80,7 +80,7 @@ const Registro = () => {
   useEffect(() => {
     const procesaModulos = async (modulosObj) => {
       const modulosTodos = mapOptions({
-        data: modulosObj.filter((t) => t.nombre === "Sistema de Aportes Rurales" || t.nombre === "SAR"),
+        data: modulosObj.filter((t) => t.nombre === "Sistema de Aportes Rurales"),
         map: (m) => ({ value: m.id, label: m.nombre }),
       })
     setModulos({...modulos, options: modulosTodos})

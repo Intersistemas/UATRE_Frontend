@@ -153,7 +153,7 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
 
 	return (
-		<Modal size="xl" centered show onHide={() => onClose()}>
+		<Modal size="xl" centered show >
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Estados de solicitudes por empresa
 			</Modal.Header>

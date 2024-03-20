@@ -28,20 +28,20 @@ const EmpresasList = ({
 			sort: true,
 			style: { textAlign: "left"}
 		},
-		{
-			dataField: "localidadDescripcion",
-			text: "Localidad",
-			sort: true,
-      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
-			style: { textAlign: "left"}
-		},
-		{
-			dataField: "provinciaDescripcion",
-			text: "Provincia",
-			sort: true,
-      headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
-			style: { textAlign: "left"}
-		},
+		// {
+		// 	dataField: "localidadDescripcion",
+		// 	text: "Localidad",
+		// 	sort: true,
+    //   headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+		// 	style: { textAlign: "left"}
+		// },
+		// {
+		// 	dataField: "provinciaDescripcion",
+		// 	text: "Provincia",
+		// 	sort: true,
+    //   headerStyle: (_colum, _colIndex) => ({ width: "25%" }),
+		// 	style: { textAlign: "left"}
+		// },
 	];
 
 	return (

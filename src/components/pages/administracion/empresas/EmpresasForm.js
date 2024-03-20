@@ -417,6 +417,13 @@ const EmpresasForm = ({
 
 	//#endregion
 
+	useEffect(() => {
+		const changes = {};
+		if (data.telefono == null) changes.telefono = "+54 9"
+		if (Object.entries(changes).length === 0) return;
+		onChange(changes);
+	}, [onChange, data])
+
 	const [validacionCUIT, setValidacionCUIT] = useState({
 		loading: false,
 		validado: "",
@@ -561,7 +568,7 @@ const EmpresasForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal show onHide={() => onClose()} size="lg" centered>
+		<Modal show /*onHide={() => onClose()}*/ size="lg" centered>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				<h3>{title}</h3>
 			</Modal.Header>
@@ -590,7 +597,7 @@ const EmpresasForm = ({
 							<Grid col width="30%">
 								<Button
 									className="botonAzul"
-									disabled={`${data.cuit ?? ""}`.length === 11 || errors.cuit}
+									disabled={`${data.cuit ?? ""}`.length !== 11 || errors.cuit}
 									onClick={validarEmpresaCUITHandler}
 									loading={validacionCUIT.loading}
 								>
@@ -823,7 +830,7 @@ const EmpresasForm = ({
 								label="CIIU 2"
 								error={!!errors.ciiU2}
 								helperText={
-									ciius.loading ?? ciius.error?.message ?? errors.ciiU1 ?? ""
+									ciius.loading ?? ciius.error?.message ?? errors.ciiU2 ?? ""
 								}
 								value={ciiu2.selected}
 								disabled={disabled.ciiU2 ?? false}

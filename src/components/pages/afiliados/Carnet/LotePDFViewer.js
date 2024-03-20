@@ -24,7 +24,7 @@ const LotePDFViewer = ({ data, onClose = onCloseDef }) => {
 		),
 	});
 	return (
-		<Modal size="xl" centered show onHide={onClose}>
+		<Modal size="xl" centered show /*onHide={onClose}*/>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Credenciales de afiliados
 			</Modal.Header>

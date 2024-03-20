@@ -86,6 +86,7 @@ const SeccionalesMap = () => {
           >
             <div>
               <h2>{selectedMarker.nombre}</h2>
+              <Button className="botonAzul" onClick={()=> setSelectedMarker("")}>Enviar Mail a UATRE</Button>
               <Button className="botonAmarillo" onClick={()=> setSelectedMarker("")}>cierra</Button>
             </div>
           </InfoWindow>
