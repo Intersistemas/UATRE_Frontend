@@ -63,7 +63,7 @@ const ConfirmaEmail = () => {
   //Se debe procesar el registro (envio de email)
   const processRegistro = async (userObject) => {
     console.log("userObject_Registro", userObject);
-    setMessage("✔️ Hecho! Su cuenta fué confirmada! Ahora puede ingresar.");
+    setMessage("✔️ Hecho! Su cuenta fue confirmada! Ahora puede ingresar.");
 
     //await
     
@@ -78,9 +78,7 @@ const ConfirmaEmail = () => {
   };
 
   const sendRegistrarHandler = async () => {
-    console.log('sendRegistrarHandler');
-    console.log('email',email);
-    console.log('token',token);
+
     setMessage("");
     sendConfirmRequest(
       {
@@ -105,8 +103,6 @@ const ConfirmaEmail = () => {
     <div className={classes.container}>
       <LoginCard>
         <img src={logo} width="175" height="175" />
-
-        
          <div className="text-start">
           <div className={`mt-3 ${classes.actions}`}>
             {!isLoading ? (

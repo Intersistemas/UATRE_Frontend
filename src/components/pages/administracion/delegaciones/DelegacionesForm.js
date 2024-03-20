@@ -32,7 +32,7 @@ const DelegacionesForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">

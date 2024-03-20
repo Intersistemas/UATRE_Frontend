@@ -93,7 +93,7 @@ const SeccionalLocalidadesForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show >
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<div className={classes.renglon}>
