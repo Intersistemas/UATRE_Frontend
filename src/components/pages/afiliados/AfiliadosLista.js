@@ -701,12 +701,6 @@ const AfiliadosLista = (props ) => {
 
 							<Tab
 								style={{ backgroundColor: "#186090" }}
-								label="Cambios de Datos"
-								disabled={afiliadoSeleccionado?.cuil ? false : true}
-							/>
-
-							<Tab
-								style={{ backgroundColor: "#186090" }}
 								label="Datos de la Seccional" //{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
 								disabled={afiliadoSeleccionado?.cuil ? false : true}
 							/>
@@ -715,6 +709,12 @@ const AfiliadosLista = (props ) => {
 								style={{ backgroundColor: "#186090" }}
 								label="Estados del afiliado"
 								disabled={afiliadoSeleccionado?.id ? false : true}
+							/>
+
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Cambios de Datos"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
 							/>
 						</Tabs>
 						<Grid
@@ -753,18 +753,18 @@ const AfiliadosLista = (props ) => {
 						)}
 
 						{selectedTab === 3 && (
-							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
-						)}
-
-						{selectedTab === 4 && (
 							<AfiliadoSeccional
 								afiliado={afiliadoSeleccionado}
 								onSeleccionRegistro={rowEvents}
 							/>
 						)}
 
-						{selectedTab === 5 && (
+						{selectedTab === 4 && (
 							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 5 && (
+							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
 						)}
 
 						<AfiliadoDetails
