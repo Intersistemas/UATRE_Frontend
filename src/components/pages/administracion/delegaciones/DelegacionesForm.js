@@ -1,9 +1,10 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
-import Grid from "components/ui/Grid/Grid";
-import Button from "components/ui/Button/Button";
-import InputMaterial from "components/ui/Input/InputMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
+import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
+import modalCss from "components/ui/Modal/Modal.module.css";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -33,7 +34,7 @@ const DelegacionesForm = ({
 
 	return (
 		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
-			<Modal.Header closeButton>{title}</Modal.Header>
+			<Modal.Header className={modalCss.modalCabecera}>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
 					<Grid width="full" gap="15px">
