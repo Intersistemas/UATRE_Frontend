@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useState, useContext } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { matchIsValidTel } from "mui-tel-input";
+import AsArray from "components/helpers/AsArray";
+import Formato from "components/helpers/Formato";
+import JoinOjects from "components/helpers/JoinObjects";
+import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import ValidarCUIT from "components/validators/ValidarCUIT";
+import ValidarEmail from "components/validators/ValidarEmail";
 import EmpresasTable from "./EmpresasTable";
 import EmpresasForm from "./EmpresasForm";
-import dayjs from "dayjs";
-import ValidarCUIT from "components/validators/ValidarCUIT";
-import AsArray from "components/helpers/AsArray";
-import JoinOjects from "components/helpers/JoinObjects";
-import Formato from "components/helpers/Formato";
-import { matchIsValidTel } from "mui-tel-input";
-import ValidarEmail from "components/validators/ValidarEmail";
 
 const selectionDef = {
 	action: "",
@@ -52,6 +53,7 @@ const useEmpresas = ({
 	data: dataInit = [],
 	loading,
 	error,
+	params: paramsInit = {},
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 15 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
@@ -69,13 +71,6 @@ const useEmpresas = ({
 						baseURL: "Comunes",
 						endpoint: "/Empresas/GetEmpresasListSpecs",
 						method: "GET",
-						/*body: {
-							bajas: "false",
-							ambitoTodos: Usuario.ambitoTodos,
-							ambitoProvincias: Usuario.ambitoProvincias,
-							ambitoDelegaciones: Usuario.ambitoDelegaciones,
-							ambitoEmpresas: Usuario.ambitoEmpresas,
-						 },*/
 					},
 				};
 			}
@@ -146,7 +141,7 @@ const useEmpresas = ({
 		loading: null,
 		remote: remoteInit,
 		loadingOverride: loading,
-		params: {},
+		params: { ...paramsInit },
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
 		error,
@@ -273,7 +268,12 @@ const useEmpresas = ({
 							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
 						},
 					};
-					if (payload.params) changes.params = payload.params;
+					if (payload.params) {
+						changes.params = {
+							...pick(o.params, paramsInit),
+							...payload.params
+						};
+					}
 					if (payload.pagination)
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {
