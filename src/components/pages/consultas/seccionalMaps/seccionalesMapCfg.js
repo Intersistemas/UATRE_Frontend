@@ -185,3 +185,35 @@ export const seccionalesPines = [
     }
   },
 ]
+
+export const delegacionesPines = [
+  
+  {
+    nombre: "UATRE - SEDE CENTRAL CIUDAD AUTÓNOMA DE BUENOS AIRES Reconquista 630",
+    loc:{
+      lat: -34.60044,
+      lng: -58.37285
+    }
+  },
+  {
+    nombre: "UATRE - BUENOS AIRES ZONA NORTE Florida 1021 (CP 2700)",
+    loc:{
+      lat: -33.89526,
+      lng: -60.5814649
+    }
+  },
+  {
+    nombre: "UATRE - BUENOS AIRES - BAHÍA BLANCA Lavalle 570 (CP 7540)",
+    loc:{
+      lat: -38.71573,
+      lng: -62.2574649
+    }
+  },
+  {
+    nombre: "UATRE - BUENOS AIRES - GRAN BUENOS AIRES Av. Independencia 3058 (CP 1225)",
+    loc:{
+      lat: -34.61989,
+      lng: -58.4111649
+    }
+  },
+]
