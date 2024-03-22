@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import { mapOptions, seccionalesPines } from './seccionalesMapCfg';
+import { mapOptions, seccionalesPines, delegacionesPines } from './seccionalesMapCfg';
 import pinIcon from "media/map_IconTrigo.png"
 import pinUATRE from "media/map_IconUatre.png"
-
-
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
 import { Button } from 'react-bootstrap';
 import "./seccionalesMap.css";
-//import {Combobox, ComboboxInput, ComboboxPopover, ComboboxList, ComboboxOption} from "@reach/combobox"
 import SeccionalesMapSearcher from './seccionalesMapSearcher';
 
 const libraries = ['places'];
@@ -24,6 +25,12 @@ const SeccionalesMap = () => {
 
   
   const [pan, setPan] = useState();
+
+  const [valueRadio, setValueRadio] = React.useState('Todo');
+
+  const handleRadioChange = (event) => {
+    setValueRadio(event.target.value);
+  };
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAP_API_KEY,//'AIzaSyAP-2UML3J9q5sQqJpUDFqJrTD4AxojvKg',
@@ -44,7 +51,22 @@ const SeccionalesMap = () => {
 
   return (
     <div>
+      <div className='d-flex justify-content-between'>
       <SeccionalesMapSearcher panTo={panTo}/>
+      <FormControl>
+        <RadioGroup
+          row
+          aria-labelledby="demo-row-radio-buttons-group-label"
+          name="row-radio-buttons-group"
+          value={valueRadio}
+          onChange={handleRadioChange}
+        >
+          <FormControlLabel value="Seccionales" control={<Radio />} label="Seccionales" />
+          <FormControlLabel value="Delegaciones" control={<Radio />} label="Delegaciones" />
+          <FormControlLabel value="Todo" control={<Radio />} label="Todo" />
+        </RadioGroup>
+      </FormControl>
+      </div>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={pan ? 10 : 6}
@@ -56,10 +78,10 @@ const SeccionalesMap = () => {
           
         }}
       >
-        {seccionalesPines.map((pin) => {
+        {!(valueRadio === "Delegaciones") && seccionalesPines.map((pin) => {
             return (
               <div key={pin.nombre}>
-                <Marker 
+                <Marker d
                   position={pin.loc}
                   options={{
                     icon:pinIcon,
@@ -72,9 +94,26 @@ const SeccionalesMap = () => {
               </div>
             );
           })}
-          <Marker position={center}  options={{
+
+          {!(valueRadio === "Seccionales") && delegacionesPines.map((pin) => {
+            return (
+              <div key={pin.nombre}>
+                <Marker 
+                  position={pin.loc}
+                  options={{
                     icon:pinUATRE,
-                  }}/>
+                  }}
+                  title={pin.nombre}
+                  onClick={()=>{
+                    setSelectedMarker(pin);
+                  }}
+                />
+              </div>
+            );
+          })}
+          {/*<Marker position={center}  options={{
+                    icon:pinUATRE,
+                  }}/>*/}
           {pan && <Marker position={pan}/> }
 
         {selectedMarker &&
