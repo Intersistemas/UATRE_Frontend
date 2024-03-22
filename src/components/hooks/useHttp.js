@@ -50,7 +50,7 @@ const useHttp = () => {
 			async (
 				{
 					baseURL = "",
-					headers = { Authorization: true },
+					headers = {},
 					method = "GET",
 					endpoint = "",
 					okType = "json",
@@ -102,7 +102,10 @@ const useHttp = () => {
         //Configuracion fetch
 				const config = {
 					method,
-					headers: { ...headers },
+					headers: {
+						Authorization: true,
+						...headers
+					},
 					...configRequest,
 				};
 
@@ -118,6 +121,8 @@ const useHttp = () => {
 				const { token } = getStoredToken();
 				if (config.headers.Authorization === true && token)
 					config.headers.Authorization = `Bearer ${token}`;
+				else if (!("Authorization" in headers))
+					delete config.headers.Authorization;
 
 				const take = { ok: false, data: null, error: null };
 				try {
