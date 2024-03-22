@@ -76,7 +76,7 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDelegacionesActions(actions);
-	}, [delegacionChanger, delegacionSelected]);
+	}, [delegacionChanger, delegacionSelected, delegacionesTab]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
 		body: delegacionesTab,
@@ -156,7 +156,7 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id]);
+	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id, documentacionesTab]);
 	tabs.push({
 		header: () => <Tab label="Documentacion" disabled={!delegacionSelected || disableTabDocumentacion} />,
 		body: documentacionesTab,
@@ -251,7 +251,7 @@ const DelegacionesHandler = () => {
 			);
 		}
 		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id]);
+	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id, colaboradoresTab]);
 	tabs.push({
 		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected || disableTabColaborador} />,
 		body: colaboradoresTab,
@@ -334,10 +334,10 @@ const DelegacionesHandler = () => {
 		// 		keys: "b",
 		//		tarea: "Datos_DelegacionSeccionalBaja",
 		// 		underlineindex: 0,
-		// 	})
+		// 	}) 
 		// );
 		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id]);
+	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id, seccionalesRender]);
 	tabs.push({
 		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
 		body: seccionalesRender,
@@ -349,7 +349,7 @@ const DelegacionesHandler = () => {
 			clear: !delegacionSelected?.id,
 			body: { refDelegacionId: delegacionSelected?.id },
 		});
-	}, [delegacionSelected?.id, seccionalesRequest]);
+	}, [seccionalesRequest, delegacionSelected?.id]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -373,8 +373,9 @@ const DelegacionesHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

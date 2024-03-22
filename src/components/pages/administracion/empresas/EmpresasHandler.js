@@ -211,8 +211,9 @@ const EmpresasHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">	
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);
