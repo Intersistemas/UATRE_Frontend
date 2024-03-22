@@ -107,7 +107,7 @@ const useDelegaciones = ({
 	}, [pushQuery, list.loading, list.params]);
 	//#endregion
 
-	const requestChanges = useCallback((type, payload = {}) => {
+	const request = useCallback((type, payload = {}) => {
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -275,7 +275,7 @@ const useDelegaciones = ({
 		</>
 	);
 
-	return [render, requestChanges, list.selection.record];
+	return { render, request, selected: list.selection.record };
 };
 
 export default useDelegaciones;
