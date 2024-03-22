@@ -50,7 +50,7 @@ const useHttp = () => {
 			async (
 				{
 					baseURL = "",
-					headers = {},
+					headers = { Authorization: true },
 					method = "GET",
 					endpoint = "",
 					okType = "json",
@@ -115,8 +115,9 @@ const useHttp = () => {
 					}
 				}
 
-				if (config.headers.Authorization === true)
-					config.headers.Authorization = `Bearer ${getStoredToken().token}`;
+				const { token } = getStoredToken();
+				if (config.headers.Authorization === true && token)
+					config.headers.Authorization = `Bearer ${token}`;
 
 				const take = { ok: false, data: null, error: null };
 				try {

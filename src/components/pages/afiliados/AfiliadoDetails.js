@@ -160,9 +160,6 @@ const AfiliadoDetails = (props) => {
 					setHotField()
 				break;
 			case 3:
-					setHotField()
-				break;
-			case 4:
 					//#region  TAB 4 SECCIONAL
 				setHotField(<Grid className={`${styles.fondo} ${styles.grupo}`} col full="width">
 					<Grid full="width">
@@ -260,7 +257,10 @@ const AfiliadoDetails = (props) => {
 					</Grid>)
 	  			//#endregion
 				break;
-			case 5:	// Tab Estados
+			case 4:	// Tab Estados
+					setHotField()
+				break;
+			case 5:
 					setHotField()
 				break;
 			default:

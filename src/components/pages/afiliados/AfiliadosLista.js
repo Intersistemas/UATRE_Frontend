@@ -1,39 +1,35 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-
-//import overlayFactory from "react-bootstrap-table2-overlay";
-import React, { useEffect } from "react";
-import paginationFactory from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-
-import AfiliadoDetails from './AfiliadoDetails';
-import filterFactory, {
-  selectFilter,
-  Comparator,
-} from "react-bootstrap-table2-filter";
-import FormatearFecha from "../../helpers/FormatearFecha";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { handleAfiliadoSeleccionar } from "../../../redux/actions";
-import { useState } from "react";
+import {
+	handleModuloSeleccionar,
+	handleAfiliadoSeleccionar,
+	handleModuloEjecutarAccion,
+} from "redux/actions";
+import paginationFactory from "react-bootstrap-table2-paginator";
+import filterFactory, {
+	selectFilter,
+	Comparator,
+} from "react-bootstrap-table2-filter";
 import { Tab, Tabs } from "@mui/material";
-import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import Table from "../../ui/Table/Table";
-import TableSegmentado from "../../ui/Table/TableRemote";
-import Formato from "../../helpers/Formato";
-import useHttp from "../../hooks/useHttp";
-import AfiliadoSeccional from './AfiliadosSeccionales'
 import Action from "components/helpers/Action";
-import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
-import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
+import Table from "components/ui/Table/Table";
+import TableSegmentado from "components/ui/Table/TableRemote";
+import AfiliadoDetails from "./AfiliadoDetails";
 import AfiliadoEstados from "./AfiliadoEstados";
-import useTareasUsuario from "components/hooks/useTareasUsuario";
-import { FaBullseye } from "react-icons/fa";
-
-
+import AfiliadoHistorico from "./AfiliadoHistorico";
+import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import AfiliadoSeccional from "./AfiliadosSeccionales";
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 
 const AfiliadosLista = (props ) => {
 
@@ -312,7 +308,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10rem", textAlign: "center" };
       },
-      formatter: Formato.Cuit,
+      formatter: (v) => Formato.Cuit(v),
     },
     {
       headerTitle: true,
@@ -334,7 +330,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "7rem", textAlign: "center" };
       },
-      formatter: Formato.DNI,
+      formatter: (v) => Formato.DNI(v),
     },
     {
       headerTitle: true,
@@ -436,7 +432,7 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaIngreso",
       text: "F.Ingreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
@@ -447,7 +443,7 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaEgreso",
       text: "F.Egreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
@@ -461,7 +457,7 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10rem", textAlign: "center" };
       },
-      formatter: Formato.Cuit,
+      formatter: (v) => Formato.Cuit(v),
     },
     {
       headerTitle: true,
@@ -661,25 +657,6 @@ const AfiliadosLista = (props ) => {
       entryValue: props.entryValue,
   }
 
-
-  const tablePropsVacia0 = {
-    promptBuscar:"Buscar en Afiliados:",
-    keyField: "nroAfiliado",
-    data: [],
-    columns: columnsVacia,
-    noDataIndication: <h4>No existe documentación relacionada al Afiliado seleccionado.</h4>,
-    filter: filterFactory(),
-}
-
-  const tablePropsVacia1 = {
-      promptBuscar:"Buscar en Afiliados:",
-      keyField: "nroAfiliado",
-      data: [],
-      columns: columnsVacia,
-      noDataIndication: <h4>No se registran cambios de datos en el Afiliado seleccionado.</h4>,
-      filter: filterFactory(),
-  }
-
   return (
 		<Grid col height="100vh">
 			<Grid full col>
@@ -724,12 +701,6 @@ const AfiliadosLista = (props ) => {
 
 							<Tab
 								style={{ backgroundColor: "#186090" }}
-								label="Cambios de Datos"
-								disabled={afiliadoSeleccionado?.cuil ? false : true}
-							/>
-
-							<Tab
-								style={{ backgroundColor: "#186090" }}
 								label="Datos de la Seccional" //{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
 								disabled={afiliadoSeleccionado?.cuil ? false : true}
 							/>
@@ -739,8 +710,21 @@ const AfiliadosLista = (props ) => {
 								label="Estados del afiliado"
 								disabled={afiliadoSeleccionado?.id ? false : true}
 							/>
+
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Cambios de Datos"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 						</Tabs>
-						<Grid block flex="0 0 700px" />
+						<Grid
+							block
+							shrink="0"
+							basis={
+								{ 0: "700px", 1: "25%", 2: "25%", 4: "25%" }[selectedTab] ??
+								"0px"
+							}
+						/>
 					</Grid>
 				</Grid>
 
@@ -771,17 +755,19 @@ const AfiliadosLista = (props ) => {
 							<AfiliadosDocumentaciones afiliado={afiliadoSeleccionado} />
 						)}
 
-						{selectedTab === 3 && <Table {...tablePropsVacia1} />}
-
-						{selectedTab === 4 && (
+						{selectedTab === 3 && (
 							<AfiliadoSeccional
 								afiliado={afiliadoSeleccionado}
 								onSeleccionRegistro={rowEvents}
 							/>
 						)}
 
-						{selectedTab === 5 && (
+						{selectedTab === 4 && (
 							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 5 && (
+							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
 						)}
 
 						<AfiliadoDetails

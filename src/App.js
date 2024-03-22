@@ -41,6 +41,7 @@ import DelegacionesHandler from 'components/pages/administracion/delegaciones/De
 import LocalidadesHandler from 'components/pages/administracion/localidades/LocalidadesHandler';
 import InformesHandler from 'components/pages/informes/InformesHandler';
 import ConsultasHandler from 'components/pages/consultas/ConsultasHandler';
+import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/
@@ -107,6 +108,7 @@ const App = () => {
 
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
+              <Route path="Inicio/Auditorias" element={<AuditoriasHandler />}/>
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
