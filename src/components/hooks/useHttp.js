@@ -121,7 +121,7 @@ const useHttp = () => {
 				const { token } = getStoredToken();
 				if (config.headers.Authorization === true && token)
 					config.headers.Authorization = `Bearer ${token}`;
-				else if (!("Authorization" in headers))
+				else if (!("Authorization" in headers) || headers.Authorization === false)
 					delete config.headers.Authorization;
 
 				const take = { ok: false, data: null, error: null };
