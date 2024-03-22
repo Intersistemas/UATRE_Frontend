@@ -217,12 +217,23 @@ export const paginate = ({ data, size = 10, detailed = false }) => {
 /**
  * Selecciona de `obj` propiedades presentes en `select`
  * @param {object} obj Objeto desde el que obtener las propiedades
- * @param {string[] | object} select Propiedades a obtener de `obj`
- * @param {boolean} keep Mantener propiedades presentes en `select`
+ * @param {any} select Propiedades a obtener de `obj`
+ * @param {boolean} [keep] Mantener propiedades presentes en `select`
+ * @returns {object} `obj` solo con las propiedades en `select`
  */
 export const pick = (obj, select, keep = false) => {
-	const keys = Array.isArray(select) ? select : Object.keys(select);
-	return Object.fromEntries(keys.filter((k) => keep || (k in obj)).map((k) => [k, obj[k]]));
+	if (select == null) return {};
+	const type = typeof select;
+	if (type === "function") return pick(obj, select(), keep);
+	const keys =
+		type === "object"
+			? Array.isArray(select)
+				? select
+				: Object.keys(select)
+			: [type === "number" ? select : `${select}`];
+	return Object.fromEntries(
+		keys.filter((k) => keep || k in obj).map((k) => [k, obj[k]])
+	);
 };
 
 /**
