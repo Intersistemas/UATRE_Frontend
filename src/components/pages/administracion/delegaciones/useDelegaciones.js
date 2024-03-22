@@ -154,10 +154,16 @@ const useDelegaciones = ({
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
-						: {
-								codigoDelegacion: true,
-								nombre: true,
-						  };
+						: Object.fromEntries(
+								[
+									"codigoDelegacion",
+									"nombre",
+									"delegadoNumero",
+									"delegadoNombre",
+									"subDelegadoNumero",
+									"subDelegadoNombre",
+								].map((k) => [k, true])
+						  );
 					if (list.selection.request !== "B") r.deletedObs = true;
 					return r;
 				})()}
