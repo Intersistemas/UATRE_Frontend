@@ -311,6 +311,7 @@ const useSeccionales = ({
 				});
 			}
 			case "list": {
+				console.log("useSeccionales_payload:",payload)
 				return setList((o) => {
 					const changes = {
 						loading: null,
@@ -330,6 +331,7 @@ const useSeccionales = ({
 						},
 					};
 					if (payload.params) changes.params = payload.params;
+					if (payload.body) changes.body = payload.body;
 					if (payload.pagination)						
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {

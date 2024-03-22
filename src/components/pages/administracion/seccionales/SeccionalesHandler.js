@@ -122,7 +122,7 @@ const SeccionalesHandler = () => {
 			})
 		);
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
-	}, [seccionalChanger, seccionalSelected]);
+	}, [seccionalChanger, seccionalSelected, seccionalesTab]);
 
 	tabs.push({
 		header: () => <Tab label="Seccionales" />,
@@ -228,7 +228,7 @@ const SeccionalesHandler = () => {
 			); 
 		}
 		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
+	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id, autoridadesTab]);
 	tabs.push({
 		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
 		body: autoridadesTab,
@@ -313,7 +313,7 @@ const SeccionalesHandler = () => {
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id]);
+	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id, documentacionesTab]);
 
 
 	tabs.push({
@@ -423,7 +423,7 @@ const SeccionalesHandler = () => {
 		}
 		
 		setSeccionalLocalidadesActions(actions);
-	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
+	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id, seccionalLocalidadesTab]);
 
 
 	tabs.push({
@@ -460,13 +460,15 @@ const SeccionalesHandler = () => {
 	
 			<div className="tabs">
 				<text>{seccionalSelected?.descripcion ? ` ${seccionalSelected?.codigo} - ${seccionalSelected.descripcion ?? ""}` : " " }</text>
-
-				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
-				</Tabs>
+				
+					<Tabs value={tab} onChange={(_, v) => setTab(v)}>
+						{tabs.map((r) => r.header())}
+					</Tabs>
+				
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		
 		</Grid>

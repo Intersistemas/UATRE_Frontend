@@ -431,7 +431,10 @@ const LocalidadesHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</Grid>
-			{tabs[tab].body()}
+
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

@@ -176,7 +176,7 @@ const Registro = () => {
   //Se debe procesar el registro (envio de email)
   const processRegistro = async (userObject) => {
     console.log("userObject_Registro", userObject);
-    setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail);
+    setMessage("✔️ Hemos enviado un correo de Confirmación a "+enteredEmail+ "(no olvide revisar la carpeta SPAM/No Deseado)");
 
     console.log("Registrado");
     
