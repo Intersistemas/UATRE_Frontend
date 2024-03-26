@@ -79,7 +79,7 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDelegacionesActions(actions);
-	}, [delegacionesRequest, delegacionesRender, delegacionesSelected]);
+	}, [delegacionesRequest, delegacionesSelected]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
 		body: delegacionesRender,
@@ -254,7 +254,7 @@ const DelegacionesHandler = () => {
 			);
 		}
 		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradoresTab, colaboradorSelected, delegacionesSelected?.id]);
+	}, [colaboradoresChanger, colaboradorSelected, delegacionesSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || disableTabColaborador} />,
 		body: colaboradoresTab,
@@ -340,7 +340,7 @@ const DelegacionesHandler = () => {
 		// 	}) 
 		// );
 		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesRender, seccionalesSelected, delegacionesSelected?.id]);
+	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
 		body: seccionalesRender,
@@ -363,21 +363,24 @@ const DelegacionesHandler = () => {
 	//#endregion
 
 	return (
-
 		<Grid full col>
 			<Grid className="titulo">
-				<h1 >Delegaciones</h1>
+				<h1>Delegaciones</h1>
 			</Grid>
 
 			<div className="tabs">
-				<text>{delegacionesSelected?.nombre ? delegacionesSelected.nombre  : " " }</text>
+				<text>
+					{delegacionesSelected?.nombre ? delegacionesSelected.nombre : " "}
+				</text>
 
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
+					{tabs.map(({ header }) => header())}
 				</Tabs>
 			</div>
 			<div className="contenido">
-				{tabs[tab].body()}
+				{tabs.map(({ body }, i) => (
+					<div hidden={i !== tab}>{body()}</div>
+				))}
 			</div>
 			<KeyPress items={acciones} />
 		</Grid>
