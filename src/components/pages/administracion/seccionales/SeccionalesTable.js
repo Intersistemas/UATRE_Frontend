@@ -1,122 +1,79 @@
-import Table from "components/ui/Table/Table";
+import Table, { asColumnArray } from "components/ui/Table/Table";
 import React from "react";
 import Formato from "components/helpers/Formato";
 
-const SeccionalesTable = ({ columns: columnsInit = [], ...x } = {}) => {
-	//#region declaracion de columnas
-	const columns = [
-		{
-			headerTitle: (column, colIndex) => `Codigo Seccional`,
-			dataField: "codigo",
-			text: "Código",
-			sort: true,
-			headerStyle: (colum, colIndex) => {
-				return { width: "3rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Nombre Seccional`,
-			dataField: "descripcion",
-			text: "Nombre",
-			sort: true,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Estado`,
-			dataField: "seccionalEstadoDescripcion",
-			text: "Estado",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "5rem", textAlign: "center" };
-			},
-			formatter: (value, row) =>
-				row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value,
-		},
-		{
-			headerTitle: (column, colIndex) => `Dirección`,
-			dataField: "domicilio",
-			text: "Dirección",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Email`,
-			dataField: "email",
-			text: "Email",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "4rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Localidad Seccional`,
-			dataField: "localidadNombre",
-			text: "Localidad",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Observaciones`,
-			dataField: "observaciones",
-			text: "Observaciones",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
+//#region declaracion de columnas
+const columnsDef = [
+	{
+		dataField: "codigo",
+		text: "Código",
+		headerTitle: () => `Codigo Seccional`,
+		headerStyle: { width: "3rem" },
+	},
+	{
+		dataField: "descripcion",
+		text: "Nombre",
+		headerTitle: () => `Nombre Seccional`,
+	},
+	{
+		dataField: "seccionalEstadoDescripcion",
+		text: "Estado",
+		headerStyle: { width: "5rem" },
+		formatter: (value, row) =>
+			row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value,
+	},
+	{
+		dataField: "domicilio",
+		text: "Dirección",
+	},
+	{
+		dataField: "email",
+		text: "Email",
+		headerStyle: { width: "4rem" },
+	},
+	{
+		dataField: "localidadNombre",
+		text: "Localidad",
+		headerTitle: () => `Localidad Seccional`,
+	},
+	{
+		dataField: "observaciones",
+		text: "Observaciones",
+	},
+	{
+		dataField: "id",
+		text: "Id",
+		hidden: true,
+	},
+	{
+		dataField: "deletedDate",
+		text: "deletedDate",
+		hidden: true,
+		headerTitle: () => `Id`,
+	},
+	{
+		dataField: "refDelegacionDescripcion",
+		text: "Delegación",
+	},
+].map((r) => ({
+	sort: true,
+	searchable: false,
+	headerTitle: () => r.text,
+	headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },
+	...r,
+}));
+//#endregion
 
-		{
-			headerTitle: (column, colIndex) => `Id`,
-			dataField: "id",
-			text: "Id",
-			sort: true,
-			hidden: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Id`,
-			dataField: "deletedDate",
-			text: "deletedDate",
-			sort: true,
-			hidden: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Delegación`,
-			dataField: "refDelegacionDescripcion",
-			text: "Delegación",
-			sort: true,
-			searchable: false,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		...columnsInit,
-	];
-	//#endregion
-
-	return <Table
-			 keyField="id"
-			 columns={columns}
-			  {...x} 
-			  />;
-};
+/**
+ * @type {Table}
+ */
+const SeccionalesTable = ({ columns, ...x } = {}) => (
+	<Table
+		keyField="id"
+		columns={asColumnArray(columns, columnsDef)}
+		mostrarBuscar={false}
+		{...x}
+	/>
+);
 
 export default SeccionalesTable;
