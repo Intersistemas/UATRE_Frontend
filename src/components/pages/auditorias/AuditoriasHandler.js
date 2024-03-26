@@ -27,11 +27,13 @@ const AuditoriasHandler = () => {
 			<Grid className="titulo" width>
 				<h1>Auditorias</h1>
 			</Grid>
-			<Grid col width gap="inherit" grow>
+			<Grid className="contenido" col width gap="inherit" grow>
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
+					{tabs.map(({ header }) => header())}
 				</Tabs>
-				{tabs[tab].body()}
+				{tabs.map(({ body }, i) => (
+					<Grid full hidden={i !== tab}>{body()}</Grid>
+				))}
 			</Grid>
 		</Grid>
 	);
