@@ -1,25 +1,26 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Grid from "components/ui/Grid/Grid";
-import useQueryQueue from "components/hooks/useQueryQueue";
+import Notebook from "components/ui/Notebook/Notebook";
+import useAuditoriaDatos, { onLoadSelectKeepOrFirst } from "./useAuditoriaDatos";
 
 const AuditoriaDatos = () => {
-	//#region API queries
-	const pushQuery = useQueryQueue((action) => {
-		switch (action) {
-			case "GetList": {
-				return {
-					config: {}
-				}
-			}
-			default:
-				return null;
-		}
-	})
-	//#endregion API queries
+	const { render, request, selected } = useAuditoriaDatos({
+		params: { sort: "-fechaHoraAuditoria" },
+		onLoadSelect: onLoadSelectKeepOrFirst
+	});
+
+	useEffect(() => {
+		request("list");
+	}, [request]);
 
 	return (
-		<Grid col justify="center" grow>
-			En desarrollo
+		<Grid col>
+			<Grid col grow>
+				{render()}
+			</Grid>
+			<Notebook width height="16em" pagination={{ size: 10 }}>
+				{selected?.cambios?.split("\r\n").filter((r) => r)}
+			</Notebook>
 		</Grid>
 	);
 };
