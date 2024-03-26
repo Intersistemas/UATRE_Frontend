@@ -79,7 +79,7 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDelegacionesActions(actions);
-	}, [delegacionesRequest, delegacionesSelected]);
+	}, [delegacionesRequest, delegacionesRender, delegacionesSelected]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
 		body: delegacionesRender,
@@ -254,7 +254,7 @@ const DelegacionesHandler = () => {
 			);
 		}
 		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, delegacionesSelected?.id]);
+	}, [colaboradoresChanger, colaboradoresTab, colaboradorSelected, delegacionesSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || disableTabColaborador} />,
 		body: colaboradoresTab,
@@ -340,7 +340,7 @@ const DelegacionesHandler = () => {
 		// 	}) 
 		// );
 		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
+	}, [seccionalesRequest, seccionalesRender, seccionalesSelected, delegacionesSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
 		body: seccionalesRender,
