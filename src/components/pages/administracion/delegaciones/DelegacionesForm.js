@@ -168,7 +168,7 @@ const DelegacionesForm = ({
 		setProvinciaSelect((o) => ({
 			...o,
 			filtered: o.options.filter((r) =>
-				includeSearch(r, provinciaSelect.buscar)
+				includeSearch(r, o.buscar)
 			),
 		}));
 	}, [provinciaSelect.reload, provinciaSelect.loading, provinciaSelect.buscar]);
@@ -225,7 +225,7 @@ const DelegacionesForm = ({
 		setLocalidadSelect((o) => ({
 			...o,
 			filtered: o.options.filter((r) =>
-				includeSearch(r, localidadSelect.buscar)
+				includeSearch(r, o.buscar)
 			),
 		}));
 	}, [localidadSelect.reload, localidadSelect.loading, localidadSelect.buscar]);
@@ -390,7 +390,7 @@ const DelegacionesForm = ({
 									helperText={errors.codigoDelegacion ?? ""}
 									value={data.codigoDelegacion}
 									disabled={!!disabled.codigoDelegacion}
-									onChange={(v) => onChange({ codigoDelegacion: v })}
+									onChange={(codigoDelegacion) => onChange({codigoDelegacion })}
 								/>
 							)}
 						</Grid>
@@ -402,7 +402,7 @@ const DelegacionesForm = ({
 									helperText={errors.nombre ?? ""}
 									value={data.nombre}
 									disabled={!!disabled.nombre}
-									onChange={(v) => onChange({ nombre: v })}
+									onChange={(nombre) => onChange({ nombre })}
 								/>
 							)}
 						</Grid>
@@ -422,9 +422,12 @@ const DelegacionesForm = ({
 									value={delegado.data.nroAfiliado}
 									disabled={!!disabled.delegadoId}
 									onChange={(nroAfiliado) => {
+										const changes = { id: 0 };
+										onChange({ delegadoId: 0 })
+										changes.nroAfiliado = nroAfiliado;
 										setDelegado((o) => ({
 											...o,
-											data: { ...o.data, nroAfiliado },
+											data: { ...o.data, ...changes },
 										}));
 									}}
 								/>
@@ -479,9 +482,12 @@ const DelegacionesForm = ({
 									value={subdelegado.data.nroAfiliado}
 									disabled={!!disabled.subDelegadoId}
 									onChange={(nroAfiliado) => {
+										const changes = { id: 0 };
+										onChange({ subDelegadoId: 0 })
+										changes.nroAfiliado = nroAfiliado;
 										setSubdelegado((o) => ({
 											...o,
-											data: { ...o.data, nroAfiliado },
+											data: { ...o.data, ...changes },
 										}));
 									}}
 								/>
@@ -514,7 +520,7 @@ const DelegacionesForm = ({
 									value={subdelegado.data.nombre}
 									disabled={!!disabled.subDelegadoIdNombre}
 									onChange={(nombre) => {
-										setDelegado((o) => ({...o, data: {...o.data, nombre} }))
+										setSubdelegado((o) => ({...o, data: {...o.data, nombre} }))
 										onChange({ subDelegadoIdNombre: nombre });
 									}}
 								/>
@@ -553,11 +559,12 @@ const DelegacionesForm = ({
 						<SearchSelectMaterial
 							id="localidadSelect"
 							label="Localidad"
-							error={!!localidadSelect.error}
+							error={!!localidadSelect.error || !!errors.refLocalidadId	}
 							helperText={
 								localidadInit.loading ??
 								localidadSelect.loading ??
-								localidadSelect.error
+								localidadSelect.error ?? 
+								errors.refLocalidadId
 							}
 							value={localidadSelect.selected}
 							disabled={!!disabled.refLocalidadId}
@@ -571,32 +578,88 @@ const DelegacionesForm = ({
 							}
 						/>
 					</Grid>
-					{/* <Grid width gap="inherit">
+					<Grid width gap="inherit">
 						<Grid width>
-							{hide.codigoDelegacion ? null : (
+							{hide.domicilio ? null : (
 								<InputMaterial
-									label="Delegación - Código"
-									error={!!errors.codigoDelegacion}
-									helperText={errors.codigoDelegacion ?? ""}
-									value={data.codigoDelegacion}
-									disabled={!!disabled.codigoDelegacion}
-									onChange={(v) => onChange({ codigoDelegacion: v })}
+									label="Domicilio"
+									error={!!errors.domicilio}
+									helperText={errors.domicilio ?? ""}
+									value={data.domicilio}
+									disabled={!!disabled.domicilio}
+									onChange={(domicilio) => onChange({ domicilio })}
 								/>
 							)}
 						</Grid>
 						<Grid width>
-							{hide.nombre ? null : (
+							{hide.correo ? null : (
 								<InputMaterial
-									label="Delegación - Nombre"
-									error={!!errors.nombre}
-									helperText={errors.nombre ?? ""}
-									value={data.nombre}
-									disabled={!!disabled.nombre}
-									onChange={(v) => onChange({ nombre: v })}
+									label="Correo"
+									error={!!errors.correo}
+									helperText={errors.correo ?? ""}
+									value={data.correo}
+									disabled={!!disabled.correo}
+									onChange={(correo) => onChange({ correo })}
 								/>
 							)}
 						</Grid>
-					</Grid> */}
+					</Grid>
+					<Grid width gap="inherit">
+						<Grid width>
+							{hide.telefono ? null : (
+								<InputMaterial
+									type="tel"
+									label="Tenéfono"
+									error={!!errors.telefono}
+									helperText={errors.telefono ?? ""}
+									value={data.telefono}
+									disabled={!!disabled.telefono}
+									onChange={(telefono) => onChange({ telefono })}
+								/>
+							)}
+						</Grid>
+						<Grid width>
+							{hide.celular ? null : (
+								<InputMaterial
+									type="tel"
+									label="Celular"
+									error={!!errors.celular}
+									helperText={errors.celular ?? ""}
+									value={data.celular}
+									disabled={!!disabled.celular}
+									onChange={(celular) => onChange({ celular })}
+								/>
+							)}
+						</Grid>
+					</Grid>
+					<Grid width gap="inherit">
+						<Grid width>
+							{hide.latitud ? null : (
+								<InputMaterial
+									type="number"
+									label="Latitud"
+									error={!!errors.latitud}
+									helperText={errors.latitud ?? ""}
+									value={data.latitud}
+									disabled={!!disabled.latitud}
+									onChange={(latitud) => onChange({ latitud })}
+								/>
+							)}
+						</Grid>
+						<Grid width>
+							{hide.longitud ? null : (
+								<InputMaterial
+									type="number"
+									label="Longitud"
+									error={!!errors.longitud}
+									helperText={errors.longitud ?? ""}
+									value={data.longitud}
+									disabled={!!disabled.longitud}
+									onChange={(longitud) => onChange({ longitud })}
+								/>
+							)}
+						</Grid>
+					</Grid>
 					<Grid width gap="inherit">
 						{hide.deletedObs ? null : (
 							<InputMaterial
@@ -605,7 +668,7 @@ const DelegacionesForm = ({
 								helperText={errors.deletedObs ?? ""}
 								value={data.deletedObs}
 								disabled={!!disabled.deletedObs}
-								onChange={(v) => onChange({ deletedObs: v })}
+								onChange={(deletedObs) => onChange({ deletedObs })}
 							/>
 						)}
 					</Grid>

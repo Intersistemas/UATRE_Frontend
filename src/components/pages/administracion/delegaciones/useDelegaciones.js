@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import DelegacionesTable from "./DelegacionesTable";
 import DelegacionesForm from "./DelegacionesForm";
+import ValidarEmail from "components/validators/ValidarEmail";
+import { isPossiblePhoneNumber } from "libphonenumber-js";
 
 const selectionDef = {
 	action: "",
@@ -13,7 +15,8 @@ const selectionDef = {
 };
 
 const useDelegaciones = ({
-	onLoadSelect = ({ data, record }) => data.find((r) => r.id === record?.id) ?? data.at(0),
+	onLoadSelect = ({ data, record }) =>
+		data.find((r) => r.id === record?.id) ?? data.at(0),
 } = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
@@ -82,8 +85,7 @@ const useDelegaciones = ({
 				setList((o) => {
 					const selection = {
 						...selectionDef,
-						record:
-							onLoadSelect({ data, record: o.selection.record }),
+						record: onLoadSelect({ data, record: o.selection.record }),
 					};
 					if (selection.record)
 						selection.index = data.indexOf(selection.record);
@@ -158,11 +160,17 @@ const useDelegaciones = ({
 								[
 									"codigoDelegacion",
 									"nombre",
-									"refLocalidadId",
 									"delegadoId",
 									"delegadoIdNombre",
 									"subDelegadoId",
 									"subDelegadoIdNombre",
+									"refLocalidadId",
+									"domicilio",
+									"correo",
+									"telefono",
+									"celular",
+									"latitud",
+									"longitud",
 								].map((k) => [k, true])
 						  );
 					if (list.selection.request !== "B") r.deletedObs = true;
@@ -214,6 +222,14 @@ const useDelegaciones = ({
 						if (!record.codigoDelegacion)
 							errors.codigoDelegacion = "Dato requerido";
 						if (!record.nombre) errors.nombre = "Dato requerido";
+						if (!record.refLocalidadId)
+							errors.refLocalidadId = "Dato requerido";
+						if (record.correo && !ValidarEmail(record.correo))
+							errors.correo = "Dato inválido";
+						if (record.telefono && !isPossiblePhoneNumber(record.telefono))
+							errors.telefono = "Dato inválido";
+						if (record.celular && !isPossiblePhoneNumber(record.celular))
+							errors.celular = "Dato inválido";
 					}
 					if (Object.keys(errors).length) {
 						setList((o) => ({
