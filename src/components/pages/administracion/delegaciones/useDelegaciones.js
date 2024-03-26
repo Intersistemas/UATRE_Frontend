@@ -158,10 +158,11 @@ const useDelegaciones = ({
 								[
 									"codigoDelegacion",
 									"nombre",
-									"delegadoNumero",
-									"delegadoNombre",
-									"subDelegadoNumero",
-									"subDelegadoNombre",
+									"refLocalidadId",
+									"delegadoId",
+									"delegadoIdNombre",
+									"subDelegadoId",
+									"subDelegadoIdNombre",
 								].map((k) => [k, true])
 						  );
 					if (list.selection.request !== "B") r.deletedObs = true;
