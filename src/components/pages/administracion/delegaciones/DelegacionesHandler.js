@@ -337,7 +337,7 @@ const DelegacionesHandler = () => {
 		// 		keys: "b",
 		//		tarea: "Datos_DelegacionSeccionalBaja",
 		// 		underlineindex: 0,
-		// 	})
+		// 	}) 
 		// );
 		setSeccionalesActions(actions);
 	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
@@ -376,8 +376,9 @@ const DelegacionesHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

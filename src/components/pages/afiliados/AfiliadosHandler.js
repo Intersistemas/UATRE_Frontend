@@ -71,7 +71,7 @@ const AfiliadosHandler = () => {
     let body = {
           pageIndex: page,
           pageSize: sizePerPage,
-          soloActivos: "false",
+          soloActivos: false,
 
           ambitoTodos: Usuario.ambitoTodos,
           ambitoSeccionales: Usuario.ambitoSeccionales,
