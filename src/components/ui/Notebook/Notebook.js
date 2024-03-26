@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "../Button/Button";
 import Grid from "../Grid/Grid";
 
@@ -106,6 +106,10 @@ const Notebook = ({
 		setIndex(changes.index);
 		if (pagination?.onChange) pagination.onChange(changes);
 	};
+
+	useEffect(() => {
+		setIndex(1);
+	}, [children])
 
 	const renderBody = (children = []) => (
 		<Grid
