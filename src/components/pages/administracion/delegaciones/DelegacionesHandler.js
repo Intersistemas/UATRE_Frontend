@@ -22,15 +22,18 @@ const DelegacionesHandler = () => {
 	const disableTabSeccional = !tarea.hasTarea("Datos_DelegacionSeccional");
 
 	//#region Tab delegaciones
-	const [delegacionesTab, delegacionChanger, delegacionSelected] =
-		useDelegaciones();
+	const {
+		render: delegacionesRender,
+		request: delegacionesRequest,
+		selected: delegacionesSelected,
+	} = useDelegaciones();
 	const [delegacionesActions, setDelegacionesActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					delegacionChanger("selected", { request, action }),
+					delegacionesRequest("selected", { request, action }),
 				combination: "AltKey",
 				...x,
 			});
@@ -43,7 +46,7 @@ const DelegacionesHandler = () => {
 				underlineindex: 0,
 			}),
 		];
-		const desc = delegacionSelected?.id;
+		const desc = delegacionesSelected?.id;
 		if (!desc) {
 			setDelegacionesActions(actions);
 			return;
@@ -76,18 +79,18 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDelegacionesActions(actions);
-	}, [delegacionChanger, delegacionSelected, delegacionesTab]);
+	}, [delegacionesRequest, delegacionesSelected]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
-		body: delegacionesTab,
+		body: delegacionesRender,
 		actions: delegacionesActions,
 	});
 
 	useEffect(() => {
-		delegacionChanger("list",
-		{
-		params: { SoloActivos: false }});
-	}, [delegacionChanger]);
+		delegacionesRequest("list", {
+			params: { SoloActivos: false },
+		});
+	}, [delegacionesRequest]);
 	//#endregion
 
 	//#region Tab documentaciones
@@ -95,7 +98,7 @@ const DelegacionesHandler = () => {
 	const [documentacionesActions, setDocumentacionesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
+		const dele = delegacionesSelected?.id;
 		if (!dele) {
 			setDocumentacionesActions(actions);
 			return;
@@ -108,7 +111,7 @@ const DelegacionesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+						record: { entidadTipo: "D", entidadId: delegacionesSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -156,9 +159,9 @@ const DelegacionesHandler = () => {
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, delegacionSelected?.id, documentacionesTab]);
+	}, [documentacionChanger, documentacionSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!delegacionSelected || disableTabDocumentacion} />,
+		header: () => <Tab label="Documentacion" disabled={!delegacionesSelected || disableTabDocumentacion} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -166,10 +169,10 @@ const DelegacionesHandler = () => {
 	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
 		documentacionChanger("list", {
-			clear: !delegacionSelected?.id,
-			params: { entidadTipo: "D", entidadId: delegacionSelected?.id },
+			clear: !delegacionesSelected?.id,
+			params: { entidadTipo: "D", entidadId: delegacionesSelected?.id },
 		});
-	}, [delegacionSelected?.id, documentacionChanger]);
+	}, [delegacionesSelected?.id, documentacionChanger]);
 	//#endregion
 
 	//#region Tab colaboradores
@@ -178,7 +181,7 @@ const DelegacionesHandler = () => {
 	const [colaboradoresActions, setColaboradoresActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
+		const dele = delegacionesSelected?.id;
 		if (!dele) {
 			setColaboradoresActions(actions);
 			return;
@@ -191,7 +194,7 @@ const DelegacionesHandler = () => {
 					colaboradoresChanger("selected", {
 						request,
 						action,
-						record: { refDelegacionId: delegacionSelected?.id },
+						record: { refDelegacionId: delegacionesSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -251,9 +254,9 @@ const DelegacionesHandler = () => {
 			);
 		}
 		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, delegacionSelected?.id, colaboradoresTab]);
+	}, [colaboradoresChanger, colaboradorSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!delegacionSelected || disableTabColaborador} />,
+		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || disableTabColaborador} />,
 		body: colaboradoresTab,
 		actions: colaboradoresActions,
 	}); 
@@ -261,10 +264,10 @@ const DelegacionesHandler = () => {
 	// Si cambia delegación, refresco lista de colaboradores
 	useEffect(() => {
 		colaboradoresChanger("list", {
-			clear: !delegacionSelected?.id,
-			params: { refDelegacionId: delegacionSelected?.id },
+			clear: !delegacionesSelected?.id,
+			params: { refDelegacionId: delegacionesSelected?.id },
 		});
-	}, [delegacionSelected?.id, colaboradoresChanger]);
+	}, [delegacionesSelected?.id, colaboradoresChanger]);
 	//#endregion
 
 	//#region Tab seccionales
@@ -276,7 +279,7 @@ const DelegacionesHandler = () => {
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
-		const dele = delegacionSelected?.id;
+		const dele = delegacionesSelected?.id;
 		if (!dele) {
 			setSeccionalesActions(actions);
 			return;
@@ -289,7 +292,7 @@ const DelegacionesHandler = () => {
 					seccionalesRequest("selected", {
 						request,
 						action,
-						record: { refDelegacionId: delegacionSelected?.id },
+						record: { refDelegacionId: delegacionesSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -337,7 +340,7 @@ const DelegacionesHandler = () => {
 		// 	}) 
 		// );
 		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesSelected, delegacionSelected?.id, seccionalesRender]);
+	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
 		body: seccionalesRender,
@@ -346,10 +349,10 @@ const DelegacionesHandler = () => {
 	// Si cambia delegación, refresco lista de seccionales
 	useEffect(() => {
 		seccionalesRequest("list", {
-			clear: !delegacionSelected?.id,
-			body: { refDelegacionId: delegacionSelected?.id },
+			clear: !delegacionesSelected?.id,
+			body: { refDelegacionId: delegacionesSelected?.id },
 		});
-	}, [seccionalesRequest, delegacionSelected?.id]);
+	}, [delegacionesSelected?.id, seccionalesRequest]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -360,21 +363,24 @@ const DelegacionesHandler = () => {
 	//#endregion
 
 	return (
-
 		<Grid full col>
 			<Grid className="titulo">
-				<h1 >Delegaciones</h1>
+				<h1>Delegaciones</h1>
 			</Grid>
 
 			<div className="tabs">
-				<text>{delegacionSelected?.nombre ? delegacionSelected.nombre  : " " }</text>
+				<text>
+					{delegacionesSelected?.nombre ? delegacionesSelected.nombre : " "}
+				</text>
 
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
+					{tabs.map(({ header }) => header())}
 				</Tabs>
 			</div>
 			<div className="contenido">
-				{tabs[tab].body()}
+				{tabs.map(({ body }, i) => (
+					<div hidden={i !== tab}>{body()}</div>
+				))}
 			</div>
 			<KeyPress items={acciones} />
 		</Grid>
