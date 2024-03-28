@@ -156,7 +156,7 @@ export const range = (data, a, b, c = comparator, low = ge, high = le) => {
  * * `test`: Conjunto de evaluaciones origen.
  */
 export const pass = (...test) => ({
-	pass: test.findIndex((v) => v && !v?.pass) === -1,
+	pass: test.findIndex((v) => !v?.pass) === -1,
 	test,
 });
 
