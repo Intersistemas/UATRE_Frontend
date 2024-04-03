@@ -33,7 +33,7 @@ const renderDef = (p) => <div {...p}/>;
  * * "height": Ocupar la misma cantidad que la propiedad height.
  * * "full": Ocupar la misma cantidad que la propiedad full.
  * * Cualquier otro valor: Asume unidad con medida.
- * @param {string} [props.wrap] Especifica si los elementos "hijos" son obligados a permanecer en una misma línea o pueden fluir en varias líneas.. (`flex-wrap`)
+ * @param {"wrap" | "no" | "reverse"} [props.wrap] Especifica si los elementos "hijos" son obligados a permanecer en una misma línea o pueden fluir en varias líneas.. (`flex-wrap`)
  *
  * Posibles valores:
  * * "wrap": Los elementos flex son colocados en varias líneas. El valor cross-start es equivalente a start o before según el valor de `direction`.
@@ -41,7 +41,7 @@ const renderDef = (p) => <div {...p}/>;
  * * "reverse": Actúa como wrap pero cross-start y cross-end están intercambiados.
  * 
  * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
- * @param {string} [props.justify] Especifica el alineado de los componentes hijos.
+ * @param {"start" | "end" | "center" | "around" | "between" | "evenly"} [props.justify] Especifica el alineado de los componentes hijos.
  *
  * Posibles valores:
  * * "start": alineados al inicio del componente. (`flex-start`)
