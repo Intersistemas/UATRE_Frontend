@@ -8,6 +8,8 @@ import styles from "./AfiliadoDetails.module.css";
 const InputMaterial = (p) => <IM variant="standard" size="small" {...p} />;
 
 const AfiliadoDetails = (props) => {
+
+	console.log("config",props.config)
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
@@ -141,7 +143,7 @@ const AfiliadoDetails = (props) => {
 				setHotField(
 					<Grid className={`${styles.fondo} ${styles.grupo}`} col width>
 						<Grid className={styles.contenido} col width>
-							<Grid className={styles.titulo}>Seccional de Afiliado:</Grid>
+							<Grid className={styles.titulo}>Seccional de Afiliado: </Grid>
 							<Grid width gap="15px">
 								<Grid gap="10px">
 									<Grid className={styles.label}>CUIL:</Grid>
@@ -162,7 +164,7 @@ const AfiliadoDetails = (props) => {
 									<Grid className={styles.label} width="10rem">Nombre:</Grid>
 									<Grid className={styles.data}>{seccional.descripcion}</Grid>
 									<Grid className={styles.label} width="10rem">Estado:</Grid>
-									<Grid className={styles.data}>{seccional.estado}</Grid>
+									<Grid className={styles.data}>{seccional.seccionalEstadoDescripcion}</Grid>
 								</Grid>
 								<Grid width gap="5px">
 									<Grid className={styles.label} width="10rem">Dirección:</Grid>

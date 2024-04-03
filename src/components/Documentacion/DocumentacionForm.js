@@ -9,11 +9,13 @@ const DocumentacionForm = ({
 	record = {},
 	tipoList = [],
 	disabled = false,
+	loading = false,
 	onChange = (changes) => {},
 	onCancel = () => {},
 	onConfirm = () => {},
 	request,
 }) => {
+
 	const archivoRef = useRef(null);
 
 	const getValue = (v) => record[v] ?? "";

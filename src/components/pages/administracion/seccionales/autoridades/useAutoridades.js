@@ -123,7 +123,7 @@ const useAutoridades = () => {
 			},
 			onOk: async (data) =>
 				setList((o) => {
-					//console.log('data_UseAutoridades:',data)
+					console.log('data_UseAutoridades:',data)
 					const selection = {
 						...selectionDef,
 						record:
@@ -135,7 +135,7 @@ const useAutoridades = () => {
 						...o,
 						loading: null,
 						//pagination: { index, size, count },
-						data,
+						data: data.sort((a,b)=> a.refCargoJerarquia - b.refCargoJerarquia),
 						error: null,
 						selection,
 					};
@@ -162,8 +162,6 @@ const useAutoridades = () => {
 
 			onOk: async (data) =>
 				setList((o) => {
-					console.log('cargos_UseAutoridades**:',data)
-
 					const cargos = data.map((refCargo) => {
 						return { value: refCargo.id, label: refCargo.cargo };
 					 });	

@@ -180,6 +180,8 @@ const useDocumentaciones = () => {
 				title={list.selection.action}
 				errors={list.selection.errors}
 				dependecies={{ tipoDocumentacionList: tipoDocumentacionList.data }}
+
+				loading={!!list.loading}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? {}
@@ -209,6 +211,7 @@ const useDocumentaciones = () => {
 					}))
 				}
 				onClose={(confirm) => {
+
 					if (!["A", "B", "M"].includes(list.selection.request))
 						confirm = false;
 					if (!confirm) {

@@ -20,13 +20,14 @@ import SelectMaterial from "components/ui/Select/SelectMaterial";
 import Button from "components/ui/Button/Button";
 
 const PantallaBajaReactivacion = (props) => {
-	const pushQuery = useQueryQueue((action) => {
+	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "PatchAfiliado": {
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/Afiliado`,
+						//endpoint: `/Afiliado`,
+						endpoint: `/Afiliado/PatchAfiliado/${params.id}`,
 						method: "PATCH",
 					},
 				};
@@ -102,6 +103,8 @@ const PantallaBajaReactivacion = (props) => {
 	};
 
 	const handleInputChange = (value, id) => {
+		console.log("id",id)
+		console.log("value",value)
 		switch (id) {
 			case "fecha":
 				setFecha(moment(value).format("yyyy-MM-DD"));
@@ -137,6 +140,22 @@ const PantallaBajaReactivacion = (props) => {
 		}
 
 		const estadoSolicitudId = props.accion === "Baja" ? 3 : 2;
+		const cambios = props.accion === "Baja" ? 
+		{
+			"estadoSolicitudId": 3,
+			"fechaEgreso": moment(fecha).format("yyyy-MM-DD"),
+			"estadoSolicitudObservaciones": observaciones,
+			"refMotivoBajaId": refMotivoBajaId
+		} 
+		:
+		{
+			"estadoSolicitudId": 2,
+			"fechaIngreso": moment(fecha).format("yyyy-MM-DD"),
+			"estadoSolicitudObservaciones": observaciones,
+			"refMotivoBajaId": 0
+		}
+
+
 		const body = [
 			{ path: "EstadoSolicitudId", op: "replace", value: estadoSolicitudId },
 			{ path: "FechaIngreso", op: "replace", value: null },
@@ -155,8 +174,14 @@ const PantallaBajaReactivacion = (props) => {
 		];
 		pushQuery({
 			action: "PatchAfiliado",
-			params: { id: props.afiliado?.id },
-			config: { body },
+			params: {"id": props.afiliado?.id},
+			config: {
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: cambios,
+			},
+			//config: { cambios },
 			onOk: async (ok) => {
 				if (ok) {
 					setDialogTexto(
