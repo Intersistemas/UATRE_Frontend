@@ -559,7 +559,7 @@ const AfiliadosLista = (props ) => {
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
-     case 4:
+     case 3:
          setSeccionalSeleccionada(row);
          break;
     default: break;
@@ -708,7 +708,7 @@ const AfiliadosLista = (props ) => {
 							<Tab
 								style={{ backgroundColor: "#186090" }}
 								label="Estados del afiliado"
-								disabled={afiliadoSeleccionado?.id ? false : true}
+								disabled={afiliadoSeleccionado?.id && tareas.hasTarea("Afiliaciones_Tab_EstadosDelAfiiliado") ? false : true}
 							/>
 
 							<Tab

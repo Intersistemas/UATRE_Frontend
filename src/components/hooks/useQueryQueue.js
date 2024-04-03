@@ -47,7 +47,12 @@ const useQueryQueue = (
 	const pushQuery = useCallback(
 		(
 			query = new QueryClass()
-		) => setQueryQueue((old) => [...old, query]),
+		) => 
+		
+		setTimeout(() => {
+			setQueryQueue((old) => [...old, query])
+		 }, 200)
+		,
 		[]
 	);
 	const { sendRequest } = useHttp();

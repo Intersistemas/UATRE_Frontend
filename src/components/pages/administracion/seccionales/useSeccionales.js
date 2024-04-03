@@ -89,6 +89,7 @@ const useSeccionales = ({
 				};
 			}
 			case "GetById": {
+				console.log("useSeccionales_GetById_params",params)
 				const { id, ...otherParams } = params;
 				return {
 					config: {

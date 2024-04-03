@@ -98,6 +98,8 @@ const Table = ({
 	baseProps = {},
 	...x
 }) => {
+
+	console.log("table_data",data)
 	data ??= [];
 	keyField ??= "";
 	const columns = asColumnArray(myColumns);
