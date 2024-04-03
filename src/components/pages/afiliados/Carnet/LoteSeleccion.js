@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
+import { comparator, range } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
+import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
 import SearchSelectMaterial, {
@@ -12,8 +14,6 @@ import SearchSelectMaterial, {
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import LotePDFViewer from "./LotePDFViewer";
-import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import { comparator, range } from "components/helpers/Utils";
 import ListadoImpresos from "./ListadoImpresos";
 
 const onCloseDef = () => {};
@@ -659,7 +659,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<Grid width="200px">
-								<DateTimePicker
+								<InputMaterial
 									type="date"
 									label="Desde fecha de carga"
 									value={createdDateDesde}
@@ -672,7 +672,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 								/>
 							</Grid>
 							<Grid width="200px">
-								<DateTimePicker
+								<InputMaterial
 									type="date"
 									label="Hasta fecha de carga"
 									value={createdDateHasta}
