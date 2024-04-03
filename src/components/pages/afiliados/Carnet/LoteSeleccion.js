@@ -427,8 +427,33 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 			}
 			return filtros;
 		});
-
 	//#endregion filtro fecha de carga
+
+	//#region filtro nroAfiliado
+	const [nroAfiliadoDesde, setNroAfiliadoDesde] = useState("");
+	const [nroAfiliadoHasta, setNroAfiliadoHasta] = useState("");
+
+	const handleNroAfiliadoFiltro = (desde = 0, hasta = 0) =>
+		setFiltros((o) => {
+			const filtros = { ...o };
+			desde = Formato.Entero(desde);
+			hasta = Formato.Entero(hasta);
+			if (!desde && !hasta) {
+				delete filtros.nroAfiliado;
+				delete filtros.nroAfiliadoHasta;
+			} else if (!desde) {
+				filtros.nroAfiliado = hasta;
+				filtros.nroAfiliadoHasta = hasta;
+			} else if (!hasta) {
+				filtros.nroAfiliado = desde;
+				filtros.nroAfiliadoHasta = desde;
+			} else {
+				filtros.nroAfiliado = desde;
+				filtros.nroAfiliadoHasta = hasta;
+			}
+			return filtros;
+		});
+	//#endregion filtro nroAfiliado
 
 	//#endregion filtros
 
@@ -658,7 +683,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 							</Grid>
 						</Grid>
 						<Grid width gap="inherit">
-							<Grid width="200px">
+							<Grid width>
 								<InputMaterial
 									type="date"
 									label="Desde fecha de carga"
@@ -671,7 +696,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 									}}
 								/>
 							</Grid>
-							<Grid width="200px">
+							<Grid width>
 								<InputMaterial
 									type="date"
 									label="Hasta fecha de carga"
@@ -684,7 +709,30 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 									}}
 								/>
 							</Grid>
-							<Grid grow />
+							<Grid width>
+								<InputMaterial
+									type="number"
+									label="Desde Nro. de afiliado"
+									value={nroAfiliadoDesde}
+									onChange={(nroAfiliadoDesde) => {
+										setNroAfiliadoDesde(nroAfiliadoDesde);
+										handleNroAfiliadoFiltro(nroAfiliadoDesde, nroAfiliadoHasta);
+									}}
+								/>
+							</Grid>
+							<Grid width>
+								<InputMaterial
+									type="number"
+									label="Hasta Nro. de afiliado"
+									value={nroAfiliadoHasta}
+									onChange={(nroAfiliadoHasta) => {
+										setNroAfiliadoHasta(nroAfiliadoHasta);
+										handleNroAfiliadoFiltro(nroAfiliadoDesde, nroAfiliadoHasta);
+									}}
+								/>
+							</Grid>
+						</Grid>
+						<Grid width gap="inherit" justify="end">
 							<Grid width="200px">
 								<Button
 									className="botonAzul"
@@ -729,6 +777,8 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 										}));
 										setCreatedDateDesde(null);
 										setCreatedDateHasta(null);
+										setNroAfiliadoDesde("");
+										setNroAfiliadoHasta("");
 										setFiltros(filtros);
 										if (JSON.stringify(list.params) === JSON.stringify(filtros))
 											return;
