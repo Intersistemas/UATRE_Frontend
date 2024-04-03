@@ -714,7 +714,7 @@ const AfiliadosLista = (props ) => {
 							<Tab
 								style={{ backgroundColor: "#186090" }}
 								label="Cambios de Datos"
-								disabled={afiliadoSeleccionado?.cuil ? false : true}
+								disabled={afiliadoSeleccionado?.cuil && tareas.hasTarea("Afiliaciones_Tab_CambioDeDatos") ? false : true}
 							/>
 						</Tabs>
 						<Grid

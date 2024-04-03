@@ -15,7 +15,12 @@ const AfiliadosSeccionales = (props) => {
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
-	console.log('props.afiliado:',props.afiliado);
+	console.log('AfiliadosSeccionales_props.afiliado:',props.afiliado);
+
+	/*
+		afiliado={afiliadoSeleccionado}
+								onSeleccionRegistro={rowEvents}
+	*/
 	//#region Tab Seccionales
 	const {
 		render: seccionalesTab,
@@ -109,7 +114,7 @@ const AfiliadosSeccionales = (props) => {
 	useEffect(() => {
 
 		seccionalChanger("GetById", { params: {id: props.afiliado.seccionalId}});
-	}, [seccionalChanger,props.afiliado]);
+	}, [seccionalChanger, props.afiliado]);
 	//#endregion
 
 
