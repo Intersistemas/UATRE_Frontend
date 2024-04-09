@@ -81,6 +81,7 @@ export const Grid = ({
 	grow,
 	shrink,
 	basis,
+	wrap,
 	justify,
 	block,
 	width,
@@ -166,6 +167,11 @@ export const Grid = ({
 			}
 			style.flexBasis = typeof basis === "boolean" ? 1 : basis;
 		}
+	}
+
+	if (wrap) {
+		if (typeof wrap === "boolean") wrap = "wrap";
+		style.wrap = { no: "nowrap", reverse: "wrap-reverse" }[wrap] ?? wrap;
 	}
 	
 	// Abreviatura para direction="column".
