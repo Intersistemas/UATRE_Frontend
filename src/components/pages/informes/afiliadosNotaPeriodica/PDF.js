@@ -118,7 +118,10 @@ const Row = ({ children = [], style = {}, ...x }) => {
  * @param {string} props.title Titulo del PDF que generará.
  * @param {Delegacion} props.data Datos de afiliados con credenciales impresas.
  */
-const PDF = ({ title = "Notificacion de afiliaciones para delegados", data }) => {
+const PDF = ({
+	title = "Notificacion de afiliaciones para delegados",
+	data,
+}) => {
 	/** @type {{ seccional: Seccional, afiliados: any[], index: number, pages: number }[]} */
 	const paginas = [];
 	let total = 0;
@@ -195,12 +198,15 @@ const PDF = ({ title = "Notificacion de afiliaciones para delegados", data }) =>
 							style={{ borderBottom: "1px solid black", padding: "20px 10px" }}
 						>
 							<P size="10" align="center">
-								Por la presente se informa al Cro. Delegado regional de{" "}
-								{data.descripcion}{" "}que las solicitudes de los siguientes
-								trabajadores han sido ingresada durante el período de{" "}
-								{Formato.Periodo(data.desdeFecha)} a{" "}
-								{Formato.Periodo(data.hastaFecha)} las cuales se encuentran
-								aprobadas
+								{[
+									`Por la presente se informa al`,
+									`Cro. Delegado regional de ${data.descripcion}`,
+									`que las solicitudes de los siguientes trabajadores han`,
+									`sido ingresadas durante el período`,
+									`desde el ${Formato.Fecha(data.desdeFecha)}`,
+									`al ${Formato.Fecha(data.hastaFecha)}`,
+									`las cuales se encuentran aprobadas`,
+								].join(" ")}
 							</P>
 						</Grid>
 						<Grid width style={{ padding: "0 10px" }}>
