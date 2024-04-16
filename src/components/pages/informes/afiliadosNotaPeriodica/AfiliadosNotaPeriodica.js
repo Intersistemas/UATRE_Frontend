@@ -443,7 +443,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 								label="Delegación"
 								error={!!delegacionSelect.error}
 								helperText={
-									delegacionSelect.loading ?? delegacionSelect.error
+									delegacionSelect.loading ?? delegacionSelect?.error
 								}
 								value={delegacionSelect.selected}
 								onChange={(selected) => {
@@ -451,7 +451,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 									setFiltros((o) => {
 										const filtros = {
 											...o,
-											ambitoDelegaciones: { ids: [selected.value] },
+											ambitoDelegaciones: { ids: [selected?.value] },
 										};
 										if (selected === delegacionSelectTodos)
 											delete filtros.ambitoDelegaciones;
