@@ -58,6 +58,7 @@ const renderDef = (p) => <div {...p} />;
  * * "evenly": espaciado equitativamente. (`space-evenly`)
  *
  * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.grid] Abreviatura que aplica display=`grid` y aplica sus propiedades. (`grid`)
  * @param {boolean} [props.block] Abreviatura para display="block".
  * @param {string} [props.width] Especifica el ancho que tendrá el componente.
  *
@@ -89,6 +90,7 @@ export const Grid = ({
 	basis,
 	wrap,
 	justify,
+	grid,
 	block,
 	width,
 	height,
@@ -142,12 +144,10 @@ export const Grid = ({
 	if (width) style.width = width;
 	if (height) style.height = height;
 
-	if (!display) {
-		if (flex) display = "flex";
-		// else if (grid) display = "grid";
-		else if (block) display = "block";
-		else display = "none";
-	}
+	if (flex) display = "flex";
+	else if (grid) display = "grid";
+	else if (block) display = "block";
+	else if (!display) display = "none";
 
 	if (display) style.display = display;
 
@@ -210,6 +210,10 @@ export const Grid = ({
 		if (wrap) {
 			if (typeof wrap === "boolean") wrap = "wrap";
 			style.flexWrap = { no: "nowrap", reverse: "wrap-reverse" }[wrap] ?? wrap;
+		}
+	} else if (/grid/.test(display)) {
+		if (grid) {
+			style.grid = grid;
 		}
 	}
 
