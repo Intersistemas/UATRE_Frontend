@@ -1775,7 +1775,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 			};
 			audit({
 				modulo: "Consultas",
-				proceso: "FormularioSolicitudAfiliacion",
+				proceso: "SolicitudPreviaAfiliacion",
 				parametros: data,
 				observaciones: `Emite PDF`,
 			});
@@ -1804,7 +1804,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 					} else {
 						audit({
 							modulo: "Consultas",
-							proceso: "FormularioSolicitudAfiliacion",
+							proceso: "SolicitudPreviaAfiliacion",
 							parametros: { ...query.params, valida: "trabajador" },
 							observaciones: `Error consulta AFIP: ${error.toString()}`,
 						});
@@ -1828,7 +1828,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							} else {
 								audit({
 									modulo: "Consultas",
-									proceso: "FormularioSolicitudAfiliacion",
+									proceso: "SolicitudPreviaAfiliacion",
 									parametros: { ...query.params, valida: "empleador" },
 									observaciones: `Error consulta AFIP: ${error.toString()}`,
 								});
