@@ -12,6 +12,7 @@ import useQueryQueue from "./useQueryQueue";
 
 /**
  * @typedef {object} onLoadResults
+ * @property {QueryClass} query Query origen.
  * @property {any} [ok] Cuando la operación es exitosa, esta propiedad contiene el resultado de la operación.
  * @property {UseHttpError} [error] Cuando la operación fracasa, esta propiedad contiene el error de la operación.
  */
@@ -67,6 +68,7 @@ const useQueryState = (onGetConfig, initial = {}) => {
 				if (query.onError) query.onError(error);
 			},
 			onFinally: () => {
+				results.query = query;
 				onLoad(results);
 				if (query.onFinally) query.onFinally();
 			},
