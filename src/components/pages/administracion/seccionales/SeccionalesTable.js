@@ -37,8 +37,8 @@ const columnsDef = [
 		headerTitle: () => `Localidad Seccional`,
 	},
 	{
-		dataField: "observaciones",
-		text: "Observaciones",
+		dataField: "provinciaDescripcion",
+		text: "Provincia",
 	},
 	{
 		dataField: "id",
