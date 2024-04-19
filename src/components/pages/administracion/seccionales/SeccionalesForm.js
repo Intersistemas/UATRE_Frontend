@@ -28,11 +28,6 @@ const SeccionalesForm = ({
 }) => {
 	data ??= {}; 
 	delegaciones ??= [];
-	 console.log('Form_seccional_data:',data)
-	 console.log('Form_seccional_disable:',disabled)
-	 //console.log('data_seccional:',data)
-	 //console.log('delegaciones_seccional:',delegaciones)
-	// console.log('Form_seccional_errors:',errors)
 	
 	disabled ??= {};
 	hide ??= {};
@@ -77,7 +72,6 @@ const SeccionalesForm = ({
 	useEffect(() => {
 		const processEstados = async (estadosObj) => {
 			const estados = estadosObj.map((e)=> ({value: e.id, label: e.descripcion}))
-			console.log("estados",estados);
 			setEstadosOptions(estados);
 		};
 		request(

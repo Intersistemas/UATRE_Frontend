@@ -337,7 +337,6 @@ const SeccionalesHandler = () => {
 	const [seccionalLocalidadesActions, setSeccionalLocalidadesActions] = useState([]);
 
 	useEffect(() => {
-		console.log('UseE_SeccionalLocalidades')
 		const actions = [];
 		const secc = seccionalSelected?.codigo != "" ? seccionalSelected?.codigo : seccionalSelected?.id;
 		if (!secc) {
@@ -434,7 +433,6 @@ const SeccionalesHandler = () => {
 
 	// Si cambia Seccional, refresco lista de documentación
 	useEffect(() => {
-		console.log('seccionalSelected',seccionalSelected)
 		seccionalLocalidadesChanger("list", {
 			clear: !seccionalSelected?.id,
 			localidades: localidadesTodas,

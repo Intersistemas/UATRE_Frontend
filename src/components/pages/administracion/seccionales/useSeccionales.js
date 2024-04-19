@@ -89,7 +89,6 @@ const useSeccionales = ({
 				};
 			}
 			case "GetById": {
-				console.log("useSeccionales_GetById_params",params)
 				const { id, ...otherParams } = params;
 				return {
 					config: {
@@ -312,7 +311,6 @@ const useSeccionales = ({
 				});
 			}
 			case "list": {
-				console.log("useSeccionales_payload:",payload)
 				return setList((o) => {
 					const changes = {
 						loading: null,
