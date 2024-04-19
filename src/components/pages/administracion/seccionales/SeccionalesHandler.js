@@ -40,7 +40,7 @@ const SeccionalesHandler = () => {
 			},
 			processLocalidades
 		);
-	},[]);
+	},[request]);
 	
 	
 	//#region Tab Seccionales
@@ -122,7 +122,7 @@ const SeccionalesHandler = () => {
 			})
 		);
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
-	}, [seccionalChanger, seccionalSelected, seccionalesTab]);
+	}, [seccionalChanger, seccionalSelected]);
 
 	tabs.push({
 		header: () => <Tab label="Seccionales" />,
@@ -228,7 +228,7 @@ const SeccionalesHandler = () => {
 			); 
 		}
 		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id, autoridadesTab]);
+	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
 		body: autoridadesTab,
@@ -313,7 +313,7 @@ const SeccionalesHandler = () => {
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id, documentacionesTab]);
+	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id]);
 
 
 	tabs.push({
@@ -422,7 +422,7 @@ const SeccionalesHandler = () => {
 		}
 		
 		setSeccionalLocalidadesActions(actions);
-	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id, seccionalLocalidadesTab]);
+	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
 
 
 	tabs.push({
@@ -439,7 +439,7 @@ const SeccionalesHandler = () => {
 			//data: seccionalSelected?.seccionalLocalidad ?? [{}],
 			params: { seccionalId: seccionalSelected?.id,  soloactivos: false},
 		});
-	}, [localidadesTodas, seccionalSelected?.id, documentacionChanger]);
+	}, [localidadesTodas, seccionalSelected?.id, seccionalLocalidadesChanger]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -465,7 +465,9 @@ const SeccionalesHandler = () => {
 				
 			</div>
 			<div className="contenido">
-				{tabs[tab].body()}
+				{tabs.map(({ body }, i) => (
+					<div hidden={i !== tab}>{body()}</div>
+				))}
 			</div>
 			<KeyPress items={acciones} />
 		
