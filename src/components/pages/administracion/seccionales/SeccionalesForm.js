@@ -1,20 +1,19 @@
 import React, { useEffect,useState } from "react";
-import modalCss from "components/ui/Modal/Modal.module.css";
-import Grid from "components/ui/Grid/Grid";
-import Button from "components/ui/Button/Button";
-import classes from "./SeccionalesForm.module.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {Modal} from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import UseKeyPress from "components/helpers/UseKeyPress";
-import InputMaterial, { CodSeccional } from "../../../ui/Input/InputMaterial";
-import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
-import useHttp from "../../../hooks/useHttp";
+import useHttp from "components/hooks/useHttp";
+import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial, { CodSeccional } from "components/ui/Input/InputMaterial";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
+import classes from "./SeccionalesForm.module.css";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
  
-
 const SeccionalesForm = ({
 	data = {},
 	title = "",
@@ -120,7 +119,7 @@ const SeccionalesForm = ({
 			size="lg"
 			centered
 			>
-				<Modal.Header closeButton><h3>{title}</h3></Modal.Header>
+				<Modal.Header className={modalCss.modalCabecera}><h3>{title}</h3></Modal.Header>
 				<Modal.Body>
 					<Grid col full gap="15px">
 						<Grid  gap="inherit">
@@ -175,8 +174,7 @@ const SeccionalesForm = ({
 								value={localidadSeccional}
 								disabled={disabled.refLocalidadesId ?? false}
 								onChange={(value, _id) => (
-									onChange({ refLocalidadesId: value.value }),
-									onChange({ localidadNombre: value.label }),
+									onChange({ refLocalidadesId: value.value, localidadNombre: value.label }),
 									setLocalidadSeccional({...localidadSeccional,label: value.label})
 									)}
 								
