@@ -116,7 +116,7 @@ export async function createForm(data = null) {
 	newTextField({ name: "empleador.telefono", x: 145, y, width: 148 });
 	newTextField({ name: "empleador.correo", x: 325, y, width: 210 });
 
-	y = 126;
+	y = 111;
 
 	newTextField({
 		name: "carnet.fecha.dia",
