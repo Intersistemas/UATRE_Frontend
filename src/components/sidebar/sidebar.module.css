@@ -37,19 +37,29 @@
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 800px) { /*CELULARES*/
   .sidebar_opciones{
       zoom: 60%;
+      height: 100vh !important;
+  }
+  .actionButtons{
+    grid-row-gap: 0% !important;
   }
 }
 
+
+
+
 .top_section{
-  /*display: flex;*/
+  display: flex;
   align-items:center;
   padding:10px 15px;
+  flex-direction: column;
 }
 .logo{
   font-size: 40px;
+  display: inline-grid;
+  justify-items: center;
 }
 .bars{
   display: flex;
@@ -92,7 +102,7 @@
 
 .actionButtons{
   width: 100%;
-  grid-row-gap: 3%;
+  grid-row-gap: 2%;
   display: grid;
 }
 .actionButtons Button{

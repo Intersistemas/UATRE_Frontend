@@ -86,6 +86,15 @@
   margin-right: 0.5%;
 }
 
+.input50{
+  width: 50%;
+  /* margin-right: 1%; */
+  padding: -5;
+  margin-left: 0.5%;
+  margin-right: 0.5%;
+  display: flex; 
+}
+
 .input75 {
   width: 75%;
   /* margin-right: 1%; */

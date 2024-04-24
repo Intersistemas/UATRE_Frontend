@@ -398,8 +398,8 @@ const LocalidadesHandler = () => {
 						value={provincias.selected}
 						onChange={(selected) => setProvincias((o) => ({ ...o, selected }))}
 						options={provincias.options}
-						onTextChange={({ target }) =>
-							setProvincias((o) => ({ ...o, buscar: target.value }))
+						onTextChange={(buscar) =>
+							setProvincias((o) => ({ ...o, buscar}))
 						}
 					/>
 				</Grid>
@@ -431,7 +431,10 @@ const LocalidadesHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</Grid>
-			{tabs[tab].body()}
+
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

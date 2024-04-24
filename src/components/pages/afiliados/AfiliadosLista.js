@@ -1,39 +1,35 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
-
-//import overlayFactory from "react-bootstrap-table2-overlay";
-import React, { useEffect } from "react";
-import paginationFactory from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-
-import styles from "./AfiliadosLista.module.css";
-import AfiliadoDetails from './AfiliadoDetails';
-import filterFactory, {
-  selectFilter,
-  Comparator,
-} from "react-bootstrap-table2-filter";
-import FormatearFecha from "../../helpers/FormatearFecha";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { handleAfiliadoSeleccionar } from "../../../redux/actions";
-import { useState } from "react";
+import {
+	handleModuloSeleccionar,
+	handleAfiliadoSeleccionar,
+	handleModuloEjecutarAccion,
+} from "redux/actions";
+import paginationFactory from "react-bootstrap-table2-paginator";
+import filterFactory, {
+	selectFilter,
+	Comparator,
+} from "react-bootstrap-table2-filter";
 import { Tab, Tabs } from "@mui/material";
-import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import Table from "../../ui/Table/Table";
-import TableSegmentado from "../../ui/Table/TableRemote";
-import Formato from "../../helpers/Formato";
-import useHttp from "../../hooks/useHttp";
-import { styled } from '@mui/material/styles';
-import Documentacion from "./documentacion/Documentacion";
-import AfiliadoSeccional from './AfiliadosSeccionales'
 import Action from "components/helpers/Action";
-import { handleModuloSeleccionar,handleModuloEjecutarAccion } from "../../../redux/actions";
-import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import Formato from "components/helpers/Formato";
+import useHttp from "components/hooks/useHttp";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
-
-
+import Table from "components/ui/Table/Table";
+import TableSegmentado from "components/ui/Table/TableRemote";
+import AfiliadoDetails from "./AfiliadoDetails";
+import AfiliadoEstados from "./AfiliadoEstados";
+import AfiliadoHistorico from "./AfiliadoHistorico";
+import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
+import AfiliadoSeccional from "./AfiliadosSeccionales";
+import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 
 const AfiliadosLista = (props ) => {
 
@@ -44,8 +40,19 @@ const AfiliadosLista = (props ) => {
   const [ddjjUatreSeleccionado, setddjjUatreSeleccionado] = useState(null);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
   const [afiliadosActions, setAfiliadosActions] = useState();
-  const {isLoading, error, sendRequest: request } = useHttp();
+  const { sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
+  const [openImpresiones, setOpenImpresiones] = useState(false);
+  
+
+  const onLinkToGuiaAfiliaciones = () => {
+		const link = document.createElement("a");
+    link.target="_blank";
+		link.href = "https://drive.google.com/file/d/12noBfSzK35joyhbE_taxcMOqw3xz8vkt/view?usp=sharing"; 
+		link.click();
+	  };
+  
+  const tareas = useTareasUsuario();
 
   const handleSelectFilter = async (select,entry,obj) => {
     console.log('evento select y entry: ',select,entry,obj);
@@ -64,18 +71,17 @@ const AfiliadosLista = (props ) => {
 
   };
 
-
   useEffect(() => {
 
     console.log('selectedTab:',selectedTab);
     let actions = [];
 
     if (selectedTab == 0) {
-      const createAction = ({ action, request, ...x }) =>
+      const createAction = ({ action, request, onExecute, ...x }) =>
         new Action({
           name: action,
           //request: request,
-          onExecute: () =>  dispatch(handleModuloEjecutarAccion(request)),
+          onExecute: onExecute,//() =>  dispatch(handleModuloEjecutarAccion(request)),
           combination: "AltKey",
           ...x,
         });
@@ -83,7 +89,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Agrega Afiliado`,
-          request: "A",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("A")),//request: "A",
           tarea: "Afiliaciones_AfiliadoAgrega",
           keys: "a",
           underlineindex: 0,
@@ -95,7 +101,7 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Modifica Afiliado ${desc}`,
-          request: "M",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("M")),//request: "M",
           tarea: "Afiliaciones_AfiliadoModifica",
           ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
             {disabled:  true}
@@ -112,9 +118,8 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Resuelve Solicitud ${desc}`,
-          request: "S",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("S")),//request: "S",
           tarea: "Afiliaciones_AfiliadoResuelve",
-
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
             :
@@ -129,26 +134,8 @@ const AfiliadosLista = (props ) => {
 
       actions.push(
         createAction({
-          action: `Imprime Carnet de Afiliación ${desc}`,
-          request: "I",
-          tarea: "Afiliaciones_AfiliadoCarnet",
-
-          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
-            {disabled:  true}
-            :
-            {
-            disabled:  false,
-            keys: "p",
-            underlineindex: 2,
-            }
-          )
-        })
-      );
-
-      actions.push(
-        createAction({
           action: `Baja Afiliado ${desc}`,
-          request: "B",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("B")),//request: "B",
           tarea: "Afiliaciones_AfiliadoBaja",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
@@ -162,13 +149,14 @@ const AfiliadosLista = (props ) => {
           )
         })
       );
-
+ 
       actions.push(
         createAction({
           action: `Reactiva Afiliado ${desc}`,
-          request: "R",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("R")),//request: "R",
           tarea: "Afiliaciones_AfiliadoReactiva",
-          ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" || (afiliadoSeleccionado?.refMotivoBajaNoPermitirReactivarAfiliado &&
+             !tareas.hasTarea("Afiliaciones_ReactivaBajaEspecial")) ? //SI RefMotivosBajaNoPermitirReactivarAfiliado = 1 no habilito el boton
             {disabled:  true}
             :
             {
@@ -183,13 +171,102 @@ const AfiliadosLista = (props ) => {
       actions.push(
         createAction({
           action: `Localiza Afiliado ${desc}`,
-          request: "L",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("L")),//request: "L",
           tarea: "Afiliaciones_AfiliadoLocaliza",
           disabled:  false,
           keys: "l",
           underlineindex: 0,
         })
       );
+
+      /*
+      actions.push(
+        createAction({
+          action: `Imprime Carnet de Afiliación ${desc}`,
+          onExecute: () => dispatch(handleModuloEjecutarAccion("I")),//request: "I",
+          tarea: "Afiliaciones_AfiliadoCarnet",
+
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
+            {disabled:  true}
+            :
+            {
+            disabled:  false,
+            keys: "p",
+            underlineindex: 2,
+            }
+          )
+        })
+      );
+
+			actions.push(
+				createAction({
+					action: `Imprime Carnet de Afiliación en Lote`,
+          onExecute: () => dispatch(handleModuloEjecutarAccion("E")),//request: "E",
+					tarea: "Afiliaciones_AfiliadoCarnet",
+					disabled: false,
+					keys: "e",
+					underlineindex: 6,
+				})
+			);
+*/
+
+      actions.push(
+        createAction({
+          action: `Impresiones`,
+          //onExecute: (e) => handleClickBtn(e),//request: "X",
+          tarea: "Afiliaciones_Impresiones",
+          keys: "p",
+          underlineindex: 2,
+          ariaHaspopu: true,
+          ariaControls:'menu-impresiones',
+
+          menuItems: [
+            {
+              label: `Carnet de Afiliación ${desc}`,
+              onExecute: () => dispatch(handleModuloEjecutarAccion("I")),
+              ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" || !tareas.hasTarea("Afiliaciones_AfiliadoCarnet")? 
+              {disabled:  true}
+              :
+              {
+              disabled:  false,}),
+              keys: "e",
+              underlineindex: 6,
+            },
+            {
+              label: `Carnet de Afiliación en Lote`,
+              onExecute: () => dispatch(handleModuloEjecutarAccion("E")),
+              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoCarnetLote"),
+              keys: "l",
+              underlineindex: 32,
+              
+            }
+          ]
+        }),
+      );
+
+      actions.push(
+        createAction({
+          action: `Instructivos`,
+          //onExecute: (e) => handleClickBtn(e),//request: "X",
+          tarea: "Afiliaciones_Instructvos",
+          keys: "n",
+          underlineindex: 1,
+          ariaHaspopu: true,
+          ariaControls:'menu-instructivos',
+
+          menuItems: [
+            {
+              label: `Guia de Afiliaciones`,
+              onExecute: onLinkToGuiaAfiliaciones,
+              disabled: !tareas.hasTarea("Afiliaciones_AfiliadoGuia"),
+              keys: "g",
+              underlineindex: 0,
+              //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
+            }
+          ]
+        }),
+      );
+
     }
 
     const acciones = actions;
@@ -221,7 +298,7 @@ const AfiliadosLista = (props ) => {
       text: "Nro.Afil.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "7rem", textAlign: "center" };
+        return { width: "6rem", textAlign: "center" };
       },
     },
     {
@@ -232,17 +309,18 @@ const AfiliadosLista = (props ) => {
       headerStyle: (colum, colIndex) => {
         return { width: "10rem", textAlign: "center" };
       },
-      formatter: Formato.Cuit,
+      formatter: (v) => Formato.Cuit(v),
     },
     {
       headerTitle: true,
       dataField: "cuilValidado",
       text: "Val.",
       headerStyle: (colum, colIndex) => {
-        return { width: "5rem", textAlign: "center" };
+        return { width: "3rem", textAlign: "center" };
       },
       formatter: (value, row) => ( 
-        value == 0 ? "N" : (value == row.cuil) ? 'V' : 'D'
+        console.log("value",value,row),
+        value ? (value === row.cuil) ? 'V' : 'D' : "N" 
       ),
     },
     
@@ -252,9 +330,9 @@ const AfiliadosLista = (props ) => {
       text: "Doc.Nro.",
       sort: true,
       headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
+        return { width: "7rem", textAlign: "center" };
       },
-      formatter: Formato.DNI,
+      formatter: (v) => Formato.DNI(v),
     },
     {
       headerTitle: true,
@@ -268,33 +346,6 @@ const AfiliadosLista = (props ) => {
         return { textAlign: "left" };
       },
     },
-    /*
-    {
-      headerTitle: true,
-      dataField: "sexo",
-      text: "Sexo",
-      headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: (column, colIndex) => `Estado Civil`,
-      dataField: "estadoCivil",
-      text: "Est.Civil",
-      headerStyle: (colum, colIndex) => {
-        return { width: "5%", textAlign: "center" };
-      },
-    },
-
-    {
-
-      headerTitle: true,
-      dataField: "nacionalidad",
-      text: "Nac.",
-      headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
-      },
-    },*/
     {
       headerTitle: (colum, colIndex) => (`Situación del Afiliado`),
       dataField: "estadoSolicitud",
@@ -341,6 +392,17 @@ const AfiliadosLista = (props ) => {
     },
     {
       headerTitle: true,
+      dataField: "seccionalCodigo",
+      text: "Cod.Seccional",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "6%", textAlign: "center" };
+      },
+    },
+
+    
+    {
+      headerTitle: true,
       dataField: "seccional",
       text: "Seccional",
       //sort: true,
@@ -372,7 +434,7 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaIngreso",
       text: "F.Ingreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
@@ -383,13 +445,33 @@ const AfiliadosLista = (props ) => {
       dataField: "fechaEgreso",
       text: "F.Egreso",
       sort: true,
-      formatter: FormatearFecha,
+      formatter: (v) => Formato.Fecha(v),
       headerStyle: (colum, colIndex) => {
         return { width: "9%", textAlign: "center" };
       },
     },
 
     {
+      headerTitle: true,
+      dataField: "empresaCUIT",
+      text: "CUIT",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "10rem", textAlign: "center" };
+      },
+      formatter: (v) => Formato.Cuit(v),
+    },
+    {
+      headerTitle: true,
+      dataField: "empresaDescripcion",
+      text: "Empresa",
+      //sort: true,
+      headerStyle: (colum, colIndex) => {
+        return { width: "20%", textAlign: "center" };
+      },
+    },
+
+     /*{
       headerTitle: true,
       dataField: "puesto",
       text: "Puesto",
@@ -400,32 +482,13 @@ const AfiliadosLista = (props ) => {
     },
     {
       headerTitle: true,
-      dataField: "empresaCUIT",
-      text: "CUIT",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10rem", textAlign: "center" };
-      },
-      formatter: Formato.Cuit,
-    },
-    {
-      headerTitle: true,
-      dataField: "empresaDescripcion",
-      text: "Empresa",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "12%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: true,
       dataField: "actividad",
       text: "Actividad",
       //sort: true,
       headerStyle: (colum, colIndex) => {
         return { width: "10%", textAlign: "center" };
       },
-    },
+    },*/
     
   ];
   
@@ -498,7 +561,7 @@ const AfiliadosLista = (props ) => {
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
-     case 4:
+     case 3:
          setSeccionalSeleccionada(row);
          break;
     default: break;
@@ -596,119 +659,133 @@ const AfiliadosLista = (props ) => {
       entryValue: props.entryValue,
   }
 
-
-  const tablePropsVacia0 = {
-    promptBuscar:"Buscar en Afiliados:",
-    keyField: "nroAfiliado",
-    data: [],
-    columns: columnsVacia,
-    noDataIndication: <h4>No existe documentación relacionada al Afiliado seleccionado.</h4>,
-    filter: filterFactory(),
-}
-
-  const tablePropsVacia1 = {
-      promptBuscar:"Buscar en Afiliados:",
-      keyField: "nroAfiliado",
-      data: [],
-      columns: columnsVacia,
-      noDataIndication: <h4>No se registran cambios de datos en el Afiliado seleccionado.</h4>,
-      filter: filterFactory(),
-  }
-
   return (
-    <div className="vh-100 d-flex flex-column"> 
-        <Grid full col>
-            <Grid className="titulo">
-              <h1>Afiliaciones</h1>
-            </Grid>
-    
-            <div className="tabs">
-              <text>{afiliadoSeleccionado?.nombre ? `${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : ''}</text>
+		<Grid col height="100vh">
+			<Grid full col>
+				<Grid className="titulo">
+					<h1>Afiliaciones</h1>
+				</Grid>
 
-              <div style={{margin: '0% 0% 3rem 0%'}}>
-                <Tabs
-                  value={selectedTab}
-                  onChange={handleChangeTab}
-                  className={styles.tabs}
-                >
-                    <Tab  
-                    className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                    label= 'AFILIADOS'
-                    />
-                    <Tab className={styles.tab}  
-                      style={{backgroundColor: "#186090"}}        
-                      label= 'DDJJ UATRE'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
-                    
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                      label= 'Documentación'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
+				<Grid col className="tabs">
+					<text>
+						{afiliadoSeleccionado?.nombre ? (
+							`${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${
+								afiliadoSeleccionado?.nombre
+							}`
+						) : (
+							<>&nbsp;</>
+						)}
+					</text>
+					<Grid width>
+						<Tabs
+							value={selectedTab}
+							onChange={handleChangeTab}
+							variant="scrollable"
+							scrollButtons
+							allowScrollButtonsMobile
+							style={{ width: "100%", position: "relative", zIndex: 1 }}
+						>
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="AFILIADOS"
+							/>
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="DDJJ UATRE"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                      label= 'Cambios de Datos'
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Documentación"
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                    <Tab className={styles.tab}
-                    style={{backgroundColor: "#186090"}}
-                    label= 'Datos de la Seccional'//{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-                      disabled={afiliadoSeleccionado?.cuil ? false : true}
-                    />                 
-                </Tabs>
-              </div>
-            </div> 
-           
-              <div className="contenido table_and_detail">
-                {selectedTab === 0 && ( //AFILIADOS
-                  <div>
-                    <TableSegmentado {...tableProps}/>
-                    <KeyPress items={afiliadosActions} />
-                  </div> 
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Datos de la Seccional" //{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
+								disabled={afiliadoSeleccionado?.cuil ? false : true}
+							/>
 
-                {selectedTab === 1 && ( //DDJJ
-                  <DeclaracionesJuradas
-                    cuil={afiliadoSeleccionado.cuilValidado ? afiliadoSeleccionado.cuilValidado : afiliadoSeleccionado.cuil}
-                    //cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
-                    infoCompleta={true}
-                    onSeleccionRegistro={rowEvents}
-                    onDeclaracionesGeneradas={null}
-                  />        
-                )}
-                {selectedTab === 2 && (
-                  
-                  <AfiliadosDocumentaciones afiliado={afiliadoSeleccionado}/>
-                  
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Estados del afiliado"
+								disabled={afiliadoSeleccionado?.id && tareas.hasTarea("Afiliaciones_Tab_EstadosDelAfiiliado") ? false : true}
+							/>
 
-                {selectedTab === 3 && (
-                  <Table  {...tablePropsVacia1}/>
-                )}
+							<Tab
+								style={{ backgroundColor: "#186090" }}
+								label="Cambios de Datos"
+								disabled={afiliadoSeleccionado?.cuil && tareas.hasTarea("Afiliaciones_Tab_CambioDeDatos") ? false : true}
+							/>
+						</Tabs>
+						<Grid
+							block
+							shrink="0"
+							basis={
+								{ 0: "700px", 1: "25%", 2: "25%", 4: "25%" }[selectedTab] ??
+								"0px"
+							}
+						/>
+					</Grid>
+				</Grid>
 
-                {selectedTab === 4 && (
-                  <AfiliadoSeccional
-                    afiliado={afiliadoSeleccionado}
-                    onSeleccionRegistro={rowEvents}
-                  />        
-                )}
+				<Grid className="contenido" col gap="10px">
+					<Grid />
+					<Grid col grow justify="between">
+						{selectedTab === 0 && ( //AFILIADOS
+							<>
+								<TableSegmentado {...tableProps} />
+								<KeyPress items={afiliadosActions} />
+							</>
+						)}
 
-                <AfiliadoDetails config={{
-                  data: afiliadoSeleccionado,
-                  ddjj: ddjjUatreSeleccionado,
-                  empresa: empresaSeleccionada,
-                  seccional: seccionalSeleccionada,
-                  tab: selectedTab
-                }}/>
-              </div> 
-           
-      </Grid>   
-    </div>
-  );
+						{selectedTab === 1 && ( //DDJJ
+							<DeclaracionesJuradas
+								cuil={
+									afiliadoSeleccionado.cuilValidado
+										? afiliadoSeleccionado.cuilValidado
+										: afiliadoSeleccionado.cuil
+								}
+								//cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
+								infoCompleta={true}
+								onSeleccionRegistro={rowEvents}
+								onDeclaracionesGeneradas={null}
+							/>
+						)}
+						{selectedTab === 2 && (
+							<AfiliadosDocumentaciones afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 3 && (
+							<AfiliadoSeccional
+								afiliado={afiliadoSeleccionado}
+								onSeleccionRegistro={rowEvents}
+							/>
+						)}
+
+						{selectedTab === 4 && (
+							<AfiliadoEstados afiliado={afiliadoSeleccionado} />
+						)}
+
+						{selectedTab === 5 && (
+							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
+						)}
+
+						<AfiliadoDetails
+							config={{
+								data: afiliadoSeleccionado,
+								ddjj: ddjjUatreSeleccionado,
+								empresa: empresaSeleccionada,
+								seccional: seccionalSeleccionada,
+								tab: selectedTab,
+							}}
+						/>
+					</Grid>
+				</Grid>
+			</Grid>
+		</Grid>
+	);
 };
 
 export default AfiliadosLista;

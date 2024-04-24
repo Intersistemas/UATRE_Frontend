@@ -1,7 +1,6 @@
 import React from "react";
 import classes from "../AfiliadoAgregar.module.css";
-import InputMaterial from "../../../ui/Input/InputMaterial";
-import InputMaterialMask from "../../../ui/Input/InputMaterialMask";
+import InputMaterial, { CUITMask, DNIMask } from "../../../ui/Input/InputMaterial";
 import { useState } from "react";
 import { useEffect } from "react";
 import moment from "moment";
@@ -29,19 +28,13 @@ const DatosAfip = (props) => {
   
   useEffect(() => {
 
-    console.log('props.padronRespuesta')
+    console.log('props.padronRespuesta',props.padronRespuesta)
      if (props.padronRespuesta !== null) {
       const domicilioReal = props.padronRespuesta?.domicilios?.find(
         (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
       );
-      setNombreAFIP(
-        `${props.padronRespuesta?.apellido} ${
-          props.padronRespuesta?.nombre ?? ""
-        }`
-      );
-      setFechaNacimientoAFIP(
-        moment(props.padronRespuesta?.fechaNacimiento).format("yyyy-MM-DD")
-      );
+      setNombreAFIP(`${props.padronRespuesta?.apellido} ${props.padronRespuesta?.nombre ?? ""}`);
+      setFechaNacimientoAFIP(moment(props.padronRespuesta?.fechaNacimiento).format("yyyy-MM-DD"));
       setCUILAFIP(props.padronRespuesta?.idPersona);
       setTipoDocumentoAFIP(props.padronRespuesta?.tipoDocumento);
       setNumeroDocumentoAFIP(props.padronRespuesta?.numeroDocumento);
@@ -49,29 +42,17 @@ const DatosAfip = (props) => {
       setDomicilioRealAFIP(domicilioReal?.direccion);
       setTipoPersonaAFIP(props.padronRespuesta?.tipoPersona);
       setTipoClaveAFIP(props.padronRespuesta?.tipoClave);
-      setDescripcionActividadPrincipalAFIP(
-        props.padronRespuesta?.descripcionActividadPrincipal
-      );
-      setProvinciaAFIP(
-        domicilioReal?.descripcionProvincia
-      );
-      setLocalidadAFIP(
-        `${domicilioReal?.codigoPostal} - ${domicilioReal?.localidad}`
-      );
+      setDescripcionActividadPrincipalAFIP(props.padronRespuesta?.descripcionActividadPrincipal);
+      setProvinciaAFIP(domicilioReal?.descripcionProvincia);
+      setLocalidadAFIP(`${domicilioReal?.codigoPostal} - ${domicilioReal?.localidad}`);
       setIdActividadPrincipalAFIP(props.padronRespuesta?.idActividadPrincipal);
-      setPeriodoActividadPrincipalAFIP(
-        props.padronRespuesta?.periodoActividadPrincipal
-      );
+      setPeriodoActividadPrincipalAFIP(props.padronRespuesta?.periodoActividadPrincipal);
       setMesCierreAFIP(props.padronRespuesta?.mesCierre);
     }
 
     else if (props.afiliado) {
-      setNombreAFIP(
-        `${props.afiliado?.afipApellido} ${props.afiliado?.afipNombre ?? ""}`
-      );
-      setFechaNacimientoAFIP(
-        moment(props.afiliado?.afipFechaNacimiento).format("yyyy-MM-DD")
-      );
+      setNombreAFIP(`${props.afiliado?.afipApellido} ${props.afiliado?.afipNombre ?? ""}`);
+      setFechaNacimientoAFIP(moment(props.afiliado?.afipFechaNacimiento).format("yyyy-MM-DD"));
       setCUILAFIP(props.afiliado?.cuil);
       setTipoDocumentoAFIP(props.afiliado?.afipTipoDocumento);
       setNumeroDocumentoAFIP(props.afiliado?.afipNumeroDocumento);
@@ -79,14 +60,12 @@ const DatosAfip = (props) => {
       setDomicilioRealAFIP(props.afiliado?.afipDomicilioDireccion);
       setTipoPersonaAFIP(props.afiliado?.afipTipoPersona);
       setTipoClaveAFIP(props.afiliado?.afipTipoClave);
-      setDescripcionActividadPrincipalAFIP(
-        props.afiliado?.afipActividadPrincipal
-      );
+      setDescripcionActividadPrincipalAFIP(props.afiliado?.afipActividadPrincipal);
       setIdActividadPrincipalAFIP(props.afiliado?.afipIdActividadPrincipal);
-      setPeriodoActividadPrincipalAFIP(
-        props.afiliado?.afipPeriodoActividadPrincipal
-      );
+      setPeriodoActividadPrincipalAFIP(props.afiliado?.afipPeriodoActividadPrincipal);
       setMesCierreAFIP(props.afiliado?.afipMesCierre);
+      setProvinciaAFIP(props.afiliado?.afipDomicilioProvincia);
+      setLocalidadAFIP(`${props.afiliado?.afipDomicilioCodigoPostal} - ${props.afiliado?.afipDomicilioLocalidad}`);
     } 
   }, [props.padronRespuesta, props.afiliado]);
 
@@ -105,7 +84,8 @@ const DatosAfip = (props) => {
           />
         </div>
         <div className={classes.input20}>
-          <InputMaterialMask
+          <InputMaterial
+            mask={CUITMask}
             id="cuilAFIP"
             value={cuilAFIP.toString()}
             label="CUIL"
@@ -139,7 +119,8 @@ const DatosAfip = (props) => {
             value={numeroDocumentoAFIP}
             label="Documento"
             readOnly={true}
-						mask="99.999.999"
+						//mask="99.999.999"
+            mask={DNIMask}
             color={
               numeroDocumentoAFIP !== "" &&
               numeroDocumentoAFIP !== props.afiliado?.afipNumeroDocumento

@@ -7,13 +7,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleModuloEjecutarAccion } from "../../../redux/actions";
 import PantallaEnDesarrollo from "../pantallaEnDesarrollo/PantallaEnDesarrollo";
 import PantallaBajaReactivacion from "./bajareactivacion/PantallaBajaReactivacion";
-import { Filter } from "@mui/icons-material";
-import UseKeyPress from '../../helpers/UseKeyPress';
 import ResolverSolicitudModal from "./ResolverSolicitud/ResolverSolicitudModal";
-import Carnet from "./Carnet/Handler";
 import Localizar from "./localizar/Localizar";
 import AuthContext from "../../../store/authContext"; 
-import { getListItemAvatarUtilityClass } from "@mui/material";
+import LoteSeleccion from "./Carnet/LoteSeleccion";
+import LotePDFViewer from "./Carnet/LotePDFViewer";
+import ListadoImpresos from "./Carnet/ListadoImpresos";
 
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
@@ -72,7 +71,7 @@ const AfiliadosHandler = () => {
     let body = {
           pageIndex: page,
           pageSize: sizePerPage,
-          soloActivos: "false",
+          soloActivos: false,
 
           ambitoTodos: Usuario.ambitoTodos,
           ambitoSeccionales: Usuario.ambitoSeccionales,
@@ -111,7 +110,7 @@ const AfiliadosHandler = () => {
     sortOrder,
   ]);
 
-
+ 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
       const estadosSolicitudesTable = estadosSolicitudesObj.map(
@@ -190,6 +189,9 @@ const AfiliadosHandler = () => {
       // alert('Funcionalidad de Imprimir En desarrollo ');
       // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
 
+			case "E":
+				setAccionSeleccionada("Lote");
+				break;
       default:
         break;
     }
@@ -305,12 +307,24 @@ const AfiliadosHandler = () => {
 			}
 			case "Imprime": {
 				//ToDo imprime credencial
-				setModal(<Carnet afiliado={afiliadoSeleccionado} onClose={() => {
+				setModal(<LotePDFViewer data={[afiliadoSeleccionado]} onClose={() => {
 					setAccionSeleccionada("");
-					setModal(null);
+					setModal(<ListadoImpresos data={[afiliadoSeleccionado]} onClose={() => setModal(null)}/>);
 				}}/>)
 				return;
 			} 
+			case "Lote": {
+				//Imprime lote de credenciales
+				setModal(
+					<LoteSeleccion
+						onClose={() => {
+							setAccionSeleccionada("");
+							setModal(null);
+						}}
+					/>
+				);
+				return;
+			}
 			case "Localiza": {
 				setModal(
 					<Localizar

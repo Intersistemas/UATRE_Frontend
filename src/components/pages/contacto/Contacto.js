@@ -92,25 +92,6 @@ const Contacto = () => {
     
   };
 
-  const sendRegistrarHandler = async () => {
-    setMessage("");
-    sendLoginRequest(
-      {
-        baseURL: "Seguridad",
-        endpoint: "/Usuario/registrarViaEmail",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "*/*",
-        },
-        body: {
-          
-        },
-      },
-      processRegistro
-    );
-  };
-
   const submitHandler = async (event) => {
     setEnviando(true);
     event.preventDefault();
@@ -119,7 +100,7 @@ const Contacto = () => {
     .then((response) => {
       setEnviando(false);
       console.log('SUCCESS!', response.status, response.text);
-      setMessage("✔️ Hemos enviado tu Mensaje!");
+      setMessage("✔️ Gracias por comunicarse con Uatre, nos pondremos en contacto con Ud. a la brevedad!");
     }, (err) => {
           setEnviando(false);
           console.log('FAILED...', err);
@@ -188,7 +169,7 @@ const Contacto = () => {
             {!enviando ? (
               <div>
                 <Button type="submit" className="botonAzul" underlineindex={1}>
-                  Enviar
+                  Envia
                 </Button>
 
               </div>

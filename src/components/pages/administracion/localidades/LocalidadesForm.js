@@ -113,7 +113,7 @@ const LocalidadesForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				{title}
 			</Modal.Header>
@@ -165,8 +165,8 @@ const LocalidadesForm = ({
 									setProvincias((o) => ({ ...o, selected }))
 								}
 								options={provincias.options}
-								onTextChange={({ target }) =>
-									setProvincias((o) => ({ ...o, buscar: target.value }))
+								onTextChange={(buscar) =>
+									setProvincias((o) => ({ ...o, buscar}))
 								}
 								required
 							/>

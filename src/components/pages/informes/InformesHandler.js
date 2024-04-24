@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
+import Afiliados from "./afiliados/Afiliados";
 import AfiliadosEstados from "./afiliadosEstados/AfiliadosEstados";
 import AfiliadosEstadosActividadSexo from "./afiliadosEstadosActividadSexo/AfiliadosEstadosActividadSexo";
 import AfiliadosEstadosDelegacion from "./afiliadosEstadosDelegacion/AfiliadosEstadosDelegacion";
@@ -13,6 +14,7 @@ import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEs
 import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
 import TrabajadoresEstadosEmpresas from "./trabajadoresEstadosEmpresas/TrabajadoresEstadosEmpresas";
 import TrabajadoresEstadosEmpresasSeccionales from "./trabajadoresEstadosEmpresasSeccionales/TrabajadoresEstadosEmpresasSeccionales";
+import AfiliadosNotaPeriodica from "./afiliadosNotaPeriodica/AfiliadosNotaPeriodica";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -94,6 +96,24 @@ const InformesHandler = () => {
 						tarea="Informes_Emite"
 					>
 						Afiliados por empresa y cantidad de seccionales
+					</Button>
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<Afiliados onClose={() => setInforme(null)} />)}
+						width="32"
+						tarea="Informes_Emite"
+					>
+						Afiliados
+					</Button>
+				</Grid>
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosNotaPeriodica onClose={() => setInforme(null)} />)}
+						width="32"
+						tarea="Informes_Emite"
+					>
+						Notificacion de afiliaciones para delegados
 					</Button>
 				</Grid>
 			</>

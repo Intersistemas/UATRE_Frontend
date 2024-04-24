@@ -1,21 +1,27 @@
-import { TextField, Tooltip } from "@mui/material";
-import styles from "./InputMaterial.module.css";
-import InputMask from 'react-input-mask';
+import MaskedInput from "react-text-mask";
+import { TextField } from "@mui/material";
 import { MuiTelInput } from "mui-tel-input";
+import { getType } from "components/helpers/Utils";
+import DateTimePicker from "../DateTimePicker/DateTimePicker";
+import styles from "./InputMaterial.module.css";
 
 const onChangeDef = (value, id) => {};
 
+export const CUITMask = Object.freeze([/\d/, /\d/, "-", /\d/, /\d/, ".", /\d/, /\d/, /\d/,".",/\d/,/\d/,/\d/,"-",/\d/]);
+export const DNIMask = Object.freeze([/\d/, /\d/, ".", /\d/, /\d/, /\d/,".",/\d/,/\d/,/\d/]);
+export const CodSeccional = Object.freeze(['S', "-",/\d/,/\d/,/\d/,/\d/]);
+
 const InputMaterial = ({
 	id,
-	mask = "",
+	mask = null,
 	type = "text",
 	size = "small",
 	readOnly = false,
 	width = "100%",
-	disabled = false,
 	onChange = onChangeDef,
 	...x
 }) => {
+	//console.log('InputMaterial_parametros ',x)
 	const textFieldProps = {
 		className: styles.input,
 		id,
@@ -31,14 +37,32 @@ const InputMaterial = ({
 		marginTop: "0px",
 		...textFieldProps.FormHelperTextProps.style,
 	};
+	
+	let subtype = null;
+	({ type, subtype } = getType(type));
+	textFieldProps.type = subtype ?? type;
 
-	if (type === "tel") return <MuiTelInput disabled={disabled} {...textFieldProps} />;
+	switch (type) {
+		case "tel": {
+			return <MuiTelInput {...textFieldProps} />;
+		}
+		case "date":
+		case "time":
+		case "month":
+		case "hours":
+		case "minutes":
+		case "datetime":
+		case "datehours":
+		case "dateminutes": {
+			return <DateTimePicker {...textFieldProps} />;
+		}
+		default:
+			break;
+	}
+	
+	if (id === "cuil" && !("autoFocus" in textFieldProps))
+		textFieldProps.autoFocus = true;
 
-	if (id === "cuil" && !"autoFocus" in textFieldProps) textFieldProps.autoFocus = true;
-
-	if (type === "date") textFieldProps.inputFormat ??= "DD/MM/YYYY";
-
-	textFieldProps.type = type;
 	textFieldProps.onChange = ({ target }) => {
 		switch (id) {
 			case "cuit":
@@ -53,22 +77,19 @@ const InputMaterial = ({
 		}
 	};
 
-	const inputMaskProps = {
-		className: textFieldProps.className,
-		mask,
-		disabled,
-		value: textFieldProps.value,
-		onChange: textFieldProps.onChange,
-	}
-	if (textFieldProps.onFocus) {
-		inputMaskProps.onFocus = textFieldProps.onFocus;
-		delete textFieldProps.onFocus;
+	textFieldProps.value ??= ""
+
+	if (mask) {
+		textFieldProps.mask = mask;
+		return (
+			<MaskedInput
+				{...textFieldProps}
+				guide={true}
+				render={(ref, props) => <TextField inputRef={ref} {...props} />}
+			/>
+		);
 	}
 
-	return (
-		<InputMask {...inputMaskProps}>
-			{() => <TextField {...textFieldProps} />}
-		</InputMask>
-	);
+	return <TextField {...textFieldProps} />;
 };
 export default InputMaterial;

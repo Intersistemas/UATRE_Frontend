@@ -4,7 +4,7 @@ import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import NominaDetailsAFIP from "./procesar/manual/NominaDetailsAFIP";
 
@@ -50,7 +50,7 @@ const LiquidacionesNominaForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				{title}
 			</Modal.Header>
@@ -64,11 +64,12 @@ const LiquidacionesNominaForm = ({
 									disabled={disabled.cuil}
 									error={!!errors.cuil}
 									helperText={errors.cuil ?? ""}
-									value={data.cuil}
+									value={data.cuil || ""}
 									onChange={(v) =>
 										onChange({ cuil: Number(v.replace(/[^\d]/gim, "")) })
 									}
-									mask="99\-99\.999\.999\-9"
+									//mask="99\-99.999.999\-9"
+									mask={CUITMask}
 								/>
 							)}
 						</Grid>

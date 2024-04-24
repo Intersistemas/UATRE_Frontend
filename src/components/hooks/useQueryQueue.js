@@ -5,6 +5,33 @@ import useHttp, {
 	takeOkAsync,
 } from "./useHttp";
 
+export class QueryClass {
+	action;
+	params;
+	config;
+	onOk;
+	onError;
+	onFinally;
+
+	constructor({
+		action = "",
+		params = {},
+		config = {},
+		onOk = takeOkAsync,
+		onError = takeErrorAsync,
+		onFinally = takeFinallyAsync,
+		...x
+	} = {}) {
+		this.action = action;
+		this.params = params;
+		this.config = config;
+		this.onOk = onOk;
+		this.onError = onError;
+		this.onFinally = onFinally;
+		Object.assign(this, x);
+	}
+}
+
 const useQueryQueue = (
 	getConfig = (action = "", params = {}) => ({
 		config: {
@@ -19,15 +46,13 @@ const useQueryQueue = (
 	const [queryQueue, setQueryQueue] = useState([]);
 	const pushQuery = useCallback(
 		(
-			query = {
-				action: "",
-				params: {},
-				config: {},
-				onOk: takeOkAsync,
-				onError: takeErrorAsync,
-				onFinally: takeFinallyAsync,
-			}
-		) => setQueryQueue((old) => [...old, query]),
+			query = new QueryClass()
+		) => 
+		
+		setTimeout(() => {
+			setQueryQueue((old) => [...old, query])
+		 }, 200)
+		,
 		[]
 	);
 	const { sendRequest } = useHttp();
@@ -39,9 +64,7 @@ const useQueryQueue = (
 		const endpoint = (path, pars = queryParams) =>
 			[
 				path,
-				Object.keys(pars)
-					.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(pars[k])}`)
-					.join("&"),
+				new URLSearchParams(pars).toString(),
 			]
 				.filter((e) => e)
 				.join("?");

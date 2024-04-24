@@ -3,6 +3,9 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import Localizar from "../afiliados/localizar/Localizar";
+import SeccionalesMap from "./seccionalMaps/seccionalesMap";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
+
 
 const ConsultasHandler = () => {
 	const [consulta, setConsulta] = useState();
@@ -10,9 +13,43 @@ const ConsultasHandler = () => {
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
+	const tarea = useTareasUsuario();
+	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
+	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
+
+
+	const onDownloadSolicitudAfiliacion = () => {
+		const link = document.createElement("a");
+		link.download = `SolicitudAfiliacion.pdf`;
+		link.href = "/Consultas/SolicitudAfiliacion.pdf";
+		link.click();
+	  };
+
+	const onDownloadSolicitudCambioSeccional = () => {
+		const link = document.createElement("a");
+		link.download = `Solicitud_Cambio_Seccional.pdf`;
+		link.href = "/Consultas/SolicitudCambioSeccional.pdf";
+		link.click();
+	  };
+
+	const onDownloadVisitaSeccional = () => {
+		const link = document.createElement("a");
+		link.download = `VisitaSeccional.pdf`;
+		link.href = "/Consultas/VisitaSeccional.pdf";
+		link.click();
+	  };
+
+	const onDownloadNotificacionEmpresa = () => {
+		const link = document.createElement("a");
+		link.download = `NotificacionEmpresa.pdf`;
+		link.href = "/Consultas/NotificacionEmpresa.pdf";
+		link.click();
+	  };
+	  
+
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Afiliados" />,
+		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*//>,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
@@ -29,10 +66,64 @@ const ConsultasHandler = () => {
 					
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-					
+					<Button
+						className="botonAmarillo"
+						onClick={() =>onDownloadSolicitudAfiliacion()}
+						width="32"
+						tarea="Consultas_SolicitudAfiliacion"
+					>
+						Solicitud de Afiliación
+					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
-			
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadSolicitudCambioSeccional}
+						width="32"
+						tarea="Consultas_SolicitudCambioSeccional"
+					>
+						Solicitud de Cambio de Seccional
+					</Button>
+				
+				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadVisitaSeccional}
+						width="32"
+						tarea="Consultas_VisitaSeccional"
+					>
+						Visita a Seccional
+					</Button>
+				
+				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadNotificacionEmpresa}
+						width="32"
+						tarea="Consultas_NotificacionEmpresa"
+					>
+						Notificación a Empresa
+					</Button>
+				
+				</Grid>
+				
+				
+			</>
+		),
+		// actions,
+	});
+
+	// Afiliados
+	tabs.push({
+		header: () => <Tab label="Seccionales" disable={disableTabSeccionales} />,
+		body: () => (
+			<>
+				<Grid width gap="inherit" justify="evenly">
+					<SeccionalesMap/>
 				</Grid>
 			</>
 		),
@@ -41,7 +132,7 @@ const ConsultasHandler = () => {
 
 	// DDJJ
 	tabs.push({
-		header: () => <Tab label="Otras Consultas" />,
+		header: () => <Tab label="Otras Consultas"/>,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">

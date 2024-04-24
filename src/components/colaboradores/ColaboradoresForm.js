@@ -33,7 +33,7 @@ const ColaboradoresForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
@@ -52,7 +52,7 @@ const ColaboradoresForm = ({
 											afiliadoCUIL: Number(v.replace(/[^\d]/gim, "")),
 										})
 									}
-									mask="99\-99\.999\.999\-9"
+									
 									width={100}
 								/>
 							)}

@@ -159,7 +159,7 @@ const Login = () => {
             {!isLoading ? (
               <div>
                 <Button active type="submit" className="botonAzul" underlineindex={0}>
-                  Ingresar
+                  Ingresa
                 </Button>
                 <p />
                 
@@ -180,6 +180,8 @@ const Login = () => {
         <div className="mt-2">
           <a><Link to="/contacto"> <text className={classes.underline}>C</text>ontacto</Link></a>
         </div>  
+        {process.env.REACT_APP_URL_BASE.includes("http:") && <h6 style={{textShadow: '1px 1px 15px yellow'}} className="float-end">{process.env.REACT_APP_URL_BASE.toUpperCase()}</h6>}
+      
       </LoginCard>
      
     </div>

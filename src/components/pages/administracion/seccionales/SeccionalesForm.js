@@ -6,14 +6,8 @@ import classes from "./SeccionalesForm.module.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {Modal} from 'react-bootstrap';
 import UseKeyPress from "components/helpers/UseKeyPress";
-import InputMaterial from "../../../ui/Input/InputMaterial";
+import InputMaterial, { CodSeccional } from "../../../ui/Input/InputMaterial";
 import SearchSelectMaterial from "../../../ui/Select/SearchSelectMaterial";
-import InputMask from 'react-input-mask';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-
 import useHttp from "../../../hooks/useHttp";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 
@@ -35,8 +29,9 @@ const SeccionalesForm = ({
 	data ??= {}; 
 	delegaciones ??= [];
 	 console.log('Form_seccional_data:',data)
+	 console.log('Form_seccional_disable:',disabled)
 	 //console.log('data_seccional:',data)
-	 console.log('delegaciones_seccional:',delegaciones)
+	 //console.log('delegaciones_seccional:',delegaciones)
 	// console.log('Form_seccional_errors:',errors)
 	
 	disabled ??= {};
@@ -45,17 +40,6 @@ const SeccionalesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-	const estados = [
-		{value: "NORMALIZADA", label: "NORMALIZADA"},
-		{value: "TRANSITORIA", label: "TRANSITORIA"},
-		{value: "EN LITIGIO", label: "EN LITIGIO"},
-		{value: "INACTIVA", label: "INACTIVA"},
-		//{value: "BAJA", label: "BAJA"},
-		{value: "ABSORBIDA", label: "ABSORBIDA"},
-	];
-
-	title.includes("Baja") && estados.push({value: "BAJA", label: "BAJA"});
-	
 	//#region Buscar Localidades
 	const [localidadesTodas, setLocalidadesTodas] = useState([]);
 	
@@ -63,12 +47,11 @@ const SeccionalesForm = ({
 	const [localidadesOptions, setLocalidadesOptions] = useState([""]); //LISTA DE TODAS LAS LOCALIDADES  
 	const [localidadSeccional, setLocalidadSeccional] = useState({value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre} );
 
+	const [estadosOptions, setEstadosOptions] = useState([]);
+			
+
 	const { isLoading, error, sendRequest: request } = useHttp();
-
-	//const localidadInicio = {value: data?.refLocalidadesId ?? 0, label: data?.localidadNombre}
 	
-	
-
 	const selectedDelegacion = (delegacionId) =>{
 		const delegacion = delegaciones.find((c) => c.value === delegacionId)
 		return delegacion;
@@ -76,13 +59,10 @@ const SeccionalesForm = ({
 
 	//TRAIGO TODAS LAS LOCALIDADES una vez
 	useEffect(() => {
-		disabled.estado && onChange({ estado: data.estado });
-
+		disabled.seccionalEstadoId && onChange({ seccionalEstadoId: data.seccionalEstadoId });
 		const processLocalidades = async (localidadesObj) => {
-			
 			setLocalidadesTodas(localidadesObj);
 		};
-	
 		request(
 			{
 			baseURL: "Afiliaciones",
@@ -93,8 +73,25 @@ const SeccionalesForm = ({
 		);
 	},[]);
 
+	//#region TRAIGO TODOS LOS ESTADOS una vez
 	useEffect(() => {
-		console.log('localidadBuscar',localidadBuscar)
+		const processEstados = async (estadosObj) => {
+			const estados = estadosObj.map((e)=> ({value: e.id, label: e.descripcion}))
+			console.log("estados",estados);
+			setEstadosOptions(estados);
+		};
+		request(
+			{
+				baseURL: "Afiliaciones",
+				endpoint: "/SeccionalEstado",
+				method: "GET",
+			},
+			processEstados
+		);
+	},[]);
+	//#endregion
+
+	useEffect(() => {
 		if (localidadBuscar.length > 2) {
 		const localidadesSelect = localidadesTodas
 			.filter((localidad) =>
@@ -103,23 +100,17 @@ const SeccionalesForm = ({
 			.map((localidad) => {
 			return { value: localidad.id, label: localidad.nombre };
 			});
-			//console.log("localidadesSelect", localidadesSelect, localidades);
 			setLocalidadesOptions(localidadesSelect);
 		}     
-
 		if (localidadBuscar === ""){
 			setLocalidadesOptions([])
 			setLocalidadBuscar("")
 		}    
 	}, [localidadesTodas, localidadBuscar]);
 
-	const handlerOnTextChange = (event) => {
-		//console.log("text change", event.target.value);
-		 
-		
-		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
-		setLocalidadBuscar(event.target.value);
-		
+	const handlerOnTextChange = (buscar) => {
+		setLocalidadSeccional({...localidadSeccional, label: buscar});
+		setLocalidadBuscar(buscar);
 	  };
 	//#endregion
 
@@ -137,46 +128,36 @@ const SeccionalesForm = ({
 			>
 				<Modal.Header closeButton><h3>{title}</h3></Modal.Header>
 				<Modal.Body>
-				<div className={classes.div}>
-					<div className={classes.container}>
-						
-						<div className={classes.item0}>
-							
-								<InputMaterial
-									id="codigo"
-									label="Codigo"
-									as={InputMask}
-									mask="S-9999"
-									required 
-									error={!!errors.codigo}
-									helperText={errors.codigo ?? ""}
-									value={data.codigo}
-									disabled={disabled.codigo}
-									onChange={(value, _id) => onChange({ codigo: value })}
-								/>
-							
-						</div>
-						<div className={classes.item1}>
-
+					<Grid col full gap="15px">
+						<Grid  gap="inherit">
+							<InputMaterial
+								id="codigo"
+								label="Codigo"
+								mask={CodSeccional}
+								placeholder={"S-____"}
+								required 
+								error={!!errors.codigo}
+								helperText={errors.codigo ?? ""}
+								value={data.codigo}
+								disabled={disabled.codigo}
+								onChange={(codigo) => onChange({codigo})}
+							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
 							<SelectMaterial
-								id="estado"
-								name="estado"
+								id="seccionalEstadoId"
+								name="seccionalEstadoId"
 								label="Estado"
-								error={!!errors.estado} 
-								helperText={errors.estado ?? ""}
-								value={data.estado}
-								disabled={disabled.estado ?? false}
-								onChange={(value) => onChange({ estado: value })}
-								defaultValue="NORMALIZADA"
-								options={estados}
+								error={!!errors.seccionalEstadoId} 
+								helperText={errors.seccionalEstadoId ?? ""}
+								value={data.seccionalEstadoId}
+								disabled={disabled.seccionalEstadoId ?? false}
+								onChange={(value) => onChange({ seccionalEstadoId: value })}
+								defaultValue={0}
+								options={estadosOptions}
 								required
 							/>     
 
-
-							  
-						</div>
-
-						<div className={classes.item2}>
 							<InputMaterial
 							id="descripcion"
 							label="Nombre"
@@ -187,32 +168,30 @@ const SeccionalesForm = ({
 							
 							onChange={(value, _id) => onChange({ descripcion: value })}
 							/>
-						</div> 
-
-						<div className={classes.item3}>
+						</Grid>
+						
+						<Grid width="full" gap="inherit">
 							<SearchSelectMaterial
-							id="refLocalidadesId"
-							name="refLocalidadesId"
-							label="Localidad"
+								id="refLocalidadesId"
+								name="refLocalidadesId"
+								label="Localidad"
 
-							error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
-							helperText={errors.refLocalidadesId ?? ""}
-							value={localidadSeccional}
-							disabled={disabled.refLocalidadesId ?? false}
-							onChange={(value, _id) => (
-								onChange({ refLocalidadesId: value.value }),
-								onChange({ localidadNombre: value.label }),
-								setLocalidadSeccional({...localidadSeccional,label: value.label})
-								)}
-							
-							options={localidadesOptions}
-					
-							onTextChange={handlerOnTextChange}
-							required
+								error={(!!errors.refLocalidadesId) || (data.localidadNombre != localidadSeccional.label)} 
+								helperText={errors.refLocalidadesId ?? ""}
+								value={localidadSeccional}
+								disabled={disabled.refLocalidadesId ?? false}
+								onChange={(value, _id) => (
+									onChange({ refLocalidadesId: value.value }),
+									onChange({ localidadNombre: value.label }),
+									setLocalidadSeccional({...localidadSeccional,label: value.label})
+									)}
+								
+								options={localidadesOptions}
+						
+								onTextChange={handlerOnTextChange}
+								required
 							/>
-						</div>
 
-						<div className={classes.item4}>
 							<InputMaterial
 							id="domicilio"
 							label="Dirección"
@@ -222,8 +201,10 @@ const SeccionalesForm = ({
 							disabled={disabled.domicilio ?? false}
 							onChange={(value, _id) => onChange({ domicilio: value })}
 							/>
-						</div> 
-						<div className={classes.item5}>
+						</Grid>
+
+						<Grid width="full" gap="inherit">
+							
 							<SelectMaterial
 								id="refDelegacionId"
 								name="refDelegacionId"
@@ -237,8 +218,19 @@ const SeccionalesForm = ({
 								options={delegaciones}
 								required
 							/>      
-						</div>  
-						<div className={classes.item6}>
+						
+							<InputMaterial
+							id="email"
+							type="email"
+							label="Email"
+							error={!!errors.email}
+							helperText={errors.email ?? ""}
+							value={data.email} 
+							disabled={disabled.email ?? false}
+							onChange={(value, _id) => onChange({ email: value })}
+							/>
+						</Grid> 
+						
 							<InputMaterial
 							id="observaciones"
 							label="Observaciones"
@@ -248,7 +240,7 @@ const SeccionalesForm = ({
 							disabled={disabled.observaciones ?? false}
 							onChange={(value, _id) => onChange({ observaciones: value })}
 							/>
-						</div>
+			
 
 						{!hide.deletedObs &&
 						<>
@@ -286,9 +278,7 @@ const SeccionalesForm = ({
 							/>
 						</div>
 						</>}
-					</div>
-			
-				</div>
+				</Grid>
 			
 			</Modal.Body>
 			<Modal.Footer>

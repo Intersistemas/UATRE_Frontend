@@ -323,7 +323,7 @@ const LiquidacionesCabeceraForm = ({
 	//#endregion
 
 	return (
-		<Modal size="xl" centered show onHide={() => onClose()}>
+		<Modal size="xl" centered show >
 			<Modal.Header className={modalCss.modalCabecera} closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">

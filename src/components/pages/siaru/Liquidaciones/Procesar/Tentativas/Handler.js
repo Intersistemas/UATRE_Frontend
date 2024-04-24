@@ -746,6 +746,32 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	}, [estado]);
 	//#endregion
 
+	const leyendas = (
+		<>
+			<Grid width="full" style={{ color: "blue" }}>
+				{[
+					"Cantidad de trabajadores:",
+					estado.nominas.cantidadTrabajadores,
+				].join(" ")}
+			</Grid>
+			<Grid width="full" style={{ color: "blue" }}>
+				{[
+					"Total remuneraciones:",
+					Formato.Moneda(estado.nominas.totalRemuneraciones),
+				].join(" ")}
+			</Grid>
+			{estado.nominas.ruralesSinEstablecimiento ? (
+				<Grid width="full" style={{ color: "red" }}>
+					{[
+						"No es posible generar la liquidación",
+						`porque existen (${estado.nominas.ruralesSinEstablecimiento})`,
+						"empleados Rurales que no tienen establecimiento asignado",
+					].join(" ")}
+				</Grid>
+			) : null}
+		</>
+	)
+
 	//#region Tab Nominas
 	const {
 		render: liqNomRender,
@@ -786,27 +812,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				<Grid col width="full">
 					{liqNomRender()}
 				</Grid>
-				<Grid width="full" style={{ color: "blue" }}>
-					{[
-						"Cantidad de trabajadores:",
-						estado.nominas.cantidadTrabajadores,
-					].join(" ")}
-				</Grid>
-				<Grid width="full" style={{ color: "blue" }}>
-					{[
-						"Total remuneraciones:",
-						Formato.Moneda(estado.nominas.totalRemuneraciones),
-					].join(" ")}
-				</Grid>
-				{estado.nominas.ruralesSinEstablecimiento ? (
-					<Grid width="full" style={{ color: "red" }}>
-						{[
-							"No es posible generar la liquidación",
-							`porque existen (${estado.nominas.ruralesSinEstablecimiento})`,
-							"empleados Rurales que no tienen establecimiento asignado",
-						].join(" ")}
-					</Grid>
-				) : null}
+				{leyendas}
 				<Grid col full="width" gap="inherit">
 					<LiquidacionNomina
 						data={liqNomEdit}
@@ -983,6 +989,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		body: () => (
 			<Grid col width="full" gap="inherit">
 				<Grid width="full">{liqRender()}</Grid>
+				{leyendas}
 				<Grid col full="width" gap="inherit">
 					<LiquidacionCabecera
 						data={estado.cabecera}

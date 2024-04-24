@@ -22,7 +22,7 @@ const Lookup = ({ title = "", table = tableDef, onClose = onCloseDef }) => {
 	UseKeyPress(["Enter"], () => onClose(table.getSelected()), "AltKey");
 
 	return (
-		<Modal size="xl" centered show onHide={() => onClose()}>
+		<Modal size="xl" centered show >
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				{title}
 			</Modal.Header>

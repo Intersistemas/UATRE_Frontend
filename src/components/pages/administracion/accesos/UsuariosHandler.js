@@ -8,6 +8,7 @@ import useTareas from "./tareas/useTareas";
 import useUsuarios from "./useUsuarios";
 import KeyPress from "components/keyPress/KeyPress";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import useAmbitos from "./usuarioAmbitos/useAmbitos";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
@@ -17,6 +18,8 @@ const UsuariosHandler = () => {
 	const tarea = useTareasUsuario();
 
 	const disableTabTareas = !tarea.hasTarea("Accesos_UsuarioTareas");
+	const disableTabAmbitos = !tarea.hasTarea("Accesos_UsuarioAmbitos");
+	
 	//#region Tab usuarios
 	const [usuariosTab, usuarioChanger, usuarioSelected] =
 		useUsuarios();
@@ -84,7 +87,7 @@ const UsuariosHandler = () => {
 		);
 		}
 		setUsuariosActions(actions);
-	}, [usuarioChanger, usuarioSelected]);
+	}, [usuarioChanger, usuarioSelected,usuariosTab]);
 	tabs.push({
 		header: () => <Tab label="Usuarios" />,
 		body: usuariosTab,
@@ -168,10 +171,10 @@ const UsuariosHandler = () => {
 			})
 		);
 		setTareasActions(actions);
-	}, [tareaChanger, tareaSelected, usuarioSelected?.id]);
+	}, [tareaChanger, tareaSelected, usuarioSelected?.id,tareasTab]);
 
 	tabs.push({
-		header: () => <Tab label="Tareas" disabled={!usuarioSelected || disableTabTareas} />,
+		header: () => <Tab label="Usuario Tareas" disabled={!usuarioSelected || disableTabTareas} />,
 		body: tareasTab,
 		actions: tareasActions,
 	});
@@ -187,98 +190,98 @@ const UsuariosHandler = () => {
 	
 	
 
-	/*
-	//#region Tab colaboradores
-	const [colaboradoresTab, colaboradoresChanger, colaboradorSelected] =
-		useColaboradores();
-	const [colaboradoresActions, setColaboradoresActions] = useState([]);
-	/*useEffect(() => {
+	
+	//#region Tab ambitos
+	const [ambitosTab, ambitoChanger, ambitoSelected] = useAmbitos();
+	const [ambitosActions, setAmbitosActions] = useState([]);
+	useEffect(() => {
 		const actions = [];
-		const dele = usuarioSelected?.id;
-		if (!dele) {
-			setColaboradoresActions(actions);
+
+		const userName = usuarioSelected?.userName;
+		if (!userName) {
+			setAmbitosActions(actions);
 			return;
 		}
-		const deleDesc = `para Usuario ${dele}`;
+		const deleDesc = `para Usuario ${userName}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					colaboradoresChanger("selected", {
+					ambitoChanger("selected", {
 						request,
 						action,
-						record: { refUsuarioId: usuarioSelected?.id },
+						record: { usuarioId: usuarioSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
 			});
 		actions.push(
 			createAction({
-				action: `Agrega Colaborador ${deleDesc}`,
+				action: `Agrega Ambito ${deleDesc}`,
 				request: "A",
 				keys: "a",
+				tarea: "Accesos_UsuarioAmbitoAgrega",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
-		const sele = colaboradorSelected?.id;
-		if (!sele) {
-			setColaboradoresActions(actions);
+		const nombreAmbito = ambitoSelected?.nombreAmbito;
+		if (!nombreAmbito) {
+			setAmbitosActions(actions);
 			return;
 		}
-		const seleDesc = `${sele} ${deleDesc}`;
+		const ambitoDesc = `${nombreAmbito} ${deleDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Colaborador ${seleDesc}`,
+				action: `Consulta Ambito ${ambitoDesc}`,
 				request: "C",
 				keys: "o",
+				tarea: "Accesos_UsuarioAmbitoConsulta",
 				underlineindex: 1,
+				ellipsis: true,
 			})
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Colaborador ${seleDesc}`,
+				action: `Modifica Ambito ${ambitoDesc}`,
 				request: "M",
 				keys: "m",
+				tarea: "Accesos_UsuarioAmbitoModifica",
 				underlineindex: 0,
+				ellipsis: true,
 			})
 		);
-		if (colaboradorSelected?.deletedDate) {
-			actions.push(
-				createAction({
-					action: `Reactiva Colaborador ${seleDesc}`,
-					request: "R",
-					keys: "r",
-					underlineindex: 0,
-				})
-			);
-		} else {
-			actions.push(
-				createAction({
-					action: `Baja Colaborador ${seleDesc}`,
-					request: "B",
-					keys: "b",
-					underlineindex: 0,
-				})
-			);
-		}
-		setColaboradoresActions(actions);
-	}, [colaboradoresChanger, colaboradorSelected, usuarioSelected?.id]);
-	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!usuarioSelected} />,
-		body: colaboradoresTab,
-		actions: colaboradoresActions,
-	}); */
+		actions.push(
+			createAction({
+				action: `Borra Ambito ${ambitoDesc}`,
+				request: "B",
+				keys: "b",
+				tarea: "Accesos_UsuarioAmbitoBorra",
+				underlineindex: 0,
+				ellipsis: true,
+			})
+		);
+		setAmbitosActions(actions);
+	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id,ambitosTab]);
 
-	/*
-	// Si cambia usuario, refresco lista de colaboradores
+	tabs.push({
+		header: () => <Tab label="Usuario Ambito" disabled={!usuarioSelected || disableTabAmbitos} />,
+		body: ambitosTab,
+		actions: ambitosActions,
+	});
+
+	// Si cambia usuario, refresco lista de tareas
 	useEffect(() => {
-		colaboradoresChanger("list", {
+		ambitoChanger("list", {
 			clear: !usuarioSelected?.id,
-			params: { refUsuarioId: usuarioSelected?.id },
+			params: { usuarioId: usuarioSelected?.id },
 		});
-	}, [usuarioSelected?.id, colaboradoresChanger]);
+	}, [usuarioSelected?.id, ambitoChanger]);
 	//#endregion
 
+
+
+	/*
 	//#region Tab seccionales
 	const {
 		render: seccionalesRender,
@@ -381,8 +384,9 @@ const UsuariosHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

@@ -10,21 +10,29 @@
 	border-radius: 20px;
 }
 
+.contenido {
+	padding: 0 1rem;
+}
+
 .titulo {
 	font-weight: bold;
 	text-align: left;
-	padding-left: 1rem;
+	justify-content: start;
 }
 
 .label {
 	font-weight: bold;
 	text-align: right;
+	justify-content: end;
+	flex-shrink: 0;
 }
 
 .data {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	flex-grow: 1;
+	width: 0;
 }
 
 .afiliadoDetalle{

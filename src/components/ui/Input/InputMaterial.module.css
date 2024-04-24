@@ -6,7 +6,7 @@
     font-family: var(--fuente)!important;
     /*font-size: 1.1rem!important;*/
     color: var(--color1) !important;
-    font-weight: 500!important;
+    font-weight: 500;
   }
 
    /*ENTRY/INPUT-DESHABILITADO*/
@@ -14,7 +14,7 @@
     -webkit-text-fill-color: var(--disableFont) !important;
     color: var(--disableFont) !important;
     background-color: var(--disableFont); /* modificado 231005 white !important;*/
-    font-weight: 500!important;
+    font-weight: 500;
   }
   
 

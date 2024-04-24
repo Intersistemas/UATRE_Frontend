@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 // import Modal from "components/ui/Modal/Modal";
 // import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
@@ -14,10 +14,12 @@ const dependeciesDef = {
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
+
 const DocumentacionModal = ({
 	data = {},
 	title = "",
 	disabled = {},
+	loading = false,
 	hide = {},
 	errors = {},
 	dependecies = dependeciesDef,
@@ -26,9 +28,12 @@ const DocumentacionModal = ({
 }) => {
 	data ??= {};
 
+	console.log("loading**",loading)
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
+
+	const [loading1, setLoading] = useState(loading)
 
 	dependecies ??= {};
 	dependecies = dependecies === dependeciesDef ? {} : { ...dependecies };
@@ -43,11 +48,17 @@ const DocumentacionModal = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
+	const sendRequest = ()=>{
+		console.log("setLoading",loading)
+		setLoading(true)
+		setTimeout(() => setLoading(false), 3000);
+	}
+
 	UseKeyPress(["Escape"], () => onClose());
-	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
+	UseKeyPress(["Enter"], () => (sendRequest(), onClose(true)), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<Grid col full gap="15px">
@@ -147,7 +158,7 @@ const DocumentacionModal = ({
 			<Modal.Footer>
 				<Grid gap="20px">
 					<Grid width="150px">
-						<Button className="botonAzul" onClick={() => onClose(true)}>
+						<Button className="botonAzul" disabled={loading1} onClick={() => (sendRequest(), onClose(true))}>
 							CONFIRMA
 						</Button>
 					</Grid>

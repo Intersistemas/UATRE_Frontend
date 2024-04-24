@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import classes from "./Table.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import ToolkitProvider, {
@@ -15,6 +14,8 @@ import paginationFactory, {
 } from "react-bootstrap-table2-paginator";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
+import AsArray from "components/helpers/AsArray";
+import classes from "./Table.module.css";
 
 const { SearchBar } = Search;
 
@@ -62,10 +63,26 @@ const columnStyleDef = {
 	whiteSpace: "nowrap",
 };
 
+export const asColumnArray = (columns, def = []) => {
+	switch (typeof columns) {
+		case "function":
+			return AsArray(columns(def.map((r) => ({ ...r }))), true);
+		case "object":
+			if (Array.isArray(columns) && columns.length)
+				return columns.map((r) => ({
+					...def.find((d) => d.dataField === r.dataField),
+					...r,
+				}));
+			return def;
+		default:
+			return def;
+	}
+};
+
 const Table = ({
 	data = [],
 	keyField = "",
-	columns = [],
+	columns: myColumns,
 	loading = false,
 	pagination = { ...paginationDef },
 	selection = { ...selectionDef },
@@ -81,9 +98,11 @@ const Table = ({
 	baseProps = {},
 	...x
 }) => {
+
+	console.log("table_data",data)
 	data ??= [];
 	keyField ??= "";
-	columns ??= [];
+	const columns = asColumnArray(myColumns);
 	columns.forEach((r) => {
 		const style = r.style;
 		r.style = (...a) => ({
@@ -98,7 +117,6 @@ const Table = ({
 	defaultSorted ??= false;
 	noDataIndication ??= noDataIndicationDef;
 	baseProps ??= {};
-	baseProps = { ...baseProps, ...x };
 
 	// Normalizo la paginación que pasa por props
 	if (pagination) {
@@ -182,7 +200,6 @@ const Table = ({
 						{(toolkitprops) => (
 							<div>
 								{!mostrarBuscar ? null : (
-									//<div style={{ display: "flex", justifyContent: "right" }}>
 									<div className="position-absolute end-0 w-25" style={{ marginTop: '-2.5em'}}>
 										<SearchBar
 											{...toolkitprops.searchProps}
@@ -191,8 +208,7 @@ const Table = ({
 										/>
 									</div>
 								)}
-								{/*<br />*/}
-								<div className={classes.tabla}>
+								<div className={classes.tabla} {...baseProps}>
 									<BootstrapTable
 										{...toolkitprops.baseProps}
 										{...paginationTableProps}
@@ -210,7 +226,7 @@ const Table = ({
 										rowEvents={rowEvents}
 										overlay={overlay}
 										rowStyle={rowStyle}
-										{...baseProps}
+										{...x}
 									/>
 								</div>
 								<SizePerPageDropdownStandalone {...paginationProps} />

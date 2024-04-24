@@ -151,7 +151,7 @@ const AsignaSeccionalLocalidadHandler = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				{title}
 			</Modal.Header>
@@ -175,8 +175,8 @@ const AsignaSeccionalLocalidadHandler = ({
 								setSeccionales((o) => ({ ...o, selected }))
 							}
 							options={seccionales.options}
-							onTextChange={({ target }) =>
-								setSeccionales((o) => ({ ...o, buscar: target.value }))
+							onTextChange={(buscar) =>
+								setSeccionales((o) => ({ ...o, buscar }))
 							}
 						/>
 					</Grid>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import TareaTable from "./TareaTable";
-import TareaForm from "./TareaForm";
+import TareaUsuarioForm from "./TareaUsuarioForm";
 
 const selectionDef = {
 	action: "",
@@ -17,6 +17,15 @@ const useTareas = () => {
 	const pushQuery = useQueryQueue((action, params) => {
 		console.log('useTareas_action',action," & ",params);
 		switch (action) {
+			case "GetList": {
+				return {
+					config: {
+						baseURL: "Seguridad",
+						endpoint: `/Tareas`,
+						method: "GET",
+					},
+				};
+			}
 			case "GetListByModuloId": {
 				return {
 					config: {
@@ -26,7 +35,7 @@ const useTareas = () => {
 					},
 				};
 			}
-			case "GetList": {
+			case "GetListByUsuarioId": {
 				return {
 					config: {
 						baseURL: "Seguridad",
@@ -35,32 +44,32 @@ const useTareas = () => {
 					},
 				};
 			}
-			case "Create": {
+			case "CreateUT": {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						//endpoint: `/UsuariosModulosTareas`,
+						endpoint: `/UsuariosModulosTareas`,
 						method: "POST",
 					},
 				};
 			}
-			case "Update": {
+			case "UpdateUT": {
 				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/xxxx/${id}`,
+						endpoint: `/UsuariosModulosTareas/${id}`,
 						method: "PUT",
 					},
 					params: otherParams,
 				};
 			}
-			case "Delete": {
+			case "DeleteUT": {
 				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/xxxxx/${id}`,
+						endpoint: `/UsuariosModulosTareas/${id}`,
 						method: "DELETE",
 					},
 					params: otherParams,
@@ -85,7 +94,7 @@ const useTareas = () => {
 	useEffect(() => {
 		if (!list.loading) return;
 		pushQuery({
-			action: "GetList",
+			action: list.params.usuarioId ? "GetListByUsuarioId" : "GetList",
 			params: { ...list.params },
 
 			onOk: async (data) =>
@@ -162,7 +171,7 @@ const useTareas = () => {
 	let form = null;
 	if (list.selection.edit) {
 		form = (
-			<TareaForm
+			<TareaUsuarioForm
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
@@ -171,9 +180,12 @@ const useTareas = () => {
 						? {}
 						: {
 								tareasId: true,
-								moduloId: true,
+								modulosId: true,
+								deletedDate: true,
+								deletedBy: true
 						  };
 					if (list.selection.request !== "B") r.deletedObs = true;
+
 					return r;
 				})()}
 				hide={
@@ -182,16 +194,27 @@ const useTareas = () => {
 						: {}
 				}
 				onChange={(changes) =>
-					setList((o) => ({
-						...o,
-						selection: {
-							...o.selection,
-							edit: {
-								...o.selection.edit,
-								...changes,
+					{
+						console.log('useTareas_onChange',changes)
+						const errors = {};
+						if (list?.data?.find((t)=> t.tareasId === changes?.tareasId) != null)
+						{ 
+							 errors.tareasId = "El Usuario ya posee esta Tarea"
+							 errors.tareaExiste = true
+						};
+
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								errors,
+								edit: {
+									...o.selection.edit,
+									...changes,
+								},
 							},
-						},
-					}))
+						}))
+					}
 				}
 				onClose={(confirm) => {
 					if (!["A", "B", "M"].includes(list.selection.request))
@@ -209,12 +232,11 @@ const useTareas = () => {
 					}
 
 					const record = list.selection.edit;
-
 					//Validaciones
 					const errors = {};
 
 					if (!record.tareasId) errors.tareasId = "Dato requerido";
-					if (!record.moduloId) errors.moduloId = "Dato requerido";
+					if (!record.modulosId) errors.modulosId = "Dato requerido";
 
 					if (list.selection.request === "B") {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
@@ -237,20 +259,21 @@ const useTareas = () => {
 							setList((old) => ({ ...old, loading: "Cargando..." })),
 						onError: async (err) => alert(err.message),
 					};
+
 					switch (list.selection.request) {
 						case "A":
-							query.action = "Create";
+							query.action = "CreateUT";
 							query.config.body = record;
 							break;
 						case "M":
-							query.action = "Update";
+							query.action = "UpdateUT";
 							query.params = { id: record.id };
 							query.config.body = record;
 							break;
 						case "B":
-							query.action = "Delete";
+							query.action = "DeleteUT";
 							query.params = { id: record.id };
-							query.config.body = record.bajaObservacion;
+							//query.config.body = record.bajaObservacion;
 							break;
 						default:
 							break;

@@ -79,11 +79,11 @@ const SeccionalLocalidadesForm = ({
 	}, [data?.localidadesTodas, localidadBuscar]);
 
 	
-	const handlerOnTextChange = (event) => {
-		console.log("text change", event.target.value);
+	const handlerOnTextChange = (buscar) => {
+		console.log("text change_buscar", buscar);
 		
-		setLocalidadSeccional({...localidadSeccional, label: event.target.value});
-		setLocalidadBuscar(event.target.value);
+		setLocalidadSeccional({...localidadSeccional, label: buscar});
+		setLocalidadBuscar(buscar);
 		
 	};
 	//#endregion
@@ -93,7 +93,7 @@ const SeccionalLocalidadesForm = ({
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	return (
-		<Modal size="lg" centered show onHide={() => onClose()}>
+		<Modal size="lg" centered show >
 			<Modal.Header closeButton>{title}</Modal.Header>
 			<Modal.Body>
 				<div className={classes.renglon}>

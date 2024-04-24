@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	DateTimePicker as DTPicker,
 	DatePicker,
@@ -11,10 +11,26 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import styles from "../Input/InputMaterial.module.css";
 import { TextField } from "@mui/material";
 
+ /**
+	* 
+	* @param {object} props
+	* @param {string} props.type
+	* @param {string} props.value
+	* @param {string} props.placeholder
+	* @param {((value: dayjs.Dayjs) => string) | string} props.format
+	* @param {string[]} props.views
+	* @param {string | JSX.Element} props.error
+	* @param {boolean} props.required
+	* @param {object} props.InputRenderProps
+	* @param {(props: object) => JSX.Element} props.renderInput
+	* @param {(value: dayjs.Dayjs | string) => void} props.onChange
+	* @returns 
+	*/
 const DateTimePicker = ({
-	type = "fechahora",
-	value = "",
+	type = "datetime",
+	value: myValue = "",
 	placeholder = "",
+	format,
 	views,
 	error,
 	required,
@@ -47,7 +63,6 @@ const DateTimePicker = ({
 
 		const inputProps = { ...renderProps.inputProps };
 		if (placeholder) inputProps.placeholder = placeholder;
-		if (!value) inputProps.value = "";
 
 		return (
 			<TextField
@@ -58,8 +73,17 @@ const DateTimePicker = ({
 			/>
 		);
 	},
-	...resto
-}) => {
+	onChange = () => {},
+	...x
+} = {}) => {
+	
+	const [value, setValue] = useState(myValue ? dayjs(myValue) : null);
+
+	useEffect(() => {
+		const newValue = myValue ? dayjs(myValue) : null;
+		if (myValue === null || newValue?.isValid()) setValue(newValue);
+	}, [myValue])
+
 	let pViews, Picker;
 	switch (`${type}`.toLowerCase()) {
 		case "datetime":
@@ -112,9 +136,21 @@ const DateTimePicker = ({
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"es-mx"}>
 			<Picker
 				views={pViews}
-				value={dayjs(value)}
+				value={value}
+				onChange={(v) => setValue((o) => {
+					if (v?.isValid())
+						onChange(
+							typeof format === "function"
+								? format(v)
+								: typeof format === "string"
+								? v?.format(format)
+								: v
+						);
+					else if (o?.isValid()) onChange(undefined);
+					return v;
+				})}
 				renderInput={renderInput}
-				{...resto}
+				{...x}
 			/>
 		</LocalizationProvider>
 	);

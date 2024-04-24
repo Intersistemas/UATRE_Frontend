@@ -2,7 +2,7 @@ import React from "react";
 import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import modalCss from "components/ui/Modal/Modal.module.css";
@@ -26,10 +26,12 @@ const UsuariosForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
+	console.log("UsuariosForm_data",data)
 	data ??= {};
 	data.nombre ??= "";
 	
 	data.rol ??= "Usuario" ;
+	data.tipo ??= "Interno";
 
 	disabled ??= {};
 	hide ??= {};
@@ -48,7 +50,7 @@ const UsuariosForm = ({
 	  };
 
 	return (
-		<Modal show onHide={() => onClose()} size="lg" centered>
+		<Modal show /*onHide={() => onClose()}*/ size="lg" centered>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				<h3>{title}</h3>
 			</Modal.Header>
@@ -135,7 +137,8 @@ const UsuariosForm = ({
 									required
 									label="CUIT"
 									error={!!errors.cuit}
-									mask="99-99.999.999-9"
+									//mask="99-99.999.999-9"
+									mask={CUITMask}
 									helperText={errors.cuit ?? ""}
 									value={data.cuit}
 									disabled={disabled.cuit ?? false}
