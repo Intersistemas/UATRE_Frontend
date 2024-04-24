@@ -278,7 +278,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
-	const { state: createFormQuery, setState: setCreateFormQuery } =
+	const { setState: setCreateFormQuery } =
 		useQueryState(
 			() => ({
 				config: {
@@ -860,16 +860,20 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 													...o.query,
 													params: { ...o.query.params, cuit },
 												},
-												onLoad: ({ ok, error }) => {
+												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
 															changes.errors.cuil = "No existe en AFIP";
 														} else {
 															changes.errors.cuil = error.toString();
-															//ToDo: Auditar
+															audit({
+																modulo: "Consultas",
+																proceso: "SolicitudPreviaAfiliacion",
+																parametros: { ...query.params, ingreso: "trabajador" },
+																observaciones: `Error consulta AFIP: ${error.toString()}`,
+															});
 														}
 													} else {
-														//ToDo: Cargar datos AFIP
 														changes.form.apellido = ok.apellido;
 														changes.form.nombre = ok.nombre;
 														changes.form.fechaNacimiento =
@@ -1426,16 +1430,20 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 													...o.query,
 													params: { ...o.query.params, cuit },
 												},
-												onLoad: ({ ok, error }) => {
+												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
 															changes.errors.cuit = "No existe en AFIP";
 														} else {
 															changes.errors.cuit = error.toString();
-															//ToDo: Auditar
+															audit({
+																modulo: "Consultas",
+																proceso: "SolicitudPreviaAfiliacion",
+																parametros: { ...query.params, ingreso: "empleador" },
+																observaciones: `Error consulta AFIP: ${error.toString()}`,
+															});
 														}
 													} else {
-														//ToDo: Cargar datos AFIP
 														changes.form.razonSocial =
 															ok.razonSocial || ok.nombre;
 														if (ok.domicilios?.length) {
