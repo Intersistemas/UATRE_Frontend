@@ -37,6 +37,16 @@ const styles = {
 
 //#region options
 
+//#region seccionalesSelect Options
+const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//#endregion seccionalesSelect Options
+
 //#region tipoDocumentoSelect Options
 const tipoDocumentoSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
@@ -147,6 +157,16 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	//#region APIs
+	const { setState: setSeccionalesQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Seccional`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" }, params: { soloActivos: true } } }
+	);
 	const { setState: setTiposDocumentosQuery } = useQueryState(
 		() => ({
 			config: {
@@ -284,6 +304,25 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 
 	//#region selects
 
+	//#region select seccional
+	const [seccionalSelect, setSeccionalSelect] = useState({
+		loading: "",
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: {},
+		origen: "",
+	});
+	// Buscador
+	useEffect(() => {
+		setSeccionalSelect((o) => ({
+			...o,
+			options: seccionalesSelectOptions(o),
+		}));
+	}, [seccionalSelect.buscar, seccionalSelect.data]);
+	//#endregion select seccional
+
 	//#region selects trabajador
 
 	//#region select tipo documento
@@ -296,7 +335,6 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 		selected: {},
 		origen: "",
 	});
-
 	// Buscador
 	useEffect(() => {
 		setTipoDocumentoSelect((o) => ({
@@ -316,7 +354,6 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 		selected: {},
 		origen: "",
 	});
-
 	// Buscador
 	useEffect(() => {
 		setNacionalidadSelect((o) => ({
@@ -533,6 +570,24 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	//#endregion selects
 
 	//#region inicializaciones
+	
+	//#region Carga inicial select seccional
+	useEffect(() => {
+		setSeccionalesQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setSeccionalSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setSeccionalesQuery]);
+	//#endregion Carga inicial select seccional
 
 	//#region Carga inicial select tipo documento
 	useEffect(() => {
@@ -698,14 +753,42 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 			<Grid full col gap="10px">
 				<Grid width gap="inherit">
 					<Grid width>
-						<InputMaterial
-							type="number"
-							label="Seccional Nro"
-							value={state.form.seccionalId}
-							error={!!state.errors.seccionalId}
-							helperText={state.errors.seccionalId}
-							onChange={(seccionalId) =>
-								setState((o) => ({ ...o, form: { ...o.form, seccionalId } }))
+						<SearchSelectMaterial
+							id="seccionalId"
+							label="Seccional"
+							error={
+								!!(
+									seccionalSelect.error || state.errors.seccionalId
+								)
+							}
+							helperText={
+								seccionalSelect.loading ??
+								seccionalSelect.error ??
+								state.errors.seccionalId
+							}
+							value={seccionalSelect.selected}
+							onChange={(selected = {}) => {
+								setSeccionalSelect((o) => ({
+									...o,
+									selected,
+									origen: "option",
+								}));
+								setState((o) => ({
+									...o,
+									form: {
+										...o.form,
+										seccionalId: selected.record?.id,
+										seccional: selected.record?.nombre,
+									},
+								}));
+							}}
+							options={seccionalSelect.options}
+							onTextChange={(buscar) =>
+								setSeccionalSelect((o) => ({
+									...o,
+									buscar,
+									origen: "text",
+								}))
 							}
 						/>
 					</Grid>
@@ -1640,8 +1723,20 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 		const errors = {};
 		const body = state.form;
 
-		if (!body.seccionalId) errors.seccionalId = "Dato requerido";
+		//#region general
+		if (seccionalSelect.origen === "text") {
+			body.seccionalId = 0;
+			body.seccional = seccionalSelect.buscar;
+			errors.seccionalId = "Debe elegir una seccional"
+		} else {
+			body.seccionalId = seccionalSelect.selected.record?.id;
+			body.seccional = seccionalSelect.selected.record?.descripcion;
+			body.seccionalCodigo = seccionalSelect.selected.record?.codigo;
+		}
+		if (!body.seccional) errors.seccionalId = "Dato requerido";
+
 		if (!body.fecha) errors.fecha = "Dato requerido";
+		//#endregion general
 
 		//#region trabajador
 		if (!body.cuil) {
@@ -1789,15 +1884,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 		//#endregion empleador
 
 		if (Object.values(errors).filter((r) => r).length) {
-			console.log({ errors });
 			setState((o) => ({ ...o, errors }));
 			return;
 		}
 
 		const despliega = () => {
-			console.log({ form: body });
 			const data = {
-				"seccional.codigo": body.seccionalId,
+				"seccional.codigo": body.seccionalCodigo,
 				...Object.fromEntries(
 					`${body.fecha || ""}`
 						.split("-")
@@ -1916,7 +2009,6 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							onPreLoad: () =>
 								setState((o) => ({ ...o, loading: "Enviando formulario..." })),
 							onLoad: ({ error }) => {
-								console.log({ error })
 								const changes = { loading: null }
 								if (error) {
 									changes.errors = { create: error.toString() }
