@@ -279,7 +279,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 			error: null,
 		};
 		setSeccionales((o) => ({ ...o, ...changes }));
-		if (!changes.loading) return;
+		if (changes.loading) return;
 		const query = {
 			action: "GetSeccionales",
 			config: {
@@ -620,7 +620,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 										setFiltros((o) => {
 											const filtros = {
 												...o,
-												ambitoDelegaciones: { ids: [selected.value] },
+												ambitoDelegaciones: { ids: [selected?.value] },
 											};
 											if (selected === delegacionSelectTodos)
 												delete filtros.ambitoDelegaciones;

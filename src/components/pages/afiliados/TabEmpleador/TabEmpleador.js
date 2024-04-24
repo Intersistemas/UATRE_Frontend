@@ -7,9 +7,13 @@ import Button from "components/ui/Button/Button";
 const TabEmpleador = (props) => {
   const InputDisabled = (input) => {    
  
+    if (props.afiliado?.estadoSolicitudId === 3){
+      return true
+    }
     return false;
   };
 
+  
   // const handleOnFocus = (id) => {
   //   console.log("focus on ", id)
   //   //props.onFocus(id);
@@ -41,12 +45,12 @@ const TabEmpleador = (props) => {
           className="botonAzul"
           width={20}
           heigth={80}
-          disabled={!props.cuitState.isValid}
+          disabled={!props.cuitState.isValid || InputDisabled()}
           onClick={props.onValidarEmpresaCUITHandler}
           loading={props.cuitLoading}
           underlineindex = {0}
         >
-          {!props.cuitLoading ? `Valida CUIT` : `Validando...`}
+          {!props.cuitLoading ? `Verifica CUIT AFIP` : `Verificando...`}
         </Button>
       </div>
 
@@ -98,7 +102,7 @@ const TabEmpleador = (props) => {
             id="telefonoEmpresa"
             value={props.telefonoEmpresa}
             label="Telefono"
-            disabled={false}
+            disabled={InputDisabled()}
             width={100}
             onChange={props.onHandleInputChange}
           />
@@ -109,7 +113,7 @@ const TabEmpleador = (props) => {
             id="correoEmpresa"
             value={props.correoEmpresa}
             label="Correo"
-            disabled={false}
+            disabled={InputDisabled()}
             width={100}
             onChange={props.onHandleInputChange}
           />
@@ -122,7 +126,7 @@ const TabEmpleador = (props) => {
             id="lugarTrabajoEmpresa"
             value={props.lugarTrabajoEmpresa}
             label="Lugar de Trabajo"
-            disabled={false}
+            disabled={InputDisabled()}
             //width={100}
             onChange={props.onHandleInputChange}
           />

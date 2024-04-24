@@ -116,7 +116,7 @@ const Sidebar = ({children}) => {
     };
 
 
-    const[isOpen ,setIsOpen] = useState(true);
+    const[isOpen ,setIsOpen] = useState(window.innerWidth <= 800 ? false : true);
     const toggle = () => setIsOpen (!isOpen);
     
     const navFunction = useSelector(state => state.nav[location.pathname]);
@@ -188,14 +188,14 @@ const Sidebar = ({children}) => {
         <>     
         {isLoggedIn && (
         <div className={clases.sidebar_container}>
-           <div style={{width: isOpen ? "200px" : "50px"}} className={clases.sidebar}>
+           <div style={{width: isOpen ? "12rem" : "5rem"}} className={clases.sidebar}>
                 <div className={clases.sidebar_opciones}>
                     <div className={clases.top_section}>
-                        <h1 style={{display: isOpen ? "block" : "none"}} className={clases.logo}>
+                        <h1 style={{display: isOpen ? "" : "none"}} className={clases.logo}>
                             <img src={logo} width="100" height="100" onClick={toggle}/>
                             <a>UATRE</a>
                         </h1>
-                        {process.env.REACT_APP_URL_BASE != "uatre" && <h5 style={{textShadow: '1px 1px 15px yellow'}}>Ambiente: {process.env.REACT_APP_URL_BASE.toUpperCase()}</h5>}
+                        {process.env.REACT_APP_URL_BASE.includes("http:") && <h6 style={{textShadow: '1px 1px 15px yellow'}}>{process.env.REACT_APP_URL_BASE.toUpperCase()}</h6>}
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
                         </div> 

@@ -15,6 +15,8 @@ import InputMaterial, { CUITMask, DNIMask } from "components/ui/Input/InputMater
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
+import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
+import { flatten } from "components/helpers/Utils";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
@@ -353,12 +355,6 @@ const [telefonoState, dispatchTelefono] = useReducer(telefonoReducer, {
   isValid: false,
 });
 
-const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] = useReducer(seccionalSolicitudAfiliacionReducer, {
-  value: "",
-  isValid: false,
-});
-
-
 const [nacionalidadState, dispatchNacionalidad] = useReducer(
   nacionalidadReducer,
   {
@@ -426,6 +422,10 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   isValid: false,
 });
 
+const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] = useReducer(seccionalSolicitudAfiliacionReducer, {
+  value: "",
+  isValid: false,
+});
 //#ENDREGION
   
 
@@ -530,6 +530,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
+  const [SeccionalSolicitaAfiliacion, setSeccionalSolicitaAfiliacion] = useState([]);
   //#endregion
 
   //#region Documentación
@@ -549,7 +550,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   const [localidadEmpresa, setLocalidadEmpresa] = useState("");
   const [telefonoEmpresa, setTelefonoEmpresa] = useState("");
   const [correoEmpresa, setCorreoEmpresa] = useState("");
-  const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
+  const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");  
   //const [empresaId, setEmpresaId] = useState(0);
   //#endregion
 
@@ -679,7 +680,14 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
               ? ""
               : afiliadoObj.tipoDocumentoId,
         });
-        //dispatchProvincia({ type: "USER_INPUT", value: provinciaId });
+
+        console.log("despacha estea seccionalIdSolAfi:",afiliadoObj.seccionalIdSolicitudAfiliacion)
+        dispatchSeccionalSolicitudAfiliacion({
+          type: "USER_INPUT",
+          value: afiliadoObj.SeccionalIdSolicitudAfiliacion === 0 ? "" : afiliadoObj.seccionalIdSolicitudAfiliacion,
+        });
+
+        //dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: `${afiliadoObj.seccionalCodigoSolicitudAfiliacion} ${afiliadoObj.seccionalDescripcionSolicitudAfiliacion}`});
 
         dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.refLocalidadId, label: afiliadoObj?.localidad}});
         dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoObj?.seccionalId, label: afiliadoObj?.seccional}});
@@ -749,7 +757,6 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
         dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
-        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: `${afiliadoObj.seccionalCodigoSolicitudAfiliacion} ${afiliadoObj.seccionalDescripcionSolicitudAfiliacion}`});
 
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
@@ -760,12 +767,13 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				setDocumentacionList(afiliadoObj.documentacion ?? []);
 
         //alert
-        if (props.accion === "Agrega") {
-          console.log("MODIFICAR: afiliadoObj",afiliadoObj)
+        if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
           setDialogTexto(
-            `El Afiliado: ${afiliadoObj?.nombre} ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}`
+            `El Afiliado: ${afiliadoObj?.nombre} ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}
+            ${afiliadoObj.estadoSolicitud.includes("No Activo") ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`: "" }`
           );
           setOpenDialog(true);
+
           return;
         }
       };
@@ -778,6 +786,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         },
         processGetAfiliado
       );
+
     }
   }, [request, cuilState.value, cuilState.isValid]);
 
@@ -814,7 +823,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 	useEffect(() => {
 		if (!cuilState.isValid) return;
 		if (!cuitState.isValid) return;
-		let { cuil, cuit, data } = { cuil: afiliado?.cuilValidado ?? 0 /*cuilState?.value*/, cuit: cuitState.value };
+		let { cuil, cuit, data } = { cuil: afiliado?.cuilValidado ?? cuilState?.value, cuit: cuitState.value };
 		if (ultimaDDJJ.cuil === cuil && ultimaDDJJ.cuit === cuit) return;
 
     console.log('cuil para DDJJ',cuil)
@@ -825,6 +834,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				method: "GET",
 			},
 			async (ok) => {
+        console.log("ok_data:",ok)
 				ok.forEach((ddjj) => {
 					if (!data) {
 						data = {};
@@ -840,9 +850,12 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				});
 			},
 			async (_) => (data = {}),
-			async () => setUltimaDDJJ({ cuil, cuit, data })
+			async () => {
+        console.log("setUltimaDDJJ",data)
+        setUltimaDDJJ({ cuil, cuit, data })
+      }
 		);
-	}, [request, ultimaDDJJ, cuilState, cuitState]);
+	}, [request, ultimaDDJJ, cuilValidado, cuitState]);
 	//#endregion
 
   //#region Tablas para crear afiliado
@@ -887,6 +900,35 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
       processPuestos
     );
   }, [request]);
+
+
+
+  useEffect(() => {
+    const processGetSeccionales = async(seccionalesObj) =>{
+      console.log("seccionales_todas",seccionalesObj)
+
+      
+      const seccionalesOptions = seccionalesObj
+        .sort((a, b) => (a.codigo > b.codigo ? 1 : -1))
+        .map((s) => {
+          return { value: s.id, label: `${s.codigo}-${s.descripcion}-${s.provinciaDescripcion}` };
+        });
+        
+        setSeccionalSolicitaAfiliacion(seccionalesOptions);
+			  dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: 99999 });
+    }
+  
+    //#region consulto todas las seccionales las cuales mostraré en el combo de SeccionalSolicitaAfiliacion
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional?SoloActivos=true`,
+        method: "GET",
+      },
+      processGetSeccionales
+    );
+  }, [request]);
+
 
   useEffect(() => {
     const processSexos = async (sexosObj) => {
@@ -1118,8 +1160,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
     //event.preventDefault();
-    console.log('afiliadoAgregarHandler_seccionalState',seccionalState);
-    console.log('afiliadoAgregarHandler_localidadState',localidadState);
+
     setInputsTouched(true);
     if (!formularioIsValid || !formularioEmpleadorIsValid) {
       //console.log("formularioIsValid", formularioIsValid);
@@ -1192,6 +1233,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				tipoDocumentoId: +tipoDocumentoState.value,
 				documento: +numeroDocumentoState.value,
 				actividadId: +actividadState.value,
+        seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value,
 				//estadoSolicitud: afiliado.estadoSolicitud,
 				estadoSolicitudId: validaAutomatica ? 2 : 1,
 				estadoSolicitudObservaciones: validaAutomatica
@@ -1239,7 +1281,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 				afipDomicilioDatoAdicional: domicilioRealAFIP?.datoAdicional,
 				afipDomicilioTipoDatoAdicional: domicilioRealAFIP?.tipoDatoAdicional,
 				empresa: empresa,
-        cuilValidado: +cuilState.value, //FER me pide que cuando es INSERT, no se guarde el CUILValidado.
+        CUILValidado: cuilValidado ? +cuilState.value : 0, //FER me pide que cuando es INSERT, no se guarde el CUILValidado.
 				documentacion: documentacionList.map((r) => ({
 					...r,
 					id: 0,
@@ -1297,12 +1339,41 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   };
   //#endregion
 
+  const { audit } = useAuditoriaProceso();
+
+  const validaCUILHandler = (value) =>{
+
+    setCuilValidado(true);
+    setDialogTexto(`Se ha validado el CUIL, confirme la ficha para guardar el cambio`);
+    setOpenDialog(true);
+
+    const config = {
+      afiliado: {"id": afiliado?.id},
+      body: {
+        "CUILValidado": afiliado?.cuil
+      },
+      cambios: [
+        {
+          op: "replace",
+          path: "CUILValidado",
+          value: afiliado?.cuil,
+        },
+      ],
+    };
+    audit({
+      proceso: "AfiliadoValidaCUIL",
+      parametros: flatten({ value: config }),
+    });
+
+  }
+
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
     console.log("afiliado", afiliado);
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
+      setCUILLoading(false);
       if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
         setCUILLoading(false);
         setDialogTexto(`Error validando CUIL - Persona fallecida`);
@@ -1368,6 +1439,11 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchActividad({
           type: "USER_INPUT",
           value: 1,
+        })
+
+        dispatchSeccionalSolicitudAfiliacion({
+          type: "USER_INPUT",
+          value: 99999,
         })
 
 				if (!puestoState.isValid)
@@ -1546,6 +1622,11 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchTipoDocumento({ type: "USER_INPUT", value: value });
         break;
 
+      case "seccionalDescripcionSolicitudAfiliacionSelect":
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: value });
+        break;
+        
+
       case "provinciaSelect":
 				if(provinciaState.value === value) break;
 
@@ -1614,30 +1695,33 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
         dispatchFechaIngreso({ type: "USER_INPUT", value: value });
         break;
       case "cuil":
-        setCuilValidado(false);
-        setAfiliadoExiste(false);
-        setNuevoAfiliadoResponse(null);
-        setDialogTexto("");
-        setPadronRespuesta(null);
-        setCUITEmpresa("");
-        dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") });
-
-        dispatchNombre({ type: "USER_INPUT", value: "" });
-        dispatchNacionalidad({ type: "USER_INPUT", value: "" });
-        dispatchFechaNacimiento({ type: "USER_INPUT", value: "" });
-        dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
-        dispatchSexo({ type: "USER_INPUT", value: "" });
-        dispatchTipoDocumento({ type: "USER_INPUT", value: "" });
-        dispatchNumeroDocumento({ type: "USER_INPUT", value: "" });
-        dispatchDomicilio({ type: "USER_INPUT", value: "" });
-        dispatchProvincia({ type: "USER_INPUT", value: "" });
-        dispatchLocalidad({ type: "USER_INPUT", value: "" });
-        dispatchSeccional({ type: "USER_INPUT", value: "" });
-        dispatchTelefono({ type: "USER_INPUT", value: "" });
-        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: ""});
-        dispatchEmail({ type: "USER_INPUT", value: "" });
-        dispatchPuesto({ type: "USER_INPUT", value: "" });
-        dispatchActividad({ type: "USER_INPUT", value: "" });
+        if(props.accion === "Modifica") {
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") })
+        }else{
+          setCuilValidado(false);
+          setAfiliadoExiste(false);
+          setNuevoAfiliadoResponse(null);
+          setDialogTexto("");
+          setPadronRespuesta(null);
+          setCUITEmpresa("");
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") });
+          dispatchNombre({ type: "USER_INPUT", value: "" });
+          dispatchNacionalidad({ type: "USER_INPUT", value: "" });
+          dispatchFechaNacimiento({ type: "USER_INPUT", value: "" });
+          dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
+          dispatchSexo({ type: "USER_INPUT", value: "" });
+          dispatchTipoDocumento({ type: "USER_INPUT", value: "" });
+          dispatchNumeroDocumento({ type: "USER_INPUT", value: "" });
+          dispatchDomicilio({ type: "USER_INPUT", value: "" });
+          dispatchProvincia({ type: "USER_INPUT", value: "" });
+          dispatchLocalidad({ type: "USER_INPUT", value: "" });
+          dispatchSeccional({ type: "USER_INPUT", value: "" });
+          dispatchTelefono({ type: "USER_INPUT", value: "" });
+          dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: ""});
+          dispatchEmail({ type: "USER_INPUT", value: "" });
+          dispatchPuesto({ type: "USER_INPUT", value: "" });
+          dispatchActividad({ type: "USER_INPUT", value: "" });
+        }
 
         break;
 
@@ -1735,6 +1819,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
   //#region handle Close
   const handleCerrarModal = (refresh) => {
+    console.log("dialogTexto",dialogTexto)
+    console.log("props.accion",props.accion)
 
     if (dialogTexto === "") 
       props.onClose(false, "Cancela");
@@ -1766,6 +1852,11 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
   //#region Functions
   const deshabilitarBotonValidarCUIL = () => {
+
+    if (afiliadoExiste && afiliado?.estadoSolicitudId === 3){
+      return true
+    }
+
     if (!cuilState.isValid) {
       return true;
     }
@@ -1774,6 +1865,10 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   };
 
   const InputDisabled = (input) => {
+
+    if (input !== "cuil" && props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3){
+      return true
+    }
 
     if (input !== "cuil" && cuilState.value === "") {
       return true;
@@ -1792,7 +1887,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
       return true;
     }
 
-    if (props.accion === "Modifica" && input === "cuil") {
+    if (/*props.accion === "Modifica"*/ cuilValidado && input === "cuil") {
       return true;
     }
 
@@ -1801,6 +1896,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
+
+    if (afiliadoExiste && afiliado?.estadoSolicitudId === 3) disable = true; //si el afiliado está dado de baja, deshabilito el boton de confirmar
 
 		// El fomulario debe ser valido para continuar
 		if (!formularioIsValid) disable = true;
@@ -1875,6 +1972,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
     const afiliadoModificado = {
 			id: nuevoAfiliadoResponse.id,
 			cuil: +cuilState.value,
+      CUILValidado: cuilValidado ? +cuilState.value : 0,
+
 			nroAfiliado: +afiliado.nroAfiliado,
 			nombre: nombreState.value,
 			puestoId: +puestoState.value,
@@ -1883,6 +1982,8 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 			nacionalidadId: +nacionalidadState.value,
 			//empresaCUIT: +cuitEmpresa,
 			seccionalId: +seccionalState.value.value,
+      seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value,
+
 			sexoId: +sexoState.value,
 			tipoDocumentoId: +tipoDocumentoState.value,
 			documento: +numeroDocumentoState.value,
@@ -2077,11 +2178,6 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
   //#region Dialog or alert
   const handleCloseDialog = () => {
-    
-    if (
-      dialogTexto.includes('El afiliado ya está cargado')){
-        setDialogTexto("");//limpio el dialogo para que al cerrar el dialog no recargue el browse
-      }
    
     setOpenDialog(false);
     if (
@@ -2101,9 +2197,12 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
   return (
 		<>
 			<div>
-				<Dialog onClose={handleCloseDialog} open={openDialog}>
+				<Dialog onClose={()=>(setDialogTexto(""), handleCloseDialog())} open={openDialog}>
 					<DialogContent dividers>
-						<Typography gutterBottom>{dialogTexto}</Typography>
+						<Typography 
+            gutterBottom
+            style={{whiteSpace: 'pre-line'}}
+            >{dialogTexto}</Typography>
             {props?.accion === "Agrega" && !afiliadoExiste && nuevoAfiliadoResponse?.estadoSolicitudId === 1
              &&
               (
@@ -2118,7 +2217,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
             }
 					</DialogContent>
 					<DialogActions>
-						<Button className="botonAmarillo" onClick={handleCloseDialog}>
+						<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), handleCloseDialog())}>
 							Cierra
 						</Button>
 					</DialogActions>
@@ -2166,37 +2265,51 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 					//Datos Principales
 					<div className={classes.div}>
 						<div className={classes.renglon}>
-							<div className={classes.input25}>
-                <InputMaterial
-									id="cuil"
-									onFocus={handleOnFocus}
-									value={cuilState.value}
-									label="CUIL"
-                  //mask="99\-99\.999\.999\-9"
-                  mask={CUITMask}
-									disabled={InputDisabled("cuil")}
-									onChange={handleInputChange}
-									error={
-										!cuilState.isValid && inputsTouched
-											? true
-											: false
-									}
-								/>
-							</div>
-							<div className={classes.input25}>
-								<Button
-									className="botonAzul"
-									width={80}
-									heigth={70}
-									disabled={deshabilitarBotonValidarCUIL()}
-                  tarea="Afiliaciones_ValidaCUIL"
-									onClick={validarAfiliadoCUILHandler}
-									loading={cuilLoading}
-                  underlineindex = {0}
-								>
-									{!cuilLoading ? `Valida CUIL` : `Validando...`}
-								</Button>
-							</div>
+              <div className={classes.input50} style={{ gap: '1%'}}>
+                  <div >
+                      <InputMaterial
+                        id="cuil"
+                        onFocus={handleOnFocus}
+                        value={cuilState.value}
+                        label="CUIL"
+                        //mask="99\-99\.999\.999\-9"
+                        mask={CUITMask}
+                        disabled={InputDisabled("cuil")}
+                        onChange={handleInputChange}
+                        error={
+                          !cuilState.isValid && inputsTouched
+                            ? true
+                            : false
+                        }
+                      />
+                  </div>
+                  <div style={{minWidth: 'max-content'}}>
+                      <Button
+                        className="botonAzul"
+                        heigth={70}
+                        disabled={deshabilitarBotonValidarCUIL()}
+                        tarea="Afiliaciones_ValidaCUIL"
+                        onClick={validarAfiliadoCUILHandler}
+                        loading={cuilLoading}
+                        underlineindex = {0}
+                      >
+                        {!cuilLoading ? `Verifica CUIL AFIP` : `Verificando...`}
+                      </Button>
+                  </div>
+                  <div style={{minWidth: 'max-content'}}>
+                      <Button
+                        className="botonAzul"
+                        heigth={70}
+                        disabled={afiliadoExiste ? !!cuilValidado || !cuilState.isValid : true}
+                        tarea="Afiliaciones_AsignaCUILValidado"
+                        onClick={()=>validaCUILHandler()}
+                        underlineindex = {0}
+                      >
+                        Valida CUIL
+                      </Button>
+                  </div>
+              </div>
+
 							<div className={classes.input25}>
 								<InputMaterial
 									id="nroAfiliado"
@@ -2213,6 +2326,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 									value={fechaIngresoState.value}
 									label="Fecha Ingreso"
 									maxDate={moment().format("YYYY-MM-DD")}
+                  disabled={InputDisabled()}
 									onChange={(f) =>
 										handleInputChange(f?.format("YYYY-MM-DD") ?? "", "fechaIngreso")
 									}
@@ -2455,14 +2569,18 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 									}
 								/>
 							</div>
+
               <div className={classes.input}>
-								<InputMaterial
-									id="seccionalDescripcionSolicitudAfiliacion"
-									value={seccionalSolicitudAfiliacionState.value}
+								<SelectMaterial
+									name="seccionalDescripcionSolicitudAfiliacionSelect"
 									label="Seccional Solicita Afiliación"
-									disabled={true}
-									width={100}
-									//onChange={handleInputChange}
+									options={SeccionalSolicitaAfiliacion}
+									value={seccionalSolicitudAfiliacionState.value}
+									onChange={handleChangeSelect}
+									disabled={InputDisabled()}
+									error={
+										!seccionalSolicitudAfiliacionState.isValid && inputsTouched ? true : false
+									}
 								/>
 							</div>
 						</div>
@@ -2472,6 +2590,7 @@ const [actividadState, dispatchActividad] = useReducer(actividadReducer, {
 
 					//Empleador
 					<TabEmpleador
+            afiliado={afiliado}
 						padronEmpresaRespuesta={padronEmpresaRespuesta}
 						cuitEmpresa={cuitEmpresa}
 						cuitState={cuitState}

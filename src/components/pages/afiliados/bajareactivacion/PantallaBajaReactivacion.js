@@ -125,8 +125,10 @@ const PantallaBajaReactivacion = (props) => {
 
 		//Validaciones
 		const errors = {};
-		if (observaciones === "")
-			errors.observaciones = "Se deben indicar las Observaciones";
+
+		if (observaciones.length <= 30) errors.observaciones = "La observación debe superar los 30 caractéres";
+		if (observaciones === "") errors.observaciones = "Se deben indicar las Observaciones";
+		
 		if (props.accion === "Baja" && !refMotivoBajaId)
 			errors.refMotivoBajaId = "Se debe indicar el motivo de baja";
 		setErrors(errors);
@@ -260,7 +262,7 @@ const PantallaBajaReactivacion = (props) => {
 								/>
 							</Grid>
 							<Grid width="full">
-								<InputMaterial
+								<InputMaterial 
 									id="observaciones"
 									value={observaciones}
 									label="Observaciones"
