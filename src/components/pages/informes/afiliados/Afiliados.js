@@ -361,7 +361,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const [seccionalSelect, setSeccionalSelect] = useState({
 		reload: true,
 		loading: null,
-		params: { soloActivos: true },
+		params: { soloActivos: true/*, verSeccionalesLocalidades: false */},
 		data: [],
 		error: null,
 		buscar: "",
