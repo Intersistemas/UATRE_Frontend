@@ -1257,7 +1257,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				afipTipoClave: padronRespuesta?.tipoClave,
 				afipEstadoClave: padronRespuesta?.estadoClave,
 				afipClaveInactivaAsociada: 0,
-				afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+				//afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento,
+        afipFechaFallecimiento: padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta?.fechaFallecimiento,
 				afipFormaJuridica: padronRespuesta?.formaJuridica,
 				afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
 				afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
@@ -2034,10 +2035,10 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				padronRespuesta !== null
 					? padronRespuesta.claveInactivaAsociada
 					: afiliado.afipClaveInactivaAsociada,
-			afipFechaFallecimiento:
-				padronRespuesta !== null
-					? padronRespuesta.fechaFallecimiento
-					: afiliado.afipFechaFallecimiento,
+      afipFechaFallecimiento:
+        padronRespuesta !== null
+          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
+          : afiliado.afipFechaFallecimiento,
 			afipFormaJuridica:
 				padronRespuesta !== null
 					? padronRespuesta.formaJuridica
