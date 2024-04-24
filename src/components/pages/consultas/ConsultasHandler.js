@@ -34,6 +34,21 @@ const ConsultasHandler = () => {
 		link.click();
 	  };
 
+	const onDownloadVisitaSeccional = () => {
+		const link = document.createElement("a");
+		link.download = `VisitaSeccional.pdf`;
+		link.href = "/Consultas/VisitaSeccional.pdf";
+		link.click();
+	  };
+
+	const onDownloadNotificacionEmpresa = () => {
+		const link = document.createElement("a");
+		link.download = `NotificacionEmpresa.pdf`;
+		link.href = "/Consultas/NotificacionEmpresa.pdf";
+		link.click();
+	  };
+	  
+
 	// Afiliados
 	tabs.push({
 		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*/ />,
@@ -85,6 +100,32 @@ const ConsultasHandler = () => {
 						Solicitud de Cambio de Seccional
 					</Button>
 				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadVisitaSeccional}
+						width="32"
+						tarea="Consultas_VisitaSeccional"
+					>
+						Visita a Seccional
+					</Button>
+				
+				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadNotificacionEmpresa}
+						width="32"
+						tarea="Consultas_NotificacionEmpresa"
+					>
+						Notificación a Empresa
+					</Button>
+				
+				</Grid>
+				
+				
 			</>
 		),
 		// actions,

@@ -56,9 +56,11 @@
     "builddesa": "env-cmd -e desa react-scripts build",
     "buildtest": "env-cmd -e test react-scripts build",
     "buildprod": "env-cmd -e prod react-scripts build",
+    "buildloc": "env-cmd -e loc react-scripts build",
     "desa": "env-cmd -e desa react-scripts start",
     "test": "env-cmd -e test react-scripts start",
-    "prod": "env-cmd -e prod react-scripts start"
+    "prod": "env-cmd -e prod react-scripts start",
+    "loc": "env-cmd -e loc react-scripts start"
   },
   "eslintConfig": {
     "extends": [
