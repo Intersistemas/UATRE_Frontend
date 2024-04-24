@@ -147,7 +147,6 @@ const Table = ({
 
 	// Normalizo selectRow que pasa por props
 	if (selection) {
-		//console.log('selection:',selection);
 		selection = { ...selectionDef, ...selection };
 		const style = selection.style;
 		selection.style = (...a) => ({
