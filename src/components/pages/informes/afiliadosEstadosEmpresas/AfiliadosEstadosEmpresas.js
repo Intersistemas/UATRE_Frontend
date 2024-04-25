@@ -11,8 +11,24 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 
 const onCloseDef = () => {};
+
+//#region estadoSelectOptions
+const estadoSelectTodos = { value: 0, label: "Todos" };
+const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion }),
+		filter: (r) => includeSearch(r, buscar),
+		start: [estadoSelectTodos],
+		...x,
+	});
+//#endregion estadoSelectOptions
 
 const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 	//#region Trato queries a APIs
@@ -27,13 +43,69 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 					},
 				};
 			}
+			case "GetEstados": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/EstadoSolicitud`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
 	//#endregion
 
+	//#region filtros
 	const [filtros, setFiltros] = useState({});
+
+	//#region filtro estado
+	const [estadoSelect, setEstadoSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { soloActivos: true },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: estadoSelectTodos,
+	});
+
+	useEffect(() => {
+		if (!estadoSelect.reload) return;
+		const changes = {
+			reload: null,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+			buscar: "",
+			options: [],
+		};
+		setEstadoSelect((o) => ({ ...o, ...changes }));
+		pushQuery({
+			action: "GetEstados",
+			params: { ...estadoSelect.params },
+			onOk: (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data = data;
+			},
+			onError: (error) => (changes.error = error.toString()),
+			onFinally: () =>
+				setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+		});
+	}, [estadoSelect, pushQuery]);
+	// Buscador
+	useEffect(() => {
+		if (estadoSelect.reload) return;
+		if (estadoSelect.loading) return;
+		setEstadoSelect((o) => ({ ...o, options: estadoSelectOptions(o) }));
+	}, [estadoSelect.reload, estadoSelect.loading, estadoSelect.buscar]);
+	//#endregion filtro estado
+
+	//#endregion filtros
 
 	//#region list
 	const [list, setList] = useState({
@@ -192,16 +264,27 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 					</Grid>
 					<Grid width gap="inherit">
 						<Grid grow>
-							<InputMaterial
-								label="Estado de solicitud"
-								value={filtros.estadoSolicitudDescripcion}
-								onChange={(estadoSolicitudDescripcion) =>
+							<SearchSelectMaterial
+								id="estadoSelect"
+								label="Estado"
+								error={!!estadoSelect.error}
+								helperText={estadoSelect.loading ?? estadoSelect?.error}
+								value={estadoSelect.selected}
+								onChange={(selected) => {
+									setEstadoSelect((o) => ({ ...o, selected }));
 									setFiltros((o) => {
-										const r = { ...o, estadoSolicitudDescripcion };
-										if (!estadoSolicitudDescripcion)
-											delete r.estadoSolicitudDescripcion;
-										return r;
-									})
+										const filtros = {
+											...o,
+											estadoSolicitudId: selected.value,
+										};
+										if (selected === estadoSelectTodos)
+											delete filtros.estadoSolicitudId;
+										return filtros;
+									});
+								}}
+								options={estadoSelect.options}
+								onTextChange={(buscar) =>
+									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
 							/>
 						</Grid>
@@ -232,6 +315,10 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 								disabled={Object.keys(filtros).length === 0}
 								onClick={() => {
 									const filtros = {};
+									setEstadoSelect((o) => ({
+										...o,
+										selected: estadoSelectTodos,
+									}));
 									setFiltros(filtros);
 									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
 										return;
