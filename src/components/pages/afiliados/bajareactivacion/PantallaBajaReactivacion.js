@@ -51,6 +51,9 @@ const PantallaBajaReactivacion = (props) => {
 	const [refMotivoBajaId, setRefMotivoBajaId] = useState(
 		(props.accion === "Baja" ? props.refMotivoBajaId : null) ?? 0
 	);
+
+	const [noPermiteReactivar, setNoPermiteReactivar] = useState(false);
+
 	const [
 		resolverSolicitudAfiliadoResponse,
 		setResolverSolicitudAfiliadoResponse,
@@ -79,11 +82,11 @@ const PantallaBajaReactivacion = (props) => {
 				changes.data.push(
 					...ok
 						.filter((r) => r.deletedDate == null)
-						.map(({ id: value, descripcion: label }) => ({ value, label }))
+						.map(({ id: value, descripcion: label, noPermitirReactivarAfiliado: noPermiteReactivar  }) => ({ value, label, noPermiteReactivar }))
 				);
 			},
 			onError: async (error) => (changes.error = error),
-			onFinally: async () => setMotivosBaja((o) => ({ ...o, ...changes })),
+			onFinally: async () => (setMotivosBaja((o) => ({ ...o, ...changes })),console.log("GetMotivosBaja",changes)),
 		});
 	}, [motivosBaja]);
 	//#endregion
@@ -105,6 +108,7 @@ const PantallaBajaReactivacion = (props) => {
 	const handleInputChange = (value, id) => {
 		console.log("id",id)
 		console.log("value",value)
+		console.log("motivosBaja.data",motivosBaja.data)
 		switch (id) {
 			case "fecha":
 				setFecha(moment(value).format("yyyy-MM-DD"));
@@ -114,6 +118,8 @@ const PantallaBajaReactivacion = (props) => {
 				break;
 			case "refMotivoBajaId":
 				setRefMotivoBajaId(value);
+				const motivoBajaNoReactiva = motivosBaja.data.find((r)=> r.value === value).noPermiteReactivar;
+				setNoPermiteReactivar(motivoBajaNoReactiva);
 				break;
 			default:
 				break;
@@ -126,7 +132,7 @@ const PantallaBajaReactivacion = (props) => {
 		//Validaciones
 		const errors = {};
 
-		if (observaciones.length <= 30) errors.observaciones = "La observación debe superar los 30 caractéres";
+		if (observaciones.length <= 30 && noPermiteReactivar)  errors.observaciones = "La observación debe superar los 30 caractéres";
 		if (observaciones === "") errors.observaciones = "Se deben indicar las Observaciones";
 		
 		if (props.accion === "Baja" && !refMotivoBajaId)
