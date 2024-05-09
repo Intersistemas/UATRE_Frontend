@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState, useContext } from "react";
-import useQueryQueue from "components/hooks/useQueryQueue";
-import JoinOjects from "components/helpers/JoinObjects";
-import SeccionalesTable from "./SeccionalesTable";
-import AuthContext from "../../../../store/authContext";
-import SeccionalesForm from "./SeccionalesForm";
 import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
+import JoinOjects from "components/helpers/JoinObjects";
+import { pick } from "components/helpers/Utils";
+import useQueryQueue from "components/hooks/useQueryQueue";
+import AuthContext from "store/authContext";
+import SeccionalesTable from "./SeccionalesTable";
+import SeccionalesForm from "./SeccionalesForm";
 
 const selectionDef = {
 	action: "",
@@ -47,11 +48,7 @@ export const onDataChangeDef = (data = []) => {};
 const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
 	true;
 const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
-const onEditCompleteDef = ({
-	edit = {},
-	response = null,
-	request = "",
-} = {}) => {};
+const onEditCompleteDef = ({ edit = {}, response = null, request = "", } = {}) => {};
 
 const useSeccionales = ({
 	remote: remoteInit = true,
@@ -60,15 +57,15 @@ const useSeccionales = ({
 	error,
 	multi: multiInit = false,
 	pagination: paginationInit = { index: 1, size: 15 },
-	sort: sortInit = {sort: "codigo"},
+	params: paramsInit = {
+		sort: "+codigo",
+		soloActivos: false,
+	},
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
 	onDataChange: onDataChangeInit = onDataChangeDef,
 	onEditChange: onEditChangeInit = onEditChangeDef,
 	onEditValidate: onEditValidateInit = onEditValidateDef,
 	onEditComplete: onEditCompleteInit = onEditCompleteDef,
-	body: bodyInit = {
-		soloActivos: false,
-		},
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
@@ -153,17 +150,15 @@ const useSeccionales = ({
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
-		params: {},
 		remote: remoteInit,
 		loadingOverride: loading,
-		body: {
+		params: { ...paramsInit },
+		paramsDef: {
 			ambitoTodos: Usuario.ambitoTodos,
 			ambitoProvincias: Usuario.ambitoProvincias,
 			ambitoDelegaciones: Usuario.ambitoDelegaciones,
-			ambitoSeccionales: Usuario.ambitoSeccionales,
-			...bodyInit
+			ambitoSeccionales: Usuario.ambitoSeccionales
 		},
-		sort: "+codigo",
 		delegaciones: [],
 		pagination: { index: 1, size: 15, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
@@ -207,24 +202,21 @@ const useSeccionales = ({
 		changes.data = [];
 		pushQuery({
 			action: "GetList",
-			params: { ...list.params },
 			config: {
 				body: {
-					...list.bodyDef,
-					...list.body,
+					...list.paramsDef,
+					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
-					sort: list.sort,
 				},
 			},
-			
-			onOk: async ({ index, size, count, data }) => {
+			onOk: async ({ data, ...pagination }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data = data.sort((a, b) => (a.codigo > b.codigo ? 1 : -1));
+				changes.data = data
 				const multi = list.selection.multi;
 				const record = list.selection.record;
-				changes.pagination = { index, size, count };
+				changes.pagination = pagination;
 				changes.selection = {
 					...list.selection,
 					...selectionDef,
@@ -243,37 +235,6 @@ const useSeccionales = ({
 				changes.selection = { ...list.selection, ...selectionDef };
 			},
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
-	}, [pushQuery, list, list.params]);
-
-	useEffect(() => {
-		if (!list.loading) return;
-		pushQuery({
-			action: "GetAllDelegaciones",
-
-			onOk: async (data) =>
-				setList((o) => {
-					const delegaciones = data.map((refDelegacion) => {
-						return {
-							value: refDelegacion.id,
-							label: `${refDelegacion.codigoDelegacion}-${refDelegacion.nombre}`,
-						};
-					});
-					return {
-						...o,
-						loading: null,
-						//pagination: { index, size, count },
-						delegaciones,
-						error: null,
-					};
-				}),
-			onError: async (err) =>
-				setList((o) => ({
-					...o,
-					loading: null,
-					delegaciones: [],
-					error: err.code === 404 ? null : err,
-				})),
 		});
 	}, [pushQuery, list]);
 	//#endregion
@@ -329,8 +290,12 @@ const useSeccionales = ({
 							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
 						},
 					};
-					if (payload.params) changes.params = payload.params;
-					if (payload.body) changes.body = payload.body;
+					if (payload.params) {
+						changes.params = {
+							...pick(o.params, paramsInit),
+							...payload.params
+						};
+					}
 					if (payload.pagination)						
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {
@@ -640,7 +605,9 @@ const useSeccionales = ({
 								loading: "Cargando...",
 								params: {
 									...o.params,
-									sortBy: `${sortOrder === "desc" ? "-" : "+"}${sortField}`,
+									sort: `${sortOrder === "desc" ? "-" : "+"}${
+										{ descripcion: "nombre" }[sortField] ?? sortField
+									}`,
 								},
 							}));
 						}
