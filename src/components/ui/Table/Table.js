@@ -197,7 +197,7 @@ const Table = ({
 						{(toolkitprops) => (
 							<div>
 								{!mostrarBuscar ? null : (
-									<div className="position-absolute end-0 w-25" style={{ marginTop: '-2.5em'}}>
+									<div className="position-absolute end-0 w-25" style={{ marginTop: '-3em'}}>
 										<SearchBar
 											{...toolkitprops.searchProps}
 											srText=""
