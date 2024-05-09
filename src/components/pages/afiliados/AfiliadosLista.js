@@ -731,7 +731,7 @@ const AfiliadosLista = (props ) => {
 				</Grid>
 
 				<Grid className="contenido" col gap="10px">
-					<Grid />
+					
 					<Grid col grow justify="between">
 						{selectedTab === 0 && ( //AFILIADOS
 							<>

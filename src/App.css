@@ -134,7 +134,8 @@ border: 1.5px solid rgb(53, 149, 210);
   /*width: 99% !important;*/
   background-color: var(--color3-40);
   border-radius: 20px;
-  padding: 0 0.5% 0.5% 0.5%;
+  /*padding: 0 0.5% 0.5% 0.5%;*/
+  padding: 0.5%;
   position: relative;
   height: 100vh;
   /*margin: 0.5rem 0%;*/
