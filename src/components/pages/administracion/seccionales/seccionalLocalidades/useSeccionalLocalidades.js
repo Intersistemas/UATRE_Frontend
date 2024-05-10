@@ -265,7 +265,7 @@ const useSeccionalLocalidades = () => {
 						if (!record.deletedObs)
 						 	errors.deletedObs = "Dato requerido";
 					} else {
-						if (!record.refLocalidadId || record.refLocalidadId == 0) errors.refLocalidadId = "Dato requerido";
+						if (!record.refLocalidadId) errors.refLocalidadId = "Dato requerido";
 					}
 
 					if (Object.keys(errors).length) {
