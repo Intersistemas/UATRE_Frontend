@@ -149,13 +149,14 @@ const AfiliadosLista = (props ) => {
           )
         })
       );
-
+ 
       actions.push(
         createAction({
           action: `Reactiva Afiliado ${desc}`,
           onExecute: () => dispatch(handleModuloEjecutarAccion("R")),//request: "R",
           tarea: "Afiliaciones_AfiliadoReactiva",
-          ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" ? 
+          ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" || (afiliadoSeleccionado?.refMotivoBajaNoPermitirReactivarAfiliado &&
+             !tareas.hasTarea("Afiliaciones_ReactivaBajaEspecial")) ? //SI RefMotivosBajaNoPermitirReactivarAfiliado = 1 no habilito el boton
             {disabled:  true}
             :
             {
@@ -318,7 +319,8 @@ const AfiliadosLista = (props ) => {
         return { width: "3rem", textAlign: "center" };
       },
       formatter: (value, row) => ( 
-        value == 0 ? "N" : (value == row.cuil) ? 'V' : 'D'
+        console.log("value",value,row),
+        value ? (value === row.cuil) ? 'V' : 'D' : "N" 
       ),
     },
     
@@ -559,7 +561,7 @@ const AfiliadosLista = (props ) => {
          //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
-     case 4:
+     case 3:
          setSeccionalSeleccionada(row);
          break;
     default: break;
@@ -708,13 +710,13 @@ const AfiliadosLista = (props ) => {
 							<Tab
 								style={{ backgroundColor: "#186090" }}
 								label="Estados del afiliado"
-								disabled={afiliadoSeleccionado?.id ? false : true}
+								disabled={afiliadoSeleccionado?.id && tareas.hasTarea("Afiliaciones_Tab_EstadosDelAfiiliado") ? false : true}
 							/>
 
 							<Tab
 								style={{ backgroundColor: "#186090" }}
 								label="Cambios de Datos"
-								disabled={afiliadoSeleccionado?.cuil ? false : true}
+								disabled={afiliadoSeleccionado?.cuil && tareas.hasTarea("Afiliaciones_Tab_CambioDeDatos") ? false : true}
 							/>
 						</Tabs>
 						<Grid
@@ -729,7 +731,7 @@ const AfiliadosLista = (props ) => {
 				</Grid>
 
 				<Grid className="contenido" col gap="10px">
-					<Grid />
+					
 					<Grid col grow justify="between">
 						{selectedTab === 0 && ( //AFILIADOS
 							<>

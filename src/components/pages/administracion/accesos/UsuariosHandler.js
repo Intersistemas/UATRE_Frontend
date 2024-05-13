@@ -87,7 +87,7 @@ const UsuariosHandler = () => {
 		);
 		}
 		setUsuariosActions(actions);
-	}, [usuarioChanger, usuarioSelected]);
+	}, [usuarioChanger, usuarioSelected,usuariosTab]);
 	tabs.push({
 		header: () => <Tab label="Usuarios" />,
 		body: usuariosTab,
@@ -171,7 +171,7 @@ const UsuariosHandler = () => {
 			})
 		);
 		setTareasActions(actions);
-	}, [tareaChanger, tareaSelected, usuarioSelected?.id]);
+	}, [tareaChanger, tareaSelected, usuarioSelected?.id,tareasTab]);
 
 	tabs.push({
 		header: () => <Tab label="Usuario Tareas" disabled={!usuarioSelected || disableTabTareas} />,
@@ -262,7 +262,7 @@ const UsuariosHandler = () => {
 			})
 		);
 		setAmbitosActions(actions);
-	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id]);
+	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id,ambitosTab]);
 
 	tabs.push({
 		header: () => <Tab label="Usuario Ambito" disabled={!usuarioSelected || disableTabAmbitos} />,
@@ -384,8 +384,9 @@ const UsuariosHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-
-			{tabs[tab].body()}
+			<div className="contenido">
+				{tabs[tab].body()}
+			</div>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

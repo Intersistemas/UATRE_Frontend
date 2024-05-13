@@ -7,11 +7,24 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import modalCss from "components/ui/Modal/Modal.module.css";
-import Table from "components/ui/Table/Table";
 import InputMaterial from "components/ui/Input/InputMaterial";
+import modalCss from "components/ui/Modal/Modal.module.css";
+import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import Table from "components/ui/Table/Table";
 
 const onCloseDef = () => {};
+
+//#region estadoSelect Options
+const estadoSelectTodos = { value: 0, label: "Todas" };
+const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		start: [estadoSelectTodos],
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//#endregion estadoSelect Options
 
 const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 	//#region Trato queries a APIs
@@ -26,6 +39,15 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 					},
 				};
 			}
+			case "GetEstados": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/EstadoSolicitud`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
@@ -33,6 +55,53 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 	//#endregion
 
 	const [filtros, setFiltros] = useState({});
+
+	//#region select estado
+	const [estadoSelect, setEstadoSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { soloActivos: true },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: estadoSelectTodos,
+	});
+
+	// Buscador
+	useEffect(() => {
+		setEstadoSelect((o) => ({
+			...o,
+			options: estadoSelectOptions(o),
+		}));
+	}, [estadoSelect.buscar, estadoSelect.data]);
+	
+	// Recarga
+	useEffect(() => {
+		if (!estadoSelect.reload) return;
+		const changes = {
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+		}
+		setEstadoSelect((o) => {
+			pushQuery({
+				action: "GetEstados",
+				params: { ...o.params },
+				onOk: (data) => {
+					if (!Array.isArray(data))
+						return console.error("Se esperaba un arreglo", data);
+					changes.data = data;
+				},
+				onError: (error) => (changes.error = error.toString()),
+				onFinally: () =>
+					setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+			});
+			return { ...o, ...changes };
+		});
+	}, [estadoSelect.reload, pushQuery]);
+	//#endregion select estado
 
 	//#region list
 	const [list, setList] = useState({
@@ -80,7 +149,7 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
 
 	return (
-		<Modal size="xl" centered show >
+		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Estados de solicitudes por delegación
 			</Modal.Header>
@@ -116,16 +185,26 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 					</Grid>
 					<Grid width gap="inherit">
 						<Grid grow>
-							<InputMaterial
+							<SearchSelectMaterial
 								label="Estado de solicitud"
-								value={filtros.estadoSolicitudDescripcion}
-								onChange={(estadoSolicitudDescripcion) =>
+								error={!!estadoSelect.error}
+								helperText={estadoSelect.loading ?? estadoSelect.error}
+								value={estadoSelect.selected}
+								onChange={(selected) => {
+									setEstadoSelect((o) => ({ ...o, selected }));
 									setFiltros((o) => {
-										const r = { ...o, estadoSolicitudDescripcion };
-										if (!estadoSolicitudDescripcion)
-											delete r.estadoSolicitudDescripcion;
-										return r;
-									})
+										const filtros = {
+											...o,
+											estadoSolicitudId: selected,
+										};
+										if (selected === estadoSelectTodos)
+											delete filtros.estadoSolicitudId;
+										return filtros;
+									});
+								}}
+								options={estadoSelect.options}
+								onTextChange={(buscar) =>
+									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
 							/>
 						</Grid>
@@ -135,21 +214,23 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 								disabled={
 									JSON.stringify(list.filtros) === JSON.stringify(filtros)
 								}
-								onClick={() => {
+								onClick={() =>
 									setList((o) => ({
 										...o,
 										filtros,
 										filtrado: o.data.filter((r) => {
-											const k = Object.keys(filtros);
-											const match = k.filter((k) =>
-												`${r[k] ?? ""}`
-													.toLowerCase()
-													.includes(`${filtros[k] ?? ""}`.toLowerCase())
+											const filters = Object.entries(filtros);
+											const match = filters.filter(([k, v]) =>
+												typeof v === "object"
+													? r[k] === v.value
+													: `${r[k] ?? ""}`
+															.toLowerCase()
+															.includes(`${v ?? ""}`.toLowerCase())
 											);
-											return k.length === match.length;
+											return filters.length === match.length;
 										}),
-									}));
-								}}
+									}))
+								}
 							>
 								Aplica filtros
 							</Button>
@@ -160,6 +241,11 @@ const AfiliadosEstadosDelegacion = ({ onClose = onCloseDef }) => {
 								disabled={Object.keys(filtros).length === 0}
 								onClick={() => {
 									const filtros = {};
+									setEstadoSelect((o) => ({
+										...o,
+										selected: estadoSelectTodos,
+										buscar: "",
+									}));
 									setFiltros(filtros);
 									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
 										return;

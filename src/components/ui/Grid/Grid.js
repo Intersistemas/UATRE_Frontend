@@ -1,31 +1,35 @@
 import React from "react";
 
-const renderDef = (p) => <div {...p}/>;
+const renderDef = (p) => <div {...p} />;
 
 /**
  * Representa un div con atajos a propiedades de estilos comunes.
  * @param {object} props
  * @param {object} [props.style] Se espera recibir una propiedad de estilos, si no la recibe, inicializo con un objeto vacío.
- * @param {string} [props.display] Se espera recibir una propiedad de estilos, si no la recibe, inicializo con un objeto vacío.
- * @param {string} [props.direction] Por defecto la dirección del flex es fila.
- *
- * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
- * @param {boolean} [props.reverse] Determina si aplica "reverse" a `direction`.
- * @param {boolean} [props.col] Abreviatura para direction="column".
- *
- * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
- * @param {string} [props.gap] Atajo para establecer `column-gap` y `row-gap`
+ * @param {string} [props.display] Tipo de display a utilizar. Por defecto `flex`.
+ * @param {string} [props.direction] Por defecto la dirección del flex es `row`.
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.col] Abreviatura para direction=`column`.
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.reverse] Determina si aplica `reverse` a `direction`.
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.gap] Atajo para establecer `row-gap` y `column-gap`
  * @param {string} [props.rowGap] Espacio de fila entre componentes hijos (`row-gap`)
  * @param {string} [props.colGap] Espacio de columna entre componentes hijos. (`column-gap`)
  * @param {string} [props.flex] Abreviatura que aplica `grow`, `shrink` y `basis`. (`flex`)
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {string} [props.grow] Factor de crecimiento. (`flex-grow`)
  *
  * 	Si hay componentes hermanos con esta propiedad, el espacio restante se promedia entre ellos.
- *
- * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * 
+ * 	Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {string} [props.shrink] Factor de contracción. (`flex-shrink`)
  *
- * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {string} [props.basis] Tamaño inicial. (`flex-basis`)
  *
  * Posibles valores:
@@ -33,15 +37,17 @@ const renderDef = (p) => <div {...p}/>;
  * * "height": Ocupar la misma cantidad que la propiedad height.
  * * "full": Ocupar la misma cantidad que la propiedad full.
  * * Cualquier otro valor: Asume unidad con medida.
- * @param {string} [props.wrap] Especifica si los elementos "hijos" son obligados a permanecer en una misma línea o pueden fluir en varias líneas.. (`flex-wrap`)
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {"wrap" | "no" | "reverse"} [props.wrap] Especifica si los elementos "hijos" son obligados a permanecer en una misma línea o pueden fluir en varias líneas.. (`flex-wrap`)
  *
  * Posibles valores:
  * * "wrap": Los elementos flex son colocados en varias líneas. El valor cross-start es equivalente a start o before según el valor de `direction`.
  * * "no": Los elementos flex son distribuidos en una sola línea, lo cual puede llevar a que se desborde el contenedor flex. El valor cross-start es equivalente a start o before según el valor de `direction`.
- * * "reverse": Actúa como wrap pero cross-start y cross-end están intercambiados.
- * 
- * 	Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
- * @param {string} [props.justify] Especifica el alineado de los componentes hijos.
+ * * "reverse": Actúa como `wrap` pero cross-start y cross-end están intercambiados.
+ *
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {"start" | "end" | "center" | "around" | "between" | "evenly"} [props.justify] Especifica el alineado de los componentes hijos.
  *
  * Posibles valores:
  * * "start": alineados al inicio del componente. (`flex-start`)
@@ -51,7 +57,8 @@ const renderDef = (p) => <div {...p}/>;
  * * "between": espaciado entre componentes. (`space-between`)
  * * "evenly": espaciado equitativamente. (`space-evenly`)
  *
- * Aplicable solo cuando display="flex". Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {string} [props.grid] Abreviatura que aplica display=`grid` y aplica sus propiedades. (`grid`)
  * @param {boolean} [props.block] Abreviatura para display="block".
  * @param {string} [props.width] Especifica el ancho que tendrá el componente.
  *
@@ -65,13 +72,13 @@ const renderDef = (p) => <div {...p}/>;
  * * Si full=string se puede especificar en cualquier unidad y ocupará esa medida en ancho y alto. (%, px, vh, etc.). ej: full="50px".
  * * Si full=numero, ocupará n% de ancho y alto.
  * * Si full="full" o no se especifica medida, ocupará el 100% de ancho y alto.
- * @param {function} [props.render] Componente a utilizar para renderizar. Por defecto `div`
- * @returns div
+ * @param {(props: object) => JSX.Element} [props.render] Componente a utilizar para renderizar. Por defecto `div`
+ * @returns `div`
  **/
 export const Grid = ({
 	style = {},
 	display = "flex",
-	direction = "row",
+	direction = "",
 	reverse = false,
 	col,
 	gap,
@@ -81,18 +88,19 @@ export const Grid = ({
 	grow,
 	shrink,
 	basis,
+	wrap,
 	justify,
+	grid,
 	block,
 	width,
 	height,
 	full,
 	render: MyRender = renderDef,
-	// Todos los componentes hijos.
-	children,
 	// Otras propiedades que se pasarán directamente al div.
 	...otherProps
 }) => {
 	MyRender ??= renderDef;
+	style = { ...style };
 	if (width) {
 		if (parseInt(width) === width)
 			width = `${width}%`; // Especifica unidad sin medida, significa %.
@@ -133,90 +141,90 @@ export const Grid = ({
 		}
 	}
 
-	// Aplico ancho y alto en caso de corresponder.
 	if (width) style.width = width;
 	if (height) style.height = height;
 
-	// Abreviatura para display="block".
-	if (block) display = "block";
+	if (flex) display = "flex";
+	else if (grid) display = "grid";
+	else if (block) display = "block";
+	else if (!display) display = "none";
 
-	// Aplico display en caso de corresponder.
 	if (display) style.display = display;
 
-	// Aplico expandir en caso de corresponder.
-	if (flex) {
-		style.flex = flex;
-	} else {
-		if (grow) style.flexGrow = typeof grow === "boolean" ? 1 : grow;
-		if (shrink) style.flexShrink = typeof shrink === "boolean" ? 1 : shrink;
-		// Aplico tamaño inicial en caso de corresponder.
-		if (basis) {
-			switch (basis) {
-				case "width":
-					basis = width; // Mismo que width.
-					break;
-				case "height":
-					basis = height; // Mismo que height.
-					break;
-				case "full":
-					basis = full; // Mismo que full.
-					break;
-				default:
-					break;
+	if (/flex|inherit|initial|revert|unset/.test(display)) { // flex o global values
+		if (flex) {
+			style.flex = flex;
+		} else {
+			if (grow) style.flexGrow = typeof grow === "boolean" ? 1 : grow;
+			if (shrink) style.flexShrink = typeof shrink === "boolean" ? 1 : shrink;
+			if (basis) {
+				switch (basis) {
+					case "width":
+						basis = width; // Mismo que width.
+						break;
+					case "height":
+						basis = height; // Mismo que height.
+						break;
+					case "full":
+						basis = full; // Mismo que full.
+						break;
+					default:
+						break;
+				}
+				style.flexBasis = typeof basis === "boolean" ? 1 : basis;
 			}
-			style.flexBasis = typeof basis === "boolean" ? 1 : basis;
 		}
-	}
-	
-	// Abreviatura para direction="column".
-	if (col) direction = "column";
 
-	switch (direction) {
-		case "row":
-		case "column":
-			if (reverse) reverse = "reverse";
-			style.flexDirection = [direction, reverse].filter((r) => r).join("-");
-			break;
-		default:
-			break;
+		if (col) direction = "column";
+
+		if (reverse) reverse = "reverse";
+
+		if (reverse && !direction) direction = "row";
+
+		switch (direction) {
+			case "row":
+			case "column":
+				style.flexDirection = [direction, reverse].filter((r) => r).join("-");
+				break;
+			default:
+				break;
+		}
+
+		switch (justify) {
+			case "start":
+			case "end":
+				style.justifyContent = `flex-${justify}`;
+				break;
+			case "center":
+				style.justifyContent = "center";
+				break;
+			case "around":
+			case "between":
+			case "evenly":
+				style.justifyContent = `space-${justify}`;
+				break;
+			default:
+				break;
+		}
+
+		if (wrap) {
+			if (typeof wrap === "boolean") wrap = "wrap";
+			style.flexWrap = { no: "nowrap", reverse: "wrap-reverse" }[wrap] ?? wrap;
+		}
+	} else if (/grid/.test(display)) {
+		if (grid) {
+			style.grid = grid;
+		}
 	}
 
 	if (gap) {
-		rowGap = gap;
-		colGap = gap;
-	}
-	if (rowGap) style.rowGap = rowGap;
-	if (colGap) style.columnGap = colGap;
-	
-	// Aplico alineado en caso de corresponder.
-	switch (justify) {
-		case "start":
-			style.justifyContent = "flex-start";
-			break;
-		case "end":
-			style.justifyContent = "flex-end";
-			break;
-		case "center":
-			style.justifyContent = "center";
-			break;
-		case "around":
-			style.justifyContent = "space-around";
-			break;
-		case "between":
-			style.justifyContent = "space-between";
-			break;
-		case "evenly":
-			style.justifyContent = "space-evenly";
-			break;
-		default:
-			break;
+		style.gap = gap;
+	} else {
+		if (rowGap) style.rowGap = rowGap;
+		if (colGap) style.columnGap = colGap;
 	}
 
-	return (
-		<MyRender style={style} {...otherProps}>
-			{children}
-		</MyRender>
-	);
+	return <MyRender style={style} {...otherProps} />;
 };
 
 export default Grid;

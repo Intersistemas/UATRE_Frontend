@@ -1,11 +1,13 @@
 import React, { useState } from "react";
+import download from "downloadjs";
 import { Tabs, Tab } from "@mui/material";
-import Grid from "components/ui/Grid/Grid";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
 import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
-import useTareasUsuario from "components/hooks/useTareasUsuario";
-
+import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
+import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
 
 const ConsultasHandler = () => {
 	const [consulta, setConsulta] = useState();
@@ -17,13 +19,13 @@ const ConsultasHandler = () => {
 	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
 	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
+	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 
 	const onDownloadSolicitudAfiliacion = () => {
-		const link = document.createElement("a");
-		link.download = `SolicitudAfiliacion.pdf`;
-		link.href = "/Consultas/SolicitudAfiliacion.pdf";
-		link.click();
-	  };
+		solicitudAfiliacion({
+			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+		});
+	};
 
 	const onDownloadSolicitudCambioSeccional = () => {
 		const link = document.createElement("a");
@@ -32,15 +34,30 @@ const ConsultasHandler = () => {
 		link.click();
 	  };
 
+	const onDownloadVisitaSeccional = () => {
+		const link = document.createElement("a");
+		link.download = `VisitaSeccional.pdf`;
+		link.href = "/Consultas/VisitaSeccional.pdf";
+		link.click();
+	  };
+
+	const onDownloadNotificacionEmpresa = () => {
+		const link = document.createElement("a");
+		link.download = `NotificacionEmpresa.pdf`;
+		link.href = "/Consultas/NotificacionEmpresa.pdf";
+		link.click();
+	  };
+	  
+
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*//>,
+		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*/ />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
-						onClick={() =>							
+						onClick={() =>
 							setConsulta(<Localizar onClose={() => setConsulta(null)} />)
 						}
 						width="32"
@@ -48,16 +65,29 @@ const ConsultasHandler = () => {
 					>
 						Localiza Afiliado
 					</Button>
-					
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
-						onClick={() =>onDownloadSolicitudAfiliacion()}
+						onClick={() => onDownloadSolicitudAfiliacion()}
 						width="32"
 						tarea="Consultas_SolicitudAfiliacion"
 					>
 						Solicitud de Afiliación
+					</Button>
+				</Grid>
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={() =>
+							setConsulta(
+								<SolicitudAfiliacionForm onClose={() => setConsulta(null)} />
+							)
+						}
+						width="32"
+						tarea="Consultas_SolicitudPreviaAfiliacion"
+					>
+						Solicitud previa de afiliación
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
@@ -69,8 +99,33 @@ const ConsultasHandler = () => {
 					>
 						Solicitud de Cambio de Seccional
 					</Button>
+				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadVisitaSeccional}
+						width="32"
+						tarea="Consultas_VisitaSeccional"
+					>
+						Visita a Seccional
+					</Button>
 				
 				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={onDownloadNotificacionEmpresa}
+						width="32"
+						tarea="Consultas_NotificacionEmpresa"
+					>
+						Notificación a Empresa
+					</Button>
+				
+				</Grid>
+				
+				
 			</>
 		),
 		// actions,

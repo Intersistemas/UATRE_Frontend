@@ -172,6 +172,14 @@ const columns = [
 		headerStyle: { width: "10em", textAlign: "center" },
 		csvFormat: (v) => v,
 	},
+	{
+		dataField: "ultimaDDJJPeriodo",
+		text: "Período última DDJJ",
+		headerTitle: true,
+		headerStyle: { width: "12em", textAlign: "center" },
+		formatter: (v) => Formato.Periodo(v),
+		csvFormat: (v) => v,
+	},
 ];
 
 //#region delegacionSelectOptions
@@ -314,7 +322,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	});
 
 	useEffect(() => {
-		if (!delegacionSelect.reload) return;
+		if (!delegacionSelect?.reload) return;
 		const changes = {
 			reload: null,
 			loading: "Cargando...",
@@ -353,7 +361,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const [seccionalSelect, setSeccionalSelect] = useState({
 		reload: true,
 		loading: null,
-		params: { soloActivos: true },
+		params: { soloActivos: true/*, verSeccionalesLocalidades: false */},
 		data: [],
 		error: null,
 		buscar: "",
@@ -373,7 +381,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			options: [],
 		};
 		setSeccionalSelect((o) => ({ ...o, ...changes }));
-		if (!changes.loading) return;
+		console.log("changes.loading",changes.loading)
+		if (changes.loading) return;
 		const query = {
 			action: "GetSeccionales",
 			config: {
@@ -602,7 +611,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const [csv, setCSV] = useState({
 		reload: null,
 		loading: null,
-		params: {},
+		sort: list.sort,
+		params: list.params,
 		data: [columns.map((r) => r.text)],
 		formatters: columns.map(({ dataField, csvFormat }) => ({
 			dataField,
@@ -623,13 +633,12 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		const query = {
 			action: "GetData",
 			config: {
-				body: { ...csv.params },
+				body: { ...csv.params, sort: csv.sort },
 				errorType: "response",
 			},
 		};
 		query.onOk = async ({ index, pages, size, data }) => {
 			if (Array.isArray(data)) {
-				console.log({ "csv.formatters": csv.formatters });
 				changes.data.push(
 					...AsArray(data).map((r) =>
 						csv.formatters.map((f) => f.csvFormat(r[f.dataField], r))
@@ -642,7 +651,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				changes.loading = `Cargando bloque ${index + 1} de ${pages}...`;
 				query.config = {
 					body: {
-						...csv.params,
+						...query.config.body,
 						pageIndex: index + 1,
 						pageSize: size,
 					},
@@ -702,7 +711,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 									setFiltros((o) => {
 										const filtros = {
 											...o,
-											ambitoDelegaciones: { ids: [selected.value] },
+											ambitoDelegaciones: { ids: [selected?.value] },
 										};
 										if (selected === delegacionSelectTodos)
 											delete filtros.ambitoDelegaciones;
@@ -720,14 +729,14 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								id="seccionalSelect"
 								label="Seccional"
 								error={!!seccionalSelect.error}
-								helperText={seccionalSelect.loading ?? seccionalSelect.error}
+								helperText={seccionalSelect.loading ?? seccionalSelect?.error}
 								value={seccionalSelect.selected}
 								onChange={(selected) => {
 									setSeccionalSelect((o) => ({ ...o, selected }));
 									setFiltros((o) => {
 										const filtros = {
 											...o,
-											ambitoSeccionales: { ids: [selected.value] },
+											ambitoSeccionales: { ids: [selected?.value] },
 										};
 										if (selected === seccionalSelectTodos)
 											delete filtros.ambitoSeccionales;
@@ -774,7 +783,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								id="estadoSelect"
 								label="Estado"
 								error={!!estadoSelect.error}
-								helperText={estadoSelect.loading ?? estadoSelect.error}
+								helperText={estadoSelect.loading ?? estadoSelect?.error}
 								value={estadoSelect.selected}
 								onChange={(selected) => {
 									setEstadoSelect((o) => ({ ...o, selected }));
@@ -799,14 +808,14 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								id="provinciaSelect"
 								label="Provincia"
 								error={!!provinciaSelect.error}
-								helperText={provinciaSelect.loading ?? provinciaSelect.error}
-								value={provinciaSelect.selected}
+								helperText={provinciaSelect.loading ?? provinciaSelect?.error}
+								value={provinciaSelect?.selected}
 								onChange={(selected) => {
 									setProvinciaSelect((o) => ({ ...o, selected }));
 									setFiltros((o) => {
 										const filtros = {
 											...o,
-											ambitoProvincias: { ids: [selected.value] },
+											ambitoProvincias: { ids: [selected?.value] },
 										};
 										if (selected === provinciaSelectTodos)
 											delete filtros.ambitoProvincias;
@@ -895,9 +904,6 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 						noDataIndication={
 							list.loading || list.error || "No existen datos para mostrar "
 						}
-						selection={{
-							onSelect: (row) => console.log({ row }),
-						}}
 						columns={columns}
 						onTableChange={(type, { sortOrder, sortField }) => {
 							switch (type) {

@@ -19,6 +19,7 @@ const ResolverSolicitudModal = ({
 }) => {
 	const { audit } = useAuditoriaProceso();
 	const pushQuery = useQueryQueue((action, params) => {
+		
 		switch (action) {
 			case "GetEmpresa": {
 				return {
@@ -42,8 +43,10 @@ const ResolverSolicitudModal = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/Afiliado`,
-						method: "PATCH",
+						//endpoint: `/Afiliado/PatchAfiliado/:afiliadoId`,
+						//endpoint: `/Afiliado/ActualizarDatosAfip?Id=${params}`,
+						endpoint: `/Afiliado/PatchAfiliado/${params.id}`,
+						method: "PATCH"
 					},
 				};
 			}
@@ -292,7 +295,12 @@ const ResolverSolicitudModal = ({
 								if (Object.keys(newErrores).length) return;
 
 								const config = {
-									afiliado: { id: afiliado.id },
+									afiliado: {"id": afiliado.id},
+									body: {
+										"estadoSolicitudId": datos.estadoSolicitudId,
+										"fechaIgreso": datos.fechaIngreso,
+										"estadoSolicitudObservaciones": datos.estadoSolicitudObservaciones
+									},
 									cambios: [
 										{
 											op: "replace",
@@ -328,9 +336,9 @@ const ResolverSolicitudModal = ({
 									params: config.afiliado,
 									config: {
 										headers: {
-											"Content-Type": "application/json-patch+json",
+											"Content-Type": "application/json",
 										},
-										body: config.cambios,
+										body: config.body,
 									},
 									onOk: async (_res) =>
 										pushQuery({

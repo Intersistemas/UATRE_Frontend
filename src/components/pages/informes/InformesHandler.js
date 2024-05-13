@@ -14,6 +14,7 @@ import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEs
 import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
 import TrabajadoresEstadosEmpresas from "./trabajadoresEstadosEmpresas/TrabajadoresEstadosEmpresas";
 import TrabajadoresEstadosEmpresasSeccionales from "./trabajadoresEstadosEmpresasSeccionales/TrabajadoresEstadosEmpresasSeccionales";
+import AfiliadosNotaPeriodica from "./afiliadosNotaPeriodica/AfiliadosNotaPeriodica";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -103,6 +104,16 @@ const InformesHandler = () => {
 						tarea="Informes_Emite"
 					>
 						Afiliados
+					</Button>
+				</Grid>
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<AfiliadosNotaPeriodica onClose={() => setInforme(null)} />)}
+						width="32"
+						tarea="Informes_Emite"
+					>
+						Notificacion de afiliaciones para delegados
 					</Button>
 				</Grid>
 			</>

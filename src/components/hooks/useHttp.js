@@ -72,25 +72,25 @@ const useHttp = () => {
 	
         switch (baseURL) {
           case "Comunes":
-              url = `http://${servidor}.intersistemas.net:8202/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}02/api`;
               break;
           case "Afiliaciones":
-              url = `http://${servidor}.intersistemas.net:8200/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}00/api`;
               break;
           case "DDJJ":
-              url = `http://${servidor}.intersistemas.net:8203/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}03/api`;
               break;
           case "SIARU":
-              url = `http://${servidor}.intersistemas.net:8201/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}01/api`;
               break;
           case 'Seguridad':
-              url = `http://${servidor}.intersistemas.net:8800/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`9`:`8`}00/api`;
               break;
           case 'Auditoria':
-              url = `http://${servidor}.intersistemas.net:8802/api`;
+              url = `${servidor}:8${servidor.includes("https") ?`9`:`8`}02/api`;
               break;
           case 'Estadisticas':
-			        url = `http://${servidor}.intersistemas.net:8205/api`;
+			        url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}05/api`;
               break;
           case "MOCK-SIARU":
               url = `https://b1b923bc-149b-4f82-9ce4-2c1d0e7dec43.mock.pstmn.io/api`;
@@ -102,7 +102,10 @@ const useHttp = () => {
         //Configuracion fetch
 				const config = {
 					method,
-					headers: { ...headers },
+					headers: {
+						Authorization: true,
+						...headers
+					},
 					...configRequest,
 				};
 
@@ -115,8 +118,11 @@ const useHttp = () => {
 					}
 				}
 
-				if (config.headers.Authorization === true)
-					config.headers.Authorization = `Bearer ${getStoredToken().token}`;
+				const { token } = getStoredToken();
+				if (config.headers.Authorization === true && token)
+					config.headers.Authorization = `Bearer ${token}`;
+				else if (!("Authorization" in headers) || headers.Authorization === false)
+					delete config.headers.Authorization;
 
 				const take = { ok: false, data: null, error: null };
 				try {

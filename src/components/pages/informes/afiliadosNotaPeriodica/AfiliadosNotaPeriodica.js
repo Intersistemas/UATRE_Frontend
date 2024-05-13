@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
-import { comparator, range } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
@@ -13,8 +12,8 @@ import SearchSelectMaterial, {
 	includeSearch,
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
-import LotePDFViewer from "./LotePDFViewer";
-import ListadoImpresos from "./ListadoImpresos";
+import Viewer from "./Viewer";
+import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
@@ -90,10 +89,10 @@ const columns = [
 		style: { textAlign: "left" },
 	},
 	{
-		dataField: "createdDate",
-		text: "F. Carga",
+		dataField: "fechaIngreso",
+		text: "F. Ingreso",
 		sort: true,
-		headerTitle: () => "Fecha de Carga",
+		headerTitle: () => "Fecha de Ingreso",
 		headerStyle: { width: "7em", textAlign: "center" },
 		formatter: (v) => Formato.Fecha(v),
 		csvFormat: (v) => Formato.Fecha(v),
@@ -118,14 +117,14 @@ const columns = [
 	},
 ];
 
-const filtrosDef = { estadoSolicitudId: 2 };
+const filtrosDef = { nroAfiliado: 1, nroAfiliadoHasta: 2147483647 };
 
 //#region delegacionSelectOptions
 const delegacionSelectTodos = { value: 0, label: "Todas" };
 const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
-		map: (r) => ({ value: r.id, label: r.nombre }),
+		map: (r) => ({ value: r.id, label: r.nombre, data: r }),
 		filter: (r) => includeSearch(r, buscar),
 		start: [delegacionSelectTodos],
 		...x,
@@ -144,7 +143,7 @@ const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	});
 //#endregion seccionalSelectOptions
 
-const LoteSeleccion = ({ onClose = onCloseDef }) => {
+const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -259,201 +258,29 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 	]);
 	//#endregion filtro delegacion
 
-	//#region filtros seccionales
+	//#region filtro fecha de ingreso
+	const [fechaIngresoDesde, setfechaIngresoDesde] = useState(null);
+	const [fechaIngresoHasta, setfechaIngresoHasta] = useState(null);
 
-	//#region carga de seccionales
-	const [seccionales, setSeccionales] = useState({
-		reload: true,
-		loading: null,
-		params: { soloActivos: true },
-		data: [],
-		error: null,
-	});
-
-	useEffect(() => {
-		if (!seccionales.reload) return;
-		const changes = {
-			reload: null,
-			loading: "refDelegacionId" in seccionales.params ? "Cargando..." : null,
-			data: [],
-			error: null,
-		};
-		setSeccionales((o) => ({ ...o, ...changes }));
-		if (changes.loading) return;
-		const query = {
-			action: "GetSeccionales",
-			config: {
-				body: { ...seccionales.params, pageIndex: 1 },
-			},
-		};
-		query.onOk = ({ data, pages }) => {
-			if (!Array.isArray(data))
-				return console.error("Se esperaba un arreglo", data);
-			changes.data.push(...data);
-			if (query.config.body.pageIndex < pages) {
-				query.config.body.pageIndex += 1;
-				changes.loading = `Cargando bloque ${query.config.body.pageIndex} de ${pages}...`;
-				return;
-			} else {
-				changes.loading = null;
-			}
-		};
-		query.onError = (error) => {
-			changes.loading = null;
-			changes.error = error.toString();
-		};
-		query.onFinally = () => {
-			if (changes.loading) {
-				pushQuery({ ...query });
-				return;
-			}
-			setSeccionales((o) => ({ ...o, ...changes }));
-		};
-		pushQuery(query);
-	}, [seccionales, pushQuery]);
-	//#endregion carga de seccionales
-
-	//#region filtro seccional desde
-	const [seccionalDesdeSelect, setSeccionalDesdeSelect] = useState({
-		options: [],
-		buscar: "",
-		error: null,
-		selected: seccionalSelectTodos,
-	});
-	// Buscador
-	useEffect(() => {
-		if (seccionales.reload) return;
-		if (seccionales.loading) return;
-		setSeccionalDesdeSelect((o) => ({
-			...o,
-			options: seccionalSelectOptions({
-				data: seccionales.data,
-				buscar: seccionalDesdeSelect.buscar,
-			}),
-		}));
-	}, [
-		seccionales.reload,
-		seccionales.loading,
-		seccionales.data,
-		seccionalDesdeSelect.buscar,
-	]);
-	//#endregion filtro seccional desde
-
-	//#region filtro seccional hasta
-	const [seccionalHastaSelect, setSeccionalHastaSelect] = useState({
-		options: [],
-		buscar: "",
-		error: null,
-		selected: seccionalSelectTodos,
-	});
-	// Buscador
-	useEffect(() => {
-		if (seccionales.reload) return;
-		if (seccionales.loading) return;
-		setSeccionalHastaSelect((o) => ({
-			...o,
-			options: seccionalSelectOptions({
-				data: seccionales.data,
-				buscar: seccionalHastaSelect.buscar,
-			}),
-		}));
-	}, [
-		seccionales.reload,
-		seccionales.loading,
-		seccionales.data,
-		seccionalHastaSelect.buscar,
-	]);
-	//#endregion filtro seccional hasta
-
-	useEffect(() => {
-		setSeccionalDesdeSelect((o) => ({ ...o, selected: seccionalSelectTodos }));
-		setSeccionalHastaSelect((o) => ({ ...o, selected: seccionalSelectTodos }));
-		setFiltros((o) => {
-			const filtros = { ...o };
-			delete filtros.ambitoSeccionales;
-			return filtros;
-		});
-	}, [seccionales.data]);
-
-	const handleSeccionalFiltro = (
-		desde = seccionalSelectTodos,
-		hasta = seccionalSelectTodos
-	) =>
-		setFiltros((o) => {
-			const filtros = { ...o };
-			if (desde === hasta) {
-				if (desde === seccionalSelectTodos) {
-					delete filtros.ambitoSeccionales;
-				} else {
-					filtros.ambitoSeccionales = { ids: [desde.value] };
-				}
-			} else if (desde === seccionalSelectTodos) {
-				filtros.ambitoSeccionales = { ids: [hasta.value] };
-			} else if (hasta === seccionalSelectTodos) {
-				filtros.ambitoSeccionales = { ids: [desde.value] };
-			} else {
-				filtros.ambitoSeccionales = {
-					ids: range(
-						seccionales.data,
-						seccionales.data.find((r) => r.id === desde.value),
-						seccionales.data.find((r) => r.id === hasta.value),
-						(a, b) => comparator(a.codigo ?? "", b.codigo ?? "")
-					).map((r) => r.id),
-				};
-			}
-			return filtros;
-		});
-	//#endregion filtros seccionales
-
-	//#region filtro fecha de carga
-	const [createdDateDesde, setCreatedDateDesde] = useState(null);
-	const [createdDateHasta, setCreatedDateHasta] = useState(null);
-
-	const handleCreatedDateFiltro = (desde = "", hasta = "") =>
+	const handlefechaIngresoFiltro = (desde = "", hasta = "") =>
 		setFiltros((o) => {
 			const filtros = { ...o };
 			if (!desde && !hasta) {
-				delete filtros.createdDateDesde;
-				delete filtros.createdDateHasta;
+				delete filtros.fechaIngreso;
+				delete filtros.fechaIngresoHasta;
 			} else if (!desde) {
-				filtros.createdDateDesde = hasta;
-				filtros.createdDateHasta = hasta;
+				filtros.fechaIngreso = hasta;
+				filtros.fechaIngresoHasta = hasta;
 			} else if (!hasta) {
-				filtros.createdDateDesde = desde;
-				filtros.createdDateHasta = desde;
+				filtros.fechaIngreso = desde;
+				filtros.fechaIngresoHasta = desde;
 			} else {
-				filtros.createdDateDesde = desde;
-				filtros.createdDateHasta = hasta;
+				filtros.fechaIngreso = desde;
+				filtros.fechaIngresoHasta = hasta;
 			}
 			return filtros;
 		});
-	//#endregion filtro fecha de carga
-
-	//#region filtro nroAfiliado
-	const [nroAfiliadoDesde, setNroAfiliadoDesde] = useState("");
-	const [nroAfiliadoHasta, setNroAfiliadoHasta] = useState("");
-
-	const handleNroAfiliadoFiltro = (desde = 0, hasta = 0) =>
-		setFiltros((o) => {
-			const filtros = { ...o };
-			desde = Formato.Entero(desde);
-			hasta = Formato.Entero(hasta);
-			if (!desde && !hasta) {
-				delete filtros.nroAfiliado;
-				delete filtros.nroAfiliadoHasta;
-			} else if (!desde) {
-				filtros.nroAfiliado = hasta;
-				filtros.nroAfiliadoHasta = hasta;
-			} else if (!hasta) {
-				filtros.nroAfiliado = desde;
-				filtros.nroAfiliadoHasta = desde;
-			} else {
-				filtros.nroAfiliado = desde;
-				filtros.nroAfiliadoHasta = hasta;
-			}
-			return filtros;
-		});
-	//#endregion filtro nroAfiliado
+	//#endregion filtro fecha de ingreso
 
 	//#endregion filtros
 
@@ -462,7 +289,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 		reload: true,
 		loading: null,
 		pagination: { index: 1, size: 10 },
-		sort: "nroAfiliadoDesc",
+		sort: "nombre",
 		params: { ...filtrosDef },
 		data: [],
 		selected: [],
@@ -570,17 +397,31 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 	//#endregion print
 
 	const onImprime = () => {
+		const delegacion = {
+			codigo: delegacionSelect.selected.data?.codigoDelegacion,
+			descripcion: delegacionSelect.selected.data?.nombre,
+			desdeFecha: filtros.fechaIngreso,
+			hastaFecha: filtros.fechaIngresoHasta,
+			seccionales: []
+		};
+		list.selected.forEach(afiliado => {
+			let seccional = delegacion.seccionales.find(
+				(s) => s.codigo === afiliado.seccionalCodigo
+			);
+			if (seccional == null) {
+				seccional = {
+					codigo: afiliado.seccionalCodigo,
+					descripcion: afiliado.seccional,
+					afiliados: []
+				};
+				delegacion.seccionales.push(seccional);
+			}
+			seccional.afiliados.push(afiliado);
+		})
 		setPrint(
-			<LotePDFViewer
-				data={list.selected}
-				onClose={() =>
-					setPrint(
-						<ListadoImpresos
-							data={list.selected}
-							onClose={() => setPrint(null)}
-						/>
-					)
-				}
+			<Viewer
+				data={delegacion}
+				onClose={() => setPrint(null)}
 			/>
 		);
 	};
@@ -592,207 +433,119 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 		<>
 			<Modal size="xl" centered show /*onHide={() => onClose()}*/>
 				<Modal.Header className={modalCss.modalCabecera} closeButton>
-					Afiliados
+					Notificacion de afiliaciones para delegados
 				</Modal.Header>
 				<Modal.Body>
 					<Grid col full gap="15px">
 						<Grid width gap="inherit">
-							<Grid grow>
-								<SearchSelectMaterial
-									id="delegacionSelect"
-									label="Delegación"
-									error={!!delegacionSelect.error}
-									helperText={
-										delegacionSelect.loading ?? delegacionSelect.error
-									}
-									value={delegacionSelect.selected}
-									onChange={(selected) => {
-										setDelegacionSelect((o) => ({ ...o, selected }));
-										setSeccionales((o) => {
-											const seccionales = { ...o, reload: true };
-											if (selected === delegacionSelectTodos) {
-												delete seccionales.params.refDelegacionId;
-											} else {
-												seccionales.params.refDelegacionId = selected.value;
-											}
-											return seccionales;
-										});
-										setFiltros((o) => {
-											const filtros = {
-												...o,
-												ambitoDelegaciones: { ids: [selected?.value] },
-											};
-											if (selected === delegacionSelectTodos)
-												delete filtros.ambitoDelegaciones;
-											return filtros;
-										});
-									}}
-									options={delegacionSelect.options}
-									onTextChange={(buscar) =>
-										setDelegacionSelect((o) => ({ ...o, buscar }))
-									}
-								/>
-							</Grid>
-							<Grid grow>
-								<SearchSelectMaterial
-									id="seccionalDesdeSelect"
-									label="Desde seccional"
-									error={!!seccionalDesdeSelect.error}
-									helperText={
-										seccionales.loading ??
-										seccionales.error ??
-										seccionalDesdeSelect.error
-									}
-									value={seccionalDesdeSelect.selected}
-									onChange={(selected) => {
-										setSeccionalDesdeSelect((o) => ({ ...o, selected }));
-										handleSeccionalFiltro(
-											selected,
-											seccionalHastaSelect.selected
-										);
-									}}
-									options={seccionalDesdeSelect.options}
-									onTextChange={(buscar) =>
-										setSeccionalDesdeSelect((o) => ({ ...o, buscar }))
-									}
-								/>
-							</Grid>
-							<Grid grow>
-								<SearchSelectMaterial
-									id="seccionalHastaSelect"
-									label="Hasta seccional"
-									error={!!seccionalHastaSelect.error}
-									helperText={
-										seccionales.loading ??
-										seccionales.error ??
-										seccionalHastaSelect.error
-									}
-									value={seccionalHastaSelect.selected}
-									onChange={(selected) => {
-										setSeccionalHastaSelect((o) => ({ ...o, selected }));
-										handleSeccionalFiltro(
-											seccionalDesdeSelect.selected,
-											selected
-										);
-									}}
-									options={seccionalHastaSelect.options}
-									onTextChange={(buscar) =>
-										setSeccionalHastaSelect((o) => ({ ...o, buscar }))
-									}
-								/>
-							</Grid>
+							<SearchSelectMaterial
+								id="delegacionSelect"
+								label="Delegación"
+								error={!!delegacionSelect.error}
+								helperText={
+									delegacionSelect.loading ?? delegacionSelect?.error
+								}
+								value={delegacionSelect.selected}
+								onChange={(selected) => {
+									setDelegacionSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											ambitoDelegaciones: { ids: [selected?.value] },
+										};
+										if (selected === delegacionSelectTodos)
+											delete filtros.ambitoDelegaciones;
+										return filtros;
+									});
+								}}
+								options={delegacionSelect.options}
+								onTextChange={(buscar) =>
+									setDelegacionSelect((o) => ({ ...o, buscar }))
+								}
+							/>
 						</Grid>
 						<Grid width gap="inherit">
 							<Grid width>
 								<InputMaterial
 									type="date"
-									label="Desde fecha de carga"
-									value={createdDateDesde}
-									maxDate={createdDateHasta}
+									label="Desde fecha de ingreso"
+									value={fechaIngresoDesde}
+									maxDate={fechaIngresoHasta}
 									onChange={(v) => {
-										const createdDateDesde = v?.format("YYYY-MM-DD");
-										setCreatedDateDesde(createdDateDesde);
-										handleCreatedDateFiltro(createdDateDesde, createdDateHasta);
+										const fechaIngresoDesde = v?.format("YYYY-MM-DD");
+										setfechaIngresoDesde(fechaIngresoDesde);
+										handlefechaIngresoFiltro(fechaIngresoDesde, fechaIngresoHasta);
 									}}
 								/>
 							</Grid>
 							<Grid width>
 								<InputMaterial
 									type="date"
-									label="Hasta fecha de carga"
-									value={createdDateHasta}
-									minDate={createdDateDesde}
+									label="Hasta fecha de ingreso"
+									value={fechaIngresoHasta}
+									minDate={fechaIngresoDesde}
 									onChange={(v) => {
-										const createdDateHasta = v?.format("YYYY-MM-DD");
-										setCreatedDateHasta(createdDateHasta);
-										handleCreatedDateFiltro(createdDateDesde, createdDateHasta);
+										const fechaIngresoHasta = v?.format("YYYY-MM-DD");
+										setfechaIngresoHasta(fechaIngresoHasta);
+										handlefechaIngresoFiltro(fechaIngresoDesde, fechaIngresoHasta);
 									}}
 								/>
 							</Grid>
-							<Grid width>
-								<InputMaterial
-									type="number"
-									label="Desde Nro. de afiliado"
-									value={nroAfiliadoDesde}
-									onChange={(nroAfiliadoDesde) => {
-										setNroAfiliadoDesde(nroAfiliadoDesde);
-										handleNroAfiliadoFiltro(nroAfiliadoDesde, nroAfiliadoHasta);
-									}}
-								/>
-							</Grid>
-							<Grid width>
-								<InputMaterial
-									type="number"
-									label="Hasta Nro. de afiliado"
-									value={nroAfiliadoHasta}
-									onChange={(nroAfiliadoHasta) => {
-										setNroAfiliadoHasta(nroAfiliadoHasta);
-										handleNroAfiliadoFiltro(nroAfiliadoDesde, nroAfiliadoHasta);
-									}}
-								/>
-							</Grid>
-						</Grid>
-						<Grid width gap="inherit" justify="end">
-							<Grid width="200px">
-								<Button
-									className="botonAzul"
-									disabled={
-										JSON.stringify(list.params) === JSON.stringify(filtros)
-									}
-									onClick={() => {
-										setList((o) => ({
-											...o,
-											reload: true,
-											params: filtros,
-											data: [],
-											error: null,
-											pagination: { ...o.pagination, index: 1, count: 0 },
-										}));
-									}}
-								>
-									Aplica filtros
-								</Button>
-							</Grid>
-							<Grid width="200px">
-								<Button
-									className="botonAzul"
-									disabled={
-										Object.keys(filtros).filter(
-											(k) => !Object.keys(filtrosDef).includes(k)
-										).length === 0
-									}
-									onClick={() => {
-										const filtros = { ...filtrosDef };
-										setDelegacionSelect((o) => ({
-											...o,
-											selected: delegacionSelectTodos,
-										}));
-										setSeccionalDesdeSelect((o) => ({
-											...o,
-											selected: seccionalSelectTodos,
-										}));
-										setSeccionalHastaSelect((o) => ({
-											...o,
-											selected: seccionalSelectTodos,
-										}));
-										setCreatedDateDesde(null);
-										setCreatedDateHasta(null);
-										setNroAfiliadoDesde("");
-										setNroAfiliadoHasta("");
-										setFiltros(filtros);
-										if (JSON.stringify(list.params) === JSON.stringify(filtros))
-											return;
-										setList((o) => ({
-											...o,
-											reload: true,
-											params: filtros,
-											data: [],
-											error: null,
-										}));
-									}}
-								>
-									Limpia filtros
-								</Button>
+							<Grid width/>
+							<Grid width gap="inherit" justify="end">
+								<Grid width="200px">
+									<Button
+										className="botonAzul"
+										disabled={
+											JSON.stringify(list.params) === JSON.stringify(filtros)
+										}
+										onClick={() => {
+											setList((o) => ({
+												...o,
+												reload: true,
+												params: filtros,
+												data: [],
+												error: null,
+												selected: [],
+												pagination: { ...o.pagination, index: 1, count: 0 },
+											}));
+										}}
+									>
+										Aplica filtros
+									</Button>
+								</Grid>
+								<Grid width="200px">
+									<Button
+										className="botonAzul"
+										disabled={
+											Object.keys(filtros).filter(
+												(k) => !Object.keys(filtrosDef).includes(k)
+											).length === 0
+										}
+										onClick={() => {
+											const filtros = { ...filtrosDef };
+											setDelegacionSelect((o) => ({
+												...o,
+												selected: delegacionSelectTodos,
+											}));
+											setfechaIngresoDesde(null);
+											setfechaIngresoHasta(null);
+											setFiltros(filtros);
+											if (JSON.stringify(list.params) === JSON.stringify(filtros))
+												return;
+											setList((o) => ({
+												...o,
+												reload: true,
+												params: filtros,
+												data: [],
+												selected: [],
+												error: null,
+											}));
+										}}
+									>
+										Limpia filtros
+									</Button>
+								</Grid>
 							</Grid>
 						</Grid>
 						<Table
@@ -904,7 +657,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 							<Grid width="150px">
 								<Button
 									className="botonAmarillo"
-									disabled={list.selected.length === 0}
+									disabled={list.selected.length === 0 || !filtros.ambitoDelegaciones || !filtros.fechaIngreso }
 									onClick={() => onImprime()}
 								>
 									IMPRIME
@@ -924,4 +677,4 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 	);
 };
 
-export default LoteSeleccion;
+export default AfiliadosNotaPeriodica;
