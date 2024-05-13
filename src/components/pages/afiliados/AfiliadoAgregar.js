@@ -1154,6 +1154,44 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			async () => applyChanges()
 		)
     :
+    seccionales.params.localidadId ? // si busco solo la seccional ID
+    ( 
+			{
+				baseURL: "Afiliaciones",
+        endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId`,
+				params: { refLocalidadId: seccionales.localidadId, soloActivos: true },
+				method: "GET",
+			},
+			async (ok) =>
+      (console.log('GetSeccionalesSpecs_ok',ok),
+        changes.data.push(
+          {value: provinciaState?.value?.seccionalIdPorDefecto,
+          label: provinciaState?.value?.seccionalDescripcionPorDefecto}
+        ),
+				changes.data.push(
+					...ok.data
+						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+						.map((r) => ( r.localidadCodPostal !== 99999  && {value: r.id, label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+						))
+				)
+      ),
+			async (error) => (
+        (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
+			async () => applyChanges()
+		);
+    request(
+      {
+        case "GetSeccionalLocalidad": {
+          return {
+            config: {
+              baseURL: "Afiliaciones",
+              method: "GET",
+              endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId`,
+            },
+          };
+        }
+      }
+    )
 		request( 
 			{
 				baseURL: "Afiliaciones",
