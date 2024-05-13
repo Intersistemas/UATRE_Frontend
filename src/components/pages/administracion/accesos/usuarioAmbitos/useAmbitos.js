@@ -30,7 +30,7 @@ const useAmbitos = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuarioAmbitos/GetByUsuarioId`,
+						endpoint: `/UsuariosAmbitos/GetByUsuarioId`,
 						method: "GET",
 					},
 				};
@@ -39,7 +39,7 @@ const useAmbitos = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosModulosAmbitos`,
+						endpoint: `/UsuariosAmbitos`,
 						method: "POST",
 					},
 				};
@@ -49,7 +49,7 @@ const useAmbitos = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosModulosAmbitos/${id}`,
+						endpoint: `/UsuariosAmbitos/${id}`,
 						method: "PUT",
 					},
 					params: otherParams,
@@ -60,7 +60,7 @@ const useAmbitos = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosModulosAmbitos/${id}`,
+						endpoint: `/UsuariosAmbitos/${id}`,
 						method: "DELETE",
 					},
 					params: otherParams,

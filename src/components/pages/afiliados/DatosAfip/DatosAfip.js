@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import moment from "moment";
 
 const DatosAfip = (props) => {
+
   const [nombreAFIP, setNombreAFIP] = useState("");
   const [fechaNacimientoAFIP, setFechaNacimientoAFIP] = useState("");
   const [cuilAFIP, setCUILAFIP] = useState("");
@@ -29,7 +30,24 @@ const DatosAfip = (props) => {
   useEffect(() => {
 
     console.log('props.padronRespuesta',props.padronRespuesta)
-     if (props.padronRespuesta !== null) {
+
+    setNombreAFIP(``);
+    setFechaNacimientoAFIP(null);
+    setCUILAFIP("");
+    setTipoDocumentoAFIP("");
+    setNumeroDocumentoAFIP("");
+    setEstadoClaveAFIP("");
+    setDomicilioRealAFIP("");
+    setTipoPersonaAFIP("");
+    setTipoClaveAFIP("");
+    setDescripcionActividadPrincipalAFIP("");
+    setIdActividadPrincipalAFIP("");
+    setPeriodoActividadPrincipalAFIP("");
+    setMesCierreAFIP("");
+    setProvinciaAFIP("");
+    setLocalidadAFIP("");
+
+    if (props.padronRespuesta !== null) {
       const domicilioReal = props.padronRespuesta?.domicilios?.find(
         (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
       );
@@ -144,6 +162,7 @@ const DatosAfip = (props) => {
             type="date"
             value={fechaNacimientoAFIP}
             label="Fecha de Nacimiento"
+            disabled={true}
             readOnly={true}
           />
         </div>

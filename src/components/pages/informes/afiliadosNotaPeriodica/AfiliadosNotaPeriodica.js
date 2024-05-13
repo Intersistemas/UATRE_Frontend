@@ -400,8 +400,8 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 		const delegacion = {
 			codigo: delegacionSelect.selected.data?.codigoDelegacion,
 			descripcion: delegacionSelect.selected.data?.nombre,
-			desdeFecha: dayjs(filtros.fechaIngreso).format("YYYYMM"),
-			hastaFecha: dayjs(filtros.fechaIngresoHasta).format("YYYYMM"),
+			desdeFecha: filtros.fechaIngreso,
+			hastaFecha: filtros.fechaIngresoHasta,
 			seccionales: []
 		};
 		list.selected.forEach(afiliado => {
