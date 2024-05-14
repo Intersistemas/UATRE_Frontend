@@ -7,7 +7,7 @@ import styles from "./PDF.styles.js";
 
 const PDF = ({ afiliado = {}, seccional = {} } = {}) => {
 	const Grid = ({ style, ...p }) => (
-		<GridNormal render={View} style={{ ...style, ...styles.border }} {...p} />
+		<GridNormal direction="row" render={View} style={{ ...style, ...styles.border }} {...p} />
 	);
 	const P = ({ size = 10, align = "left", bold = false, style, ...p }) => (
 		<Text
