@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 
 /** @type {UIGrid} */
 const Grid = ({ style, ...p }) => (
-	<UIGrid render={View} style={{ ...style, ...styles.border }} {...p} />
+	<UIGrid direction="row" render={View} style={{ ...style, ...styles.border }} {...p} />
 );
 
 /** @type {Text} */
@@ -88,7 +88,7 @@ const Hoja = ({
 				<P size={fontSizePt + 2} align="center" bold>
 					{nombre}
 				</P>
-				<Grid direction="row" width="full">
+				<Grid  width="full">
 					<Grid col width="full" gap="2px">
 						<P align="center">
 							{[tipoDocumento, Formato.Numero(documento)]
