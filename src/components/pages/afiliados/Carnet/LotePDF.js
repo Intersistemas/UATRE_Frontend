@@ -88,7 +88,7 @@ const Hoja = ({
 				<P size={fontSizePt + 2} align="center" bold>
 					{nombre}
 				</P>
-				<Grid width="full">
+				<Grid direction="row" width="full">
 					<Grid col width="full" gap="2px">
 						<P align="center">
 							{[tipoDocumento, Formato.Numero(documento)]
