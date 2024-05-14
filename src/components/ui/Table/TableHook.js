@@ -1,18 +1,86 @@
 import React, { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import { pick } from "components/helpers/Utils";
-import useQueryQueue, { QueryClass } from "components/hooks/useQueryQueue";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "./Table";
 
-/**
- * Selecciona el primer registro.
- * @param {object} params
- * @param {array} params.data
- * @param {boolean} params.multi Si es seleccion múltiple.
- * @param {object} params.record Registro/s sleccionado/s.
- * @param {string} params.key Identificador de registro
+/** imports: TablePagination
+ * @typedef {import('components/ui/Table/Table').TablePagination} TablePagination
+ */
+
+/** onLoadSelect: Registro a seleccional al cargar
+ * @callback onLoadSelect
+ * @param {array} data
+ * @param {boolean} multi Si es seleccion múltiple.
+ * @param {object} record Registro/s sleccionado/s.
+ * @param {string} key Identificador de registro
  * @returns {object} Registro/s sleccionado/s.
+ */
+
+/** onDataChange: Callback cuando cambia los datos que se despliegan
+ * @callback onDataChange
+ * @param {array} data Nuevos datos.
+ */
+
+/** onEditChange: Callback cuando cambian datos que se están editando
+ * @typedef {object} onEditChangeParams
+ * @property {object} edit Datos en el formulario.
+ * @property {string} request Requerimiento. Ej: "A", "M", "B"
+ * @property {object} changes Cambios realizados.
+ * 
+ * @callback onEditChange
+ * @param {onEditChangeParams} params
+ * @returns {boolean} Si confirma o cancela los cambios
+ */
+
+/** onEditValidate: Callback cuando se confirman los datos que se están editando
+ * @typedef {object} onEditValidateParams
+ * @property {object} edit Datos en el formulario.
+ * @property {string} request Requerimiento. Ej: "A", "M", "B"
+ * @property {object} errors Errores detectados. (Agregar a este objeto los errores detectados)
+ * 
+ * @callback onEditValidate
+ * @param {onEditValidateParams} params
+ */
+
+/** onEditComplete: Callback cuando se enviaron correctamente los cambios que se están editando.
+ * @typedef {object} onEditCompleteParams
+ * @property {object} edit Datos en el formulario.
+ * @property {string} request Requerimiento. Ej: "A", "M", "B"
+ * @property {object} response Errores detectados. (Agregar a este objeto los errores detectados)
+ * 
+ * @callback onEditComplete
+ * @param {onEditCompleteParams} params
+ */
+
+/** TableHookConfig: Configuraciones del hook
+ * @typedef {object} TableHookConfig
+ * @property {boolean} remote
+ * @property {string} key
+ * @property {object} params
+ * @property {array} data
+ * @property {any} loading
+ * @property {any} error
+ * @property {boolean} multi
+ * @property {TablePagination} pagination
+ * @property {onLoadSelect} onLoadSelect
+ * @property {onDataChange} onDataChange
+ * @property {onEditChange} onEditChange
+ * @property {onEditValidate} onEditValidate
+ * @property {onEditComplete} onEditComplete
+ */
+
+/** TableHookReturn: Valores de retorno del hook
+ * @typedef {object} TableHookReturn
+ * @property {(type: "selected" | "list", payload?: object) => void} request
+ * @property {() => JSX.Element} render
+ * @property {object} selected
+ */
+
+/** Selecciona el primer registro.
+ * @type {onLoadSelect}
  */
 export const onLoadSelectFirst = ({ data, multi, record, key = "id" }) => {
 	if (multi) {
@@ -25,14 +93,8 @@ export const onLoadSelectFirst = ({ data, multi, record, key = "id" }) => {
 	return data.find((r) => r[key] === (record ?? {})[key]) ?? data.at(0);
 };
 
-/**
- * Vuelve a seleccionar el mismo.
- * @param {object} params
- * @param {array} params.data
- * @param {boolean} params.multi Si es seleccion múltiple.
- * @param {object} params.record Registro/s sleccionado/s.
- * @param {string} params.key Identificador de registro
- * @returns {object} Registro/s sleccionado/s.
+/** Vuelve a seleccionar el mismo.
+ * @type {onLoadSelect}
  */
 export const onLoadSelectSame = ({ data, multi, record, key = "id" }) => {
 	if (multi) {
@@ -44,67 +106,29 @@ export const onLoadSelectSame = ({ data, multi, record, key = "id" }) => {
 	return data.find((r) => r[key] === (record ?? {})[key]);
 };
 
-/**
- * Mantiene la seleccion.
- * @param {object} params
- * @param {array} params.data
- * @param {boolean} params.multi Si es seleccion múltiple.
- * @param {object} params.record Registro/s sleccionado/s.
- * @param {string} params.key Identificador de registro
- * @returns {object} Registro/s sleccionado/s.
+/** Mantiene la seleccion.
+ * @type {onLoadSelect}
  */
 export const onLoadSelectKeep = ({ record }) => record;
 
-/**
- * Callback cuando cambia los datos que se despliegan
- * @param {array} data Nuevos datos.
+/** Mantiene la seleccion. Si no hay seleccionados, selecciona el primero.
+ * @type {onLoadSelect}
  */
-export const onDataChange = (data) => {};
+export const onLoadSelectKeepOrFirst = ({ data, multi, record, key = "id" }) =>
+	record ? record : onLoadSelectFirst({ data, multi, record, key });
 
-/**
- *
- * @param {object} [params]
- * @param {object} [params.edit] Datos en el formulario.
- * @param {string} [params.request] Requerimiento. Ej: "A", "M", "B"
- * @param {object} [params.changes] Cambios realizados.
- * @returns Si confirma o cancela los cambios
- */
-const onEditChange = (params = {}) => true;
-
-/**
- *
- * @param {object} [params]
- * @param {object} [params.edit] Datos en el formulario.
- * @param {string} [params.request] Requerimiento. Ej: "A", "M", "B"
- * @param {object} [params.errors] Errores detectados. (Agregar a este objeto los errores detectados)
- * @returns Si confirma o cancela los cambios
- */
-const onEditValidate = (params = {}) => {};
-
-/**
- *
- * @param {object} [params]
- * @param {object} [params.edit] Datos en el formulario.
- * @param {string} [params.request] Requerimiento. Ej: "A", "M", "B"
- * @param {object} [params.response] Errores detectados. (Agregar a este objeto los errores detectados)
- * @returns Si confirma o cancela los cambios
- */
-const onEditComplete = (params = {}) => {};
-
-const TableHookFactoryParams = {
+/** @type {TableHookConfig} */
+const TableHookConfigDef = {
 	remote: false,
 	key: "id",
 	params: {},
 	data: [],
-	loading,
-	error,
 	multi: false,
-	pagination: null,
 	onLoadSelect: onLoadSelectFirst,
-	onDataChange,
-	onEditChange,
-	onEditValidate,
-	onEditComplete,
+	onDataChange: () => {},
+	onEditChange: () => true,
+	onEditValidate: () => {},
+	onEditComplete: () => {},
 };
 
 const selectionDef = {
@@ -118,54 +142,54 @@ const selectionDef = {
 };
 
 /**
- *
  * @param {object} [props]
- * @param {TableHookFactoryParams} [props.init] Configuraciones iniciales
- * @param {(type: string, payload?: object) => void} [props.tableProps] Propiedades de la grilla
+ * @param {TableHookConfig} [props.config] Configuraciones iniciales
+ * @param {(state: { request: (type: string, payload?: object) => void, selected: any }) => object} [props.tableProps] Propiedades de la grilla
  * @param {(props: object) => JSX.Element} [props.tableRender] Render de grilla
- * @param {(params: { data: object, request: string, title: string, errors: object }) => JSX.Element} [props.formRender] Render de formulario
+ * @param {(params: { data: object, request: string, title: string, errors: object, apply: (changes: object) => void, close: (confirm: boolean) => void }) => JSX.Element} [props.formRender] Render de formulario
  * @param {string[]} [props.requests] Operaciones permitidas
  * @param {(action: string, params?: object) => { config: { baseURL: string, method: string, endpoint: string }, params: object }} [props.queryConfig] Configuracion de consultas
- * @param {(config: { params: object, pagination: object }) => QueryClass} [props.getLoadQuery] Consulta de carga de grilla
- * @param {(request: string, data: object) => QueryClass} [props.getQuery] Consulta de mutaciones
- * @returns {{ request: (type: string, payload?: object) => void, render: () => JSX.Element, selected: object }}
+ * @param {(config: { params: object, pagination: TablePagination }) => QueryClass} [props.getListQuery] Consulta de carga de grilla
+ * @param {(config: { request: string, data: object }) => QueryClass} [props.getMutationQuery] Consulta de mutaciones
+ * @returns {TableHookReturn}
  */
-const TableHookFactory = ({
-	init = TableHookFactoryParams,
+const TableHook = ({
+	config: init = { ...TableHookConfigDef },
 	tableProps = () => ({}),
 	tableRender = (props) => <Table {...props} />,
-	formRender = () => <></>,
 	requests = ["A", "M", "B"],
+	formRender = () => null,
 	queryConfig = () => null,
-	getLoadQuery = () => null,
-	getQuery = () => null,
+	getListQuery = () => null,
+	getMutationQuery = () => null
 } = {}) => {
-	init = { ...TableHookFactoryParams, ...init };
+	const config = { ...TableHookConfigDef, ...init };
 	const pushQuery = useQueryQueue(queryConfig);
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
+		config,
 		loading: null,
-		key: init.key,
-		remote: init.remote,
-		params: init.params,
-		pagination: init.pagination,
-		getLoadQuery,
-		loadingOverride: init.loading,
-		data: init.data,
-		error: init.error,
+		key: config.key,
+		remote: config.remote,
+		params: { ...config.params },
+		pagination: { ...config.pagination },
+		getListQuery,
+		loadingOverride: config.loading,
+		data: config.data,
+		error: config.error,
 		selection: {
 			...selectionDef,
-			multi: init.multi,
+			multi: config.multi,
 		},
 		onLoadSelect:
-			init.onLoadSelect === onLoadSelectFirst && init.multi
+			config.onLoadSelect === onLoadSelectFirst && config.multi
 				? onLoadSelectSame
-				: init.onLoadSelect,
-		onDataChange: init.onDataChange ?? onDataChange,
-		onEditChange: init.onEditChange ?? onEditChange,
-		onEditValidate: init.onEditValidate ?? onEditValidate,
-		onEditComplete: init.onEditComplete ?? onEditComplete,
+				: config.onLoadSelect,
+		onDataChange: config.onDataChange,
+		onEditChange: config.onEditChange,
+		onEditValidate: config.onEditValidate,
+		onEditComplete: config.onEditComplete,
 	});
 
 	useEffect(() => {
@@ -196,18 +220,22 @@ const TableHookFactory = ({
 			return;
 		}
 
-		const loadQuery = list.getLoadQuery({
+		const listQuery = list.getListQuery({
 			params: { ...list.params },
 			pagination: { ...list.pagination },
 		});
-		if (!loadQuery) return;
-		const onOk = loadQuery.onOk;
-		const onError = loadQuery.onError;
-		const onFinally = loadQuery.onFinally;
-		loadQuery.onOk = async (ok) => {
+		if (!listQuery) return;
+		const onOk = listQuery.onOk;
+		const onError = listQuery.onError;
+		const onFinally = listQuery.onFinally;
+		listQuery.onOk = async (ok) => {
 			let { data, pagination } = {};
-			if (list.pagination) {
+			if (list.config.pagination) {
 				({ data, ...pagination } = ok);
+				changes.pagination = {
+					...list.pagination,
+					...pagination,
+				};
 			} else {
 				data = ok;
 			}
@@ -217,6 +245,7 @@ const TableHookFactory = ({
 				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
+				const key = list.key;
 				changes.selection = {
 					...list.selection,
 					...selectionDef,
@@ -231,18 +260,18 @@ const TableHookFactory = ({
 			}
 			if (onOk) onOk(ok);
 		};
-		loadQuery.onError = async (error) => {
+		listQuery.onError = async (error) => {
 			if (error.code !== 404) {
 				changes.error = error.toString();
 				changes.selection = { ...list.selection, ...selectionDef };
 			}
 			if (onError) onError(error);
 		};
-		loadQuery.onFinally = async () => {
+		listQuery.onFinally = async () => {
 			setList((o) => ({ ...o, ...changes }));
 			if (onFinally) onFinally();
 		};
-		pushQuery(loadQuery);
+		pushQuery(listQuery);
 	}, [pushQuery, list]);
 	//#endregion
 
@@ -297,11 +326,12 @@ const TableHookFactory = ({
 							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
 						},
 					};
-					if (payload.params)
+					if (payload.params) {
 						changes.params = {
-							...pick(payload.params, init.params),
+							...pick(o.params, o.config.params),
 							...payload.params,
 						};
+					}
 					if (payload.pagination)
 						changes.pagination = { ...o.pagination, ...payload.pagination };
 					if (payload.clear) {
@@ -373,10 +403,11 @@ const TableHookFactory = ({
 					return;
 				}
 
-				const record = { ...list.selection.edit };
+				const edit = { ...list.selection.edit };
+				const errors = { ...list.selection.errors };
 
 				list.onEditValidate({
-					edit: record,
+					edit,
 					errors,
 					request: list.selection.request,
 				});
@@ -399,9 +430,9 @@ const TableHookFactory = ({
 					};
 					switch (list.selection.request) {
 						case "A": {
-							record[list.key] =
+							edit[list.key] =
 								(Math.max(0, ...changes.data.map((r) => r[list.key])) ?? 0) + 1;
-							changes.data.push(record);
+							changes.data.push(edit);
 							break;
 						}
 						case "M": {
@@ -414,7 +445,7 @@ const TableHookFactory = ({
 							AsArray(list.selection.apply).forEach((id) => {
 								const index = changes.data.findIndex((r) => r[list.key] === id);
 								if (index < 0) return;
-								const r = { ...changes.data.at(index), ...record };
+								const r = { ...changes.data.at(index), ...edit };
 								if (changes.selection.multi) {
 									changes.selection.index ??= [];
 									changes.selection.record ??= [];
@@ -449,7 +480,7 @@ const TableHookFactory = ({
 								const r = {
 									...changes.data.at(index),
 									deletedDate: dayjs().format("YYYY-MM-DD"),
-									deletedObs: record.deletedObs,
+									deletedObs: edit.deletedObs,
 								};
 								if (changes.selection.multi) {
 									const i = changes.selection.record.findIndex(
@@ -476,23 +507,23 @@ const TableHookFactory = ({
 					list.onEditComplete({
 						edit: { ...list.selection.edit },
 						request: list.selection.request,
-						response: record,
+						response: edit,
 					});
 					list.onDataChange(changes.data);
 					setList((o) => ({ ...o, ...changes }));
 					return;
 				}
 
-				const query = getQuery({
+				const query = getMutationQuery({
 					request: list.selection.request,
-					data: record,
+					data: edit,
 				});
 				if (!query) return;
 				const onOk = query.onOk;
 				query.onOk = async (ok) => {
 					list.onEditComplete({
 						edit: { ...list.selection.edit },
-						response,
+						response: ok,
 						request: list.selection.request,
 					});
 					request("list");
@@ -505,11 +536,8 @@ const TableHookFactory = ({
 	}
 
 	//#region table props
-	const myTableProps =
-		typeof tableProps === "function"
-			? tableProps({ request, selected: list.selection.record }) ?? {}
-			: { ...tableProps };
-	myTableProps.key ??= init.key;
+	const myTableProps = tableProps({ request, selected: list.selection.record }) ?? {};
+	myTableProps.key ??= config.key;
 	myTableProps.remote ??= list.remote;
 	myTableProps.data ??= list.data;
 	myTableProps.loading ??= !!list.loading || !!list.loadingOverride;
@@ -523,15 +551,13 @@ const TableHookFactory = ({
 	myTableProps.pagination = {
 		...pagination,
 		...list.pagination,
-		onchange: ({ index, size }) => {
-			setList((o) => ({
-				...o,
-				loading: "Cargando...",
+		onChange: ({ index, size }) => {
+			request("list", {
 				pagination: { index, size },
-				data: o.remote ? [] : o.data,
-			}));
-			if (typeof pagination.onchange === "function")
-				pagination.onchange({ index, size });
+				data: list.remote ? [] : list.data,
+			});
+			if (typeof pagination.onChange === "function")
+				pagination.onChange({ index, size });
 		},
 	};
 	const selection = { ...myTableProps.selection };
@@ -610,14 +636,14 @@ const TableHookFactory = ({
 	};
 	//#endregion table props
 
-	const render = () => {
+	const render = () => (
 		<>
 			{tableRender(myTableProps)}
 			{form}
-		</>;
-	};
+		</>
+	);
 
 	return { render, request, selected: list.selection.record };
 };
 
-export default TableHookFactory;
+export default TableHook;
