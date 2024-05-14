@@ -17,17 +17,57 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import AsArray from "components/helpers/AsArray";
 import classes from "./Table.module.css";
 
+/**
+ * @typedef {object} onChangePaginationParams
+ * @property {number} index
+ * @property {number} size
+ * 
+ * @callback onChangePagination
+ * @param {onChangePaginationParams} changes
+ * @returns {void}
+ * 
+ * @typedef {object} TablePagination
+ * @property {number} index
+ * @property {number} size
+ * @property {number} count
+ * @property {onChangePagination} onChange
+ */
+
+/**
+ * @callback onSelectSingle
+ * @param {object} row
+ * @param {boolean} isSelect
+ * @param {number} rowIndex
+ * @param {object} event
+ * @returns {void}
+ * 
+ * @callback onSelectAll
+ * @param {boolean} isSelect
+ * @param {any} rows
+ * @param {object} event
+ * @returns {void}
+ * 
+ * @typedef {object} TableSelection
+ * @property {"checkbox" | "radio"} mode
+ * @property {boolean} clickToSelect
+ * @property {object} style
+ * @property {onSelectSingle} onSelect
+ * @property {onSelectAll} onSelectAll
+ */
+
 const { SearchBar } = Search;
 
+/** @type {TablePagination} */
 const paginationDef = {
 	index: 1,
 	size: 12,
 	count: 0,
-	onChange: ({ index, size }) => {},
+	onChange: () => {},
 };
 
 const onSelectedDef = (row) => {};
 
+/** @type {TableSelection} */
 const selectionDef = {
 	mode: "radio",
 	clickToSelect: true,
