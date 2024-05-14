@@ -404,7 +404,7 @@ const TableHook = ({
 				}
 
 				const edit = { ...list.selection.edit };
-				const errors = { ...list.selection.errors };
+				const errors = {};
 
 				list.onEditValidate({
 					edit,
