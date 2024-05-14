@@ -4,16 +4,16 @@ import TableHook from "components/ui/Table/TableHook";
 import UsuariosTable from "./UsuariosTable";
 import UsuariosForm from "./UsuariosForm";
 
-/**
+/** imports: TableHookConfig y TableHookReturn
  * @typedef {import('components/ui/Table/TableHook').TableHookConfig} TableHookConfig
  * @typedef {import('components/ui/Table/TableHook').TableHookReturn} TableHookReturn
  */
 
-/**
+/** useUsuarios
  * @param {TableHookConfig} config
  * @returns {TableHookReturn}
  */
-const useUsuarios = (config) => {
+const useUsuarios = (config = {}) => {
 	//Obtengo los modulos del usuario logueado
 	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
@@ -35,7 +35,6 @@ const useUsuarios = (config) => {
 			pagination: { index: 1, size: 15 },
 			...config,
 			onEditValidate: (params) => {
-				if (config.onEditValidate) config.onEditValidate(params);
 				const { edit, request, errors } = params;
 				if (request === "B" || request === "R") {
 					 if (!edit.deletedObs) errors.deletedObs = "Dato requerido";
@@ -53,6 +52,7 @@ const useUsuarios = (config) => {
 						}
 					}
 				}
+				if (config.onEditValidate) config.onEditValidate(params);
 			}
 		},
 		tableProps: ({ request }) => {
