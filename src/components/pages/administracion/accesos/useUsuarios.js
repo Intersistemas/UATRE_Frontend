@@ -1,6 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { isPossiblePhoneNumber } from "libphonenumber-js";
 import TableHook from "components/ui/Table/TableHook";
+import ValidarEmail from "components/validators/ValidarEmail";
 import UsuariosTable from "./UsuariosTable";
 import UsuariosForm from "./UsuariosForm";
 
@@ -30,6 +32,7 @@ const useUsuarios = (config = {}) => {
 			: "";
 
 	return TableHook({
+		requests: ["A", "B", "M", "R"],
 		config: {
 			remote: true,
 			pagination: { index: 1, size: 15 },
@@ -43,6 +46,7 @@ const useUsuarios = (config = {}) => {
 					if (!edit.nombre) errors.nombre = "Dato requerido";
 					if (!edit.userName) errors.userName = "Dato requerido";
 					if (!edit.email) errors.email = "Dato requerido";
+					else if (!ValidarEmail(edit.email)) errors.email = "Dato inválido";
 					if (request === "A") {
 						if (!edit.password) errors.password = "Dato requerido";
 						if (!edit.confirmPassword) errors.confirmPassword = "Dato requerido";
@@ -51,8 +55,15 @@ const useUsuarios = (config = {}) => {
 							errors.confirmPassword = "Las Claves deben ser idénticas";
 						}
 					}
+					if (edit.phoneNumber && !isPossiblePhoneNumber(edit.phoneNumber))
+						errors.phoneNumber = "Dato inválido";
 				}
 				if (config.onEditValidate) config.onEditValidate(params);
+			},
+			onEditError: (params) => {
+				const { response, errors } = params;
+				errors.error = response.message;
+				if (config.onEditError) config.onEditError(params);
 			}
 		},
 		tableProps: ({ request }) => {
@@ -74,7 +85,6 @@ const useUsuarios = (config = {}) => {
 			});
 		},
 		tableRender: (p) => <UsuariosTable {...p} />,
-		requests: ["A", "B", "M", "R"],
 		formRender: ({ data, request, title, errors, apply, close }) => (
 			<UsuariosForm
 				data={data}
