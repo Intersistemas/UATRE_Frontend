@@ -9,55 +9,63 @@ const columnsDef = [
 		text: "Id",
 		headerStyle: { width: "100px" },
 		style: { textAlign: "center" },
-		// sort: true,
+		sort: true,
 		hidden: true,
 	},
 	{
 		dataField: "cuit",
 		text: "CUIT/CUIL",
-		headerStyle: { width: "10%" },
+		headerStyle: { width: "70px" },
 		style: { textAlign: "center" },
 		formatter: (v) => Formato.Cuit(v),
-		// sort: true,
+		sort: true,
 	},
 	{
 		dataField: "userName",
 		text: "Usuario",
-		headerStyle: { width: "10%" },
+		headerStyle: { width: "60px" },
 		style: { textAlign: "right" },
-		// sort: true,
+		sort: true,
 	},
 	{
 		dataField: "nombre",
 		text: "Nombre",
-		headerStyle: { width: "20%" },
 		style: { textAlign: "left" },
-		// sort: true,
+		sort: true,
 	},
 	{
 		dataField: "email",
 		text: "Email",
-		headerStyle: { width: "15%" },
+		headerStyle: { width: "100px" },
 		style: { textAlign: "left" },
 	},
 	{
 		dataField: "emailConfirmed",
 		text: "Email Confirmado",
-		headerStyle: { width: "10%" },
+		headerStyle: { width: "70px" },
 		style: { textAlign: "center" },
 		formatter: (v) => Formato.Booleano(!!v),
 	},
 	{
 		dataField: "phoneNumber",
 		text: "Teléfono",
-		headerStyle: { width: "10%" },
+		headerStyle: { width: "50px" },
 		style: { textAlign: "center" },
 	},
 	{
 		dataField: "deletedDate",
 		text: "Fecha Baja",
 		formatter: (v) => Formato.Fecha(v),
-		// sort: true,
+		headerStyle: { width: "50px" },
+		style: (v) => {
+			const r = { textAlign: "center" };
+			if (v) {
+				r.background = "#ff6464cc";
+				r.color = "#FFF";
+			}
+			return r;
+		},
+		sort: true,
 	},
 ].map((r) => ({
 	searchable: false,
@@ -67,9 +75,7 @@ const columnsDef = [
 }));
 //#endregion
 
-/**
- * @type {Table}
- */
+/** @type {Table} */
 const UsuariosTable = ({ columns, ...x } = {}) => (
 	<Table
 		keyField="id"
