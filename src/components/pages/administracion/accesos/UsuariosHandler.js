@@ -11,6 +11,7 @@ import useUsuarios from "./useUsuarios";
 import useAmbitos from "./usuarioAmbitos/useAmbitos";
 import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
+import { onLoadSelectKeepOrFirst } from "components/ui/Table/TableHook";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
@@ -30,7 +31,19 @@ const UsuariosHandler = () => {
 		render: usuariosRender,
 		request: usuariosRequest,
 		selected: usuariosSelected,
-	} = useUsuarios();
+	} = useUsuarios({
+		params: { sort: "-cuit" },
+		onEditComplete: ({ edit, response, request }) => {
+			const params = { ...usuariosParamsSend };
+			if (request === "A") {
+				edit.id = response.id;
+				params.select = edit;
+			} else {
+				delete params.select;
+			}
+			setUsuariosParamsSend(params);
+		},
+	});
 	const [usuariosActions, setUsuariosActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
@@ -172,7 +185,22 @@ const UsuariosHandler = () => {
 	});
 
 	useEffect(() => {
-		usuariosRequest("list", { params: usuariosParamsSend });
+		const { select, ...params } = usuariosParamsSend;
+		const payload = {
+			params,
+			onLoadSelect: onLoadSelectKeepOrFirst,
+		}
+		if (select) {
+			payload.onLoadSelect = () => {
+				setUsuariosParamsSend((o) => {
+					const r = { ...o };
+					delete r.select;
+					return r
+				});
+				return select;
+			}
+		}
+		usuariosRequest("list", payload);
 	}, [usuariosRequest, usuariosParamsSend]);
 	//#endregion
 
