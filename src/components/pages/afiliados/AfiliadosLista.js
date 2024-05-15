@@ -666,7 +666,7 @@ const AfiliadosLista = (props ) => {
 					<h1>Afiliaciones</h1>
 				</Grid>
 
-				<Grid col className="tabs">
+				<Grid col className="tabs" >
 					<text>
 						{afiliadoSeleccionado?.nombre ? (
 							`${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${
