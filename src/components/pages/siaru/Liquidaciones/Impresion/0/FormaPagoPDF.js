@@ -13,7 +13,7 @@ const FormaPagoPDF = ({
 	formasPago = [],
 } = {}) => {
 	const Grid = ({ style, ...p }) => (
-		<UIGrid render={View} style={{ ...style, ...styles.border }} {...p} />
+		<UIGrid direction="row" render={View} style={{ ...style, ...styles.border }} {...p} />
 	);
 
 	const Header = ({ pagina = "" }) => (

@@ -101,7 +101,7 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 
-				<Grid width gap="inherit" justify="evenly">
+				<Grid width gap="inherit" justify="evenly" display="none">
 					<Button
 						className="botonAmarillo"
 						onClick={onDownloadVisitaSeccional}
