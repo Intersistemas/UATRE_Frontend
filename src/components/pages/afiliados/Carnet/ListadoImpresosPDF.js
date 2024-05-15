@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 
 /** @type {GridRender} */
 const Grid = ({ style, ...p }) => (
-	<GridRender render={View} style={{ ...style, ...styles.border }} {...p} />
+	<GridRender direction="row" render={View} style={{ ...style, ...styles.border }} {...p} />
 );
 
 /** @type {Text} */
