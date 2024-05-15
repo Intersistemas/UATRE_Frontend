@@ -6,8 +6,9 @@ import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "./Table";
 
-/** imports: TablePagination
+/**
  * @typedef {import('components/ui/Table/Table').TablePagination} TablePagination
+ * @typedef {import("components/hooks/useQueryState").UseHttpError} UseHttpError
  */
 
 /** onLoadSelect: Registro a seleccional al cargar
@@ -49,10 +50,21 @@ import Table from "./Table";
  * @typedef {object} onEditCompleteParams
  * @property {object} edit Datos en el formulario.
  * @property {string} request Requerimiento. Ej: "A", "M", "B"
- * @property {object} response Errores detectados. (Agregar a este objeto los errores detectados)
+ * @property {object} response Respuesta ok del servidor
  * 
  * @callback onEditComplete
  * @param {onEditCompleteParams} params
+ */
+
+/** onEditError: Callback cuando ocurrió un error enviando los cambios que se están editando.
+ * @typedef {object} onEditErrorParams
+ * @property {object} edit Datos en el formulario.
+ * @property {string} request Requerimiento. Ej: "A", "M", "B"
+ * @property {UseHttpError} response Respuesta error del servidor
+ * @property {object} errors Errores detectados. (Agregar a este objeto los errores detectados)
+ * 
+ * @callback onEditError
+ * @param {onEditErrorParams} params
  */
 
 /** TableHookConfig: Configuraciones del hook
@@ -70,6 +82,7 @@ import Table from "./Table";
  * @property {onEditChange} onEditChange
  * @property {onEditValidate} onEditValidate
  * @property {onEditComplete} onEditComplete
+ * @property {onEditError} onEditError
  */
 
 /** TableHookReturn: Valores de retorno del hook
@@ -129,6 +142,7 @@ const TableHookConfigDef = {
 	onEditChange: () => true,
 	onEditValidate: () => {},
 	onEditComplete: () => {},
+	onEditError: ({ response }) => alert(response.toString()),
 };
 
 const selectionDef = {
@@ -190,6 +204,7 @@ const TableHook = ({
 		onEditChange: config.onEditChange,
 		onEditValidate: config.onEditValidate,
 		onEditComplete: config.onEditComplete,
+		onEditError: config.onEditError,
 	});
 
 	useEffect(() => {
@@ -520,14 +535,33 @@ const TableHook = ({
 				});
 				if (!query) return;
 				const onOk = query.onOk;
-				query.onOk = async (ok) => {
+				const onError = query.onError;
+				query.onOk = async (response) => {
 					list.onEditComplete({
 						edit: { ...list.selection.edit },
-						response: ok,
 						request: list.selection.request,
+						response,
 					});
 					request("list");
-					if (onOk) onOk(ok);
+					if (onOk) onOk(response);
+				};
+				query.onError = async (response) => {
+					list.onEditError({
+						edit: { ...list.selection.edit },
+						request: list.selection.request,
+						response,
+						errors
+					});
+					if (Object.keys(errors).length) {
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								errors,
+							},
+						}));
+					}
+					if (onError) onError(response);
 				};
 
 				pushQuery(query);
