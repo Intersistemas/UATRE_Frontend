@@ -1171,7 +1171,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           changes.data.push(
             ...ok
               .sort((a, b) => (a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1))
-              .map((r) => ( {value: r.seccionalId, label: `${r.seccionalDescripcion}`}//`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+              .map((r) => ( {value: r.seccionalId, label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}//`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
               ))
           )
         ),
