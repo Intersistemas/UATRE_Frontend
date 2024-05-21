@@ -1154,30 +1154,56 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			async () => applyChanges()
 		)
     :
-		request( 
-			{
-				baseURL: "Afiliaciones",
-				endpoint: "/Seccional/GetSeccionalesSpecs",
-				body: seccionales.params,
-				method: "POST",
-			},
-			async (ok) =>
-      (console.log('GetSeccionalesSpecs_ok',ok),
-        changes.data.push(
-          {value: provinciaState?.value?.seccionalIdPorDefecto,
-          label: provinciaState?.value?.seccionalDescripcionPorDefecto}
+    console.log("seccionales.params.localidadId",seccionales.params.localidadId)
+      seccionales.params.localidadId ?
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=false`,
+          method: "GET",
+        },
+        async (ok) =>
+        (console.log('GetSeccionalLocalidadByRefLocalidadId_ok',ok),
+          changes.data.push(
+            {value: provinciaState?.value?.seccionalIdPorDefecto,
+            label: provinciaState?.value?.seccionalDescripcionPorDefecto}
+          ),
+          changes.data.push(
+            ...ok
+              .sort((a, b) => (a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1))
+              .map((r) => ( {value: r.seccionalId, label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}//`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+              ))
+          )
         ),
-				changes.data.push(
-					...ok.data
-						.sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-						.map((r) => ( r.localidadCodPostal !== 99999  && {value: r.id, label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`}
-						))
-				)
-      ),
-			async (error) => (
-        (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
-			async () => applyChanges()
-		);
+        async (error) => (
+          (console.log('GetSeccionalLocalidadByRefLocalidadId_error',error),changes.error = error)),
+        async () => applyChanges()
+      )
+      :
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: "/Seccional/GetSeccionalesSpecs",
+          body: seccionales.params,
+          method: "POST",
+        },
+        async (ok) =>
+        (console.log('GetSeccionalesSpecs_ok',ok),
+          changes.data.push(
+            {value: provinciaState?.value?.seccionalIdPorDefecto,
+            label: provinciaState?.value?.seccionalDescripcionPorDefecto}
+          ),
+          changes.data.push(
+            ...ok.data
+              .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+              .map((r) => ( r.localidadCodPostal !== 99999  && {value: r.id, label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+              ))
+          )
+        ),
+        async (error) => (
+          (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
+        async () => applyChanges()
+      )
 	}, [request, seccionales, provincias]);
 
   useEffect(() => {
@@ -1459,6 +1485,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					type: "USER_INPUT",
 					value: moment(fechaIngreso).format("yyyy-MM-DD"),
 				});
+        console.log("fecha ingreso:",moment(fechaIngreso).format("yyyy-MM-DD"))
 			}
       let domicilioReal = "";
       
@@ -1768,7 +1795,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
-          dispatchFechaIngreso({ type: "USER_INPUT", value: null });
+          //dispatchFechaIngreso({ type: "USER_INPUT", value: null }); SI HABILITO ESTO, NO SUGIERE LA FECHA INGRESO CUANDO SE ABRE LA FICHA
           dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
           dispatchSexo({ type: "USER_INPUT", value: "" });
           dispatchTipoDocumento({ type: "USER_INPUT", value: "" });

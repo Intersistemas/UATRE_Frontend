@@ -66,9 +66,7 @@ const UsuariosForm = ({
 									helperText={errors.userName ?? ""}
 									value={data.userName}
 									disabled={disabled.userName ?? false}
-									onChange={(value, _id) =>
-										onChange({ userName: value })
-									}
+									onChange={(userName) => onChange({ userName })}
 								/>
 							)}
 						</Grid>
@@ -82,22 +80,22 @@ const UsuariosForm = ({
 									helperText={errors.password ?? ""}
 									value={data.password}
 									disabled={disabled.password ?? false}
-									onChange={(value, _id) => onChange({ password: value })}
+									onChange={(password) => onChange({ password })}
 									InputProps={{
-										startAdornment: 
-										<InputAdornment position="end">
-										  <IconButton
-											aria-label={verClave ? "Ocultar clave" : "Ver Clave"}
-											onClick={() => setVerClave((prevState) => !prevState)}
-											onMouseDown={handleMouseDownPassword}
-											edge="start"
-										  >
-											{verClave ? <VisibilityOff /> : <Visibility />}
-										  </IconButton>
-										</InputAdornment>
+										startAdornment: (
+											<InputAdornment position="end">
+												<IconButton
+													aria-label={verClave ? "Ocultar clave" : "Ver Clave"}
+													onClick={() => setVerClave((prevState) => !prevState)}
+													onMouseDown={handleMouseDownPassword}
+													edge="start"
+												>
+													{verClave ? <VisibilityOff /> : <Visibility />}
+												</IconButton>
+											</InputAdornment>
+										),
 									}}
-							  />
-
+								/>
 							)}
 						</Grid>
 						<Grid width="33%">
@@ -110,22 +108,24 @@ const UsuariosForm = ({
 									helperText={errors.confirmPassword ?? ""}
 									value={data.confirmPassword}
 									disabled={disabled.confirmPassword ?? false}
-									onChange={(value, _id) => onChange({ confirmPassword: value })}
+									onChange={(confirmPassword) =>
+										onChange({ confirmPassword })
+									}
 									InputProps={{
-										startAdornment: 
-										<InputAdornment position="end">
-										  <IconButton
-											aria-label={verClave ? "Ocultar clave" : "Ver Clave"}
-											onClick={() => setVerClave((prevState) => !prevState)}
-											onMouseDown={handleMouseDownPassword}
-											edge="start"
-										  >
-											{verClave ? <VisibilityOff /> : <Visibility />}
-										  </IconButton>
-										</InputAdornment>
+										startAdornment: (
+											<InputAdornment position="end">
+												<IconButton
+													aria-label={verClave ? "Ocultar clave" : "Ver Clave"}
+													onClick={() => setVerClave((prevState) => !prevState)}
+													onMouseDown={handleMouseDownPassword}
+													edge="start"
+												>
+													{verClave ? <VisibilityOff /> : <Visibility />}
+												</IconButton>
+											</InputAdornment>
+										),
 									}}
 								/>
-								
 							)}
 						</Grid>
 					</Grid>
@@ -142,10 +142,7 @@ const UsuariosForm = ({
 									helperText={errors.cuit ?? ""}
 									value={data.cuit}
 									disabled={disabled.cuit ?? false}
-									onChange={(value, _id) =>
-										//onChange({ cuit: value })
-										onChange({ cuit: value.replace(/[^0-9]+/g, "") })
-									}
+									onChange={(v) => onChange({ cuit: v.replace(/[^0-9]+/g, "") })}
 								/>
 							)}
 						</Grid>
@@ -158,27 +155,25 @@ const UsuariosForm = ({
 									helperText={errors.nombre ?? ""}
 									value={data.nombre}
 									disabled={disabled.nombre ?? false}
-									onChange={(value, _id) =>
-										onChange({ nombre: value })
-									}
+									onChange={(nombre) => onChange({ nombre })}
 								/>
 							)}
 						</Grid>
 					</Grid>
 					<Grid width="full" gap="15px">
 						<Grid width="33%">
-								{hide.email ? null : (
-									<InputMaterial
-										label="Email"
-										error={!!errors.email}
-										helperText={errors.email ?? ""}
-										value={data.email}
-										disabled={disabled.email ?? false}
-										onChange={(value, _id) => onChange({ email: value })}
-										type="email"
-										required
-									/>
-								)}
+							{hide.email ? null : (
+								<InputMaterial
+									label="Email"
+									error={!!errors.email}
+									helperText={errors.email ?? ""}
+									value={data.email}
+									disabled={disabled.email ?? false}
+									onChange={(email) => onChange({ email })}
+									type="email"
+									required
+								/>
+							)}
 						</Grid>
 						<Grid width="33%">
 							<CheckboxMaterial
@@ -193,7 +188,7 @@ const UsuariosForm = ({
 						</Grid>
 						<Grid width="33%">
 							<InputMaterial
-								id="phoneNumber"
+								type="tel"
 								label="Teléfono"
 								error={!!errors.phoneNumber}
 								helperText={errors.phoneNumber ?? ""}
@@ -211,20 +206,25 @@ const UsuariosForm = ({
 								helperText={errors.deletedObs ?? ""}
 								value={data.deletedObs}
 								disabled={disabled.deletedObs ?? false}
-								onChange={(value, _id) => onChange({ deletedObs: value })}
+								onChange={(deletedObs) => onChange({ deletedObs })}
 							/>
 						)}
 					</Grid>
 				</Grid>
 			</Modal.Body>
 			<Modal.Footer>
-				<Grid gap="20px">
-					<Grid width="150px">
+				<Grid gap="20px" width>
+					<Grid grow>
+						{((e) => (e ? <text style={{ color: "red" }}>{e}</text> : null))(
+							errors?.error
+						)}
+					</Grid>
+					<Grid col width="150px">
 						<Button className="botonAzul" onClick={() => onClose(true)}>
 							CONFIRMA
 						</Button>
 					</Grid>
-					<Grid width="150px">
+					<Grid col width="150px">
 						<Button className="botonAmarillo" onClick={() => onClose()}>
 							CANCELA
 						</Button>
