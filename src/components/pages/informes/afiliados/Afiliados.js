@@ -14,6 +14,11 @@ import SearchSelectMaterial, {
 	includeSearch,
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
+import useQueryState from "components/hooks/useQueryState";
+
+/** Imports
+ * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
+ **/
 
 const onCloseDef = () => {};
 
@@ -244,6 +249,81 @@ const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 const Afiliados = ({ onClose = onCloseDef }) => {
 	//#region Trato queries a APIs
+	const { setState: setAfiliadosQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Afiliado/GetAfiliadosWithSpec`,
+				method: "POST",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+	const { setState: setDelegacionesQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Comunes",
+				endpoint: `/RefDelegacion/GetAll`,
+				method: "GET",
+			},
+		}),
+		{
+			query: {
+				params: { soloActivos: true },
+				config: { errorType: "response" },
+			},
+		}
+	);
+	const { setState: setSeccionalesQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Seccional/GetSeccionalesSpecs`,
+				method: "POST",
+			},
+		}),
+		{
+			query: {
+				params: { soloActivos: true },
+				config: { errorType: "response" },
+			},
+		}
+	);
+	const { setState: setMotivosBajaQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Comunes",
+				endpoint: `/RefMotivoBaja/GetByTipo`,
+				method: "GET",
+			},
+		}),
+		{ query: { params: { tipo: "A" }, config: { errorType: "response" } } }
+	);
+	const { setState: setEstadosQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/EstadoSolicitud`,
+				method: "GET",
+			},
+		}),
+		{
+			query: {
+				params: { soloActivos: true },
+				config: { errorType: "response" },
+			},
+		}
+	);
+	const { setState: setProvinciasQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Provincia`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
 			case "GetData": {
@@ -311,254 +391,99 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 
 	//#region filtro delegacion
 	const [delegacionSelect, setDelegacionSelect] = useState({
-		reload: true,
-		loading: null,
+		loading: "Cargando...",
+		buscar: "",
 		params: { soloActivos: true },
 		data: [],
 		error: null,
-		buscar: "",
 		options: [],
 		selected: delegacionSelectTodos,
+		origen: "",
 	});
-
-	useEffect(() => {
-		if (!delegacionSelect?.reload) return;
-		const changes = {
-			reload: null,
-			loading: "Cargando...",
-			data: [],
-			error: null,
-			buscar: "",
-			options: [],
-		};
-		setDelegacionSelect((o) => ({ ...o, ...changes }));
-		pushQuery({
-			action: "GetDelegaciones",
-			params: { ...delegacionSelect.params },
-			onOk: (data) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-			},
-			onError: (error) => (changes.error = error.toString()),
-			onFinally: () =>
-				setDelegacionSelect((o) => ({ ...o, ...changes, loading: null })),
-		});
-	}, [delegacionSelect, pushQuery]);
 	// Buscador
 	useEffect(() => {
-		if (delegacionSelect.reload) return;
-		if (delegacionSelect.loading) return;
-		setDelegacionSelect((o) => ({ ...o, options: delegacionSelectOptions(o) }));
-	}, [
-		delegacionSelect.reload,
-		delegacionSelect.loading,
-		delegacionSelect.buscar,
-	]);
+		setDelegacionSelect((o) => ({
+			...o,
+			options: delegacionSelectOptions(o),
+		}));
+	}, [delegacionSelect.buscar, delegacionSelect.data]);
 	//#endregion filtro delegacion
 
 	//#region filtro seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
-		reload: true,
 		loading: null,
-		params: { soloActivos: true/*, verSeccionalesLocalidades: false */},
+		buscar: "",
 		data: [],
 		error: null,
-		buscar: "",
 		options: [],
 		selected: seccionalSelectTodos,
+		origen: "",
 	});
-
-	useEffect(() => {
-		if (!seccionalSelect.reload) return;
-		const changes = {
-			reload: null,
-			loading:
-				"refDelegacionId" in seccionalSelect.params ? "Cargando..." : null,
-			data: [],
-			error: null,
-			buscar: "",
-			options: [],
-		};
-		setSeccionalSelect((o) => ({ ...o, ...changes }));
-		console.log("changes.loading",changes.loading)
-		if (changes.loading) return;
-		const query = {
-			action: "GetSeccionales",
-			config: {
-				body: { ...seccionalSelect.params, pageIndex: 1 },
-			},
-		};
-		query.onOk = ({ data, pages }) => {
-			if (!Array.isArray(data))
-				return console.error("Se esperaba un arreglo", data);
-			changes.data.push(...data);
-			if (query.config.body.pageIndex < pages) {
-				query.config.body.pageIndex += 1;
-				changes.loading = `Cargando bloque ${query.config.body.pageIndex} de ${pages}...`;
-				return;
-			} else {
-				changes.loading = null;
-			}
-		};
-		query.onError = (error) => {
-			changes.loading = null;
-			changes.error = error.toString();
-		};
-		query.onFinally = () => {
-			if (changes.loading) {
-				pushQuery({ ...query });
-				return;
-			}
-			setSeccionalSelect((o) => ({ ...o, ...changes }));
-		};
-		pushQuery(query);
-	}, [seccionalSelect, pushQuery]);
 	// Buscador
 	useEffect(() => {
-		if (seccionalSelect.reload) return;
-		if (seccionalSelect.loading) return;
-		setSeccionalSelect((o) => ({ ...o, options: seccionalSelectOptions(o) }));
-	}, [seccionalSelect.reload, seccionalSelect.loading, seccionalSelect.buscar]);
+		setSeccionalSelect((o) => ({
+			...o,
+			options: seccionalSelectOptions(o),
+		}));
+	}, [seccionalSelect.buscar, seccionalSelect.data]);
 	//#endregion filtro seccional
 
 	//#region filtro motivosBaja
 	const [motivosBajaSelect, setMotivosBajaSelect] = useState({
-		reload: true,
-		loading: null,
+		loading: "Cargando...",
+		buscar: "",
 		params: { tipo: "A" },
 		data: [],
 		error: null,
-		buscar: "",
 		options: [],
 		selected: motivosBajaSelectTodos,
+		origen: "",
 	});
-
-	useEffect(() => {
-		if (!motivosBajaSelect.reload) return;
-		const changes = {
-			reload: null,
-			loading: "Cargando...",
-			data: [],
-			error: null,
-			buscar: "",
-			options: [],
-		};
-		setMotivosBajaSelect((o) => ({ ...o, ...changes }));
-		pushQuery({
-			action: "GetMotivosBaja",
-			params: { ...motivosBajaSelect.params },
-			onOk: (data) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-			},
-			onError: (error) => (changes.error = error.toString()),
-			onFinally: () =>
-				setMotivosBajaSelect((o) => ({ ...o, ...changes, loading: null })),
-		});
-	}, [motivosBajaSelect, pushQuery]);
 	// Buscador
 	useEffect(() => {
-		if (motivosBajaSelect.reload) return;
-		if (motivosBajaSelect.loading) return;
 		setMotivosBajaSelect((o) => ({
 			...o,
 			options: motivosBajaSelectOptions(o),
 		}));
-	}, [
-		motivosBajaSelect.reload,
-		motivosBajaSelect.loading,
-		motivosBajaSelect.buscar,
-	]);
+	}, [motivosBajaSelect.buscar, motivosBajaSelect.data]);
 	//#endregion filtro motivos baja
 
 	//#region filtro estado
 	const [estadoSelect, setEstadoSelect] = useState({
-		reload: true,
-		loading: null,
-		params: { soloActivos: true },
+		loading: "Cargando...",
+		buscar: "",
 		data: [],
 		error: null,
-		buscar: "",
 		options: [],
 		selected: estadoSelectTodos,
+		origen: "",
 	});
-
-	useEffect(() => {
-		if (!estadoSelect.reload) return;
-		const changes = {
-			reload: null,
-			loading: "Cargando...",
-			data: [],
-			error: null,
-			buscar: "",
-			options: [],
-		};
-		setEstadoSelect((o) => ({ ...o, ...changes }));
-		pushQuery({
-			action: "GetEstados",
-			params: { ...estadoSelect.params },
-			onOk: (data) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-			},
-			onError: (error) => (changes.error = error.toString()),
-			onFinally: () =>
-				setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
-		});
-	}, [estadoSelect, pushQuery]);
 	// Buscador
 	useEffect(() => {
-		if (estadoSelect.reload) return;
-		if (estadoSelect.loading) return;
-		setEstadoSelect((o) => ({ ...o, options: estadoSelectOptions(o) }));
-	}, [estadoSelect.reload, estadoSelect.loading, estadoSelect.buscar]);
+		setEstadoSelect((o) => ({
+			...o,
+			options: estadoSelectOptions(o),
+		}));
+	}, [estadoSelect.buscar, estadoSelect.data]);
 	//#endregion filtro estado
 
 	//#region filtro provincia
 	const [provinciaSelect, setProvinciaSelect] = useState({
-		reload: true,
-		loading: null,
-		params: {},
+		loading: "Cargando...",
+		buscar: "",
 		data: [],
 		error: null,
-		buscar: "",
 		options: [],
 		selected: provinciaSelectTodos,
+		origen: "",
 	});
-
-	useEffect(() => {
-		if (!provinciaSelect.reload) return;
-		const changes = {
-			reload: null,
-			loading: "Cargando...",
-			data: [],
-			error: null,
-			buscar: "",
-			options: [],
-		};
-		setProvinciaSelect((o) => ({ ...o, ...changes }));
-		pushQuery({
-			action: "GetProvincias",
-			params: { ...provinciaSelect.params },
-			onOk: (data) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-			},
-			onError: (error) => (changes.error = error.toString()),
-			onFinally: () =>
-				setProvinciaSelect((o) => ({ ...o, ...changes, loading: null })),
-		});
-	}, [provinciaSelect, pushQuery]);
 	// Buscador
 	useEffect(() => {
-		if (provinciaSelect.reload) return;
-		if (provinciaSelect.loading) return;
-		setProvinciaSelect((o) => ({ ...o, options: provinciaSelectOptions(o) }));
-	}, [provinciaSelect.reload, provinciaSelect.loading, provinciaSelect.buscar]);
+		setProvinciaSelect((o) => ({
+			...o,
+			options: provinciaSelectOptions(o),
+		}));
+	}, [provinciaSelect.buscar, provinciaSelect.data]);
 	//#endregion filtro provincia
 
 	//#endregion filtros
@@ -677,13 +602,201 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	}, [csv, pushQuery]);
 	//#endregion
 
+	//#region Carga inicial
+
+	//#region Carga inicial select delegacion
+	useEffect(() => {
+		setDelegacionesQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setDelegacionSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setDelegacionesQuery]);
+	//#endregion Carga inicial select delegacion
+
+	//#region Carga inicial select motivosBaja
+	useEffect(() => {
+		setMotivosBajaQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setMotivosBajaSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setMotivosBajaQuery]);
+	//#endregion Carga inicial select motivosBaja
+
+	//#region Carga inicial select estados
+	useEffect(() => {
+		setEstadosQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setEstadoSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setEstadosQuery]);
+	//#endregion Carga inicial select estados
+
+	//#region Carga inicial select provincias
+	useEffect(() => {
+		setProvinciasQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setProvinciaSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setProvinciasQuery]);
+	//#endregion Carga inicial select provincias
+
+	//#endregion Carga inicial
+
+	//#region Recarga
+
+	//#region Recarga list
+	useEffect(() => {
+		if (!list.reload) return;
+		const changes = {
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+		};
+		setList((o) => ({ ...o, ...changes }));
+		setAfiliadosQuery((o) => ({
+			...o,
+			query: {
+				...o.query,
+				config: {
+					...o.query.config,
+					body: {
+						...list.params,
+						sort: list.sort,
+						pageIndex: list.pagination.index,
+						pageSize: list.pagination.size,
+					},
+				},
+			},
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				let pagination = {};
+				if (ok) {
+					if (!Array.isArray(ok.data))
+						console.error("Se esperaba un arreglo", data);
+					else ({ data, ...pagination } = ok);
+				}
+				setList((o) => ({
+					...o,
+					loading: null,
+					data,
+					pagination: { ...o.pagination, ...pagination },
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [list, setAfiliadosQuery]);
+	//#endregion Recarga list
+
+	//#region Recarga csv
+	useEffect(() => {
+		if (!csv.reload) return;
+		const titulos = csv.data[0];
+		const changes = {
+			reload: null,
+			loading: "Cargando bloque 1...",
+			data: [titulos],
+			error: null,
+		};
+		setCSV((o) => ({ ...o, ...changes }));
+		/** @type {onLoad} */
+		const onLoad = ({ query, ok, error }) => {
+			if (ok) {
+				let { data, index, pages, size } = ok;
+				if (Array.isArray(data)) {
+					changes.data.push(
+						...data.map((r) =>
+							csv.formatters.map((f) => f.csvFormat(r[f.dataField], r))
+						)
+					);
+				} else console.error("Se esperaba un arreglo", data);
+				if (index < pages) {
+					changes.loading = `Cargando bloque ${index + 1} de ${pages}...`;
+					setAfiliadosQuery((o) => ({
+						...o,
+						query: {
+							...query,
+							config: {
+								...query.config,
+								body: {
+									...query.config.body,
+									pageIndex: index + 1,
+									pageSize: size,
+								},
+							},
+						},
+						onLoad,
+					}));
+				} else {
+					changes.loading = null;
+				}
+			} else if (error) {
+				changes.loading = null;
+				changes.error = error?.toString();
+			}
+			setCSV((o) => ({
+				...o,
+				...changes,
+			}));
+			if (!changes.loading)
+				downloadjs(ArrayToCSV(changes.data), "Afiliados.csv", "text/csv");
+		};
+		setAfiliadosQuery((o) => ({
+			...o,
+			query: {
+				...o.query,
+				config: { ...o.query.config, body: { ...csv.params, sort: csv.sort } },
+			},
+			onLoad,
+		}));
+	}, [list, setAfiliadosQuery]);
+	//#endregion Recarga csv
+
+	//#endregion Recarga
+
 	const onCSV = () => setCSV((o) => ({ ...o, reload: true }));
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
 
 	return (
-		<Modal size="xl" centered show >
+		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Afiliados
 			</Modal.Header>
@@ -699,15 +812,71 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								value={delegacionSelect.selected}
 								onChange={(selected) => {
 									setDelegacionSelect((o) => ({ ...o, selected }));
-									setSeccionalSelect((o) => {
-										const seccionalSelect = { ...o, reload: true };
-										if (selected === delegacionSelectTodos) {
-											delete seccionalSelect.params.refDelegacionId;
-										} else {
-											seccionalSelect.params.refDelegacionId = selected.value;
-										}
-										return seccionalSelect;
-									});
+									const changes = {
+										loading: null,
+										data: [],
+										error: null,
+										selected: seccionalSelectTodos,
+										buscar: "",
+										origen: "option",
+									};
+									if (selected !== delegacionSelectTodos) {
+										/** @type {onLoad} */
+										const onLoad = ({ query, ok, error }) => {
+											let pages = 0;
+											let pageIndex = query.config.body.pageIndex;
+											if (ok) {
+												pages = ok.pages;
+												if (Array.isArray(ok.data)) {
+													changes.data.push(...ok.data);
+													pageIndex = ok.index + 1;
+												} else {
+													console.error("Se esperaba un arreglo", ok.data);
+												}
+											}
+											if (error) changes.error = error.toString();
+											if (pageIndex < pages) {
+												changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
+												setSeccionalesQuery((o) => ({
+													...o,
+													query: {
+														...o.query,
+														config: {
+															...o.query.config,
+															body: {
+																...o.query.config.body,
+																pageIndex,
+															},
+														},
+													},
+													onLoad,
+												}));
+											} else {
+												changes.loading = null;
+											}
+											setSeccionalSelect((o) => ({
+												...o,
+												...changes,
+												data: [...changes.data],
+											}));
+										};
+										setSeccionalesQuery((o) => ({
+											...o,
+											query: {
+												...o.query,
+												config: {
+													...o.query.config,
+													body: {
+														...o.query.params,
+														refDelegacionId: selected.value,
+														pageIndex: 1,
+													},
+												},
+											},
+											onLoad,
+										}));
+									}
+									setSeccionalSelect((o) => ({ ...o, ...changes }));
 									setFiltros((o) => {
 										const filtros = {
 											...o,
@@ -858,6 +1027,10 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 									setDelegacionSelect((o) => ({
 										...o,
 										selected: delegacionSelectTodos,
+									}));
+									setSeccionalSelect((o) => ({
+										...o,
+										selected: seccionalSelectTodos,
 									}));
 									setEstadoSelect((o) => ({
 										...o,
