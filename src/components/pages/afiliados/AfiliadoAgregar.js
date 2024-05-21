@@ -1485,6 +1485,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					type: "USER_INPUT",
 					value: moment(fechaIngreso).format("yyyy-MM-DD"),
 				});
+        console.log("fecha ingreso:",moment(fechaIngreso).format("yyyy-MM-DD"))
 			}
       let domicilioReal = "";
       
@@ -1794,7 +1795,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
-          dispatchFechaIngreso({ type: "USER_INPUT", value: null });
+          //dispatchFechaIngreso({ type: "USER_INPUT", value: null }); SI HABILITO ESTO, NO SUGIERE LA FECHA INGRESO CUANDO SE ABRE LA FICHA
           dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
           dispatchSexo({ type: "USER_INPUT", value: "" });
           dispatchTipoDocumento({ type: "USER_INPUT", value: "" });
