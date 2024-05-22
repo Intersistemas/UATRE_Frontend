@@ -829,13 +829,13 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 												pages = ok.pages;
 												if (Array.isArray(ok.data)) {
 													changes.data.push(...ok.data);
-													pageIndex = ok.index + 1;
 												} else {
 													console.error("Se esperaba un arreglo", ok.data);
 												}
 											}
 											if (error) changes.error = error.toString();
 											if (pageIndex < pages) {
+												pageIndex += 1;
 												changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
 												setSeccionalesQuery((o) => ({
 													...o,
