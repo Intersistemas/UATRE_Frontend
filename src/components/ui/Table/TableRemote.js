@@ -15,6 +15,7 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Button from "../Button/Button";
+import zIndex from "@mui/material/styles/zIndex";
 
 const TableRemote = (props) => {
 
@@ -78,9 +79,9 @@ const TableRemote = (props) => {
 
   return (
 
-    <div className={classes.tabla} style={{marginTop: '-4rem'}}>
+    <div className={classes.tabla} style={{marginTop: '-3rem'}}>
       {props.selectoresBuscar &&
-       <Box sx={{ maxWidth: 700}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem'}}>
+       <Box sx={{ maxWidth: 700}} style={{display:'flex', float: 'right', width: '-webkit-fill-available', 'column-gap': '1rem', margin: "-1rem 0rem 1rem 0rem", zIndex: 1, position: 'relative'}}>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">Busca</InputLabel>
           <Select

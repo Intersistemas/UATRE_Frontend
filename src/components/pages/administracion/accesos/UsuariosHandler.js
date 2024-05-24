@@ -4,11 +4,14 @@ import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
+import KeyPress from "components/keyPress/KeyPress";
 import useTareas from "./tareas/useTareas";
 import useUsuarios from "./useUsuarios";
-import KeyPress from "components/keyPress/KeyPress";
-import useTareasUsuario from "components/hooks/useTareasUsuario";
 import useAmbitos from "./usuarioAmbitos/useAmbitos";
+import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
+import Button from "components/ui/Button/Button";
+import { onLoadSelectKeepOrFirst } from "components/ui/Table/TableHook";
 
 const UsuariosHandler = () => {
 	const dispatch = useDispatch();
@@ -21,15 +24,33 @@ const UsuariosHandler = () => {
 	const disableTabAmbitos = !tarea.hasTarea("Accesos_UsuarioAmbitos");
 	
 	//#region Tab usuarios
-	const [usuariosTab, usuarioChanger, usuarioSelected] =
-		useUsuarios();
+	const [usuariosParamsEdit, setUsuariosParamsEdit] = useState({});
+	const [usuariosParamsSend, setUsuariosParamsSend] = useState({});
+	// const [usuariosTab, usuarioChanger, usuarioSelected] = useUsuarios();
+	const {
+		render: usuariosRender,
+		request: usuariosRequest,
+		selected: usuariosSelected,
+	} = useUsuarios({
+		params: { sort: "-cuit" },
+		onEditComplete: ({ edit, response, request }) => {
+			const params = { ...usuariosParamsSend };
+			if (request === "A") {
+				edit.id = response.id;
+				params.select = edit;
+			} else {
+				delete params.select;
+			}
+			setUsuariosParamsSend(params);
+		},
+	});
 	const [usuariosActions, setUsuariosActions] = useState([]);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					usuarioChanger("selected", { request, action }),
+					usuariosRequest("selected", { request, action }),
 				combination: "AltKey",
 				...x,
 			});
@@ -42,7 +63,7 @@ const UsuariosHandler = () => {
 				underlineindex: 0,
 			}),
 		];
-		const desc = usuarioSelected?.userName;
+		const desc = usuariosSelected?.userName;
 		if (!desc) {
 			setUsuariosActions(actions);
 			return;
@@ -65,7 +86,7 @@ const UsuariosHandler = () => {
 				underlineindex: 0,
 			})
 		);
-		if (usuarioSelected?.deletedDate) {
+		if (usuariosSelected?.deletedDate) {
 			actions.push(
 				createAction({
 					action: `Reactiva Usuario ${desc}`,
@@ -87,16 +108,100 @@ const UsuariosHandler = () => {
 		);
 		}
 		setUsuariosActions(actions);
-	}, [usuarioChanger, usuarioSelected,usuariosTab]);
+	}, [usuariosRequest, usuariosSelected]);
 	tabs.push({
-		header: () => <Tab label="Usuarios" />,
-		body: usuariosTab,
+		header: (p) => <Tab label="Usuarios" {...p} />,
+		body: (p) => (
+			<Grid col gap="inherit" {...p}>
+				<Grid grid="auto / 200px 1fr 1fr 200px 200px" gap="inherit">
+					<InputMaterial
+						label="CUIT / CUIL"
+						mask={CUITMask}
+						value={usuariosParamsEdit.cuit}
+						onChange={(v) =>
+							setUsuariosParamsEdit((o) => {
+								const cuit = v.replace(/[^0-9]+/g, "");
+								const r = { ...o, cuit };
+								if (!cuit) delete r.cuit;
+								return r;
+							})
+						} 
+					/>
+					<InputMaterial
+						label="Nombre"
+						value={usuariosParamsEdit.nombre}
+						onChange={(nombre) =>
+							setUsuariosParamsEdit((o) => {
+								const r = { ...o, nombre };
+								if (!nombre) delete r.nombre;
+								return r;
+							})
+						}
+					/>
+					<InputMaterial
+						label="Usuario"
+						value={usuariosParamsEdit.usuario}
+						onChange={(usuario) =>
+							setUsuariosParamsEdit((o) => {
+								const r = { ...o, usuario };
+								if (!usuario) delete r.usuario;
+								return r;
+							})
+						}
+					/>
+					<Button
+						className="botonAzul"
+						disabled={
+							JSON.stringify(usuariosParamsEdit) ===
+							JSON.stringify(usuariosParamsSend)
+						}
+						onClick={() => setUsuariosParamsSend(usuariosParamsEdit)}
+					>
+						Aplica filtro
+					</Button>
+					<Button
+						className="botonAzul"
+						disabled={Object.entries(usuariosParamsEdit).length === 0}
+						onClick={() => {
+							const usuariosParamsEdit = {};
+							setUsuariosParamsEdit(usuariosParamsEdit);
+							if (
+								JSON.stringify(usuariosParamsEdit) ===
+								JSON.stringify(usuariosParamsSend)
+							)
+								return;
+							setUsuariosParamsSend({ ...usuariosParamsEdit });
+						}}
+					>
+						Limpia filtro
+					</Button>
+				</Grid>
+				<Grid width gap="inherit">
+					{usuariosRender()}
+				</Grid>
+			</Grid>
+		),
 		actions: usuariosActions,
 	});
 
 	useEffect(() => {
-		usuarioChanger("list");
-	}, [usuarioChanger]);
+		const { select, ...params } = usuariosParamsSend;
+		const payload = {
+			params,
+			onLoadSelect: onLoadSelectKeepOrFirst,
+		}
+		if (select) {
+			payload.onLoadSelect = () => {
+				setUsuariosParamsSend((o) => {
+					const r = { ...o };
+					delete r.select;
+					return r
+				});
+				return select;
+			}
+		}
+		usuariosRequest("list", payload);
+	}, [usuariosRequest, usuariosParamsSend]);
 	//#endregion
 
 	
@@ -106,7 +211,7 @@ const UsuariosHandler = () => {
 	useEffect(() => {
 		const actions = [];
 
-		const userName = usuarioSelected?.userName;
+		const userName = usuariosSelected?.userName;
 		if (!userName) {
 			setTareasActions(actions);
 			return;
@@ -119,7 +224,7 @@ const UsuariosHandler = () => {
 					tareaChanger("selected", {
 						request,
 						action,
-						record: { usuarioId: usuarioSelected?.id },
+						record: { usuarioId: usuariosSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -171,21 +276,21 @@ const UsuariosHandler = () => {
 			})
 		);
 		setTareasActions(actions);
-	}, [tareaChanger, tareaSelected, usuarioSelected?.id,tareasTab]);
+	}, [tareaChanger, tareaSelected, usuariosSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Usuario Tareas" disabled={!usuarioSelected || disableTabTareas} />,
-		body: tareasTab,
+		header: (p) => <Tab label="Usuario Tareas" disabled={!usuariosSelected || disableTabTareas} {...p}/>,
+		body: (p) => <Grid col gap="inherit" {...p}>{tareasTab()}</Grid>,
 		actions: tareasActions,
 	});
 
 	// Si cambia usuario, refresco lista de tareas
 	useEffect(() => {
 		tareaChanger("list", {
-			clear: !usuarioSelected?.id,
-			params: { usuarioId: usuarioSelected?.id },
+			clear: !usuariosSelected?.id,
+			params: { usuarioId: usuariosSelected?.id },
 		});
-	}, [usuarioSelected?.id, tareaChanger]);
+	}, [usuariosSelected?.id, tareaChanger]);
 	//#endregion
 	
 	
@@ -197,7 +302,7 @@ const UsuariosHandler = () => {
 	useEffect(() => {
 		const actions = [];
 
-		const userName = usuarioSelected?.userName;
+		const userName = usuariosSelected?.userName;
 		if (!userName) {
 			setAmbitosActions(actions);
 			return;
@@ -210,7 +315,7 @@ const UsuariosHandler = () => {
 					ambitoChanger("selected", {
 						request,
 						action,
-						record: { usuarioId: usuarioSelected?.id },
+						record: { usuarioId: usuariosSelected?.id },
 					}),
 				combination: "AltKey",
 				...x,
@@ -262,21 +367,21 @@ const UsuariosHandler = () => {
 			})
 		);
 		setAmbitosActions(actions);
-	}, [ambitoChanger, ambitoSelected, usuarioSelected?.id,ambitosTab]);
+	}, [ambitoChanger, ambitoSelected, usuariosSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Usuario Ambito" disabled={!usuarioSelected || disableTabAmbitos} />,
-		body: ambitosTab,
+		header: (p) => <Tab label="Usuario Ambito" disabled={!usuariosSelected || disableTabAmbitos} {...p}/>,
+		body: (p) => <Grid col gap="inherit" {...p}>{ambitosTab()}</Grid>,
 		actions: ambitosActions,
 	});
 
 	// Si cambia usuario, refresco lista de tareas
 	useEffect(() => {
 		ambitoChanger("list", {
-			clear: !usuarioSelected?.id,
-			params: { usuarioId: usuarioSelected?.id },
+			clear: !usuariosSelected?.id,
+			params: { usuarioId: usuariosSelected?.id },
 		});
-	}, [usuarioSelected?.id, ambitoChanger]);
+	}, [usuariosSelected?.id, ambitoChanger]);
 	//#endregion
 
 
@@ -371,22 +476,19 @@ const UsuariosHandler = () => {
 	//#endregion
 
 	return (
-
 		<Grid full col>
 			<Grid className="titulo">
-				<h1 >Usuarios</h1>
+				<h1>Usuarios</h1>
 			</Grid>
-
-			<div className="tabs">
-				<text>{usuarioSelected?.nombre ? usuarioSelected.nombre  : " " }</text>
-
+			<Grid className="tabs">
+				<text>{usuariosSelected?.nombre ? usuariosSelected.nombre : " "}</text>
 				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
+					{tabs.map((r, key) => r.header({ key }))}
 				</Tabs>
-			</div>
-			<div className="contenido">
-				{tabs[tab].body()}
-			</div>
+			</Grid>
+			<Grid className="contenido" col gap="10px">
+				{tabs.map((r, key) => r.body({ key, hidden: key !== tab }))}
+			</Grid>
 			<KeyPress items={acciones} />
 		</Grid>
 	);

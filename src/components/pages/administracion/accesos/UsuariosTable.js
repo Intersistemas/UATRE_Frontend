@@ -1,99 +1,88 @@
 import React from "react";
-import Table from "components/ui/Table/Table";
-import FormatearFecha from "components/helpers/FormatearFecha";
- 
-const UsuariosTable = ({
-	columns: columnsInit = [],
-	...x
-} = {}) => {
+import Formato from "components/helpers/Formato";
+import Table, { asColumnArray } from "components/ui/Table/Table";
 
-	const cs = {
-		overflow: "hidden",
-		textOverflow: "ellipsis",
-		whiteSpace: "nowrap",
-	};
+//#region declaracion de columnas
+const columnsDef = [
+	{
+		dataField: "id",
+		text: "Id",
+		headerStyle: { width: "100px" },
+		style: { textAlign: "center" },
+		sort: true,
+		hidden: true,
+	},
+	{
+		dataField: "cuit",
+		text: "CUIT/CUIL",
+		headerStyle: { width: "70px" },
+		style: { textAlign: "center" },
+		formatter: (v) => Formato.Cuit(v),
+		sort: true,
+	},
+	{
+		dataField: "userName",
+		text: "Usuario",
+		headerStyle: { width: "60px" },
+		style: { textAlign: "right" },
+		sort: true,
+	},
+	{
+		dataField: "nombre",
+		text: "Nombre",
+		style: { textAlign: "left" },
+		sort: true,
+	},
+	{
+		dataField: "email",
+		text: "Email",
+		headerStyle: { width: "100px" },
+		style: { textAlign: "left" },
+	},
+	{
+		dataField: "emailConfirmed",
+		text: "Email Confirmado",
+		headerStyle: { width: "70px" },
+		style: { textAlign: "center" },
+		formatter: (v) => Formato.Booleano(!!v),
+	},
+	{
+		dataField: "phoneNumber",
+		text: "Teléfono",
+		headerStyle: { width: "50px" },
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "deletedDate",
+		text: "Fecha Baja",
+		formatter: (v) => Formato.Fecha(v),
+		headerStyle: { width: "50px" },
+		style: (v) => {
+			const r = { textAlign: "center" };
+			if (v) {
+				r.background = "#ff6464cc";
+				r.color = "#FFF";
+			}
+			return r;
+		},
+		sort: true,
+	},
+].map((r) => ({
+	searchable: false,
+	headerTitle: () => r.text,
+	headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },
+	...r,
+}));
+//#endregion
 
-	//#region declaracion de columnas
-	const columns = [
-		
-		{
-			dataField: "id",
-			text: "Id",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
-			style: {...cs, textAlign: "center" },
-			hidden: true
-		},
-		{
-			dataField: "cuit",
-			text: "CUIT/CUIL",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
-			style: {...cs, textAlign: "rcenteright" },
-		},
-
-		{
-			dataField: "userName",
-			text: "Usuario",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
-			style: {...cs, textAlign: "right" },
-		},
-		
-
-		{
-			dataField: "nombre",
-			text: "Nombre",
-			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "20%" }),
-			style: {...cs, textAlign: "left" },
-		},
-
-		{
-			dataField: "email",
-			text: "Email",
-			headerStyle: (_colum, _colIndex) => ({ width: "15%" }),
-			style: {...cs, textAlign: "left" },
-		},
-
-		{
-			dataField: "emailConfirmed",
-			text: "Email Confirmado",
-			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
-			style: {...cs, textAlign: "center" },
-			formatter: (value, row) => 
-				 value ? 'Si' : 'No'
-		},
-
-		{
-			dataField: "phoneNumber",
-			text: "Teléfono",
-			headerStyle: (_colum, _colIndex) => ({ width: "10%" }),
-			style: {...cs, textAlign: "center" },
-		},
-		
-		
-		{
-			headerTitle: (column, colIndex) => `Fecha Baja`,
-			dataField: "deletedDate",
-			text: "Fecha Baja",
-			sort: true,
-			formatter:FormatearFecha,
-			headerStyle: (colum, colIndex) => {
-			  return { width: "7rem", textAlign: "center" };
-			},
-		},
-		...columnsInit
-	];
-	//#endregion
-
-	return (
-		<Table
-			keyField="id"
-			columns={columns}
-			{...x}
-		/>
-	);
-};
+/** @type {Table} */
+const UsuariosTable = ({ columns, ...x } = {}) => (
+	<Table
+		keyField="id"
+		columns={asColumnArray(columns, columnsDef)}
+		mostrarBuscar={false}
+		{...x}
+	/>
+);
 
 export default UsuariosTable;

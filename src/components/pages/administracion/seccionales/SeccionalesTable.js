@@ -9,11 +9,13 @@ const columnsDef = [
 		text: "Código",
 		headerTitle: () => `Codigo Seccional`,
 		headerStyle: { width: "3rem" },
+		sort: true,
 	},
 	{
 		dataField: "descripcion",
 		text: "Nombre",
 		headerTitle: () => `Nombre Seccional`,
+		sort: true,
 	},
 	{
 		dataField: "seccionalEstadoDescripcion",
@@ -37,8 +39,8 @@ const columnsDef = [
 		headerTitle: () => `Localidad Seccional`,
 	},
 	{
-		dataField: "observaciones",
-		text: "Observaciones",
+		dataField: "provinciaDescripcion",
+		text: "Provincia",
 	},
 	{
 		dataField: "id",
@@ -56,7 +58,6 @@ const columnsDef = [
 		text: "Delegación",
 	},
 ].map((r) => ({
-	sort: true,
 	searchable: false,
 	headerTitle: () => r.text,
 	headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },

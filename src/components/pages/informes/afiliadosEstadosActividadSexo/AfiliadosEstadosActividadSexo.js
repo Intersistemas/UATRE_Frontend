@@ -11,8 +11,48 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 
 const onCloseDef = () => {};
+
+//#region actividadSelectOptions
+// const actividadSelectTodos = { value: 0, label: "Todas" };
+// const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
+// 	mapOptions({
+// 		data,
+// 		map: (r) => ({ value: r.id, label: r.descripcion }),
+// 		filter: (r) => includeSearch(r, buscar),
+// 		start: [actividadSelectTodos],
+// 		...x,
+// 	});
+//#endregion actividadSelectOptions
+
+//#region sexoSelectOptions
+// const sexoSelectTodos = { value: 0, label: "Todas" };
+// const sexoSelectOptions = ({ data = [], buscar = "", ...x }) =>
+// 	mapOptions({
+// 		data,
+// 		map: (r) => ({ value: r.id, label: r.descripcion }),
+// 		filter: (r) => includeSearch(r, buscar),
+// 		start: [sexoSelectTodos],
+// 		...x,
+// 	});
+//#endregion sexoSelectOptions
+
+//#region estadoSelectOptions
+const estadoSelectTodos = { value: 0, label: "Todos" };
+const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion }),
+		filter: (r) => includeSearch(r, buscar),
+		start: [estadoSelectTodos],
+		...x,
+	});
+//#endregion estadoSelectOptions
 
 const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 	//#region Trato queries a APIs
@@ -27,13 +67,175 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 					},
 				};
 			}
+			// case "GetActividades": {
+			// 	return {
+			// 		config: {
+			// 			baseURL: "Afiliaciones",
+			// 			endpoint: `/Actividad`,
+			// 			method: "GET",
+			// 		},
+			// 	};
+			// }
+			// case "GetSexo": {
+			// 	return {
+			// 		config: {
+			// 			baseURL: "Afiliaciones",
+			// 			endpoint: `/Sexo`,
+			// 			method: "GET",
+			// 		},
+			// 	};
+			// }
+			case "GetEstados": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/EstadoSolicitud`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
 	});
 	//#endregion
 
+	//#region filtros
 	const [filtros, setFiltros] = useState({});
+
+	//#region filtro actividad
+	// const [actividadSelect, setActividadSelect] = useState({
+	// 	reload: true,
+	// 	loading: null,
+	// 	params: { soloActivos: true },
+	// 	data: [],
+	// 	error: null,
+	// 	buscar: "",
+	// 	options: [],
+	// 	selected: actividadSelectTodos,
+	// });
+
+	// useEffect(() => {
+	// 	if (!actividadSelect.reload) return;
+	// 	const changes = {
+	// 		reload: null,
+	// 		loading: "Cargando...",
+	// 		data: [],
+	// 		error: null,
+	// 		buscar: "",
+	// 		options: [],
+	// 	};
+	// 	setActividadSelect((o) => ({ ...o, ...changes }));
+	// 	pushQuery({
+	// 		action: "GetActividades",
+	// 		params: { ...actividadSelect.params },
+	// 		onOk: (data) => {
+	// 			if (!Array.isArray(data))
+	// 				return console.error("Se esperaba un arreglo", data);
+	// 			changes.data = data;
+	// 		},
+	// 		onError: (error) => (changes.error = error.toString()),
+	// 		onFinally: () =>
+	// 			setActividadSelect((o) => ({ ...o, ...changes, loading: null })),
+	// 	});
+	// }, [actividadSelect, pushQuery]);
+	// // Buscador
+	// useEffect(() => {
+	// 	if (actividadSelect.reload) return;
+	// 	if (actividadSelect.loading) return;
+	// 	setActividadSelect((o) => ({ ...o, options: actividadSelectOptions(o) }));
+	// }, [actividadSelect.reload, actividadSelect.loading, actividadSelect.buscar]);
+	//#endregion filtro actividad
+
+	//#region filtro sexo
+	// const [sexoSelect, setSexoSelect] = useState({
+	// 	reload: true,
+	// 	loading: null,
+	// 	params: { soloActivos: true },
+	// 	data: [],
+	// 	error: null,
+	// 	buscar: "",
+	// 	options: [],
+	// 	selected: sexoSelectTodos,
+	// });
+
+	// useEffect(() => {
+	// 	if (!sexoSelect.reload) return;
+	// 	const changes = {
+	// 		reload: null,
+	// 		loading: "Cargando...",
+	// 		data: [],
+	// 		error: null,
+	// 		buscar: "",
+	// 		options: [],
+	// 	};
+	// 	setSexoSelect((o) => ({ ...o, ...changes }));
+	// 	pushQuery({
+	// 		action: "GetSexo",
+	// 		params: { ...sexoSelect.params },
+	// 		onOk: (data) => {
+	// 			if (!Array.isArray(data))
+	// 				return console.error("Se esperaba un arreglo", data);
+	// 			changes.data = data;
+	// 		},
+	// 		onError: (error) => (changes.error = error.toString()),
+	// 		onFinally: () =>
+	// 		setSexoSelect((o) => ({ ...o, ...changes, loading: null })),
+	// 	});
+	// }, [sexoSelect, pushQuery]);
+	// // Buscador
+	// useEffect(() => {
+	// 	if (sexoSelect.reload) return;
+	// 	if (sexoSelect.loading) return;
+	// 	setSexoSelect((o) => ({ ...o, options: sexoSelectOptions(o) }));
+	// }, [sexoSelect.reload, sexoSelect.loading, sexoSelect.buscar]);
+	//#endregion filtro sexo
+
+	//#region filtro estado
+	const [estadoSelect, setEstadoSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { soloActivos: true },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: estadoSelectTodos,
+	});
+
+	useEffect(() => {
+		if (!estadoSelect.reload) return;
+		const changes = {
+			reload: null,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+			buscar: "",
+			options: [],
+		};
+		setEstadoSelect((o) => ({ ...o, ...changes }));
+		pushQuery({
+			action: "GetEstados",
+			params: { ...estadoSelect.params },
+			onOk: (data) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data = data;
+			},
+			onError: (error) => (changes.error = error.toString()),
+			onFinally: () =>
+				setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+		});
+	}, [estadoSelect, pushQuery]);
+	// Buscador
+	useEffect(() => {
+		if (estadoSelect.reload) return;
+		if (estadoSelect.loading) return;
+		setEstadoSelect((o) => ({ ...o, options: estadoSelectOptions(o) }));
+	}, [estadoSelect.reload, estadoSelect.loading, estadoSelect.buscar]);
+	//#endregion filtro estado
+
+	//#endregion filtros
 
 	//#region list
 	const [list, setList] = useState({
@@ -153,7 +355,7 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 	UseKeyPress(["Enter"], () => onCSV(), "AltKey");
 
 	return (
-		<Modal size="xl" centered show >
+		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				Estados de solicitudes por actividad y sexo
 			</Modal.Header>
@@ -161,6 +363,29 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
 						<Grid grow>
+							{/* <SearchSelectMaterial
+								id="actividadSelect"
+								label="Actividad"
+								error={!!actividadSelect.error}
+								helperText={actividadSelect.loading ?? actividadSelect?.error}
+								value={actividadSelect.selected}
+								onChange={(selected) => {
+									setActividadSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											actividadId: selected.value,
+										};
+										if (selected === actividadSelectTodos)
+											delete filtros.actividadId;
+										return filtros;
+									});
+								}}
+								options={actividadSelect.options}
+								onTextChange={(buscar) =>
+									setActividadSelect((o) => ({ ...o, buscar }))
+								}
+							/> */}
 							<InputMaterial
 								label="Actividad"
 								value={filtros.actividadDescripcion}
@@ -174,6 +399,29 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 							/>
 						</Grid>
 						<Grid grow>
+							{/* <SearchSelectMaterial
+								id="sexoSelect"
+								label="Sexo"
+								error={!!sexoSelect.error}
+								helperText={sexoSelect.loading ?? sexoSelect?.error}
+								value={sexoSelect.selected}
+								onChange={(selected) => {
+									setSexoSelect((o) => ({ ...o, selected }));
+									setFiltros((o) => {
+										const filtros = {
+											...o,
+											sexoId: selected.value,
+										};
+										if (selected === sexoSelectTodos)
+											delete filtros.sexoId;
+										return filtros;
+									});
+								}}
+								options={sexoSelect.options}
+								onTextChange={(buscar) =>
+									setSexoSelect((o) => ({ ...o, buscar }))
+								}
+							/> */}
 							<InputMaterial
 								label="Sexo"
 								value={filtros.sexoDescripcion}
@@ -189,16 +437,27 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 					</Grid>
 					<Grid width gap="inherit">
 						<Grid grow>
-							<InputMaterial
-								label="Estado de solicitud"
-								value={filtros.estadoSolicitudDescripcion}
-								onChange={(estadoSolicitudDescripcion) =>
+							<SearchSelectMaterial
+								id="estadoSelect"
+								label="Estado"
+								error={!!estadoSelect.error}
+								helperText={estadoSelect.loading ?? estadoSelect?.error}
+								value={estadoSelect.selected}
+								onChange={(selected) => {
+									setEstadoSelect((o) => ({ ...o, selected }));
 									setFiltros((o) => {
-										const r = { ...o, estadoSolicitudDescripcion };
-										if (!estadoSolicitudDescripcion)
-											delete r.estadoSolicitudDescripcion;
-										return r;
-									})
+										const filtros = {
+											...o,
+											estadoSolicitudId: selected.value,
+										};
+										if (selected === estadoSelectTodos)
+											delete filtros.estadoSolicitudId;
+										return filtros;
+									});
+								}}
+								options={estadoSelect.options}
+								onTextChange={(buscar) =>
+									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
 							/>
 						</Grid>
@@ -215,7 +474,7 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 										data: [],
 										error: null,
 										loading: "Cargando...",
-										pagination: {...o.pagination, index: 1 },
+										pagination: { ...o.pagination, index: 1 },
 									}));
 									setCSV((o) => ({ ...o, filtros }));
 								}}
@@ -229,6 +488,18 @@ const AfiliadosEstadosActividadSexo = ({ onClose = onCloseDef }) => {
 								disabled={Object.keys(filtros).length === 0}
 								onClick={() => {
 									const filtros = {};
+									// setActividadSelect((o) => ({
+									// 	...o,
+									// 	selected: actividadSelectTodos,
+									// }));
+									// setSexoSelect((o) => ({
+									// 	...o,
+									// 	selected: sexoSelectTodos,
+									// }));
+									setEstadoSelect((o) => ({
+										...o,
+										selected: estadoSelectTodos,
+									}));
 									setFiltros(filtros);
 									if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
 										return;
