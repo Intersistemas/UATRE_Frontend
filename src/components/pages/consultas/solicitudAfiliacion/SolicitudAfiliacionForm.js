@@ -3,6 +3,7 @@ import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
 import Formato from "components/helpers/Formato";
+import { and } from "components/helpers/Utils";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
@@ -38,11 +39,13 @@ const styles = {
 //#region options
 
 //#region seccionalesSelect Options
+const seccionalSelectDef = {};
 const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
 		filter: (r) => includeSearch(r, buscar),
+		start: [seccionalSelectDef],
 		...x,
 	});
 //#endregion seccionalesSelect Options
@@ -91,7 +94,7 @@ const sexoSelectOptions = ({ data = [], buscar = "", ...x }) =>
 const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
-		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
+		map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
 		filter: (r) => includeSearch(r, buscar),
 		...x,
 	});
@@ -294,6 +297,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	const [state, setState] = useState({
 		form: {
 			fecha: dayjs().format("YYYY-MM-DD"),
+		},
+		validado: {
+			seccionalId: false,
+			fecha: true,
+			trabajador: false,
+			empleador: false,
 		},
 		errors: {},
 		loading: null,
@@ -780,20 +789,40 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										seccionalId: selected.record?.id,
 										seccional: selected.record?.nombre,
 									},
+									validado: {
+										...o.validado,
+										seccionalId: !!selected.record?.id
+									},
+									errors: {
+										...o.errors,
+										seccionalId: selected.record?.id ? "" : "Dato requerido"
+									}
 								}));
 							}}
 							options={seccionalSelect.options}
-							onTextChange={(buscar) =>
+							onTextChange={(buscar) => {
 								setSeccionalSelect((o) => ({
 									...o,
 									buscar,
 									origen: "text",
+								}));
+								setState((o) => ({
+									...o,
+									validado: {
+										...o.validado,
+										seccionalId: !!buscar
+									},
+									errors: {
+										...o.errors,
+										seccionalId: buscar ? "" : "Dato requerido"
+									}
 								}))
-							}
+							}}
 						/>
 					</Grid>
 					<Grid width>
 						<InputMaterial
+							id="fecha"
 							type="date"
 							label="Fecha"
 							value={state.form.fecha}
@@ -802,6 +831,14 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								setState((o) => ({
 									...o,
 									form: { ...o.form, fecha: v?.format("YYYY-MM-DD") },
+									validado: {
+										...o.validado,
+										fecha: !!v
+									},
+									errors: {
+										...o.errors,
+										fecha: v ? "" : "Dato requerido"
+									}
 								}))
 							}
 						/>
@@ -815,6 +852,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						<Grid gap="inherit">
 							<Grid width="200px">
 								<InputMaterial
+									id="cuil"
 									mask={CUITMask}
 									label="CUIL"
 									value={state.form.cuil}
@@ -841,17 +879,24 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										};
 										const cuit = state.form.cuil;
 										const apply = () =>
-											setState((o) => ({
-												...o,
-												form: {
-													...o.form,
-													...changes.form,
-												},
-												errors: {
-													...o.errors,
-													...changes.errors,
-												},
-											}));
+											setState((o) => {
+												const state = {
+													...o,
+													form: {
+														...o.form,
+														...changes.form,
+													},
+													errors: {
+														...o.errors,
+														...changes.errors,
+													},
+												};
+												state.validado = {
+													...o.validado,
+													trabajador: !state.errors.cuil,
+												};
+												return state;
+											});
 										if (cuit) {
 											setPadronAFIPQuery((o) => ({
 												...o,
@@ -961,6 +1006,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										state.errors.tipoDocumentoId
 									}
 									value={tipoDocumentoSelect.selected}
+									disabled={!state.validado.trabajador}
 									onChange={(selected = {}) => {
 										setTipoDocumentoSelect((o) => ({
 											...o,
@@ -988,11 +1034,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							</Grid>
 							<Grid width="200px">
 								<InputMaterial
+									id="documento"
 									mask={DNIMask}
 									label="Número Doc."
 									value={state.form.documento}
 									error={!!state.errors.documento}
 									helperText={state.errors.documento}
+									disabled={!state.validado.trabajador}
 									onChange={(v) =>
 										setState((o) => ({
 											...o,
@@ -1017,6 +1065,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										state.errors.nacionalidadId
 									}
 									value={nacionalidadSelect.selected}
+									disabled={!state.validado.trabajador}
 									onChange={(selected = {}) => {
 										setNacionalidadSelect((o) => ({
 											...o,
@@ -1045,10 +1094,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="apellido"
 								label="Apellidos"
 								value={state.form.apellido}
 								error={!!state.errors.apellido}
 								helperText={state.errors.apellido}
+								disabled={!state.validado.trabajador}
 								onChange={(apellido) =>
 									setState((o) => ({
 										...o,
@@ -1060,10 +1111,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								}
 							/>
 							<InputMaterial
+								id="nombre"
 								label="Nombres"
 								value={state.form.nombre}
 								error={!!state.errors.nombre}
 								helperText={state.errors.nombre}
+								disabled={!state.validado.trabajador}
 								onChange={(nombre) =>
 									setState((o) => ({
 										...o,
@@ -1077,10 +1130,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="fechaNacimiento"
 								type="date"
 								label="Fecha de nacimiento"
 								value={state.form.fechaNacimiento}
 								error={state.errors.fechaNacimiento}
+								disabled={!state.validado.trabajador}
 								onChange={(v) =>
 									setState((o) => ({
 										...o,
@@ -1103,6 +1158,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.estadoCivil
 								}
 								value={estadoCivilSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setEstadoCivilSelect((o) => ({
 										...o,
@@ -1135,6 +1191,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									sexoSelect.loading ?? sexoSelect.error ?? state.errors.sexoId
 								}
 								value={sexoSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setSexoSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -1154,10 +1211,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="domicilio"
 								label="Domicilio real"
 								value={state.form.domicilio}
 								error={!!state.errors.domicilio}
 								helperText={state.errors.domicilio}
+								disabled={!state.validado.trabajador}
 								onChange={(domicilio) =>
 									setState((o) => ({
 										...o,
@@ -1178,6 +1237,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.provinciaId
 								}
 								value={trabPciaSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setTrabPciaSelect((o) => ({
 										...o,
@@ -1216,7 +1276,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										form: {
 											...o.form,
 											provinciaId: selected.value,
-											provinciaNombre: selected.label,
+											provinciaNombre: selected.record?.nombre,
 											refLocalidadIdAfiliado: 0,
 											reflocalidadNombreAfiliado: "",
 										},
@@ -1241,6 +1301,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.localidad
 								}
 								value={trabLocaSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setTrabLocaSelect((o) => ({
 										...o,
@@ -1273,6 +1334,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.oficioId
 								}
 								value={oficioSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setOficioSelect((o) => ({
 										...o,
@@ -1305,6 +1367,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.actividadIdAfiliado
 								}
 								value={actividadSelect.selected}
+								disabled={!state.validado.trabajador}
 								onChange={(selected = {}) => {
 									setActividadSelect((o) => ({
 										...o,
@@ -1328,11 +1391,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="telefono"
 								type="tel"
 								label="Teléfono"
 								value={state.form.telefono}
 								error={!!state.errors.telefono}
 								helperText={state.errors.telefono}
+								disabled={!state.validado.trabajador}
 								onChange={(telefono) =>
 									setState((o) => ({
 										...o,
@@ -1344,11 +1409,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								}
 							/>
 							<InputMaterial
+								id="celular"
 								type="tel"
 								label="Celular"
 								value={state.form.celular}
 								error={!!state.errors.celular}
 								helperText={state.errors.celular}
+								disabled={!state.validado.trabajador}
 								onChange={(celular) =>
 									setState((o) => ({
 										...o,
@@ -1360,10 +1427,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								}
 							/>
 							<InputMaterial
+								id="email"
 								label="Correo"
 								value={state.form.email}
 								error={!!state.errors.email}
 								helperText={state.errors.email}
+								disabled={!state.validado.trabajador}
 								onChange={(email) =>
 									setState((o) => ({
 										...o,
@@ -1385,6 +1454,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						<Grid gap="inherit">
 							<Grid width="200px">
 								<InputMaterial
+									id="cuitEmpresa"
 									mask={CUITMask}
 									label="CUIT"
 									value={state.form.cuitEmpresa}
@@ -1411,17 +1481,24 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 										};
 										const cuit = state.form.cuitEmpresa;
 										const apply = () =>
-											setState((o) => ({
-												...o,
-												form: {
-													...o.form,
-													...changes.form,
-												},
-												errors: {
-													...o.errors,
-													...changes.errors,
-												},
-											}));
+											setState((o) => {
+												const state = {
+													...o,
+													form: {
+														...o.form,
+														...changes.form,
+													},
+													errors: {
+														...o.errors,
+														...changes.errors,
+													},
+												};
+												state.validado = {
+													...o.validado,
+													empleador: !state.errors.cuitEmpresa,
+												};
+												return state;
+											});
 										if (cuit) {
 											setPadronAFIPQuery((o) => ({
 												...o,
@@ -1518,10 +1595,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							</Grid>
 							<Grid grow>
 								<InputMaterial
+									id="razonSocial"
 									label="Razon Social"
 									value={state.form.razonSocial}
 									error={!!state.errors.razonSocial}
 									helperText={state.errors.razonSocial}
+									disabled={!state.validado.empleador}
 									onChange={(razonSocial) =>
 										setState((o) => ({
 											...o,
@@ -1536,10 +1615,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="domicilioEmpresa"
 								label="Domicilio real"
 								value={state.form.domicilioEmpresa}
 								error={!!state.errors.domicilioEmpresa}
 								helperText={state.errors.domicilioEmpresa}
+								disabled={!state.validado.empleador}
 								onChange={(domicilioEmpresa) =>
 									setState((o) => ({
 										...o,
@@ -1562,6 +1643,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.provinciaidEmpresa
 								}
 								value={emplPciaSelect.selected}
+								disabled={!state.validado.empleador}
 								onChange={(selected = {}) => {
 									setEmplPciaSelect((o) => ({
 										...o,
@@ -1622,6 +1704,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.refLocalidadIdEmpresa
 								}
 								value={emplLocaSelect.selected}
+								disabled={!state.validado.empleador}
 								onChange={(selected = {}) => {
 									setEmplLocaSelect((o) => ({
 										...o,
@@ -1654,6 +1737,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 									state.errors.actividadIdEmpresa
 								}
 								value={ciiuSelect.selected}
+								disabled={!state.validado.empleador}
 								onChange={(selected = {}) => {
 									setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -1673,11 +1757,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 						</Grid>
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="telefonoEmpresa"
 								type="tel"
 								label="Teléfono"
 								value={state.form.telefonoEmpresa}
 								error={!!state.errors.telefonoEmpresa}
 								helperText={state.errors.telefonoEmpresa}
+								disabled={!state.validado.empleador}
 								onChange={(telefonoEmpresa) =>
 									setState((o) => ({
 										...o,
@@ -1689,11 +1775,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								}
 							/>
 							<InputMaterial
+								id="celularEmpresa"
 								type="tel"
 								label="Celular"
 								value={state.form.celularEmpresa}
 								error={!!state.errors.celularEmpresa}
 								helperText={state.errors.celularEmpresa}
+								disabled={!state.validado.empleador}
 								onChange={(celularEmpresa) =>
 									setState((o) => ({
 										...o,
@@ -1705,10 +1793,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 								}
 							/>
 							<InputMaterial
+								id="emailEmpresa"
 								label="Correo"
 								value={state.form.emailEmpresa}
 								error={!!state.errors.emailEmpresa}
 								helperText={state.errors.emailEmpresa}
+								disabled={!state.validado.empleador}
 								onChange={(emailEmpresa) =>
 									setState((o) => ({
 										...o,
@@ -2044,11 +2134,14 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 					<Grid width style={{ color: "red" }}>
 						{state.errors.create}
 					</Grid>
-					{state.base64 ? (<div />) : (
+					{state.base64 ? (
+						<div />
+					) : (
 						<Button
 							className="botonAmarillo"
 							onClick={onImprimie}
 							loading={!!state.loading}
+							disabled={!and(...Object.values(state.validado))}
 						>
 							IMPRIME
 						</Button>

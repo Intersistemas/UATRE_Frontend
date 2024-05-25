@@ -733,7 +733,9 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
                 onLoaded: ({ data }) => {
                   if (!Array.isArray(data)) return;
 
+                  //const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
                   const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+                  //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
                   const sinAsignar = myLocalidadId?.value === provinciaSelected?.localidadIdPorDefecto ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
                   dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
 
@@ -747,7 +749,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
                   setSeccionales((o) => ({
                     ...o,
                     loading: "Cargando...",
-                    params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                    //params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                    params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  myLocalidadId ? {localidadId: myLocalidadId.value} : provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null,
                     onLoaded: ({ data }) => {
                       //if (!Array.isArray(data)) return;
                       const mySeccionalId =
@@ -1153,8 +1156,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         (console.log('GetSeccionalesSpecs_error',error),changes.error = error)),
 			async () => applyChanges()
 		)
-    :
-    console.log("seccionales.params.localidadId",seccionales.params.localidadId)
+    : //NO BUSCO EXACTAMENTE UNA SECCIONAL
+    console.log("seccionales.params",seccionales.params)
       seccionales.params.localidadId ?
       request(
         {
@@ -1171,7 +1174,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           changes.data.push(
             ...ok
               .sort((a, b) => (a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1))
-              .map((r) => ( {value: r.seccionalId, label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}//`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+              .map((r) => !r.seccionalDescripcion.includes("SIN ASIGNACION") && ( {value: r.seccionalId, label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}//`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
               ))
           )
         ),
@@ -1542,7 +1545,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 						value: 99999,
 					});
           //provincia
-         console.log('provincias',provincias);
 
         const provinciaSelected = 
           (domicilioReal.idProvincia === 0 && (domicilioReal.descripcionProvincia === null || domicilioReal.descripcionProvincia === "")) // SI NO ENCUENTRO, va prov sin asignar
@@ -1560,19 +1562,29 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
             //localidad
             const processLocalidades = async (localidadesObj) => {
 
-              const localidad = localidadesObj?.find(  //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
-              (localidad) =>localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal))
-              ?? 
-              localidadesObj?.find( //SINO VERIFICO POR NOMBRE DE LOCALIDAD APROXIMADO + 4 primeros digitos del CP.
-                (localidad) => localidad.nombre.includes(domicilioReal.localidad)  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal))
-              ??
-              //({id: provinciaSelected?.localidadIdPorDefecto}) // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
-              localidadesObj?.find( // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
-                (localidad) => localidad.id === provinciaSelected?.localidadIdPorDefecto)
-                
-                ??
-               ({id: provinciaSelected?.localidadIdPorDefecto})
+              let localidad 
+              if (!localidad) {
+                localidad = localidadesObj?.find(  
+                (localidad) => {
+                  if (localidad.nombre === domicilioReal.localidad  && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)) return localidad //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
+                    })
+              }
 
+              if (!localidad) {
+                localidad = localidadesObj?.find(  
+                (localidad) => {
+                  if (localidad.nombre.includes(domicilioReal.localidad) && localidad.codPostal.toString().includes(domicilioReal.codigoPostal)) return localidad //SINO VERIFICO POR NOMBRE DE LOCALIDAD APROXIMADO + 4 primeros digitos del CP.
+                    })     
+              }
+              
+              if (!localidad) {
+                localidad = localidadesObj?.find(  
+                (localidad) => {
+                  if (localidad.id === provinciaSelected?.localidadIdPorDefecto) return localidad // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
+                    })
+              }
+              if (!localidad) {localidad = {id: provinciaSelected?.localidadIdPorDefecto}}
+              
               setLocalidades((o) => ({
                 ...o,
                 loading: "Cargando...",
@@ -1602,7 +1614,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           request(
             {
               baseURL: "Afiliaciones",
-              endpoint: localidadCodPostal ? `/RefLocalidad?ProvinciaId=${provinciaSelected.id}&CodigoPostalUATRE=${parseInt(localidadCodPostal)}` :
+              endpoint: //localidadCodPostal ? `/RefLocalidad?ProvinciaId=${provinciaSelected.id}&CodigoPostalUATRE=${parseInt(localidadCodPostal)}` :
               `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
               //endpoint: `/RefLocalidad/GetRefLocalidadesPaginationSpecs?ProvinciaId=${provinciaSelected.id}&FilterByCPNombre=${localidadQuery}`,
               method: "GET",
