@@ -634,14 +634,17 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     if (props.accion === "Modifica") {
       setAfiliadoExiste(true);
       setInputsTouched(true);
+      console.log("cuilPAram",cuilParam)
       if (cuilParam > 0) {
-        dispatchCUIL({ type: "USER_INPUT", value: cuilParam });
+        dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ValidarCUIT(cuilParam) });
       }
     }
   }, [cuilParam, props.accion]);
 
   useEffect(() => {
-    if (cuilState.value && cuilState.isValid) {
+    if (cuilState.value ) {
+      console.log("cuilState",cuilState)
+      //!cuilState.isValid ?
       const processGetAfiliado = async (afiliadoObj) => {
         console.log('afiliadoObj',afiliadoObj)
 
@@ -658,7 +661,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
               ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
               : "",
         });
-        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil });
+        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil, isValid: ValidarCUIT(afiliadoObj.cuil) });
+        
 				dispatchFechaIngreso({
 					type: "USER_INPUT",
 					value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
@@ -698,20 +702,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
               ? ""
               : afiliadoObj.tipoDocumentoId,
         });
-
-        /*
-        setSeccionalSolicita((o) => ({
-        ...o,
-        loading: "Cargando...",
-          onLoaded: ({data}) => {
-            console.log("data_SeccionalSOlicita",data)
-              const seccionalSolicitaSelected = data.find(
-                (sec) => sec.value === afiliadoObj.provinciaId
-              ) ?? "";
-                  
-              dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: seccionalSolicitaSelected });
-            },
-          }));*/
 
         dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.refLocalidadId, label: afiliadoObj?.localidad}});
         dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoObj?.seccionalId, label: afiliadoObj?.seccional}});
@@ -1473,8 +1463,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         return;
       }
 
-      //(!!afiliado?.cuilValidado || afiliado?.cuilValidado == 0) && padronObj.cuit && setCuilValidado(true);  //SOLO DEBE VALIDAR EL CUIL Cuando el afiliado tiene un CUIL NO VALIDADO y la respuesta de AFIP es positiva
-      !!afiliado?.cuilValidado && padronObj.cuit && setCuilValidado(true);  //SOLO DEBE VALIDAR EL CUIL Cuando el afiliado tiene un CUIL NO VALIDADO y la respuesta de AFIP es positiva
+      (!!afiliado?.cuilValidado === false && padronObj.cuit) && !afiliadoExiste && setCuilValidado(true);  //SOLO DEBE VALIDAR EL CUIL Cuando el afiliado tiene un CUIL NO VALIDADO y la respuesta de AFIP es positiva
       setPadronRespuesta(padronObj);
       //Solo actualizo los datos principales si estoy agregando solicitud
       // fecha ingreso
@@ -1794,7 +1783,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         break;
       case "cuil":
         if(props.accion === "Modifica") {
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") })
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ValidarCUIT( value.replace(/[^\d]/gim, "")) })
+          setCuilValidado(false);
         }else{
           setCuilValidado(false);
           setAfiliadoExiste(false);
@@ -1803,7 +1793,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           setDialogTexto("");
           setPadronRespuesta(null);
           setCUITEmpresa("");
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, "") });
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ValidarCUIT( value.replace(/[^\d]/gim, "")) });
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
@@ -2375,13 +2365,13 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
                         disabled={InputDisabled("cuil")}
                         onChange={handleInputChange}
                         error={
-                          !cuilState.isValid && cuilState.value.length == 11
+                          !cuilState.isValid  && (cuilState.value.length != "")
                             ? true
                             : false
                         }
 
                         helperText={
-                          !cuilState.isValid  && cuilState.value.length == 11
+                          !cuilState.isValid && (cuilState.value != "")
                             ? "CUIL Inválido"
                             : ""
                         }
@@ -2406,7 +2396,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
                         className="botonAzul"
                         heigth={70}
                         //disabled={afiliadoExiste ? !!cuilValidado || !cuilState.isValid : true}
-                        disabled= {!cuilValidado && padronRespuesta?.cuit && afiliadoExiste ? false : true}
+                        disabled= {(cuilValidado == false && padronRespuesta?.cuit && afiliadoExiste) ? false : true}
                         tarea="Afiliaciones_AsignaCUILValidado"
                         onClick={()=>validaCUILHandler()}
                         underlineindex = {0}
