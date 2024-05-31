@@ -183,7 +183,8 @@ const Table = ({
 		pagination.onChange = undefined;
 	if (!pagination.onChange) pagination = myPagination;
 	// Si pagination.count es 0 o no especifica, tomar la cantidad de registros en data
-	if ((pagination.count ?? 0) < 1) pagination.count = data.length;
+	//if ((pagination.count ?? 0) < 1) pagination.count = data.length;
+	if (!x.remote) pagination.count = data.length;
 
 	// Normalizo selectRow que pasa por props
 	if (selection) {
