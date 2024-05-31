@@ -542,6 +542,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   const [sexos, setSexos] = useState([]);
   const [estadosCiviles, setEstadosCiviles] = useState([]);
   const [tiposDocumentos, setTiposDocumentos] = useState([]);
+  
   const [seccionalSolicitaAfiliacion, setSeccionalSolicitaAfiliacion] = useState([]);
   //#endregion
 
@@ -668,11 +669,14 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           type: "USER_INPUT",
           value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
         });
-        console.log("despacha estea seccionalIdSolAfi:",afiliadoObj.seccionalIdSolicitudAfiliacion)
-        dispatchSeccionalSolicitudAfiliacion({
-          type: "USER_INPUT",
-          value: afiliadoObj.seccionalIdSolicitudAfiliacion === 0 ? "" : afiliadoObj.seccionalIdSolicitudAfiliacion,
+                
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", 
+          value: afiliadoObj?.seccionalIdSolicitudAfiliacion ? 
+          {value:afiliadoObj?.seccionalIdSolicitudAfiliacion, label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`}
+          :
+          {}
         });
+
         dispatchPuesto({
           type: "USER_INPUT",
           value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
@@ -698,20 +702,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
               ? ""
               : afiliadoObj.tipoDocumentoId,
         });
-
-        /*
-        setSeccionalSolicita((o) => ({
-        ...o,
-        loading: "Cargando...",
-          onLoaded: ({data}) => {
-            console.log("data_SeccionalSOlicita",data)
-              const seccionalSolicitaSelected = data.find(
-                (sec) => sec.value === afiliadoObj.provinciaId
-              ) ?? "";
-                  
-              dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: seccionalSolicitaSelected });
-            },
-          }));*/
 
         dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoObj?.refLocalidadId, label: afiliadoObj?.localidad}});
         dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoObj?.seccionalId, label: afiliadoObj?.seccional}});
@@ -917,15 +907,19 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           return { value: sec.id, label: `${sec.codigo}-${sec.descripcion}-${sec.provinciaDescripcion}` };
         });
 
-        const seccionalPorDefecto = seccionalesObj.find((s) => s.codigo == 'S9999')
 
-        setSeccionalSolicitaAfiliacion(seccionalesOptions);
-        console.log("afiliado?",!!afiliado, afiliado)
-        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: afiliado?.seccionalDescripcionSolicitudAfiliacion ? afiliado.seccionalIdSolicitudAfiliacion : seccionalPorDefecto.id}) 
+        const seccionalSelected = seccionalesObj.find((s) => s.id == afiliado?.seccionalIdSolicitudAfiliacion)
+        const seccionalPorDefecto = seccionalesObj.find((s) => s.codigo == 'S9999')
         
-        /*!!afiliado ?
-        : 
-			  dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: seccionalPorDefecto.id });*/
+        setSeccionalSolicitaAfiliacion(seccionalesOptions);
+        console.log("afiliado?", afiliado)
+        console.log("seccionalPorDefecto",seccionalPorDefecto)
+
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: seccionalSelected ?
+         {value:seccionalSelected?.id, label: `${seccionalSelected?.codigo}-${seccionalSelected?.descripcion}-${seccionalSelected?.provinciaDescripcion}`} 
+         :
+         {value:seccionalPorDefecto?.id, label: `${seccionalPorDefecto?.codigo}-${seccionalPorDefecto?.descripcion}`} 
+         }) 
     }
     //#region consulto todas las seccionales las cuales mostraré en el combo de SeccionalSolicitaAfiliacion
     request(
@@ -999,41 +993,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     );
   }, [request]);
 
-  /*
-  //SeccionalesSolicita
-	useEffect(() => {
-		if (!seccionalSolicita.loading) return;
-		const changes = {
-			loading: null,
-			data: [],
-			error: null,
-			onLoaded: onLoadedDef,
-		};
-		request(
-			{
-        baseURL: "Afiliaciones",
-        endpoint: `/Seccional?SoloActivos=true`,
-        method: "GET",
-			},
-			async (ok) =>
-
-				changes.data.push(
-					...ok
-						.sort((a, b) => (a.codigo > b.codigo ? 1 : -1))
-						.map((r) => ({
-							value: r.id,
-							label: `${r.codigo}-${r.descripcion}-${r.provinciaDescripcion}`,
-              ...r,
-						}))
-				),
-			async (error) => (changes.error = error),
-			async () => {
-				seccionalSolicita.onLoaded(changes)
-				setSeccionalSolicita((o) => ({ ...o, ...changes }));
-			}
-		);
-	}, [request, seccionalSolicita]);
-*/
+ 
 	//Provincias
 	useEffect(() => {
 		if (!provincias.loading) return;
@@ -1323,7 +1283,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				tipoDocumentoId: +tipoDocumentoState.value,
 				documento: +numeroDocumentoState.value,
 				actividadId: +actividadState.value,
-        seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value,
+        seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value.value,
 				//estadoSolicitud: afiliado.estadoSolicitud,
 				estadoSolicitudId: validaAutomatica ? 2 : 1,
 				estadoSolicitudObservaciones: validaAutomatica
@@ -1536,7 +1496,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
         dispatchSeccionalSolicitudAfiliacion({
           type: "USER_INPUT",
-          value: 103423, //ID DE LA SECCIONA SIN ASIGNACION
+          value: {value: 103423, label: "SIN ASIGNACION"}//ID DE LA SECCIONA SIN ASIGNACION
         })
 
 				if (!puestoState.isValid)
@@ -1696,8 +1656,9 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         dispatchActividad({ type: "USER_INPUT", value: value });
         break;
 
-      case "seccionalDescripcionSolicitudAfiliacionSelect":
-        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: value });
+        case "seccionalDescripcionSolicitudAfiliacionSelect":
+				if(seccionalSolicitudAfiliacionState.value === value) break;
+        dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: value});
         break;
         
       case "puestoSelect":
@@ -2080,7 +2041,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			nacionalidadId: +nacionalidadState.value,
 			//empresaCUIT: +cuitEmpresa,
 			seccionalId: +seccionalState.value.value,
-      seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value,
+      seccionalIdSolicitudAfiliacion: +seccionalSolicitudAfiliacionState.value.value,
 
 			sexoId: +sexoState.value,
 			tipoDocumentoId: +tipoDocumentoState.value,
@@ -2665,7 +2626,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 							</div>
 
               <div className={classes.input}>
-								<SelectMaterial
+								<SearchSelectMaterial //SelectMaterial
 									name="seccionalDescripcionSolicitudAfiliacionSelect"
 									label="Seccional Solicita Afiliación"
 									options={seccionalSolicitaAfiliacion}
