@@ -1641,7 +1641,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${true}`,
+        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${["30","33","34"].includes(cuitEmpresa.toString) ? true :  false}`,
         method: "GET",
       },
       processConsultaPadron
