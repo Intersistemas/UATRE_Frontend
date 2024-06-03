@@ -137,7 +137,7 @@ const SearchSelectMaterial = ({
 	return (
 		<FormControl {...formControlProps}>
 			<Autocomplete
-				listboxProps={{ style: { maxHeight: 50 } }}
+				listboxprops={{ style: { maxHeight: 50 } }}
 				className={styles.select}
 				disablePortal
 				freeSolo
@@ -148,7 +148,7 @@ const SearchSelectMaterial = ({
 				)}
 				disabled={disabled}
 				readOnly={readOnly}
-				id={`${label}-label`}
+				id={`${name || x.id || label || crypto.randomUUID()}-label`}
 				options={options}
 				//MenuProps={MenuProps}
 				size="small"
