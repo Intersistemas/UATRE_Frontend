@@ -134,7 +134,7 @@ const oficioSelectOptions = ({ data = [], buscar = "", ...x }) =>
 		data,
 		map: (r) => ({
 			value: r.id,
-			label: r.cargo,
+			label: r.descripcion,
 			record: r,
 		}),
 		filter: (r) => includeSearch(r, buscar),
@@ -233,8 +233,8 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	const { setState: setOficiosQuery } = useQueryState(
 		() => ({
 			config: {
-				baseURL: "Comunes",
-				endpoint: `/RefCargo/GetAll`,
+				baseURL: "Afiliaciones",
+				endpoint: `/Puesto`,
 				method: "GET",
 			},
 		}),
@@ -315,7 +315,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 
 	//#region select seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
-		loading: "",
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
@@ -764,6 +764,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 					<Grid width>
 						<SearchSelectMaterial
 							id="seccionalId"
+							autoFocus
 							label="Seccional"
 							error={
 								!!(
@@ -853,6 +854,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							<Grid width="200px">
 								<InputMaterial
 									id="cuil"
+									autoFocus={false}
 									mask={CUITMask}
 									label="CUIL"
 									value={state.form.cuil}
@@ -1912,7 +1914,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 			body.oficio = oficioSelect.buscar;
 		} else {
 			body.oficioId = oficioSelect.selected.record?.id;
-			body.oficio = oficioSelect.selected.record?.cargo;
+			body.oficio = oficioSelect.selected.record?.descripcion;
 		}
 		if (!body.oficio) errors.oficioId = "Dato requerido";
 
