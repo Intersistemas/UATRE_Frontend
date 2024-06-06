@@ -895,7 +895,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												};
 												state.validado = {
 													...o.validado,
-													trabajador: !state.errors.cuil,
+													trabajador: true//!state.errors.cuil,
 												};
 												return state;
 											});
@@ -1497,7 +1497,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												};
 												state.validado = {
 													...o.validado,
-													empleador: !state.errors.cuitEmpresa,
+													empleador: true//!state.errors.cuitEmpresa,
 												};
 												return state;
 											});
@@ -1512,9 +1512,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
-															changes.errors.cuit = "No existe en AFIP";
+															changes.errors.cuitEmpresa = "No existe en AFIP";
 														} else {
-															changes.errors.cuit = error.toString();
+															changes.errors.cuitEmpresa = error.toString();
 															audit({
 																modulo: "Consultas",
 																proceso: "SolicitudPreviaAfiliacion",
