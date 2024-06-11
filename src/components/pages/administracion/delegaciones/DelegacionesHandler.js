@@ -350,11 +350,13 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		seccionalesRequest("list", {
 			clear: !delegacionesSelected?.id,
-			body: { refDelegacionId: delegacionesSelected?.id },
+			params: { refDelegacionId: delegacionesSelected?.id },
 		});
 	}, [delegacionesSelected?.id, seccionalesRequest]);
 	//#endregion
 
+
+	
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
