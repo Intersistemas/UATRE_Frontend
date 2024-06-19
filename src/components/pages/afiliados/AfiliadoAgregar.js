@@ -78,10 +78,10 @@ const numeroDocumentoReducer = (state, action) => {
 const nombreReducer = (state, action) => {
   //console.log("reducer");
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: action.value.length > 0 };
+    return { value: action.value, isValid: action?.value.trim().length > 0 };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: state.value.length > 0 };
+    return { value: state.value, isValid: state.value.trim().length > 0 };
   }
   return { value: "", isValid: false };
 };
@@ -1439,6 +1439,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
       (!!afiliado?.cuilValidado === false && padronObj.cuit) && !afiliadoExiste && setCuilValidado(true);  //SOLO DEBE VALIDAR EL CUIL Cuando el afiliado tiene un CUIL NO VALIDADO y la respuesta de AFIP es positiva
       setPadronRespuesta(padronObj);
+      
       //Solo actualizo los datos principales si estoy agregando solicitud
       // fecha ingreso
       if (!fechaIngresoState.isValid) {
@@ -1962,6 +1963,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
+
+    if (padronRespuesta?.tipoPersona == "JURIDICA")  disable = true;
 
     if (afiliadoExiste && afiliado?.estadoSolicitudId === 3) disable = true; //si el afiliado está dado de baja, deshabilito el boton de confirmar
 

@@ -173,10 +173,11 @@ const DatosAfip = (props) => {
             label="Tipo Persona"
             readOnly={true}
             color={
+              tipoPersonaAFIP == "JURIDICA" ? "error" 
+              :
               tipoPersonaAFIP !== "" &&
               tipoPersonaAFIP !== props.afiliado?.afipTipoPersona
-                ? "warning"
-                : ""
+                ? "warning" : ""
             }
             focused={
               tipoPersonaAFIP !== "" &&
