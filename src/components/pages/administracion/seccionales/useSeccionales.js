@@ -334,7 +334,7 @@ const useSeccionales = ({
 						: ["B"].includes(list.selection.request) //INIT PARA BAJA
 						? {
 								seccionalEstadoId: 5,// esto lo defino en el form
-								deletedDate: dayjs().format("YYYY-MM-DD"),
+								deletedDate: dayjs().format("DD-MM-YYYY"),
 								deletedBy: Usuario.nombre,
 						  }
 						: {};
