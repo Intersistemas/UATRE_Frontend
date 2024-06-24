@@ -81,7 +81,7 @@ const useSeccionalLocalidades = () => {
 		}
 	});
 	//#endregion
-
+ 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
@@ -203,6 +203,7 @@ const useSeccionalLocalidades = () => {
 				title={list.selection.action}
 				loading={list.loading}
 				errors={list.selection.errors}
+				request={list.selection.request}
 				disabled={(() => {
 					const r = ["A", "M"].includes(list.selection.request)
 						? { }
