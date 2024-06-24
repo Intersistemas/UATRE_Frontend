@@ -198,6 +198,19 @@ const UsuariosForm = ({
 							/>
 						</Grid>
 					</Grid>
+
+					<Grid width="33%">
+						<InputMaterial
+							type="tipo"
+							label="Tipo"
+							//error={!!errors.tipo}
+//							helperText={errors.phoneNumber ?? ""}
+							value={data.tipo}
+							disabled={true} // no se debería poder editar el TIPO
+							//onChange={(phoneNumber) => onChange({ phoneNumber })}
+						/>
+					</Grid>
+					
 					<Grid width="full" gap="15px">
 						{hide.deletedObs ? null : (
 							<InputMaterial

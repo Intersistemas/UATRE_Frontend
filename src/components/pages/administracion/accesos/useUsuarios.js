@@ -87,7 +87,8 @@ const useUsuarios = (config = {}) => {
 		tableRender: (p) => <UsuariosTable {...p} />,
 		formRender: ({ data, request, title, errors, apply, close }) => (
 			<UsuariosForm
-				data={data}
+				data={["A"].includes(request) ? {...data,tipo: usuarioLogueado?.tipo} : data}
+				//data={data}
 				title={title}
 				errors={errors}
 				disabled={(() => {
@@ -186,7 +187,7 @@ const useUsuarios = (config = {}) => {
 		getMutationQuery: ({ request, data }) => {
 			//ESTOS DELETE  DEBEN DESAPARECER CUANDO CIRO AGREGUE LOS CAMPOS DEL OBJ AL ENDPOINT
 			delete data.confirmPassword;
-
+			console.log("data_insert usuario",data)
 			switch (request) {
 				case "A":
 					return {
@@ -194,7 +195,7 @@ const useUsuarios = (config = {}) => {
 						config: {
 							body: {
 								...data,
-								tipo: "Interno",
+								//tipo: data.tipo, se asigna por defecto lo que trae data.tipo
 								tareas: [],
 								cuit: parseInt(data.cuit),
 							},
