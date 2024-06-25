@@ -850,7 +850,7 @@ const SeccionalesHandler = () => {
 					request: "R",
 					keys: "r",
 					underlineindex: 0,
-			})
+				})
 			);
 		} else {
 			actions.push(
