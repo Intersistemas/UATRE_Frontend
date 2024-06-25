@@ -21,8 +21,9 @@ const columnsDef = [
 		dataField: "seccionalEstadoDescripcion",
 		text: "Estado",
 		headerStyle: { width: "5rem" },
-		formatter: (value, row) =>
+		formatter : (value, row) =>
 			row.deletedDate ? `Baja - (${Formato.Fecha(row.deletedDate)})` : value,
+		//style: (value, row) => row.deletedDate ? {color: "red"} : ''
 	},
 	{
 		dataField: "domicilio",
@@ -61,6 +62,7 @@ const columnsDef = [
 	searchable: false,
 	headerTitle: () => r.text,
 	headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },
+	style: (value, row) => row.deletedDate ? {color: "red"} : '',
 	...r,
 }));
 //#endregion
