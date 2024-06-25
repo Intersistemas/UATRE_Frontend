@@ -82,6 +82,8 @@ const SeccionalesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
+	console.log("Seccionales_Data:",data);
+
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 

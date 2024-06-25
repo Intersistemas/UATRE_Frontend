@@ -279,7 +279,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 			error: null,
 		};
 		setSeccionales((o) => ({ ...o, ...changes }));
-		if (changes.loading) return;
+		if (!changes.loading) return;
 		const query = {
 			action: "GetSeccionales",
 			config: {
@@ -605,7 +605,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 									helperText={
 										delegacionSelect.loading ?? delegacionSelect.error
 									}
-									value={delegacionSelect.selected}
+									value={delegacionSelect?.selected}
 									onChange={(selected) => {
 										setDelegacionSelect((o) => ({ ...o, selected }));
 										setSeccionales((o) => {
@@ -643,7 +643,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 										seccionales.error ??
 										seccionalDesdeSelect.error
 									}
-									value={seccionalDesdeSelect.selected}
+									value={seccionalDesdeSelect?.selected}
 									onChange={(selected) => {
 										setSeccionalDesdeSelect((o) => ({ ...o, selected }));
 										handleSeccionalFiltro(
@@ -667,7 +667,7 @@ const LoteSeleccion = ({ onClose = onCloseDef }) => {
 										seccionales.error ??
 										seccionalHastaSelect.error
 									}
-									value={seccionalHastaSelect.selected}
+									value={seccionalHastaSelect?.selected}
 									onChange={(selected) => {
 										setSeccionalHastaSelect((o) => ({ ...o, selected }));
 										handleSeccionalFiltro(

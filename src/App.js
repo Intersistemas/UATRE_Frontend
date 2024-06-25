@@ -4,6 +4,7 @@ import './App.css';
 import Login from './components/auth/Login';
 import Registro from './components/auth/Registro';
 import ConfirmaEmail from './components/auth/ConfirmaEmail';
+import RecuperarClave from './components/auth/RecuperarClave';
 import Contacto from './components/pages/contacto/Contacto';
 
 
@@ -68,6 +69,10 @@ const App = () => {
               {
                   !isLoggedIn 
                   && (<Route path="/registro" element={<Registro/>} />)
+              }
+               {
+                  !isLoggedIn 
+                  && (<Route path="/recuperarClave" element={<RecuperarClave/>} />)
               }
               {
                   !isLoggedIn 

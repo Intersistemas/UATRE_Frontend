@@ -134,7 +134,7 @@ const oficioSelectOptions = ({ data = [], buscar = "", ...x }) =>
 		data,
 		map: (r) => ({
 			value: r.id,
-			label: r.cargo,
+			label: r.descripcion,
 			record: r,
 		}),
 		filter: (r) => includeSearch(r, buscar),
@@ -233,8 +233,8 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	const { setState: setOficiosQuery } = useQueryState(
 		() => ({
 			config: {
-				baseURL: "Comunes",
-				endpoint: `/RefCargo/GetAll`,
+				baseURL: "Afiliaciones",
+				endpoint: `/Puesto`,
 				method: "GET",
 			},
 		}),
@@ -315,7 +315,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 
 	//#region select seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
-		loading: "",
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
@@ -764,6 +764,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 					<Grid width>
 						<SearchSelectMaterial
 							id="seccionalId"
+							autoFocus
 							label="Seccional"
 							error={
 								!!(
@@ -853,6 +854,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 							<Grid width="200px">
 								<InputMaterial
 									id="cuil"
+									autoFocus={false}
 									mask={CUITMask}
 									label="CUIL"
 									value={state.form.cuil}
@@ -893,7 +895,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												};
 												state.validado = {
 													...o.validado,
-													trabajador: !state.errors.cuil,
+													trabajador: true//!state.errors.cuil,
 												};
 												return state;
 											});
@@ -1495,7 +1497,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												};
 												state.validado = {
 													...o.validado,
-													empleador: !state.errors.cuitEmpresa,
+													empleador: true//!state.errors.cuitEmpresa,
 												};
 												return state;
 											});
@@ -1510,9 +1512,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
-															changes.errors.cuit = "No existe en AFIP";
+															changes.errors.cuitEmpresa = "No existe en AFIP";
 														} else {
-															changes.errors.cuit = error.toString();
+															changes.errors.cuitEmpresa = error.toString();
 															audit({
 																modulo: "Consultas",
 																proceso: "SolicitudPreviaAfiliacion",
@@ -1912,7 +1914,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 			body.oficio = oficioSelect.buscar;
 		} else {
 			body.oficioId = oficioSelect.selected.record?.id;
-			body.oficio = oficioSelect.selected.record?.cargo;
+			body.oficio = oficioSelect.selected.record?.descripcion;
 		}
 		if (!body.oficio) errors.oficioId = "Dato requerido";
 
