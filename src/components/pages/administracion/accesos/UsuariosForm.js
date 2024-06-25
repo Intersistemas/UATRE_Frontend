@@ -26,7 +26,6 @@ const UsuariosForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
-	console.log("UsuariosForm_data",data)
 	data ??= {};
 	data.nombre ??= "";
 	
