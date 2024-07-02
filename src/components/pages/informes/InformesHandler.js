@@ -11,10 +11,11 @@ import AfiliadosEstadosDelegacionSeccionalLocalidad from "./afiliadosEstadosDele
 import AfiliadosEstadosEmpresas from "./afiliadosEstadosEmpresas/AfiliadosEstadosEmpresas";
 import AfiliadosEstadosEmpresasSeccionales from "./afiliadosEstadosEmpresasSeccionales/AfiliadosEstadosEmpresasSeccionales";
 import AfiliadosEstadosPuestoSexo from "./afiliadosEstadosPuestoSexo/AfiliadosEstadosPuestoSexo";
+import AfiliadosNotaPeriodica from "./afiliadosNotaPeriodica/AfiliadosNotaPeriodica";
+import PadronHandler from "./padron/Handler";
 import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
 import TrabajadoresEstadosEmpresas from "./trabajadoresEstadosEmpresas/TrabajadoresEstadosEmpresas";
 import TrabajadoresEstadosEmpresasSeccionales from "./trabajadoresEstadosEmpresasSeccionales/TrabajadoresEstadosEmpresasSeccionales";
-import AfiliadosNotaPeriodica from "./afiliadosNotaPeriodica/AfiliadosNotaPeriodica";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
@@ -43,7 +44,7 @@ const InformesHandler = () => {
 						width="32"
 						tarea="Informes_Emite"
 					>
-						Afiliados por delegación
+						Afiliados por estado y delegación
 					</Button>
 					<Button
 						className="botonAmarillo"
@@ -51,7 +52,7 @@ const InformesHandler = () => {
 						width="32"
 						tarea="Informes_Emite"
 					>
-						Afiliados por delegación y seccional
+						Afiliados por estado, delegación y seccional
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
@@ -114,6 +115,14 @@ const InformesHandler = () => {
 						tarea="Informes_Emite"
 					>
 						Notificacion de afiliaciones para delegados
+					</Button>
+					<Button
+						className="botonAmarillo"
+						onClick={() => setInforme(<PadronHandler onClose={() => setInforme(null)} />)}
+						width="32"
+						tarea="Informes_Emite"
+					>
+						Afiliados por seccional
 					</Button>
 				</Grid>
 			</>
