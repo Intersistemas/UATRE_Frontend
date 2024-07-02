@@ -137,7 +137,7 @@ const Hoja = ({ seccional, page }) => (
 					</Grid>
 				</Grid>
 			</Grid>
-			<Grid col grow>
+			<Grid col grow gap="12px">
 				<Table width>
 					<Tr>
 						<Td justify="center" width>
@@ -182,6 +182,9 @@ const Hoja = ({ seccional, page }) => (
 						</Tr>
 					))}
 				</Table>
+				<Grid width justify="end">
+					<P>{page.index !== page.pages ? "" : `Total de Afiliados: ${page.count}`}</P>
+				</Grid>
 			</Grid>
 			<Grid width justify="center">
 				<P>{`Página ${page.index} / ${page.pages}`}</P>
@@ -199,7 +202,7 @@ const Hoja = ({ seccional, page }) => (
 const PadronPDF = ({ title = "Padron de afiliados", data }) => (
 	<Document style={styles.document} title={title}>
 		{data.map(({ seccional, afiliados: data }, dataIx) =>
-			paginate({ data, size: 53, detailed: true }).map((page, pageIx) => (
+			paginate({ data, size: 51, detailed: true }).map((page, pageIx) => (
 				<Hoja seccional={seccional} page={page} key={`${dataIx}-${pageIx}`} />
 			))
 		)}
