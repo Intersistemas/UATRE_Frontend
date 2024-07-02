@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import useQueryState from "components/hooks/useQueryState";
+import useQueryQueue from "components/hooks/useQueryQueue";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
@@ -49,6 +50,7 @@ const SeccionalLocalidadesForm = ({
 	loading = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	request = {}
 }) => {
 	data ??= {};
 
@@ -58,9 +60,12 @@ const SeccionalLocalidadesForm = ({
 
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+	request ??="";
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
+
+	const [confirmDisabled, setConfirmDisabled] = useState(false);
 
 	const { setState: setProvinciasQuery } = useQueryState(
 		() => ({
@@ -175,6 +180,65 @@ const SeccionalLocalidadesForm = ({
 		});
 	}, [localidadSelect.buscar, localidadSelect.data]);
 	//#endregion Select localidad
+	
+
+
+	const { setState: setSeccionalesDeLaLocQuery } = useQueryState(
+		(_, { id, ...params }) => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${id}&SoloActivos=false`,
+				method: "GET",
+			},
+			params,
+		}),
+		{
+			query: {
+				config: { errorType: "response" },
+				params: { id: data.refLocalidadId },
+			},
+		}
+	);
+
+	// Buscador
+	useEffect(() => {
+		console.log("selected",localidadSelect.selected)
+			//SI SELECCIONA UNA LOCALIDAD, VERIFICO SI ESA LOCALIDAD YA NO EXISTE EN OTRA SECCIONAL
+		
+			setConfirmDisabled(false);
+
+			if (!!localidadSelect.selected.value && (request == "A" || request == "R")){ //solo para el alta
+				setSeccionalesDeLaLocQuery((o) => ({
+					...o,
+					query: {
+						...o.query,
+						params: {
+							...o.query.params,
+							id: localidadSelect.selected.value,
+						},
+					},
+					onPreLoad: () => "antes de la consulta",
+					onLoad: ({ ok, error }) =>{
+						console.log("ok",ok)
+						console.log("ok.length",ok.length)
+						if (Array.isArray(ok) && ok.length > 0) { //entro si la localidad ya se encuentra en la tabla SeccionalLocalidad
+							data = ok;
+							const localidadBajoSeccional = data.filter((seccional) => seccional.deletedDate == null //SI LA LOCALIDAD ESTÄ ACTIVA EN UNA SECCIONAL
+							)
+							if (localidadBajoSeccional.length > 0) {
+								 alert("La Localidad ya se encuentra asignada a una Seccional");
+								 setConfirmDisabled(true);
+								}
+							
+						}
+						console.log("error",error)
+					}
+				}));
+			}
+		
+	}, [localidadSelect.selected]);
+	//#endregion Select localidad
+	
 
 	//#endregion Selects
 
@@ -381,6 +445,7 @@ const SeccionalLocalidadesForm = ({
 					width={25}
 					loading={loading != null}
 					className="botonAzul"
+					disabled={confirmDisabled}
 					onClick={() => onClose(true)}
 				>
 					CONFIRMA
