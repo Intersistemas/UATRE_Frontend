@@ -185,13 +185,13 @@ const domicilioReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
-      isValid: action.value.length > 0 ? true : false,
+      isValid: action?.value?.length > 0 ? true : false,
     };
   }
   if (action.type === "USER_BLUR") {
     return {
       value: state.value,
-      isValid: state.value.length > 0 ? true : false,
+      isValid: state.value?.length > 0 ? true : false,
     };
   }
   return { value: "", isValid: false };
