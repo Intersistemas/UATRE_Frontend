@@ -13,6 +13,9 @@ const renderDef = (p) => <div {...p} />;
  * @param {boolean} [props.col] Abreviatura para direction=`column`.
  * 
  * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
+ * @param {boolean} [props.row] Abreviatura para direction=`row`.
+ * 
+ * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
  * @param {boolean} [props.reverse] Determina si aplica `reverse` a `direction`.
  * 
  * Aplicable solo para display `flex`. Para cualquier otro display se pasa la propiedad como otro parámetro.
@@ -81,6 +84,7 @@ export const Grid = ({
 	direction = "",
 	reverse = false,
 	col,
+	row,
 	gap,
 	rowGap,
 	colGap,
@@ -176,6 +180,7 @@ export const Grid = ({
 		}
 
 		if (col) direction = "column";
+		else if (row) direction = "row";
 
 		if (reverse) reverse = "reverse";
 
