@@ -21,10 +21,14 @@ const TareaUsuarioForm = ({
 	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	loading = false,
 
 }) => {
 	data ??= {}; 
+	loading ??= false
+
 	console.log('Form_tarea_data:',data)
+	console.log("loading",loading)
 	 //console.log('data_tarea:',data)
 	 //console.log('delegaciones_tarea:',delegaciones)
 	//console.log('Form_tarea_errors:',errors)
@@ -35,6 +39,9 @@ const TareaUsuarioForm = ({
 	errors ??= {};
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+
+
+	const [procesandoTarea, setProcesandoTarea] = useState(loading);
 
 	const [modulos, setModulos] = useState({
 		loading: "Cargando...",
@@ -85,6 +92,23 @@ const TareaUsuarioForm = ({
 	},[]);
 	//#endregion
 
+	 //#region Capturo errores
+	 useEffect(() => {
+		if (error) {
+		  setProcesandoTarea(false);
+		  return;
+		}    
+	  }, [error]);
+	//#endregion
+
+	 //#region Capturo errores
+	 useEffect(() => {
+	
+		  setProcesandoTarea(loading);
+		  return;
+		 
+	  }, [loading]);
+	//#endregion
 
 	//#region TRAIGO TODAS LAS TAREAS DEL MODULO
 	useEffect(() => {
@@ -247,8 +271,12 @@ const TareaUsuarioForm = ({
 				<Button
 					className="botonAzul"
 					width={25}
-					onClick={() => (onClose(true))}
-					disabled ={errors?.tareaExiste}
+					onClick={() => (
+						setProcesandoTarea(true),
+						onClose(true)	
+					)}
+					disabled ={errors?.tareaExiste || procesandoTarea}
+					loading={procesandoTarea}
 				>
 					CONFIRMA
 				</Button>

@@ -172,6 +172,7 @@ const useTareas = () => {
 	if (list.selection.edit) {
 		form = (
 			<TareaUsuarioForm
+				loading={!!list.loading}
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
