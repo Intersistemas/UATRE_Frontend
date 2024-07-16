@@ -3,6 +3,7 @@ import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import IM from "components/ui/Input/InputMaterial";
 import styles from "./AfiliadoDetails.module.css";
+import dayjs from "dayjs";
 
 /** @type {IM} */
 const InputMaterial = (p) => <IM variant="standard" size="small" {...p} />;
@@ -51,7 +52,21 @@ const AfiliadoDetails = (props) => {
 					<Grid className={`${styles.fondo} ${styles.grupo}`} col>
 						<Grid className={`${styles.contenido} ${styles.titulo}`} gap="1rem">
 							<Grid>Información Detallada del Afiliado:</Grid>
-							<Grid className={styles.data}>({Formato.Cuit(data.cuil) ?? "-"}) {data.nombre ?? "-"}</Grid>
+							<Grid className={styles.data}>
+								{(() => {
+									const textos = [Formato.Cuit(data.cuil), data.nombre];
+									const fecha = dayjs(
+										Formato.Mascara(data.ultimaDDJJPeriodo || 101, "####-##-01")
+									);
+									const months = dayjs().diff(fecha, "months");
+									if (!data.ultimaDDJJPeriodo) {
+										textos.push("Afiliado sin DDJJ");
+									} else if (months > 6) {
+										textos.push(`Afiliado con ${months} meses sin DDJJ`);
+									}
+									return textos.filter((s) => s).join(" - ");
+								})()}
+							</Grid>
 						</Grid>
 						<Grid className={styles.grupo} col full>
 							<Grid className={styles.contenido} gap="1rem">

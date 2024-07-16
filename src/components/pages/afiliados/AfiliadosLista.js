@@ -1,9 +1,10 @@
+import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import "bootstrap/dist/css/bootstrap.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
-import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
 	handleModuloSeleccionar,
@@ -22,7 +23,6 @@ import useHttp from "components/hooks/useHttp";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
-import Table from "components/ui/Table/Table";
 import TableSegmentado from "components/ui/Table/TableRemote";
 import AfiliadoDetails from "./AfiliadoDetails";
 import AfiliadoEstados from "./AfiliadoEstados";
@@ -31,7 +31,7 @@ import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import AfiliadoSeccional from "./AfiliadosSeccionales";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 
-const AfiliadosLista = (props ) => {
+const AfiliadosLista = (props) => {
 
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -290,208 +290,176 @@ const AfiliadosLista = (props ) => {
     page: props.afiliados.index,
     sizePerPage: props.afiliados.size,
   };
-
+	
   const columns = [
-    {
-      headerTitle: (column, colIndex) => `Numero de Afiliado`,
-      dataField: "nroAfiliado",
-      text: "Nro.Afil.",
-      sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "6rem", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: true,
-      dataField: "cuil",
-      text: "CUIL",
-      sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10rem", textAlign: "center" };
-      },
-      formatter: (v) => Formato.Cuit(v),
-    },
-    {
-      headerTitle: true,
-      dataField: "cuilValidado",
-      text: "Val.",
-      headerStyle: (colum, colIndex) => {
-        return { width: "3rem", textAlign: "center" };
-      },
-      formatter: (value, row) => ( 
-        console.log("value",value,row),
-        value ? (value === row.cuil) ? 'V' : 'D' : "N" 
-      ),
-    },
-    
-    {
-      headerTitle: (colum, colIndex) => (`Documento número`),
-      dataField: "documento",
-      text: "Doc.Nro.",
-      sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "7rem", textAlign: "center" };
-      },
-      formatter: (v) => Formato.DNI(v),
-    },
-    {
-      headerTitle: true,
-      dataField: "nombre",
-      text: "Nombre",
-      sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "20%", textAlign: "center" };
-      },
-      style: (colum, colIndex) => {
-        return { textAlign: "left" };
-      },
-    },
-    {
-      headerTitle: (colum, colIndex) => (`Situación del Afiliado`),
-      dataField: "estadoSolicitud",
-      //text: "Situación",
-      //sort: true,
-      //title: "Estado Solicitud",
-      headerStyle: (colum, colIndex) => {
-        return { width: "8%", textAlign: "center" };
-      },
-      formatter: (cell) => {
-        switch (cell){
-          case "Pendiente": 
-            return (<div
-              style={{backgroundColor: '#ffff64cc' }}
-            >{cell}</div>)
-          case "No Activo": 
-            return (<div
-              style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
-              >{cell}</div>)
-          /*case "Observado":
-            return (<div
-              style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
-              >{cell}</div>)*/
-          case "Rechazado":
-            return (<div
-              style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
-              >{cell}</div>)
-          case "Activo":
-              return (<div
-                >{cell}</div>) 
-          default:  
-            break;
-        }        
-      },
-      
-      filter: selectFilter({
-        comparator: Comparator.EQ,
-        options: props.estadosSolicitudes,
-        defaultValue: props.estadoSolicitudActual,
-        className: "my-custom-text-filter",
-        placeholder: "Seleccion Estado...",
-        withoutEmptyOption: true,
-      }),
-    },
-    {
-      headerTitle: true,
-      dataField: "seccionalCodigo",
-      text: "Cod.Seccional",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "6%", textAlign: "center" };
-      },
-    },
-
-    
-    {
-      headerTitle: true,
-      dataField: "seccional",
-      text: "Seccional",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: true,
-      dataField: "refDelegacionDescripcion",
-      text: "Delegación",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
-      },
-    },
-    
-    {
-      headerTitle: true,
-      dataField: "provincia",
-      text: "Provincia",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: (colum, colIndex) => (`Fecha de Ingreso`),
-      dataField: "fechaIngreso",
-      text: "F.Ingreso",
-      sort: true,
-      formatter: (v) => Formato.Fecha(v),
-      headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
-      },
-    },
-
-    {
-      headerTitle: (colum, colIndex) => (`Fecha de Egreso`),
-      dataField: "fechaEgreso",
-      text: "F.Egreso",
-      sort: true,
-      formatter: (v) => Formato.Fecha(v),
-      headerStyle: (colum, colIndex) => {
-        return { width: "9%", textAlign: "center" };
-      },
-    },
-
-    {
-      headerTitle: true,
-      dataField: "empresaCUIT",
-      text: "CUIT",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10rem", textAlign: "center" };
-      },
-      formatter: (v) => Formato.Cuit(v),
-    },
-    {
-      headerTitle: true,
-      dataField: "empresaDescripcion",
-      text: "Empresa",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "20%", textAlign: "center" };
-      },
-    },
-
-     /*{
-      headerTitle: true,
-      dataField: "puesto",
-      text: "Puesto",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "7%", textAlign: "center" };
-      },
-    },
-    {
-      headerTitle: true,
-      dataField: "actividad",
-      text: "Actividad",
-      //sort: true,
-      headerStyle: (colum, colIndex) => {
-        return { width: "10%", textAlign: "center" };
-      },
-    },*/
-    
-  ];
-  
+		{
+			headerTitle: () => `Numero de Afiliado`,
+			dataField: "nroAfiliado",
+			text: "Nro.Afil.",
+			sort: true,
+			headerStyle: { width: "6rem", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "cuil",
+			text: "CUIL",
+			sort: true,
+			headerStyle: { width: "10rem", textAlign: "center" },
+			formatter: (v) => Formato.Cuit(v),
+		},
+		{
+			headerTitle: true,
+			dataField: "cuilValidado",
+			text: "Val.",
+			headerStyle: { width: "3rem", textAlign: "center" },
+			formatter: (value, row) => ( 
+				console.log("value",value,row),
+				value ? (value === row.cuil) ? 'V' : 'D' : "N" 
+			),
+		},
+		{
+			headerTitle: () => (`Documento número`),
+			dataField: "documento",
+			text: "Doc.Nro.",
+			sort: true,
+			headerStyle: { width: "7rem", textAlign: "center" },
+			formatter: (v) => Formato.DNI(v),
+		},
+		{
+			headerTitle: true,
+			dataField: "nombre",
+			text: "Nombre",
+			sort: true,
+			headerStyle: { width: "20%", textAlign: "center" },
+			style: { textAlign: "left" },
+		},
+		{
+			headerTitle: () => (`Situación del Afiliado`),
+			dataField: "estadoSolicitud",
+			//text: "Situación",
+			//sort: true,
+			//title: "Estado Solicitud",
+			headerStyle: { width: "8%", textAlign: "center" },
+			formatter: (cell) => {
+				switch (cell){
+					case "Pendiente": 
+						return (<div
+							style={{backgroundColor: '#ffff64cc' }}
+						>{cell}</div>)
+					case "No Activo": 
+						return (<div
+							style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
+							>{cell}</div>)
+					/*case "Observado":
+						return (<div
+							style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
+							>{cell}</div>)*/
+					case "Rechazado":
+						return (<div
+							style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
+							>{cell}</div>)
+					case "Activo":
+							return (<div
+								>{cell}</div>) 
+					default:  
+						break;
+				}        
+			},
+			filter: selectFilter({
+				comparator: Comparator.EQ,
+				options: props.estadosSolicitudes,
+				defaultValue: props.estadoSolicitudActual,
+				className: "my-custom-text-filter",
+				placeholder: "Seleccion Estado...",
+				withoutEmptyOption: true,
+			}),
+		},
+		{
+			headerTitle: true,
+			dataField: "seccionalCodigo",
+			text: "Cod.Seccional",
+			//sort: true,
+			headerStyle: { width: "6%", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "seccional",
+			text: "Seccional",
+			//sort: true,
+			headerStyle: { width: "10%", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "refDelegacionDescripcion",
+			text: "Delegación",
+			//sort: true,
+			headerStyle: { width: "10%", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "provincia",
+			text: "Provincia",
+			//sort: true,
+			headerStyle: { width: "10%", textAlign: "center" },
+		},
+		{
+			headerTitle: () => (`Fecha de Ingreso`),
+			dataField: "fechaIngreso",
+			text: "F.Ingreso",
+			sort: true,
+			formatter: (v) => Formato.Fecha(v),
+			headerStyle: { width: "9%", textAlign: "center" },
+		},
+		{
+			headerTitle: () => (`Fecha de Egreso`),
+			dataField: "fechaEgreso",
+			text: "F.Egreso",
+			sort: true,
+			formatter: (v) => Formato.Fecha(v),
+			headerStyle: { width: "9%", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "empresaCUIT",
+			text: "CUIT",
+			//sort: true,
+			headerStyle: { width: "10rem", textAlign: "center" },
+			formatter: (v) => Formato.Cuit(v),
+		},
+		{
+			headerTitle: true,
+			dataField: "empresaDescripcion",
+			text: "Empresa",
+			//sort: true,
+			headerStyle: { width: "20%", textAlign: "center" },
+		},
+		 /*{
+			headerTitle: true,
+			dataField: "puesto",
+			text: "Puesto",
+			//sort: true,
+			headerStyle: { width: "7%", textAlign: "center" },
+		},
+		{
+			headerTitle: true,
+			dataField: "actividad",
+			text: "Actividad",
+			//sort: true,
+			headerStyle: { width: "10%", textAlign: "center" },
+		},*/
+	].map((column) => {
+		const ogStyle = column.style;
+		column.style = (cell, row, ...p) => {
+			const base = {};
+			const periodo = row.ultimaDDJJPeriodo || 101;	//0001-01
+			const fecha = dayjs(Formato.Mascara(periodo, "####-##-01"));
+			if (dayjs().diff(fecha, "months") > 6) base.backgroundColor = "#bfbfbf";
+			const style = typeof ogStyle === "function" ? ogStyle(cell, row, ...p) : ogStyle;
+			return { ...base, ...style };
+		}
+		return column;
+	});
+	
   const selectores = [
     {
       id: 1,
@@ -533,14 +501,6 @@ const AfiliadosLista = (props ) => {
       dataField: "FechaEgreso",
       text:"Fecha Egreso",
       dataType: "date"
-    }
-  ]
-
-  const columnsVacia = [
-    {
-      dataField: "nroAfiliado",
-      text: "Nro.Afiliado",
-      sort: true
     }
   ]
 
@@ -644,7 +604,7 @@ const AfiliadosLista = (props ) => {
       keyField: "id",
       loading: props.loading,
       data: afiliados.data,
-      columns: columns,
+      columns,
       pagination: pagination,
       onTableChange: handleTableChange,
       filter: filterFactory(),
