@@ -1269,16 +1269,17 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					padronEmpresaRespuesta?.ciiU2EsRural ||
 					padronEmpresaRespuesta?.ciiU3EsRural) && tarea.hasTarea("Afiliaciones_AfiliadoAutoValida");
 			
-			const domicilioRealAFIP = padronRespuesta.domicilios.find(
-				(domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
+			const domicilioRealAFIP = padronRespuesta?.domicilios?.find(
+				(domicilio) => domicilio?.tipoDomicilio === "LEGAL/REAL"
 			);
+      console.log("fechaIngresoState**",fechaIngresoState)
 			const nuevoAfiliado = {
 				cuil: +cuilState.value,
 				nombre: `${padronRespuesta?.apellido ?? ""} ${
 					padronRespuesta?.nombre ?? ""
 				}`,
 				puestoId: +puestoState.value,
-				fechaIngreso: fechaIngresoState.value,
+				fechaIngreso: fechaIngresoState?.value,
 				fechaEgreso: null,
 				nacionalidadId: +nacionalidadState.value,
 				//empresaId: +empresaId,
@@ -1311,7 +1312,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				afipTipoClave: padronRespuesta?.tipoClave,
 				afipEstadoClave: padronRespuesta?.estadoClave,
 				afipClaveInactivaAsociada: 0,
-        afipFechaFallecimiento: padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta?.fechaFallecimiento,
+        afipFechaFallecimiento: padronRespuesta?.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta?.fechaFallecimiento,
 				afipFormaJuridica: padronRespuesta?.formaJuridica,
 				afipActividadPrincipal: padronRespuesta?.descripcionActividadPrincipal,
 				afipIdActividadPrincipal: padronRespuesta?.idActividadPrincipal,
@@ -1424,7 +1425,20 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
-    console.log("afiliado", afiliado);
+ 
+
+    if (!fechaIngresoState.isValid) { //AGREGO ESTA LINEA AQUI, XQ SI FALLA LA CONSULTA AFIP NO SUGERIA LA FECHA INGRESO DEL DIA DE HOY
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const year = today.getFullYear();
+      const day = today.getDate();
+      const fechaIngreso = year + "-" + month + "-" + day;
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(fechaIngreso).format("yyyy-MM-DD"),
+      });
+    }
+
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
       //moment(padronRespuesta?.fechaFallecimiento).includes("0001-01-01") ? null : padronRespuesta?.fechaFallecimiento,
@@ -1442,6 +1456,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       
       //Solo actualizo los datos principales si estoy agregando solicitud
       // fecha ingreso
+      console.log("fechaIngresoState-*-",fechaIngresoState)
       if (!fechaIngresoState.isValid) {
 				const today = new Date();
 				const month = today.getMonth() + 1;
@@ -1773,7 +1788,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
-          //dispatchFechaIngreso({ type: "USER_INPUT", value: null }); SI HABILITO ESTO, NO SUGIERE LA FECHA INGRESO CUANDO SE ABRE LA FICHA
+          //dispatchFechaIngreso({ type: "USER_INPUT", value: null }); //SI HABILITO ESTO, NO SUGIERE LA FECHA INGRESO CUANDO SE ABRE LA FICHA
           dispatchEstadoCivil({ type: "USER_INPUT", value: "" });
           dispatchSexo({ type: "USER_INPUT", value: "" });
           dispatchTipoDocumento({ type: "USER_INPUT", value: "" });
