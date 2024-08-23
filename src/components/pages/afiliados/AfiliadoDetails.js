@@ -20,7 +20,7 @@ const AfiliadoDetails = (props) => {
 	const [hotField, setHotField] = useState();
 
 	const _ = require('lodash');
-
+ 
 	const validar = (value) =>{
 
 		if (!value) return "";
@@ -124,8 +124,8 @@ const AfiliadoDetails = (props) => {
 							<Grid className={styles.contenido} col>
 								<Grid className={styles.titulo}>Empresa</Grid>
 								<Grid>
-									<InputMaterial label="CUIT" width= "9rem" value={validar(Formato.Cuit(ddjj.cuit))}/>
-									<InputMaterial label="Razón Social" width= "15rem" value={validar(ddjj.empresa)}/>
+									<InputMaterial label="CUIT" value={validar(Formato.Cuit(ddjj.cuit))}/>
+									<InputMaterial label="Razón Social" value={validar(ddjj.empresa)}/>
 									<InputMaterial label="Localidad" value={validar(empresa.localidadDescripcion)}/>
 									<InputMaterial label="Provincia" value={validar(empresa.provinciaDescripcion)}/>
 									<InputMaterial label="CIIU1" value={validar(empresa.ciiU1Descripcion)}/>
@@ -143,7 +143,7 @@ const AfiliadoDetails = (props) => {
 									<InputMaterial label="Situación de CUIL" value={validar(ddjj.cuilSituacion)+" - "+validar(ddjj.cuilSituacionDescripcion)} />
 									<InputMaterial label="Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : "-"}/>	
 									<InputMaterial label="Reducción" value={validar(ddjj.reduccion)}/>							
-									<InputMaterial label="Importes" value={validar(ddjj.remuneracionImponible)}/>
+									<InputMaterial label="Importes" value={ddjj.esEmpresaRural == "No" ? validar(ddjj.remuneracionImponible) : " "}/>
 									<InputMaterial label="Cantidad Hs Extras" value={validar(ddjj.hsExtrasCantidad)}/>
 									<InputMaterial label="Dias Trabajados" value={validar(ddjj.diasTrabajados)}/>
 								</Grid>
@@ -187,7 +187,7 @@ const AfiliadoDetails = (props) => {
 									<Grid className={styles.label} width="10rem">Localidad:</Grid>
 									<Grid className={styles.data}>{seccional.localidadNombre}</Grid>
 									<Grid className={styles.label} width="10rem">Observaciones:</Grid>
-									<Grid className={styles.data}>{seccional.observaciones}</Grid>
+									<Grid className={styles.data}>{seccional.observaciones?.replace(/\*/g, " ")}</Grid>
 								</Grid>
 								<Grid width gap="5px">
 									<Grid className={styles.label} width="10rem">Delegación:</Grid>
