@@ -106,9 +106,9 @@ const PantallaBajaReactivacion = (props) => {
 	};
 
 	const handleInputChange = (value, id) => {
-		console.log("id",id)
-		console.log("value",value)
-		console.log("motivosBaja.data",motivosBaja.data)
+		//console.log("id",id)
+		//console.log("value",value)
+		//console.log("motivosBaja.data",motivosBaja.data)
 		switch (id) {
 			case "fecha":
 				setFecha(moment(value).format("yyyy-MM-DD"));

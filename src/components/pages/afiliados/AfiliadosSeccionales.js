@@ -51,6 +51,10 @@ const columns = [
 	{
 		dataField: "observaciones",
 		text: "Observaciones",
+		formatter: (value, row) => (
+			value?.replace(/\*/g, " ")
+		  ),
+		
 	},
 	{
 		dataField: "deletedDate",
