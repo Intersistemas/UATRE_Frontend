@@ -162,7 +162,7 @@ const AfiliadoDetails = (props) => {
 							<Grid width gap="15px">
 								<Grid gap="10px">
 									<Grid className={styles.label}>CUIL:</Grid>
-									<Grid className={styles.data} width="8rem">{Formato.Cuit(data.cuil)}</Grid>
+									<Grid className={styles.data} width="9rem">{Formato.Cuit(data.cuil)}</Grid>
 								</Grid>
 								<Grid gap="10px" grow>
 									<Grid className={styles.label}>Nombre y Apellido:</Grid>

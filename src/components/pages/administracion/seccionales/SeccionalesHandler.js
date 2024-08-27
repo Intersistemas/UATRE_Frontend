@@ -14,6 +14,7 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
 import useSeccionales from "./useSeccionales";
+import LotePDFViewer from "./autoridades/Carnet/LotePDFViewer";
 
 //#region estadoSeccionalSelect Options
 const estadoSeccionalTodos = { label: "Todos" };
@@ -588,6 +589,7 @@ const SeccionalesHandler = () => {
 
 	//#region Tab Autoridades
 	const [autoridadesTab, autoridadesChanger, autoridadSelected] = useAutoridades();
+	const [autoridadesImprime, setAutoridadesImprime] = useState(null);
 	const [autoridadesActions, setAutoridadesActions] = useState([]);
 	useEffect(() => {
 		const actions = [];
@@ -658,7 +660,7 @@ const SeccionalesHandler = () => {
 					tarea: "Datos_SeccionalAutoridadesReactiva",
 					keys: "r",
 					underlineindex: 0,
-			})
+				})
 			);
 		} else {
 			actions.push(
@@ -675,14 +677,46 @@ const SeccionalesHandler = () => {
 						 underlineindex: 0
 						}
 					)
-			})
-			); 
+				})
+			);
+			actions.push(
+				createAction({
+					action: `Imprime carnet de autoridad ${seleDesc}`,
+					tarea: "Datos_SeccionalAutoridadesImprime",
+					keys: "i",
+					underlineindex: 0,
+					onExecute: () => setAutoridadesImprime({
+						seccional: [seccionalSelected].map((s) => ({
+							id: s.id,
+							codigo: s.codigo,
+							nombre: s.descripcion,
+							provincia: s.provinciaDescripcion,
+						})).pop(),
+						autoridades: [autoridadSelected].map((a) => ({
+							id: a.afiliadoId,
+							nombre: a.afiliadoNombre,
+							nroAfiliado: a.afiliadoNumero,
+							cargo: a.refCargosDescripcion,
+						})),
+					})
+				})
+			);
 		}
 		setAutoridadesActions(actions);
 	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
 	tabs.push({
 		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
-		body: autoridadesTab,
+		body: () => (
+			<>
+				{autoridadesTab()}
+				{autoridadesImprime == null ? null : (
+					<LotePDFViewer
+						{...autoridadesImprime}
+						onClose={() => setAutoridadesImprime(null)}
+					/>
+				)}
+			</>
+		),
 		actions: autoridadesActions,
 	});
 
