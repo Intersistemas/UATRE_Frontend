@@ -1275,9 +1275,11 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       console.log("fechaIngresoState**",fechaIngresoState)
 			const nuevoAfiliado = {
 				cuil: +cuilState.value,
-				nombre: `${padronRespuesta?.apellido ?? ""} ${
-					padronRespuesta?.nombre ?? ""
-				}`,
+        nombre:  nombreState.value ?? `${padronRespuesta?.apellido ?? ""} ${
+					padronRespuesta?.nombre ?? "" }`,
+				/*nombre: `${padronRespuesta?.apellido ?? ""} ${
+					padronRespuesta?.nombre ?? "" 
+				}`,*/
 				puestoId: +puestoState.value,
 				fechaIngreso: fechaIngresoState?.value,
 				fechaEgreso: null,
@@ -1493,7 +1495,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           type: "USER_INPUT",
           value: padronObj.numeroDocumento,
         });
-        domicilioReal = padronObj.domicilios.find(
+        domicilioReal = padronObj?.domicilios?.find(
           (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
         );
 
@@ -2047,7 +2049,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       ciiU3: padronEmpresaRespuesta.ciiU3,
     };
 
-    const domicilioRealAFIP = padronRespuesta?.domicilios.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
+    const domicilioRealAFIP = padronRespuesta?.domicilios?.find((domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"      
     );
 		
     const afiliadoModificado = {
@@ -2419,6 +2421,9 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 									onChange={(f) =>
 										handleInputChange(f?.format("YYYY-MM-DD") ?? "", "fechaIngreso")
 									}
+                  error={
+										!fechaIngresoState.isValid && inputsTouched ? true : false
+									}
 									/>
 							</div>
 						</div>
@@ -2426,7 +2431,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 							<div className={classes.input}>
 								<InputMaterial
 									id="nombre"
-									value={nombreState.value ?? ""}
+									value={nombreState.value ?? ""} 
 									label="Apellido y Nombre"
 									width={100}
 									onChange={handleInputChange}
