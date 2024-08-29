@@ -19,6 +19,7 @@ const ConsultasHandler = () => {
 	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
 	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
+	console.log("disableTabSeccionales",disableTabSeccionales)
 	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 
 	const onDownloadSolicitudAfiliacion = () => {
@@ -51,7 +52,7 @@ const ConsultasHandler = () => {
 
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Afiliados" /*disable={disableTabAfiliados}*/ />,
+		header: () => <Tab label="Afiliados" /*disabled={disableTabAfiliados}*/ />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
@@ -133,7 +134,7 @@ const ConsultasHandler = () => {
 
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Seccionales" disable={disableTabSeccionales} />,
+		header: () => <Tab label="Seccionales" disabled={disableTabSeccionales} />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
