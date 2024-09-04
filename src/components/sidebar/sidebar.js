@@ -203,9 +203,8 @@ const Sidebar = ({children}) => {
                          <div>
                             <div className={clases.icon}><FaRegUser/></div>
                         </div>
-                            {(isOpen && <div> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
-                    </div>
-                        <div>
+                            {(isOpen && <div style={{width: "100%"}}> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
+                        <div style={{whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>
                         { migas/*
                             menuItem.map((item, index)=>(
                                 <NavLink to={item.path} key={index} className={clases.link} activeClassName={clases.active}>
@@ -215,6 +214,8 @@ const Sidebar = ({children}) => {
                             ))
                             */}
                         </div>
+                    </div>
+                        
                         <div className={clases.actionButtons}>
                             { botones.length === 0 ? null :
                                 botones.map((item, index)=>(   

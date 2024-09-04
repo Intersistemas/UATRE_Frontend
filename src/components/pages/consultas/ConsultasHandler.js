@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import download from "downloadjs";
 import { Tabs, Tab } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
@@ -8,8 +9,10 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
+import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
+	const navigate = useNavigate();
 	const [consulta, setConsulta] = useState();
 
 	const tabs = [];
@@ -91,6 +94,18 @@ const ConsultasHandler = () => {
 						Solicitud previa de afiliación
 					</Button>
 				</Grid>
+
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						onClick={() => navigate("SolicitudesAfiliacion")}
+						width="32"
+						//tarea="Consultas_SolicitudPreviaAfiliacion"
+					>
+						Solicitudes de Afiliación
+					</Button>
+				</Grid>
+				
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
@@ -145,7 +160,6 @@ const ConsultasHandler = () => {
 		// actions,
 	});
 
-	// DDJJ
 	tabs.push({
 		header: () => <Tab label="Otras Consultas"/>,
 		body: () => (

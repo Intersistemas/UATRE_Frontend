@@ -23,6 +23,7 @@ const Inicio = () => {
 			tareas.hasTarea("Consultas_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
 			
 
+	console.log("accesos",accesos)
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
 
 	UseKeyPress(['a'], ()=>navigate("Afiliaciones"), 'AltKey');
