@@ -408,7 +408,7 @@ const AfiliadosLista = (props) => {
 			text: "F.Ingreso",
 			sort: true,
 			formatter: (v) => Formato.Fecha(v),
-			headerStyle: { width: "9%", textAlign: "center" },
+			headerStyle: { width: "10%", textAlign: "center" },
 		},
 		{
 			headerTitle: () => (`Fecha de Egreso`),

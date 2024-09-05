@@ -161,7 +161,7 @@ const ConsultasHandler = () => {
 	});
 
 	tabs.push({
-		header: () => <Tab label="Otras Consultas"/>,
+		header: () => <Tab label="Otras Consultas" disabled={true} />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
