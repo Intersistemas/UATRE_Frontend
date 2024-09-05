@@ -61,7 +61,7 @@ const AfiliadoDetails = (props) => {
 									const months = dayjs().diff(fecha, "months");
 									if (!data.ultimaDDJJPeriodo) {
 										textos.push("Afiliado sin DDJJ");
-									} else if (months > 6) {
+									} else if (months > 9) {
 										textos.push(`Afiliado con ${months} meses sin DDJJ`);
 									}
 									return textos.filter((s) => s).join(" - ");

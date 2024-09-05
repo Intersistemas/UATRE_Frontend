@@ -41,6 +41,7 @@ const InformesHandler = () => {
 						}
 						width="32"
 						tarea="Informes_Afiliados_EstadoAfilidiados"
+						disabled={disableTabAfiliados}
 					>
 						Estado de afiliados
 					</Button>
@@ -49,6 +50,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosDelegacion onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosEstadoDelegacion"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por estado y delegación
 					</Button>
@@ -57,6 +59,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccional onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosEstadoDelegacionSeccional"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por estado, delegación y seccional
 					</Button>
@@ -67,6 +70,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccionalLocalidad onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosDelegacionSeccionalLocalidad"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por delegación, seccional y localidad
 					</Button>
@@ -75,6 +79,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosEmpresas onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosEmpresa"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por empresa
 					</Button>
@@ -83,6 +88,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosActividadSexo onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosActividadSexo"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por actividad y sexo
 					</Button>
@@ -93,6 +99,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosPuestoSexo onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosOficioSexo"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por oficio y sexo
 					</Button>
@@ -101,6 +108,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosEstadosEmpresasSeccionales onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosEmpresaSeccionales"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por empresa y cantidad de seccionales
 					</Button>
@@ -109,6 +117,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<Afiliados onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_Afiliados"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados
 					</Button>
@@ -119,6 +128,7 @@ const InformesHandler = () => {
 						onClick={() => setInforme(<AfiliadosNotaPeriodica onClose={() => setInforme(null)} />)}
 						width="32"
 						tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados"
+						disabled={disableTabAfiliados}
 					>
 						Notificacion de afiliaciones para delegados
 					</Button>
