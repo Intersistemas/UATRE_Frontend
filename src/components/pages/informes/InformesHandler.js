@@ -16,15 +16,21 @@ import PadronHandler from "./padron/Handler";
 import TrabajadoresEstados from "./trabajadoresEstados/TrabajadoresEstados";
 import TrabajadoresEstadosEmpresas from "./trabajadoresEstadosEmpresas/TrabajadoresEstadosEmpresas";
 import TrabajadoresEstadosEmpresasSeccionales from "./trabajadoresEstadosEmpresasSeccionales/TrabajadoresEstadosEmpresasSeccionales";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const InformesHandler = () => {
 	const [informe, setInforme] = useState();
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
+
+	const tarea = useTareasUsuario();
+	const disableTabAfiliados = !tarea.hasTarea("Informes_Afiliados");
+	const disableTabDDJJ = !tarea.hasTarea("Informes_DDJJ");
+
 	// Afiliados
 	tabs.push({
-		header: () => <Tab label="Afiliados" />,
+		header: () => <Tab label="Afiliados" disabled={disableTabAfiliados} />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
@@ -34,7 +40,7 @@ const InformesHandler = () => {
 							setInforme(<AfiliadosEstados onClose={() => setInforme(null)} />)
 						}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_EstadoAfilidiados"
 					>
 						Estado de afiliados
 					</Button>
@@ -42,7 +48,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosDelegacion onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosEstadoDelegacion"
 					>
 						Afiliados por estado y delegación
 					</Button>
@@ -50,7 +56,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccional onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosEstadoDelegacionSeccional"
 					>
 						Afiliados por estado, delegación y seccional
 					</Button>
@@ -60,7 +66,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosDelegacionSeccionalLocalidad onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosDelegacionSeccionalLocalidad"
 					>
 						Afiliados por delegación, seccional y localidad
 					</Button>
@@ -68,7 +74,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosEmpresas onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosEmpresa"
 					>
 						Afiliados por empresa
 					</Button>
@@ -76,7 +82,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosActividadSexo onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosActividadSexo"
 					>
 						Afiliados por actividad y sexo
 					</Button>
@@ -86,7 +92,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosPuestoSexo onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosOficioSexo"
 					>
 						Afiliados por oficio y sexo
 					</Button>
@@ -94,7 +100,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosEstadosEmpresasSeccionales onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosEmpresaSeccionales"
 					>
 						Afiliados por empresa y cantidad de seccionales
 					</Button>
@@ -102,7 +108,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<Afiliados onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_Afiliados"
 					>
 						Afiliados
 					</Button>
@@ -112,7 +118,7 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<AfiliadosNotaPeriodica onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados"
 					>
 						Notificacion de afiliaciones para delegados
 					</Button>
@@ -120,7 +126,8 @@ const InformesHandler = () => {
 						className="botonAmarillo"
 						onClick={() => setInforme(<PadronHandler onClose={() => setInforme(null)} />)}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_Afiliados_AfiliadosSeccional"
+						disabled={disableTabAfiliados}
 					>
 						Afiliados por seccional
 					</Button>
@@ -132,7 +139,7 @@ const InformesHandler = () => {
 
 	// DDJJ
 	tabs.push({
-		header: () => <Tab label="Declaraciones Juradas" />,
+		header: () => <Tab label="Declaraciones Juradas" disabled={disableTabDDJJ} />,
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
@@ -142,17 +149,17 @@ const InformesHandler = () => {
 							setInforme(<TrabajadoresEstados onClose={() => setInforme(null)} />)
 						}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_DDJJ_TrabajadoresDeclarados"
 					>
 						Trabajadores declarados
-					</Button>
+				</Button>
 					<Button
 						className="botonAmarillo"
 						onClick={() =>
 							setInforme(<TrabajadoresEstadosEmpresas onClose={() => setInforme(null)} />)
 						}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_DDJJ_TrabajadoresDeclaradosEmpresa"
 					>
 						Trabajadores declarados por empresa
 					</Button>
@@ -162,7 +169,7 @@ const InformesHandler = () => {
 							setInforme(<TrabajadoresEstadosEmpresasSeccionales onClose={() => setInforme(null)} />)
 						}
 						width="32"
-						tarea="Informes_Emite"
+						tarea="Informes_DDJJ_TrabajadoresDeclaradosEmpresaSeccionales"
 					>
 						Trabajadores declarados por empresa y cantidad de
 						seccionales
