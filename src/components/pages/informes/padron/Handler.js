@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import useQueryState from "components/hooks/useQueryState";
@@ -11,6 +11,8 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
+import AuthContext from "store/authContext";
+import AsArray from "components/helpers/AsArray";
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -162,7 +164,7 @@ const columns = [
 
 //#region delegacionesSelect Options
 const delegacionSelectDef = { label: "Elige..." };
-const delegacionesSelectOptions = ({ data = [], buscar = "", ...x }) =>
+const delegacionesSelectOptions = ({ data = [], ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({
@@ -170,15 +172,14 @@ const delegacionesSelectOptions = ({ data = [], buscar = "", ...x }) =>
 			label: [r.codigoDelegacion, r.nombre].join(" - "),
 			record: r,
 		}),
-		filter: (r) => includeSearch(r, buscar),
-		start: [delegacionSelectDef],
+		start: data.length === 1 ? [] : [delegacionSelectDef],
 		...x,
 	});
 //#endregion delegacionesSelect Options
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = { label: "Todas" };
-const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
+const seccionalesSelectOptions = ({ data = [], ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({
@@ -186,8 +187,7 @@ const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
 			label: [r.codigo, r.descripcion].join(" - "),
 			record: r,
 		}),
-		filter: (r) => includeSearch(r, buscar),
-		start: [seccionalSelectDef],
+		start: data.length === 1 ? [] : [seccionalSelectDef],
 		...x,
 	});
 //#endregion seccionalesSelect Options
@@ -221,6 +221,19 @@ const Handler = ({ onClose = () => {} }) => {
 			query: { config: { errorType: "response" }, body: { soloActivos: true } },
 		}
 	);
+	const { setState: setSeccionalQuery } = useQueryState(
+		(_, { id, ...params }) => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Seccional/${id}`,
+				method: "GET",
+			},
+			params,
+		}),
+		{
+			query: { config: { errorType: "response" } },
+		}
+	);
 	const { setState: setAfiliacionesQuery } = useQueryState(
 		() => ({
 			config: {
@@ -231,69 +244,73 @@ const Handler = ({ onClose = () => {} }) => {
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
-
 	//#endregion APIs
 
+	const { usuario } = useContext(AuthContext);
+	const [init, setInit] = useState({
+		pending: true,
+		filtros: {},
+		wait: { delegaciones: true, seccionales: true },
+		usuario,
+	});
+
 	//#region selects
-	const [filtros, setFiltros] = useState({});
+	const [filtros, setFiltros] = useState({ ...init.filtros });
 
 	//#region select delegacion
 	const [delegacionSelect, setDelegacionSelect] = useState({
+		reload: false,
 		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
+		optionsSrc: [],
 		options: [],
 		selected: delegacionSelectDef,
+		selectedDef: delegacionSelectDef,
+		/** @type array */
+		ambito: null,
 		origen: "",
 	});
 	// Buscador
 	useEffect(() => {
 		setDelegacionSelect((o) => ({
 			...o,
-			options: delegacionesSelectOptions(o),
+			options: o.optionsSrc.filter((r) =>
+				includeSearch(r, delegacionSelect.buscar)
+			),
 		}));
-	}, [delegacionSelect.buscar, delegacionSelect.data]);
+	}, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
 	//#endregion select delegacion
 
 	//#region select seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
-		loading: "",
+		reload: false,
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
+		optionsSrc: [],
 		options: [],
 		selected: seccionalSelectDef,
+		selectedDef: seccionalSelectDef,
+		/** @type array */
+		ambito: null,
+		refDelegacionId: 0,
 		origen: "",
 	});
 	// Buscador
 	useEffect(() => {
 		setSeccionalSelect((o) => ({
 			...o,
-			options: seccionalesSelectOptions(o),
+			options: o.optionsSrc.filter((r) =>
+				includeSearch(r, seccionalSelect.buscar)
+			),
 		}));
-	}, [seccionalSelect.buscar, seccionalSelect.data]);
+	}, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
 	//#endregion select seccional
 
 	//#endregion selects
-
-	//#region Carga inicial select delegacion
-	useEffect(() => {
-		setDelegacionesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				setDelegacionSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setDelegacionesQuery]);
-	//#endregion Carga inicial select delegacion
 
 	//#region list
 	const [list, setList] = useState({
@@ -306,6 +323,195 @@ const Handler = ({ onClose = () => {} }) => {
 		error: null,
 	});
 	//#endregion list
+
+	//#region Carga inicial select delegacion
+	useEffect(() => {
+		if (!delegacionSelect.reload) return;
+		setDelegacionSelect((o) => ({
+			...o,
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			options: [],
+			optionsSrc: [],
+			selected: delegacionSelectDef,
+			selectedDef: delegacionSelectDef,
+			buscar: "",
+		}));
+		setDelegacionesQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setDelegacionSelect((o) => {
+					const n = {
+						...o,
+						loading: null,
+						data: o.ambito ? data.filter((r) => o.ambito.includes(r.id)) : data,
+						error: error?.toString(),
+					};
+					n.optionsSrc = delegacionesSelectOptions(n);
+					n.selectedDef =
+						n.optionsSrc.length === 1 ? n.optionsSrc[0] : delegacionSelectDef;
+					n.selected = n.selectedDef;
+					return n;
+				});
+			},
+		}));
+	}, [delegacionSelect, setDelegacionesQuery]);
+	//#endregion Carga inicial select delegacion
+
+	//#region Carga inicial select seccional
+	useEffect(() => {
+		if (!seccionalSelect.reload) return;
+		const changes = {
+			reload: false,
+			loading: "Cargando...",
+			error: null,
+			options: [],
+			optionsSrc: [],
+			selected: seccionalSelectDef,
+			selectedDef: seccionalSelectDef,
+			buscar: "",
+		};
+		const data = [];
+		if (seccionalSelect.refDelegacionId) {
+			setSeccionalSelect((o) => ({ ...o, ...changes }));
+		} else {
+			changes.loading = null;
+			changes.data = data;
+			setSeccionalSelect((o) => ({ ...o, ...changes }));
+			return;
+		}
+		/** @type {onLoad} */
+		const onLoad = ({ query, ok, error }) => {
+			let pages = 0;
+			let pageIndex = query.config.body.pageIndex;
+			if (ok) {
+				pages = ok.pages;
+				if (Array.isArray(ok.data)) {
+					data.push(...ok.data);
+				} else {
+					console.error("Se esperaba un arreglo", ok.data);
+				}
+			}
+			if (error) changes.error = error.toString();
+			if (pageIndex < pages) {
+				pageIndex += 1;
+				changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
+				setSeccionalesQuery((o) => ({
+					...o,
+					query: {
+						...o.query,
+						config: {
+							...o.query.config,
+							body: {
+								...o.query.config.body,
+								pageIndex,
+							},
+						},
+					},
+					onLoad,
+				}));
+			} else {
+				changes.loading = null;
+				const ambito = seccionalSelect.ambito;
+				changes.data = ambito
+					? data.filter((r) => ambito.includes(r.id))
+					: data;
+				changes.optionsSrc = seccionalesSelectOptions(changes);
+				changes.selectedDef = changes.optionsSrc.length === 1
+					? changes.optionsSrc[0]
+					: seccionalSelectDef;
+				changes.selected = changes.selectedDef;
+			}
+			setSeccionalSelect((o) => ({ ...o, ...changes }));
+		};
+		setSeccionalesQuery((o) => ({
+			...o,
+			query: {
+				...o.query,
+				config: {
+					...o.query.config,
+					body: {
+						...o.query.params,
+						refDelegacionId: seccionalSelect.refDelegacionId,
+						pageIndex: 1,
+					},
+				},
+			},
+			onLoad,
+		}));
+	}, [seccionalSelect, setSeccionalesQuery]);
+	//#endregion Carga inicial select seccional
+
+	//#region Cambia select delegación
+	useEffect(() => {
+		if (delegacionSelect.loading) return;
+		const finalizaInit = () =>
+			setInit((o) => {
+				if (!o.wait || !("delegaciones" in o.wait)) return o;
+				const init = { ...o };
+				const wait = { ...init.wait };
+				delete wait.delegaciones;
+				init.wait = wait;
+				return init;
+			});
+		const selected = delegacionSelect.selected;
+		setSeccionalSelect((o) => {
+			const n = {
+				...o,
+				reload: true,
+				refDelegacionId: selected === delegacionSelectDef ? 0 : selected?.value,
+				selected: o.selectedDef,
+			};
+			if (!n.refDelegacionId) {
+				setFiltros((o) => {
+					const filtros = { ...o };
+					delete filtros.ambitoDelegaciones;
+					return filtros;
+				});
+			} else {
+				setFiltros((o) => ({
+					...o,
+					ambitoDelegaciones: { ids: [selected.value] },
+				}));
+			}
+			finalizaInit();
+			return n;
+		});
+	}, [delegacionSelect.loading, delegacionSelect.selected]);
+	//#endregion Cambia select delegación
+
+	//#region Cambia select seccional
+	useEffect(() => {
+		if (seccionalSelect.loading) return;
+		const finalizaInit = () =>{
+			setInit((o) => {
+				if (!o.wait || !("seccionales" in o.wait)) return o;
+				const init = { ...o };
+				const wait = { ...init.wait };
+				delete wait.seccionales;
+				init.wait = wait;
+				return init;
+			});}
+		const selected = seccionalSelect.selected;
+		if (selected === seccionalSelectDef) {
+			setFiltros((o) => {
+				const filtros = { ...o };
+				delete filtros.ambitoSeccionales;
+				return filtros;
+			});
+			finalizaInit();
+			return;
+		}
+		setFiltros((o) => ({
+			...o,
+			ambitoSeccionales: { ids: [selected.value] },
+		}));
+		finalizaInit();
+	}, [seccionalSelect.loading, seccionalSelect.selected]);
+	//#endregion Cambia select seccional
 
 	//#region Carga list
 	useEffect(() => {
@@ -453,7 +659,18 @@ const Handler = ({ onClose = () => {} }) => {
 		} else {
 			setDelegacionSelect((o) => ({ ...o, error: null }));
 		}
-		setPadron((o) => ({ ...o, reload: true }));
+		setPadron((o) => ({
+			...o,
+			reload: true,
+			seccionales: seccionalSelect.data
+				.map((s) => ({
+					id: s.id,
+					codigo: s.codigo,
+					nombre: s.descripcion,
+					provincia: s.provinciaDescripcion,
+				}))
+				.filter((s) => s?.id),
+		}));
 	};
 
 	const padronRender = !padron.despliega ? null : (
@@ -462,6 +679,116 @@ const Handler = ({ onClose = () => {} }) => {
 			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
 		/>
 	);
+
+	const onAplicaFiltros = () => {
+		if (!filtros.ambitoDelegaciones) {
+			setDelegacionSelect((o) => ({
+				...o,
+				error: "Dato requerido.",
+			}));
+		} else {
+			setDelegacionSelect((o) => ({ ...o, error: null }));
+		}
+		setList((o) => ({
+			...o,
+			filtros,
+			reload: true,
+			error: null,
+			pagination: { ...o.pagination, index: 1 },
+		}));
+		setPadron((o) => ({
+			...o,
+			filtros,
+			seccionales: seccionalSelect.data
+				.map((s) => ({
+					id: s.id,
+					codigo: s.codigo,
+					nombre: s.descripcion,
+					provincia: s.provinciaDescripcion,
+				}))
+				.filter((s) => s?.id),
+		}));
+	};
+
+	const onLimpiaFiltros = () => {
+		const filtros = { ...init.filtros };
+		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
+		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
+		setFiltros(filtros);
+		if (JSON.stringify(list.filtros) === JSON.stringify(filtros)) return;
+		setList((o) => ({
+			...o,
+			filtros,
+			error: null,
+			reload: true,
+		}));
+		setPadron((o) => ({ ...o, filtros, seccionales: [] }));
+	};
+
+	//#region activa init
+	useEffect(() => {
+		if (!init.pending) return;
+		setInit((o) => ({ ...o, pending: false }));
+		const ambito = {
+			delegaciones: [...AsArray(init.usuario.ambitoDelegaciones?.ids)],
+			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
+		};
+		const finalizaCarga = () => {
+			setInit((o) => {
+				const init = { ...o };
+				const filtros = init.filtros;
+				if (ambito.seccionales.length)
+					filtros.ambitoSeccionales = { ids: [...ambito.seccionales] };
+				if (ambito.delegaciones.length)
+					filtros.ambitoDelegaciones = { ids: [...ambito.delegaciones] };
+				return init;
+			});
+			if (ambito.seccionales.length)
+				setSeccionalSelect((o) => ({ ...o, ambito: ambito.seccionales }));
+			const delegaciones = {};
+			if (ambito.delegaciones.length) delegaciones.ambito = ambito.delegaciones;
+			setDelegacionSelect((o) => ({
+				...o,
+				reload: true,
+				loading: "Cargando...",
+				...delegaciones,
+			}));
+		};
+		if (ambito.seccionales.length && !ambito.delegaciones.length) {
+			const seccionales = [...ambito.seccionales].filter((r) => r);
+			/** @type {onLoad} */
+			const onLoad = ({ ok }) => {
+				const refDelegacionId = ok?.refDelegacionId;
+				if (refDelegacionId && !ambito.delegaciones.includes(refDelegacionId))
+					ambito.delegaciones.push(refDelegacionId);
+				let seccional = seccionales.shift();
+				if (seccional) {
+					setSeccionalQuery((o) => ({
+						...o,
+						query: {
+							...o.query,
+							params: { id: seccional },
+						},
+						onLoad,
+					}));
+				} else {
+					finalizaCarga();
+				}
+			};
+			onLoad({});
+		} else {
+			finalizaCarga();
+		}
+	}, [init, setSeccionalQuery]);
+
+	useEffect(() => {
+		if (init.pending) return;
+		if (init.wait == null) return;
+		if (Object.keys(init.wait).length) return;
+		setInit((o) => ({ ...o, wait: null }));
+		onLimpiaFiltros();
+	}, [init, onLimpiaFiltros]);
+	//#endregion activa init
 
 	return (
 		<Modal size="xl" centered show>
@@ -477,83 +804,9 @@ const Handler = ({ onClose = () => {} }) => {
 							error={!!delegacionSelect.error}
 							helperText={delegacionSelect.loading ?? delegacionSelect?.error}
 							value={delegacionSelect.selected}
-							onChange={(selected) => {
-								setDelegacionSelect((o) => ({ ...o, selected }));
-								const changes = {
-									loading: "Cargando...",
-									data: [],
-									error: null,
-									selected: seccionalSelectDef,
-									buscar: "",
-								};
-								if (selected !== delegacionSelectDef) {
-									/** @type {onLoad} */
-									const onLoad = ({ query, ok, error }) => {
-										let pages = 0;
-										let pageIndex = query.config.body.pageIndex;
-										if (ok) {
-											pages = ok.pages;
-											if (Array.isArray(ok.data)) {
-												changes.data.push(...ok.data);
-											} else {
-												console.error("Se esperaba un arreglo", ok.data);
-											}
-										}
-										if (error) changes.error = error.toString();
-										if (pageIndex < pages) {
-											pageIndex += 1;
-											changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
-											setSeccionalesQuery((o) => ({
-												...o,
-												query: {
-													...o.query,
-													config: {
-														...o.query.config,
-														body: {
-															...o.query.config.body,
-															pageIndex,
-														},
-													},
-												},
-												onLoad,
-											}));
-										} else {
-											changes.loading = null;
-										}
-										setSeccionalSelect((o) => ({
-											...o,
-											...changes,
-											data: [...changes.data],
-										}));
-									};
-									setSeccionalesQuery((o) => ({
-										...o,
-										query: {
-											...o.query,
-											config: {
-												...o.query.config,
-												body: {
-													...o.query.params,
-													refDelegacionId: selected.value,
-													pageIndex: 1,
-												},
-											},
-										},
-										onLoad,
-									}));
-								}
-								setSeccionalSelect((o) => ({ ...o, ...changes }));
-								setFiltros((o) => {
-									const filtros = {
-										...o,
-										ambitoDelegaciones: { ids: [selected.value] },
-									};
-									if (selected === delegacionSelectDef)
-										delete filtros.ambitoDelegaciones;
-									delete filtros.ambitoSeccionales;
-									return filtros;
-								});
-							}}
+							onChange={(selected) =>
+								setDelegacionSelect((o) => ({ ...o, selected }))
+							}
 							options={delegacionSelect.options}
 							onTextChange={(buscar) =>
 								setDelegacionSelect((o) => ({ ...o, buscar }))
@@ -565,18 +818,9 @@ const Handler = ({ onClose = () => {} }) => {
 							error={!!seccionalSelect.error}
 							helperText={seccionalSelect.loading ?? seccionalSelect?.error}
 							value={seccionalSelect.selected}
-							onChange={(selected) => {
-								setSeccionalSelect((o) => ({ ...o, selected }));
-								setFiltros((o) => {
-									const filtros = {
-										...o,
-										ambitoSeccionales: { ids: [selected.value] },
-									};
-									if (selected === seccionalSelectDef)
-										delete filtros.ambitoSeccionales;
-									return filtros;
-								});
-							}}
+							onChange={(selected) =>
+								setSeccionalSelect((o) => ({ ...o, selected }))
+							}
 							options={seccionalSelect.options}
 							onTextChange={(buscar) =>
 								setSeccionalSelect((o) => ({ ...o, buscar }))
@@ -587,62 +831,16 @@ const Handler = ({ onClose = () => {} }) => {
 							disabled={
 								JSON.stringify(list.filtros) === JSON.stringify(filtros)
 							}
-							onClick={() => {
-								if (!filtros.ambitoDelegaciones) {
-									setDelegacionSelect((o) => ({
-										...o,
-										error: "Dato requerido.",
-									}));
-								} else {
-									setDelegacionSelect((o) => ({ ...o, error: null }));
-								}
-								setList((o) => ({
-									...o,
-									filtros,
-									reload: true,
-									error: null,
-									pagination: { ...o.pagination, index: 1 },
-								}));
-								setPadron((o) => ({
-									...o,
-									filtros,
-									seccionales: seccionalSelect.data
-										.map((s) => ({
-											id: s.id,
-											codigo: s.codigo,
-											nombre: s.descripcion,
-											provincia: s.provinciaDescripcion,
-										}))
-										.filter((s) => s?.id),
-								}));
-							}}
+							onClick={() => onAplicaFiltros()}
 						>
 							Aplica filtros
 						</Button>
 						<Button
 							className="botonAzul"
-							disabled={Object.keys(filtros).length === 0}
-							onClick={() => {
-								const filtros = {};
-								setDelegacionSelect((o) => ({
-									...o,
-									selected: delegacionSelectDef,
-								}));
-								setSeccionalSelect((o) => ({
-									...o,
-									selected: seccionalSelectDef,
-								}));
-								setFiltros(filtros);
-								if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
-									return;
-								setList((o) => ({
-									...o,
-									filtros,
-									error: null,
-									reload: true,
-								}));
-								setPadron((o) => ({ ...o, filtros, seccionales: [] }));
-							}}
+							disabled={
+								JSON.stringify(filtros) === JSON.stringify(init.filtros)
+							}
+							onClick={() => onLimpiaFiltros()}
 						>
 							Limpia filtros
 						</Button>
