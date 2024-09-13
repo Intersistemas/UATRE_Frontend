@@ -659,7 +659,18 @@ const Handler = ({ onClose = () => {} }) => {
 		} else {
 			setDelegacionSelect((o) => ({ ...o, error: null }));
 		}
-		setPadron((o) => ({ ...o, reload: true }));
+		setPadron((o) => ({
+			...o,
+			reload: true,
+			seccionales: seccionalSelect.data
+				.map((s) => ({
+					id: s.id,
+					codigo: s.codigo,
+					nombre: s.descripcion,
+					provincia: s.provinciaDescripcion,
+				}))
+				.filter((s) => s?.id),
+		}));
 	};
 
 	const padronRender = !padron.despliega ? null : (
