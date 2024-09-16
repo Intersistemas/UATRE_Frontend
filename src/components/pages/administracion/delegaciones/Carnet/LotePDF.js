@@ -102,7 +102,8 @@ const Hoja = ({ delegado, delegacion }) => (
 			<P align="center">
 				{[delegado.documentoTipo, Formato.Numero(delegado.documentoNumero)]
 					.filter((r) => r)
-					.join(" ").toUpperCase()}
+					.join(" ")
+					.toUpperCase()}
 			</P>
 			<P align="center">{`Nº Afil. ${Formato.Numero(delegado.nroAfiliado)}`}</P>
 			<P size={fontSizePt + 2} align="center" bold>
@@ -110,6 +111,12 @@ const Hoja = ({ delegado, delegacion }) => (
 			</P>
 			<P size={fontSizePt + 2} align="center" bold>
 				{`${delegacion.nombre}`.toUpperCase()}
+			</P>
+			<P size={fontSizePt + 2} align="center" bold>
+				{"PROVINCIA "}
+				{delegacion.provincia
+					? `DE ${delegacion.provincia}`.toUpperCase()
+					: `SIN ESPECIFICAR`}
 			</P>
 		</Grid>
 	</Page>

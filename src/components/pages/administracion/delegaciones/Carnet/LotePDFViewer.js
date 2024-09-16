@@ -23,7 +23,7 @@ const onCloseDef = () => {};
  * @param {AfiliadoDelegado[]} props.delegados Datos de delegados de delegacion a imprimirles credenciales.
  * @param {onCloseDef} props.onClose Handler al cerrar el modal
  */
-const LotePDFViewer = ({ delegacion, delegados: delegadosParam, onClose = onCloseDef }) => {
+const LotePDFViewer = ({ delegacion: delegacionParam, delegados: delegadosParam, onClose = onCloseDef }) => {
 	// const { audit } = useAuditoriaProceso();
 	// audit({
 	// 	proceso: "AfiliadoCarnet",
@@ -31,7 +31,28 @@ const LotePDFViewer = ({ delegacion, delegados: delegadosParam, onClose = onClos
 	// 		pick(r, ["id", "cuil", "nroAfiliado", "nombre"])
 	// 	),
 	// });
-
+	
+	const { setState: setLocalidadQuery } = useQueryState(
+		(_, {id, ...params}) => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/RefLocalidad/${id}`,
+				method: "GET",
+			},
+			params
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+	const { setState: setProvinciasQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Provincia`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
 	const { setState: setAfiliadoQuery } = useQueryState(
 		(_, { id, ...params }) => ({
 			config: {
@@ -44,9 +65,52 @@ const LotePDFViewer = ({ delegacion, delegados: delegadosParam, onClose = onClos
 		{ query: { config: { errorType: "response" } } }
 	);
 
+	const [delegacion, setDelegacion] = useState({
+		reload: true,
+		loading: "Cargando delegación...",
+		data: { ...delegacionParam },
+	});
+
+	useEffect(() => {
+		if (!delegacion.reload) return;
+		const loading = delegacion.provincia ? null : "Cargando delegación...";
+		setDelegacion((o) => ({ ...o, reload: false, loading }));
+		if (!loading) return;
+		setLocalidadQuery((o) => ({
+			...o,
+			query: {
+				...o.query,
+				params: { id: delegacion.data.refLocalidadId },
+			},
+			onLoad: ({ ok }) => {
+				let { provincia, provinciaId } = { ...ok };
+				if (!provincia && provinciaId) {
+					setProvinciasQuery((o) => ({
+						...o,
+						onLoad: ({ ok }) => {
+							const provincias = Array.isArray(ok) ? ok : [];
+							provincia = provincias.find((r) => r.id === provinciaId)?.nombre;
+							setDelegacion((o) => ({
+								...o,
+								loading: null,
+								data: { ...o.data, provincia },
+							}));
+						}
+					}))
+				} else {
+					setDelegacion((o) => ({
+						...o,
+						loading: null,
+						data: { ...o.data, provincia },
+					}));
+				}
+			},
+		}));
+	}, [delegacion, setLocalidadQuery, setProvinciasQuery]);
+
 	const [delegados, setDelegados] = useState({
 		reload: true,
-		loading: "Cargando...",
+		loading: "Cargando delegados...",
 		data: [...delegadosParam],
 	});
 
@@ -55,7 +119,7 @@ const LotePDFViewer = ({ delegacion, delegados: delegadosParam, onClose = onClos
 		setDelegados((o) => ({
 			...o,
 			reload: false,
-			loading: "Cargando...",
+			loading: "Cargando delegados...",
 		}));
 		/** @type {AfiliadoDelegado[]} */
 		const data = [];
@@ -90,12 +154,14 @@ const LotePDFViewer = ({ delegacion, delegados: delegadosParam, onClose = onClos
 	}, [delegados, setAfiliadoQuery])
 
 	let cuerpo = null;
-	if (delegados.loading) {
+	if (delegacion.loading) {
+		cuerpo = delegacion.loading;
+	} else if (delegados.loading) {
 		cuerpo = delegados.loading;
 	} else {
 		cuerpo = (
 			<PDFViewer style={{ flexGrow: "1" }}>
-				<LotePDF {...{ delegacion, delegados: delegados.data }} />
+				<LotePDF {...{ delegacion: delegacion.data, delegados: delegados.data }} />
 			</PDFViewer>
 		);
 	}
