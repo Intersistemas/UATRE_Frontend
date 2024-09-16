@@ -244,7 +244,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			<div className="tabs">
 				<text>
 					{formularioSelected?.razonSocial
-						? ` ${formularioSelected?.cuil} - ${formularioSelected.razonSocial ?? ""}`
+						? ` ${formularioSelected?.cuil} - ${formularioSelected.apellido ?? ""} ${formularioSelected.nombre ?? ""} `
 						: " "}
 				</text>
 
