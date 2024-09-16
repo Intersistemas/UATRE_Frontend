@@ -10,6 +10,7 @@ import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import LotePDFViewer from "./Carnet/LotePDFViewer";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -28,6 +29,7 @@ const DelegacionesHandler = () => {
 		selected: delegacionesSelected,
 	} = useDelegaciones();
 	const [delegacionesActions, setDelegacionesActions] = useState([]);
+	const [delegacionesCarnets, setDelegacionesCarnets] = useState(null);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
@@ -78,11 +80,48 @@ const DelegacionesHandler = () => {
 				underlineindex: 0,
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Imprime Carnets delegación ${desc}`,
+				tarea: "Datos_DelegacionImprimeCarnets",
+				keys: "i",
+				underlineindex: 0,
+				disabled:
+					!delegacionesSelected.delegadoId &&
+					!delegacionesSelected.subDelegadoId,
+				onExecute: () =>
+					setDelegacionesCarnets({
+						delegacion: delegacionesSelected,
+						delegados: [
+							{
+								id: delegacionesSelected.delegadoId,
+								nombre: delegacionesSelected.delegadoIdNombre,
+								cargo: "Delegado Regional",
+							},
+							{
+								id: delegacionesSelected.subDelegadoId,
+								nombre: delegacionesSelected.subDelegadoIdNombre,
+								cargo: "Subdelegado Regional",
+							},
+						],
+					}),
+			})
+		);
 		setDelegacionesActions(actions);
 	}, [delegacionesRequest, delegacionesSelected]);
 	tabs.push({
 		header: () => <Tab label="Delegaciones" />,
-		body: delegacionesRender,
+		body: () => (
+			<>
+				{delegacionesRender()}
+				{delegacionesCarnets == null ? null : (
+					<LotePDFViewer
+						{...delegacionesCarnets}
+						onClose={() => setDelegacionesCarnets(null)}
+					/>
+				)}
+			</>
+		),
 		actions: delegacionesActions,
 	});
 
