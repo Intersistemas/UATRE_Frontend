@@ -111,7 +111,7 @@ const Hoja = ({
 					</Grid>
 				</Grid>
 				<P size={fontSizePt + 2} align="center" bold>
-					{`Emisión: ${Formato.Fecha(fechaIngreso)}`}
+					{`Fecha de Alta: ${Formato.Fecha(fechaIngreso)}`}
 				</P>
 				<Grid width="full" justify="center" grow>
 					<Grid col width="75%" justify="center">
