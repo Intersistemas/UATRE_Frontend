@@ -95,16 +95,7 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 
-				<Grid width gap="inherit" justify="evenly">
-					<Button
-						className="botonAmarillo"
-						onClick={() => navigate("SolicitudesAfiliacion")}
-						width="32"
-						//tarea="Consultas_SolicitudPreviaAfiliacion"
-					>
-						Solicitudes de Afiliación
-					</Button>
-				</Grid>
+				
 				
 				<Grid width gap="inherit" justify="evenly">
 					<Button
