@@ -65,6 +65,10 @@ const DeclaracionesJuradas = (props) => {
         style: (colum, colIndex) => {
           return { textAlign: "left" };
         },
+        formatter: (value, row) => (
+         
+          value == "Empresa no existente" ? "EMPRESA NO REGISTRADA"  : value
+        ),
       },
       {
         dataField: "periodo",
@@ -113,7 +117,7 @@ const DeclaracionesJuradas = (props) => {
         text: "Remuneración",
         formatter: (value, row) => (
          
-          row.esEmpresaRural == "No" ? Formato.Moneda(value) :
+          row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
           " "
         ),
       },
@@ -132,10 +136,19 @@ const DeclaracionesJuradas = (props) => {
       {
         dataField: "empresa",
         text: "Empresa",
+        formatter: (value, row) => (
+         
+          value == "Empresa no existente" ? "EMPRESA NO REGISTRADA"  : value
+        ),
       },
        {
          dataField: "remuneracionImponible",
          text: "Remuneración",
+         formatter: (value, row) => (
+         
+          row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
+          " "
+        ),
        },
     ];
   }
