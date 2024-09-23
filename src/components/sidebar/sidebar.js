@@ -194,7 +194,12 @@ const Sidebar = ({children}) => {
                         <h1 style={{display: isOpen ? "" : "none"}} className={clases.logo}>
                             <img src={logo} width="100" height="100" onClick={toggle}/>
                             <a>UATRE</a>
+
+                           
                         </h1>
+                        <h6 style={{textShadow: '1px 1px 15px yellow'}}>
+                         Datos Actualizados al 04/09/2024
+                        </h6>
                         {process.env.REACT_APP_URL_BASE.includes("http:") && <h6 style={{textShadow: '1px 1px 15px yellow'}}>{process.env.REACT_APP_URL_BASE.toUpperCase()}</h6>}
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
