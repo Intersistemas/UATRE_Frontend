@@ -120,6 +120,7 @@ const DeclaracionesJuradas = (props) => {
           row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
           " "
         ),
+        hidden: true,
       },
     ];
   } else {
@@ -149,6 +150,7 @@ const DeclaracionesJuradas = (props) => {
           row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
           " "
         ),
+        hidden: true,
        },
     ];
   }

@@ -146,7 +146,7 @@ const AfiliadoDetails = (props) => {
 									<InputMaterial label="Situación de CUIL" value={validar(ddjj.cuilSituacion)+" - "+validar(ddjj.cuilSituacionDescripcion)} />
 									<InputMaterial label="Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : "-"}/>	
 									<InputMaterial label="Reducción" value={validar(ddjj.reduccion)}/>							
-									<InputMaterial label="Importes" value={ddjj.esEmpresaRural == "No" || !ddjj.esEmpresaRural ? Formato.Moneda(validar(ddjj.remuneracionImponible)) : " "}/>
+									{/*<InputMaterial label="Importes" value={ddjj.esEmpresaRural == "No" || !ddjj.esEmpresaRural ? Formato.Moneda(validar(ddjj.remuneracionImponible)) : " "}/>*/}
 									<InputMaterial label="Cantidad Hs Extras" value={validar(ddjj.hsExtrasCantidad)}/>
 									<InputMaterial label="Dias Trabajados" value={validar(ddjj.diasTrabajados)}/>
 								</Grid>

@@ -65,6 +65,7 @@ const CambioDeDatos = (props) => {
       {
         dataField: "remuneracionImponible",
         text: "Remuneración Imponible",
+        hidden: true,
       },
       {
         dataField: "segurosepelio",
@@ -106,6 +107,7 @@ const CambioDeDatos = (props) => {
       {
         dataField: "remuneracionImponible",
         text: "Remuneracion Imponible",
+        hidden: true,
       },
     ];
   }
