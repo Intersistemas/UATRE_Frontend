@@ -5,12 +5,15 @@ import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./DeclaracionesJuradas.module.css";
 import Formato from "../../../helpers/Formato";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const DeclaracionesJuradas = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
   const [idPrimerRegistroDelGrid, setIdPrimerRegistroDelGrid] = useState(0);
   const { cuil, cuit, infoCompleta, mostrarBuscar, registros } = props ?? 0;//props.cuil && props;
+
+  const tareas = useTareasUsuario();
 
   useEffect(() => {
     console.log('DeclaracionesJuradas_props',props)
@@ -120,7 +123,7 @@ const DeclaracionesJuradas = (props) => {
           row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
           " "
         ),
-        hidden: true,
+        hidden: !tareas.hasTarea("Afiliaciones_DDJJ_VerRemuneraciones"),
       },
     ];
   } else {
@@ -150,7 +153,7 @@ const DeclaracionesJuradas = (props) => {
           row.esEmpresaRural == "No" || !row.esEmpresaRural ? Formato.Moneda(value) :
           " "
         ),
-        hidden: true,
+        hidden: !tareas.hasTarea("Afiliaciones_DDJJ_VerRemuneraciones"),
        },
     ];
   }
