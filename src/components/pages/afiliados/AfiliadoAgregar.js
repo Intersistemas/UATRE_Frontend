@@ -441,8 +441,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
   //#region Texto completar campos
   const TextCompletarCampos = () => {
-    console.log("texto dialog estadocivil", estadoCivilState.isValid);
-    setDialogTexto(`Se debe completar todos los campos:\n
+    //console.log("texto dialog estadocivil", estadoCivilState.isValid);
+    setDialogTexto(`Se deben completar todos los campos:\n
       ${!cuilState.isValid ? "*CUIL\n" : ""}
       ${!nombreState.isValid ? "*Nombre\n" : ""}
       ${!fechaNacimientoState.isValid ? "*Fecha de Nacimiento\n" : ""}
@@ -453,6 +453,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       ${!provinciaState.isValid ? "*Provincia\n" : ""}
       ${!localidadState.isValid ? "*Localidad\n" : ""}
       ${!seccionalState.isValid ? "*Seccional\n" : ""}      
+      ${!actividadState.isValid ? "*Actividad\n" : ""}
+      ${!seccionalSolicitudAfiliacionState.isValid ? "*Seccional Solicita Afiliación\n" : ""}      
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
   };
@@ -573,8 +575,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       if (
         cuilState.isValid &&
         nombreState.isValid &&
-        nacionalidadState.isValid &&
-        fechaNacimientoState.isValid &&
         estadoCivilState.isValid &&
         sexoState.isValid &&
         tipoDocumentoState.isValid &&
@@ -582,7 +582,10 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         domicilioState.isValid &&
         provinciaState.isValid &&
         localidadState.isValid &&
-        seccionalState.isValid 
+        seccionalState.isValid &&
+        fechaNacimientoState.isValid &&
+        nacionalidadState.isValid
+       // && actividadState.isValid
       ) {
         setFormularioIsValid(true);
       } else {
@@ -604,7 +607,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     provinciaState,
     localidadState,
     seccionalState,
-    puestoState,
+    //puestoState,
+    actividadState,
     fechaNacimientoState,
     nacionalidadState,
   ]);
@@ -1216,7 +1220,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     //event.preventDefault();
 
     setInputsTouched(true);
-    if (!formularioIsValid || !formularioEmpleadorIsValid) {
+    if (!formularioIsValid || !formularioEmpleadorIsValid || !actividadState.isValid || !seccionalSolicitudAfiliacionState.isValid) {
       //console.log("formularioIsValid", formularioIsValid);
       setOpenDialog(true);
       TextCompletarCampos();
