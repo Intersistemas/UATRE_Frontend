@@ -15,12 +15,12 @@ const Inicio = () => {
 	
 	const accesos = [];
 		
-			tareas.hasTarea("Afiliaciones_Tabla") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Afiliaciones")}  ><><text className="underline">A</text>filiaciones</></Button>); 
-			tareas.hasTarea("Siaru_Tabla") && 		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}      ><><text className="underline">S</text>istema de Aportes Rurales</></Button>);
-			tareas.hasTarea("Datos_Tabla") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
-			tareas.hasTarea("Expedientes_Tabla") &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}   ><><text className="underline">E</text>xpedientes</></Button>);
-			tareas.hasTarea("Informes_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}      ><><text className="underline">I</text>nformes</></Button>);
-			tareas.hasTarea("Consultas_Tabla") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
+			tareas.hasTarea("Afiliaciones_Tabla", "Administrador Afiliados") &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Afiliaciones")}  ><><text className="underline">A</text>filiaciones</></Button>); 
+			tareas.hasTarea("Siaru_Tabla", "Administrador SIARU") && 		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}      ><><text className="underline">S</text>istema de Aportes Rurales</></Button>);
+			tareas.hasTarea("Datos_Tabla", "Administrador Datos") &&		  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Administracion")}><>Administración de Da<text className="underline">t</text>os</></Button>);
+			tareas.hasTarea("Expedientes_Tabla", "Administrador Expedientes") &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}   ><><text className="underline">E</text>xpedientes</></Button>);
+			tareas.hasTarea("Informes_Tabla", "Administrador Informes") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}      ><><text className="underline">I</text>nformes</></Button>);
+			tareas.hasTarea("Consultas_Tabla", "Administrador Consultas") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
 			
 
 	console.log("accesos",accesos)
