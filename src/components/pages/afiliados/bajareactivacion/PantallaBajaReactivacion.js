@@ -106,12 +106,12 @@ const PantallaBajaReactivacion = (props) => {
 	};
 
 	const handleInputChange = (value, id) => {
-		//console.log("id",id)
-		//console.log("value",value)
+		console.log("id",id)
+		console.log("value",value)
 		//console.log("motivosBaja.data",motivosBaja.data)
 		switch (id) {
 			case "fecha":
-				setFecha(moment(value).format("yyyy-MM-DD"));
+				setFecha(moment(value.$d).format("yyyy-MM-DD"));
 				break;
 			case "observaciones":
 				setObservaciones(value);
@@ -124,6 +124,7 @@ const PantallaBajaReactivacion = (props) => {
 			default:
 				break;
 		}
+		console.log("fecha",fecha)
 	};
 
 	const handleConfirmar = (event) => {
@@ -260,7 +261,7 @@ const PantallaBajaReactivacion = (props) => {
 									value={fecha}
 									label={
 										props.accion === "Baja"
-											? "Fecha de Baja"
+											? "Fecha de Egreso"
 											: "Fecha de Reactivación"
 									}
 									type="date"
