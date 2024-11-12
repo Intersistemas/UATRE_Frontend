@@ -111,7 +111,7 @@ const PantallaBajaReactivacion = (props) => {
 		//console.log("motivosBaja.data",motivosBaja.data)
 		switch (id) {
 			case "fecha":
-				setFecha(moment(value.$d).format("yyyy-MM-DD"));
+				setFecha(moment(value?.$d)?.format("yyyy-MM-DD"));
 				break;
 			case "observaciones":
 				setObservaciones(value);
