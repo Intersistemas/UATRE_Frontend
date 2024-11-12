@@ -111,7 +111,8 @@ const PantallaBajaReactivacion = (props) => {
 		//console.log("motivosBaja.data",motivosBaja.data)
 		switch (id) {
 			case "fecha":
-				setFecha(moment(value?.$d)?.format("yyyy-MM-DD"));
+				//setFecha(moment(value?.$d)?.format("yyyy-MM-DD"));
+				setFecha(value ? moment(value?.$d)?.format("yyyy-MM-DD") : null);
 				break;
 			case "observaciones":
 				setObservaciones(value);
@@ -152,14 +153,14 @@ const PantallaBajaReactivacion = (props) => {
 		const cambios = props.accion === "Baja" ? 
 		{
 			"estadoSolicitudId": 3,
-			"fechaEgreso": moment(fecha).format("yyyy-MM-DD"),
+			"fechaEgreso": moment(fecha)?.format("yyyy-MM-DD"),
 			"estadoSolicitudObservaciones": observaciones,
 			"refMotivoBajaId": refMotivoBajaId
 		} 
 		:
 		{
 			"estadoSolicitudId": 2,
-			"fechaIngreso": moment(fecha).format("yyyy-MM-DD"),
+			"fechaIngreso": moment(fecha)?.format("yyyy-MM-DD"),
 			"estadoSolicitudObservaciones": observaciones,
 			"refMotivoBajaId": 0
 		}
@@ -177,7 +178,7 @@ const PantallaBajaReactivacion = (props) => {
 			{
 				path: "FechaEgreso",
 				op: "replace",
-				value: moment(fecha).format("yyyy-MM-DD"),
+				value: moment(fecha)?.format("yyyy-MM-DD"),
 			},
 			{ path: "refMotivoBajaId", op: "replace", value: refMotivoBajaId },
 		];
@@ -266,6 +267,7 @@ const PantallaBajaReactivacion = (props) => {
 									}
 									type="date"
 									onChange={handleInputChange}
+									error={!fecha ? true : false}
 								/>
 							</Grid>
 							<Grid width="full">
@@ -299,7 +301,7 @@ const PantallaBajaReactivacion = (props) => {
 							<Button
 								className="botonAmarillo"
 								onClick={handleConfirmar}
-								disabled={resolverSolicitudAfiliadoResponse !== 0}
+								disabled={resolverSolicitudAfiliadoResponse !== 0 || !fecha}
 							>
 								{props.accion === "Baja"
 									? "Baja Afiliado"
