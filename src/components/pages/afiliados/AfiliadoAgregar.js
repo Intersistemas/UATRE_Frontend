@@ -481,7 +481,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
 
       console.log("error*",error)
-      if (error.data.statusCode === 408 && cuilLoading) {
+      if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
           `No se pudo conectar con AFIP, se habilita la carga MANUAL del Afiliado`
@@ -490,7 +490,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setErrorAFIP(false); // afip no respondio no se considera un error para impedir la carga
       }
 
-      if (error.code === 404 && cuilLoading && error.data.statusCode !== 408) {
+      if (error?.code === 404 && cuilLoading && error?.data?.statusCode !== 408) {
         console.log("error",error)
         setCUILLoading(false);
         setDialogTexto(
