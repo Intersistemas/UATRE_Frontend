@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import AmbitoTable from "./AmbitosTable";
+import AmbitosTable from "./AmbitosTable";
 import AmbitoUsuarioForm from "./UsuarioAmbitoForm";
 
 const selectionDef = {
@@ -26,13 +26,16 @@ const useAmbitos = () => {
 					},
 				};
 			}
+
 			case "GetListByUsuarioId": {
+				const { usuarioId , ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosAmbitos/GetByUsuarioId`,
 						method: "GET",
+						endpoint: `/UsuariosAmbitos/${usuarioId}`,
 					},
+					params: otherParams,
 				};
 			}
 			case "CreateUA": {
@@ -276,7 +279,7 @@ const useAmbitos = () => {
 
 	const render = () => (
 		<>
-			<AmbitoTable
+			<AmbitosTable
 				data={list.data}
 				loading={!!list.loading}
 				noDataIndication={

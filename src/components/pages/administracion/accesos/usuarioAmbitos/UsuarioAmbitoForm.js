@@ -94,44 +94,46 @@ const UsuarioAmbitoForm = ({
 					query.method = "";
 					break; 
 				case "S":
-					query.baseURL = "Seccionales";
-					query.endpoint = `Seccionales`;
+					query.baseURL = "Afiliaciones"; 
+					query.endpoint = `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`;
 					query.method = `Get`;
 					break;
 				case "D":
-					query.baseURL = "Delegaciones";
-					query.endpoint = `Delegaciones`;
+					query.baseURL = "Comunes";
+					query.endpoint = `/RefDelegacion/GetAll`;
 					query.method = `Get`;
 					break;
 				case "P":
-					query.baseURL = "Provincias";
-					query.endpoint = `Provincias`;
+					query.baseURL = "Afiliaciones";
+					query.endpoint = `/Provincia`;
 					query.method = `Get`;
 					break;
 				default:
 					break;
 			}
 
-
+		console.log('query_0',query)
 		const processAmbitos = async (ambitosObj) => {
 			const ambitos = ambitosObj?.map((ambito) => {
-				return { value: ambito.id, label: ambito.nombre };
+				return { value: ambito?.id, label: `(${ambito?.id}) ${ambito?.nombre ? ambito?.nombre : ambito?.codigo+"-"+ambito?.descripcion}`};
 			});
 			console.log('ambitos',ambitos)
 			setAmbitos((o)=>({...o,options:ambitos}))
 		};
 		request(
 			{
-			query	
-			//baseURL: "Seguridad",
-			//endpoint: `/Ambitos?ModulosId=${data?.modulosId}`,
-			//method: "GET",
+				
+				baseURL: query.baseURL,
+				endpoint: query.endpoint,
+				method: query.method,
 			},
+			
+			
 			async (ok) => (processAmbitos(ok)),
 			async (error) => ((console.log('GetAmbitos?ModulosId_error',error))),
 			async () => (console.log('GetAmbitos?ModulosId_vacio')),
 		);
-	},[data?.ambitoTipo]);
+	},[data?.ambitoTipo, ambitos.selected]);
 	//#endregion
 
 	// Buscador
