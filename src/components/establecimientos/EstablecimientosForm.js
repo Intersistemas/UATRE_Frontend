@@ -173,6 +173,36 @@ const EstablecimientosForm = ({
 							)}
 						</Grid>
 					</Grid>
+					<Grid width="full" gap="inherit">
+						{hide.telefono ? null : (
+							<Grid width>
+								<InputMaterial
+									id="telefono"
+									label="Teléfono"
+									type="tel"
+									error={!!errors.telefono}
+									helperText={errors.telefono ?? ""}
+									value={data.telefono}
+									disabled={disabled.telefono ?? false}
+									onChange={(telefono) => onChange({ telefono })}
+								/>
+							</Grid>
+						)}
+						{hide.email ? null : (
+							<Grid width>
+								<InputMaterial
+									id="email"
+									name="email"
+									label="Email"
+									error={!!errors.email}
+									helperText={errors.email ?? ""}
+									value={data.email}
+									disabled={disabled.email}
+									onChange={(email) => onChange({ email })}
+								/>
+							</Grid>
+						)}
+					</Grid>
 					{hide.domicilio ? null : (
 						<Grid
 							col
