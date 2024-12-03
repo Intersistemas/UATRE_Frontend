@@ -63,19 +63,6 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 			style: { textAlign: "left" },
 		},
 		{
-			dataField: "liquidacionTipoPagoId",
-			text: "T. pago",
-			sort: true,
-			formatExtraData: tiposPago,
-			formatter: (v, r, i, e = tiposPago) =>
-				e.loading ??
-				e.error?.message ??
-				e.data?.find(({ id }) => id === v)?.descripcion ??
-				"",
-			headerStyle: { width: "100px" },
-			style: { textAlign: "left" },
-		},
-		{
 			dataField: "cantidadTrabajadores",
 			text: "Cant. Trab.",
 			sort: true,
