@@ -293,9 +293,6 @@ const UsuariosHandler = () => {
 	}, [usuariosSelected?.id, tareaChanger]);
 	//#endregion
 	
-	
-
-	
 	//#region Tab ambitos
 	const [ambitosTab, ambitoChanger, ambitoSelected] = useAmbitos();
 	const [ambitosActions, setAmbitosActions] = useState([]);
@@ -330,7 +327,16 @@ const UsuariosHandler = () => {
 				ellipsis: true,
 			})
 		);
-		const nombreAmbito = ambitoSelected?.nombreAmbito;
+		
+		let nombreAmbito = "";
+console.log("ambitoSelected",ambitoSelected)
+		switch(ambitoSelected?.ambitoTipo){
+			case "S": nombreAmbito = "Seccional"; break;
+			case "P": nombreAmbito =  "Provincia"; break;
+			case "D": nombreAmbito =  "Delegación"; break;
+			case "T": nombreAmbito = "Todos"; break;
+		};
+
 		if (!nombreAmbito) {
 			setAmbitosActions(actions);
 			return;
@@ -356,16 +362,16 @@ const UsuariosHandler = () => {
 				ellipsis: true,
 			})
 		);
-		actions.push(
+		/*actions.push(
 			createAction({
-				action: `Borra Ambito ${ambitoDesc}`,
+				action: `Baja Ambito ${ambitoDesc}`,
 				request: "B",
 				keys: "b",
 				tarea: "Accesos_UsuarioAmbitoBorra",
 				underlineindex: 0,
 				ellipsis: true,
 			})
-		);
+		);*/
 		setAmbitosActions(actions);
 	}, [ambitoChanger, ambitoSelected, usuariosSelected?.id]);
 

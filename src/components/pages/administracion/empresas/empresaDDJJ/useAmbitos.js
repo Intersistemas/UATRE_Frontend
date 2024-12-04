@@ -31,7 +31,7 @@ const useAmbitos = () => {
 					config: {
 						baseURL: "Seguridad",
 						endpoint: `/UsuarioAmbitos/GetByUsuarioId`,
-						method: "GET",
+						method: "GET", 
 					},
 				};
 			}

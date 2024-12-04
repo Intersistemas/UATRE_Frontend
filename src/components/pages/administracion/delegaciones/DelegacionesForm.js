@@ -230,7 +230,7 @@ const DelegacionesForm = ({
 		}));
 	}, [localidadSelect.reload, localidadSelect.loading, localidadSelect.buscar]);
 	//#endregion select localidad
-
+ 
 	//#region localidadInit
 	const [localidadInit, setLocalidadInit] = useState({
 		reload: true,

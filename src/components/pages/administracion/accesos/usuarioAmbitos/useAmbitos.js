@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import AmbitoTable from "./AmbitosTable";
+import AmbitosTable from "./AmbitosTable";
 import AmbitoUsuarioForm from "./UsuarioAmbitoForm";
 
 const selectionDef = {
@@ -26,13 +26,16 @@ const useAmbitos = () => {
 					},
 				};
 			}
+
 			case "GetListByUsuarioId": {
+				const { usuarioId , ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosAmbitos/GetByUsuarioId`,
 						method: "GET",
+						endpoint: `/UsuariosAmbitos/${usuarioId}`,
 					},
+					params: otherParams,
 				};
 			}
 			case "CreateUA": {
@@ -49,7 +52,7 @@ const useAmbitos = () => {
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosAmbitos/${id}`,
+						endpoint: `/UsuariosAmbitos`,
 						method: "PUT",
 					},
 					params: otherParams,
@@ -84,6 +87,7 @@ const useAmbitos = () => {
 
 	useEffect(() => {
 		if (!list.loading) return;
+		console.log("useAmbitos_list",list)
 		pushQuery({
 			action: list.params.usuarioId ? "GetListByUsuarioId" : "GetList",
 			params: { ...list.params },
@@ -121,7 +125,7 @@ const useAmbitos = () => {
 	//#endregion
 
 	const requestChanges = useCallback((type, payload = {}) => {
-		//console.log('useAmbitos_requestChanges',type,' & ',payload)
+		console.log('useAmbitos_requestChanges',type,' & ',payload)
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -136,7 +140,7 @@ const useAmbitos = () => {
 						},
 					},
 				}));
-			}
+			} 
 			case "list": {
 				if (payload.clear)
 					return setList((o) => ({
@@ -162,6 +166,7 @@ const useAmbitos = () => {
 	if (list.selection.edit) {
 		form = (
 			<AmbitoUsuarioForm
+				loading={!!list.loading}
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
@@ -189,7 +194,7 @@ const useAmbitos = () => {
 						const errors = {};
 						if (list?.data?.find((t)=> t.ambitoId === changes?.ambitoId && t.ambitoTipo === changes?.ambitoTipo) != null)
 						{ 
-							 errors.ambitosId = "El Usuario ya posee este Ambito"
+							 errors.ambitoId = "El Usuario ya posee este Ambito"
 							 errors.ambitoExiste = true
 						};
 
@@ -223,9 +228,10 @@ const useAmbitos = () => {
 
 					const record = list.selection.edit;
 					//Validaciones
+					console.log("useAmbitos,Record",record)
 					const errors = {};
 
-					if (!record.ambitoId) errors.ambitoId = "Dato requerido";
+					if (!record.ambitoId && record.ambitoTipo != "T" ) errors.ambitoId = "Dato requerido";
 					if (!record.ambitoTipo) errors.ambitoTipo = "Dato requerido";
 
 					if (list.selection.request === "B") {
@@ -276,7 +282,7 @@ const useAmbitos = () => {
 
 	const render = () => (
 		<>
-			<AmbitoTable
+			<AmbitosTable
 				data={list.data}
 				loading={!!list.loading}
 				noDataIndication={
