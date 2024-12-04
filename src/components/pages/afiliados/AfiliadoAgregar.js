@@ -479,9 +479,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
        
       }
 
-
-      console.log("error AFIP: ",error)
-
       if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
