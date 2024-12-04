@@ -73,15 +73,17 @@ const SeccionalesForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 	loading = {},
+	request = {}
 }) => {
 	data ??= {};
-
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+	request ??= {};
 
+	console.log("request",request)
 	console.log("Seccionales_Data:",data);
 
 	UseKeyPress(["Escape"], () => onClose());
@@ -426,7 +428,59 @@ const SeccionalesForm = ({
 				<h3>{title}</h3>
 			</Modal.Header>
 			<Modal.Body>
-				<Grid col full gap="15px">
+				{ request == "X" ?
+				 <Grid  full gap="15px">
+						<SearchSelectMaterial
+							label="Seccional ABSORBIDA"
+							error={!!(localidadSelect.error || errors.refLocalidadesId)}
+							helperText={
+								localidadSelect.loading ??
+								localidadSelect.error ??
+								errors.refLocalidadesId
+							}
+							disabled={!!disabled.refLocalidadesId}
+							value={localidadSelect.selected}
+							onChange={(selected = localidadDefOption) => {
+								setLocalidadSelect((o) => ({
+									...o,
+									selected,
+									origen: "option",
+								}));
+								onChange({ refLocalidadesId: selected.value });
+							}}
+							options={localidadSelect.options}
+							onTextChange={(buscar) =>
+								setLocalidadSelect((o) => ({ ...o, buscar, origen: "text" }))
+							}
+						/>
+
+						<SearchSelectMaterial
+							label="Seccional ABSORBENTE"
+							error={!!(localidadSelect.error || errors.refLocalidadesId)}
+							helperText={
+								localidadSelect.loading ??
+								localidadSelect.error ??
+								errors.refLocalidadesId
+							}
+							disabled={!!disabled.refLocalidadesId}
+							value={localidadSelect.selected}
+							onChange={(selected = localidadDefOption) => {
+								setLocalidadSelect((o) => ({
+									...o,
+									selected,
+									origen: "option",
+								}));
+								onChange({ refLocalidadesId: selected.value });
+							}}
+							options={localidadSelect.options}
+							onTextChange={(buscar) =>
+								setLocalidadSelect((o) => ({ ...o, buscar, origen: "text" }))
+							}
+						/>
+				 </Grid>
+					
+				:
+				 <Grid col full gap="15px">
 					<Grid gap="inherit">
 						<InputMaterial
 							id="codigo"
@@ -641,6 +695,7 @@ const SeccionalesForm = ({
 						</>
 					)}
 				</Grid>
+			}
 			</Modal.Body>
 			<Modal.Footer>
 				<Button

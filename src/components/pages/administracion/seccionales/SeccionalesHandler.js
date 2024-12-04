@@ -225,6 +225,7 @@ const SeccionalesHandler = () => {
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	
 	useEffect(() => {
+		console.log("seccionalSelected",seccionalSelected)
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -266,7 +267,7 @@ const SeccionalesHandler = () => {
 				request: "M",
 				tarea: "Datos_SeccionalModifica",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA"? 
 					{disabled:  true}
 					:
 					{
@@ -283,7 +284,7 @@ const SeccionalesHandler = () => {
 				request: "B",
 				tarea: "Datos_SeccionalBaja",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA"? 
 					{disabled:  true}
 					:
 					{
@@ -297,10 +298,10 @@ const SeccionalesHandler = () => {
 		actions.push(
 			createAction({
 				action: `Absorbe Seccional ${desc}`,
-				request: "x",
+				request: "X",
 				tarea: "Datos_SeccionalAbsorbe",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA" ? 
 					{disabled:  true}
 					:
 					{
@@ -311,6 +312,7 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
+		
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
 	}, [seccionalChanger, seccionalSelected]);
 
