@@ -479,8 +479,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
        
       }
 
-
-      console.log("error*",error)
       if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
@@ -501,12 +499,23 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setErrorAFIP(true);
       }
 
-      if (error.code === 404 && cuitLoading) {
-        setCUITLoading(false);
+      if (error?.data?.statusCode === 408 && cuitLoading) {
+        setCUILLoading(false);
         setDialogTexto(
-          `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
+          `No se pudo conectar con AFIP, se habilita la carga MANUAL del Empleador`
         );
         setOpenDialog(true);
+        setErrorAFIP(false); // afip no respondio no se considera un error para impedir la carga
+      }
+
+      if (error.code === 404 && cuitLoading && error?.data?.statusCode !== 408) {
+        setCUITLoading(false);
+        setDialogTexto(
+          //`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
+          `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)` : error?.message) : "Error consultando AFIP"}`
+        );
+        setOpenDialog(true);
+        setErrorAFIP(true);
       }
 
       return;

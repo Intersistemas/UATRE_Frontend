@@ -294,6 +294,23 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Absorbe Seccional ${desc}`,
+				request: "x",
+				tarea: "Datos_SeccionalAbsorbe",
+
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "o",
+					 underlineindex: 3
+					}
+				)
+			})
+		);
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
 	}, [seccionalChanger, seccionalSelected]);
 
