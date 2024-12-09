@@ -198,7 +198,7 @@ const Sidebar = ({children}) => {
                            
                         </h1>
                        
-                        {process.env.REACT_APP_URL_BASE.includes("http:") && <h6 style={{textShadow: '1px 1px 15px yellow'}}>{process.env.REACT_APP_URL_BASE.toUpperCase()}</h6>}
+                        {process.env.REACT_APP_PROTOCOL !== "https" && <h6 style={{textShadow: '1px 1px 15px yellow'}}>{process.env.REACT_APP_SERVER.toUpperCase()}</h6>}
                         <div  style={{display: !isOpen ? "block" : "none", marginLeft: isOpen ? "50px" : "0px"}} className={clases.bars}>
                             <FaBars onClick={toggle}/>
                         </div> 
