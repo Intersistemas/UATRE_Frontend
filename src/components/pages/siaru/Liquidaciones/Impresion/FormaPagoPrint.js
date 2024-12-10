@@ -58,8 +58,8 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	});
 	//#endregion configuraciones API
 
-	const sinFechaVencimiento = liquidacionCabecera.fechaVencimiento == null;
-	const vencido = sinFechaVencimiento || dayjs(liquidacionCabecera.fechaVencimiento) < dayjs();
+	const sinFechaPagoEstimada = liquidacionCabecera.fechaPagoEstimada == null;
+	const vencido = sinFechaPagoEstimada || dayjs(liquidacionCabecera.fechaPagoEstimada) < dayjs();
 
 	//#region dependencias
 
@@ -221,7 +221,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	};
 
 	let contenido = null;
-	if (sinFechaVencimiento) {
+	if (sinFechaPagoEstimada) {
 		contenido = (
 			<text
 				style={{ color: "red" }}
@@ -231,8 +231,8 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		contenido = (
 			<text
 				style={{ color: "red" }}
-			>{`No se puede imprimir una boleta vencida (Fecha de vencimiento: ${Formato.Fecha(
-				liquidacionCabecera.fechaVencimiento
+			>{`No se puede imprimir una boleta vencida (Fecha de pago: ${Formato.Fecha(
+				liquidacionCabecera.fechaPagoEstimada
 			)})`}</text>
 		);
 	} else if (formasPago.loading || formaPago.loading) {

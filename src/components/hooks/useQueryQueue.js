@@ -42,25 +42,35 @@ const useQueryQueue = (
 		params: params,
 	})
 ) => {
-	const [myParams] = useState({ getConfig: getConfig });
-	const [queryQueue, setQueryQueue] = useState([]);
+	const { sendRequest } = useHttp();
+	const [queryQueue, setQueryQueue] = useState({
+		processing: null,
+		queue: [],
+		getConfig,
+		sendRequest
+	});
 	const pushQuery = useCallback(
 		(
 			query = new QueryClass()
-		) => 
-		
-		setTimeout(() => {
-			setQueryQueue((old) => [...old, query])
-		 }, 200)
-		,
+		) => setTimeout(
+			() => setQueryQueue((o) => ({ ...o, queue: o.queue.concat(query) })),
+			200
+		),
 		[]
 	);
-	const { sendRequest } = useHttp();
 	useEffect(() => {
-		if (queryQueue.length === 0) return;
-		const query = queryQueue[0];
+		if (queryQueue.processing) return;
+		if (queryQueue.queue.length === 0) return;
+		const query = queryQueue.queue[0];
+		setQueryQueue((o) => ({ ...o, processing: query }));
+		const getConfig = queryQueue.getConfig;
+		const sendRequest = queryQueue.sendRequest;
 		const queryParams = query?.params ?? {};
-		const popQuery = () => setQueryQueue((old) => old.filter((e) => e !== query));
+		const popQuery = () => setQueryQueue((o) => ({
+			...o,
+			processing: null,
+			queue: o.queue.filter((e) => e !== o.processing)
+		}));
 		const endpoint = (path, pars = queryParams) =>
 			[
 				path,
@@ -69,13 +79,13 @@ const useQueryQueue = (
 				.filter((e) => e)
 				.join("?");
 		const onOk = query?.onOk ?? (async (_) => {});
-		const onError = query?.onError ??  (async (_) => {});
+		const onError = query?.onError ?? (async (_) => {});
 		const onFinally = async () => {
 			if (query.onFinally) query.onFinally();
 			popQuery();
 		};
 		let config, params;
-		config = myParams.getConfig(query.action, { ...queryParams });
+		config = getConfig(query?.action, { ...queryParams });
 		if (config) ({ config, params } = config);
 		if (config != null) {
 			sendRequest(
@@ -91,7 +101,7 @@ const useQueryQueue = (
 			return;
 		}
 		popQuery();
-	}, [queryQueue, myParams, sendRequest]);
+	}, [queryQueue]);
 	return pushQuery;
 };
 
