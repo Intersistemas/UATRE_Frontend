@@ -609,7 +609,7 @@ const DelegacionesForm = ({
 							{hide.telefono ? null : (
 								<InputMaterial
 									type="tel"
-									label="Tenéfono"
+									label="Teléfono"
 									error={!!errors.telefono}
 									helperText={errors.telefono ?? ""}
 									value={data.telefono}

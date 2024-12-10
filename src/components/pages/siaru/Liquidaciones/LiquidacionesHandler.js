@@ -140,7 +140,7 @@ const LiquidacionesHandler = () => {
 		selected: liqCabSelected,
 	} = useLiquidacionesCabecera({ pagination: { size: 10 } });
 	const [liqCabActions, setLiqCabActions] = useState([]);
-	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit, sort: "-id" });
+	const [liqCabParams, setLiqCabParams] = useState({ cuit: empresa.cuit, sort: "-id", agrupaEstablecimientos: true });
 
 	//#region ImprimePDF
 	const [despliegaPDF, setDespliegaPDF] = useState();

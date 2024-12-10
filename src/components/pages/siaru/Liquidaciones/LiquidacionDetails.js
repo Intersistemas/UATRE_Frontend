@@ -84,15 +84,6 @@ const LiquidacionDetails = ({ data = {}, cabecera = {} }) => {
 					value={["Periodo", "Acta"].at(cabecera.tipoLiquidacion) ?? ""}
 				/>
 				<MyInputMaterial
-					label="Tipo de pago"
-					value={
-						tiposPagos.data.find((r) => r.codigo === data.liquidacionTipoPagoId)
-							?.descripcion ?? ""
-					}
-					error={!!tiposPagos.error}
-					helperText={tiposPagos.loading ?? tiposPagos.error?.message}
-				/>
-				<MyInputMaterial
 					label="Establecimiento"
 					value={[
 						data.empresaEstablecimientoId,
