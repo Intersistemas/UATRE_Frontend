@@ -49,10 +49,10 @@ const fechaIngresoReducer = (state, action) => {
 
 const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: ["30", "33", "34"].includes(action.value.substr(0,2)) ? false : ValidarCUIT(action.value) };
+    return { value: action.value, isValid: ["30", "33", "34"].includes(action.value.toString().slice(0,2)) ? false : ValidarCUIT(action.value) };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: ["30", "33", "34"].includes(state.value.substr(0,2)) ? false : ValidarCUIT(state.value) };
+    return { value: state.value, isValid: ["30", "33", "34"].includes(state.value.toString().slice(0,2)) ? false : ValidarCUIT(state.value) };
   }
   return { value: "", isValid: false };
 };
@@ -667,7 +667,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       setInputsTouched(true);
       console.log("cuilPAram",cuilParam)
       if (cuilParam > 0) {
-        dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ["30", "33", "34"].includes(cuilParam.substr(0,2)) ? false : ValidarCUIT(cuilParam) });
+        dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ["30", "33", "34"].includes(cuilParam.toString().slice(0,2)) ? false : ValidarCUIT(cuilParam) });
       }
     }
   }, [cuilParam, props.accion]);
@@ -692,7 +692,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
               ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
               : "",
         });
-        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil, isValid: ["30", "33", "34"].includes(afiliadoObj.cuil.substr(0,2)) ? false : ValidarCUIT(afiliadoObj.cuil) });
+        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil, isValid: ["30", "33", "34"].includes(afiliadoObj.cuil.toString().slice(0,2)) ? false : ValidarCUIT(afiliadoObj.cuil) });
         
 				dispatchFechaIngreso({
 					type: "USER_INPUT",
@@ -1801,13 +1801,17 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   const handleInputChange = (value, id) => {
     console.log('handleInputChange_id',id)
     console.log('handleInputChange_value',value)
+    console.log('handleInputChange_value SLICE',value.slice(0,2))
+   
+    console.log("contains:",["30", "33", "34"].includes(value.slice(0,2)))
+
     switch (id) {
       case "fechaIngreso":
         dispatchFechaIngreso({ type: "USER_INPUT", value: value });
         break;
       case "cuil":
         if(props.accion === "Modifica") {
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ["30", "33", "34"].includes(value.substr(0,2)) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) })
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ["30", "33", "34"].includes(value.toString().slice(0,2)) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) })
           setCuilValidado(false);
         }else{
           setCuilValidado(false);
@@ -1817,7 +1821,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           setDialogTexto("");
           setPadronRespuesta(null);
           setCUITEmpresa("");
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: (["30", "33", "34"].includes(value.substr(0,2))) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) });
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ["30", "33", "34"].includes(value.toString().slice(0,2)) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) });
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
