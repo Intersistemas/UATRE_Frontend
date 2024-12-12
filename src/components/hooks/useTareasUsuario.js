@@ -28,10 +28,6 @@ export class TareasManager {
 	 */
 	hasTarea(tarea, rol) {
 
-		console.log("rol",rol);
-		console.log("this.#rolesAdmin",this.#rolesAdmin);
-
-
 		if (this.#esAdmin) return true;
 
 		if (rol && this.#rolesAdmin.find((t) => t.toUpperCase() === rol.toUpperCase())) return true;

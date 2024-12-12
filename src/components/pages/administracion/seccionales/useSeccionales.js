@@ -132,6 +132,15 @@ const useSeccionales = ({
 					},
 				};
 			}
+			case "Absorbe": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/SeccionalLocalidad/AbsorbeSeccionalLocalidades`,
+						method: "POST",
+					},
+				};
+			}
 			case "GetAllDelegaciones": {
 				return {
 					config: {
@@ -325,19 +334,24 @@ const useSeccionales = ({
 	if (list.selection.edit) {
 		form = (
 			<SeccionalesForm
+				request = {list.selection.request}
 				data={(() => {
 					//INIT DE DATOS DEL FORM
-					const data = ["A"].includes(list.selection.request) //INIT PARA ALTA
-						? {
-								
-						  }
-						: ["B"].includes(list.selection.request) //INIT PARA BAJA
-						? {
-								seccionalEstadoId: 5,// esto lo defino en el form
-								deletedDate: dayjs().format("DD-MM-YYYY"),
-								deletedBy: Usuario.nombre,
-						  }
-						: {};
+					const data = () => {
+							switch(list.selection.request){
+								case "B": //INIT PARA BAJA
+									return {
+										seccionalEstadoId: 5,// esto lo defino en el form
+										deletedDate: dayjs().format("DD-MM-YYYY"),
+										deletedBy: Usuario.nombre,
+									};
+								case "X": //INIT PARA ABSORBE
+									return {
+										seccionalEstadoId: 6,// esto lo defino en el form
+									};
+								default: return {}
+							}
+						}
 
 					return { ...list.selection.edit, ...data }; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
 				})()}
@@ -366,7 +380,7 @@ const useSeccionales = ({
 					return r;
 				})()}
 				hide={
-					["A", "M"].includes(list.selection.request)
+					["A", "M", "X"].includes(list.selection.request)
 						? { deletedObs: true,
 							deletedBy: true,
 							deletedDate: true, }
@@ -395,7 +409,7 @@ const useSeccionales = ({
 					applyChanges();
 				}}
 				onClose={(confirm) => {
-					if (!["A", "B", "M", "R"].includes(list.selection.request)) {
+					if (!["A", "B", "M", "R", "X"].includes(list.selection.request)) {
 						confirm = false;
 					}
 					if (!confirm) {
@@ -498,6 +512,15 @@ const useSeccionales = ({
 							query.params = { id: record.id };
 							query.config.body = record.seccionalEstadoId;
 							break;
+						case "X":
+							query.action = "Absorbe";
+							//query.params = { id: record.id };
+							query.config.body = {
+								seccionalIdAbsorbida: record.id,
+								seccionalIdAbsorbente: record.seccionalIdAbsorbente
+								// id: record.id, debo enviar la seccional absorvente y la absorvida
+							};
+							break;	
 						default:
 							break;
 					}
