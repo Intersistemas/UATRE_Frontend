@@ -35,6 +35,17 @@ const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	});
 //#endregion provinciaSelect Options
 
+//#region seccionalesSelect Options
+const seccionalDefOption = {};
+const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: `${r.codigo}-${r.descripcion}`, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//#endregion seccionalesSelect Options
+
 //#region localidadSelect Options
 const localidadDefOption = {};
 const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
@@ -140,6 +151,16 @@ const SeccionalesForm = ({
 			config: {
 				baseURL: "Comunes",
 				endpoint: `/RefDelegacion/GetAll`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+	const { setState: setSeccionalQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
 				method: "GET",
 			},
 		}),
@@ -297,6 +318,45 @@ const SeccionalesForm = ({
 	}, [delegacionSelect.buscar, delegacionSelect.data]);
 	//#endregion Select delegacionSelect
 
+	//#region Select seccional
+	const [seccionalSelect, setSeccionalSelect] = useState({
+		reload: true,
+		loading: null,
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: { record: { id: data.id } },
+		origen: "",
+	});
+
+	// Buscador
+	useEffect(() => {
+		if (request != "X")  return;
+		setSeccionalSelect((o) => {
+			const options = seccionalSelectOptions(o);
+			let selected = o.selected;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.descripcion != null
+						? (o) => includeSearch(o, `${record.codigo}-${record.descripcion}`)
+						: null ;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
+				}
+			}
+			return { ...o, options, selected, origen };
+		});
+	}, [seccionalSelect.buscar, seccionalSelect.data]);
+	//#endregion Select seccional
+
 	//#endregion Selects
 
 	//#region Carga inicial
@@ -396,6 +456,33 @@ const SeccionalesForm = ({
 	]);
 	//#endregion Carga inicial select provincias
 
+	//#region Carga inicial select seccional
+	useEffect(() => {
+		if (!seccionalSelect.reload || request != "X") return;
+		setSeccionalSelect((o) => ({
+			...o,
+			reload: false,
+			loading: "Cargando...",
+		}));
+		setSeccionalQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				console.log("setSeccionalQuery_ok",ok)
+				let data = [];
+				if (Array.isArray(ok)){
+					data = ok.filter((secc)=> secc.seccionalEstadoId === 1 );
+				} 
+				setSeccionalSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [seccionalSelect, setSeccionalQuery]);
+	//#endregion Carga inicial select seccional
+
 	//#region Carga inicial select delegacion
 	useEffect(() => {
 		if (!delegacionSelect.reload) return;
@@ -430,51 +517,39 @@ const SeccionalesForm = ({
 			<Modal.Body>
 				{ request == "X" ?
 				 <Grid  full gap="15px">
-						<SearchSelectMaterial
+						<InputMaterial
+							id="seccionalAbsorbida"
 							label="Seccional ABSORBIDA"
-							error={!!(localidadSelect.error || errors.refLocalidadesId)}
 							helperText={
-								localidadSelect.loading ??
-								localidadSelect.error ??
-								errors.refLocalidadesId
+								`se absorberán (${data.seccionalLocalidad.length}) localidades de esta seccional`
 							}
-							disabled={!!disabled.refLocalidadesId}
-							value={localidadSelect.selected}
-							onChange={(selected = localidadDefOption) => {
-								setLocalidadSelect((o) => ({
-									...o,
-									selected,
-									origen: "option",
-								}));
-								onChange({ refLocalidadesId: selected.value });
-							}}
-							options={localidadSelect.options}
-							onTextChange={(buscar) =>
-								setLocalidadSelect((o) => ({ ...o, buscar, origen: "text" }))
-							}
+							error={true}
+							value={`${data.codigo}-${data.descripcion}-${data.provinciaDescripcion}`}
+							disabled={true}
+
 						/>
 
 						<SearchSelectMaterial
 							label="Seccional ABSORBENTE"
-							error={!!(localidadSelect.error || errors.refLocalidadesId)}
+							error={!!(seccionalSelect.error || errors.id)}
 							helperText={
-								localidadSelect.loading ??
-								localidadSelect.error ??
-								errors.refLocalidadesId
+								seccionalSelect.loading ??
+								seccionalSelect.error ??
+								errors.id
 							}
-							disabled={!!disabled.refLocalidadesId}
-							value={localidadSelect.selected}
-							onChange={(selected = localidadDefOption) => {
-								setLocalidadSelect((o) => ({
+							disabled={!!disabled.id}
+							value={seccionalSelect.selected}
+							onChange={(selected = seccionalDefOption) => {
+								setSeccionalSelect((o) => ({
 									...o,
 									selected,
 									origen: "option",
 								}));
-								onChange({ refLocalidadesId: selected.value });
+								onChange({ seccionalIdAbsorbente: selected.value });
 							}}
-							options={localidadSelect.options}
+							options={seccionalSelect.options}
 							onTextChange={(buscar) =>
-								setLocalidadSelect((o) => ({ ...o, buscar, origen: "text" }))
+								setSeccionalSelect((o) => ({ ...o, buscar, origen: "text" }))
 							}
 						/>
 				 </Grid>
@@ -703,6 +778,7 @@ const SeccionalesForm = ({
 					loading={loading}
 					width={25}
 					onClick={() => onClose(true)}
+					disabled={(request == "X" && seccionalSelect.selected.value == data.id) || loading}
 				>
 					CONFIRMA
 				</Button>

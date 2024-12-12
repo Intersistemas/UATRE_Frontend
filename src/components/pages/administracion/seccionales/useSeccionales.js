@@ -132,6 +132,15 @@ const useSeccionales = ({
 					},
 				};
 			}
+			case "Absorbe": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/SeccionalLocalidad/AbsorbeSeccionalLocalidades`,
+						method: "POST",
+					},
+				};
+			}
 			case "GetAllDelegaciones": {
 				return {
 					config: {
@@ -505,8 +514,10 @@ const useSeccionales = ({
 							break;
 						case "X":
 							query.action = "Absorbe";
-							query.params = { id: record.id };
+							//query.params = { id: record.id };
 							query.config.body = {
+								seccionalIdAbsorbida: record.id,
+								seccionalIdAbsorbente: record.seccionalIdAbsorbente
 								// id: record.id, debo enviar la seccional absorvente y la absorvida
 							};
 							break;	
