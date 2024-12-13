@@ -805,6 +805,13 @@ const SeccionalesHandler = () => {
 				tarea: "Datos_SeccionalDocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		actions.push(
@@ -814,6 +821,13 @@ const SeccionalesHandler = () => {
 				tarea: "Datos_SeccionalDocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		setDocumentacionesActions(actions);
