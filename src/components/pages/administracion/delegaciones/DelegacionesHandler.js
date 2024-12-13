@@ -186,6 +186,13 @@ const DelegacionesHandler = () => {
 				tarea: "Datos_DelegacionDocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		actions.push(
@@ -195,6 +202,13 @@ const DelegacionesHandler = () => {
 				tarea: "Datos_DelegacionDocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		setDocumentacionesActions(actions);
@@ -209,7 +223,7 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !delegacionesSelected?.id,
-			params: { entidadTipo: "D", entidadId: delegacionesSelected?.id },
+			params: { entidadTipo: "D", entidadId: delegacionesSelected?.id, soloactivos: false },
 		});
 	}, [delegacionesSelected?.id, documentacionChanger]);
 	//#endregion

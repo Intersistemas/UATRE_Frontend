@@ -1,5 +1,6 @@
 import React from "react";
 import Table from "../ui/Table/Table";
+import Formato from "components/helpers/Formato";
 
 const selectionOnSelectDef = (_row, _isSelect, _index, _e) => {};
 
@@ -11,6 +12,7 @@ const DocumentacionTable = ({
 }) => {
 	const data = [];
 	initData.forEach((value, index) => {
+		console.log("value_row*",value)
 		data.push({ index: index, value: value });
 	});
 	initSelection.onSelect ??= selectionOnSelectDef;
@@ -32,7 +34,7 @@ const DocumentacionTable = ({
 		{
 			dataField: "refTipoDocumentacionId",
 			isDummyField: true,
-			text: "Tipo documentacion",
+			text: "Tipo Documentación",
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			formatter: (_cell, row, _rowIndex, _formatExtraDatas) =>
 				tipoList.find((r) => r.id === row.value.refTipoDocumentacionId)
@@ -41,10 +43,26 @@ const DocumentacionTable = ({
 		},
 		{
 			dataField: "value",
-			text: "Nombre del archivo",
+			text: "Nombre del Archivo",
 			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
 			formatter: (v) => v.nombreArchivo ?? "",
 			style: { ...cs },
+		},
+		{
+			dataField: "value",
+			text: "Fecha Baja",
+			formatter: (v) => Formato.Fecha(v.deletedDate) ?? "",
+			//formatter: (v) => Formato.FechaHora(v.nombreArchivo),
+			headerStyle: { width: "50px" },
+			style: (v) => {
+				const r = { textAlign: "center" };
+				if (v) {
+					r.background = "#ff6464cc";
+					r.color = "#FFF";
+				}
+				return r;
+			},
+			//sort: true,
 		},
 	];
 
