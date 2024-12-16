@@ -150,7 +150,7 @@ const DelegacionesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "D", entidadId: delegacionesSelected?.id },
+						record: { entidadTipo: "D", entidadId: delegacionesSelected?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -223,7 +223,7 @@ const DelegacionesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !delegacionesSelected?.id,
-			params: { entidadTipo: "D", entidadId: delegacionesSelected?.id, soloactivos: false },
+			params: { entidadTipo: "D", entidadId: delegacionesSelected?.id, soloactivos: true },
 		});
 	}, [delegacionesSelected?.id, documentacionChanger]);
 	//#endregion
