@@ -768,7 +768,7 @@ const SeccionalesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -844,7 +844,7 @@ const SeccionalesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 		});
 	}, [seccionalSelected?.id, documentacionChanger]);
 	//#endregion
