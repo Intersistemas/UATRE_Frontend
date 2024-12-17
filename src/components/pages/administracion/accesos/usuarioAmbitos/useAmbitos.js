@@ -190,9 +190,9 @@ const useAmbitos = () => {
 				}
 				onChange={(changes) =>
 					{
-						console.log('useAmbitos_onChange',changes)
 						const errors = {};
-						if (list?.data?.find((t)=> t.ambitoId === changes?.ambitoId && t.ambitoTipo === changes?.ambitoTipo) != null)
+						setList((old) => ({ ...old, loading: null }));
+						if (list?.data?.find((t)=> t.ambitoId === changes?.ambitoId && t.ambitoTipo === list.selection?.edit?.ambitoTipo) != null && list.selection?.edit?.ambitoTipo != "T")
 						{ 
 							 errors.ambitoId = "El Usuario ya posee este Ambito"
 							 errors.ambitoExiste = true
@@ -238,6 +238,16 @@ const useAmbitos = () => {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					}
 					
+
+					console.log('useAmbitos_onChange',list.selection.edit.ambitoTipo)
+					console.log('useAmbitos_onChange2',list.data)
+
+					if (list?.data?.find((t)=> t.ambitoTipo === "T" ) != null && list.selection.edit.ambitoTipo == "T")
+						{ 
+							 errors.ambitoTipo = "El Usuario ya posee este Ambito"
+							 errors.ambitoExiste = true
+						};
+
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
