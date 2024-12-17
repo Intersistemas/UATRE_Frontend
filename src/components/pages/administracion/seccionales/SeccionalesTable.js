@@ -29,7 +29,7 @@ const columnsDef = [
 		dataField: "domicilio",
 		text: "Dirección",
 	},
-	{
+	{ 
 		dataField: "email",
 		text: "Email",
 		headerStyle: { width: "4rem" },
