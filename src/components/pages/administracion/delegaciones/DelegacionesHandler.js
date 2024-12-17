@@ -67,8 +67,15 @@ const DelegacionesHandler = () => {
 				action: `Modifica Delegación ${desc}`,
 				request: "M",
 				tarea: "Datos_DelegacionModifica",
-				keys: "m",
-				underlineindex: 0,
+				...(delegacionesSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "m",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		actions.push(
@@ -76,8 +83,15 @@ const DelegacionesHandler = () => {
 				action: `Baja Delegación ${desc}`,
 				request: "B",
 				tarea: "Datos_DelegacionBaja",
-				keys: "b",
-				underlineindex: 0,
+				...(delegacionesSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "b",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		actions.push(
@@ -88,7 +102,7 @@ const DelegacionesHandler = () => {
 				underlineindex: 0,
 				disabled:
 					!delegacionesSelected.delegadoId &&
-					!delegacionesSelected.subDelegadoId,
+					!delegacionesSelected.subDelegadoId || delegacionesSelected?.deletedDate,
 				onExecute: () =>
 					setDelegacionesCarnets({
 						delegacion: delegacionesSelected,
@@ -214,7 +228,7 @@ const DelegacionesHandler = () => {
 		setDocumentacionesActions(actions);
 	}, [documentacionChanger, documentacionSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!delegacionesSelected || disableTabDocumentacion} />,
+		header: () => <Tab label="Documentacion" disabled={!delegacionesSelected || delegacionesSelected.deletedDate || disableTabDocumentacion} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -309,7 +323,7 @@ const DelegacionesHandler = () => {
 		setColaboradoresActions(actions);
 	}, [colaboradoresChanger, colaboradorSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || disableTabColaborador} />,
+		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || delegacionesSelected.deletedDate || disableTabColaborador} />,
 		body: colaboradoresTab,
 		actions: colaboradoresActions,
 	}); 
@@ -395,7 +409,7 @@ const DelegacionesHandler = () => {
 		setSeccionalesActions(actions);
 	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
+		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || delegacionesSelected.deletedDate || disableTabSeccional} />,
 		body: seccionalesRender,
 		actions: seccionalesActions,
 	});
