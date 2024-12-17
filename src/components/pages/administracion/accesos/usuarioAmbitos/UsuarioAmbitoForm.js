@@ -27,9 +27,10 @@ const UsuarioAmbitoForm = ({
 	data ??= {}; 
 	loading ??= false
 	console.log('Form_ambito_data:',data)
+	console.log("loading",loading)
 	 //console.log('data_ambito:',data)
 	 //console.log('delegaciones_ambito:',delegaciones)
-	//console.log('Form_ambito_errors:',errors)
+	console.log('Form_ambito_errors:',errors)
 	//console.log('Form_ambito_disabled:',disabled)
 	
 	disabled ??= {};
@@ -78,30 +79,25 @@ const UsuarioAmbitoForm = ({
 	const { isLoading, error, sendRequest: request } = useHttp();	
 
 	
-
-	 //#region Capturo errores
-	 useEffect(() => {
-		if (error) {
-		  setProcesando(false);
-		  return;
-		}    
-	  }, [error]);
-	//#endregion
-
 	 //#region Capturo errores
 	 useEffect(() => {
 	
-		  setProcesando(loading);
-		  return;
+		console.log("error3",error)
+		console.log("loading3",loading)
+			if (error) {
+				setProcesando(false);
+				return;
+			}  
+			setProcesando(loading);
+			return;
 		 
-	  }, [loading]);
+	  }, [loading,error,ambitosTipo.selected,ambitos.selected]);
 	//#endregion
 
 
 	//#region TRAIGO TODOS LOS AMBITOS DEL TIPO DE AMBITO
 	useEffect(() => {
 
-			
 			const query = {
 				baseURL: "",
 				endpoint: ``,
