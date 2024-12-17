@@ -67,8 +67,15 @@ const DelegacionesHandler = () => {
 				action: `Modifica Delegación ${desc}`,
 				request: "M",
 				tarea: "Datos_DelegacionModifica",
-				keys: "m",
-				underlineindex: 0,
+				...(delegacionesSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "m",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		actions.push(
@@ -76,8 +83,15 @@ const DelegacionesHandler = () => {
 				action: `Baja Delegación ${desc}`,
 				request: "B",
 				tarea: "Datos_DelegacionBaja",
-				keys: "b",
-				underlineindex: 0,
+				...(delegacionesSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "b",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		actions.push(
@@ -88,7 +102,7 @@ const DelegacionesHandler = () => {
 				underlineindex: 0,
 				disabled:
 					!delegacionesSelected.delegadoId &&
-					!delegacionesSelected.subDelegadoId,
+					!delegacionesSelected.subDelegadoId || delegacionesSelected?.deletedDate,
 				onExecute: () =>
 					setDelegacionesCarnets({
 						delegacion: delegacionesSelected,
