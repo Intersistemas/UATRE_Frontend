@@ -214,7 +214,7 @@ const DelegacionesHandler = () => {
 		setDocumentacionesActions(actions);
 	}, [documentacionChanger, documentacionSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!delegacionesSelected || disableTabDocumentacion} />,
+		header: () => <Tab label="Documentacion" disabled={!delegacionesSelected || delegacionesSelected.deletedDate || disableTabDocumentacion} />,
 		body: documentacionesTab,
 		actions: documentacionesActions,
 	});
@@ -309,7 +309,7 @@ const DelegacionesHandler = () => {
 		setColaboradoresActions(actions);
 	}, [colaboradoresChanger, colaboradorSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || disableTabColaborador} />,
+		header: () => <Tab label="Colaboradores" disabled={!delegacionesSelected || delegacionesSelected.deletedDate || disableTabColaborador} />,
 		body: colaboradoresTab,
 		actions: colaboradoresActions,
 	}); 
@@ -395,7 +395,7 @@ const DelegacionesHandler = () => {
 		setSeccionalesActions(actions);
 	}, [seccionalesRequest, seccionalesSelected, delegacionesSelected?.id]);
 	tabs.push({
-		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || disableTabSeccional} />,
+		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected || delegacionesSelected.deletedDate || disableTabSeccional} />,
 		body: seccionalesRender,
 		actions: seccionalesActions,
 	});

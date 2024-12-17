@@ -56,7 +56,7 @@ const DocumentacionTable = ({
 			headerStyle: { width: "50px" },
 			style: (v) => {
 				const r = { textAlign: "center" };
-				if (v) {
+				if (v.deletedDate) {
 					r.background = "#ff6464cc";
 					r.color = "#FFF";
 				}
