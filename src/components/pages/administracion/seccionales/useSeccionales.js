@@ -337,22 +337,12 @@ const useSeccionales = ({
 				request = {list.selection.request}
 				data={(() => {
 					//INIT DE DATOS DEL FORM
-					const data = () => {
-							switch(list.selection.request){
-								case "B": //INIT PARA BAJA
-									return {
-										seccionalEstadoId: 5,// esto lo defino en el form
-										deletedDate: dayjs().format("DD-MM-YYYY"),
-										deletedBy: Usuario.nombre,
-									};
-								case "X": //INIT PARA ABSORBE
-									return {
-										seccionalEstadoId: 6,// esto lo defino en el form
-									};
-								default: return {}
-							}
-						}
-
+					var data = list.selection.request == "B" ? {
+						deletedDate: dayjs().format("DD-MM-YYYY"),
+						deletedBy: Usuario.nombre,
+					}
+					: 
+					{};
 					return { ...list.selection.edit, ...data }; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
 				})()}
 				delegaciones={list.delegaciones}
@@ -430,11 +420,11 @@ const useSeccionales = ({
 
 					const record = { ...list.selection.edit };
 					
-					console.log("useSeccionakes_record",record)
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+						record.seccionalEstadoId = 5 //DEFINO EL ESTADO DE BAJA! se deberia hacer mediante la busquieda del id de baja
 					} 
 					
 					if (list.selection.request === "A" || list.selection.request === "M"){
@@ -452,8 +442,6 @@ const useSeccionales = ({
 					if (list.selection.request === "X") {
 						if (!record.seccionalIdAbsorbente) errors.seccionalIdAbsorbente = "Dato requerido";
 					} 
-
-					console.log("useSeccionales_errors",errors)
 
 					list.onEditValidate({
 						edit: record,
@@ -473,29 +461,26 @@ const useSeccionales = ({
 					}
 
 					const query = {
+						
 						config: {},
 						onOk: async (response) => {
+							setList((old) => ({ ...old, loading: "Cargando..." }));
+							console.log("list.onEditComplete",list.onEditComplete)
+							console.log("onEditCompleteDef",onEditCompleteDef)
+							/*
 							if (list.onEditComplete === onEditCompleteDef) {
+								console.log("true**")
 								request("list");
 							} else {
+								console.log("false**")
 								list.onEditComplete({
 									edit: { ...list.selection.edit },
 									response,
 									request: list.selection.request,
 								});
-							}
+							}*/
 						},
-						onError: async (err) =>
-							alert(
-								typeof err.message === "object"
-									? Object.keys(err.message)
-											.map((k) => `${k}: ${err.message[k]}`)
-											.join("\n")
-									: err.message
-							),
-						onFinally: async () => {
-							//console.log("onFinally")
-						}
+						onError: async (err) => alert(err.message),
 					};
 
 					console.log("useSeccionales_list.selection",list.selection)
@@ -515,6 +500,7 @@ const useSeccionales = ({
 							query.config.body = {
 								id: record.id,
 								deletedObs: record.deletedObs,
+								seccionalEstadoId: record.seccionalEstadoId
 							};
 							break;
 						case "R":
