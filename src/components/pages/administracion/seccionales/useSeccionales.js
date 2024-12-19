@@ -429,12 +429,15 @@ const useSeccionales = ({
 					}
 
 					const record = { ...list.selection.edit };
-
+					
+					console.log("useSeccionakes_record",record)
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-					} else {
+					} 
+					
+					if (list.selection.request === "A" || list.selection.request === "M"){
 						if (!record.codigo) errors.codigo = "Dato requerido";
 						if (!record.email) errors.email = "Dato requerido";
 						if (!record.domicilio) errors.domicilio = "Dato requerido";
@@ -445,6 +448,12 @@ const useSeccionales = ({
 						if (!record.descripcion) errors.descripcion = "Dato requerido";
 						if (!record.seccionalEstadoId) errors.seccionalEstadoId = "Dato requerido";
 					}
+
+					if (list.selection.request === "X") {
+						if (!record.seccionalIdAbsorbente) errors.seccionalIdAbsorbente = "Dato requerido";
+					} 
+
+					console.log("useSeccionales_errors",errors)
 
 					list.onEditValidate({
 						edit: record,
@@ -489,6 +498,7 @@ const useSeccionales = ({
 						}
 					};
 
+					console.log("useSeccionales_list.selection",list.selection)
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";

@@ -530,12 +530,14 @@ const SeccionalesForm = ({
 						/>
 
 						<SearchSelectMaterial
+							id="seccionalAbsorbente"
 							label="Seccional ABSORBENTE"
-							error={!!(seccionalSelect.error || errors.id)}
+							error={!!(seccionalSelect.error || errors.id || errors.seccionalIdAbsorbente)}
 							helperText={
 								seccionalSelect.loading ??
 								seccionalSelect.error ??
-								errors.id
+								errors.id ??
+								errors.seccionalIdAbsorbente
 							}
 							disabled={!!disabled.id}
 							value={seccionalSelect.selected}
