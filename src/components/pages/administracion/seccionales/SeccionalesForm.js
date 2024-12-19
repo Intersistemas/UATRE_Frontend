@@ -100,6 +100,23 @@ const SeccionalesForm = ({
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+	
+
+	const [procesando, setProcesando] = useState(loading);
+
+		 //#region Capturo errores
+		 useEffect(() => {
+
+			setProcesando(loading);
+
+			if (errors) {
+			  setProcesando(null);
+			  return;
+			}    
+		  }, [errors, loading]);
+		//#endregion
+	
+
 	const { setState: setEstadosQuery } = useQueryState(
 		() => ({
 			config: {
@@ -530,12 +547,14 @@ const SeccionalesForm = ({
 						/>
 
 						<SearchSelectMaterial
+							id="seccionalAbsorbente"
 							label="Seccional ABSORBENTE"
-							error={!!(seccionalSelect.error || errors.id)}
+							error={!!(seccionalSelect.error || errors.id || errors.seccionalIdAbsorbente)}
 							helperText={
 								seccionalSelect.loading ??
 								seccionalSelect.error ??
-								errors.id
+								errors.id ??
+								errors.seccionalIdAbsorbente
 							}
 							disabled={!!disabled.id}
 							value={seccionalSelect.selected}
@@ -775,10 +794,14 @@ const SeccionalesForm = ({
 			<Modal.Footer>
 				<Button
 					className="botonAzul"
-					loading={loading}
+					loading={procesando}
 					width={25}
-					onClick={() => onClose(true)}
-					disabled={(request == "X" && seccionalSelect.selected.value == data.id) || loading}
+					onClick={() => {
+						onClose(true)
+						setProcesando("Cargando...")
+					}
+					}
+					disabled={(request == "X" && seccionalSelect.selected.value == data.id) || procesando}
 				>
 					CONFIRMA
 				</Button>
