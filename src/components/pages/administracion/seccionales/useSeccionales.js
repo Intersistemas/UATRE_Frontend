@@ -72,7 +72,7 @@ const useSeccionales = ({
 } = {}) => {
 	//#region Trato queries a APIs
 	const Usuario = useContext(AuthContext).usuario;
-	
+	console.log("useSeccionales_Usuario,",Usuario)
 
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -517,7 +517,8 @@ const useSeccionales = ({
 							//query.params = { id: record.id };
 							query.config.body = {
 								seccionalIdAbsorbida: record.id,
-								seccionalIdAbsorbente: record.seccionalIdAbsorbente
+								seccionalIdAbsorbente: record.seccionalIdAbsorbente,
+								userId: Usuario.id
 								// id: record.id, debo enviar la seccional absorvente y la absorvida
 							};
 							break;	
