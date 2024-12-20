@@ -722,7 +722,7 @@ const SeccionalesHandler = () => {
 			);
 		}
 		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
+	}, [autoridadesChanger, autoridadSelected, seccionalSelected]);
 	tabs.push({
 		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
 		body: () => (
@@ -745,7 +745,7 @@ const SeccionalesHandler = () => {
 			clear: !seccionalSelected?.id,
 			params: { seccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
 		});
-	}, [seccionalSelected?.id, autoridadesChanger]);
+	}, [seccionalSelected, autoridadesChanger]);
 	//#endregion
 
 	//#region Tab documentaciones
@@ -817,7 +817,7 @@ const SeccionalesHandler = () => {
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id]);
+	}, [documentacionChanger, documentacionSelected, seccionalSelected]);
 
 
 	tabs.push({
@@ -832,7 +832,7 @@ const SeccionalesHandler = () => {
 			clear: !seccionalSelected?.id,
 			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
 		});
-	}, [seccionalSelected?.id, documentacionChanger]);
+	}, [seccionalSelected, documentacionChanger]);
 	//#endregion
 
 	//#region Tab SeccionalLocalidades
@@ -925,7 +925,7 @@ const SeccionalesHandler = () => {
 		}
 		
 		setSeccionalLocalidadesActions(actions);
-	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
+	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected]);
 
 	tabs.push({
 		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabLocalidad } />,
@@ -946,15 +946,15 @@ const SeccionalesHandler = () => {
 	}, [setLocalidadesQuery]);
 	//#endregion Carga inicial localidades
 
-	// Si cambia Seccional, refresco lista de documentación
+	// Si cambia Seccional, refresco lista de Localidades
 	useEffect(() => {
 		seccionalLocalidadesChanger("list", {
 			clear: !seccionalSelected?.id,
 			localidades: localidadesTodas,
 			//data: seccionalSelected?.seccionalLocalidad ?? [{}],
-			params: { seccionalId: seccionalSelected?.id,  soloactivos: false},
+			params: { seccionalId: seccionalSelected?.id,  soloactivos: true},
 		});
-	}, [localidadesTodas, seccionalSelected?.id, seccionalLocalidadesChanger]);
+	}, [localidadesTodas, seccionalSelected, seccionalLocalidadesChanger]);
 	//#endregion
 
 	//#region modulo y acciones
