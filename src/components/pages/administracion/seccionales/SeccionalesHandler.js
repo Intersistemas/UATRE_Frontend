@@ -295,6 +295,7 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
+		/*
 		actions.push(
 			createAction({
 				action: `Absorbe Seccional ${desc}`,
@@ -311,7 +312,7 @@ const SeccionalesHandler = () => {
 					}
 				)
 			})
-		);
+		);*/
 		
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
 	}, [seccionalChanger, seccionalSelected]);
