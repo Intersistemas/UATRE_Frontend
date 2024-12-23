@@ -189,7 +189,8 @@ function enviromentURLConfig(baseURL = "") {
 		return r;
 	}
 	baseURL = `${baseURL}`.toUpperCase();
-	const protocol = process.env[`REACT_APP_${baseURL}_PROTOCOL`]?.toLowerCase();
+	const base = enviromentURLConfig();
+	const protocol = process.env[`REACT_APP_${baseURL}_PROTOCOL`]?.toLowerCase() ?? base.protocol;
 	entries.push(["protocol", protocol]);
 	entries.push(["server", process.env[`REACT_APP_${baseURL}_SERVER`]]);
 	entries.push(["port", value(
@@ -200,7 +201,7 @@ function enviromentURLConfig(baseURL = "") {
 	)]);
 	entries.push(["path", process.env[`REACT_APP_${baseURL}_PATH`]]);
 	const r = {
-		...enviromentURLConfig(),
+		...base,
 		...Object.fromEntries(entries.filter(e => e[1]))
 	};
 	r.toString = () => toString(r);
