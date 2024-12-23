@@ -36,7 +36,7 @@ const AfiliadosDocumentaciones = (props) => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "A", entidadId: props.afiliado?.id, soloactivos: false },
+						record: { entidadTipo: "A", entidadId: props.afiliado?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -113,7 +113,7 @@ const AfiliadosDocumentaciones = (props) => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !props.afiliado?.id,
-			params: { entidadTipo: "A", entidadId: props.afiliado.id, soloactivos: false },
+			params: { entidadTipo: "A", entidadId: props.afiliado.id, soloactivos: true },
 		});
 	}, [props.afiliado, documentacionChanger]);
 	//#endregion
