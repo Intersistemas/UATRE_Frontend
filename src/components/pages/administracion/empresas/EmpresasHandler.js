@@ -181,7 +181,7 @@ const EmpresasHandler = () => {
 	useEffect(() => {
 		empresasRequest("list", {
 			params: paramsSend,
-			pagination: { size: 15 },
+			pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst,
 		});
 	}, [empresasRequest, paramsSend]);

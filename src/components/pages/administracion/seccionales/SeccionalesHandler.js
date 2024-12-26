@@ -548,7 +548,7 @@ const SeccionalesHandler = () => {
 	});
 
 	useEffect(() => {
-		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { size: 15 },
+		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst, });
 	}, [seccionalChanger, seccionalesParamsSend]);
 
