@@ -13,7 +13,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
-import useSeccionales from "./useSeccionales";
+import useSeccionales, { onLoadSelectKeepOrFirst } from "./useSeccionales";
 import LotePDFViewer from "./autoridades/Carnet/LotePDFViewer";
 
 //#region estadoSeccionalSelect Options
@@ -497,6 +497,7 @@ const SeccionalesHandler = () => {
 							JSON.stringify(seccionalesParamsEdit) ===
 							JSON.stringify(seccionalesParamsSend)
 						}
+						//</Grid>onClick={() => setSeccionalesParamsSend((o) => ({ ...o, ...seccionalesParamsEdit, ...{pageIndex: 1} }))
 						onClick={() => setSeccionalesParamsSend(seccionalesParamsEdit)}
 					>
 						Aplica filtro
@@ -547,8 +548,10 @@ const SeccionalesHandler = () => {
 	});
 
 	useEffect(() => {
-		seccionalChanger("list", { params: seccionalesParamsSend });
+		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { size: 15 },
+			onLoadSelect: onLoadSelectKeepOrFirst, });
 	}, [seccionalChanger, seccionalesParamsSend]);
+
 
 	//#region Carga inicial select estado seccional
 	useEffect(() => {
