@@ -41,7 +41,7 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 export const onLoadSelectKeep = ({ record }) => record;
 
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
-	record ? record : onLoadSelectFirst({ data, multi, record });
+	record ?? onLoadSelectFirst({ data, multi, record });
 
 export const onDataChangeDef = (data = []) => {};
 
