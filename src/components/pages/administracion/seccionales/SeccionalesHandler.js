@@ -549,7 +549,7 @@ const SeccionalesHandler = () => {
 	});
 
 	useEffect(() => {
-		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { size: 15 },
+		  seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst, });
 	}, [seccionalChanger, seccionalesParamsSend]);
 
@@ -639,8 +639,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Autoridad ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalAutoridadesAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const sele = autoridadSelected?.id;
@@ -663,8 +670,7 @@ const SeccionalesHandler = () => {
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
 				tarea: "Datos_SeccionalAutoridadesModifica",
-
-				...(autoridadSelected?.deletedDate ? 
+				...(autoridadSelected?.deletedDate || seccionalSelected.seccionalAbsorbenteId  ?
 					{disabled:  true}
 					:
 					{
@@ -681,8 +687,15 @@ const SeccionalesHandler = () => {
 					action: `Reactiva Autoridad ${seleDesc}`,
 					request: "R",
 					tarea: "Datos_SeccionalAutoridadesReactiva",
-					keys: "r",
-					underlineindex: 0,
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "r",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		} else {
@@ -691,7 +704,7 @@ const SeccionalesHandler = () => {
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
 					tarea: "Datos_SeccionalAutoridadesBaja",
-					...(autoridadSelected?.deletedDate ? 
+					...(autoridadSelected?.deletedDate || seccionalSelected.seccionalAbsorbenteId ? 
 						{disabled:  true}
 						:
 						{
@@ -706,8 +719,6 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Imprime carnet de autoridad ${seleDesc}`,
 					tarea: "Datos_SeccionalAutoridadesImprime",
-					keys: "i",
-					underlineindex: 0,
 					onExecute: () => setAutoridadesImprime({
 						seccional: [seccionalSelected].map((s) => ({
 							id: s.id,
@@ -721,7 +732,16 @@ const SeccionalesHandler = () => {
 							nroAfiliado: a.afiliadoNumero,
 							cargo: a.refCargosDescripcion,
 						})),
-					})
+					}),
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "i",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		}
@@ -783,8 +803,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalDocumentacionAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const docu = documentacionSelected?.id;
@@ -807,13 +834,14 @@ const SeccionalesHandler = () => {
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
 				tarea: "Datos_SeccionalDocumentacionModifica",
-				keys: "m",
-				underlineindex: 0,
-				...(documentacionSelected?.deletedDate ? 
+
+				...(seccionalSelected?.seccionalAbsorbenteId || documentacionSelected?.deletedDate ? 
 					{disabled:  true}
 					:
 					{
 					 disabled:  false,
+					 keys: "m",
+					 underlineindex: 0
 					}
 				)
 			})
@@ -823,13 +851,13 @@ const SeccionalesHandler = () => {
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
 				tarea: "Datos_SeccionalDocumentacionBaja",
-				keys: "b",
-				underlineindex: 0,
-				...(documentacionSelected?.deletedDate ? 
+				...(seccionalSelected?.seccionalAbsorbenteId  || documentacionSelected?.deletedDate ? 
 					{disabled:  true}
 					:
 					{
 					 disabled:  false,
+					 keys: "b",
+					 underlineindex: 0
 					}
 				)
 			})
@@ -884,8 +912,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Localidad ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalLocalidadAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const docu = seccionalLocalidadesSelected?.codigo;
@@ -919,8 +954,15 @@ const SeccionalesHandler = () => {
 					action: `Reactiva Localidad ${docuDesc}`,
 					tarea: "Datos_SeccionalLocalidadReactiva",
 					request: "R",
-					keys: "r",
-					underlineindex: 0,
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "r",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		} else {
@@ -929,7 +971,7 @@ const SeccionalesHandler = () => {
 					action: `Baja Localidad ${docuDesc}`,
 					request: "B",
 					tarea: "Datos_SeccionalLocalidadBaja",
-					...(seccionalLocalidadesSelected?.deletedDate ? 
+					...(seccionalLocalidadesSelected?.deletedDate || seccionalSelected?.seccionalAbsorbenteId ? 
 						{disabled:  true}
 						:
 						{
