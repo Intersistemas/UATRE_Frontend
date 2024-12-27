@@ -295,7 +295,6 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
-		/*
 		actions.push(
 			createAction({
 				action: `Absorbe Seccional ${desc}`,
@@ -312,7 +311,7 @@ const SeccionalesHandler = () => {
 					}
 				)
 			})
-		);*/
+		);
 		
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
 	}, [seccionalChanger, seccionalSelected]);
@@ -549,7 +548,7 @@ const SeccionalesHandler = () => {
 	});
 
 	useEffect(() => {
-		  seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
+		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst, });
 	}, [seccionalChanger, seccionalesParamsSend]);
 
