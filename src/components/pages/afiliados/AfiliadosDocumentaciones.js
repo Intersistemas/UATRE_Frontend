@@ -73,6 +73,13 @@ const AfiliadosDocumentaciones = (props) => {
 				tarea: "Afiliaciones_DocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		actions.push(
@@ -82,6 +89,14 @@ const AfiliadosDocumentaciones = (props) => {
 				tarea: "Afiliaciones_DocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
+				
 			})
 		);
 		setDocumentacionesActions(actions);

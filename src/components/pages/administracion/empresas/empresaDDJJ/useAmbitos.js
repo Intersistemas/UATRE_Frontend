@@ -186,6 +186,7 @@ const useAmbitos = () => {
 				onChange={(changes) =>
 					{
 						console.log('useAmbitos_onChange',changes)
+						console.log('useAmbitos_onChange2',list?.data)
 						const errors = {};
 						if (list?.data?.find((t)=> t.ambitoId === changes?.ambitoId && t.ambitoTipo === changes?.ambitoTipo) != null)
 						{ 
@@ -232,6 +233,10 @@ const useAmbitos = () => {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
 					}
 					
+
+					console.log("useAmbitos_record:",record)
+					console.log("useAmbitos_selected:",list?.data)
+
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,

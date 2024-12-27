@@ -791,7 +791,7 @@ const SeccionalesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -833,7 +833,8 @@ const SeccionalesHandler = () => {
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
 				tarea: "Datos_SeccionalDocumentacionModifica",
-				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+
+				...(seccionalSelected?.seccionalAbsorbenteId || documentacionSelected?.deletedDate ? 
 					{disabled:  true}
 					:
 					{
@@ -849,7 +850,7 @@ const SeccionalesHandler = () => {
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
 				tarea: "Datos_SeccionalDocumentacionBaja",
-				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+				...(seccionalSelected?.seccionalAbsorbenteId  || documentacionSelected?.deletedDate ? 
 					{disabled:  true}
 					:
 					{
@@ -874,7 +875,7 @@ const SeccionalesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 		});
 	}, [seccionalSelected, documentacionChanger]);
 	//#endregion
