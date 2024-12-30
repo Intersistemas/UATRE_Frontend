@@ -396,7 +396,13 @@ const SeccionalesForm = ({
 			...o,
 			onLoad: ({ ok, error }) => {
 				let data = [];
-				if (Array.isArray(ok)) data = ok;
+				if (Array.isArray(ok)){
+					request == "B" ||  request == "C"?
+					data = ok
+					:
+					data = ok.filter(e => e.descripcion != 'BAJA');
+				} 
+				console.log("data_estados:",data)
 				setEstadoSelect((o) => ({
 					...o,
 					loading: null,
