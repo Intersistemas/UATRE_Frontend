@@ -24,7 +24,6 @@ import FormatearFecha from "components/helpers/FormatearFecha";
 			headerStyle: { width: "7rem", textAlign: "center" },
 		}
 	].map((r) => ({
-		searchable: false,
 		headerTitle: () => r.text,
 		headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },
 		style: (value, row) => row.deletedDate ? {color: "red"} : '',
