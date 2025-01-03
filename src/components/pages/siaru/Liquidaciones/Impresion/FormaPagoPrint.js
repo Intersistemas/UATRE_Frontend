@@ -6,8 +6,9 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
-import FormaPagoViewer0 from "./0/FormaPagoViewer";
-import FormaPagoViewer1 from "./1/FormaPagoViewer";
+// import FormaPagoViewer0 from "./0/FormaPagoViewer";
+// import FormaPagoViewer1 from "./1/FormaPagoViewer";
+import FormaPagoViewerUnion from "./unionSindicalSolidario/FormaPagoViewer";
 import dayjs from "dayjs";
 import Formato from "components/helpers/Formato";
 
@@ -260,10 +261,10 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			</Grid>
 		);
 	} else {
-		const Viewer =
-			{ 1: FormaPagoViewer1 }[
-				formaPagoSelect.selected.data.modeloImpresionLiquidacion
-			] ?? FormaPagoViewer0;
+		const Viewer = FormaPagoViewerUnion
+			// { 1: FormaPagoViewer1 }[
+			// 	formaPagoSelect.selected.data.modeloImpresionLiquidacion
+			// ] ?? FormaPagoViewer0;
 		contenido = (
 			<Viewer cabecera={liquidacionCabecera} formasPago={formaPago.data} />
 		);

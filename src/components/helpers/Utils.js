@@ -296,3 +296,32 @@ export const tryJSONParse = (string, onOk = () => {}, onError = () => {}) => {
 	onOk(json);
 	return json;
 }
+
+/**
+ * Inserta value en index dentro de base.
+ * @param {string} base Cadena a la que se le insertará otra cadena.
+ * @param {number} index Numero de indice basado en cero que indica el inicio de valor en base.
+ * @param {string} value Cadena a ser insertada en base.
+ * @param {string} filler Caraceteres con los cuales completar la posible separación de base y value.
+ * @return {string} Cadena resultado de insertar value en el indice de base.
+ */
+export const insertString = (base, index, value, filler = " ") => {
+	const uIndex = index < 0 ? -index : index;
+	const parts = Array.from({ length: 3 }, () => "");
+	let fillerChars = 0;
+	if (index > 0) {
+		parts[0] = base.substring(0, uIndex);
+		parts[2] = value;
+		fillerChars = uIndex - base.length;
+	} else {
+		parts[0] = value
+		fillerChars = uIndex - value.length;
+	}
+	const absLen = value.length + index;
+	if (absLen > 0 && absLen < base.length); parts[2] += base.substring(absLen);
+	if (fillerChars > 0 && filler.length > 0) {
+		if (fillerChars > filler.length) filler = filler.repeat(1 + (fillerChars / filler.length));
+		parts[1] = filler.substring(0, fillerChars);
+	}
+	return parts.join("");
+}
