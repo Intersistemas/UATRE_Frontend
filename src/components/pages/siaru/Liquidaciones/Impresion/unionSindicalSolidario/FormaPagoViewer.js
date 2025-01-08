@@ -6,7 +6,7 @@ import FormaPagoPDF from "./FormaPagoPDF";
 import Formato from "components/helpers/Formato";
 import { insertString } from "components/helpers/Utils";
 
-const FormaPagoViewer = ({ cabecera = {}, formasPago = [] }) => {
+const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -200,6 +200,10 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [] }) => {
 				r.capital += formaPago.capital;
 				r.intereses += formaPago.intereses;
 				r.total += formaPago.total;
+				Object.entries(formaPago).forEach(([k, v]) => {
+					if (r[k] !== undefined) return;
+					r[k] = v;
+				});
 				return r;
 			}
 			const r = {
@@ -213,7 +217,19 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [] }) => {
 		})();
 		AsArray(formaPago.lineas).forEach((linea) => {
 			linea.seccional = seccionales.find(({ id }) => id === linea.seccionalId) ?? seccional;
-			newFormaPago.lineas.push({...linea});
+			//unifico lineas por seccional
+			const newFormaPagolineaIx = newFormaPago.lineas.findIndex(l => l.seccional?.id === linea.seccional.id);
+			if (newFormaPagolineaIx === -1)
+			{
+				newFormaPago.lineas.push({ ...linea });
+				return;
+			}
+			const oldLinea = newFormaPago.lineas[newFormaPagolineaIx];
+			oldLinea.trabajadores += linea.trabajadores;
+			oldLinea.remuneraciones += linea.remuneraciones;
+			oldLinea.capital += linea.capital;
+			oldLinea.intereses += linea.intereses;
+			oldLinea.total += linea.total;
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
@@ -230,6 +246,7 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [] }) => {
 				cabecera={newCabecera}
 				empresa={empresa}
 				formasPago={newFormasPago}
+				modelo={modelo}
 			/>
 		</PDFViewer>
 	);
