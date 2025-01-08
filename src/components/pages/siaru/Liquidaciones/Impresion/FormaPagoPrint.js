@@ -266,7 +266,11 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			// 	formaPagoSelect.selected.data.modeloImpresionLiquidacion
 			// ] ?? FormaPagoViewer0;
 		contenido = (
-			<Viewer cabecera={liquidacionCabecera} formasPago={formaPago.data} />
+			<Viewer
+				cabecera={liquidacionCabecera}
+				formasPago={formaPago.data}
+				modelo={formaPagoSelect.selected.data.modeloImpresionLiquidacion}
+			/>
 		);
 	}
 
