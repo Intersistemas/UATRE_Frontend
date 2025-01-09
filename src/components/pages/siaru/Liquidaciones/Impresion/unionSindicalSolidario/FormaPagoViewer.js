@@ -195,11 +195,11 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 				r.seccionalId = seccional.id;
 				r.seccionalCodigo = seccional.codigo;
 				r.seccionalDescripcion = seccional.descripcion;
-				r.trabajadores += formaPago.trabajadores;
-				r.remuneraciones += formaPago.remuneraciones;
-				r.capital += formaPago.capital;
-				r.intereses += formaPago.intereses;
-				r.total += formaPago.total;
+				r.trabajadores += formaPago.trabajadores ?? 0;
+				r.remuneraciones += formaPago.remuneraciones ?? 0;
+				r.capital += formaPago.capital ?? 0;
+				r.intereses += formaPago.intereses ?? 0;
+				r.total += formaPago.total ?? 0;
 				Object.entries(formaPago).forEach(([k, v]) => {
 					if (r[k] !== undefined) return;
 					r[k] = v;
@@ -212,6 +212,11 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 				liquidacionTipoPagoDescripcion: "Union",
 				lineas: []
 			};
+			r.trabajadores ??= 0;
+			r.remuneraciones ??= 0;
+			r.capital ??= 0;
+			r.intereses ??= 0;
+			r.total ??= 0;
 			newFormasPago.push(r);
 			return r;
 		})();
@@ -221,15 +226,21 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 			const newFormaPagolineaIx = newFormaPago.lineas.findIndex(l => l.seccional?.id === linea.seccional.id);
 			if (newFormaPagolineaIx === -1)
 			{
-				newFormaPago.lineas.push({ ...linea });
+				const newLinea = { ...linea };
+				newLinea.trabajadores ??= 0;
+				newLinea.remuneraciones ??= 0;
+				newLinea.capital ??= 0;
+				newLinea.intereses ??= 0;
+				newLinea.total ??= 0;
+				newFormaPago.lineas.push(newLinea);
 				return;
 			}
 			const oldLinea = newFormaPago.lineas[newFormaPagolineaIx];
-			oldLinea.trabajadores += linea.trabajadores;
-			oldLinea.remuneraciones += linea.remuneraciones;
-			oldLinea.capital += linea.capital;
-			oldLinea.intereses += linea.intereses;
-			oldLinea.total += linea.total;
+			oldLinea.trabajadores += linea.trabajadores ?? 0;
+			oldLinea.remuneraciones += linea.remuneraciones ?? 0;
+			oldLinea.capital += linea.capital ?? 0;
+			oldLinea.intereses += linea.intereses ?? 0;
+			oldLinea.total += linea.total ?? 0;
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
