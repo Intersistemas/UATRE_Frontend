@@ -54,7 +54,7 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 		cuit: cabecera.empresaCUIT,
 		seccionales: (() => {
 			const seccionales = [];
-			formasPago.forEach((formaPago) =>
+			AsArray(formasPago, true).forEach((formaPago) =>
 				seccionales.push(...AsArray(formaPago.lineas).map((r) => r.seccionalId))
 			);
 			return seccionales.filter((v, i, a) => a.indexOf(v) === i);
@@ -244,7 +244,7 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
-	if (newFormaPago.codigoBarra?.length === 80) {
+	if (formasPago.length > 1 && newFormaPago.codigoBarra?.length === 80) {
 		// Rearmo codigo de barras de acuerdo al recálulo producto de la union de las formas de pago.
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 4, Formato.Mascara(newFormaPago.liquidacionTipoPagoId, "#"));
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 39, Formato.Mascara(newFormaPago.total * 100, "#########"));
