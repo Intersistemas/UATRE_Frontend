@@ -48,7 +48,8 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 				return {
 					config: {
 						baseURL: "SIARU",
-						endpoint: `/LiquidacionesFormasPago`,
+						// endpoint: `/LiquidacionesFormasPago`,
+						endpoint: `/LiquidacionesFormasPago/CreateOrUpdate`,
 						method: "POST",
 					},
 				};
@@ -85,41 +86,10 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		pushQuery({
 			action: "GetFormasPago",
 			onOk: async (data) => {
+				changes.loading = null;
 				if (Array.isArray(data)) {
-					changes.loading = "Cargando formas de pago generadas ...";
-					setFormasPago((o) => ({ ...o, ...changes }));
-					pushQuery({
-						action: "GetLiquidacionFormasPago",
-						params: { liquidacionCabeceraId: formasPago.liquidacionCabeceraId },
-						onOk: async (ok) => {
-							if (!Array.isArray(ok))
-								return console.error("Se esperaba un arreglo.", { ok });
-							ok.forEach((r) => {
-								let fp = data.find((d) => d.id === r.refFormasPagoId);
-								if (fp == null) {
-									fp = {
-										id: r.refFormasPagoId,
-										descripcion: `Forma pago ${r.refFormasPagoId}`,
-									};
-									data.push(fp);
-								}
-								fp.cabeceras ??= [];
-								fp.cabeceras.push(r);
-							});
-						},
-						onError: async (error) => {
-							changes.error = [changes.error, error.toString()]
-								.filter((e) => e)
-								.join("\n");
-						},
-						onFinally: async () => {
-							changes.loading = null;
-							changes.data = data;
-							setFormasPago((o) => ({ ...o, ...changes }));
-						},
-					});
+					changes.data = data;
 				} else {
-					changes.loading = null;
 					console.error("Se esperaba un arreglo.", { data });
 				}
 			},
@@ -191,17 +161,18 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		//Ya se cargó la forma de pago
 		if (formaPago.data != null) return;
 
-		if (formaPagoSelect.selected.data?.cabeceras) {
-			// La Liq. ya tiene generadas la forma de pago seleccionada
-			return setFormaPago((o) => ({
-				...o,
-				loading: null,
-				data: formaPagoSelect.selected.data.cabeceras,
-				error: null,
-			}));
-		}
+		// Siempre envío la información, de esa forma se asegura que siempre quedan actualizados los datos
+		// if (formaPagoSelect.selected.data?.cabeceras) {
+		// 	// La Liq. ya tiene generadas la forma de pago seleccionada
+		// 	return setFormaPago((o) => ({
+		// 		...o,
+		// 		loading: null,
+		// 		data: formaPagoSelect.selected.data.cabeceras,
+		// 		error: null,
+		// 	}));
+		// }
 
-		// Hay que generar la forma de pago seleccionada para la Liq.
+		// Genero/actualizo/obtengo la forma de pago seleccionada para la Liq.
 		const changes = { loading: "Cargando...", data: null, error: null };
 		setFormaPago((o) => ({ ...o, ...changes }));
 		pushQuery({
@@ -212,7 +183,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 					refFormasPagoId: formaPagoSelect.selected.value,
 				}
 			},
-			onOk: async (data) => (changes.data = data),
+			onOk: async (data) => (changes.data = [data]),
 			onError: async (error) => (changes.error = error.toString()),
 			onFinally: async () => {
 				changes.loading = null;
