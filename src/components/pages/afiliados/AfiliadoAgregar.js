@@ -310,6 +310,7 @@ const onLoadedDef = ({ data, error }) => {};
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [errorAFIP, setErrorAFIP] = useState(false);
+  const [consultaPadronCUILOk, setConsultaPadronCUILOk] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
@@ -1651,16 +1652,20 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			setInputsTouched(true);
     };
     
-    request(      
-      {        
-        baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${
-          afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
-        }&VerificarHistorico=${false}`,
-        method: "GET",
-      },
-      processConsultaPadron
-    );
+	request(
+		{
+			baseURL: "Comunes",
+			endpoint: `/AFIPConsulta?CUIT=${afiliado?.cuilValidado
+					? afiliado?.cuilValidado
+					: cuilState.value
+				}&VerificarHistorico=${false}`,
+			method: "GET",
+		},
+		async (response) => {
+			processConsultaPadron(response);
+			setConsultaPadronCUILOk(true);
+		}
+	);
   };
 
   const validarEmpresaCUITHandler = () => {
@@ -1840,6 +1845,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           dispatchActividad({ type: "USER_INPUT", value: "" });
           dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: ""});
         }
+		setConsultaPadronCUILOk(false);
 
         break;
 
@@ -1984,14 +1990,11 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
     const InputDisabled = (input) => {
 
-    
-    if (input !== "cuil" && props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3){
-      return true
-    }
-
-    if (input !== "cuil" && cuilState.value === "") {
-      return true;
-    }
+	if (input !== "cuil") {
+		if (props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3) return true;
+		if (cuilState.value === "") return true;
+		if (!consultaPadronCUILOk) return true;
+	}
 
     if (!input && !cuilState.isValid) {
       return true;
