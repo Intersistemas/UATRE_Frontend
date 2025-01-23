@@ -370,7 +370,6 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 				query.config = {
 					body: {
 						...newSelection.params,
-						estadoSolicitudId: 2,
 						pageIndex: index + 1,
 						pageSize: size,
 					},
