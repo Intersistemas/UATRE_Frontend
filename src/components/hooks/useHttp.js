@@ -42,11 +42,10 @@ const def = {
 	takeFinallyAsync,
 };
 
-const useHttp = () => {   
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null)
-
-    const sendRequest = useCallback(
+const useHttp = () => {
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState(null)
+	const sendRequest = useCallback(
 			async (
 				{
 					baseURL = "",
@@ -63,43 +62,11 @@ const useHttp = () => {
 				takeError = def.takeError,
 				takeFinally = def.takeFinally,
 			) => {
-        setIsLoading(true);
-        setError(null)
-        let url = ''
+				setIsLoading(true);
+				setError(null)
 
-        //DONDE HARÁ EL DEPLOY??
-        const servidor =  process.env.REACT_APP_URL_BASE; 
-	
-        switch (baseURL) {
-          case "Comunes":
-              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}02/api`;
-              break;
-          case "Afiliaciones":
-              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}00/api`;
-              break;
-          case "DDJJ":
-              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}03/api`;
-              break;
-          case "SIARU":
-              url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}01/api`;
-              break;
-          case 'Seguridad':
-              url = `${servidor}:8${servidor.includes("https") ?`9`:`8`}00/api`;
-              break;
-          case 'Auditoria':
-              url = `${servidor}:8${servidor.includes("https") ?`9`:`8`}02/api`;
-              break;
-          case 'Estadisticas':
-			        url = `${servidor}:8${servidor.includes("https") ?`3`:`2`}05/api`;
-              break;
-          case "MOCK-SIARU":
-              url = `https://b1b923bc-149b-4f82-9ce4-2c1d0e7dec43.mock.pstmn.io/api`;
-              break;
-		  default:
-			  break;
-        }
+				const url = enviromentURL(baseURL);
 
-        //Configuracion fetch
 				const config = {
 					method,
 					headers: {
@@ -179,12 +146,67 @@ const useHttp = () => {
 			},
 			[]
 		);
-
-    return {
-        isLoading, 
-        error,
-        sendRequest,
-    };
+	return { isLoading, error, sendRequest };
 };
+
+/**
+ * Obtiene configuraciones de url de entorno
+ * @param {*} baseURL Enviroment name: REACT_APP_< env >_< ... >
+ * @returns { {
+ * 	protocol: string,
+ * 	server: string,
+ * 	port?: int,
+ * 	path?: string,
+ * 	toString: () => string
+ * } }
+ */
+function enviromentURLConfig(baseURL = "") {
+	const entries = [];
+	const value = (v, d = v) => v ? v : d;
+	const toString = (o) => [
+		o.protocol
+		, [
+			[
+				o.server
+				, o.port
+			].filter(e => e).join(":")
+			, o.path
+		].filter(e => e).join("/")
+	].filter(e => e).join("://");
+	if (!baseURL) {
+		const protocol = value(process.env.REACT_APP_PROTOCOL?.toLowerCase(), "http");
+		entries.push(["protocol", protocol]);
+		entries.push(["server", value(process.env.REACT_APP_SERVER, "localhost")]);
+		entries.push(["port", value(
+			protocol === "https"
+				? process.env.REACT_APP_PORT_SECURE
+				: null
+			, process.env.REACT_APP_PORT
+		)]);
+		entries.push(["path", process.env.REACT_APP_PATH]);
+		const r = Object.fromEntries(entries);
+		r.toString = () => toString(r);
+		return r;
+	}
+	baseURL = `${baseURL}`.toUpperCase();
+	const protocol = process.env[`REACT_APP_${baseURL}_PROTOCOL`]?.toLowerCase();
+	entries.push(["protocol", protocol]);
+	entries.push(["server", process.env[`REACT_APP_${baseURL}_SERVER`]]);
+	entries.push(["port", value(
+		protocol === "https"
+			? process.env[`REACT_APP_${baseURL}_PORT_SECURE`]
+			: null
+		, process.env[`REACT_APP_${baseURL}_PORT`]
+	)]);
+	entries.push(["path", process.env[`REACT_APP_${baseURL}_PATH`]]);
+	const r = {
+		...enviromentURLConfig(),
+		...Object.fromEntries(entries.filter(e => e[1]))
+	};
+	r.toString = () => toString(r);
+	return r;
+}
+
+function enviromentURL(baseURL = "") { return enviromentURLConfig(baseURL).toString(); }
 
 export default useHttp;

@@ -309,6 +309,8 @@ const onLoadedDef = ({ data, error }) => {};
 
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
+  const [errorAFIP, setErrorAFIP] = useState(false);
+
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
 
@@ -441,8 +443,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
   //#region Texto completar campos
   const TextCompletarCampos = () => {
-    console.log("texto dialog estadocivil", estadoCivilState.isValid);
-    setDialogTexto(`Se debe completar todos los campos:\n
+    //console.log("texto dialog estadocivil", estadoCivilState.isValid);
+    setDialogTexto(`Se deben completar todos los campos:\n
       ${!cuilState.isValid ? "*CUIL\n" : ""}
       ${!nombreState.isValid ? "*Nombre\n" : ""}
       ${!fechaNacimientoState.isValid ? "*Fecha de Nacimiento\n" : ""}
@@ -453,6 +455,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       ${!provinciaState.isValid ? "*Provincia\n" : ""}
       ${!localidadState.isValid ? "*Localidad\n" : ""}
       ${!seccionalState.isValid ? "*Seccional\n" : ""}      
+      ${!actividadState.isValid ? "*Actividad\n" : ""}
+      ${!seccionalSolicitudAfiliacionState.isValid ? "*Seccional Solicita Afiliación\n" : ""}      
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
   };
@@ -472,14 +476,29 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setCUILLoading(false);
         setDialogTexto(`Error - ${error.message}`);
         setOpenDialog(true);
+       
       }
 
-      if (error.code === 404 && cuilLoading) {
+
+      console.log("error*",error)
+      if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
-          `Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
+          `No se pudo conectar con AFIP, se habilita la carga MANUAL del Afiliado`
         );
         setOpenDialog(true);
+        setErrorAFIP(false); // afip no respondio no se considera un error para impedir la carga
+      }
+
+      if (error?.code === 404 && cuilLoading && error?.data?.statusCode !== 408) {
+        console.log("error",error)
+        setCUILLoading(false);
+        setDialogTexto(
+         //`Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
+         `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)` : error?.message) : "Error consultando AFIP"}`
+        );
+        setOpenDialog(true);
+        setErrorAFIP(true);
       }
 
       if (error.code === 404 && cuitLoading) {
@@ -573,8 +592,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       if (
         cuilState.isValid &&
         nombreState.isValid &&
-        nacionalidadState.isValid &&
-        fechaNacimientoState.isValid &&
         estadoCivilState.isValid &&
         sexoState.isValid &&
         tipoDocumentoState.isValid &&
@@ -582,7 +599,10 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         domicilioState.isValid &&
         provinciaState.isValid &&
         localidadState.isValid &&
-        seccionalState.isValid 
+        seccionalState.isValid &&
+        fechaNacimientoState.isValid &&
+        nacionalidadState.isValid
+       // && actividadState.isValid
       ) {
         setFormularioIsValid(true);
       } else {
@@ -604,7 +624,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     provinciaState,
     localidadState,
     seccionalState,
-    puestoState,
+    //puestoState,
+    actividadState,
     fechaNacimientoState,
     nacionalidadState,
   ]);
@@ -1216,7 +1237,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     //event.preventDefault();
 
     setInputsTouched(true);
-    if (!formularioIsValid || !formularioEmpleadorIsValid) {
+    if (!formularioIsValid || !formularioEmpleadorIsValid || !actividadState.isValid || !seccionalSolicitudAfiliacionState.isValid) {
       //console.log("formularioIsValid", formularioIsValid);
       setOpenDialog(true);
       TextCompletarCampos();
@@ -1443,9 +1464,10 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
     const processConsultaPadron = async (padronObj) => {
       console.log("padronObj", padronObj);
+      setErrorAFIP(false);
       //moment(padronRespuesta?.fechaFallecimiento).includes("0001-01-01") ? null : padronRespuesta?.fechaFallecimiento,
       setCUILLoading(false);
-      if (padronObj.fechaFallecimiento !== "0001-01-01T00:00:00") {
+      if (padronObj?.fechaFallecimiento && padronObj?.fechaFallecimiento !== "0001-01-01T00:00:00" ) {
         setCUILLoading(false);
         setDialogTexto(`Error validando CUIL - Persona fallecida`);
         setOpenDialog(true);
@@ -1947,7 +1969,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     return false;
   };
 
-  const InputDisabled = (input) => {
+    const InputDisabled = (input) => {
 
     
     if (input !== "cuil" && props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3){
@@ -1980,6 +2002,8 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
+
+    if (errorAFIP) disable = true;
 
     if (padronRespuesta?.tipoPersona == "JURIDICA")  disable = true;
 

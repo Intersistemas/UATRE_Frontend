@@ -105,7 +105,7 @@ const DatosAfip = (props) => {
           <InputMaterial
             mask={CUITMask}
             id="cuilAFIP"
-            value={cuilAFIP.toString()}
+            value={cuilAFIP?.toString() ?? ""}
             label="CUIL"
             readOnly={true}
             onChange={props.onHandleInputChange}

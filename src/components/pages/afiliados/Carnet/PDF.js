@@ -58,7 +58,7 @@ const PDF = ({ afiliado = {}, seccional = {} } = {}) => {
 						</Grid>
 					</Grid>
 					<P size={14} align="center" bold>
-						{`Emisión: ${Formato.Fecha(afiliado.fechaIngreso)}`}
+						{`Fecha de Alta: ${Formato.Fecha(afiliado.fechaIngreso)}`}
 					</P>
 					<Grid width="full" justify="center" grow>
 						<Grid col width="75%" justify="center">

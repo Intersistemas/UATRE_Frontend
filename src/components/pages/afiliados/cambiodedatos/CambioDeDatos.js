@@ -6,11 +6,14 @@ import useHttp from "../../../hooks/useHttp";
 import Table from "../../../ui/Table/Table";
 import styles from "./CambioDeDatos.module.css";
 import Formato from "../../../helpers/Formato";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const CambioDeDatos = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [ddJJUatreList, setDDJJUatreList] = useState([]);
   const { cuil, infoCompleta } = props.cuil === null ? 0 : props;
+
+  const tareas = useTareasUsuario();
 
   useEffect(() => {
     if (cuil > 0) {
@@ -65,6 +68,7 @@ const CambioDeDatos = (props) => {
       {
         dataField: "remuneracionImponible",
         text: "Remuneración Imponible",
+        hidden: !tareas.hasTarea("Afiliaciones_DDJJ_VerRemuneraciones"),
       },
       {
         dataField: "segurosepelio",
@@ -106,6 +110,7 @@ const CambioDeDatos = (props) => {
       {
         dataField: "remuneracionImponible",
         text: "Remuneracion Imponible",
+        hidden: !tareas.hasTarea("Afiliaciones_DDJJ_VerRemuneraciones"),
       },
     ];
   }

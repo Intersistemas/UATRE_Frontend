@@ -4,6 +4,7 @@ import Grid from "components/ui/Grid/Grid";
 import IM from "components/ui/Input/InputMaterial";
 import styles from "./AfiliadoDetails.module.css";
 import dayjs from "dayjs";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 /** @type {IM} */
 const InputMaterial = (p) => <IM variant="standard" size="small" {...p} />;
@@ -18,10 +19,14 @@ const AfiliadoDetails = (props) => {
 	const empresa = config.empresa ?? {};
 	const seccional = config.seccional ?? {};
 	const [hotField, setHotField] = useState();
+	const tareas = useTareasUsuario();
 
 	const _ = require('lodash');
  
 	const validar = (value) =>{
+
+		
+		if (value == "Empresa no existente") return "EMPRESA NO REGISTRADA";
 
 		if (!value) return "";
 
@@ -61,7 +66,7 @@ const AfiliadoDetails = (props) => {
 									const months = dayjs().diff(fecha, "months");
 									if (!data.ultimaDDJJPeriodo) {
 										textos.push("Afiliado sin DDJJ");
-									} else if (months > 6) {
+									} else if (months > 9) {
 										textos.push(`Afiliado con ${months} meses sin DDJJ`);
 									}
 									return textos.filter((s) => s).join(" - ");
@@ -143,7 +148,7 @@ const AfiliadoDetails = (props) => {
 									<InputMaterial label="Situación de CUIL" value={validar(ddjj.cuilSituacion)+" - "+validar(ddjj.cuilSituacionDescripcion)} />
 									<InputMaterial label="Siniestro" value={ddjj.siniestroCod == 1 ? "Activo" : "-"}/>	
 									<InputMaterial label="Reducción" value={validar(ddjj.reduccion)}/>							
-									<InputMaterial label="Importes" value={ddjj.esEmpresaRural == "No" ? validar(ddjj.remuneracionImponible) : " "}/>
+									{ tareas.hasTarea("Afiliaciones_DDJJ_VerRemuneraciones") && <InputMaterial label="Importes" value={ddjj.esEmpresaRural == "No" || !ddjj.esEmpresaRural ? Formato.Moneda(validar(ddjj.remuneracionImponible)) : " "}/>}
 									<InputMaterial label="Cantidad Hs Extras" value={validar(ddjj.hsExtrasCantidad)}/>
 									<InputMaterial label="Dias Trabajados" value={validar(ddjj.diasTrabajados)}/>
 								</Grid>

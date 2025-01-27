@@ -408,7 +408,7 @@ const AfiliadosLista = (props) => {
 			text: "F.Ingreso",
 			sort: true,
 			formatter: (v) => Formato.Fecha(v),
-			headerStyle: { width: "9%", textAlign: "center" },
+			headerStyle: { width: "10%", textAlign: "center" },
 		},
 		{
 			headerTitle: () => (`Fecha de Egreso`),
@@ -453,7 +453,7 @@ const AfiliadosLista = (props) => {
 			const base = {};
 			const periodo = row.ultimaDDJJPeriodo || 101;	//0001-01
 			const fecha = dayjs(Formato.Mascara(periodo, "####-##-01"));
-			if (dayjs().diff(fecha, "months") > 6) base.backgroundColor = "#bfbfbf";
+			if (dayjs().diff(fecha, "months") > 9) base.backgroundColor = "#bfbfbf";
 			const style = typeof ogStyle === "function" ? ogStyle(cell, row, ...p) : ogStyle;
 			return { ...base, ...style };
 		}
