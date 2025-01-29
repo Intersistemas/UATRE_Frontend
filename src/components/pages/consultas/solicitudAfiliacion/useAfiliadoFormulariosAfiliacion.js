@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { matchIsValidTel } from "mui-tel-input";
 import AsArray from "components/helpers/AsArray";
@@ -11,6 +12,8 @@ import ValidarEmail from "components/validators/ValidarEmail";
 import AfiliadoFormulariosAfiliacionTable from "./AfiliadoFormulariosAfiliacionTable";
 import AfiliadoFormulariosAfiliacionIncorporacion from "./AfiliadoFormulariosAfiliacionIncorporacion";
 import SolicitudAfiliacionForm from "./SolicitudAfiliacionForm";
+import { handleModuloEjecutarAccion } from "../../../../redux/actions";
+import AfiliadoAceptaSolicitud from "components/pages/afiliados/AfiliadoAgregar";
 
 const selectionDef = {
 	action: "",
@@ -110,6 +113,14 @@ const useAfiliadoFormulariosAfiliacion = ({
 	});
 	//#endregion
 
+	//#region despachar Informar Modulo
+	    const dispatch = useDispatch();
+		const moduloAccion = useSelector((state) => state.moduloAccion);
+	//#endregion
+
+	const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
+	const [accionSeleccionada, setAccionSeleccionada] = useState("");
+
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
 		loading: null,
@@ -129,6 +140,40 @@ const useAfiliadoFormulariosAfiliacion = ({
 				: onLoadSelectInit,
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
+
+
+	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
+	  useEffect(() => {
+		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
+		console.log('modulo Accion:',moduloAccion);
+		switch (moduloAccion) {
+		  case "A":
+			//setAfiliadoAgregarShow(true);
+			//setAccionSeleccionada("Agrega");
+			break;
+		  case "M":
+			//setAfiliadoAgregarShow(true);
+			//setAccionSeleccionada("Modifica");
+			break;
+		  case "S":
+			setAccionSeleccionada("AceptaSolicitud");
+			setAfiliadoAgregarShow(true);
+			break;
+		  case "R":
+			//setAccionSeleccionada("Rechaza");
+			break;
+		  case "B":
+			//setPantallaBajaReactivacion(true);
+			//setAccionSeleccionada("Baja");
+			break;
+
+		  default:
+			break;
+		}
+			dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
+	  }, [moduloAccion]);
+
+
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
@@ -277,7 +322,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 	}, [pushQuery]);
 
 	let form = null;
-	if (list.selection.request) {
+	if (list.selection.request == "A") {
 		form = (
 			<SolicitudAfiliacionForm 
 				onClose={(confirm) => {
@@ -299,6 +344,16 @@ const useAfiliadoFormulariosAfiliacion = ({
 			/>
 		);
 	}
+	//if (afiliadoAgregarShow) {
+	if (list.selection.request == "S") {
+		form = ( <AfiliadoAceptaSolicitud
+			//onClose={setAfiliadoAgregarShow(false)}
+			//estadosSolicitudes={estadosSolicitudes}
+			accion={"AceptaSolicitud"}
+			cuil={list.selection.record?.cuil}
+			afiliadoSeleccionado = {list.selection.record}
+		/>
+	)}
 
 	const render = () => (
 		<>

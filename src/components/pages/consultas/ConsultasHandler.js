@@ -80,6 +80,18 @@ const ConsultasHandler = () => {
 						Solicitud de Afiliación
 					</Button>
 				</Grid>
+				{ process.env.REACT_APP_SERVER.includes("uatretest") &&
+					<Grid width gap="inherit" justify="evenly">
+						<Button
+							className="botonAmarillo"
+							onClick={() => navigate("SolicitudesAfiliacion")}
+							width="32"
+							tarea="Consultas_SolicitudAfiliacionListado"
+						>
+							Solicitudes de Afiliación Listado
+						</Button>
+					</Grid>	
+				}
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"

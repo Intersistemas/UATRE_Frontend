@@ -5,6 +5,7 @@ import Formato from "../../../helpers/Formato";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const CabeceraABMAfiliado = (props) => {
+  console.log("CabeceraABMAfiliado_props",props)
   const cuilValidado = () => {
     if (props.afiliado !== null) {
       if (props.afiliado?.cuilValidado === 0) {
@@ -27,7 +28,10 @@ const CabeceraABMAfiliado = (props) => {
         <div className={classes.alert}></div>
       </div>
       <h3 className={classes.titulo}>
-        {props.accion === "Modifica"
+        {
+        props.accion === "AceptaSolicitud" ? `Acepta Solicitud: ${Formato.Cuit(props.cuilState.value)} ${ props.nombreState.value }` 
+        :
+        props.accion === "Modifica"
           ? `Modifica Afiliado: ${Formato.Cuit(props.cuilState.value)} ${
               props.nombreState.value
             }`

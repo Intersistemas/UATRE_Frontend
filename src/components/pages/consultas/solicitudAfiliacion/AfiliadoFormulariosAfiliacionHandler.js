@@ -27,6 +27,8 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
 
+	const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
+	
 	//#region Tab Formulario
 	const {
 		render: formularioRender,
@@ -96,10 +98,10 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			actions.push(
 				createAction({
 					action: `Acepta Solicitud ${desc}`,
-					request: "I",
+					request: "S",
 					record: {},
 					//tarea: "Datos_EmpresaReactiva",
-					keys: "r",
+					keys: "s",
 					underlineindex: 0,
 				})
 			);
@@ -256,6 +258,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 				{tabs[tab].body()}
 			</div>
 			<KeyPress items={acciones} />
+
 		</Grid>
 	);
 };
