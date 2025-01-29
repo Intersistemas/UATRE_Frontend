@@ -359,7 +359,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 				setList((o) => ({
 					...o,
 					selected: [...o.selected, ...data].filter(
-						(v, i, a) => a.indexOf(a.find((r) => r.id === v.id)) === i
+						(v, i, a) => a.findIndex(r => r.id === v.id) === i
 					),
 				}));
 			} else {
@@ -625,7 +625,10 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 									onClick={() =>
 										setNewSelection((o) => ({
 											...o,
-											params: filtros,
+											params: {
+												...filtros,
+												sort: list.sort
+											},
 											reload: true,
 										}))
 									}
