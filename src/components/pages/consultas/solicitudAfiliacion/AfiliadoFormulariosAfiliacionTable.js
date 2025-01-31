@@ -72,12 +72,6 @@ const AfiliadoFormulariosAfiliacionTable = ({ columns, ...x } = {}) => {
 			style: { textAlign: "left" },
 		},
 		{
-			dataField: "seccional",
-			text: "Seccional",
-			style: { textAlign: "left" },
-		},
-		
-		{
 			dataField: "cuitEmpresa",
 			text: "CUIT",
 			sort: true,

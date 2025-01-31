@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment,useContext } from "react";
 import useHttp from "../../hooks/useHttp";
-import AfiliadoAgregar from "./AfiliadoAgregar"; 
+import AfiliadoAgregar from "./AfiliadoAgregar";
 import AfiliadosLista from "./AfiliadosLista";
 
 import { useDispatch, useSelector } from "react-redux";
