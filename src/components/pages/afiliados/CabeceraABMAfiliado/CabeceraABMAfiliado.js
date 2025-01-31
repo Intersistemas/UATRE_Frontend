@@ -7,7 +7,7 @@ import FormatearFecha from "../../../helpers/FormatearFecha";
 const CabeceraABMAfiliado = (props) => {
   console.log("CabeceraABMAfiliado_props",props)
   const cuilValidado = () => {
-    if (props.afiliado !== null) {
+    if (props.afiliado !== null ) {
       if (props.afiliado?.cuilValidado === 0) {
         return "- CUIL No Validado";
       } else {

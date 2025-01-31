@@ -78,23 +78,23 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 					  }),
 			})
 		);
-		actions.push(
-			createAction({
-				action: `Modifica Solicitud ${desc}`,
-				request: "M",
-				record: {},
-				//tarea: "Datos_EmpresaModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "m",
-							underlineindex: 0,
-					  }),
-			})
-		);
 
 		if (!formularioSelected?.deletedDate && !formularioSelected?.afiliadoIdAsignado) {
+			actions.push(
+				createAction({
+					action: `Modifica Solicitud ${desc}`,
+					request: "M",
+					record: {},
+					//tarea: "Datos_EmpresaModifica",
+					...(formularioSelected?.deletedDate || !formularioSelected?.id
+						? { disabled: true }
+						: {
+								disabled: false,
+								keys: "m",
+								underlineindex: 0,
+						}),
+				})
+			);
 			actions.push(
 				createAction({
 					action: `Acepta Solicitud ${desc}`,
@@ -105,7 +105,6 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 					underlineindex: 0,
 				})
 			);
-		} else {
 			actions.push(
 				createAction({
 					action: `Rechaza Solicitud ${desc}`,

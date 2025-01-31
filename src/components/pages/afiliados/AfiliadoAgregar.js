@@ -663,7 +663,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       }
     }
     if (props.accion === "AceptaSolicitud") {
-
+      setAfiliadoExiste(false);
       setInputsTouched(true);
       if (props?.afiliadoSeleccionado?.cuil > 0) {
         dispatchCUIL({ type: "USER_INPUT", value: props.afiliadoSeleccionado.cuil, isValid: ValidarCUIT(props.afiliadoSeleccionado.cuil,) });
@@ -687,35 +687,45 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         //cierreMes: padronEmpresaRespuesta.mesCierre,
         email: props.afiliadoSeleccionado?.emailEmpresa,
         telefono: props.afiliadoSeleccionado?.telefonoEmpresa ?? props.afiliadoSeleccionado?.celularEmpresa,
-        domicilioCalle: props.afiliadoSeleccionado?.domicilioEmpresa,
+        domicilioCalle: `${props.afiliadoSeleccionado?.domicilioEmpresa}`, 
         domicilioNumero: 0,
-        domicilioPiso: "string",
-        domicilioDpto: "string",
-        domicilioSector: "string",
-        domicilioTorre: "string",
-        domicilioManzana: "string",
+        domicilioPiso: "",
+        domicilioDpto: "",
+        domicilioSector: "",
+        domicilioTorre: "",
+        domicilioManzana: "",
         domicilioProvinciasId: props.afiliadoSeleccionado?.provinciaidEmpresa,
         domicilioLocalidadesId: props.afiliadoSeleccionado?.refLocalidadIdEmpresa,
         domicilioCodigoPostal: 0,
-        domicilioCPA: "string",
-        domicilioTipo: "string",
-        domicilioEstado: "string",
-        domicilioDatoAdicional: "string",
-        domicilioDatoAdicionalTipo: "string",
+        domicilioCPA: "",
+        domicilioTipo: "",
+        domicilioEstado: "",
+        domicilioDatoAdicional: "",
+        domicilioDatoAdicionalTipo: "",
         //ciiU1: padronEmpresaRespuesta.ciiU1,
        // ciiU2: padronEmpresaRespuesta.ciiU2,
         //ciiU3: padronEmpresaRespuesta.ciiU3,
       };
+
+
+      dispatchCUIT({ type: "USER_INPUT", value: empresa?.cuit });
+      setCUITEmpresa(empresa?.cuit);
+      setPadronEmpresaRespuesta(empresa);
+      setRazonSocialEmpresa(empresa?.razonSocial);
+      setActividadEmpresa(empresa?.actividadPrincipalDescripcion);
+      setDomicilioEmpresa(empresa?.domicilioCalle);
+      setLocalidadEmpresa(props.afiliadoSeleccionado?.nombreLocalidadEmpresa);
+      setTelefonoEmpresa(empresa?.telefono);
+      setCorreoEmpresa(empresa?.email);
+      setLugarTrabajoEmpresa("");
      
       const afiliadoSolicitud = {
 				cuil: props?.afiliadoSeleccionado?.cuil,
-        nombre:  `${props.afiliadoSeleccionado?.apellido} ${
-					props.afiliadoSeleccionado?.nombre ?? "" }`,
-				puestoId: +puestoState.value,
+        nombre:  `${props.afiliadoSeleccionado?.apellido} ${props.afiliadoSeleccionado?.nombre ?? "" }`,
+				puestoId: props?.afiliadoSeleccionado?.oficioId,
 				fechaIngreso: moment().format("YYYY-MM-DD"),
 				fechaEgreso: null,
 				nacionalidadId: +props.afiliadoSeleccionado?.nacionalidadId,
-				//empresaId: +empresaId,
 				seccionalId: +props.afiliadoSeleccionado?.seccionalId,
 				sexoId: +props.afiliadoSeleccionado.sexoId,
 				tipoDocumentoId: +props.afiliadoSeleccionado?.tipoDocumentoId,
@@ -727,7 +737,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				estadoSolicitudObservaciones: validaAutomatica
 					? "Validación Automática"
 					: null,
-				estadoCivilId: props.afiliadoSeleccionado?.estadoCicilId ?? 0,
+				estadoCivilId: props.afiliadoSeleccionado?.estadoCivilId ?? 0,
 				refLocalidadId: props.afiliadoSeleccionado?.refLocalidadIdAfiliado, //?? padronRespuesta?.localidadId,
 				domicilio: props.afiliadoSeleccionado?.domicilio,
 				telefono: props.afiliadoSeleccionado?.telefono,
@@ -736,7 +746,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				fechaNacimiento: props.afiliadoSeleccionado?.fechaNacimiento,
         provinciaId: props.afiliadoSeleccionado?.provinciaId,
         empresa: empresa,
-        CUILValidado: 0,
+        cuilValidado: 0,
 				};
 
         console.log("AceptaSolicitud_afiliadoSolicitud",afiliadoSolicitud)
@@ -1017,7 +1027,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           setDocumentacionList(afiliadoObj.documentacion ?? []);
 
           //alert
-          if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
+          if ((props.accion === "Agrega" || props.accion === "AceptaSolicitud") || props.cuil !== afiliado.cuil) {
             setDialogTexto(
               `El Afiliado: ${afiliadoObj?.nombre} ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}
               ${afiliadoObj.estadoSolicitud.includes("No Activo") ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`: "" }`
@@ -1172,7 +1182,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           return { value: puesto.id, label: puesto.descripcion };
         });
       setPuestos(puestosSelect);
-			dispatchPuesto({ type: "USER_INPUT", value: puestosSelect[0].value });
+			//dispatchPuesto({ type: "USER_INPUT", value: puestosSelect[0].value });
     };
 
     request(
@@ -1452,7 +1462,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     }
     setAfiliadoProcesando(true);
     //#region Insertar Sol
-    if (props.accion === "Agrega" && !afiliadoExiste) {
+    if ((props.accion === "Agrega" || props.accion === "AceptaSolicitud") && !afiliadoExiste) {
 			const empresa = {
 				cuit: cuitEmpresa,
 				razonSocial: padronEmpresaRespuesta
@@ -1576,6 +1586,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				};
 			const afiliadoAgregar = async (afiliadoResponseObj) => {
 
+        console.log("nuevoAfiliado**",nuevoAfiliado)
 				setNuevoAfiliadoResponse({
 					...nuevoAfiliado,
 					id: afiliadoResponseObj,
@@ -1614,7 +1625,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
 			//#region Update Solicitud
 		} else if (
-      props.accion === "Modifica" || props.accion === "AceptaSolicitud" ||
+      props.accion === "Modifica"  ||
       (props.accion === "Agrega" && afiliadoExiste)
     ) {
       ActualizaDatosAfiliado();
@@ -1702,7 +1713,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			}
       let domicilioReal = "";
       
-      if (props.accion === "Agrega") {
+      if (props.accion === "Agrega" || props.accion === "AceptaSolicitud") {
         dispatchNombre({
           type: "USER_INPUT",
           value: `${padronObj.apellido} ${padronObj.nombre ?? ""}`,
@@ -2137,7 +2148,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     if (dialogTexto === "") 
       props.onClose(false, "Cancela");
     else{
-      (props.accion == "Modifica" || props.accion === "AceptaSolicitud") ?
+      (props.accion == "Modifica") ?
         props.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
       : 
         props.onClose(nuevoAfiliadoResponse, props.accion) //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
@@ -2288,7 +2299,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
     );
 		
     const afiliadoModificado = {
-			id: nuevoAfiliadoResponse.id,
+			id: nuevoAfiliadoResponse?.id,
 			cuil: +cuilState.value,
       CUILValidado: cuilValidado ? +cuilState.value : 0,
 
@@ -2354,7 +2365,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					: afiliado.afipClaveInactivaAsociada,
       afipFechaFallecimiento:
         padronRespuesta !== null
-          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
+          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" || "2001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
           : afiliado.afipFechaFallecimiento,
 			afipFormaJuridica:
 				padronRespuesta !== null
@@ -2447,7 +2458,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				...r,
 				id: r.id ?? 0,
 				entidadTipo: "A",
-				entidadId: nuevoAfiliadoResponse.id,
+				entidadId: nuevoAfiliadoResponse?.id,
 			})),
 		};
     console.log("afiliado modificado", afiliadoModificado);
@@ -2521,7 +2532,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
             gutterBottom
             style={{whiteSpace: 'pre-line'}}
             >{dialogTexto}</Typography>
-            {props?.accion === "Agrega" && !afiliadoExiste && nuevoAfiliadoResponse?.estadoSolicitudId === 1
+            {(props?.accion === "Agrega" || props.accion === "AceptaSolicitud") && !afiliadoExiste && nuevoAfiliadoResponse?.estadoSolicitudId === 1
              &&
               (
               <div>
@@ -2543,7 +2554,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			</div>
 			<Modal onClose={handleCerrarModal}>
 				<CabeceraABMAfiliado
-          accion = {"AceptaSolicitud"}
+          accion = {props.accion}
 					cuilState={cuilState}
 					nombreState={nombreState}
 					afiliadoExiste={afiliadoExiste}

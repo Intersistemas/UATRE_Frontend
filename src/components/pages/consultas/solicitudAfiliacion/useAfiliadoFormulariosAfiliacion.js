@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
+import useHttp from "components/hooks/useHttp";
 import { matchIsValidTel } from "mui-tel-input";
 import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
@@ -80,6 +81,24 @@ const useAfiliadoFormulariosAfiliacion = ({
 					},
 				};
 			}
+			case "Patch": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/AfiliadoFormulariosAfiliacion/ResuelveFormularioAfiliacion`,
+						method: "PATCH",
+					},
+				};
+			}
+			case "Estados": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/EstadoSolicitud`,
+						method: "GET",
+					},
+				};
+			}
 			/*case "Update": {
 				return {
 					config: {
@@ -118,11 +137,17 @@ const useAfiliadoFormulariosAfiliacion = ({
 		const moduloAccion = useSelector((state) => state.moduloAccion);
 	//#endregion
 
+	  //#region Tablas para el form
+	  const [estadosSolicitudes, setEstadosSolicitudes] = useState([
+		{ value: 0, label: " Todos" },
+	  ]);
+	  //#endregion
 	const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
 	const [accionSeleccionada, setAccionSeleccionada] = useState("");
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
+		estados: [],
 		loading: null,
 		remote: remoteInit,
 		loadingOverride: loading,
@@ -141,39 +166,110 @@ const useAfiliadoFormulariosAfiliacion = ({
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
+	const { isLoading, error2, sendRequest: request2 } = useHttp();
 
-	//UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
-	  useEffect(() => {
-		//segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
-		console.log('modulo Accion:',moduloAccion);
-		switch (moduloAccion) {
-		  case "A":
-			//setAfiliadoAgregarShow(true);
-			//setAccionSeleccionada("Agrega");
-			break;
-		  case "M":
-			//setAfiliadoAgregarShow(true);
-			//setAccionSeleccionada("Modifica");
-			break;
-		  case "S":
-			setAccionSeleccionada("AceptaSolicitud");
-			setAfiliadoAgregarShow(true);
-			break;
-		  case "R":
-			//setAccionSeleccionada("Rechaza");
-			break;
-		  case "B":
-			//setPantallaBajaReactivacion(true);
-			//setAccionSeleccionada("Baja");
-			break;
-
-		  default:
-			break;
-		}
-			dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-	  }, [moduloAccion]);
+	  //#endregion
 
 
+	  
+  useEffect(() => {
+    const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
+      const estadosSolicitudesTable = estadosSolicitudesObj.map(
+        (estadoSolicitud) => {
+          return {
+            value: estadoSolicitud.id,
+            label: estadoSolicitud.descripcion,
+          };
+        }
+      );
+      const estadosSolicitudesOptions = estadosSolicitudesTable.filter(
+        (estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado"
+      );
+
+      estadosSolicitudesOptions.push({ value: 0, label: "Todos" });
+      console.log("estadosSolicitudesOptions", estadosSolicitudesOptions);
+      setEstadosSolicitudes(
+        estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
+      );
+      //setEstadosSolicitudes(estadosSolicitudes);
+    };
+
+    request2(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: "/EstadoSolicitud",
+        method: "GET",
+      },
+      processEstadosSolicitudes
+    );
+  }, []);
+
+  //#endregion
+
+	const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION CIERRA EL MODAL DE ALTA/MODIFICACION/RESUELVE.SOLICIT.
+		
+		console.log('onCloseAfiliadoAgregarHandler: ',regUpdated, accion);
+			if (!regUpdated.id) {
+				setList((o) => ({
+					...o,
+					selection: {
+						...o.selection,
+						...selectionDef,
+						index: o.selection.index,
+						record:
+							!o.selection.multi && o.selection.index > -1
+								? o.data.at(o.selection.index)
+								: o.selection.record,
+					},
+				}));
+				return;
+			}else{
+				if (regUpdated.id) 
+				{ const query = {
+					action: "Patch",
+					config: {
+							body: {
+								id: list.selection.record.id,
+								afiliadoIdAsignado: regUpdated.id
+								//deletedObs: record.deletedObs,
+							}
+					},
+					onOk: async (res) =>
+						setList((old) => ({ ...old, loading: "Cargando..." })),
+					onError: async (err) => alert(err.message),
+					};
+					pushQuery(query);
+				}else{
+					console.log('No es Agrega');
+				}
+				
+			}
+				/*
+				(regUpdated.estadoSolicitud == "Activo") ? 
+				  setPage(1)//El afiliado insertado tiene NroAfiliado y se agregó con estado ATIVO, Voy a la pagina 1
+				  :
+				  setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
+				  */
+			  }
+
+
+		/*if(regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
+			setRefresh(true); //Agrego el refresh para que se actualice el registro 
+			setAfiliadoModificado(regUpdated)
+  
+			if (accion === "Resuelve"){
+			  regUpdated.estadoSolicitud == "Activo" && setPage(1); //Si fue resuelto (tiene NroAfiliado) y no hay filtro, el registro va a parar a la primer pagina, entonces lo busco allí
+			}else{
+			  accion === "Agrega" ? 
+			  (regUpdated.estadoSolicitud == "Activo") ? 
+				setPage(1)//El afiliado insertado tiene NroAfiliado y se agregó con estado ATIVO, Voy a la pagina 1
+				:
+				setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
+			  :
+			  console.log('No es Agrega');
+			}
+		}*/
+		
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
@@ -225,6 +321,42 @@ const useAfiliadoFormulariosAfiliacion = ({
 					: changes.data.indexOf(changes.selection.record);
 
 				list.onDataChange(changes.data);
+			},
+			onError: async (error) => {
+				if (error.code === 404) return;
+				changes.error = error;
+				changes.selection = { ...list.selection, ...selectionDef };
+			},
+			onFinally: async () => setList((o) => ({ ...o, ...changes })),
+		});
+
+		pushQuery({
+			action: "Estados",
+			config: {
+					body: {
+					...list.params,
+					pageIndex: list.pagination.index,
+					pageSize: list.pagination.size,
+				},
+			},
+			onOk: async ({ index, size, count, data }) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data = data;
+				const multi = list.selection.multi;
+				const record = list.selection.record;
+				changes.pagination = { index, size, count };
+				changes.selection = {
+					...list.selection,
+					...selectionDef,
+					record: list.onLoadSelect({ data, multi, record }),
+				};
+
+				changes.selection.index = multi
+					? changes.selection.record?.map((r) => changes.data.indexOf(r))
+					: changes.data.indexOf(changes.selection.record);
+
+				list.estados.onDataChange(changes.data);
 			},
 			onError: async (error) => {
 				if (error.code === 404) return;
@@ -346,9 +478,9 @@ const useAfiliadoFormulariosAfiliacion = ({
 	}
 	//if (afiliadoAgregarShow) {
 	if (list.selection.request == "S") {
-		form = ( <AfiliadoAceptaSolicitud
-			//onClose={setAfiliadoAgregarShow(false)}
-			//estadosSolicitudes={estadosSolicitudes}
+		form =   ( <AfiliadoAceptaSolicitud
+			onClose={onCloseAfiliadoAgregarHandler}
+			estadosSolicitudes={estadosSolicitudes}
 			accion={"AceptaSolicitud"}
 			cuil={list.selection.record?.cuil}
 			afiliadoSeleccionado = {list.selection.record}
