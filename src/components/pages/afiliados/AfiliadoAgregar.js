@@ -663,6 +663,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
   useEffect(() => {
     console.log("props_AceptaSolicitud",props)
+
     if (props.accion === "Modifica") {
       setAfiliadoExiste(true);
       setInputsTouched(true);
@@ -675,7 +676,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       setAfiliadoExiste(false);
       setInputsTouched(true);
       if (props?.afiliadoSeleccionado?.cuil > 0) {
-        dispatchCUIL({ type: "USER_INPUT", value: props.afiliadoSeleccionado.cuil, isValid: ValidarCUIT(props.afiliadoSeleccionado.cuil,) });
+        dispatchCUIL({ type: "USER_INPUT", value: props?.afiliadoSeleccionado?.cuil, isValid: ["30", "33", "34"].includes(props?.afiliadoSeleccionado?.cuil.toString().slice(0,2)) ? false : ValidarCUIT(props?.afiliadoSeleccionado?.cuil) });
       }
       const validaAutomatica =
 				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
@@ -715,34 +716,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
        // ciiU2: padronEmpresaRespuesta.ciiU2,
         //ciiU3: padronEmpresaRespuesta.ciiU3,
       };
-
-  useEffect(() => {
-    if (cuilState.value ) {
-      console.log("cuilState",cuilState)
-      //!cuilState.isValid ?
-      const processGetAfiliado = async (afiliadoObj) => {
-        console.log('afiliadoObj',afiliadoObj)
-
-        setAfiliado(afiliadoObj);
-        setCuilValidado(afiliadoObj.cuilValidado ? true : false);
-        setNuevoAfiliadoResponse(afiliadoObj);
-        setAfiliadoExiste(true);
-        
-        //dispatches para validar los campos
-        dispatchFechaNacimiento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.fechaIngreso !== null
-              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
-              : "",
-        });
-        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil, isValid: ["30", "33", "34"].includes(afiliadoObj.cuil.toString().slice(0,2)) ? false : ValidarCUIT(afiliadoObj.cuil) });
-        
-				dispatchFechaIngreso({
-					type: "USER_INPUT",
-					value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
-				});
-
+     
       dispatchCUIT({ type: "USER_INPUT", value: empresa?.cuit });
       setCUITEmpresa(empresa?.cuit);
       setPadronEmpresaRespuesta(empresa);
@@ -914,8 +888,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           setRazonSocialEmpresa(afiliadoSolicitud?.empresa?.razonSocial);
           setDocumentacionList([]);
         };
-
-  }, [cuilParam, props.accion, props.afiliadoSeleccionado]);
+}, [cuilParam, props.accion, props.afiliadoSeleccionado]);
 
   useEffect(() => {
     if (cuilState.value ) {
@@ -2404,7 +2377,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					: afiliado.afipClaveInactivaAsociada,
       afipFechaFallecimiento:
         padronRespuesta !== null
-          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" || "2001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
+          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" || padronRespuesta.fechaFallecimiento === "2001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
           : afiliado.afipFechaFallecimiento,
 			afipFormaJuridica:
 				padronRespuesta !== null
