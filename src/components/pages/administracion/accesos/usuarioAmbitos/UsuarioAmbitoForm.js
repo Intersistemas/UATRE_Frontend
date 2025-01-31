@@ -21,13 +21,16 @@ const UsuarioAmbitoForm = ({
 	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	loading = false,
 
 }) => {
 	data ??= {}; 
+	loading ??= false
 	console.log('Form_ambito_data:',data)
+	console.log("loading",loading)
 	 //console.log('data_ambito:',data)
 	 //console.log('delegaciones_ambito:',delegaciones)
-	//console.log('Form_ambito_errors:',errors)
+	console.log('Form_ambito_errors:',errors)
 	//console.log('Form_ambito_disabled:',disabled)
 	
 	disabled ??= {};
@@ -36,7 +39,7 @@ const UsuarioAmbitoForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
-
+	const [procesando, setProcesando] = useState(loading);
 
 	//#region TRAIGO TODOS LOS MODULOS DE UNA VEZ
 		
@@ -70,12 +73,26 @@ const UsuarioAmbitoForm = ({
 		buscar: "",
 		buscado: "",
 		options: [],
-		selected: {value:data.ambitosId, label:data.nombreAmbito},
+		selected: {value:data.ambitoId, label: data.nombreAmbito},
 	});
 
 	const { isLoading, error, sendRequest: request } = useHttp();	
 
 	
+	 //#region Capturo errores
+	 useEffect(() => {
+	
+		console.log("error3",error)
+		console.log("loading3",loading)
+			if (error) {
+				setProcesando(false);
+				return;
+			}  
+			setProcesando(loading);
+			return;
+		 
+	  }, [loading,error,ambitosTipo.selected,ambitos.selected]);
+	//#endregion
 
 
 	//#region TRAIGO TODOS LOS AMBITOS DEL TIPO DE AMBITO
@@ -86,7 +103,12 @@ const UsuarioAmbitoForm = ({
 				endpoint: ``,
 				method: ""
 			}
+			if (data?.ambitoTipo == "T"){
+				setAmbitos((o)=>({...o,options:[{value: 0, label:"Todos"}],selected: {value:0, label:"Todos"},}));
+				return
+			 }
 
+			setAmbitos((o)=>({...o, loading:"Cargando..."}))
 			switch (data?.ambitoTipo) {
 				case "T":
 					query.baseURL = "";
@@ -94,42 +116,45 @@ const UsuarioAmbitoForm = ({
 					query.method = "";
 					break; 
 				case "S":
-					query.baseURL = "Seccionales";
-					query.endpoint = `Seccionales`;
+					query.baseURL = "Afiliaciones"; 
+					query.endpoint = `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`;
 					query.method = `Get`;
 					break;
 				case "D":
-					query.baseURL = "Delegaciones";
-					query.endpoint = `Delegaciones`;
+					query.baseURL = "Comunes";
+					query.endpoint = `/RefDelegacion/GetAll`;
 					query.method = `Get`;
 					break;
 				case "P":
-					query.baseURL = "Provincias";
-					query.endpoint = `Provincias`;
+					query.baseURL = "Afiliaciones";
+					query.endpoint = `/Provincia`;
 					query.method = `Get`;
 					break;
 				default:
 					break;
 			}
 
-
+		console.log('query_0',query)
 		const processAmbitos = async (ambitosObj) => {
 			const ambitos = ambitosObj?.map((ambito) => {
-				return { value: ambito.id, label: ambito.nombre };
+				return { value: ambito?.id, label: `(${ambito?.id}) ${ambito?.nombre ? ambito?.nombre : ambito?.codigo+"-"+ambito?.descripcion}`};
 			});
-			console.log('ambitos',ambitos)
-			setAmbitos((o)=>({...o,options:ambitos}))
+			console.log('ambitos',ambitos)	
+			setAmbitos((o)=>({...o,options:ambitos, selected: {value:data?.ambitoId, label: ambitos?.find((a)=> a.value === data?.ambitoId)?.label}}))
+			
 		};
 		request(
 			{
-			query	
-			//baseURL: "Seguridad",
-			//endpoint: `/Ambitos?ModulosId=${data?.modulosId}`,
-			//method: "GET",
+				
+				baseURL: query.baseURL,
+				endpoint: query.endpoint,
+				method: query.method,
 			},
+			
+			
 			async (ok) => (processAmbitos(ok)),
 			async (error) => ((console.log('GetAmbitos?ModulosId_error',error))),
-			async () => (console.log('GetAmbitos?ModulosId_vacio')),
+			async () => (setAmbitos((o)=>({...o,loading:null}))),
 		);
 	},[data?.ambitoTipo]);
 	//#endregion
@@ -185,17 +210,17 @@ const UsuarioAmbitoForm = ({
 							</Grid>
 							<Grid width="50%">
 								<SearchSelectMaterial
-									id="ambitosId"
-									name="ambitosId"
+									id="ambitoId"
+									name="ambitoId"
 									label="Cod. Ambito"
-									error={errors.ambitosId} 
-									helperText={errors.ambitosId ?? ""}
+									error={errors.ambitoId} 
+									helperText={errors.ambitoId ?? ambitos.loading ?? ""}
 									value={ambitos.selected}
-									disabled={disabled.ambitosId ?? false}
+									disabled={disabled.ambitoId ?? ambitos.loading ?? data?.ambitoTipo == "T" ? true : false}
 									onChange={(selected) =>
 										(
 											setAmbitos((o) => ({ ...o, selected })),
-											onChange({ambitosId: selected.value})
+											onChange({ambitoId: selected.value})
 										)
 									}
 									//defaultValue="Afilia"
@@ -253,8 +278,12 @@ const UsuarioAmbitoForm = ({
 				<Button
 					className="botonAzul"
 					width={25}
-					onClick={() => (onClose(true))}
-					disabled ={errors?.ambitoExiste}
+					onClick={() => (
+						setProcesando(true),
+						onClose(true)
+					)}
+					disabled ={errors?.ambitoExiste || procesando}
+					loading={procesando}
 				>
 					CONFIRMA
 				</Button>

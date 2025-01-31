@@ -10,7 +10,7 @@ import SearchSelectMaterial, {
 	includeSearch,
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
-import classes from "./SeccionalesForm.module.css";
+import classes from "./EncuestasForm.module.css";
 import useQueryState from "components/hooks/useQueryState";
 import { Dialog, DialogActions, DialogContent, Typography } from "@mui/material";
 

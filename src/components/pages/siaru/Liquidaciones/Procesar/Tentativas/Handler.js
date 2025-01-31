@@ -123,11 +123,11 @@ const LiquidacionCabecera = ({
 					type="number"
 					label="% Interes diario Post. Venc."
 					value={data.interesesDiariosPosteriorVencimiento}
-					disabled={!!disabled.fechaPagoEstimada}
+					disabled//={!!disabled.fechaPagoEstimada}
 					error={errors.fechaPagoEstimada}
-					onChange={(interesesDiariosPosteriorVencimiento) =>
-						onChange({ interesesDiariosPosteriorVencimiento })
-					}
+					// onChange={(interesesDiariosPosteriorVencimiento) =>
+					// 	onChange({ interesesDiariosPosteriorVencimiento })
+					// }
 				/>
 			</Grid>
 			<Grid width="full" gap="inherit">
@@ -156,7 +156,7 @@ const LiquidacionCabecera = ({
 					// }
 				/>
 			</Grid>
-			<Grid style={{ fontWeight: "bold" }}>Subtotales</Grid>
+			{/* <Grid style={{ fontWeight: "bold" }}>Subtotales</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
 					label="Total sindical"
@@ -168,7 +168,7 @@ const LiquidacionCabecera = ({
 					value={Formato.Moneda(data.totalSolidario)}
 					disabled
 				/>
-			</Grid>
+			</Grid> */}
 			<Grid style={{ fontWeight: "bold" }}>Totales</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
@@ -851,7 +851,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	} = useLiquidaciones({
 		remote: false,
 		multi: true,
-		hideSelectColumn: false,
+		hideSelectColumn: true,
 		columns: (def, { request }) => [
 			...def,
 			{
@@ -930,6 +930,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
 			return true;
 		},
+		onLoadSelect: ({ data }) => [...data],
 	});
 	useEffect(() => {
 		liqChanger("list", { data: estado.liquidaciones.todas });

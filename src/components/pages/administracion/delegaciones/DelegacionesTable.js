@@ -1,47 +1,48 @@
 import React from "react";
-import Table from "components/ui/Table/Table";
+import Table, { asColumnArray } from "components/ui/Table/Table";
 import FormatearFecha from "components/helpers/FormatearFecha";
  
-const DelegacionesTable = ({
-	columns: columnsInit = [],
-	...x
-} = {}) => {
 	//#region declaracion de columnas
-	const columns = [
+	const columnsDef = [
 		{
 			dataField: "codigoDelegacion",
 			text: "Código",
 			sort: true,
-			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
-			style: { textAlign: "left" },
+			headerStyle: { width: "100px" },
 		},
 		{
 			dataField: "nombre",
 			text: "Nombre",
 			sort: true,
-			style: { textAlign: "left" },
 		},
 		{
-			headerTitle: (column, colIndex) => `Fecha Baja`,
+			headerTitle: () => `Fecha Baja`,
 			dataField: "deletedDate",
 			text: "Fecha Baja",
 			sort: true,
 			formatter:FormatearFecha,
-			headerStyle: (colum, colIndex) => {
-			  return { width: "7rem", textAlign: "center" };
-			},
-		},
-		...columnsInit
-	];
+			headerStyle: { width: "7rem", textAlign: "center" },
+		}
+	].map((r) => ({
+		headerTitle: () => r.text,
+		headerStyle: { width: "7rem", textAlign: "center", ...r.headerStyle },
+		style: (value, row) => row.deletedDate ? {color: "red"} : '',
+		...r,
+	}));
 	//#endregion
 
-	return (
+	/**
+	 * @type {Table}
+	 */
+
+	const DelegacionesTable = ({ columns, ...x } = {}) => (
 		<Table
 			keyField="id"
-			columns={columns}
+			columns={asColumnArray(columns, columnsDef)}
+			mostrarBuscar={false}
 			{...x}
 		/>
 	);
-};
+
 
 export default DelegacionesTable;

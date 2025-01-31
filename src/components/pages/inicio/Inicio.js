@@ -21,6 +21,7 @@ const Inicio = () => {
 			tareas.hasTarea("Expedientes_Tabla", "Administrador Expedientes") &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Expedientes")}   ><><text className="underline">E</text>xpedientes</></Button>);
 			tareas.hasTarea("Informes_Tabla", "Administrador Informes") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Informes")}      ><><text className="underline">I</text>nformes</></Button>);
 			tareas.hasTarea("Consultas_Tabla", "Administrador Consultas") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
+			tareas.hasTarea("App_Tabla", "Administrador App") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("App")}     ><>Administración A<text className="underline">p</text>p</></Button>);
 			
 
 	console.log("accesos",accesos)
@@ -31,7 +32,7 @@ const Inicio = () => {
 	UseKeyPress(['t'], ()=>navigate("Administracion"), 'AltKey');
 	UseKeyPress(['i'], ()=>navigate("Informes"), 'AltKey');
 	UseKeyPress(['n'], ()=>navigate("Consultas"), 'AltKey');
-		
+	UseKeyPress(['p'], ()=>navigate("App"), 'AltKey');
 	
 	useEffect(() => {
 		

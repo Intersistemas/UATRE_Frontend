@@ -13,7 +13,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useSeccionalLocalidades from "./seccionalLocalidades/useSeccionalLocalidades";
-import useSeccionales from "./useSeccionales";
+import useSeccionales, { onLoadSelectKeepOrFirst } from "./useSeccionales";
 import LotePDFViewer from "./autoridades/Carnet/LotePDFViewer";
 
 //#region estadoSeccionalSelect Options
@@ -225,6 +225,7 @@ const SeccionalesHandler = () => {
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	
 	useEffect(() => {
+		console.log("seccionalSelected",seccionalSelected)
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -266,7 +267,7 @@ const SeccionalesHandler = () => {
 				request: "M",
 				tarea: "Datos_SeccionalModifica",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA"? 
 					{disabled:  true}
 					:
 					{
@@ -283,7 +284,7 @@ const SeccionalesHandler = () => {
 				request: "B",
 				tarea: "Datos_SeccionalBaja",
 
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA"? 
 					{disabled:  true}
 					:
 					{
@@ -294,6 +295,24 @@ const SeccionalesHandler = () => {
 				)
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Absorbe Seccional ${desc}`,
+				request: "X",
+				tarea: "Datos_SeccionalAbsorbe",
+
+				...(seccionalSelected?.deletedDate || !seccionalSelected?.id || seccionalSelected?.seccionalEstadoDescripcion == "ABSORBIDA" ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "o",
+					 underlineindex: 3
+					}
+				)
+			})
+		);
+		
 		setSeccionalesActions(actions); //cargo todas las acciones / botones
 	}, [seccionalChanger, seccionalSelected]);
 
@@ -478,6 +497,7 @@ const SeccionalesHandler = () => {
 							JSON.stringify(seccionalesParamsEdit) ===
 							JSON.stringify(seccionalesParamsSend)
 						}
+						//</Grid>onClick={() => setSeccionalesParamsSend((o) => ({ ...o, ...seccionalesParamsEdit, ...{pageIndex: 1} }))
 						onClick={() => setSeccionalesParamsSend(seccionalesParamsEdit)}
 					>
 						Aplica filtro
@@ -528,8 +548,10 @@ const SeccionalesHandler = () => {
 	});
 
 	useEffect(() => {
-		seccionalChanger("list", { params: seccionalesParamsSend });
+		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
+			onLoadSelect: onLoadSelectKeepOrFirst, });
 	}, [seccionalChanger, seccionalesParamsSend]);
+
 
 	//#region Carga inicial select estado seccional
 	useEffect(() => {
@@ -616,8 +638,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Autoridad ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalAutoridadesAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const sele = autoridadSelected?.id;
@@ -640,8 +669,7 @@ const SeccionalesHandler = () => {
 				action: `Modifica Autoridad ${seleDesc}`,
 				request: "M",
 				tarea: "Datos_SeccionalAutoridadesModifica",
-
-				...(autoridadSelected?.deletedDate ? 
+				...(autoridadSelected?.deletedDate || seccionalSelected.seccionalAbsorbenteId  ?
 					{disabled:  true}
 					:
 					{
@@ -658,8 +686,15 @@ const SeccionalesHandler = () => {
 					action: `Reactiva Autoridad ${seleDesc}`,
 					request: "R",
 					tarea: "Datos_SeccionalAutoridadesReactiva",
-					keys: "r",
-					underlineindex: 0,
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "r",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		} else {
@@ -668,7 +703,7 @@ const SeccionalesHandler = () => {
 					action: `Baja Autoridad ${seleDesc}`,
 					request: "B",
 					tarea: "Datos_SeccionalAutoridadesBaja",
-					...(autoridadSelected?.deletedDate ? 
+					...(autoridadSelected?.deletedDate || seccionalSelected.seccionalAbsorbenteId ? 
 						{disabled:  true}
 						:
 						{
@@ -683,8 +718,6 @@ const SeccionalesHandler = () => {
 				createAction({
 					action: `Imprime carnet de autoridad ${seleDesc}`,
 					tarea: "Datos_SeccionalAutoridadesImprime",
-					keys: "i",
-					underlineindex: 0,
 					onExecute: () => setAutoridadesImprime({
 						seccional: [seccionalSelected].map((s) => ({
 							id: s.id,
@@ -698,12 +731,21 @@ const SeccionalesHandler = () => {
 							nroAfiliado: a.afiliadoNumero,
 							cargo: a.refCargosDescripcion,
 						})),
-					})
+					}),
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "i",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		}
 		setAutoridadesActions(actions);
-	}, [autoridadesChanger, autoridadSelected, seccionalSelected?.id]);
+	}, [autoridadesChanger, autoridadSelected, seccionalSelected]);
 	tabs.push({
 		header: () => <Tab label="Autoridades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
 		body: () => (
@@ -726,7 +768,7 @@ const SeccionalesHandler = () => {
 			clear: !seccionalSelected?.id,
 			params: { seccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
 		});
-	}, [seccionalSelected?.id, autoridadesChanger]);
+	}, [seccionalSelected, autoridadesChanger]);
 	//#endregion
 
 	//#region Tab documentaciones
@@ -749,7 +791,7 @@ const SeccionalesHandler = () => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -760,8 +802,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalDocumentacionAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const docu = documentacionSelected?.id;
@@ -784,8 +833,16 @@ const SeccionalesHandler = () => {
 				action: `Modifica Documentación ${docuDesc}`,
 				request: "M",
 				tarea: "Datos_SeccionalDocumentacionModifica",
-				keys: "m",
-				underlineindex: 0,
+
+				...(seccionalSelected?.seccionalAbsorbenteId || documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "m",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		actions.push(
@@ -793,12 +850,19 @@ const SeccionalesHandler = () => {
 				action: `Baja Documentación ${docuDesc}`,
 				request: "B",
 				tarea: "Datos_SeccionalDocumentacionBaja",
-				keys: "b",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  || documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "b",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected?.id]);
+	}, [documentacionChanger, documentacionSelected, seccionalSelected]);
 
 
 	tabs.push({
@@ -811,9 +875,9 @@ const SeccionalesHandler = () => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: false },
+			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
 		});
-	}, [seccionalSelected?.id, documentacionChanger]);
+	}, [seccionalSelected, documentacionChanger]);
 	//#endregion
 
 	//#region Tab SeccionalLocalidades
@@ -847,8 +911,15 @@ const SeccionalesHandler = () => {
 				action: `Agrega Localidad ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalLocalidadAgrega",
-				keys: "a",
-				underlineindex: 0,
+				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					 keys: "a",
+					 underlineindex: 0
+					}
+				)
 			})
 		);
 		const docu = seccionalLocalidadesSelected?.codigo;
@@ -882,8 +953,15 @@ const SeccionalesHandler = () => {
 					action: `Reactiva Localidad ${docuDesc}`,
 					tarea: "Datos_SeccionalLocalidadReactiva",
 					request: "R",
-					keys: "r",
-					underlineindex: 0,
+					...(seccionalSelected?.seccionalAbsorbenteId  ? 
+						{disabled:  true}
+						:
+						{
+						 disabled:  false,
+						 keys: "r",
+						 underlineindex: 0
+						}
+					)
 				})
 			);
 		} else {
@@ -892,7 +970,7 @@ const SeccionalesHandler = () => {
 					action: `Baja Localidad ${docuDesc}`,
 					request: "B",
 					tarea: "Datos_SeccionalLocalidadBaja",
-					...(seccionalLocalidadesSelected?.deletedDate ? 
+					...(seccionalLocalidadesSelected?.deletedDate || seccionalSelected?.seccionalAbsorbenteId ? 
 						{disabled:  true}
 						:
 						{
@@ -906,7 +984,7 @@ const SeccionalesHandler = () => {
 		}
 		
 		setSeccionalLocalidadesActions(actions);
-	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected?.id]);
+	}, [seccionalLocalidadesChanger, seccionalLocalidadesSelected, seccionalSelected]);
 
 	tabs.push({
 		header: () => <Tab label="Localidades" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabLocalidad } />,
@@ -927,15 +1005,15 @@ const SeccionalesHandler = () => {
 	}, [setLocalidadesQuery]);
 	//#endregion Carga inicial localidades
 
-	// Si cambia Seccional, refresco lista de documentación
+	// Si cambia Seccional, refresco lista de Localidades
 	useEffect(() => {
 		seccionalLocalidadesChanger("list", {
 			clear: !seccionalSelected?.id,
 			localidades: localidadesTodas,
 			//data: seccionalSelected?.seccionalLocalidad ?? [{}],
-			params: { seccionalId: seccionalSelected?.id,  soloactivos: false},
+			params: { seccionalId: seccionalSelected?.id,  soloactivos: true},
 		});
-	}, [localidadesTodas, seccionalSelected?.id, seccionalLocalidadesChanger]);
+	}, [localidadesTodas, seccionalSelected, seccionalLocalidadesChanger]);
 	//#endregion
 
 	//#region modulo y acciones

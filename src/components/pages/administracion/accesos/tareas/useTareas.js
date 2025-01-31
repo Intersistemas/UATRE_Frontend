@@ -230,7 +230,7 @@ const useTareas = () => {
 							},
 						}));
 						return;
-					}
+					} 
 
 					const record = list.selection.edit;
 					//Validaciones

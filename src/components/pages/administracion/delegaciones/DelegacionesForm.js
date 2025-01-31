@@ -230,7 +230,7 @@ const DelegacionesForm = ({
 		}));
 	}, [localidadSelect.reload, localidadSelect.loading, localidadSelect.buscar]);
 	//#endregion select localidad
-
+ 
 	//#region localidadInit
 	const [localidadInit, setLocalidadInit] = useState({
 		reload: true,
@@ -609,7 +609,7 @@ const DelegacionesForm = ({
 							{hide.telefono ? null : (
 								<InputMaterial
 									type="tel"
-									label="Tenéfono"
+									label="Teléfono"
 									error={!!errors.telefono}
 									helperText={errors.telefono ?? ""}
 									value={data.telefono}

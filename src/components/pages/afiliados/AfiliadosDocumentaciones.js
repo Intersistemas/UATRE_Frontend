@@ -36,7 +36,7 @@ const AfiliadosDocumentaciones = (props) => {
 					documentacionChanger("selected", {
 						request,
 						action,
-						record: { entidadTipo: "A", entidadId: props.afiliado?.id, soloactivos: false },
+						record: { entidadTipo: "A", entidadId: props.afiliado?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -73,6 +73,13 @@ const AfiliadosDocumentaciones = (props) => {
 				tarea: "Afiliaciones_DocumentacionModifica",
 				keys: "m",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
 			})
 		);
 		actions.push(
@@ -82,6 +89,14 @@ const AfiliadosDocumentaciones = (props) => {
 				tarea: "Afiliaciones_DocumentacionBaja",
 				keys: "b",
 				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
+				
 			})
 		);
 		setDocumentacionesActions(actions);
@@ -98,7 +113,7 @@ const AfiliadosDocumentaciones = (props) => {
 	useEffect(() => {
 		documentacionChanger("list", {
 			clear: !props.afiliado?.id,
-			params: { entidadTipo: "A", entidadId: props.afiliado.id, soloactivos: false },
+			params: { entidadTipo: "A", entidadId: props.afiliado.id, soloactivos: true },
 		});
 	}, [props.afiliado, documentacionChanger]);
 	//#endregion

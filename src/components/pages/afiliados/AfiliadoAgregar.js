@@ -49,10 +49,10 @@ const fechaIngresoReducer = (state, action) => {
 
 const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    return { value: action.value, isValid: ValidarCUIT(action.value) };
+    return { value: action.value, isValid: ["30", "33", "34"].includes(action.value.toString().slice(0,2)) ? false : ValidarCUIT(action.value) };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: ValidarCUIT(state.value) };
+    return { value: state.value, isValid: ["30", "33", "34"].includes(state.value.toString().slice(0,2)) ? false : ValidarCUIT(state.value) };
   }
   return { value: "", isValid: false };
 };
@@ -479,8 +479,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
        
       }
 
-
-      console.log("error*",error)
       if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
@@ -501,12 +499,23 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setErrorAFIP(true);
       }
 
-      if (error.code === 404 && cuitLoading) {
-        setCUITLoading(false);
+      if (error?.data?.statusCode === 408 && cuitLoading) {
+        setCUILLoading(false);
         setDialogTexto(
-          `Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
+          `No se pudo conectar con AFIP, se habilita la carga MANUAL del Empleador`
         );
         setOpenDialog(true);
+        setErrorAFIP(false); // afip no respondio no se considera un error para impedir la carga
+      }
+
+      if (error.code === 404 && cuitLoading && error?.data?.statusCode !== 408) {
+        setCUITLoading(false);
+        setDialogTexto(
+          //`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
+          `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)` : error?.message) : "Error consultando AFIP"}`
+        );
+        setOpenDialog(true);
+        setErrorAFIP(true);
       }
 
       return;
@@ -659,7 +668,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       setInputsTouched(true);
       console.log("cuilPAram",cuilParam)
       if (cuilParam > 0) {
-        dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ValidarCUIT(cuilParam) });
+        dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ["30", "33", "34"].includes(cuilParam.toString().slice(0,2)) ? false : ValidarCUIT(cuilParam) });
       }
     }
     if (props.accion === "AceptaSolicitud") {
@@ -707,6 +716,32 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         //ciiU3: padronEmpresaRespuesta.ciiU3,
       };
 
+  useEffect(() => {
+    if (cuilState.value ) {
+      console.log("cuilState",cuilState)
+      //!cuilState.isValid ?
+      const processGetAfiliado = async (afiliadoObj) => {
+        console.log('afiliadoObj',afiliadoObj)
+
+        setAfiliado(afiliadoObj);
+        setCuilValidado(afiliadoObj.cuilValidado ? true : false);
+        setNuevoAfiliadoResponse(afiliadoObj);
+        setAfiliadoExiste(true);
+        
+        //dispatches para validar los campos
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value:
+            afiliadoObj.fechaIngreso !== null
+              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+              : "",
+        });
+        dispatchCUIL({ type: "USER_INPUT", value: afiliadoObj.cuil, isValid: ["30", "33", "34"].includes(afiliadoObj.cuil.toString().slice(0,2)) ? false : ValidarCUIT(afiliadoObj.cuil) });
+        
+				dispatchFechaIngreso({
+					type: "USER_INPUT",
+					value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
+				});
 
       dispatchCUIT({ type: "USER_INPUT", value: empresa?.cuit });
       setCUITEmpresa(empresa?.cuit);
@@ -1364,7 +1399,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       request(
         {
           baseURL: "Afiliaciones",
-          endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=false`,
+          endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
           method: "GET",
         },
         async (ok) =>
@@ -2010,13 +2045,17 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   const handleInputChange = (value, id) => {
     console.log('handleInputChange_id',id)
     console.log('handleInputChange_value',value)
+    console.log('handleInputChange_value SLICE',value.slice(0,2))
+   
+    console.log("contains:",["30", "33", "34"].includes(value.slice(0,2)))
+
     switch (id) {
       case "fechaIngreso":
         dispatchFechaIngreso({ type: "USER_INPUT", value: value });
         break;
       case "cuil":
         if(props.accion === "Modifica" || props.accion === "AceptaSolicitud") {
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ValidarCUIT( value.replace(/[^\d]/gim, "")) })
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ["30", "33", "34"].includes(value.toString().slice(0,2)) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) })
           setCuilValidado(false);
         }else{
           setCuilValidado(false);
@@ -2026,7 +2065,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           setDialogTexto("");
           setPadronRespuesta(null);
           setCUITEmpresa("");
-          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ValidarCUIT( value.replace(/[^\d]/gim, "")) });
+          dispatchCUIL({ type: "USER_INPUT", value: value.replace(/[^\d]/gim, ""), isValid: ["30", "33", "34"].includes(value.toString().slice(0,2)) ? false : ValidarCUIT( value.replace(/[^\d]/gim, "")) });
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
           dispatchFechaNacimiento({ type: "USER_INPUT", value: null });
