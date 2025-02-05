@@ -244,12 +244,16 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
-	if (formasPago.length > 1 && newFormaPago.codigoBarra?.length === 80) {
+	if (formasPago.length > 1 && newFormaPago.codigoBarra?.length > 57) {
 		// Rearmo codigo de barras de acuerdo al recálulo producto de la union de las formas de pago.
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 4, Formato.Mascara(newFormaPago.liquidacionTipoPagoId, "#"));
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 39, Formato.Mascara(newFormaPago.total * 100, "#########"));
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 48, Formato.Mascara(newFormaPago.trabajadores, "#####"));
-		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 53, Formato.Mascara(seccional.codigo.substring(1), "####"));
+		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 53, Formato.Mascara(seccional.codigo?.substring(1), "####"));
+		const newData = `${newFormaPago.codigoBarra}`.substring(1, 57);
+		let acumulator = 0;
+		for (let i = 1; i < newData.length + 1; i++) acumulator += parseInt(newData.slice(-i)[0]) * ((i % 2 === 0) ? 1 : 3);
+		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 57, `${10 - (acumulator % 10)}`.slice(-1)[0]);
 	}
 	return (
 		<PDFViewer style={{ flexGrow: 1 }}>
