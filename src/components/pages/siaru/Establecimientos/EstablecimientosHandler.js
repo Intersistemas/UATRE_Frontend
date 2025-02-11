@@ -7,7 +7,8 @@ import Formato from "components/helpers/Formato";
 import useEstablecimientos, { onLoadSelectKeepOrFirst } from "components/establecimientos/useEstablecimientos";
 import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
-import EstablecimientoDetails from "./EstablecimientoDetails";
+// import EstablecimientoDetails from "./EstablecimientoDetails";
+import EstablecimientoDetails from "../Establecimientos/EstablecimientoDetails";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
 

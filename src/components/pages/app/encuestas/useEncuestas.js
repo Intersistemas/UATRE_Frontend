@@ -2,21 +2,26 @@ import React, { useCallback, useEffect, useState, useContext } from "react";
 import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
-import { pick } from "components/helpers/Utils";
+import { id, pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AuthContext from "store/authContext";
 import EncuestasTable from "./EncuestasTable";
-import SeccionalesForm from "./EncuestasForm";
+import EncuestasForm from "./EncuestasForm";
 
+
+
+// Definición inicial del estado de selección de encuestas
 const selectionDef = {
-	action: "",
-	request: "",
-	index: null,
-	record: null,
-	edit: null,
-	errors: null,
+	action: "", // Acción a realizar (A, B, M, C)
+	request: "", // Tipo de solicitud a la API (Crear, Modificar, Eliminar, etc.)
+	index: null, // Índice de la encuesta seleccionada
+	record: null, // Registro de la encuesta seleccionada
+	edit: null, // Datos en edición
+	errors: null, // Errores de validación
 };
 
+
+// Función para seleccionar el primer registro en la lista
 export const onLoadSelectFirst = ({ data, multi, record }) => {
 	const dataArray = AsArray(data);
 	if (multi) {
@@ -28,6 +33,8 @@ export const onLoadSelectFirst = ({ data, multi, record }) => {
 	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
 };
 
+
+// Función que mantiene la selección previa si existe
 export const onLoadSelectSame = ({ data, multi, record }) => {
 	const dataArray = AsArray(data);
 	if (multi) {
@@ -38,18 +45,28 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
 };
 
+
+//// Función que mantiene el mismo registro seleccionado anteriormente
 export const onLoadSelectKeep = ({ record }) => record;
 
+
+//// Función que selecciona el primer registro si no hay uno previamente seleccionado
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
 	record ?? onLoadSelectFirst({ data, multi, record });
 
+
+// Función vacía para manejar cambios en los datos (placeholder)
 export const onDataChangeDef = (data = []) => {};
 
+
+//// Definiciones de funciones vacías para manejar cambios, validaciones y completado de edición
 const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
 	true;
 const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
 const onEditCompleteDef = ({ edit = {}, response = null, request = "", } = {}) => {};
 
+
+//// Hook personalizado para gestionar encuestas
 const useEncuestas = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
@@ -70,11 +87,15 @@ const useEncuestas = ({
 	hideSelectColumn = true,
 	mostrarBuscar = false,
 } = {}) => {
-	//#region Trato queries a APIs
+	//Manejo de consultas a la API
 	const Usuario = useContext(AuthContext).usuario;
 	console.log("useSeccionales_Usuario,",Usuario)
+	
 
+	// Función que maneja las consultas a la API según la acción requerida
 	const pushQuery = useQueryQueue((action, params) => {
+
+
 		switch (action) {
 			case "GetList": {
 				return {
@@ -85,31 +106,22 @@ const useEncuestas = ({
 					},
 				};
 			}
-			case "GetById": {
-				const { id, ...otherParams } = params;
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional/${id}`,
-						method: "GET",
-					},
-					params: otherParams,
-				};
-			}
+		
 			case "Create": {
 				return {
 					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional`,
+						baseURL: "App",
+						endpoint: `/Encuestas`, // Donde id es el identificador de la encuesta
 						method: "POST",
 					},
+					
 				};
 			}
 			case "Update": {
 				return {
 					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional`,
+						baseURL: "App",
+						endpoint: `/Encuestas${id}`,
 						method: "PUT",
 					},
 				};
@@ -117,39 +129,15 @@ const useEncuestas = ({
 			case "Delete": {
 				return {
 					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional/DarDeBaja`,
+						baseURL: "App",
+						endpoint: `/Encuestas`,
 						method: "PATCH",
 					},
 				};
 			}
-			case "Reactiva": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional/Reactivar`,
-						method: "PATCH",
-					},
-				};
-			}
-			case "Absorbe": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad/AbsorbeSeccionalLocalidades`,
-						method: "POST",
-					},
-				};
-			}
-			case "GetAllDelegaciones": {
-				return {
-					config: {
-						baseURL: "Comunes",
-						endpoint: "/RefDelegacion/GetAll",
-						method: "GET",
-					},
-				};
-			}
+		
+		
+		
 			default:
 				return null;
 		}
@@ -186,9 +174,12 @@ const useEncuestas = ({
 		onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
 	});
 
+	// useEffect para cargar la lista de encuestas desde la API
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
+
+		// Si los datos son locales, simplemente se actualizan los estados
 		if (!list.remote) {
 			const data = list.data;
 			const error = list.error;
@@ -208,16 +199,18 @@ const useEncuestas = ({
 			setList((o) => ({ ...o, ...changes }));
 			return;
 		}
+
+		// Si los datos son remotos, se realiza una consulta a la API
 		changes.data = [];
 		pushQuery({
 			action: "GetList",
 			config: {
-				/*body: {
+				params: {  // Enviar parámetros correctamente en lugar de `body`
 					...list.paramsDef,
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
-				},*/
+				}
 			},
 			onOk: async ({ data, ...pagination }) => {
 				if (!Array.isArray(data))
@@ -231,11 +224,11 @@ const useEncuestas = ({
 					...selectionDef,
 					record: list.onLoadSelect({ data, multi, record }),
 				};
-
+		
 				changes.selection.index = multi
 					? changes.selection.record?.map((r) => changes.data.indexOf(r))
 					: changes.data.indexOf(changes.selection.record);
-
+		
 				list.onDataChange(changes.data);
 			},
 			onError: async (error) => {
@@ -245,30 +238,33 @@ const useEncuestas = ({
 			},
 			onFinally: async () => setList((o) => ({ ...o, ...changes })),
 		});
+		
 	}, [pushQuery, list]);
 	//#endregion
 
+
+	// Función para manejar solicitudes y cambios en el estado de la lista
 	const request = useCallback((type, payload = {}) => {
 		switch (type) {
-			case "selected": {
+			case "selected": { // Maneja la selección de encuestas
 				return setList((o) => {
 					const apply = [];
-					if (payload.request !== "A") {
+					if (payload.request !== "A") {  // Si no es una creación (A), se extraen los IDs
 						apply.push(
 							...AsArray(
 								"record" in payload ? payload.record : o.selection.record,
 								true
 							)
-								.map(({ id }) => id)
-								.filter((r) => r)
+								.map(({ id }) => id) // Se extraen los IDs de los registros
+								.filter((r) => r)    // Filtra valores nulos o indefinidos
 						);
 					}
 					return {
 						...o,
 						selection: {
 							...o.selection,
-							request: payload.request,
-							action: payload.action,
+							request: payload.request,  // Tipo de solicitud (A, M, B, C)
+							action: payload.action,   // Acción (crear, modificar, borrar)
 							edit: {
 								...(payload.request === "A"
 									? {}
@@ -330,50 +326,69 @@ const useEncuestas = ({
 		}
 	}, []);
 
+
+	// Genera el formulario de edición o creación de encuestas si hay un registro seleccionado
+
 	let form = null;
 	if (list.selection.edit) {
 		form = (
-			<SeccionalesForm
-				request = {list.selection.request}
+			<EncuestasForm
+				request = {list.selection.request} // Tipo de acción que se está realizando (A, M, B, C)
+
+				// Carga los datos del formulario con los valores actuales o valores por defecto
 				data={(() => {
-					//INIT DE DATOS DEL FORM
-					var data = list.selection.request == "B" ? {
-						deletedDate: dayjs().format("DD-MM-YYYY"),
+					// Si la acción es "Modificar (M)" o "Borrar (B)", se añaden datos de eliminación
+					var data = (list.selection.request == "M" || list.selection.request == "B") ? {
+						deletedDate: dayjs().format("DD-MM-YYYY"), // Fecha actual como fecha de eliminación
 						deletedBy: Usuario.nombre,
 					}
+					//--------------------------------------------------------------<
 					: 
-					{};
+					{
+						
+					};
+
 					return { ...list.selection.edit, ...data }; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
 				})()}
-				delegaciones={list.delegaciones}
 				title={list.selection.action}
 				errors={list.selection.errors}
 				loading={!!list.loading} 
 				disabled={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? { }
+				 	const r = ["A", "M"].includes(list.selection.request)
+				 		? { 
+							fecha: true,
+						}
 						: {
-								codigo: true,
-								seccionalEstadoId: true,
-								descripcion: true,
-								refDelegacionId: true,
-								refLocalidadesId: true,
-								domicilio: true,
-								email: true,
+								deletedDate: dayjs().format("DD-MM-YYYY"),
+								deletedBy: true,
+								tema: true,
+								fecha: true,
+								fechaFinalizacion: true,
 								observaciones: true,
 						  };
-					if (list.selection.request !== "B")
-					 r.deletedObs = true;
-					 r.deletedBy = true;
-					 r.deletedDate = true;
+					if (list.selection.request !== "B"){
+						r.deletedObs = true;
+						r.deletedBy = true;
+						r.deletedDate = true;
+						r.fecha= true;
+					}
 
-					return r;
-				})()}
+				 	return r;
+				 })()}
+
+
+				// Define qué campos del formulario deben ocultarse según la acción
 				hide={
-					["A", "M", "X"].includes(list.selection.request)
+					["A", "M"].includes(list.selection.request)
 						? { deletedObs: true,
 							deletedBy: true,
 							deletedDate: true, }
+						: ["C"].includes(list.selection.request)
+						? { 
+							
+							deletedBy: true,
+							deletedDate: true,
+							 }
 						: {}
 				}
 				onChange={(edit) => {
@@ -399,7 +414,7 @@ const useEncuestas = ({
 					applyChanges();
 				}}
 				onClose={(confirm) => {
-					if (!["A", "B", "M", "R", "X"].includes(list.selection.request)) {
+					if (!["A", "B", "M", "C"].includes(list.selection.request)) {
 						confirm = false;
 					}
 					if (!confirm) {
@@ -420,28 +435,22 @@ const useEncuestas = ({
 
 					const record = { ...list.selection.edit };
 					
+					console.log("Record_useEncuestas",record)
 					//Validaciones
 					const errors = {};
 					if (list.selection.request === "B") {
 						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-						record.seccionalEstadoId = 5 //DEFINO EL ESTADO DE BAJA! se deberia hacer mediante la busquieda del id de baja
 					} 
-					
+					//--------------------------------------------------------------------------------------------------------------
+					//Verificacion------------------------------------------------------------------------------------------------->
 					if (list.selection.request === "A" || list.selection.request === "M"){
-						if (!record.codigo) errors.codigo = "Dato requerido";
-						if (!record.email) errors.email = "Dato requerido";
-						if (!record.domicilio) errors.domicilio = "Dato requerido";
-						if (!record.refLocalidadesId || record.refLocalidadesId == 0)
-							errors.refLocalidadesId = "Dato requerido";
-						if (!record.refDelegacionId || record.refDelegacionId == 0)
-							errors.refDelegacionId = "Dato requerido";
-						if (!record.descripcion) errors.descripcion = "Dato requerido";
-						if (!record.seccionalEstadoId) errors.seccionalEstadoId = "Dato requerido";
+						if (!record.tema) errors.tema = "Dato requerido";
+						
+						
+						// if (!record.refLocalidadesId || record.refLocalidadesId == 0)
+						// errors.refLocalidadesId = "Dato requerido";
+					
 					}
-
-					if (list.selection.request === "X") {
-						if (!record.seccionalIdAbsorbente) errors.seccionalIdAbsorbente = "Dato requerido";
-					} 
 
 					list.onEditValidate({
 						edit: record,
@@ -452,7 +461,7 @@ const useEncuestas = ({
 					if (Object.keys(errors).length) {
 						setList((o) => ({
 							...o,
-							selection: {
+							selection: { 
 								...o.selection,
 								errors,
 							},
@@ -461,7 +470,6 @@ const useEncuestas = ({
 					}
 
 					const query = {
-						
 						config: {},
 						onOk: async (response) => {
 							setList((old) => ({ ...old, loading: "Cargando..." }));
@@ -485,42 +493,37 @@ const useEncuestas = ({
 
 					console.log("useSeccionales_list.selection",list.selection)
 					switch (list.selection.request) {
-						case "A":
-							query.action = "Create";
-							query.config.body = record;
-							break;
-						case "M":
-							query.action = "Update";
-							query.params = { id: record.id };
-							query.config.body = record;
-							break;
-						case "B":
-							query.action = "Delete";
-							query.params = { id: record.id };
-							query.config.body = {
-								id: record.id,
-								deletedObs: record.deletedObs,
-								seccionalEstadoId: record.seccionalEstadoId
-							};
-							break;
-						case "R":
-							query.action = "Reactiva";
-							query.params = { id: record.id };
-							query.config.body = record.seccionalEstadoId;
-							break;
-						case "X":
-							query.action = "Absorbe";
-							//query.params = { id: record.id };
-							query.config.body = {
-								seccionalIdAbsorbida: record.id,
-								seccionalIdAbsorbente: record.seccionalIdAbsorbente,
-								userId: Usuario.id
-								// id: record.id, debo enviar la seccional absorvente y la absorvida
-							};
-							break;	
-						default:
-							break;
-					}
+					// case "A": // Crear nueva encuesta
+					// 	query.action = "Create";
+					// 	query.config.body = record;
+					// 	break;
+					case "A": // Crear nueva encuesta
+						query.action = "Create";
+						query.config.body = {
+							...record, // Copia los datos actuales del formulario
+							preguntas: record.preguntas && Array.isArray(record.preguntas) ? record.preguntas : [] // Asegura un array vacío si no hay preguntas
+						};
+						break;
+					case "M": // Modificar encuesta existente
+						query.action = "Update";
+						query.params = { id: record.id };
+						query.config.body = {
+							record,
+							preguntas: record.preguntas && Array.isArray(record.preguntas) ? record.preguntas : [] // Asegura un array vacío si no hay preguntas
+						};
+						break;
+					case "B": // Eliminar encuesta
+						query.action = "Delete";
+						query.params = { id: record.id };
+						query.config.body = {
+							id: record.id,
+							deletedObs: record.deletedObs,
+							seccionalEstadoId: record.seccionalEstadoId
+						};
+						break;
+					default:
+						break;
+				}
 					pushQuery(query);
 				}}
 			/>
@@ -530,9 +533,9 @@ const useEncuestas = ({
 	const render = () => (
 		<>
 			<EncuestasTable
-				remote={list.remote}
-				data={list.data}
-				loading={!!list.loading}
+				remote={list.remote} // Indica si los datos provienen de la API o son locales
+				data={list.data} // Pasa los datos de la lista de encuestas
+				loading={!!list.loading} // Indica si la tabla está cargando datos
 				noDataIndication={
 					list.loading ??
 					list.loadingOverride ??
@@ -549,6 +552,8 @@ const useEncuestas = ({
 							data: list.remote ? [] : list.data,
 						}),
 				}}
+
+					// Obtiene los IDs de los registros seleccionados
 				selection={{
 					mode: list.selection.multi ? "checkbox" : "radio",
 					hideSelectColumn: hideSelectColumn,

@@ -8,10 +8,12 @@ import Formato from "components/helpers/Formato";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
-import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
+// import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
+import useLiquidacionesCabecera from "../Liquidaciones/useLiquidacionesCabecera";
 import useLiquidaciones from "./useLiquidaciones";
-import LiquidacionDetails from "./LiquidacionDetails";
-import FormaPagoPrint from "./impresion/FormaPagoPrint";
+import LiquidacionDetails from "../Liquidaciones/LiquidacionDetails";
+// import FormaPagoPrint from "./impresion/FormaPagoPrint";
+import FormaPagoPrint from "../Liquidaciones/Impresion/FormaPagoPrint";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();

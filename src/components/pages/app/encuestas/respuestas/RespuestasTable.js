@@ -1,93 +1,72 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
+import FormatearFecha from "../../../../helpers/FormatearFecha"
 
-import SwitchCustom from "../../../../ui/Switch/SwitchCustom";
-//import FormatearFecha from "../../../helpers/FormatearFecha";
-import { handleModuloSeleccionar } from "../../../../../redux/actions";
-import { FormControlLabel, Switch } from "@mui/material";
-import FormatearFecha from "components/helpers/FormatearFecha";
-import Formato from "components/helpers/Formato";
-
-/*<FormControlLabel
-				control={
-				<Switch checked={true} onChange={handleChangeSwitch} label={props.label} />
-				}
-				label="Solo vigentes"
-			/>
-*/
- 
-const SeccionalLocalidadesTable  = ({
+const RespuestasTable  = ({
 	columns: columnsInit = [],
 	...x
-} = {}) => {
+} = {}) => { 
 
+	console.log("data respuestastable:",x)
 	const columns = [
 		{
-			headerTitle: (column, colIndex) => `Id`,
+			headerTitle: (column, colIndex) => `id`,
 			dataField: "id",
 			text: "Id",
 			sort: true,
 			hidden: true,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
+				},
 			},
+		{
+			headerTitle: (column, colIndex) => `fecha`,
+			dataField: "fecha",
+			text: "Fecha",
+			sort: true,
+			headerStyle: (colum, colIndex) => {
+				return { width: "7rem", textAlign: "center" };
+			},
+			formatter: (cell) => (cell ? FormatearFecha(cell) : "Fecha no disponible"),
 		},
 		{
-			headerTitle: (column, colIndex) => `Codigo`,
-			dataField: "codigo",
-			text: "Código",
+			headerTitle: (column, colIndex) => `afiliadoNombre`,
+			dataField: "afiliadoNombre",
+			text: "Nombre",
 			sort: true,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
 			},
 		},
 		{
-			headerTitle: (column, colIndex) => `Nombre Localidad`,
-			dataField: "nombre",
-			text: "Localidad",
+			headerTitle: (column, colIndex) => `afiliadoCUIL`, 
+			dataField: "afiliadoCUIL",
+			text: "CUIL",
 			sort: true,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
 			},
 		},
 		{
-			headerTitle: (column, colIndex) => `Código Postal`,
-			dataField: "codPostal",
-			text: "Código Postal",
+			headerTitle: (column, colIndex) => `afiliadoNro`,
+			dataField: "afiliadoId",
+			text: "Afiliado",
 			sort: true,
 			headerStyle: (colum, colIndex) => {
 				return { width: "7rem", textAlign: "center" };
 			},
 		},
-		{
-			headerTitle: (column, colIndex) => `Provincia`,
-			dataField: "litProvincia",
-			text: "Provincia",
-			sort: true,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-			},
-		},
-		{
-			headerTitle: (column, colIndex) => `Fecha Baja`,
-			dataField: "deletedDate",
-			text: "Fecha Baja",
-			sort: true,
-			formatter:FormatearFecha,
-			headerStyle: (colum, colIndex) => {
-			  return { width: "7rem", textAlign: "center" };
-			},
-		},
+		
 	]
 
 	return (
 			<Table
 				keyField="id"
-				mostrarBuscar={true}
+				//mostrarBuscar={true}
 				columns={columns}
 				{...x}
 			/>
 	);
 };
 
-export default SeccionalLocalidadesTable;
+export default RespuestasTable;

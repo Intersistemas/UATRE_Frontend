@@ -16,6 +16,8 @@ const AppHandler = () => {
 
 	const newAccesos = [];
 		tareas.hasTarea("App_Encuesta")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Encuestas")}>Encuestas</Button>)
+		tareas.hasTarea("App_Denuncia")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Denuncias")}>Denuncias</Button>)
+		tareas.hasTarea("App_Metrica")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Metrica")}>Metricas</Button>)
 
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 

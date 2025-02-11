@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useRespuestas from "components/pages/app/encuestas/respuestas/useRespuestas";
 import Action from "components/helpers/Action";
 import useQueryState from "components/hooks/useQueryState";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
@@ -12,64 +13,50 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
-import useSeccionalLocalidades from "./respuestas/useRespuestas";
 import useSeccionales, { onLoadSelectKeepOrFirst } from "./useEncuestas";
 
-//#region estadoSeccionalSelect Options
-const estadoSeccionalTodos = { label: "Todos" };
-const estadoSeccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
+
+
+
+//#region estadoSeccionalSelectPregunta Options
+const estadoPregunta = { label: "Todos" };
+const estadoSeccionalPreguntas = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		start: [estadoSeccionalTodos],
+		start: [estadoPregunta],
 		filter: (r) => includeSearch(r, buscar),
 		...x,
 	});
-//#endregion estadoSeccionalSelect Options
+//___________________________________________________________________
+const estadoRespuesta2 = { label: "Todos" };
+const estadoSeccionalRespuestas = ({ data2 = [], buscar = "", ...x }) =>
+	mapOptions({
+		data2,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		start: [estadoRespuesta2],
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//_________________________________________________________________
 
-//#region provinciaSelect Options
-const provinciaTodas = { label: "Todas" };
-const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
+
+//#region respuestaSelect Options
+const RespuestasTodas = { label: "Todas" };
+const respuestaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-		start: [provinciaTodas],
+		start: [RespuestasTodas],
 		filter: (r) => includeSearch(r, buscar),
 		...x,
 	});
-//#endregion provinciaSelect Options
-
-//#region localidadSelect Options
-const localidadTodas = { label: "Todas" };
-const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codPostal, r.nombre].join(" - "),
-			record: r,
-		}),
-		start: [localidadTodas],
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion localidadSelect Options
-
-//#region delegacionSelect Options
-const delegacionTodas = { label: "Todas" };
-const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-		start: [delegacionTodas],
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion delegacionSelect Options
+//#endregion respuestaSelect Options
 
 const EncuestasHandler = () => {
 	const dispatch = useDispatch();
-	const { setState: setEstadosSeccionalesQuery } = useQueryState(
+
+	const { setState: setEstadosPreguntaSeccionalesQuery } = useQueryState(
 		() => ({
 			config: {
 				baseURL: "App",
@@ -79,148 +66,112 @@ const EncuestasHandler = () => {
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
-	const { setState: setProvinciasQuery } = useQueryState(
+
+	//______________________________________________________________
+	const { setState: setEstadosRespuestaSeccionalesQuery2 } = useQueryState(
 		() => ({
 			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Provincia`,
+				baseURL: "App",
+				endpoint: "/EncuestaRespuestas",
 				method: "GET",
 			},
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
-	const { setState: setLocalidadesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/RefLocalidad`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setDelegacionesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Comunes",
-				endpoint: `/RefDelegacion/GetAll`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
+	//______________________________________________________________
+
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
-	const [localidadesTodas, setLocalidadesTodas] = useState([]);
-	
+
 	const tarea = useTareasUsuario();
 	const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
-	const disableTabDocumentacion = !tarea.hasTarea("Datos_SeccionalDocumentacion");
-	const disableTabLocalidad = !tarea.hasTarea("Datos_SeccionalLocalidad");
+	
 
 	//#region selects
 	
 	//#region select estadoSeccional
-	const [estadoSeccionalSelect, setEstadoSeccionalSelect] = useState({
+	const [estadoSeccionalSelectPregunta, setEstadoSeccionallSelectPregunta] = useState({
 		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
 		options: [],
-		selected: estadoSeccionalTodos,
+		selected: estadoPregunta,
 		origen: "",
 	});
 	// Buscador
 	useEffect(() => {
-		setEstadoSeccionalSelect((o) => ({
+		setEstadoSeccionallSelectPregunta((o) => ({
 			...o,
-			options: estadoSeccionalSelectOptions(o),
+			options: estadoSeccionalPreguntas(o),
 		}));
-	}, [estadoSeccionalSelect.buscar, estadoSeccionalSelect.data]);
-	//#endregion select estadoSeccional
+	}, [estadoSeccionalSelectPregunta.buscar, estadoSeccionalSelectPregunta.data]);
 
-	//#region select provincia
-	const [seccPciaSelect, setSeccPciaSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: provinciaTodas,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setSeccPciaSelect((o) => ({
-			...o,
-			options: provinciaSelectOptions(o),
-		}));
-	}, [seccPciaSelect.buscar, seccPciaSelect.data]);
-	//#endregion select provincia
 
-	//#region select localidad
-	const [seccLocaSelect, setSeccLocaSelect] = useState({
-		loading: "",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: localidadTodas,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setSeccLocaSelect((o) => {
-			const options = localidadSelectOptions(o);
-			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn = record.codPostal
-					? (o) => o.record.codPostal === record.codPostal
-					: (o) => includeSearch(o, record.nombre);
-				selected = options.find(findFn);
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
-				}
-			}
-			return { ...o, options, selected, origen };
+	//____________________________________________________________________
+		//#region select estadoSeccional
+		const [estadoSeccionalSeelectRespuesta, setEstadoSeccionalSelecRespuestas] = useState({
+			loading: "Cargando...",
+			buscar: "",
+			data2: [],
+			error: null,
+			options: [],
+			selected: estadoRespuesta2,
+			origen: "",
 		});
-	}, [seccLocaSelect.buscar, seccLocaSelect.data]);
-	//#endregion select localidad
+		// Buscador
+		useEffect(() => {
+			setEstadoSeccionallSelectPregunta((o) => ({
+				...o,
+				options: estadoSeccionalRespuestas(o),
+			}));
+		}, [estadoSeccionalSeelectRespuesta.buscar, estadoSeccionalSeelectRespuesta.data2]);
+
+	//_____________________________________________________________________
+	//#endregion select estadoSeccional
 
 	//#region select estadoSeccional
-	const [delegacionSelect, setDelegacionSelect] = useState({
+	const [respuestaSelect, setRespuestaSelect] = useState({
 		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
 		options: [],
-		selected: delegacionTodas,
+		selected: RespuestasTodas,
 		origen: "",
 	});
 	// Buscador
 	useEffect(() => {
-		setDelegacionSelect((o) => ({
+		setRespuestaSelect((o) => ({
 			...o,
-			options: delegacionSelectOptions(o),
+			options: respuestaSelectOptions(o),
 		}));
-	}, [delegacionSelect.buscar, delegacionSelect.data]);
-	//#endregion select estadoSeccional
+	}, [respuestaSelect.buscar, respuestaSelect.data]);
 
-	//#endregion selects
 	
 	//#region Tab Seccionales
-	const [seccionalesParamsEdit, setSeccionalesParamsEdit] = useState({});
+
 	const [seccionalesParamsSend, setSeccionalesParamsSend] = useState({});
 	const {
 		render: seccionalesTab,
 		request: seccionalChanger,
 		selected: seccionalSelected,
 	} = useSeccionales();
+
+
+
+	//___________________________________________________________________
+	//#region Tab Seccionales
+
+	const [seccionalesParamsSend2, setSeccionalesParamsSend2] = useState({});
+	const {
+		render: seccionalesTab2,
+		request: seccionalChanger2,
+		selected: seccionalSelected2,
+	} = useSeccionales();
+	//___________________________________________________________________
+
 	const [seccionalesActions, setSeccionalesActions] = useState([]);
 	
 	useEffect(() => {
@@ -232,6 +183,7 @@ const EncuestasHandler = () => {
 				combination: "AltKey",
 				...x,
 			});
+			//ººººººººººººººººººººººººººººººººººººººººººººººººººººººººº
 		const actions = [
 			createAction({
 				action: `Agrega Encuesta`,
@@ -251,7 +203,7 @@ const EncuestasHandler = () => {
 				...(!seccionalSelected?.id ? 
 					{disabled:  true}
 					:
-					{
+					{ 
 					 disabled:  false,
 					 keys: "o",
 					 underlineindex: 1
@@ -316,72 +268,79 @@ const EncuestasHandler = () => {
 	}, [seccionalChanger, seccionalesParamsSend]);
 
 
-	//#region Carga inicial select estado seccional
+	//_________________________________________________________________________________________
+
+
 	useEffect(() => {
-		setEstadosSeccionalesQuery((o) => ({
+		seccionalChanger2("list", { params: seccionalesParamsSend2, pagination: { index: 1, size: 15 },
+			onLoadSelect: onLoadSelectKeepOrFirst, });
+	}, [seccionalChanger2, seccionalesParamsSend2]);
+
+	//__________________________________________________________________________________________
+
+
+
+		//#region Carga inicial select estado seccional
+		useEffect(() => {
+			setEstadosPreguntaSeccionalesQuery((o) => ({
+				...o,
+				onLoad: ({ ok, error }) => {
+					let data = [];
+					if (Array.isArray(ok)) data = ok;
+					console.log("D1:", ok);
+					
+					setEstadoSeccionallSelectPregunta((o) => ({
+						...o,
+						loading: null,
+						data,
+						error: error?.toString(),
+					}));
+				},
+			}));
+		}, [setEstadosPreguntaSeccionalesQuery]);
+
+
+
+
+
+	//______________________________________________________________
+	useEffect(() => {
+		setEstadosRespuestaSeccionalesQuery2((o) => ({
 			...o,
 			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				setEstadoSeccionalSelect((o) => ({
+				let data2 = [];
+				if (Array.isArray(ok?.data)) data2 = [...ok.data]; // Copia los datos de ok.data si es un array
+				console.log("Sii:", data2);
+	
+				setEstadoSeccionalSelecRespuestas((o) => ({
 					...o,
 					loading: null,
-					data,
+					data2,  // Ahora data2 tiene los valores de ok.data (si existían)
 					error: error?.toString(),
 				}));
 			},
 		}));
-	}, [setEstadosSeccionalesQuery]);
-	//#endregion Carga inicial select estado seccional
+	}, [setEstadosRespuestaSeccionalesQuery2]);
+	
+	//_________________________________________________________________
 
-	//#region Carga inicial selects provincias
-	useEffect(() => {
-		setProvinciasQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				const changes = {
-					data,
-					loading: null,
-					error: error?.toString(),
-				};
-				setSeccPciaSelect((o) => ({ ...o, ...changes }));
-			},
-		}));
-	}, [setProvinciasQuery]);
-	//#endregion Carga inicial selects provincias
 
-	//#region Carga inicial select delegacion
-	useEffect(() => {
-		setDelegacionesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				setDelegacionSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setDelegacionesQuery]);
-	//#endregion Carga inicial select delegacion
-
-	//#endregion
 
 	//#region Tab Autoridades
-	const [preguntasTab, preguntasChanger, preguntasSelected = seccionalSelected] = usePreguntas();
+	const [preguntasTab, preguntasChanger, preguntasSelected] = usePreguntas();
 	const [autoridadesActions, setAutoridadesActions] = useState([]);
 	useEffect(() => {
+
+		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada1:", preguntasSelected)
+		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada2:", seccionalSelected)
 		const actions = [];
 		const secc = seccionalSelected?.tema ?? "";
 		if (!secc) {
 			setAutoridadesActions(actions);
 			return;
 		}
+		//Pasando como props
+
 		const seccDesc = `para Encuesta ${secc}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
@@ -405,38 +364,9 @@ const EncuestasHandler = () => {
 				underlineindex: 0
 			})
 		);
-		const sele = preguntasSelected?.id;
-		if (!sele) {
-			setAutoridadesActions(actions);
-			return;
-		}
-		const seleDesc = `${sele} ${seccDesc}`;
-		actions.push(
-			createAction({
-				action: `Consulta Pregunta ${seleDesc}`,
-				request: "C",
-				tarea: "Datos_SeccionalAutoridadesConsulta",
-				keys: "o",
-				underlineindex: 1,
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Pregunta ${seleDesc}`,
-				request: "M",
-				tarea: "Datos_SeccionalAutoridadesModifica",
-				...(preguntasSelected?.deletedDate ?
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "m",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
+
 		setAutoridadesActions(actions);
+		
 	}, [preguntasChanger, preguntasSelected, seccionalSelected]);
 	tabs.push({
 		header: () => <Tab label="Preguntas" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
@@ -449,27 +379,29 @@ const EncuestasHandler = () => {
 		actions: autoridadesActions,
 	});
 
-	// Si cambia Seccional, refresco lista de autoridades
+
+
+//------------------------------------------------------------------------------------
+// Si cambia Seccional, refresco lista de autoridades
 	useEffect(() => {
 		console.log("seccionalSelected**",seccionalSelected)
 		preguntasChanger("list", {
 			clear: !seccionalSelected?.id,
 			data: seccionalSelected?.preguntas,
-			params: { seccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
+			params: { idDePreguntaSeleccionadaSeccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
 		});
 	}, [seccionalSelected, preguntasChanger]);
-	//#endregion
 
-	//#region Tab documentaciones
-	const [documentacionesTab, documentacionChanger, documentacionSelected] =
-		useDocumentaciones();
-	const [documentacionesActions, setDocumentacionesActions] = useState([]);
+
+
+	const [respuestasTab2, respuestasChanger2, respuestasSelected2] = useRespuestas();
+	const [respuestasActions, setRespuestasActions] = useState([]);
 
 	useEffect(() => {
 		const actions = [];
-		const secc = seccionalSelected?.tema ?? "";
+		const secc = seccionalSelected2?.tema ?? "";
 		if (!secc) {
-			setDocumentacionesActions(actions);
+			setRespuestasActions(actions);
 			return;
 		}
 		const seccDesc = `para Encuesta ${secc}`;
@@ -477,10 +409,10 @@ const EncuestasHandler = () => {
 			new Action({
 				name: action,
 				onExecute: (action) =>
-					documentacionChanger("selected", {
+					respuestasChanger2("selected", {
 						request,
 						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
+						record: { entidadTipo: "S", entidadId: seccionalSelected2?.id, soloactivos: true },
 					}),
 				combination: "AltKey",
 				...x,
@@ -490,8 +422,8 @@ const EncuestasHandler = () => {
 			createAction({
 				action: `Agrega Documentación ${seccDesc}`,
 				request: "A",
-				tarea: "Datos_SeccionalDocumentacionAgrega",
-				...(seccionalSelected?.seccionalAbsorbenteId  ? 
+				tarea: "Datos_SeccionalrespuestasAgrega",
+				...(seccionalSelected2?.seccionalAbsorbenteId  ? 
 					{disabled:  true}
 					:
 					{
@@ -502,100 +434,89 @@ const EncuestasHandler = () => {
 				)
 			})
 		);
-		const docu = documentacionSelected?.id;
-		if (!docu) {
-			setDocumentacionesActions(actions);
-			return;
-		}
-		const docuDesc = `${docu} ${seccDesc}`;
-		actions.push(
-			createAction({
-				action: `Consulta Documentación ${docuDesc}`,
-				request: "C",
-				tarea: "Datos_SeccionalDocumentacionConsulta",
-				keys: "o",
-				underlineindex: 1,
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Documentación ${docuDesc}`,
-				request: "M",
-				tarea: "Datos_SeccionalDocumentacionModifica",
 
-				...(seccionalSelected?.seccionalAbsorbenteId || documentacionSelected?.deletedDate ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "m",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Baja Documentación ${docuDesc}`,
-				request: "B",
-				tarea: "Datos_SeccionalDocumentacionBaja",
-				...(seccionalSelected?.seccionalAbsorbenteId  || documentacionSelected?.deletedDate ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "b",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
-		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, seccionalSelected]);
+		setRespuestasActions(actions);
+	}, [respuestasChanger2, respuestasSelected2, seccionalSelected2]);
+
 
 
 	tabs.push({
-		header: () => <Tab label="Respuestas" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabDocumentacion} />,
-		body: documentacionesTab,
-		actions: documentacionesActions,
+		header: () => <Tab label="Respuestas" disabled={!seccionalSelected2?.id || seccionalSelected2.deletedDate || disableTabAutoridades } />,
+		body: () => (
+			<>
+				{respuestasTab2()}
+				
+			</> 
+		),
+		actions: respuestasActions,
 	});
 
-	// Si cambia Seccional, refresco lista de documentación
-	useEffect(() => {
-		documentacionChanger("list", {
-			clear: !seccionalSelected?.id,
-			params: { entidadTipo: "S", entidadId: seccionalSelected?.id, soloactivos: true },
-		});
-	}, [seccionalSelected, documentacionChanger]);
-	//#endregion
+
+					//Datos que obtengo de useRespuestas 
+//_________________________________________________________________________________________
+		// Si cambia Seccional, refresco lista de autoridades
+		useEffect(() => {
+			console.log("%DATOS-RESPUESTAS-DE-ENCUESTA_HAN ", "color: green", estadoSeccionalSeelectRespuesta.data2);
+
+			
+			respuestasChanger2("list", {
+				clear: !preguntasSelected?.id,
+				// data: estadoSeccionalSeelectRespuesta?.data2,
+				params: { encuestaPreguntaId: preguntasSelected?.id /*aca debe ir el check de SOloActivos */},
+			});
+		}, [estadoSeccionalSeelectRespuesta, preguntasSelected]);
+//__________________________________________________________________________________________
+//****************************************************************** */
 
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
 		dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
 	}, [dispatch, acciones]);
-	//#endregion
+
 
 	return (
-		<Grid full col>
-			<Grid className="titulo">
-				<h1>Seccionales</h1>
-			</Grid>
-			<Grid className="tabs">
-				<text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " " }</text>
-					<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-						{tabs.map((r) => r.header())}
-					</Tabs>
-			</Grid>
-			<Grid className="contenido" col gap="10px">
-				{tabs.map(({ body }, i) => (
-					<Grid col gap="inherit" hidden={i !== tab}>{body()}</Grid>
-				))}
-			</Grid>
-			<KeyPress items={acciones} />
 		
-		</Grid>
+		<Grid full col>
+  {/* Título */}
+  <Grid className="titulo">
+    <h1>Encuesta</h1>
+  </Grid>
+
+  {/* Tabs */}
+  <Grid className="tabs">
+    <text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " "}</text>
+    <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+      {tabs.map((r) => r.header())}
+    </Tabs>
+  </Grid>
+
+  {/* Contenido */}
+  <Grid className="contenido" col gap="10px">
+    {tabs.map(({ body }, i) => (
+      <Grid col gap="inherit" hidden={i !== tab}>
+        {/* Tabla */}
+        {body()}
+
+        
+      </Grid>
+    ))}
+  </Grid>
+
+  {/* KeyPress */}
+  <KeyPress items={acciones} />
+  
+</Grid>
+
+
+
 	);
 };
 
 export default EncuestasHandler;
+
+
+
+
+
+

@@ -1,79 +1,52 @@
-import React, { useCallback, useEffect, useState,useContext } from "react";
+
+//________________________________________________________________________________________
+
+import React, { useCallback, useState, useEffect } from "react";
+import RespuestasTable from "./RespuestasTable";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import SeccionalLocalidadesTable from "./RespuestasTable";
-import AutoridadesForm from "./RespuestasForm";
-import AuthContext from "../../../../../store/authContext";
-import moment from "moment";
-import FormatearFecha from "components/helpers/FormatearFecha";
-import SeccionalLocalidadesForm from "./RespuestasForm";
+
+const useRespuestas = () => {
+
+  // Definición inicial de la selección
+  const selectionDef = {
+    action: "",
+    request: "",
+    index: null,
+    record: null,
+    edit: null,
+    errors: null,
+  };
+
+  //# Declaración de estados y carga de datos
+  const [list, setList] = useState({
+    loading: null,
+    params: {}, // Inicializamos params como objeto vacío
+    cargos: [],
+    data: [],
+    error: null,
+    selection: { ...selectionDef },
+  });
 
 
-const vigenteHasta = new Date(2099, 11, 31);
-const vigenteDesde = new Date();
-
-const selectionDef = {
-	action: "",
-	request: "",
-	index: null,
-	record: null,
-	edit: null,
-	errors: null,
-};
- 
-const useSeccionalLocalidades = () => {
-
-	const Usuario = useContext(AuthContext).usuario;
-
-
-	//#region Trato queries a APIs
-
+  //#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log('pushQuery_action_useSeccionalLocalidades',action," & ",params);
-		
+		console.log('COMPONENTE USE_RESPUESTAS:',action," & ",params);
+
 		switch (action) {
+			
 			case "GetList": {
+
+
+        const { id, ...otherParams } = params;
+        
+
 				return {
 					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadBySeccionalId`,
+						baseURL: "App",
+						endpoint: `/EncuestaRespuestas`,
 						method: "GET",
 					},
-				};
-			}
-			case "Create": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad`,
-						method: "PUT",
-					},
-				};
-			}
-			case "Update": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad`,
-						method: "PUT",
-					},
-				};
-			}
-			case "Delete": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad/DarDeBaja`,
-						method: "PATCH",
-					},
-				};
-			}
-			case "Reactiva": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/SeccionalLocalidad/Reactivar`,
-						method: "PATCH",
-					},
+          params: otherParams,
 				};
 			}
 			default:
@@ -81,288 +54,158 @@ const useSeccionalLocalidades = () => {
 		}
 	});
 	//#endregion
- 
-	//#region declaracion y carga list y selected
-	const [list, setList] = useState({
-		loading: null,
-		params: {},
-		//pagination: { index: 1, size: 5 },
-		data: [],
-		localidadesTodas: [],
-		error: null,
-		selection: {...selectionDef},
-	});
 
-	useEffect(() => {
-		if (!list.loading) return;
-		pushQuery(
-			{
-			action: "GetList",
-			params: {
-				...list.params,
-				//pageIndex: list.pagination.index,
-				//pageSize: list.pagination.size,
-			},
-			onOk: async (data) =>
-				setList((o) => {
-					//console.log('data_UseAutoridades:',data)
-					const selection = {
-						...selectionDef,
-						record:
-							data?.find((r) => r.id === o.selection.record?.id) ?? data?.at(0),
-					};
-					if (selection.record)
-						selection.index = data.indexOf(selection.record);
-					return {
-						...o,
-						loading: null,
-						//pagination: { index, size, count },
-						data,
-						error: null,
-						selection,
-					};
-				}),
-			onError: async (err) =>
-				setList((o) => ({
-					...o,
-					loading: null,
-					data: [],
-					error: err.code === 404 ? null : err,
-					selection: { ...selectionDef },
-				})),
-		});
-	}, [pushQuery, list]);
+  useEffect(() => {
+    console.log("useEffect_List_useRespuestas",list)
+    if (!list.loading) return;
+    pushQuery({
+      action: "GetList",
+      params: { ...list.params },
+      onOk: async (data) =>(
+        console.log("data_GetRepuestas",data),
+        setList((o) => {
+          const selection = {
+            ...selectionDef,
+            record:
+              data?.data?.find((r) => r.id === o.selection.record?.id) ??  data?.data.at(0), // selecciono el primer el elemento por defecto, si es que el componetne anterior no me define QUÉ seleccionar
+          };
+          if (selection.record)
+            selection.index =  data?.data.indexOf(selection.record);
+          return {
+            ...o,
+            loading: null,
+            data:  data?.data,
+            error: null,
+            selection,
+          };
+        })
+      ),
+      onError: async (err) =>
+        setList((o) => ({
+          ...o,
+          loading: null,
+          data: [],
+          error: err.code === 404 ? null : err,
+          selection: { ...selectionDef },
+        })),
+    });
+  }, [pushQuery, list.loading, list.params]);
+  //#endregion
 
-	//#endregion
+  //# Manejo de cambios
+  const requestChanges2 = useCallback((type, payload = {}) => {
+    // console.log("%cDatos USE-RESPUESTAS_payload ->", "color: blue", payload);
+    // console.log("%cDatos USE-RESPUESTAS_Type ->", "color: blue", type);
+    switch (type) {
+      case "selected":
+        return setList((o) => ({
+          ...o,
+          selection: {
+            ...o.selection,
+            request: payload.request,
+            action: payload.action,
+          },
+        }));
 
+      case "list":
+        return setList((o) => ({
+          ...o,
+          loading: payload.clear ? null : "Cargando...",
+          params: payload.params || {}, // Evitar `undefined` en params
+          data: payload.data || [], // Evitar `undefined` en data
+          error: null,
+          selection: payload.clear ? { ...selectionDef } : o.selection,
+        }));
 
-	const requestChanges = useCallback((type, payload = {}) => {
-		console.log('useSeccionalLocalidades Type:',type, " & payload:",payload)
-		switch (type) {
-			case "selected": {
-				return setList((o) => ({
-					...o,
-					localidadesTodas: payload.localidades,
-					selection: {
-						...o.selection,
-						request: payload.request,
-						action: payload.action,
-						edit: {
-							...(payload.request === "A" ? {} : o.selection.record),
-							...payload.record,
-						},
-					},
-				}));
-			}
-			case "list": {
-				if (payload.clear)
-					return setList((o) => ({
-						...o,
-						loading: null,
-						data: [],
-						error: null,
-						selection: {...selectionDef},
-					}));
-				return setList((o) => ({
-					...o,
-					loading: "Cargando...",
-					localidadesTodas: payload.localidades,
-					params: { ...payload.params },
-					data: [],
-				}));
-			}
-			default:
-				return;
-		}
-	}, []);
+        // return setList((o) => ({
+        //   ...o,
+        //   loading: "Cargando...",
+        //   params: { ...payload.params },
+        //   data: payload.data,
+        // }));
+
+      default:
+        return;
+    }
+  }, []);
+
+  //////////////////////// Debugging \\\\\\\\\\\\\\\\\\\\\\\\\\
+  // const DATA = list?.data;
+  //const DATA2 = list?.params; // Asegurar que `DATA` no sea undefined
 
 
-	let form = null;
-	if (list.selection.edit) {
-		form = (
-			<SeccionalLocalidadesForm
-				
-				data={(() => { 
-					//console.log('list.selection',list.selection)
-					//INIT DE DATOS DEL FORM
-					const data =
-					//seccionalId = list.selection.edit.refSeccionalId,
-						
-						["B"].includes(list.selection.request) ? //INIT PARA BAJA
-							{
-								deletedDate: moment(vigenteDesde).format("YYYY-MM-DD"),
-								deletedBy: Usuario.nombre,
-								localidadesTodas: list.localidadesTodas,
-							}:
-							{localidadesTodas: list.localidadesTodas}
 
-						return {...list.selection.edit, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-					})()
-				}
-				cargos={list.cargos}
-				title={list.selection.action}
-				loading={list.loading}
-				errors={list.selection.errors}
-				request={list.selection.request}
-				disabled={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? { }
-						: {
-							nombre: true,
-							refLocalidadId	: true,
-						  };
-					if (list.selection.request !== "B")
-					
-						r.deletedObs = true;
-						r.deletedBy=true;
-						r.deletedDate=true;
+  // console.log("//////////////////////////////////////////////");
+  // console.log("%c USE-RESPUESTAS DATA  ->", "color: green", DATA);
+  // console.log("%c USE- RESPUESTA PARAMS->", "color: pink", DATA);
 
-					return r;
+  /////////////////////// - \\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-				})()}
-				hide={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? { deletedObs: true }
-						: {};
-					if (list.selection.request !== "R") r.obs = true;
-					return r;
-				})()}
-				onChange={(edit) => { //solo entra el campo que se está editando
-					const changes = { edit: { ...edit }, errors: {} };
-					console.log('useSeccionalLocs_onChange:',changes);
-					const applyChanges = ({ edit, errors } = changes) =>
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								edit: { ...o.selection.edit, ...edit },
-								errors: { ...o.selection.errors, ...errors },
-							},
-						}));
-						//VALIDO EL NRO DEL AFILIADO
-						applyChanges();
-					}}
-				onClose={(confirm) => {
-					if (!["A", "B", "M", "R"].includes(list.selection.request))
-						confirm = false;
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index: o.selection.index,
-								record: o.data.at(o.selection.index),
-							},
-						}));
-						return;
-					}
+  // 	const idPregunta = DATA?.idDePreguntaSeleccionadaSeccionalId; // Obtener ID de los params
 
-					const record = list.selection.edit;
-
-					console.log('record',record);
-					//Validaciones
-					const errors = {};
-					if (list.selection.request === "B") {
-						if (!record.deletedObs)
-						 	errors.deletedObs = "Dato requerido";
-					} else {
-						if (!record.refLocalidadId) errors.refLocalidadId = "Dato requerido";
-					}
-
-					if (Object.keys(errors).length) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
-							},
-						}));
-						return;
-					}
-
-					const query = {
-						config: {},
-						onOk: (res) =>
-							setList((old) => ({ ...old, loading: "Cargando..." })),
-						onError: (err) => alert(err.message),
-					};
+  // const resultadosFiltrados = DATA.filter(e => e.id === idPregunta);
+	// console.log("%cDATOS FILTRDOS FINAL->", "color: black", resultadosFiltrados);
+	//---------------------------------///\\\---------------------------------
 
 
-					switch (list.selection.request) {
-						case "A":
-							query.action = "Create";
-							query.config.body = {
-								seccionalId: record.seccionalId,
-								seccionalLocalidad: [{
-									refLocalidadId: record.refLocalidadId
-								}]
-							};
-							break;
-						case "M":
-							query.action = "Update";
-							//query.params = { id: record.id };
-							query.config.body = {
-								id: record.id,
-							}	
-							break;
-						case "B":
-							query.action = "Delete";
-							//query.params = { id: record.id };
-							query.config.body = { id: record.id, deletedObs: record.deletedObs };
-							break;
-						case "R":
-							query.action = "Reactiva";
-							//query.params = { id: record.id };
-							query.config.body = { id: record.id }
-							break;
-						default:
-							break;
-					}
+  //# Preguntas Renderizado 
+  const render = () => {
+    const hasData = Array.isArray(list.data) && list.data.length > 0;
 
-					console.log('query',query);
-					pushQuery(query);
+    return (
+      <div>
+        {/* Validación para mostrar la tabla principal */}
+        {hasData ? (  
+          <RespuestasTable
+            data={list.data}
+			      //data={resultadosFiltrados}
+            loading={!!list.loading}
+            noDataIndication={
+              list.loading ?? list.error?.message ?? "No existen datos para mostrar"
+            }
+            pagination={{
+              ...list.pagination,
+              onChange: ({ index, size }) =>
+                setList((o) => ({
+                  ...o,
+                  loading: "Cargando...",
+                  pagination: { index, size },
+                  data: [],
+                })),
+            }}
+            selection={{
+              selected: list.selection.record?.id ? [list.selection.record.id] : [],
+              onSelect: (record, isSelect, index) =>
+                setList((o) => ({
+                  ...o,
+                  selection: {
+                    ...selectionDef,
+                    index,
+                    record,
+                  },
+                })),
+            }}
+          />
+        ) : (
+          <p style={{ textAlign: "center", color: "gray" }}>No hay datos disponibles para mostrar.</p>
+        )}
+      </div>
+    ); 
+  };
 
-				}}
-			/>
-		);
-	}
-
-	const render = () => (
-		<>
-			<SeccionalLocalidadesTable
-				data={list.data}
-				loading={!!list.loading}
-				noDataIndication={
-					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
-				}
-				pagination={{
-					...list.pagination,
-					onChange: ({ index, size }) =>
-						setList((o) => ({
-							...o,
-							loading: "Cargando...",
-							pagination: { index, size },
-							data: [],
-						})),
-				}}
-				selection={{
-					selected: [list.selection.record?.id].filter((r) => r),
-					onSelect: (record, isSelect, index, e) =>
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index,
-								record,
-							},
-						})),
-				}}
-			/>
-			{form}
-		</>
-	);
-
-	return [render, requestChanges, list.selection.record];
+  return [render, requestChanges2, list.selection.record];
 };
 
-export default useSeccionalLocalidades;
+export default useRespuestas;
+
+
+
+
+
+
+
+
+
+
+
+

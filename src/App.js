@@ -17,11 +17,13 @@ import InicioHandler from './components/pages/inicio/InicioHandler';
 
 //---Siaru---
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
-import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
-import LiquidacionesProcesarHandler from './components/pages/siaru/liquidaciones/procesar/LiquidacionesProcesarHandler';
-import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liquidaciones/procesar/existente/Handler';
-import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
-import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
+// import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
+import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
+
+import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/siaru/Liquidaciones/Procesar/Manual/Handler';
 
 //---ADMINISTRACION DATOS---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
@@ -33,11 +35,17 @@ import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHa
 import AppHandler from './components/pages/app/AppHandler';
 import EncuestasHandler from "./components/pages/app/encuestas/EncuestasHandler";
 
+//DENUNCIAS
+import DenunciasHandler from './components/pages/app/Denuncias/DenunciasHandler';
+
+//METRICA
+import MetricaHandler from './components/pages/app/Metricas/MetricaHandler';
+
 
 //---AFILIADOS---
 import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/siaru/establecimientos/EstablecimientosHandler';
+import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
@@ -121,6 +129,15 @@ const App = () => {
 
               <Route path="Inicio/App" element={<AppHandler />}/>
               <Route path="Inicio/App/Encuestas" element={<EncuestasHandler/>} />
+              <Route path="Inicio/App/EncuestaRespuestas" element={<EncuestasHandler/>} />
+
+              {/* -----------DENUNCIA---------------- */}
+              <Route path="Inicio/App/Denuncias" element={<DenunciasHandler/>} />
+
+              
+              {/* -----------METRICA---------------- */}
+              <Route path="Inicio/App/Metrica" element={<MetricaHandler/>} />
+             
               
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>

@@ -1,22 +1,8 @@
 import React from "react";
 import Table from "components/ui/Table/Table";
 
-import SwitchCustom from "../../../../ui/Switch/SwitchCustom";
-//import FormatearFecha from "../../../helpers/FormatearFecha";
-import { handleModuloSeleccionar } from "../../../../../redux/actions";
-import { FormControlLabel, Switch } from "@mui/material";
-import FormatearFecha from "components/helpers/FormatearFecha";
-import Formato from "components/helpers/Formato";
-
-/*<FormControlLabel
-				control={
-				<Switch checked={true} onChange={handleChangeSwitch} label={props.label} />
-				}
-				label="Solo vigentes"
-			/>
-*/
  
-const AuoridadesTable  = ({
+const PreguntasTable  = ({
 	columns: columnsInit = [],
 	...x
 } = {}) => {
@@ -24,7 +10,7 @@ const AuoridadesTable  = ({
 		{
 		headerTitle: (column, colIndex) => `Id`,
 		dataField: "id",
-		text: "Id",
+		text: "Id", 
 		sort: true,
 		hidden: true,
 		headerStyle: (colum, colIndex) => {
@@ -58,15 +44,7 @@ const AuoridadesTable  = ({
 			return { width: "7rem", textAlign: "center" };
 			},
 		},
-		{
-			headerTitle: (column, colIndex) => `Observaciones`,
-			dataField: "observaciones",
-			text: "Observaciones",
-			sort: true,
-			headerStyle: (colum, colIndex) => {
-				return { width: "7rem", textAlign: "center" };
-				},
-		},
+
 	]
 
 	return (
@@ -79,4 +57,4 @@ const AuoridadesTable  = ({
 	);
 };
 
-export default AuoridadesTable;
+export default PreguntasTable;

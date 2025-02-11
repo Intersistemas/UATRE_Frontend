@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import useHttp from "../hooks/useHttp";
 import Button from "../ui/Button/Button";
 import Grid from "../ui/Grid/Grid";
-import DocumentacionForm from "./DocumentacionForm";
-import DocumentacionTable from "./DocumentacionTable";
+// import DocumentacionForm from "./DocumentacionForm";
+import DocumentacionForm from "../Documentacion/DocumentacionForm";
+import DocumentacionTable from "../Documentacion/DocumentacionTable";
 
 const initEditing = {
 	data: {},

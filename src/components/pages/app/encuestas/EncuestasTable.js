@@ -1,6 +1,6 @@
 import Table, { asColumnArray } from "components/ui/Table/Table";
 import React from "react";
-import Formato from "components/helpers/Formato";
+import FormatearFecha from "../../../helpers/FormatearFecha"
 
 //#region declaracion de columnas
 const columnsDef = [
@@ -20,12 +20,14 @@ const columnsDef = [
 		text: "Fecha",
 		headerTitle: () => `Fecha`,
 		sort: true,
+		formatter: (cell) => (cell ? FormatearFecha(cell) : "Fecha no disponible"),
 	},
 	{
 		dataField: "fechaFinalizacion",
 		text: "Fecha Fin",
 		headerTitle: () => `Fecha Fin`,
 		sort: true,
+		formatter: (cell) => (cell ? FormatearFecha(cell) : "Fecha no disponible"),
 	},
 ].map((r) => ({
 	searchable: false,

@@ -1,194 +1,161 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal } from "react-bootstrap";
-import Grid from "components/ui/Grid/Grid";
-import Button from "components/ui/Button/Button";
-import InputMaterial from "components/ui/Input/InputMaterial";
-import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
-import UseKeyPress from "components/helpers/UseKeyPress";
 import moment from "moment";
-import classes from "./PreguntasForm.module.css";
-import SelectMaterial from "../../../../ui/Select/SelectMaterial";
+import UseKeyPress from "components/helpers/UseKeyPress";
+import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid";
+import InputMaterial, { CodSeccional } from "components/ui/Input/InputMaterial";
+import modalCss from "components/ui/Modal/Modal.module.css";
 
+import { Dialog, DialogActions, DialogContent, Typography } from "@mui/material";
+
+
+//#endregion delegacionSelect Options
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
-const AutoridadesForm = ({
+
+
+const PreguntasForm = ({
 	data = {},
 	title = "",
 	disabled = {},
 	hide = {},
 	errors = {},
-	cargos = [],
-	loading = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	loading = {},
+	request = {}
 }) => {
 	data ??= {};
-	cargos ??= [];
-
 	disabled ??= {};
 	hide ??= {};
 	errors ??= {};
-
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+	request ??= {};
+
+	console.log("Este console, es de hide, en el archivo PREGUNTASS_FORMM", hide)
+	console.log("Este console, es de request, en el archivo PREGUNTASS_FORMM", request)
+	console.log("Este console, es de Seccionales_Data, en el archivo PREGUNTASS_FORMM ",data);
+
+	UseKeyPress(["Escape"], () => onClose());
+	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
 	const getValue = (v) => data[v] ?? "";
 
 	useEffect(()=>{
 		//format("YYYY-MM-DD")
-		moment(getValue("fechaVigenciaDesde")).format("YYYY-MM-DD")
-		onChange({fechaVigenciaDesde: moment(data.fechaVigenciaDesde).format("YYYY-MM-DD")});
-		onChange({fechaVigenciaHasta: moment(data.fechaVigenciaHasta).format("YYYY-MM-DD")});
+		moment(getValue("fechaFinalizacion")).format("YYYY-MM-DD")
+		onChange({fecha: moment(data.fecha).format("YYYY-MM-DD")});
+		onChange({fechaFinalizacion: moment(data.fechaFinalizacion).format("YYYY-MM-DD")});
 	},[]);
 
-	const selectedCargo = (cargoId) =>{
-		const cargo = cargos.find((c) => c.value === cargoId)
-		return cargo;
-	}
+	//#region Alert
+	const [openDialog, setOpenDialog] = useState(false);
+	const [dialogTexto, setDialogTexto] = useState("");
 
-	UseKeyPress(["Escape"], () => onClose());
-	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+	const [procesando, setProcesando] = useState(loading);
+
+		 //#region Capturo errores
+		 useEffect(() => {
+
+			setProcesando(loading);
+
+			if (errors) {
+			  setProcesando(null);
+			  return;
+			}    
+		  }, [errors, loading]);
+		//#endregion
+
+	//#endregion Carga inicial
 	return (
-		<Modal size="lg" centered show >
-			<Modal.Header closeButton>{title}</Modal.Header>
-			<Modal.Body>
-				<div className={classes.renglon}>
-					<div className={classes.input33}>
-					<InputMaterial
-						id="afiliadoNumero"
-						disabled={disabled.afiliadoNumero}
-						value={getValue("afiliadoNumero")}
-						error={!!errors.afiliadoNumero}
-						helperText={errors.afiliadoNumero ?? ""}
-						label="Numero Afiliado"
-						onChange={(afiliadoNumero)=>onChange({afiliadoNumero})}
-					/>
-					</div>
-					<Button id="validarAfiliadoNumero" className="botonAmarillo" width={20} onClick={()=>onChange({afiliadoNumero: getValue("afiliadoNumero")})}> {/*darle funcionalidad*/}
-						Valida
-					</Button>
-					<div className={classes.input}>
-						<InputMaterial
-							id="afiliadoNombre"
-							disabled={disabled.afiliadoNombre}
-							value={ getValue("afiliadoNombre")}
-							error={!!errors.afiliadoNombre}
-							helperText={errors.afiliadoNombre ?? ""}
-							label="Nombre"
-							readOnly={true}
-						/>
-					</div>
-				</div>
-				<div className={classes.renglon}>
-					<div className={classes.input}>
-					<InputMaterial
-						id="fechaVigenciaDesde"
-						disabled={disabled.fechaVigenciaDesde}
-						value={moment(getValue("fechaVigenciaDesde")).format("YYYY-MM-DD")}
-						error={!!errors.fechaVigenciaDesde}
-						helperText={errors.fechaVigenciaDesde ?? ""}
-						label="Vigencia Desde"
-						onChange={(fechaVigenciaDesde)=>onChange({fechaVigenciaDesde})}
-						type="date"
-					/>
-					</div>
-					<div className={classes.input}>
-					<InputMaterial
-						id="fechaVigenciaHasta"
-						disabled={disabled.fechaVigenciaHasta}
-						value={moment(getValue("fechaVigenciaHasta")).format("YYYY-MM-DD")}
-						error={!!errors.fechaVigenciaHasta}
-						helperText={errors.fechaVigenciaHasta ?? ""}
-						label="Vigencia Hasta"
-						onChange={(fechaVigenciaHasta)=>onChange({fechaVigenciaHasta})}
-						type="date"
-					/>
-					</div>
-					<div className={classes.input}>
+		<>
+			<div>
+				<Dialog onClose={()=>(setOpenDialog(false))} open={openDialog}>
+					<DialogContent dividers>
+						<Typography 
+						gutterBottom
+						style={{whiteSpace: 'pre-line'}}
+						>{dialogTexto}</Typography>
+			
+					</DialogContent>
+					
+				</Dialog>
+			</div>
+			<Modal show onHide={() => onClose()} size="lg" centered>
+				<Modal.Header className={modalCss.modalCabecera}>
+					<h3>{title}</h3>
+				</Modal.Header>
+				<Modal.Body>
+					{ 
+					<Grid col full gap="15px">
+						
+						<Grid gap="inherit">
+							<InputMaterial
+								type="date"
+								id="fecha"
+								label="Fecha"
 
-						<SelectMaterial
-							id="refCargosId"
-							name="refCargosId"
-							label="Cargo"
-							error={!!errors.refCargosId} 
-							helperText={errors.refCargosId ?? ""}
-							value={selectedCargo(data.refCargosId)?.value}
-							disabled={disabled.refCargosId}
-							onChange={(value) => onChange({ refCargosId: value })}
+								value={moment(getValue("fecha")).format("YYYY-MM-DD")}
+								error={!!errors.fecha}
+								helperText={errors.fecha ?? ""}
+								onChange={(fecha)=>onChange({fecha})}
+								disabled={disabled.fecha ?? false}
+								
+							/>						
+						</Grid>
+						
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+					 			id="tipoPregunta"
+					 			label="Tipo de Pregunta"
+					 			error={!!errors.tipoPregunta}
+					 			helperText={errors.tipoPregunta ?? ""}
+					 			value={data.tipoPregunta}
+					 			disabled={disabled.tipoPregunta ?? false}
+					 			onChange={(value, _id) => onChange({ tipoPregunta: value })}
+					 		/>
 							
-							options={cargos}
-							required
-						/>
-					</div>
-				</div>
-				<div className={classes.renglon}>
-					<div className={classes.input100}>
-					<InputMaterial
-						id="observaciones"
-						disabled={disabled.observaciones}
-						value={getValue("observaciones")}
-						error={!!errors.observaciones}
-						helperText={errors.observaciones ?? ""}
-						label="Observaciones"
-						onChange={(observaciones)=>onChange({observaciones})}
-					/>
-					</div>
-				</div>
-
-				{!hide.deletedObs &&
-					<>
-					<div className={classes.renglon}>
-						<div className={classes.item6}>
+						</Grid>
+						
+						<Grid width="full" gap="inherit">
 							<InputMaterial
-							id="deletedDate"
-							label="Fecha Baja"
-							error={!!errors.deletedDate}
-							helperText={errors.deletedDate ?? ""}
-							value={getValue("deletedDate")}
-							disabled={disabled.deletedDate ?? false}
-							onChange={(value, _id) => onChange({ deletedDate: value })}
-							/>
-						</div>
-						<div className={classes.item7}>
-							<InputMaterial
-							id="deletedBy"
-							label="Usuario Baja"
-							error={!!errors.deletedBy}
-							helperText={errors.deletedBy ?? ""}
-							value={getValue("deletedBy")}
-							disabled={disabled.deletedBy ?? false}
-							onChange={(value, _id) => onChange({ deletedBy: value })}
-							/>
-						</div>
-					</div>
-					<div className={classes.item8}>
-						<InputMaterial 
-						id="deletedObs"
-						label="Observaciones Baja"
-						error={!!errors.deletedObs}
-						helperText={errors.deletedObs ?? ""}
-						value={getValue("deletedObs")}
-						disabled={disabled.deletedObs ?? false}
-						onChange={(value, _id) => onChange({ deletedObs: value })}
-						/>
-					</div>
-					</>
+					 			id="enunciado"
+					 			label="Enunciado"
+					 			error={!!errors.enunciado}
+					 			helperText={errors.enunciado ?? ""}
+					 			value={data.enunciado}
+					 			disabled={disabled.enunciado ?? false}
+					 			onChange={(value, _id) => onChange({ enunciado: value })}
+					 		/>
+							
+						</Grid>
+				
+					</Grid>
 				}
-
-			</Modal.Body>
-			<Modal.Footer>
-				<Button  width={25} loading={loading != null} className="botonAzul" onClick={() => onClose(true)}>
-					CONFIRMA
-				</Button>
-				<Button width={25} className="botonAmarillo" onClick={() => onClose()}>
-					CANCELA
-				</Button>
-			</Modal.Footer>
-		</Modal>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button
+						className="botonAzul"
+						loading={procesando}
+						width={25}
+						onClick={() => onClose(true)}
+						disabled={procesando}
+					>
+						CONFIRMA
+					</Button>
+					<Button className="botonAmarillo" width={25} onClick={() => onClose()}>
+						CIERRA
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		</> 
 	);
 };
 
-export default AutoridadesForm;
+export default PreguntasForm;

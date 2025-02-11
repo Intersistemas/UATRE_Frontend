@@ -13,7 +13,7 @@ import SelectMaterial from "components/ui/Select/SelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
-import FormaPagoPrint from "../../impresion/FormaPagoPrint";
+import FormaPagoPrint from "../../Impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
 

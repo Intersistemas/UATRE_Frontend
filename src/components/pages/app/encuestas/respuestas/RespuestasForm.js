@@ -41,7 +41,7 @@ const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
-const SeccionalLocalidadesForm = ({
+const RespuestasForm = ({
 	data = {},
 	title = "",
 	disabled = {},
@@ -458,4 +458,5 @@ const SeccionalLocalidadesForm = ({
 	);
 };
 
-export default SeccionalLocalidadesForm;
+export default RespuestasForm;
+ 

@@ -8,8 +8,10 @@ import {
 } from "redux/actions";
 import Grid from "components/ui/Grid/Grid";
 import Formato from "components/helpers/Formato";
-import EmpresaDetails from "./empresas/EmpresaDetails";
-import EmpresasList from "./empresas/EmpresasList";
+// import EmpresaDetails from "./empresas/EmpresaDetails";
+import EmpresaDetails from "./Empresas/EmpresaDetails";
+// import EmpresasList from "./empresas/EmpresasList";
+import EmpresasList from "./Empresas/EmpresasList";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Action from "components/helpers/Action";
 import KeyPress from "components/keyPress/KeyPress";
