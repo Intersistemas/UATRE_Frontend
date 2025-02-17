@@ -7,7 +7,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 // import NominaDetailsAFIP from "./procesar/manual/NominaDetailsAFIP";
-import NominaDetailsAFIP from "../Liquidaciones/Procesar/Manual/NominaDetailsAFIP";
+import NominaDetailsAFIP from "../liquidaciones/procesar/manual/NominaDetailsAFIP";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};

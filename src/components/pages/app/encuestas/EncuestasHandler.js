@@ -60,7 +60,7 @@ const EncuestasHandler = () => {
 		() => ({
 			config: {
 				baseURL: "App",
-				endpoint: `/Encuestas?include=preguntas(detalles)`,
+				endpoint: `/Encuestas`,
 				method: "GET",
 			},
 		}),
@@ -388,7 +388,7 @@ const EncuestasHandler = () => {
 		preguntasChanger("list", {
 			clear: !seccionalSelected?.id,
 			data: seccionalSelected?.preguntas,
-			params: { idDePreguntaSeleccionadaSeccionalId: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
+			params: { id: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
 		});
 	}, [seccionalSelected, preguntasChanger]);
 

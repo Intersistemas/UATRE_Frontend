@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 // import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import useDocumentaciones from "../../../Documentacion/useDocumentaciones";
+import useDocumentaciones from "../../../documentacion/useDocumentaciones";
 import Action from "components/helpers/Action";
 import useQueryState from "components/hooks/useQueryState";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
