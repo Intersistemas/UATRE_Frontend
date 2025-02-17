@@ -115,7 +115,8 @@ const SeccionalesForm = ({
 		//format("YYYY-MM-DD")
 		moment(getValue("fechaFinalizacion")).format("YYYY-MM-DD")
 		onChange({fecha: moment(data.fecha).format("YYYY-MM-DD")});
-		onChange({fechaFinalizacion: moment(data.fechaFinalizacion).format("YYYY-MM-DD")});
+		// onChange({fechaFinalizacion: moment(data.fechaFinalizacion).format("YYYY-MM-DD")});
+		onChange({fechaFinalizacion:  "2099-12-12" || moment(data.fechaFinalizacion).format("YYYY-MM-DD") })
 	},[]);
 
 	//#region Alert
@@ -136,6 +137,44 @@ const SeccionalesForm = ({
 			}    
 		  }, [errors, loading]);
 		//#endregion
+		//Fecha--------------------------------------------------------------------->
+
+		
+		// Estado para la fecha actual
+		const [fechaActual, setFechaActual] = useState(moment().format("YYYY-MM-DD"));
+		
+		// Estado para la fecha seleccionada por el usuario (por defecto "2099-12-12" si no hay valor en data)
+		const [fechaFinalizacion, setfechaFinalizacion] = useState(
+			data.fechaFinalizacion ? moment(data.fechaFinalizacion).format("YYYY-MM-DD") : "2099-12-12"
+		);
+
+// Manejar cambios en la fecha
+const handleFechaChange = (e) => {
+	let nuevaFecha;
+  
+	// Validar si "e" es un evento o un valor directo
+	if (e && e.target && e.target.value) {
+	  nuevaFecha = e.target.value; // Si es un evento normal
+	} else if (e && e.isValid && e.isValid()) {
+	  nuevaFecha = e.format("YYYY-MM-DD"); // Si es un objeto moment
+	} else {
+	  console.error("Error: Evento no válido en handleFechaChange", e);
+	  return;
+	}
+  
+	// Validar si la fecha seleccionada es anterior a la actual
+	if (moment(nuevaFecha).isBefore(moment().format("YYYY-MM-DD"))) {
+	  alert("No se puede seleccionar una fecha anterior a la actual.");
+	  setfechaFinalizacion(fechaActual); // Restablece a la fecha actual
+	  onChange({ fechaFinalizacion: fechaActual }); // Actualiza en el formulario
+	} else {
+	  setfechaFinalizacion(nuevaFecha); // Actualiza el estado con la nueva fecha
+	  onChange({ fechaFinalizacion: nuevaFecha }); // Guarda la fecha modificada
+	}
+  };
+  
+
+		  //___________________________________________________________________________
 
 	//#endregion Carga inicial
 	return (
@@ -161,11 +200,11 @@ const SeccionalesForm = ({
 					<Grid col full gap="15px">
 						
 						<Grid gap="inherit">
+
 							<InputMaterial
 								type="date"
 								id="fecha"
 								label="Fecha Ingreso"
-
 								value={moment(getValue("fecha")).format("YYYY-MM-DD")}
 								error={!!errors.fecha}
 								helperText={errors.fecha ?? ""}
@@ -177,19 +216,32 @@ const SeccionalesForm = ({
 						<Grid gap="inherit">
 							
 
-							<InputMaterial
+							{/* <InputMaterial
 								type="date"
 								id="fechaFinalizacion"
 								label="Fecha Fin"
-
 								value={moment(getValue("fechaFinalizacion")).format("YYYY-MM-DD")}
 								error={!!errors.fechaFinalizacion}
 								helperText={errors.fechaFinalizacion ?? ""}
 								onChange={(fechaFinalizacion)=>onChange({fechaFinalizacion})}
 								disabled={disabled.fechaFinalizacion ?? false}
 								
-							/>		
-													
+							/>		 */}
+
+								<InputMaterial
+								type="date"
+								id="fechaFinalizacion"
+								label="Fecha Fin"
+								value={fechaFinalizacion}  // Muestra la fecha seleccionada o la predeterminada
+								error={!!errors.fechaFinalizacion}
+								helperText={errors.fechaFinalizacion ?? ""}
+								onChange={handleFechaChange} // Usa la función corregida
+								disabled={disabled.fechaFinalizacion ?? false}
+								inputProps={{
+									min: fechaActual, // No permite fechas anteriores a hoy
+								}}
+								/>
+				
 						</Grid>
 						<Grid width="full" gap="inherit">
 							<InputMaterial
@@ -270,3 +322,8 @@ const SeccionalesForm = ({
 };
 
 export default SeccionalesForm;
+
+
+//---------------------------------------------------------------------------------------------
+
+

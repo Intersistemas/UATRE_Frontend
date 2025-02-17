@@ -8,6 +8,7 @@ import AuthContext from "store/authContext";
 import EncuestasTable from "./EncuestasTable";
 import EncuestasForm from "./EncuestasForm";
 
+console.log();
 
 
 // Definición inicial del estado de selección de encuestas
@@ -94,7 +95,8 @@ const useEncuestas = ({
 
 	// Función que maneja las consultas a la API según la acción requerida
 	const pushQuery = useQueryQueue((action, params) => {
-
+		console.log("params",params)
+		const { id, ...otherParams } = params;
 
 		switch (action) {
 			case "GetList": {
@@ -121,18 +123,20 @@ const useEncuestas = ({
 				return {
 					config: {
 						baseURL: "App",
-						endpoint: `/Encuestas${id}`,
+						endpoint: `/Encuestas/${id}`,
 						method: "PUT",
 					},
+					params: otherParams,
 				};
 			}
 			case "Delete": {
 				return {
 					config: {
 						baseURL: "App",
-						endpoint: `/Encuestas`,
-						method: "PATCH",
+						endpoint: `/Encuestas/${id}`,
+						method: "DELETE",
 					},
+					params: otherParams,
 				};
 			}
 		
@@ -445,6 +449,7 @@ const useEncuestas = ({
 					//Verificacion------------------------------------------------------------------------------------------------->
 					if (list.selection.request === "A" || list.selection.request === "M"){
 						if (!record.tema) errors.tema = "Dato requerido";
+						if (record.fechaFinalizacion = dayjs().format("DD-MM-YYYY")) errors.fechaFinalizacion = "Dato requerido";
 						
 						
 						// if (!record.refLocalidadesId || record.refLocalidadesId == 0)
@@ -473,8 +478,7 @@ const useEncuestas = ({
 						config: {},
 						onOk: async (response) => {
 							setList((old) => ({ ...old, loading: "Cargando..." }));
-							console.log("list.onEditComplete",list.onEditComplete)
-							console.log("onEditCompleteDef",onEditCompleteDef)
+							
 							/*
 							if (list.onEditComplete === onEditCompleteDef) {
 								console.log("true**")
@@ -491,7 +495,7 @@ const useEncuestas = ({
 						onError: async (err) => alert(err.message),
 					};
 
-					console.log("useSeccionales_list.selection",list.selection)
+					
 					switch (list.selection.request) {
 					// case "A": // Crear nueva encuesta
 					// 	query.action = "Create";
@@ -501,17 +505,19 @@ const useEncuestas = ({
 						query.action = "Create";
 						query.config.body = {
 							...record, // Copia los datos actuales del formulario
-							preguntas: record.preguntas && Array.isArray(record.preguntas) ? record.preguntas : [] // Asegura un array vacío si no hay preguntas
+							preguntas: [] // Asegura un array vacío
 						};
 						break;
-					case "M": // Modificar encuesta existente
-						query.action = "Update";
-						query.params = { id: record.id };
-						query.config.body = {
-							record,
-							preguntas: record.preguntas && Array.isArray(record.preguntas) ? record.preguntas : [] // Asegura un array vacío si no hay preguntas
-						};
-						break;
+					
+					case "M":
+							query.action = "Update";
+							query.params = { id: record.id };
+							query.config.body = { 
+								fechaFinalizacion: record.fechaFinalizacion,
+								tema: record.tema,
+								preguntas: [] // Asegura un array vacío si no hay preguntas
+							}	
+							break;
 					case "B": // Eliminar encuesta
 						query.action = "Delete";
 						query.params = { id: record.id };

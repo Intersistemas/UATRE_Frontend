@@ -155,7 +155,8 @@ if (list.selection.edit) {
 	form = (
 		<PreguntasForm
 			request={list.selection.request}
-			data={list.selection.edit}
+			data2={list.selection.edit}
+			data={list.data}
 			title={list.selection.action}
 			errors={list.selection.errors}
 			loading={false}
@@ -224,9 +225,9 @@ const render = () => {
 
 		  {/* //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::> */}
 		  <div>
-         {/* <button onClick={crearEncuesta} style={{ marginBottom: "10px" }}>
+         <button onClick={crearEncuesta} style={{ marginBottom: "10px" }}>
 		 		Agregar Pregunta
-         </button> */}
+         </button>
          {form} {/* Renderiza el formulario cuando `list.selection.edit` no es null */}
         </div>
 		  {/* //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::> */}
