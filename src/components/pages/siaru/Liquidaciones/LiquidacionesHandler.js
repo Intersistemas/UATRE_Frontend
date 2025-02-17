@@ -9,11 +9,11 @@ import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 // import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
-import useLiquidacionesCabecera from "../Liquidaciones/useLiquidacionesCabecera";
+import useLiquidacionesCabecera from "../liquidaciones/useLiquidacionesCabecera";
 import useLiquidaciones from "./useLiquidaciones";
-import LiquidacionDetails from "../Liquidaciones/LiquidacionDetails";
+import LiquidacionDetails from "../liquidaciones/LiquidacionDetails";
 // import FormaPagoPrint from "./impresion/FormaPagoPrint";
-import FormaPagoPrint from "../Liquidaciones/Impresion/FormaPagoPrint";
+import FormaPagoPrint from "../liquidaciones/impresion/FormaPagoPrint";
 
 const LiquidacionesHandler = () => {
 	const navigate = useNavigate();

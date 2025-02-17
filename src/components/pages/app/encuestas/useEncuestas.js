@@ -101,7 +101,7 @@ const useEncuestas = ({
 				return {
 					config: {
 						baseURL: "App",
-						endpoint: `/Encuestas?include=preguntas(detalles)`,
+						endpoint: `/Encuestas`,
 						method: "GET",
 					},
 				};

@@ -4,9 +4,9 @@ import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
 // import LiquidacionesCabeceraTable from "./LiquidacionesCabeceraTable";
-import LiquidacionesCabeceraTable from "../Liquidaciones/LiquidacionesCabeceraTable";
+import LiquidacionesCabeceraTable from "../liquidaciones/LiquidacionesCabeceraTable";
 // import LiquidacionesCabeceraForm from "./LiquidacionesCabeceraForm";
-import LiquidacionesCabeceraForm from "../Liquidaciones/LiquidacionesCabeceraForm";
+import LiquidacionesCabeceraForm from "../liquidaciones/LiquidacionesCabeceraForm";
 const selectionDef = {
 	action: "",
 	request: "",
