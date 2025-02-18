@@ -27,8 +27,6 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
 
-	const [afiliadoAgregarShow, setAfiliadoAgregarShow] = useState(false);
-	
 	//#region Tab Formulario
 	const {
 		render: formularioRender,
@@ -78,33 +76,34 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 					  }),
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Modifica Solicitud ${desc}`,
+				request: "M",
+				record: {},
+				//tarea: "Datos_EmpresaModifica",
+				...(formularioSelected?.deletedDate || !formularioSelected?.id
+					? { disabled: true }
+					: {
+							disabled: false,
+							keys: "m",
+							underlineindex: 0,
+					  }),
+			})
+		);
 
 		if (!formularioSelected?.deletedDate && !formularioSelected?.afiliadoIdAsignado) {
 			actions.push(
 				createAction({
-					action: `Modifica Solicitud ${desc}`,
-					request: "M",
-					record: {},
-					//tarea: "Datos_EmpresaModifica",
-					...(formularioSelected?.deletedDate || !formularioSelected?.id
-						? { disabled: true }
-						: {
-								disabled: false,
-								keys: "m",
-								underlineindex: 0,
-						}),
-				})
-			);
-			actions.push(
-				createAction({
 					action: `Acepta Solicitud ${desc}`,
-					request: "S",
+					request: "I",
 					record: {},
 					//tarea: "Datos_EmpresaReactiva",
-					keys: "s",
+					keys: "r",
 					underlineindex: 0,
 				})
 			);
+		} else {
 			actions.push(
 				createAction({
 					action: `Rechaza Solicitud ${desc}`,
@@ -245,7 +244,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			<div className="tabs">
 				<text>
 					{formularioSelected?.razonSocial
-						? ` ${formularioSelected?.cuil} - ${formularioSelected.apellido ?? ""} ${formularioSelected.nombre ?? ""} `
+						? ` ${formularioSelected?.cuil} - ${formularioSelected.razonSocial ?? ""}`
 						: " "}
 				</text>
 
