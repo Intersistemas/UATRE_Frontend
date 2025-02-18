@@ -490,7 +490,7 @@ const useSeccionales = ({
 							query.config.body = record;
 							break;
 						case "M":
-							query.action = "Update";
+							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba							query.action = "Update";
 							query.params = { id: record.id };
 							query.config.body = record;
 							break;
