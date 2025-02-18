@@ -10,7 +10,7 @@ import SearchSelectMaterial, {
 	includeSearch,
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
-import classes from "./SeccionalesForm.module.css";
+import classes from "./EncuestasForm.module.css";
 import useQueryState from "components/hooks/useQueryState";
 import { Dialog, DialogActions, DialogContent, Typography } from "@mui/material";
 
@@ -400,7 +400,7 @@ const SeccionalesForm = ({
 					request == "B" ||  request == "C"?
 					data = ok
 					:
-					data = ok.filter(e => e.descripcion != 'BAJA' && e.descripcion != 'ABSORBIDA');
+					data = ok.filter(e => e.descripcion != 'BAJA');
 				} 
 				console.log("data_estados:",data)
 				setEstadoSelect((o) => ({

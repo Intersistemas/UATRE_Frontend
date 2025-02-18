@@ -51,7 +51,7 @@ const ConsultasHandler = () => {
 		link.href = "/Consultas/NotificacionEmpresa.pdf";
 		link.click();
 	  };
-	  
+
 
 	// Afiliados
 	tabs.push({
@@ -80,6 +80,18 @@ const ConsultasHandler = () => {
 						Solicitud de Afiliación
 					</Button>
 				</Grid>
+				{ process.env.REACT_APP_SERVER.includes("uatretest") &&
+					<Grid width gap="inherit" justify="evenly">
+						<Button
+							className="botonAmarillo"
+							onClick={() => navigate("SolicitudesAfiliacion")}
+							width="32"
+							tarea="Consultas_SolicitudAfiliacionListado"
+						>
+							Solicitudes de Afiliación Listado
+						</Button>
+					</Grid>	
+				}
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
@@ -95,8 +107,8 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 
-				
-				
+
+
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
@@ -117,7 +129,7 @@ const ConsultasHandler = () => {
 					>
 						Visita a Seccional
 					</Button>
-				
+
 				</Grid>
 
 				<Grid width gap="inherit" justify="evenly">
@@ -129,10 +141,10 @@ const ConsultasHandler = () => {
 					>
 						Notificación a Empresa
 					</Button>
-				
+
 				</Grid>
-				
-				
+
+
 			</>
 		),
 		// actions,
@@ -156,7 +168,7 @@ const ConsultasHandler = () => {
 		body: () => (
 			<>
 				<Grid width gap="inherit" justify="evenly">
-					
+
 				</Grid>
 			</>
 		),

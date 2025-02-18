@@ -5,8 +5,8 @@ import JoinOjects from "components/helpers/JoinObjects";
 import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AuthContext from "store/authContext";
-import SeccionalesTable from "./SeccionalesTable";
-import SeccionalesForm from "./SeccionalesForm";
+import EncuestasTable from "./EncuestasTable";
+import SeccionalesForm from "./EncuestasForm";
 
 const selectionDef = {
 	action: "",
@@ -50,7 +50,7 @@ const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
 const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
 const onEditCompleteDef = ({ edit = {}, response = null, request = "", } = {}) => {};
 
-const useSeccionales = ({
+const useEncuestas = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
 	loading,
@@ -79,9 +79,9 @@ const useSeccionales = ({
 			case "GetList": {
 				return {
 					config: {
-						baseURL: "Afiliaciones",
-						endpoint: "/Seccional/GetSeccionalesSpecs",
-						method: "POST",
+						baseURL: "App",
+						endpoint: `/Encuestas?include=preguntas(detalles)`,
+						method: "GET",
 					},
 				};
 			}
@@ -212,12 +212,12 @@ const useSeccionales = ({
 		pushQuery({
 			action: "GetList",
 			config: {
-				body: {
+				/*body: {
 					...list.paramsDef,
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
-				},
+				},*/
 			},
 			onOk: async ({ data, ...pagination }) => {
 				if (!Array.isArray(data))
@@ -483,7 +483,6 @@ const useSeccionales = ({
 						onError: async (err) => alert(err.message),
 					};
 
-
 					console.log("useSeccionales_list.selection",list.selection)
 					switch (list.selection.request) {
 						case "A":
@@ -491,10 +490,9 @@ const useSeccionales = ({
 							query.config.body = record;
 							break;
 						case "M":
-							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba
 							query.action = "Update";
 							query.params = { id: record.id };
-							query.config.body =  record;  
+							query.config.body = record;
 							break;
 						case "B":
 							query.action = "Delete";
@@ -531,7 +529,7 @@ const useSeccionales = ({
 
 	const render = () => (
 		<>
-			<SeccionalesTable
+			<EncuestasTable
 				remote={list.remote}
 				data={list.data}
 				loading={!!list.loading}
@@ -645,4 +643,4 @@ const useSeccionales = ({
 	return { render, request, selected: list.selection.record };
 };
 
-export default useSeccionales;
+export default useEncuestas;
