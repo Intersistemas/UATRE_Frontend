@@ -400,7 +400,7 @@ const SeccionalesForm = ({
 					request == "B" ||  request == "C"?
 					data = ok
 					:
-					data = ok.filter(e => e.descripcion != 'BAJA');
+					data = ok.filter(e => e.descripcion != 'BAJA' && e.descripcion != 'ABSORBIDA');
 				} 
 				console.log("data_estados:",data)
 				setEstadoSelect((o) => ({
