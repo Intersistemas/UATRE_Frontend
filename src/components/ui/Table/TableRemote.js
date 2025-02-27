@@ -19,15 +19,12 @@ import zIndex from "@mui/material/styles/zIndex";
 
 const TableRemote = (props) => {
 
-  useEffect(() => {
-    
-  
-  },[])
-
 
   const [selectValue, setSelectValue] = React.useState(props.entrySelected ?? '');
   const [entryValue, setEntryValue] = React.useState(props.entryValue ?? '');
   
+  console.log("props", props);
+
   const selectRow = {
     mode: "radio",
     clickToSelect: true,
