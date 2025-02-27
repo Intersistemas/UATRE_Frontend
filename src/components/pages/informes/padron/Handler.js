@@ -13,6 +13,7 @@ import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
 import AsArray from "components/helpers/AsArray";
+import useAmbitosUsuario from "components/hooks/useAmbitos";
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -193,6 +194,10 @@ const seccionalesSelectOptions = ({ data = [], ...x }) =>
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
+
+	const ambitoUser = useAmbitosUsuario().ambitoUser();
+	//console.log("ambitoUser_handler",ambitoUser)
+	
 	//#region APIs
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -677,6 +682,7 @@ const Handler = ({ onClose = () => {} }) => {
 		<PDFViewer
 			data={padron.data}
 			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
+			ambitoUser={ambitoUser}
 		/>
 	);
 
