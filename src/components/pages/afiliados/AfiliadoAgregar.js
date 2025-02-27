@@ -1162,7 +1162,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
 
         const seccionalSelected = seccionalesObj.find((s) => s.id == afiliado?.seccionalIdSolicitudAfiliacion)
-        const seccionalPorDefecto = seccionalesObj.find((s) => s.codigo == 'S9999')
+        const seccionalPorDefecto = seccionalesObj.find((s) => s.codigo == 'S9925')
         
         setSeccionalSolicitaAfiliacion(seccionalesOptions);
         console.log("afiliado?", afiliado)

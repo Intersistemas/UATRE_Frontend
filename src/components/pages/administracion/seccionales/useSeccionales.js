@@ -217,6 +217,7 @@ const useSeccionales = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					soloActivos: true,
 				},
 			},
 			onOk: async ({ data, ...pagination }) => {
