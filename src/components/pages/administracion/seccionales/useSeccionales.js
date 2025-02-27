@@ -217,6 +217,7 @@ const useSeccionales = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					soloActivos: true,
 				},
 			},
 			onOk: async ({ data, ...pagination }) => {
@@ -483,7 +484,6 @@ const useSeccionales = ({
 						onError: async (err) => alert(err.message),
 					};
 
-
 					console.log("useSeccionales_list.selection",list.selection)
 					switch (list.selection.request) {
 						case "A":
@@ -491,10 +491,9 @@ const useSeccionales = ({
 							query.config.body = record;
 							break;
 						case "M":
-							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba
-							query.action = "Update";
+							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba							query.action = "Update";
 							query.params = { id: record.id };
-							query.config.body =  record;  
+							query.config.body = record;
 							break;
 						case "B":
 							query.action = "Delete";

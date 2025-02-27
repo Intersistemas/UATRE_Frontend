@@ -23,15 +23,11 @@ import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liqu
 import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
 import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
 
-//---ADMINISTRACION DATOS---
+//---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
 import SeccionalesHandler from "./components/pages/administracion/seccionales/SeccionalesHandler";
 import EmpresasHandler from "./components/pages/administracion/empresas/EmpresasHandler";
 import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHandler";
-
-//---ADMINISTRACION APP---
-import AppHandler from './components/pages/app/AppHandler';
-import EncuestasHandler from "./components/pages/app/encuestas/EncuestasHandler";
 
 
 //---AFILIADOS---
@@ -119,9 +115,6 @@ const App = () => {
               <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
               <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
 
-              <Route path="Inicio/App" element={<AppHandler />}/>
-              <Route path="Inicio/App/Encuestas" element={<EncuestasHandler/>} />
-              
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
               <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler/>}/>
