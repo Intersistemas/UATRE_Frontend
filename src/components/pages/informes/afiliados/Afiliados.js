@@ -185,13 +185,6 @@ const columns = [
 		formatter: (v) => Formato.Periodo(v),
 		csvFormat: (v) => v,
 	},
-	{
-		dataField: "condicionRural",
-		text: "Condición Rural",
-		headerTitle: true,
-		headerStyle: { width: "12em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
 ];
 
 //#region delegacionSelectOptions
