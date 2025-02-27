@@ -31,7 +31,10 @@ import UIGrid from "components/ui/Grid/Grid";
  * @property {Afiliado[]} afiliados
  */
 
-const soloAmbienteDelegacion = false //esta variable se debe modificar cuando ingresa un usuario con ambito Delegaciones unicamente.
+/**
+ * @typedef UseAmbitos
+ * @property {UseAmbitos{}} useAmbitos
+ */
 
 const fontSizePt = 10;
 const styles = StyleSheet.create({
@@ -115,9 +118,9 @@ const P = ({
  * Impresion de credenciales de afiliados en lote.
  * @param {object} props
  * @param {Seccional} props.seccional Datos de seccional.
- * @param {{ index: number, size: number, pages: number, count: number, data: Afiliado[] }} props.page Pagina de afiliados.
+ * @param {{ index: number, size: number, pages: number, count: number, data: Afiliado[], ambitoUser{} }} props.page Pagina de afiliados.
  */
-const Hoja = ({ seccional, page }) => (
+const Hoja = ({ seccional, page, ambitoUser }) => (
 	<Page style={styles.page} size="A4">
 		<Grid col full gap="30px">
 			<Grid col width gap="3px">
@@ -142,7 +145,7 @@ const Hoja = ({ seccional, page }) => (
 			<Grid col grow gap="12px">
 				<Table width>
 				
-				{ !soloAmbienteDelegacion ?
+				{ ambitoUser.tipo != "Delegaciones" ?
 					<Tr>
 						<Td justify="center" width>
 							<P>APELLIDO(s) Y NOMBRE(s)</P>
@@ -180,7 +183,7 @@ const Hoja = ({ seccional, page }) => (
 						
 					</Tr>}
 					{page.data.map((afiliado, i) => (
-						!soloAmbienteDelegacion ? 
+						ambitoUser.tipo != "Delegaciones" ? 
 						<Tr key={i}>
 							<Td justify="start" width>
 								<P>{afiliado.nombre}</P>
@@ -234,12 +237,14 @@ const Hoja = ({ seccional, page }) => (
  * @param {object} props
  * @param {string} props.title Titulo del PDF que generará.
  * @param {SeccionalAfiliados[]} props.data Seccionales con sus afiliados.
+ * @param {UseAmbitos{}} props.ambitoUser Ambito del usuario
  */
-const PadronPDF = ({ title = "Padron de afiliados", data }) => (
+const PadronPDF = ({ title = "Padron de afiliados", data, ambitoUser }) => (
+	console.log("ambitoUser_padronPDF",ambitoUser),
 	<Document style={styles.document} title={title}>
 		{data.map(({ seccional, afiliados: data }, dataIx) =>
 			paginate({ data, size: 51, detailed: true }).map((page, pageIx) => (
-				<Hoja seccional={seccional} page={page} key={`${dataIx}-${pageIx}`} />
+				<Hoja seccional={seccional} page={page} key={`${dataIx}-${pageIx}`} ambitoUser={ambitoUser}/>
 			))
 		)}
 	</Document>
