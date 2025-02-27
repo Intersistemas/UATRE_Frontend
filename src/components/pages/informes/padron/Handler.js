@@ -474,7 +474,7 @@ const Handler = ({ onClose = () => {} }) => {
 			} else {
 				setFiltros((o) => ({
 					...o,
-					ambitoDelegaciones: { ids: [selected.value] },
+					ambitoDelegaciones: { ids: [selected?.value] },
 				}));
 			}
 			finalizaInit();
@@ -507,7 +507,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoSeccionales: { ids: [selected.value] },
+			ambitoSeccionales: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);

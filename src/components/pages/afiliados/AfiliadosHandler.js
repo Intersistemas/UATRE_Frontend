@@ -13,6 +13,7 @@ import AuthContext from "../../../store/authContext";
 import LoteSeleccion from "./Carnet/LoteSeleccion";
 import LotePDFViewer from "./Carnet/LotePDFViewer";
 import ListadoImpresos from "./Carnet/ListadoImpresos";
+import useAmbitos from 'components/hooks/useAmbitos';
 
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
@@ -40,8 +41,9 @@ const AfiliadosHandler = () => {
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
   
-  
-
+  const ambito = useAmbitos().ambitoUser();
+  console.log("ambito",ambito);
+ 
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
     { value: 0, label: " Todos" },
@@ -77,8 +79,8 @@ const AfiliadosHandler = () => {
           ambitoSeccionales: Usuario.ambitoSeccionales,
           ambitoDelegaciones: Usuario.ambitoDelegaciones,
           ambitoProvincias: Usuario.ambitoProvincias,
-
-          ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
+      
+          ...(ambito.tipo == "Delegaciones" ? {estadoSolicitudId: 2, seccionalEstadoId: 1} : estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}), //SI el ambito es exclusivamente DELEGACIONES, solo traigo los afiliados activos y de seccionales activas de esa delegacion
           ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
 
@@ -121,13 +123,16 @@ const AfiliadosHandler = () => {
           };
         }
       );
-      const estadosSolicitudesOptions = estadosSolicitudesTable.filter(
-        (estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado"
-      );
+      const estadosSolicitudesOptions = ambito.tipo == "Delegaciones" ? 
+      estadosSolicitudesTable.filter((estado) => estado.label == "Activo") :
+      estadosSolicitudesTable.filter((estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado");
 
-      estadosSolicitudesOptions.push({ value: 0, label: "Todos" });
-      console.log("estadosSolicitudesOptions", estadosSolicitudesOptions);
+     if(ambito.tipo !== "Delegaciones") {
+        estadosSolicitudesOptions.push({ value: 0, label: "Todos" })
+      } 
+     
       setEstadosSolicitudes(
+        
         estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
       );
       //setEstadosSolicitudes(estadosSolicitudes);

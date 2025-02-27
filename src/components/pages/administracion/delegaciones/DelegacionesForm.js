@@ -243,7 +243,7 @@ const DelegacionesForm = ({
 				reload: true,
 				onLoaded: (changesProv) => {
 					changesProv.selected =
-						changesProv.options.find((r) => r.value === ok?.provinciaId) ?? {};
+						changesProv?.options?.find((r) => r?.value === ok?.provinciaId) ?? {};
 					setLocalidadSelect((o) => ({
 						...o,
 						reload: !!changesProv.selected.value,
@@ -253,7 +253,7 @@ const DelegacionesForm = ({
 						filtered: [],
 						selected: {
 							id: 0,
-							label: changesProv.selected.data.localidadDescripcionPorDefecto,
+							label: changesProv?.selected?.data?.localidadDescripcionPorDefecto,
 						},
 						onLoaded: (changesLoc) => {
 							changesLoc.selected =

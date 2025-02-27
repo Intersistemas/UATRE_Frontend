@@ -762,7 +762,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			} else {
 				setFiltros((o) => ({
 					...o,
-					ambitoDelegaciones: { ids: [selected.value] },
+					ambitoDelegaciones: { ids: [selected?.value] },
 				}));
 			}
 			finalizaInit();
@@ -796,7 +796,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoSeccionales: { ids: [selected.value] },
+			ambitoSeccionales: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);
@@ -816,7 +816,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			refMotivoBajaId: selected.value,
+			refMotivoBajaId: selected?.value,
 		}));
 	}, [motivosBajaSelect.loading, motivosBajaSelect.selected]);
 	//#endregion Cambia select motivosBaja
@@ -835,7 +835,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			estadoSolicitudId: selected.value,
+			estadoSolicitudId: selected?.value,
 		}));
 	}, [estadoSelect.loading, estadoSelect.selected]);
 	//#endregion Cambia select estado
@@ -865,7 +865,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoProvincias: { ids: [selected.value] },
+			ambitoProvincias: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [provinciaSelect.loading, provinciaSelect.selected]);

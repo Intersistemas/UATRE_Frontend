@@ -31,6 +31,8 @@ import UIGrid from "components/ui/Grid/Grid";
  * @property {Afiliado[]} afiliados
  */
 
+const soloAmbienteDelegacion = false //esta variable se debe modificar cuando ingresa un usuario con ambito Delegaciones unicamente.
+
 const fontSizePt = 10;
 const styles = StyleSheet.create({
 	document: { flexGrow: 1 },
@@ -139,6 +141,8 @@ const Hoja = ({ seccional, page }) => (
 			</Grid>
 			<Grid col grow gap="12px">
 				<Table width>
+				
+				{ !soloAmbienteDelegacion ?
 					<Tr>
 						<Td justify="center" width>
 							<P>APELLIDO(s) Y NOMBRE(s)</P>
@@ -158,8 +162,25 @@ const Hoja = ({ seccional, page }) => (
 						<Td justify="center" width="140px">
 							<P>ALTA</P>
 						</Td>
-					</Tr>
+					</Tr> 
+					:
+					<Tr>
+						<Td justify="center" width>
+							<P>APELLIDO(s) Y NOMBRE(s)</P>
+						</Td>
+						<Td justify="center" width="140px">
+							<P>DOC. Nº</P>
+						</Td>
+						<Td justify="center" width="165px">
+							<P>CUIL</P>
+						</Td>
+						<Td justify="center" width="140px">
+							<P>AFI. Nº</P>
+						</Td>
+						
+					</Tr>}
 					{page.data.map((afiliado, i) => (
+						!soloAmbienteDelegacion ? 
 						<Tr key={i}>
 							<Td justify="start" width>
 								<P>{afiliado.nombre}</P>
@@ -178,6 +199,21 @@ const Hoja = ({ seccional, page }) => (
 							</Td>
 							<Td justify="end" width="140px">
 								<P>{Formato.Fecha(afiliado.fechaIngreso)}</P>
+							</Td>
+						</Tr>
+						:
+						<Tr key={i}>
+							<Td justify="start" width>
+								<P>{afiliado.nombre}</P>
+							</Td>
+							<Td justify="end" width="140px">
+								<P>{afiliado.documento}</P>
+							</Td>
+							<Td justify="end" width="165px">
+								<P>{afiliado.cuil}</P>
+							</Td>
+							<Td justify="end" width="140px">
+								<P>{afiliado.nroAfiliado}</P>
 							</Td>
 						</Tr>
 					))}
