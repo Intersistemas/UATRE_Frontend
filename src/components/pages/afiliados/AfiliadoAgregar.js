@@ -1989,32 +1989,31 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   };
 
     const InputDisabled = (input) => {
+      console.log("cuilState",cuilState)
+      console.log("afiliadoExiste",afiliadoExiste)
+      console.log("afiliado?.estadoSolicitudId",afiliado?.estadoSolicitudId)
+      console.log("consultaPadronCUILOk",consultaPadronCUILOk)
 
-	if (input !== "cuil") {
-		if (props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3) return true;
-		if (cuilState.value === "") return true;
-		if (!consultaPadronCUILOk) return true;
-	}
+      //VALIDO PRIMERO EL CAMPO CUIL
+      if (input === "cuil"){
+        if (/*props.accion === "Modifica" && */afiliadoExiste && cuilValidado) {
+          return true;
+        } 
+      }else {
+        if (props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3) return true;
+        if (cuilState.value === "" || !cuilState.isValid) return true;
+        //if (!consultaPadronCUILOk || ) return true;
 
-    if (!input && !cuilState.isValid) {
-      return true;
-    }
+        if (
+          afiliadoExiste &&
+          afiliado?.estadoSolicitudId !== 1 &&
+          afiliado?.estadoSolicitudId !== 4 &&
+          afiliado?.estadoSolicitudId !== 2
+        ) return true;
+      }
 
-    if (
-      afiliadoExiste &&
-      afiliado?.estadoSolicitudId !== 1 &&
-      afiliado?.estadoSolicitudId !== 4 &&
-      afiliado?.estadoSolicitudId !== 2
-    ) {
-      return true;
-    }
-
-    if (/*props.accion === "Modifica"*/afiliadoExiste && cuilValidado && input === "cuil") {
-      return true;
-    }
-
-    return false;
-  };
+      return false;
+    };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
