@@ -911,6 +911,7 @@ const Handler = ({ onClose = () => {} }) => {
 						className="botonAmarillo"
 						loading={!!padron.loading}
 						onClick={() => onCargaPadron()}
+						tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
 					>
 						IMPRIME
 					</Button>
