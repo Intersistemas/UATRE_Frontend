@@ -287,7 +287,11 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 			<Modal.Footer>
 				<Grid gap="20px" justify="end">
 					<Grid width="250px">
-						<Button className="botonAmarillo" onClick={() => onCSV()}>
+						<Button 
+						className="botonAmarillo"
+						onClick={() => onCSV()}
+						tarea="Informes_DDJJ_TrabajadoresDeclarados_CSV"
+						>
 							GENERA ARCHIVO CSV
 						</Button>
 					</Grid>

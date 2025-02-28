@@ -508,6 +508,7 @@ const AfiliadosEstadosDelegacionSeccionalLocalidad = ({ onClose = onCloseDef }) 
 								className="botonAmarillo"
 								loading={!!csv.loading}
 								onClick={() => onCSV()}
+								tarea="Informes_Afiliados_AfiliadosDelegacionSeccionalLocalidad_CSV"
 							>
 								GENERA ARCHIVO CSV
 							</Button>

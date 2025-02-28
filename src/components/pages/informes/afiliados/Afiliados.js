@@ -15,6 +15,7 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
 import AuthContext from "store/authContext";
+import useTareasUsuario from 'components/hooks/useTareasUsuario';
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -250,6 +251,8 @@ const provinciaSelectOptions = ({ data = [], ...x }) =>
 //#endregion provinciaSelectOptions
 
 const Afiliados = ({ onClose = onCloseDef }) => {
+
+	const tareas = useTareasUsuario();
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -1271,6 +1274,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								className="botonAmarillo"
 								loading={!!csv.loading}
 								onClick={() => onCSV()}
+								tarea="Informes_Afiliados_Afiliados_CSV"
 							>
 								GENERA ARCHIVO CSV
 							</Button>
