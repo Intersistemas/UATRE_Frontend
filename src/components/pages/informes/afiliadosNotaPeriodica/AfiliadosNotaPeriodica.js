@@ -13,7 +13,6 @@ import SearchSelectMaterial, {
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import Viewer from "./Viewer";
-import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 

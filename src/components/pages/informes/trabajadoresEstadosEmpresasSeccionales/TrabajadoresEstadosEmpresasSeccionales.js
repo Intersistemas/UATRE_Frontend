@@ -3,11 +3,10 @@ import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
-import Formato, { Cuit } from "components/helpers/Formato";
+import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
-import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
@@ -276,7 +275,7 @@ const TrabajadoresEstadosEmpresasSeccionales = ({ onClose = onCloseDef }) => {
 					</Grid>
 					<Grid width gap="inherit">
 						<Grid width="200px">
-							<DateTimePicker
+							<InputMaterial
 								label="Período"
 								type="month"
 								minDate={dayjs().subtract(12, "month").format("YYYY-MM-DD")}
