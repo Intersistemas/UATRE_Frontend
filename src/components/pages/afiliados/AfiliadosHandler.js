@@ -42,7 +42,7 @@ const AfiliadosHandler = () => {
   const [entryValue, setEntryValue] = useState();
   
   const ambito = useAmbitos().ambitoUser();
-  console.log("ambito",ambito);
+  console.log("ambito",ambito); 
  
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
