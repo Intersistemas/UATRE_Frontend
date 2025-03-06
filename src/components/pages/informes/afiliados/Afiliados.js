@@ -16,6 +16,8 @@ import SearchSelectMaterial, {
 import useQueryState from "components/hooks/useQueryState";
 import AuthContext from "store/authContext";
 import useTareasUsuario from 'components/hooks/useTareasUsuario';
+import useAmbitos from 'components/hooks/useAmbitos';
+
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -246,6 +248,7 @@ const provinciaSelectOptions = ({ data = [], ...x }) =>
 const Afiliados = ({ onClose = onCloseDef }) => {
 
 	const tareas = useTareasUsuario();
+	const ambito = useAmbitos().ambitoUser();
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -678,6 +681,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			onLoad: ({ ok, error }) => {
 				let data = [];
 				if (Array.isArray(ok)) data = ok;
+				console.log("data estados:", data);
 				setEstadoSelect((o) => {
 					const n = {
 						...o,
@@ -688,7 +692,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					n.optionsSrc = estadoSelectOptions(n);
 					n.selectedDef =
 						n.optionsSrc.length === 1 ? n.optionsSrc[0] : estadoSelectTodos;
-					n.selected = n.selectedDef;
+					n.selected =  n.selectedDef;
 					return n;
 				});
 			},
@@ -1003,7 +1007,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setMotivosBajaSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
+		if (ambito.tipo == "Delegaciones"){
+			setEstadoSelect((o) => ({ ...o, selected: {value: 2, label: "Activo"}}));
+		} else {
+			setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
+		}
 		setProvinciaSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setFiltros(filtros);
 		if (JSON.stringify(list.params) === JSON.stringify(filtros)) return;
@@ -1172,6 +1180,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
+								disabled={ambito.tipo == "Delegaciones" ? true : false}
 							/>
 						</Grid>
 						<Grid grow>
