@@ -449,9 +449,9 @@ const useEncuestas = ({
 					//Verificacion------------------------------------------------------------------------------------------------->
 					if (list.selection.request === "A" || list.selection.request === "M"){
 						if (!record.tema) errors.tema = "Dato requerido";
-						if (record.fechaFinalizacion = dayjs().format("DD-MM-YYYY")) errors.fechaFinalizacion = "Dato requerido";
+						if (record.fechaFinalizacion == dayjs().format("DD-MM-YYYY")) errors.fechaFinalizacion = "Dato requerido"; // REVISAR VALIDACION
 						
-						
+	
 						// if (!record.refLocalidadesId || record.refLocalidadesId == 0)
 						// errors.refLocalidadesId = "Dato requerido";
 					

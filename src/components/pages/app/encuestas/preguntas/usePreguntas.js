@@ -1,480 +1,534 @@
-import React, { useCallback, useEffect, useState,useContext } from "react";
+
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import PreguntasTable from "./PreguntasTable";
 import PreguntasForm from "./PreguntasForm";
 import AuthContext from "../../../../../store/authContext";
+import dayjs from "dayjs";
 import moment from "moment";
 import FormatearFecha from "components/helpers/FormatearFecha";
-import { FormControlLabel, Switch } from "@mui/material";
-
+import { FormControlLabel, List, Switch } from "@mui/material";
+import { id } from "components/helpers/Utils";
+import { Fecha } from "components/helpers/Formato";
 
 const vigenteHasta = new Date(2099, 11, 31);
 const vigenteDesde = new Date();
 
 const selectionDef = {
-	action: "",
-	request: "",
-	index: null,
-	record: null,
-	edit: null,
-	errors: null,
+  action: "",
+  request: "",
+  index: null,
+  record: null,
+  edit: null,
+  errors: null,
 };
- 
-const usePreguntas = () => {
 
+const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) => true;
 
-	const Usuario = useContext(AuthContext).usuario;
-	
-	const [checked, setChecked] = React.useState(true);
+const usePreguntas = ({
+  onEditValidate: onEditValidateInit = onEditValidateDef,
+  onEditChange: onEditChangeInit = onEditChangeDef,
+} = {}) => {
+  const { usuario: Usuario } = useContext(AuthContext);
+  const [checked, setChecked] = useState(true);
 
+  //#region Configuración de las queries a la API
+  const pushQuery = useQueryQueue((action, params) => {
+    console.log("pushQuery_action USE_PREGUNTAS", action);
+    console.log("pushQuery_params USE_PREGUNTAS", params);
+    const { id, ...otherParams } = params;
+    switch (action) {
+      case "GetList":
+        return {
+          config: {
+            baseURL: "App",
+            endpoint: `/Encuestas/${id}`,
+            method: "GET",
+          },
+          params: otherParams,
+        };
+      case "Create":
+        return {
+          config: {
+            baseURL: "App",
+            endpoint: `/Encuestas/${id}`,
+            method: "PUT",
+          },
+          params: otherParams,
+        };
+      case "Update":
+        return {
+          config: {
+            baseURL: "App",
+            endpoint: `/Encuestas/${id}`,
+            method: "PUT",
+          },
+          params: otherParams,
+        };
+      case "Delete":
+        return {
+          config: {
+            baseURL: "App",
+            endpoint: `/Encuestas/${id}`,
+            method: "PUT",
+          },
+          params: otherParams,
+          
+        };
+      default:
+        return null;
+    }
+  });
+  //#endregion
 
-	//#region Trato queries a APIs
- 
-	const pushQuery = useQueryQueue((action, params) => {
-		console.log('pushQuery_action',action, params);
-		const { id, ...otherParams } = params;
-		switch (action) {
-			case "GetList": {
-				return {
-					config: {
-						baseURL: "App",
-						endpoint: `/Encuestas/${id}`,
-						method: "GET",
-					},
-					params: otherParams,
-				};
-			}
-			case "Create": {
-				return {
-					config: {
-						baseURL: "App",
-						endpoint: `/Encuestas/${params.id}`,
-						method: "POST",
-					},
-				};
-			}
-			case "Update": {
-				return {
-					config: {
-						baseURL: "App",
-						endpoint: `/Encuestas/${params.id}`,
-						method: "PUT",
-					},
-				};
-			}
+  //#region Estado inicial y carga de datos
+  const [list, setList] = useState({
+    loading: null,
+    params: {},
+    cargos: [],
+    data: [],
+    error: null,
+    selection: { ...selectionDef },
+    onEditValidate: onEditValidateInit,
+    onEditChange: onEditChangeInit,
+  });
 
-			
-			default:
-				return null;
-		}
-	});
-	//#endregion
+  useEffect(() => {
+    if (!list.loading) return;
+    pushQuery({
+      action: "GetList",
+      params: {
+        ...list.params,
+        include: "preguntas(detalles)",
+        //unicamente muestro las preguntas que no estas eliminada en la seccion de preguntas, ya que en la seccion de encuestas se muestran todas
+        // filter: checked ? "deletedDate eq null" : "",
+        deleted: false
+        
+        
+      },
+      onOk: async (data) => {
+        setList((prev) => {
+          console.log("data_UsePreguntas:", data);
+          const record =
+            data.preguntas?.find((r) => r.encuestaId === prev.selection.record?.id) ||
+            data.preguntas?.[0];
+          const selection = { ...selectionDef, record };
+          if (record) {
+            selection.index = data.preguntas.indexOf(record);
+          }
+          return {
+            ...prev,
+            loading: null,
+            data: data.preguntas,
+            error: null,
+            selection,
+          };
+        });
+      },
+      onError: async (err) =>
+        setList((prev) => ({
+          ...prev,
+          loading: null,
+          data: [],
+          error: err.code === 404 ? null : err,
+          selection: { ...selectionDef },
+        })),
+    });
+  }, [list.loading, pushQuery, list.params]);
+  //#endregion
 
+  //#region Función para solicitar cambios en la selección o en la lista
+  const requestChanges = useCallback((type, payload = {}) => {
+    switch (type) {
+      case "selected":
+        setList((prev) => ({
+          ...prev,
+          selection: {
+            ...prev.selection,
+            request: payload.request,
+            action: payload.action,
+            edit: {
+              ...(payload.request === "A" ? {} : prev.selection.record),
+              ...payload.record,
+            },
+          },
+        }));
+        break;
+      case "list":
+        if (payload.clear) {
+          setList((prev) => ({
+            ...prev,
+            loading: null,
+            data: [],
+            error: null,
+            selection: { ...selectionDef },
+          }));
+        } else {
+          setList((prev) => ({
+            ...prev,
+            loading: "Cargando...",
+            params: { ...payload.params },
+            data: [],
+          }));
+        }
+        break;
+      default:
+        break;
+    }
+  }, []);
+  //#endregion
 
-	//#region declaracion y carga list y selected
-	const [list, setList] = useState({
-		loading: null,
-		params: {},
-		cargos: [],
-		data: [],
-		error: null,
-		selection: {...selectionDef},
-	});
+  let form = null;
+  if (list.selection.edit) {
+    form = (
+      <PreguntasForm
+        request={list.selection.request} // Tipo de acción (A, M, B, etc.)
+        data={(() => {
+         
+          const extraData =
+            list.selection.request === "M" || list.selection.request === "B"
+              ? {
+                  deletedDate: dayjs().format("DD-MM-YYYY"),
+                  deletedBy: Usuario.nombre,
+                  
+                }
+              : {};
+          return { ...list.selection.edit, ...extraData };
+        })()}
+        title={list.selection.action}
+        errors={list.selection.errors}
+        loading={!!list.loading}
+        disabled={(() => {
+          let r = ["A", "M"].includes(list.selection.request)
+            ? {
+                deletedDate: dayjs().format("DD-MM-YYYY"),
+                deletedBy: false,
+                fecha: false,
+                fechaFinalizacion: false,
+                observaciones: false,
+              }
+            : { };
+            if (list.selection.request === "B") {
+            r = { ...r, deletedBy: true, deletedDate: true,  deletedObs: false, ordenPregunta: true, tipoPregunta: true, textoLibre: true, detalles: true, texto: true };
+          }
+          return r;
+        })()}
+        hide={
+          ["A", "M"].includes(list.selection.request)
+            ? { deletedObs: true, deletedBy: true, deletedDate: true, tema: true }
+            
+            : {}
+        }
+        onChange={(edit) => {
+          if (
+            !list.onEditChange({
+              edit: { ...list.selection.edit },
+              changes: edit,
+              request: list.selection.request,
+            })
+          )
+            return;
+          setList((prev) => ({
+            ...prev,
+            selection: {
+              ...prev.selection,
+              edit: { ...prev.selection.edit, ...edit },
+              errors: { ...prev.selection.errors },
+            },
+          }));
+        }}
+        onClose={(confirm) => {
+          if (!["A", "B", "M"].includes(list.selection.request)) {
+            confirm = false;
+          }
+          if (!confirm) {
+            setList((prev) => ({
+              ...prev,
+              selection: {
+                ...prev.selection,
+                ...selectionDef,
+                index: prev.selection.index,
+                record:
+                  !prev.selection.multi && prev.selection.index > -1
+                    ? prev.data.at(prev.selection.index)
+                    : prev.selection.record,
+              },
+            }));
+            return;
+          }
 
-	useEffect(() => {
-		if (!list.loading) return;
-		pushQuery(
-			{
-			action: "GetList",
-			params: {
-				...list.params,
-				//SoloActivos: false,
-				include:"preguntas(detalles)"
-				//pageIndex: list.pagination.index,
-				//pageSize: list.pagination.size,
-			},
-			onOk: async (data) =>
-				setList((o) => {
-					console.log('data_UsePreguntas:',data)
-					const selection = {
-						...selectionDef,
-						record:
-							data.preguntas?.find((r) => r.encuestaId === o?.selection?.record?.id) ?? data.preguntas?.at(0),
-					};
-					if (selection.record)
-						selection.index = data.preguntas.indexOf(selection.record);
-					return {
-						...o,
-						loading: null,
-						//pagination: { index, size, count },
-						data: data.preguntas,
-						error: null,
-						selection,
-					};
-				}),
-			onError: async (err) =>
-				setList((o) => ({
-					...o,
-					loading: null,
-					data: [],
-					error: err.code === 404 ? null : err,
-					selection: { ...selectionDef },
-				})),
-		});
-	}, [pushQuery, list]);
+          const record = { ...list.selection.edit };
+          console.log("Record_usePreguntas <zz<zz<zz<zz", record);
 
+          // Validaciones
+          const errors = {};
+          if (list.selection.request === "B") {
+            if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+          }
+          if (list.selection.request === "A" || list.selection.request === "M") {
+            if (!record.enunciado) errors.enunciado = "Dato requerido";
+            if (!record.tipoPregunta) errors.tipoPregunta = "Dato requerido";
+            if (!record.ordenPregunta) errors.ordenPregunta = "Dato requerido";
+            //El ordenPregunta no puede ser menor a 1
+            if (record.ordenPregunta < 1) errors.ordenPregunta = "El orden de la pregunta no puede ser menor a 1";
+            if (record.tipoPregunta === "MC" && !record.detalles) errors.detalles = "Dato requerido";
+            if (record.tipoPregunta === "OP" && !record.enunciado) errors.enunciado = "Dato requerido";
+            if (record.tipoPregunta === "TX" && !record.textoLibre) errors.textoLibre = "Dato requerido";
+            if (Array.isArray(record.detalles)) {
+              record.detalles.forEach((detalle, index) => {
+                if (!detalle.texto) errors[`detalles[${index}].texto`] = "Dato requerido";
+              });
+            }
 
+            
+          }
 
-	const requestChanges = useCallback((type, payload = {}) => {
-		
-		switch (type) {
-			case "selected": {
-				return setList((o) => ({
-					...o,
-					selection: {
-						...o.selection,
-						request: payload.request,
-						action: payload.action,
-						edit: {
-							...(payload.request === "A" ? {} : o.selection.record),
-							...payload.record,
-						},
-					},
-				}));
-			}
-			case "list": {
-				if (payload.clear)
-					return setList((o) => ({
-						...o,
-						loading: null,
-						data: [],
-						error: null,
-						selection: {...selectionDef},
-					}));
-				return setList((o) => ({
-					...o,
-					loading: "Cargando...",
-					params: { ...payload.params },
-					data: [],
-				}));
-			}
-			default:
-				return;
-		}
-	}, []);
+          list.onEditValidate({ edit: record, errors, request: list.selection.request });
+          if (Object.keys(errors).length) {
+            setList((prev) => ({
+              ...prev,
+              selection: { ...prev.selection, errors },
+            }));
+            return;
+          }
 
-	let form = null;
-	if (list.selection.edit) {
-		form = (
-			<PreguntasForm
-			    request={list.selection.request}
-				data={(() => { 
-					//console.log('list.selection',list.selection)
-					//INIT DE DATOS DEL FORM
-					const data =
-					//seccionalId = list.selection.edit.refSeccionalId,
-					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
-						{
-							fechaVigenciaDesde: list.selection.edit.fechaVigenciaDesde ?? vigenteDesde,
-							fechaVigenciaHasta: list.selection.edit.fechaVigenciaHasta ?? vigenteHasta,							
-
-						}:
-						["B"].includes(list.selection.request) ? //INIT PARA BAJA
-							{
-								deletedDate: moment(vigenteDesde).format("YYYY-MM-DD"),
-								deletedBy: Usuario.nombre,
-							}:
-							{}
-
-						return {...list.selection.edit, ...data}; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
-					})()
-				}
-				cargos={list.cargos}
-				title={list.selection.action}
-				loading={list.loading}
-				errors={list.selection.errors}
-				disabled={(() => {
-
-
-					const r = ["A", "M"].includes(list.selection.request)
-						? { estado: true }
-						: {
-							afiliadoId	: true,
-							afiliadoNombre	: true,
-							afiliadoNumero	: true,
-							createdBy	: true,
-							createdDate	: true,
-							deletedBy	: true,
-							deletedDate	: true,
-							fechaVigenciaDesde	: true,
-							fechaVigenciaHasta	: true,
-							id	: true,
-							lastModifiedBy	: true,
-							lastModifiedDate	: true,
-							observaciones	: true,
-							refCargosDescripcion	: true,
-							refCargosId	: true,
-							seccionalDescripcion	: true,
-							seccionalId	: true,
-	
-						  };
-					if (list.selection.request !== "B")
+          const query = {
+            config: {},
+            
+            onOk: async (response) => {
+							setList((old) => ({ ...old, loading: "Cargando..." }));
+							
 					
-					r.deletedObs = true;
-					r.deletedBy=true;
-					r.deletedDate=true;
+						},
+              onError: async (error) => alert("Error al crear la encuesta: " + error.message),
+          };
 
-					return r;
+          switch (list.selection.request) {
+        
 
-				})()}
-				hide={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? { deletedObs: true }
-						: {};
-					if (list.selection.request !== "R") r.obs = true;
-					return r;
-				})()}
-				onChange={(edit) => { //solo entra el campo que se está editando
-					const changes = { edit: { ...edit }, errors: {} };
-					const applyChanges = ({ edit, errors } = changes) =>
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								edit: { ...o.selection.edit, ...edit },
-								errors: { ...o.selection.errors, ...errors },
-							},
-						}));
-						//VALIDO EL NRO DEL AFILIADO
-					//console.log('numero afil:',changes.edit.afiliadoNumero);
-					if ("afiliadoNumero" in edit) {
+              case "A":
+                query.action = "Create";
+                query.params = { id: record.seccionalId };
+              
+                // Generamos un ID único para la nueva pregunta
+                const nuevaPregunta = {
+                  
+                  tipoPregunta: record.tipoPregunta,
+                  enunciado: record.enunciado,
+                  ordenPregunta: Number(record.ordenPregunta),
+                  detalles:
+                    (record.tipoPregunta === "TX" && record.textoLibre)
+                      ? [{ texto: record.textoLibre }]
+                      : Array.isArray(record.detalles)
+                        ? record.detalles.map(detalle => ({
+                            texto: detalle.texto,
+                            valorPorDefault: true,
+                            esObligatorio: true
+                          }))
+                        : []
+                };
+              
+                // Mantenemos las preguntas anteriores y agregamos la nueva
+                query.config.body = {
+                  id: id(), // Generamos un ID único para la nueva pregunta
+                  fecha: record.fecha,
+                  tema: record.tema,
+                  fechaFinalizacion: record.fechaFinalizacion,
+                  preguntas: [...list.data, nuevaPregunta] // Mantenemos las preguntas previas y agregamos la nueva
+                };
+              
+       
+              
+                //Actualizamos el estado local agregando la nueva pregunta sin eliminar las anteriores
+                setList((prev) => ({
+                  ...prev,
+                  data: [...prev.data, nuevaPregunta], // Se mantiene la lista previa mas la nueva pregunta
+                  selection: { ...selectionDef } //Se reinicia la selección
+                }));
+              
+                break;
+              
+                
+                case "M":
+                      console.log("Me devuelve todas las preguntas", list.data);
+                      console.log("Obtengo toda la información de la pregunta actual", record);
+                      console.log("Obtengo el ID de encuesta desde parámetro ->", list.params.id);
 
-						if (changes.edit.afiliadoNumero >= 1) {
-							changes.errors.afiliadoNombre = "";
-							changes.edit.afiliadoId = 0;
-						    changes.edit.afiliadoNombre = "";
-							changes.errors.afiliadoNombre = "Cargando...";
-						}else{ changes.errors.afiliadoNombre = ""; }
-							applyChanges();
-						
+                      query.action = "Update";
+                      query.params = { id: record.seccionalId };
 
-						if (changes.errors.afiliadoNombre === "Cargando...") {
-							pushQuery({
-								action: "GetAfiliado",
-								config:{
-									body:{
-										nroAfiliado:changes.edit.afiliadoNumero,
-										ambitoTodos: Usuario.ambitoTodos,
-										ambitoSeccionales: Usuario.ambitoSeccionales,
-										ambitoDelegaciones: Usuario.ambitoDelegaciones,
-										ambitoProvincias: Usuario.ambitoProvincias,	
-									}
-								},
-								onOk: async (ok) => {
-									changes.edit.afiliadoId = ok?.data.length >= 1 ? ok?.data[0]?.id : 0;
-									changes.edit.afiliadoNombre = ok?.data.length >= 1 ? ok?.data[0]?.nombre : "Afiliado no disponible";
-									changes.errors.afiliadoNombre = '';
-									
-									//changes.errors.afiliadoNombre = "";
-								},
-								onError: async (error) => {
-									changes.errors.afiliadoNombre =
-										error.message ?? "Error obteniendo datos del afiliado";
-								},
-								onFinally: async () => applyChanges(),
-							});
-						}
-					} else {
-						applyChanges();
-					}
-				}}
-				onClose={(confirm) => {
-					if (!["A", "B", "M", "R"].includes(list.selection.request))
-						confirm = false;
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index: o.selection.index,
-								record: o.data.at(o.selection.index),
-							},
-						}));
-						return;
-					}
+                      //Mantengo las preguntas anteriores y actualizamos solo la modificada
+                      const preguntasActualizadas = list.data.map((pregunta) =>
+                        pregunta.id === record.id
+                          ? { //Si es la pregunta modificada, actualizamos los datos
+                              ...pregunta,
+                              encuestaId: record.encuestaId,
+                              ordenPregunta: Number(record.ordenPregunta),
+                              tipoPregunta: record.tipoPregunta,
+                              enunciado: record.enunciado,
+                              detalles:
+                                (record.tipoPregunta === "TX" && record.textoLibre)
+                                  ? [{ texto: record.textoLibre }]
+                                  : Array.isArray(record.detalles)
+                                    ? record.detalles.map(detalle => ({
+                                        encuestaPreguntaId: record.encuestaPreguntaId,
+                                        texto: detalle.texto,
+                                        valorPorDefault: true,
+                                        esObligatorio: true,
+                                        id: detalle.id
+                                      }))
+                                    : [],
+                            }
+                          : pregunta //Si no es la pregunta modificada, la dejamos igual
+                      );
 
-					const record = list.selection.edit;
-
-					console.log('usePreguntas_onClose_record',record);
-					//Validaciones
-					const errors = {};
-					if (list.selection.request === "B") {
-						if (!record.deletedObs)
-						 	errors.deletedObs = "Dato requerido";
-					} else {
-						if (record.afiliadoId === 0) errors.afiliadoNumero = "Debe ingresar afiliado valido";
-						if (!record.afiliadoId) errors.afiliadoNumero = "Debe VALIDAR el afiliado";
-						if (!record.afiliadoNumero) errors.afiliadoNumero = "Debe ingresar un Numero de Afiliado existente";
-						if (!record.refCargosId) errors.refCargosId = "Debe seleccionar un Cargo";
-						//if (!record.fechaVigenciaDesde) errors.fechaVigenciaDesde = "Debe ingresar una Fecha de Vigencia";
-						//if (!record.observaciones) errors.observaciones = "Debe ingresar un observación";
-					}
+                      query.config.body = {
+                        fecha: record.fecha, 
+                        tema: record.tema, 
+                        fechaFinalizacion: record.fechaFinalizacion, 
+                        preguntas: preguntasActualizadas, // incluye todas las preguntas actualizadas
+                        id: list.params.id, // ID de la encuesta
+                      };
 
 
-					if (Object.keys(errors).length) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
-							},
-						}));
-						return;
-					}
+                      //Actualizamos el estado manteniendo todas las preguntas pero con la modificada
+                      setList((prev) => ({
+                        ...prev,
+                        data: preguntasActualizadas,
+                        selection: { ...selectionDef }, // Reiniciamos la selección para evitar errores
+                      }));
 
-					const query = {
-						config: {},
-						onOk: (res) =>
-							setList((old) => ({ ...old, loading: "Cargando..." })),
-						onError: (err) => alert(err.message),
-					};
+                      break;
+
+                
 
 
-					switch (list.selection.request) {
-						case "A":
-							query.action = "Create";
-							query.config.body = record;
-							break;
-						case "M":
-							query.action = "Update";
-							//query.params = { id: record.id };
-							query.config.body = {
-								id: record.id,
-								seccionalId: record.seccionalId,
-								afiliadoId: record.afiliadoId,
-								refCargosId: record.refCargosId,
-								observaciones: record.observaciones,
-								fechaVigenciaDesde: record.fechaVigenciaDesde,
-								fechaVigenciaHasta: record.fechaVigenciaHasta,
-							}	
-							break;
-						case "B":
-							query.action = "Delete";
-							//query.params = { id: record.id };
-							query.config.body = { id: record.id, deletedObs: record.deletedObs };
-							break;
-						case "R":
-							query.action = "Reactiva";
-							//query.params = { id: record.id };
-							query.config.body = { id: record.id }
-							break; 
-						default:
-							break;
-					}
+              case "B":
+                query.action = "Delete";
+                query.params = { id: record.seccionalId };
+            
+                //Filtramos las preguntas y eliminamos solo la pregunta seleccionada
+                const nuevasPreguntas = list.data.filter(p => p.id !== record.id);
+            
+                query.config.body = {
+                    fecha: record.fecha, 
+                    tema: record.tema, 
+                    fechaFinalizacion: record.fechaFinalizacion, 
+                    preguntas: nuevasPreguntas, // Enviamos la lista sin la pregunta eliminada
+                    
+                    //ID de la encuesta (necesario para identificar en la API)
+                    id: list.params.id,
+                    deletedObs: record.deletedObs, //Observaciones sobre la eliminación
+                    deletedBy: record.deletedBy, //Usuario que elimina la pregunta
+                    deletedDate: record.deletedDate, //Fecha de eliminación
+                };
+            
+               
+            
+                //Actualizamos el estado eliminando solo la pregunta seleccionada
+                setList((prev) => ({
+                    ...prev,
+                    data: nuevasPreguntas, // Quitamos solo la pregunta eliminada, sin afectar las demás
+                    selection: { ...selectionDef },
+                }));
+            
+                break;
+            
 
-//					console.log('query',query);
-					pushQuery(query);
+                
+              
 
-				}}
-			/>
-		);
-	}
+            default:
+              break;
+          }
+          pushQuery(query);
+        }}
+      />
+    );
+  }
 
-	const handleChange = (event) => {
-	  setChecked(event.target.checked);
-	  setList((o) => ({
-		...o,
-		loading: "Cargando...",
-		params: { ...list.params, soloVigentes: event.target.checked },
-		data: [],
-	}));
-	};
-	
+  //#region Renderizado principal
+  const render = () => (
+    <div>
+      
+      <PreguntasTable
+        data={list.data}
+        loading={!!list.loading}
+        noDataIndication={
+          list.loading || list.error?.message || "No existen datos para mostrar"
+        }
+        pagination={{
+          ...list.pagination,
+          onChange: ({ index, size }) =>
+            setList((prev) => ({
+              ...prev,
+              loading: "Cargando...",
+              pagination: { index, size },
+              data: [],
+            })),
+        }}
+        selection={{
+          selected: [list.selection.record?.id].filter(Boolean),
+          onSelect: (record, isSelect, index, e) =>
+            setList((prev) => ({
+              ...prev,
+              selection: {
+                ...selectionDef,
+                index,
+                record,
+              },
+            })),
+        }}
+      />
+      {list.selection.record && (
+        <div style={{ marginTop: "20px" }}>
+          <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+            Detalles de la pregunta seleccionada
+          </h3>
+          {list.selection.record.detalles && list.selection.record.detalles.length > 0 ? (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginTop: "10px",
+              }}
+            >
+              <tbody>
+                {list.selection.record.detalles.map((detalle, index) => (
+                  <tr key={index}>
+                    <td
+                      style={{
+                        border: "1px solid rgb(53, 149, 210)",
+                        padding: "3px",
+                        textAlign: "center",
+                        backgroundColor: "#f2f2f2",
+                      }}
+                    >
+                      {detalle.texto || "Sin dato"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p style={{ textAlign: "center", color: "red" }}>
+              No hay detalles disponibles para esta selección.
+            </p>
+          )}
+        </div>
+      )}
+      {form}
+    </div>
+  );
+  //#endregion
 
-	const render = () => (
-		<div>
-			<FormControlLabel className="position-absolute" style={{marginTop: '-2.5em'}}
-				control={
-				<Switch checked={checked} onChange={handleChange} label="Solo vigentes" />
-				}
-				label="Solo vigentes"
-			/>
-			<PreguntasTable
-				data={list.data}
-				loading={!!list.loading}
-				noDataIndication={
-					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
-				}
-				pagination={{
-					...list.pagination,
-					onChange: ({ index, size }) =>
-						setList((o) => ({
-							...o,
-							loading: "Cargando...",
-							pagination: { index, size },
-							data: [],
-						})),
-				}}
-				selection={{
-					selected: [list.selection.record?.id].filter((r) => r),
-					onSelect: (record, isSelect, index, e) =>
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index,
-								record,
-							},
-						})),
-				}}
-			/>
-			{list.selection.record && (
->>>>>>> origin/Encuestas_Alexis_250217
-		  <div style={{ marginTop: "20px" }}>
-			<h3 style={{ textAlign: "center", marginBottom: "10px" }}>
-			  Detalles de la pregunta seleccionada
-			</h3>
-  
-			{/* Validación para mostrar detalles */}
-			{list.selection.record.detalles &&
-			list.selection.record.detalles.length > 0 ? (
-			  <table
-				style={{
-				  width: "100%",
-				  borderCollapse: "collapse",
-				  marginTop: "10px",
-				}}
-			  >
-				<tbody>
-				  {list.selection.record.detalles.map((detalle, index) => (
-					<tr key={index}>
-					  <td
-						style={{
-						  border: "1px solid rgb(53, 149, 210)",
-						  padding: "3px",
-						  textAlign: "center",
-						  backgroundColor: "#f2f2f2",
-						}}
-					  >
-						{/* <text style={{fontWeight: "bold"}}>{detalle.texto ? detalle.texto : "Sin dato"}</text> */}
-						{detalle.texto ? detalle.texto : "Sin dato"}
-					  </td>
-					</tr>
-				  ))}
-				</tbody>
-			  </table>
-			) : (
-			  <p style={{ textAlign: "center", color: "red" }}>
-				No hay detalles disponibles para esta selección.
-			  </p>
-			)}
-		  </div>
-		)}
-			{form}
-		</div>
-	);
-
-	return [render, requestChanges, list.selection.record];
+  return [render, requestChanges, list.selection.record];
 };
 
 export default usePreguntas;
+
+
+
+
+

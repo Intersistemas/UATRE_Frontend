@@ -18,12 +18,12 @@ import InicioHandler from './components/pages/inicio/InicioHandler';
 //---Siaru---
 import SiaruHandler from './components/pages/siaru/SiaruHandler';
 // import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
-import LiquidacionesHandler from './components/pages/siaru/liquidaciones/LiquidacionesHandler';
+import LiquidacionesHandler from './components/pages/siaru/Liquidaciones/LiquidacionesHandler';
 
-import LiquidacionesProcesarHandler from './components/pages/siaru/liquidaciones/procesar/LiquidacionesProcesarHandler';
-import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liquidaciones/procesar/existente/Handler';
-import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
-import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
+import LiquidacionesProcesarHandler from './components/pages/siaru/Liquidaciones/Procesar/LiquidacionesProcesarHandler';
+import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/Liquidaciones/Procesar/Existente/Handler';
+import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/Liquidaciones/Procesar/Archivo/Handler';
+import LiquidacionesProcesarManualHandler from './components/pages/siaru/Liquidaciones/Procesar/Manual/Handler';
 
 //---ADMINISTRACION DATOS---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
@@ -45,7 +45,7 @@ import MetricaHandler from './components/pages/app/metricas/MetricaHandler';
 //---AFILIADOS---
 import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/siaru/establecimientos/EstablecimientosHandler';
+import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 

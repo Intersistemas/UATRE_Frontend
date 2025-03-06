@@ -364,6 +364,28 @@ const EncuestasHandler = () => {
 				underlineindex: 0
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Modificar Pregunta ${seccDesc}`,
+				request: "M",
+				tarea: "Datos_SeccionalAutoridadesModificar",
+				disabled:  false,
+				keys: "m",
+				underlineindex: 0
+				
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Bajar Pregunta ${seccDesc}`,
+				request: "B",
+				tarea: "Datos_SeccionalAutoridadesBajar",
+				disabled:  false,
+				keys: "b",
+				underlineindex: 0
+			})
+		);
+
 
 		setAutoridadesActions(actions);
 		
@@ -420,7 +442,7 @@ const EncuestasHandler = () => {
 
 		actions.push(
 			createAction({
-				action: `Agrega Documentación ${seccDesc}`,
+				action: `Agrega Respuesta ${seccDesc}`,
 				request: "A",
 				tarea: "Datos_SeccionalrespuestasAgrega",
 				...(seccionalSelected2?.seccionalAbsorbenteId  ? 
@@ -434,6 +456,28 @@ const EncuestasHandler = () => {
 				)
 			})
 		);
+		actions.push(
+			createAction({
+				action: `Modificar Respuesta ${seccDesc}`,
+				request: "M",
+				tarea: "Datos_SeccionalAutoridadesModificar",
+				disabled:  false,
+				keys: "m",
+				underlineindex: 0
+				
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Bajar Respuesta ${seccDesc}`,
+				request: "B",
+				tarea: "Datos_SeccionalAutoridadesBajar",
+				disabled:  false,
+				keys: "b",
+				underlineindex: 0
+			})
+		);
+
 
 		setRespuestasActions(actions);
 	}, [respuestasChanger2, respuestasSelected2, seccionalSelected2]);

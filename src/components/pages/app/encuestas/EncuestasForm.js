@@ -102,9 +102,9 @@ const SeccionalesForm = ({
 	onClose ??= onCloseDef;
 	request ??= {};
 
-	console.log("Este console, es de hide, en el archivo ENCUESTAS_FORM", hide)
-	console.log("Este console, es de request, en el archivo ENCUESTAS_FORM", request)
-	console.log("Este console, es de Seccionales_Data, en el archivo ENCUESTAS_FORM ",data);
+	console.log("Este console, es de HIDE, en el archivo ENCUESTAS_FORM@@@@@@@@@@@@@@@@@|||||||||" , hide)
+	console.log("Este console, es de request, en el archivo ENCUESTAS_FORM@@@@@@@@@@@@@@@@@|||||||||", request)
+	console.log("Este console, es de Seccionales_Data, en el archivo ENCUESTAS_FORM@@@@@@@@@@@@@@@@@||||||||| ",data);
 
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
