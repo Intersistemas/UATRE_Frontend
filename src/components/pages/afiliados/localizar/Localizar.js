@@ -68,7 +68,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
 
-					...(ambito.tipo == "Delegaciones" ? 
+					/*...(ambito.tipo == "Delegaciones" ? 
 						{
 							estadoSolicitudId: 2,
 							seccionalEstadoId: 1, 
@@ -78,7 +78,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 							ambitoProvincias: Usuario.ambitoProvincias,
 						
 						} : {}), //SI el ambito es exclusivamente DELEGACIONES, solo traigo los afiliados activos y de seccionales activas de esa delegacion
-					
+					*/
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
