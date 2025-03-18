@@ -5,7 +5,7 @@ import { Modal } from "react-bootstrap";
 import AsArray from "components/helpers/AsArray";
 import UseKeyPress from "components/helpers/UseKeyPress";
 //#endregion
-
+ 
 //#region components/ui
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
@@ -27,6 +27,7 @@ const LocalidadesForm = ({
 	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	request = {},
 }) => {
 	data ??= {};
 
@@ -37,6 +38,7 @@ const LocalidadesForm = ({
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
 
+	console.log("request_LocalidadesForm:",request)
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
 			case "GetProvincias": {
@@ -172,6 +174,23 @@ const LocalidadesForm = ({
 							/>
 						)}
 					</Grid>
+
+					{["M", "C", "B"].includes(request) ? (<Grid width="full" gap="inherit">
+						<Grid width>
+							{hide.seccional ? null : (
+								<InputMaterial
+									label="Seccional"
+									disabled={true}
+									error={!!errors.seccional}
+									helperText={errors.seccional ?? ""}
+									value={`${data.seccionalCodigo} - ${data.seccionalDescripcion}`}
+									//onChange={(nombre) => onChange({ nombre })}
+								/>
+							)}
+						</Grid>
+					</Grid>) : null}
+					
+
 					{hide.deletedDate ? null : (
 						<Grid width gap="inherit" col>
 							<Grid width gap="inherit">
