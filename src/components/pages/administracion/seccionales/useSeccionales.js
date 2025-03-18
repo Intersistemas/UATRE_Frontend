@@ -72,7 +72,6 @@ const useSeccionales = ({
 } = {}) => {
 	//#region Trato queries a APIs
 	const Usuario = useContext(AuthContext).usuario;
-	console.log("useSeccionales_Usuario,",Usuario)
 
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -217,6 +216,7 @@ const useSeccionales = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					soloActivos: true,
 				},
 			},
 			onOk: async ({ data, ...pagination }) => {
@@ -459,14 +459,11 @@ const useSeccionales = ({
 						}));
 						return;
 					}
-
 					const query = {
 						
 						config: {},
 						onOk: async (response) => {
 							setList((old) => ({ ...old, loading: "Cargando..." }));
-							console.log("list.onEditComplete",list.onEditComplete)
-							console.log("onEditCompleteDef",onEditCompleteDef)
 							/*
 							if (list.onEditComplete === onEditCompleteDef) {
 								console.log("true**")
@@ -483,14 +480,14 @@ const useSeccionales = ({
 						onError: async (err) => alert(err.message),
 					};
 
-					console.log("useSeccionales_list.selection",list.selection)
 					switch (list.selection.request) {
 						case "A":
 							query.action = "Create";
 							query.config.body = record;
 							break;
 						case "M":
-							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba							query.action = "Update";
+							delete record?.seccionalLocalidad; //Elimino las seccionales localidades ya que esto las duplicaba							
+							query.action = "Update";
 							query.params = { id: record.id };
 							query.config.body = record;
 							break;
