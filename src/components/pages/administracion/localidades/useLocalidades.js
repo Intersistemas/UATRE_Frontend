@@ -289,6 +289,7 @@ const useLocalidades = ({
 	if (list.selection.edit) {
 		form = (
 			<LocalidadesForm
+				request={list.selection.request}
 				data={list.selection.edit}
 				title={list.selection.action}
 				errors={list.selection.errors}
