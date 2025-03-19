@@ -258,7 +258,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				method: "POST",
 			},
 		}),
-		{ query: { config: { errorType: "response" } } }
+		{ 
+			query: { 
+				config: { errorType: "response" } 
+			}
+		}
 	);
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -343,7 +347,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
-		filtros: {},
+		filtros: ambito.tipo == "Delegaciones" ? {estadoSolicitudId: 2} : {},
 		wait: { delegaciones: true, seccionales: true, provincias: true },
 		usuario,
 	});
