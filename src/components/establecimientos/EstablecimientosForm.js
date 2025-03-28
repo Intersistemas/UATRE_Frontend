@@ -217,34 +217,38 @@ const EstablecimientosForm = ({
 							<Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
 								<h4>Domicilio</h4>
 							</Grid>
-							<Grid width="full">
+							<Grid width="full" gap="inherit">
 								{hide.domicilioCalle ? null : (
-									<InputMaterial
-										id="domicilioCalle"
-										label="Calle"
-										disabled={disabled.domicilioCalle}
-										error={!!errors.domicilioCalle}
-										helperText={errors.domicilioCalle ?? ""}
-										value={getValue("domicilioCalle")}
-										onChange={(domicilioCalle) => onChange({ domicilioCalle })}
-									/>
+									<Grid width="full">
+										<InputMaterial
+											id="domicilioCalle"
+											label="Calle"
+											disabled={disabled.domicilioCalle}
+											error={!!errors.domicilioCalle}
+											helperText={errors.domicilioCalle ?? ""}
+											value={getValue("domicilioCalle")}
+											onChange={(domicilioCalle) => onChange({ domicilioCalle })}
+										/>
+									</Grid>
+								)}
+								{hide.domicilioNumero ? null : (
+									<Grid width="25%">
+										<InputMaterial
+											id="domicilioNumero"
+											label="Número"
+											type="number"
+											disabled={disabled.domicilioNumero}
+											error={!!errors.domicilioNumero}
+											helperText={errors.domicilioNumero ?? ""}
+											value={getValue("domicilioNumero")}
+											onChange={(domicilioNumero) =>
+												onChange({ domicilioNumero })
+											}
+										/>
+									</Grid>
 								)}
 							</Grid>
-							<Grid width="full" gap="inherit">
-								{hide.domicilioNumero ? null : (
-									<InputMaterial
-										id="domicilioNumero"
-										label="Número"
-										type="number"
-										disabled={disabled.domicilioNumero}
-										error={!!errors.domicilioNumero}
-										helperText={errors.domicilioNumero ?? ""}
-										value={getValue("domicilioNumero")}
-										onChange={(domicilioNumero) =>
-											onChange({ domicilioNumero })
-										}
-									/>
-								)}
+							{/* <Grid width="full" gap="inherit">
 								{hide.domicilioPiso ? null : (
 									<InputMaterial
 										id="domicilioPiso"
@@ -267,7 +271,7 @@ const EstablecimientosForm = ({
 										onChange={(domicilioDpto) => onChange({ domicilioDpto })}
 									/>
 								)}
-							</Grid>
+							</Grid> */}
 							<Grid width="full" gap="inherit">
 								<Grid width="50%">
 									{hide.domicilioProvinciasId ? null : (

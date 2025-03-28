@@ -77,7 +77,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 								value={valor(data.domicilioNumero)}
 								{...im}
 							/>
-							<InputMaterial
+							{/* <InputMaterial
 								label="Piso"
 								value={valor(data.domicilioPiso)}
 								{...im}
@@ -101,7 +101,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 								label="Manzana"
 								value={valor(data.domicilioManzana)}
 								{...im}
-							/>
+							/> */}
 						</Grid>
 					</Grid>
 					<Grid full="width" gap="inherit">
