@@ -546,15 +546,6 @@ const useRespuestas = ({
     }
   }, []);
 
-  console.log("list.selection.record de useRespuestas id:", list.selection.record.afiliadoNro);
-  console.log("list.selection.record.length:", list.selection.record?.length);
-  console.log("list.data de useRespuestas:", list.data);
-  console.log("list.data.length de useRespuestas:", list.data?.length);
-  console.log("list.data[0] de useRespuestas:", list.data[0]);
-  console.log("list.data[0].valor de useRespuestas:", list.data[0]?.valor); 
-  console.log("recorriendo data de useRespuestas:", list.data.map(e => e.afiliadoNro));
-  console.log("datos compandoss:", list.data.map(e => e.afiliadoNro).includes(list.selection.record.afiliadoNro));
-  
 
   
 
