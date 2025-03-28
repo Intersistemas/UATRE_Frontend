@@ -1,221 +1,394 @@
-
-// //________________________________________________________________________________________
-
-// import React, { useCallback, useState, useEffect } from "react";
-// import RespuestasTable from "./RespuestasTable";
+// import React, { useCallback, useEffect, useState, useContext } from "react";
 // import useQueryQueue from "components/hooks/useQueryQueue";
+// import RespuestasTable from "./RespuestasTable";
+// import AuthContext from "../../../../../store/authContext";
 
-// const useRespuestas = () => {
+// const selectionDef = {
+//   action: "",
+//   request: "",
+//   index: null,
+//   record: null,
+//   edit: null,
+//   errors: null,
+// };
 
-//   // Definición inicial de la selección
-//   const selectionDef = {
-//     action: "",
-//     request: "", 
-//     index: null,
-//     record: null,
-//     edit: null,
-//     errors: null,
-//   };
+// const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+// const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) => true;
 
-//   //# Declaración de estados y carga de datos
+// const useRespuestas = ({
+//   onEditValidate: onEditValidateInit = onEditValidateDef,
+//   onEditChange: onEditChangeInit = onEditChangeDef,
+// } = {}) => {
+//   const { usuario: Usuario } = useContext(AuthContext);
+//   const [checked, setChecked] = useState(true);
+
+//   const pushQuery = useQueryQueue((action, params) => {
+//     console.log("pushQuery_action USE_RESPUESTAS", action);
+//     console.log("pushQuery_params USE_RESPUESTAS -------------", params.encuestaPreguntaId2);
+
+//     switch (action) {
+//       case "GetList":
+//         return {
+//           config: {
+//             baseURL: "App",
+//             endpoint: `/Encuestas`,
+//             method: "GET",
+//           },
+//           params: { 
+//             encuestaPreguntaId2: params.encuestaPreguntaId2,
+//             include: params.include || "", 
+//           },
+//         };
+//       default:
+//         return null;
+//     }
+//   });
+
 //   const [list, setList] = useState({
 //     loading: null,
-//     params: {}, // Inicializamos params como objeto vacío
-//     cargos: [],
+//     params: {},
 //     data: [],
+//     respuestasTodas: [],
 //     error: null,
 //     selection: { ...selectionDef },
 //   });
 
-
-//   //#region Trato queries a APIs
-// 	const pushQuery = useQueryQueue((action, params) => {
-// 		console.log('COMPONENTE USE_RESPUESTAS:',action," & ",params);
-
-// 		switch (action) {
-			
-// 			case "GetList": {
-
-
-//         const { id, ...otherParams } = params;
-        
-
-// 				return {
-// 					config: {
-// 						baseURL: "App",
-// 						endpoint: `/EncuestaRespuestas`,
-// 						method: "GET",
-// 					},
-//           params: otherParams,
-// 				};
-// 			}
-// 			default:
-// 				return null;
-// 		}
-// 	});
-// 	//#endregion
-
 //   useEffect(() => {
-//     console.log("useEffect_List_useRespuestas",list)
 //     if (!list.loading) return;
-//     pushQuery({
-//       action: "GetList",
-//       params: { ...list.params },
-//       onOk: async (data) =>(
-//         console.log("data_GetRepuestas",data),
-//         setList((o) => {
-//           const selection = {
-//             ...selectionDef,
-//             record:
-//               data?.data?.find((r) => r.id === o.selection.record?.id) ??  data?.data.at(0), // selecciono el primer el elemento por defecto, si es que el componetne anterior no me define QUÉ seleccionar
-//           };
-//           if (selection.record)
-//             selection.index =  data?.data.indexOf(selection.record);
-//           return {
-//             ...o,
-//             loading: null,
-//             data:  data?.data,
-//             error: null,
-//             selection,
-//           };
-//         })
-//       ),
-//       onError: async (err) =>
-//         setList((o) => ({
-//           ...o,
-//           loading: null,
-//           data: [],
-//           error: err.code === 404 ? null : err,
-//           selection: { ...selectionDef },
-//         })),
-//     });
-//   }, [pushQuery, list.loading, list.params]);
-//   //#endregion
 
-//   //# Manejo de cambios
-//   const requestChanges2 = useCallback((type, payload = {}) => {
-//     // console.log("%cDatos USE-RESPUESTAS_payload ->", "color: blue", payload);
-//     // console.log("%cDatos USE-RESPUESTAS_Type ->", "color: blue", type);
+//     pushQuery({
+//         action: "GetList",
+//         params: {
+//             ...list.params,
+//             include: "preguntas(detalles)",
+//         },
+//         onOk: async (response) => {
+//             console.log("Respuesta de la API en useRespuestas:", response);
+
+//             // Validamos que `response.data` sea un array antes de asignarlo
+//             let preguntasData = Array.isArray(response.data) ? response.data : [];
+
+//             const encuestaPreguntaId2 = list.params.encuestaPreguntaId2;
+
+//             // Filtramos solo los datos donde el ID coincida y no tengan la propiedad `deletedBy`
+//             preguntasData = preguntasData.filter(encuesta => 
+//                 encuesta.id === encuestaPreguntaId2 && !encuesta.deletedBy
+//             );
+
+//             console.log("Datos filtrados sin deletedBy:", preguntasData);
+
+//             setList((prev) => {
+//                 const record = preguntasData.find(
+//                     (r) => r.encuestaId === prev.selection.record?.id
+//                 ) || preguntasData[0];
+
+//                 const selection = { ...selectionDef, record };
+//                 if (record) {
+//                     selection.index = preguntasData.indexOf(record);
+//                 }
+
+//                 return {
+//                     ...prev,
+//                     loading: null,
+//                     data: preguntasData, // Solo datos filtrados
+//                     error: null,
+//                     selection,
+//                 };
+//             });
+//         },
+//         onError: async (err) => {
+//             console.error(" Error al cargar las preguntas:", err);
+//             setList((prev) => ({
+//                 ...prev,
+//                 loading: null,
+//                 data: [],  
+//                 error: err.code === 404 ? null : err,
+//                 selection: { ...selectionDef },
+//             }));
+//         },
+//     });
+//   }, [list.loading, pushQuery, list.params]);
+
+//   const requestChanges = useCallback((type, payload = {}) => {
+//     console.log('useSeccionalrespuestas Type:', type, " & payload:", payload);
 //     switch (type) {
-//       case "selected":
+//       case "selected": {
 //         return setList((o) => ({
 //           ...o,
+//           respuestasTodas: payload.respuestas,
 //           selection: {
 //             ...o.selection,
 //             request: payload.request,
 //             action: payload.action,
+//             edit: {
+//               ...(payload.request === "A" ? {} : o.selection.record),
+//               ...payload.record,
+//             },
 //           },
 //         }));
-
-//       case "list":
+//       }
+//       case "list": {
+//         if (payload.clear)
+//           return setList((o) => ({
+//             ...o,
+//             loading: null, 
+//             data: [],
+//             error: null,
+//             selection: { ...selectionDef },
+//           }));
+//         console.log("payload.data in requestChanges:", payload.data);
 //         return setList((o) => ({
 //           ...o,
-//           loading: payload.clear ? null : "Cargando...",
-//           params: payload.params || {}, // Evitar `undefined` en params
-//           data: payload.data || [], // Evitar `undefined` en data
-//           error: null,
-//           selection: payload.clear ? { ...selectionDef } : o.selection,
+//           loading: "Cargando...",
+//           respuestasTodas: payload.respuestas,
+//           params: { ...payload.params },
+//           data: Array.isArray(payload.data) ? payload.data : [],
 //         }));
-
-//         // return setList((o) => ({
-//         //   ...o,
-//         //   loading: "Cargando...",
-//         //   params: { ...payload.params },
-//         //   data: payload.data,
-//         // }));
-
+//       }
 //       default:
 //         return;
 //     }
 //   }, []);
 
-//   //////////////////////// Debugging \\\\\\\\\\\\\\\\\\\\\\\\\\
-//   // const DATA = list?.data;
-//   //const DATA2 = list?.params; // Asegurar que `DATA` no sea undefined
+//   const render = () => (
+//     <div>
+//       <RespuestasTable
+//         data={list.data}
+//         loading={!!list.loading}
+//         noDataIndication={
+//           list.loading ?? list.error?.message ?? "No existen datos para mostrar"
+//         }
+//         pagination={{
+//           ...list.pagination,
+//           onChange: ({ index, size }) =>
+//             setList((o) => ({
+//               ...o,
+//               loading: "Cargando...",
+//               pagination: { index, size },
+//               data: [],
+//             })),
+//         }}
+//         selection={{
+//           selected: [list.selection.record?.id].filter((r) => r),
+//           onSelect: (record, isSelect, index, e) =>
+//             setList((o) => ({
+//               ...o,
+//               selection: {
+//                 ...selectionDef,
+//                 index,
+//                 record,
+//               },
+//             })),
+//         }}
+//       />
+//     </div>
+//   );
 
-
-
-//   // console.log("//////////////////////////////////////////////");
-//   // console.log("%c USE-RESPUESTAS DATA  ->", "color: green", DATA);
-//   // console.log("%c USE- RESPUESTA PARAMS->", "color: pink", DATA);
-
-//   /////////////////////// - \\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-//   // 	const idPregunta = DATA?.idDePreguntaSeleccionadaSeccionalId; // Obtener ID de los params
-
-//   // const resultadosFiltrados = DATA.filter(e => e.id === idPregunta);
-// 	// console.log("%cDATOS FILTRDOS FINAL->", "color: black", resultadosFiltrados);
-// 	//---------------------------------///\\\---------------------------------
-
-
-//   //# Preguntas Renderizado 
-//   const render = () => {
-//     const hasData = Array.isArray(list.data) && list.data.length > 0;
-
-//     return (
-//       <div>
-//         {/* Validación para mostrar la tabla principal */}
-//         {hasData ? (  
-//           <RespuestasTable
-//             data={list.data}
-// 			      //data={resultadosFiltrados}
-//             loading={!!list.loading}
-//             noDataIndication={
-//               list.loading ?? list.error?.message ?? "No existen datos para mostrar"
-//             }
-//             pagination={{
-//               ...list.pagination,
-//               onChange: ({ index, size }) =>
-//                 setList((o) => ({
-//                   ...o,
-//                   loading: "Cargando...",
-//                   pagination: { index, size },
-//                   data: [],
-//                 })),
-//             }}
-//             selection={{
-//               selected: list.selection.record?.id ? [list.selection.record.id] : [],
-//               onSelect: (record, isSelect, index) =>
-//                 setList((o) => ({
-//                   ...o,
-//                   selection: {
-//                     ...selectionDef,
-//                     index,
-//                     record,
-//                   },
-//                 })),
-//             }}
-//           />
-//         ) : (
-//           <p style={{ textAlign: "center", color: "gray" }}>No hay datos disponibles para mostrar.</p>
-//         )}
-//       </div>
-//     ); 
-//   };
-
-//   return [render, requestChanges2, list.selection.record];
+//   return [render, requestChanges, list.selection.record];
 // };
 
 // export default useRespuestas;
 
+// import React, { useCallback, useEffect, useState, useContext } from "react";
+// import useQueryQueue from "components/hooks/useQueryQueue";
+// import RespuestasTable from "./RespuestasTable";
+// import AuthContext from "../../../../../store/authContext";
 
+// const selectionDef = {
+//   action: "",
+//   request: "",
+//   index: null,
+//   record: null,
+//   edit: null,
+//   errors: null,
+// };
 
+// const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+// const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) => true;
 
+// const useRespuestas = ({
+//   onEditValidate: onEditValidateInit = onEditValidateDef,
+//   onEditChange: onEditChangeInit = onEditChangeDef,
+// } = {}) => {
+//   const { usuario: Usuario } = useContext(AuthContext);
+//   const [checked, setChecked] = useState(true);
 
+//   const pushQuery = useQueryQueue((action, params) => {
+//     console.log("pushQuery_action USE_RESPUESTAS", action);
+//     console.log("pushQuery_params USE_RESPUESTAS -------------", params.encuestaPreguntaId2);
+   
+    
+
+//     switch (action) {
+//       case "GetList":
+//         return {
+//           config: {
+//             baseURL: "App",
+//             endpoint: `/EncuestaRespuestas`,
+//             method: "GET",
+//           },
+//           params: { 
+//             encuestaPreguntaId2: params.encuestaPreguntaId2,
+//             include: params.include || "", 
+//           },
+//         };
+//       default:
+//         return null;
+//     }
+//   });
+
+//   const [list, setList] = useState({
+//     loading: null, 
+//     params: {},
+//     data: [],
+//     respuestasTodas: [],
+//     error: null,
+//     selection: { ...selectionDef },
+//   });
+
+//   useEffect(() => {
+//     if (!list.loading) return;
+
+//     pushQuery({
+//         action: "GetList",
+//         params: {
+//             ...list.params,
+//             include: "preguntas(detalles)",
+//         },
+//         onOk: async (response) => {
+//             console.log(" Respuesta de la API en useRespuestas:", response);
+
+//             // Valido que `response.data` sea un array antes de asignarlo
+//             let preguntasData = Array.isArray(response.data) ? response.data : [];
+
+//             // Filtro los datos para incluir solo aquellos con `id` igual a `params.encuestaPreguntaId2`
+//             const encuestaPreguntaId2 = list.params.encuestaPreguntaId2;
+//             preguntasData = preguntasData.filter(encuesta => encuesta.id === encuestaPreguntaId2);
+
+//             console.log("Datos filtrados:", preguntasData);
+
+//             setList((prev) => {
+//                 const record = preguntasData.find(
+//                     (r) => r.encuestaId === prev.selection.record?.id
+//                 ) || preguntasData[0];
+
+//                 const selection = { ...selectionDef, record };
+//                 if (record) {
+//                     selection.index = preguntasData.indexOf(record);
+//                 }
+
+//                 return {
+//                     ...prev,
+//                     loading: null,
+//                     data: preguntasData, // Solo datos filtrados
+//                     error: null,
+//                     selection,
+//                 };
+//             });
+//         },
+//         onError: async (err) => {
+//             console.error(" Error al cargar las preguntas:", err);
+//             setList((prev) => ({
+//                 ...prev,
+//                 loading: null,
+//                 data: [],  
+//                 error: err.code === 404 ? null : err,
+//                 selection: { ...selectionDef },
+//             }));
+//         },
+//     });
+//   }, [list.loading, pushQuery, list.params]);
+
+//   const requestChanges = useCallback((type, payload = {}) => {
+//     console.log('useSeccionalrespuestas Type:', type, " & payload:", payload);
+//     switch (type) {
+//       case "selected": {
+//         return setList((o) => ({
+//           ...o,
+//           respuestasTodas: payload.respuestas,
+//           selection: {
+//             ...o.selection,
+//             request: payload.request,
+//             action: payload.action,
+//             edit: {
+//               ...(payload.request === "A" ? {} : o.selection.record),
+//               ...payload.record,
+//             },
+//           },
+//         }));
+//       }
+//       case "list": {
+//         //ESTO ES PARA LIMPIAR LA LISTA DE RESPUESTAS Y VOLVER A CARGARLAS
+//         if (payload.clear)
+//           return setList((o) => ({
+//             ...o,
+//             loading: null, 
+//             data: [],
+//             error: null,
+//             selection: { ...selectionDef },
+//           }));
+       
+
+//           // console.log("payload.data in requestChanges:", payload.data);
+//         //ESTO ES PARA CARGAR LAS RESPUESTAS DE LA ENCUESTA
+//         return setList((o) => ({
+//           ...o,
+//           loading: "Cargando...",
+//           respuestasTodas: payload.respuestas,
+//           params: { ...payload.params },
+//           data: Array.isArray(payload.data) ? payload.data : [],
+//           // data: payload.data,
+//         }));
+        
+//       }
+      
+//       default:
+//         return;
+//     }
+//   }, []);
+
+//   const render = () => (
+//     <div>
+//       <RespuestasTable
+//         data={list.data}
+//         loading={!!list.loading}
+//         noDataIndication={
+//           list.loading ?? list.error?.message ?? "No existen datos para mostrar"
+//         }
+//         pagination={{
+//           ...list.pagination,
+//           onChange: ({ index, size }) =>
+//             setList((o) => ({
+//               ...o,
+//               loading: "Cargando...",
+//               pagination: { index, size },
+//               data: [],
+//             })),
+//         }}
+//         selection={{
+//           selected: [list.selection.record?.id].filter((r) => r),
+//           onSelect: (record, isSelect, index, e) =>
+//             setList((o) => ({
+//               ...o,
+//               selection: {
+//                 ...selectionDef,
+//                 index,
+//                 record,
+//               },
+//             })),
+//         }}
+//       />
+//     </div>
+//   );
+
+//   return [render, requestChanges, list.selection.record];
+// };
+
+// export default useRespuestas;
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import RespuestasTable from "./RespuestasTable";
-import RespuestasForm from "./RespuestasForm";
 import AuthContext from "../../../../../store/authContext";
-import dayjs from "dayjs";
-import moment from "moment";
-import FormatearFecha from "components/helpers/FormatearFecha";
-import { FormControlLabel, List, Switch } from "@mui/material";
-import { id } from "components/helpers/Utils";
-import { Fecha } from "components/helpers/Formato";
-
-const vigenteHasta = new Date(2099, 11, 31);
-const vigenteDesde = new Date();
 
 const selectionDef = {
   action: "",
@@ -233,412 +406,182 @@ const useRespuestas = ({
   onEditValidate: onEditValidateInit = onEditValidateDef,
   onEditChange: onEditChangeInit = onEditChangeDef,
 } = {}) => {
-  const { usuario: Usuario } = useContext(AuthContext);
-  const [checked, setChecked] = useState(true);
+  const { usuario: Usuario } = useContext(AuthContext); // Obtenemos el usuario autenticado
+  const [checked, setChecked] = useState(true); // Estado para manejar filtros (si es necesario)
 
-  //#region Configuración de las queries a la API
+  // Hook para manejar las consultas a la API
   const pushQuery = useQueryQueue((action, params) => {
     console.log("pushQuery_action USE_RESPUESTAS", action);
     console.log("pushQuery_params USE_RESPUESTAS", params);
-    const { id, ...otherParams } = params;
 
     switch (action) {
       case "GetList":
         return {
           config: {
             baseURL: "App",
-            endpoint: `/EncuestaRespuestas/${id}`,
+            endpoint: `/EncuestaRespuestas`, // Endpoint para obtener las respuestas
             method: "GET",
           },
-          params: otherParams,
-        };
-      case "Create":
-        return {
-          config: {
-            baseURL: "App",
-            endpoint: `/EncuestaRespuestas/${id}`,
-            method: "PUT",
+          params: {
+            encuestaPreguntaId2: params.encuestaPreguntaId2, // ID de la pregunta de la encuesta
+            include: params.include || "", // Parámetros adicionales
           },
-          params: otherParams,
-        };
-      case "Update":
-        return {
-          config: {
-            baseURL: "App",
-            endpoint: `/EncuestaRespuestas/${id}`,
-            method: "PUT",
-          },
-          params: otherParams,
-        };
-      case "Delete":
-        return {
-          config: {
-            baseURL: "App",
-            endpoint: `/EncuestaRespuestas/${id}`,
-            method: "DELETE",
-          },
-          params: otherParams,
         };
       default:
         return null;
     }
   });
-  //#endregion
 
-  //#region Estado inicial y carga de datos
+  // Estado inicial para manejar la lista de respuestas
   const [list, setList] = useState({
     loading: null,
     params: {},
-    cargos: [],
-    data: [],
+    data: [], // Datos que se mostrarán en la tabla
+    respuestasTodas: [], // Todas las respuestas obtenidas
     error: null,
     selection: { ...selectionDef },
-    onEditValidate: onEditValidateInit,
-    onEditChange: onEditChangeInit,
   });
 
+  // Efecto para cargar los datos cuando `list.loading` cambia
   useEffect(() => {
     if (!list.loading) return;
+
     pushQuery({
       action: "GetList",
       params: {
         ...list.params,
-        include: "preguntas(detalles)",
+        include: "preguntas(detalles)", // Incluimos detalles de las preguntas
+        deleted: false, // Solo respuestas no eliminadas
       },
-      onOk: async (data) => {
+
+      
+      onOk: async (response) => {
+        console.log("Respuesta de la API en useRespuestas:", response);
+
+        // Validamos que `response.data` sea un array antes de procesarlo
+        const preguntasData = Array.isArray(response.data) ? response.data : [];
+
+        // Filtramos los datos según el ID de la pregunta de la encuesta
+        const encuestaPreguntaId2 = list.params.encuestaPreguntaId2;
+        const datosFiltrados = preguntasData.filter(
+          (encuesta) => encuesta.encuestaPreguntaId === encuestaPreguntaId2
+        );
+
+
+
+        console.log("Datos filtrados:", datosFiltrados);
+
         setList((prev) => {
-          console.log("data_useRespuestas:", data);
           const record =
-            data.preguntas?.find((r) => r.encuestaId === prev.selection.record?.id) ||
-            data.preguntas?.[0];
+            datosFiltrados.find(
+              (r) => r.encuestaId === prev.selection.record?.id
+            ) || datosFiltrados[0];
+
           const selection = { ...selectionDef, record };
           if (record) {
-            selection.index = data.preguntas.indexOf(record);
+            selection.index = datosFiltrados.indexOf(record);
           }
+
           return {
             ...prev,
             loading: null,
-            data: data.preguntas,
+            data: datosFiltrados, // Pasamos los datos filtrados
             error: null,
             selection,
           };
         });
       },
-      onError: async (err) =>
+      onError: async (err) => {
+        console.error("Error al cargar las preguntas:", err);
         setList((prev) => ({
           ...prev,
           loading: null,
           data: [],
           error: err.code === 404 ? null : err,
           selection: { ...selectionDef },
-        })),
+        }));
+      },
     });
   }, [list.loading, pushQuery, list.params]);
-  //#endregion
 
-  //#region Función para solicitar cambios en la selección o en la lista
+  // Función para manejar cambios en la lista o selección
   const requestChanges = useCallback((type, payload = {}) => {
+    console.log("useRespuestas Type:", type, " & payload:", payload);
     switch (type) {
-      case "selected":
-        setList((prev) => ({
-          ...prev,
+      case "selected": {
+        return setList((o) => ({
+          ...o,
+          respuestasTodas: payload.respuestas,
           selection: {
-            ...prev.selection,
+            ...o.selection,
             request: payload.request,
             action: payload.action,
             edit: {
-              ...(payload.request === "A" ? {} : prev.selection.record),
+              ...(payload.request === "A" ? {} : o.selection.record),
               ...payload.record,
             },
           },
         }));
-        break;
-      case "list":
+      }
+      case "list": {
         if (payload.clear) {
-          setList((prev) => ({
-            ...prev,
+          return setList((o) => ({
+            ...o,
             loading: null,
             data: [],
             error: null,
             selection: { ...selectionDef },
           }));
-        } else {
-          setList((prev) => ({
-            ...prev,
-            loading: "Cargando...",
-            params: { ...payload.params },
-            data: [],
-          }));
         }
-        break;
+        return setList((o) => ({
+          ...o,
+          loading: "Cargando...",
+          respuestasTodas: payload.respuestas,
+          params: { ...payload.params },
+          data: Array.isArray(payload.data) ? payload.data : [],
+        }));
+      }
       default:
-        break;
+        return;
     }
   }, []);
-  //#endregion
 
-  let form = null;
-  if (list.selection.edit) {
-    form = (
-      <RespuestasForm
-        request={list.selection.request} // Tipo de acción (A, M, B, etc.)
-        data={(() => {
-         
-          const extraData =
-            list.selection.request === "M" || list.selection.request === "B"
-              ? {
-                  deletedDate: dayjs().format("DD-MM-YYYY"),
-                  deletedBy: Usuario.nombre,
-                  
-                }
-              : {};
-          return { ...list.selection.edit, ...extraData };
-        })()}
-        title={list.selection.action}
-        errors={list.selection.errors}
-        loading={!!list.loading}
-        disabled={(() => {
-          let r = ["A", "M"].includes(list.selection.request)
-            ? {
-                deletedDate: dayjs().format("DD-MM-YYYY"),
-                deletedBy: false,
-                fecha: false,
-                fechaFinalizacion: false,
-                observaciones: false,
-                tema: false,
-                respuestas: false,
-                enunciado: true,
-                
-              }
-            : { };
-            if (list.selection.request === "B") {
-            r = { ...r, deletedBy: true, deletedDate: true,  deletedObs: false, ordenPregunta: true, tipoPregunta: true, textoLibre: true, detalles: true, texto: true };
-          }
-          return r;
-        })()}
-        hide={
-          ["A", "M"].includes(list.selection.request)
-            ? { deletedObs: true, deletedBy: true, deletedDate: true, tema: true }
-            
-            : {}
-        }
-        onChange={(edit) => {
-          if (
-            !list.onEditChange({
-              edit: { ...list.selection.edit },
-              changes: edit,
-              request: list.selection.request,
-            })
-          )
-            return;
-          setList((prev) => ({
-            ...prev,
-            selection: {
-              ...prev.selection,
-              edit: { ...prev.selection.edit, ...edit },
-              errors: { ...prev.selection.errors },
-            },
-          }));
-        }}
-        onClose={(confirm) => {
-          if (!["A", "B", "M"].includes(list.selection.request)) {
-            confirm = false;
-          }
-          if (!confirm) {
-            setList((prev) => ({
-              ...prev,
-              selection: {
-                ...prev.selection,
-                ...selectionDef,
-                index: prev.selection.index,
-                record:
-                  !prev.selection.multi && prev.selection.index > -1
-                    ? prev.data.at(prev.selection.index)
-                    : prev.selection.record,
-              },
-            }));
-            return;
-          }
+  console.log("list.selection.record de useRespuestas id:", list.selection.record.afiliadoNro);
+  console.log("list.selection.record.length:", list.selection.record?.length);
+  console.log("list.data de useRespuestas:", list.data);
+  console.log("list.data.length de useRespuestas:", list.data?.length);
+  console.log("list.data[0] de useRespuestas:", list.data[0]);
+  console.log("list.data[0].valor de useRespuestas:", list.data[0]?.valor); 
+  console.log("recorriendo data de useRespuestas:", list.data.map(e => e.afiliadoNro));
+  console.log("datos compandoss:", list.data.map(e => e.afiliadoNro).includes(list.selection.record.afiliadoNro));
+  
 
-          const record = { ...list.selection.edit };
-          console.log("Record_useRespuestas <zz<zz<zz<zz", record);
+  
 
-          // Validaciones
-          const errors = {};
-          if (list.selection.request === "B") {
-            if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-          }
-          if (list.selection.request === "A" || list.selection.request === "M") {
-            if (!record.enunciado) errors.enunciado = "Dato requerido";
-            if (!record.tipoPregunta) errors.tipoPregunta = "Dato requerido";
-            if (!record.ordenPregunta) errors.ordenPregunta = "Dato requerido";
-            //El ordenPregunta no puede ser menor a 1
-            if (record.ordenPregunta < 1) errors.ordenPregunta = "El orden de la pregunta no puede ser menor a 1";
-            // if (record.tipoPregunta === "MC" && !record.detalles) errors.detalles = "Dato requerido";
-            // if (record.tipoPregunta === "OP" && !record.enunciado) errors.enunciado = "Dato requerido";
-            // if (record.tipoPregunta === "TX" && !record.textoLibre) errors.textoLibre = "Dato requerido";
-            if (Array.isArray(record.detalles)) {
-              record.detalles.forEach((detalle, index) => {
-                if (!detalle.texto) errors[`detalles[${index}].texto`] = "Dato requerido";
-              });
-            }
-
-            
-          }
-
-          list.onEditValidate({ edit: record, errors, request: list.selection.request });
-          if (Object.keys(errors).length) {
-            setList((prev) => ({
-              ...prev,
-              selection: { ...prev.selection, errors },
-            }));
-            return;
-          }
-
-          const query = {
-            config: {},
-            // onOk: async (response) => {
-            //     try {
-            //       const data = await response.json();
-            //       console.log("Encuesta creada con éxito:", data);
-            //       setList((prev) => ({
-            //         ...prev,
-            //         selection: { ...prev.selection, edit: null }, // Cierra el formulario
-            //       }));
-            //     } catch (error) {
-            //       console.error("Error al parsear la respuesta JSON:", error);
-            //       alert("Error al crear la encuesta: Respuesta no válida del servidor");
-            //     }
-            //   },
-            onOk: async (response) => {
-							setList((old) => ({ ...old, loading: "Cargando..." }));
-							
-							/*
-							if (list.onEditComplete === onEditCompleteDef) {
-								console.log("true**")
-								request("list");
-							} else {
-								console.log("false**")
-								list.onEditComplete({
-									edit: { ...list.selection.edit },
-									response,
-									request: list.selection.request,
-								});
-							}*/
-						},
-              onError: async (error) => alert("Error al crear la encuesta: " + error.message),
-          };
-
-          switch (list.selection.request) {
-        
- 
-               case "A":
-                  query.action = "Create";
-                  query.params = { id: record.seccionalId }; //-------->
-                  query.config.body = {
-                   
-                    id: id(), //genero un id para la pregunta
-                    fecha: record.fecha, // Obtener la fecha de record
-                    tema: record.tema, // Obtener el tema de record
-                    fechaFinalizacion: record.fechaFinalizacion, // Obtener la fechaFinalizacion de record
-                    respuestas: [
-                      {
-                        tipoPregunta: record.tipoPregunta,
-                        enunciado: record.enunciado,
-                        ordenPregunta: Number(record.ordenPregunta), 
-                        detalles:
-                          (record.tipoPregunta === "TX" && record.textoLibre) ? [{ texto: record.textoLibre }] :
-                            Array.isArray(record.detalles) ? record.detalles.map(detalle => ({
-                              texto: detalle.texto,
-                              valorPorDefault: true,
-                              esObligatorio: true
-                            })) : []
-                      },
-                    ],
-                  };
-                  break;
-                 
-                case "M":
-                  console.log("Me devuelve toda las respuestas", list.data)
-                  console.log("Obtengo toda la informacion de la pregunta actual", record)
-                  console.log("Obtengo el id de encuesta desde parametro ->",list.params.id)
-                  query.action = "Update";
-                  query.params = { id: record.seccionalId };
-                  query.config.body = {
-                   
-                    
-                    cuil: record.tema, // Obtener el tema de record
-                    encuestaId: record.encuestaId, // Obtener la fechaFinalizacion de record
-                    respuestas: [
-                      {
-                        encuestaPreguntaId: record.encuestaPreguntaId,
-                        valor: record.valor,
-                        //Este es el ID de la pregunta
-                        id: record.id 
-                      },
-                     
-                    ],
-                    
-                    //Este es el id de la encuesta
-                    id: list.params.id
-                  };
-
-                    break;
-                
-                
-            case "B":
-              query.action = "Delete";
-              query.params = { id: record.seccionalId };
-              query.config.body = {
-                id: record.id,
-                // deletedObs: record.deletedObs,
-                // seccionalEstadoId: record.seccionalId,
-
-                
-              };
-              
-
-              break;
-            default:
-              break;
-          }
-          pushQuery(query);
-        }}
-      />
-    );
-  }
-
-  //#region Renderizado principal
+  // Renderizamos el componente `RespuestasTable`
   const render = () => (
     <div>
-      {/* Opcional: Control para filtrar por vigencia */}
-      {/* <FormControlLabel
-        className="position-absolute"
-        style={{ marginTop: "-2.5em" }}
-        control={<Switch checked={checked} onChange={(e) => setChecked(e.target.checked)} />}
-        label="Solo vigentes"
-      /> */}
       <RespuestasTable
-        data={list.data}
-        loading={!!list.loading}
+        data={list.data} // Pasamos los datos a la tabla
+        loading={!!list.loading} // Indicamos si está cargando
         noDataIndication={
-          list.loading || list.error?.message || "No existen datos para mostrar"
+          list.loading ?? list.error?.message ?? "No existen datos para mostrar"
         }
         pagination={{
           ...list.pagination,
           onChange: ({ index, size }) =>
-            setList((prev) => ({
-              ...prev,
+            setList((o) => ({
+              ...o,
               loading: "Cargando...",
               pagination: { index, size },
               data: [],
             })),
         }}
         selection={{
-          selected: [list.selection.record?.id].filter(Boolean),
+          selected: [list.selection.record?.id].filter((r) => r),
           onSelect: (record, isSelect, index, e) =>
-            setList((prev) => ({
-              ...prev,
+            setList((o) => ({
+              ...o,
               selection: {
                 ...selectionDef,
                 index,
@@ -647,21 +590,26 @@ const useRespuestas = ({
             })),
         }}
       />
-      {list.selection.record && (
+        {list.selection.record && (
         <div style={{ marginTop: "20px" }}>
-          <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
-            Detalles de la pregunta seleccionada
-          </h3>
-          {list.selection.record.detalles && list.selection.record.detalles.length > 0 ? (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginTop: "10px",
-              }}
-            >
-              <tbody>
-                {list.selection.record.detalles.map((detalle, index) => (
+         
+          {list.selection.record && (
+      <div style={{ marginTop: "20px" }}>
+        <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+          Detalles de la pregunta seleccionada
+        </h3>
+        {list.data.some(e => e.afiliadoNro === list.selection.record.afiliadoNro) ? (
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              marginTop: "10px",
+            }}
+          >
+            <tbody>
+              {list.data
+                .filter(e => e.afiliadoNro === list.selection.record.afiliadoNro) // Filtramos los datos relacionados con el registro seleccionado
+                .map((i, index) => (
                   <tr key={index}>
                     <td
                       style={{
@@ -671,36 +619,25 @@ const useRespuestas = ({
                         backgroundColor: "#f2f2f2",
                       }}
                     >
-                      {detalle.texto || "Sin dato"}
+                      {i.valor || "Sin dato"}
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          ) : (
-            <p style={{ textAlign: "center", color: "red" }}>
-              No hay detalles disponibles para esta selección.
-            </p>
-          )}
+            </tbody>
+          </table>
+        ) : (
+          <p style={{ textAlign: "center", color: "red" }}>
+            No hay detalles disponibles para esta selección.
+          </p>
+        )}
+      </div>
+)}
         </div>
       )}
-      {form}
     </div>
   );
-  //#endregion
 
   return [render, requestChanges, list.selection.record];
 };
 
 export default useRespuestas;
-
-
-
-
-
-
-
-
-
-
-

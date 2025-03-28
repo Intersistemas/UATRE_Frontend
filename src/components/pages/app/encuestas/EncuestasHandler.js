@@ -58,9 +58,11 @@ const EncuestasHandler = () => {
 
 	const { setState: setEstadosPreguntaSeccionalesQuery } = useQueryState(
 		() => ({
-			config: {
+			config: { 
 				baseURL: "App",
-				endpoint: `/Encuestas`,
+				// endpoint: `/Encuestas`,
+				endpoint: `/Encuestas?Include=preguntas`,
+				
 				method: "GET",
 			},
 		}),
@@ -72,7 +74,7 @@ const EncuestasHandler = () => {
 		() => ({
 			config: {
 				baseURL: "App",
-				endpoint: "/EncuestaRespuestas",
+				endpoint: "/Encuestas?Include=preguntas",
 				method: "GET",
 			},
 		}),
@@ -88,9 +90,7 @@ const EncuestasHandler = () => {
 	const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
 	
 
-	//#region selects
-	
-	//#region select estadoSeccional
+
 	const [estadoSeccionalSelectPregunta, setEstadoSeccionallSelectPregunta] = useState({
 		loading: "Cargando...",
 		buscar: "",
@@ -110,7 +110,7 @@ const EncuestasHandler = () => {
 
 
 	//____________________________________________________________________
-		//#region select estadoSeccional
+
 		const [estadoSeccionalSeelectRespuesta, setEstadoSeccionalSelecRespuestas] = useState({
 			loading: "Cargando...",
 			buscar: "",
@@ -129,9 +129,9 @@ const EncuestasHandler = () => {
 		}, [estadoSeccionalSeelectRespuesta.buscar, estadoSeccionalSeelectRespuesta.data2]);
 
 	//_____________________________________________________________________
-	//#endregion select estadoSeccional
 
-	//#region select estadoSeccional
+
+	
 	const [respuestaSelect, setRespuestaSelect] = useState({
 		loading: "Cargando...",
 		buscar: "",
@@ -162,7 +162,6 @@ const EncuestasHandler = () => {
 
 
 	//___________________________________________________________________
-	//#region Tab Seccionales
 
 	const [seccionalesParamsSend2, setSeccionalesParamsSend2] = useState({});
 	const {
@@ -310,7 +309,7 @@ const EncuestasHandler = () => {
 			onLoad: ({ ok, error }) => {
 				let data2 = [];
 				if (Array.isArray(ok?.data)) data2 = [...ok.data]; // Copia los datos de ok.data si es un array
-				console.log("Sii:", data2);
+				console.log("Data de Respuestas, desde EncuestaHandler:", data2);
 	
 				setEstadoSeccionalSelecRespuestas((o) => ({
 					...o,
@@ -410,7 +409,7 @@ const EncuestasHandler = () => {
 		preguntasChanger("list", {
 			clear: !seccionalSelected?.id,
 			data: seccionalSelected?.preguntas,
-			params: { id: seccionalSelected?.id /*aca debe ir el check de SOloActivos */},
+			params: { id: seccionalSelected?.id },
 		});
 	}, [seccionalSelected, preguntasChanger]);
 
@@ -440,44 +439,7 @@ const EncuestasHandler = () => {
 				...x,
 			});
 
-		actions.push(
-			createAction({
-				action: `Agrega Respuesta ${seccDesc}`,
-				request: "A",
-				tarea: "Datos_SeccionalrespuestasAgrega",
-				...(seccionalSelected2?.seccionalAbsorbenteId  ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "a",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modificar Respuesta ${seccDesc}`,
-				request: "M",
-				tarea: "Datos_SeccionalAutoridadesModificar",
-				disabled:  false,
-				keys: "m",
-				underlineindex: 0
-				
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Bajar Respuesta ${seccDesc}`,
-				request: "B",
-				tarea: "Datos_SeccionalAutoridadesBajar",
-				disabled:  false,
-				keys: "b",
-				underlineindex: 0
-			})
-		);
-
+		
 
 		setRespuestasActions(actions);
 	}, [respuestasChanger2, respuestasSelected2, seccionalSelected2]);
@@ -496,23 +458,24 @@ const EncuestasHandler = () => {
 	});
 
 
-					//Datos que obtengo de useRespuestas 
+//Datos que obtengo de useRespuestas 
 //_________________________________________________________________________________________
-		// Si cambia Seccional, refresco lista de autoridades
+	
 		useEffect(() => {
 			console.log("%DATOS-RESPUESTAS-DE-ENCUESTA_HAN ", "color: green", estadoSeccionalSeelectRespuesta.data2);
 
 			
-			respuestasChanger2("list", {
+			respuestasChanger2("list", { 
 				clear: !preguntasSelected?.id,
-				// data: estadoSeccionalSeelectRespuesta?.data2,
-				params: { encuestaPreguntaId: preguntasSelected?.id /*aca debe ir el check de SOloActivos */},
+				data: preguntasSelected,
+				params: { encuestaPreguntaId: preguntasSelected?.encuestaId, encuestaPreguntaId2: preguntasSelected?.id },
 			});
-		}, [estadoSeccionalSeelectRespuesta, preguntasSelected]);
-//__________________________________________________________________________________________
+		}, [estadoSeccionalSeelectRespuesta, preguntasSelected]); 
+//______________________________________________________________________
+
 //****************************************************************** */
 
-	//#region modulo y acciones
+	
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
 		dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
@@ -558,9 +521,3 @@ const EncuestasHandler = () => {
 };
 
 export default EncuestasHandler;
-
-
-
-
-
-
