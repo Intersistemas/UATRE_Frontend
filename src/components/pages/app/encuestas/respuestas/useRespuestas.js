@@ -581,6 +581,10 @@ const useRespuestas = ({
             })),
         }}
       />
+      {/* ------------------------------Detalles----------------------------------------- */}
+      {/* // Renderizamos los detalles de la pregunta seleccionada */}
+      {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
+
         {list.selection.record && (
         <div style={{ marginTop: "20px" }}>
          
@@ -589,6 +593,8 @@ const useRespuestas = ({
         <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
           Detalles de la pregunta seleccionada
         </h3>
+
+        {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
         {list.data.some(e => e.afiliadoNro === list.selection.record.afiliadoNro) ? (
           <table
             style={{
@@ -597,9 +603,13 @@ const useRespuestas = ({
               marginTop: "10px",
             }}
           >
+          
             <tbody>
+              {/* // Renderizamos los detalles de la pregunta seleccionada */}
               {list.data
-                .filter(e => e.afiliadoNro === list.selection.record.afiliadoNro) // Filtramos los datos relacionados con el registro seleccionado
+              // Filtramos los datos relacionados con el registro seleccionado
+              //si es igual al afiliadoNro del registro seleccionado realizamos el mapeo
+                .filter(e => e.afiliadoNro === list.selection.record.afiliadoNro) 
                 .map((i, index) => (
                   <tr key={index}>
                     <td
@@ -628,6 +638,10 @@ const useRespuestas = ({
     </div>
   );
 
+  // Devolvemos el render y la función para manejar cambios
+  // También devolvemos el registro seleccionado
+  // para que pueda ser utilizado en otros componentes o funciones
+  
   return [render, requestChanges, list.selection.record];
 };
 

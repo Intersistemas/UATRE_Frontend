@@ -10,6 +10,8 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import classes from "./PreguntasForm.module.css";
 import { Dialog, DialogContent, Typography } from "@mui/material";
+import { Height } from "@mui/icons-material";
+import { TextAlignment } from "pdf-lib";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -216,15 +218,18 @@ const PreguntasForm = ({
                 </ListGroup>
                 <div className="d-flex mt-3">
                   <Form.Control
+                   style={{marginBottom: "15px"}}
                     type="text"
                     placeholder="Agregar opción..."
                     value={nuevoValor}
                     onChange={(e) => setNuevoValor(e.target.value)}
                   />
                   <Button
+                    style={{marginBottom: "15px", marginLeft: "10px"}}
                     variant="primary"
                     onClick={agregarOpcion}
-                    width={50}
+                    width={30}
+                  
                     className="ms-2"
                   >
                     Agregar
@@ -236,6 +241,9 @@ const PreguntasForm = ({
                 <Form.Label></Form.Label>
                 <strong>Texto Libre:</strong>
                 <InputMaterial
+                
+
+                  style={{marginBottom: "15px"}}
                   type="text"
                   placeholder="Ingrese texto aquí..."
                   id="textoLibre"
@@ -252,6 +260,7 @@ const PreguntasForm = ({
             <>
               <div className={classes.item7}>
                 <InputMaterial
+                style={{marginBottom: "15px"}}
                   id="deletedDate"
                   label="Fecha Baja"
                   error={!!errors.deletedDate}
@@ -264,6 +273,7 @@ const PreguntasForm = ({
               </div>
               <div className={classes.item8}>
                 <InputMaterial
+                style={{marginBottom: "15px"}}
                   id="deletedBy"
                   label="Usuario Baja"
                   error={!!errors.deletedBy}
@@ -275,6 +285,7 @@ const PreguntasForm = ({
               </div>
               <div className={classes.item9}>
                 <InputMaterial
+                style={{marginBottom: "15px"}}
                   id="deletedObs"
                   label="Observaciones Baja"
                   error={!!errors.deletedObs}

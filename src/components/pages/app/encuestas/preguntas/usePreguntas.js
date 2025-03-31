@@ -761,7 +761,7 @@ const usePreguntas = ({
               }
             : { };
             if (list.selection.request === "B") {
-            r = { ...r, deletedBy: true, deletedDate: true,  deletedObs: false, ordenPregunta: true, tipoPregunta: true, textoLibre: true, detalles: true, texto: true };
+            r = { ...r, deletedBy: true, deletedDate: true,  deletedObs: false, ordenPregunta: true, tipoPregunta: true, textoLibre: true, detalles: true, texto: true, enunciado: true};
           }
           return r;
         })()}
@@ -770,7 +770,9 @@ const usePreguntas = ({
           ["A", "M"].includes(list.selection.request)
             ? { deletedObs: true, deletedBy: true, deletedDate: true, tema: true }
             
-            : {}
+            : ["B"].includes(list.selection.request) ? {
+              deletedObs: false, deletedBy: false, deletedDate: false, tema: false, enunciado: false, ordenPregunta: false, tipoPregunta: false, textoLibre: false, detalles: false, texto: false
+            } : {}
         }
         onChange={(edit) => {
           if (
@@ -811,12 +813,21 @@ const usePreguntas = ({
           }
 
           const record = { ...list.selection.edit };
-          console.log("Record_usePreguntas <zz<zz<zz<zz", record);
+          // console.log("Record_usePreguntas DATOS", record);
+          // console.log("list.selection.record.tipoPregunta", list.selection.record.tipoPregunta);
+          // console.log("no funciona esta parte");
+          
+          
 
           // Validaciones---------------------------------------
           const errors = {};
           if (list.selection.request === "B") {
-            if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+            if (!record.deletedObs) errors.deletedObs = "Dato requerido"; 
+            //si me quiere seleccionar un diferente tipo depregunta me da un error 
+            if(list.selection.record.tipoPregunta !== record.tipoPregunta) errors.tipoPregunta = "No se puede cambiar el tipo de pregunta una vez creada";  
+
+
+
           }
           if (list.selection.request === "A" || list.selection.request === "M") {
             if (!record.enunciado) errors.enunciado = "Dato requerido";
