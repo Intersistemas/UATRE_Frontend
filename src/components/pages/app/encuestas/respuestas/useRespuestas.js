@@ -550,10 +550,105 @@ const useRespuestas = ({
   
 
   // Renderizamos el componente `RespuestasTable`
-  const render = () => (
+//   const render = () => (
+//     <div>
+//       <RespuestasTable
+//         data={list.data} // Pasamos los datos a la tabla
+//         loading={!!list.loading} // Indicamos si está cargando
+//         noDataIndication={
+//           list.loading ?? list.error?.message ?? "No existen datos para mostrar"
+//         }
+//         pagination={{
+//           ...list.pagination,
+//           onChange: ({ index, size }) =>
+//             setList((o) => ({
+//               ...o,
+//               loading: "Cargando...",
+//               pagination: { index, size },
+//               data: [],
+//             })),
+//         }}
+//         selection={{
+//           selected: [list.selection.record?.id].filter((r) => r),
+//           onSelect: (record, isSelect, index, e) =>
+//             setList((o) => ({
+//               ...o,
+//               selection: {
+//                 ...selectionDef,
+//                 index,
+//                 record,
+//               },
+//             })),
+//         }}
+//       />
+//       {/* ------------------------------Detalles----------------------------------------- */}
+//       {/* // Renderizamos los detalles de la pregunta seleccionada */}
+//       {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
+
+//         {list.selection.record && (
+//         <div style={{ marginTop: "20px" }}>
+         
+//           {list.selection.record && (
+//       <div style={{ marginTop: "20px" }}>
+//         <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+//           Detalles de la pregunta seleccionada
+//         </h3>
+
+//         {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
+//         {list.data.some(e => e.afiliadoNro === list.selection.record.afiliadoNro) ? (
+//           <table
+//             style={{
+//               width: "100%",
+//               borderCollapse: "collapse",
+//               marginTop: "10px",
+//             }}
+//           >
+          
+//             <tbody>
+//               {/* // Renderizamos los detalles de la pregunta seleccionada */}
+//               {list.data
+//               // Filtramos los datos relacionados con el registro seleccionado
+//               //si es igual al afiliadoNro del registro seleccionado realizamos el mapeo
+//                 .filter(e => e.afiliadoNro === list.selection.record.afiliadoNro) 
+//                 .map((i, index) => (
+//                   <tr key={index}>
+//                     <td
+//                       style={{
+//                         border: "1px solid rgb(53, 149, 210)",
+//                         padding: "3px",
+//                         textAlign: "center",
+//                         backgroundColor: "#f2f2f2",
+//                       }}
+//                     >
+//                       {i.valor || "Sin dato"}
+//                     </td>
+//                   </tr>
+//                 ))}
+//             </tbody>
+//           </table>
+//         ) : (
+//           <p style={{ textAlign: "center", color: "red" }}>
+//             No hay detalles disponibles para esta selección.
+//           </p>
+//         )}
+//       </div>
+// )}
+//         </div>
+//       )}
+//     </div>
+//   );
+
+
+const render = () => {
+  // Filtro usuarios únicos basados en -> afiliadoNro
+  const usuariosUnicos = Array.from(
+    new Map(list.data.map((item) => [item.afiliadoNro, item])).values()
+  );
+
+  return (
     <div>
       <RespuestasTable
-        data={list.data} // Pasamos los datos a la tabla
+        data={usuariosUnicos} // Pasamos solo los usuarios únicos a la tabla
         loading={!!list.loading} // Indicamos si está cargando
         noDataIndication={
           list.loading ?? list.error?.message ?? "No existen datos para mostrar"
@@ -565,11 +660,11 @@ const useRespuestas = ({
               ...o,
               loading: "Cargando...",
               pagination: { index, size },
-              data: [],
+              data: [], // Limpiamos los datos mientras se carga la nueva página
             })),
         }}
         selection={{
-          selected: [list.selection.record?.id].filter((r) => r),
+          selected: [list.selection.record?.afiliadoNro].filter((r) => r),
           onSelect: (record, isSelect, index, e) =>
             setList((o) => ({
               ...o,
@@ -581,62 +676,57 @@ const useRespuestas = ({
             })),
         }}
       />
-      {/* ------------------------------Detalles----------------------------------------- */}
-      {/* // Renderizamos los detalles de la pregunta seleccionada */}
-      {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
 
-        {list.selection.record && (
+      {/* ------------------------------Detalles del usuario seleccionado---------------------------------------------- */}
+      {list.selection.record && (
         <div style={{ marginTop: "20px" }}>
-         
-          {list.selection.record && (
-      <div style={{ marginTop: "20px" }}>
-        <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
-          Detalles de la pregunta seleccionada
-        </h3>
+          <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+            Detalles de la pregunta seleccionada
+          </h3>
 
-        {/* // Verificamos si hay datos relacionados con el registro seleccionado */}
-        {list.data.some(e => e.afiliadoNro === list.selection.record.afiliadoNro) ? (
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "10px",
-            }}
-          >
-          
-            <tbody>
-              {/* // Renderizamos los detalles de la pregunta seleccionada */}
-              {list.data
-              // Filtramos los datos relacionados con el registro seleccionado
-              //si es igual al afiliadoNro del registro seleccionado realizamos el mapeo
-                .filter(e => e.afiliadoNro === list.selection.record.afiliadoNro) 
-                .map((i, index) => (
-                  <tr key={index}>
-                    <td
-                      style={{
-                        border: "1px solid rgb(53, 149, 210)",
-                        padding: "3px",
-                        textAlign: "center",
-                        backgroundColor: "#f2f2f2",
-                      }}
-                    >
-                      {i.valor || "Sin dato"}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        ) : (
-          <p style={{ textAlign: "center", color: "red" }}>
-            No hay detalles disponibles para esta selección.
-          </p>
-        )}
-      </div>
-)}
+          {/*---------------------------- Verificamos si hay datos relacionados con el registro seleccionado------------------------- */}
+          {list.data.some(
+            (e) => e.afiliadoNro === list.selection.record.afiliadoNro
+          ) ? (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginTop: "10px",
+              }}
+            >
+              <tbody>
+                {/* ----------------------------Renderizo los detalles de la pregunta seleccionada------------------------------- */}
+                {list.data
+                  .filter(
+                    (e) => e.afiliadoNro === list.selection.record.afiliadoNro
+                  ) // Filtramos las respuestas del usuario seleccionado
+                  .map((i, index) => (
+                    <tr key={index}>
+                      <td
+                        style={{
+                          border: "1px solid rgb(53, 149, 210)",
+                          padding: "3px",
+                          textAlign: "center",
+                          backgroundColor: "#f2f2f2",
+                        }}
+                      >
+                        {i.valor || "Sin dato"}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          ) : (
+            <p style={{ textAlign: "center", color: "red" }}>
+              No hay detalles disponibles para esta selección.
+            </p>
+          )}
         </div>
       )}
     </div>
   );
+};
 
   // Devolvemos el render y la función para manejar cambios
   // También devolvemos el registro seleccionado
