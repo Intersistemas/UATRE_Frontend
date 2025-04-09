@@ -8,24 +8,62 @@ import { MaskTextField } from "./MaskTextField";
 
 const onChangeDef = (value, id) => { };
 
+/**
+ * @typedef {{
+ * 	mask: string,
+ * 	lazy: boolean,
+ *	unmask: boolean,
+ * 	blocks: {
+ * 		d: {
+ * 			mask: NumberConstructor,
+ * 			thousandsSeparator: string,
+ * 			radix: string,
+ * 			mapToRadix: string[],
+ * 			expose: boolean
+ * 		}
+ * 	}
+ * }} AmountMask
+ */
+/**
+ * Genera máscara numérica.
+ * @param {object} config Configuraciones
+ * @param {string} config.prefix Simbolo antecedente.
+ * @param {string} config.suffix Simbolo posterior.
+ * @param {number} config.scale Cantidad de decimales.
+ * @returns {{
+ * 	mask: string,
+ * 	lazy: false,
+ * 	unmask: true,
+ * 	blocks: {
+ * 		d: {
+ * 			mask: NumberConstructor,
+ * 			thousandsSeparator: ".",
+ * 			radix: ",",
+ * 			mapToRadix: ["."],
+ * 			expose: true
+ * 		}
+ * 	}
+ * }}
+ */
+export const CantidadMask = ({ prefix = "", suffix = "", scale } = { prefix: "", suffix: ""}) => {
+	const d = { mask: Number, thousandsSeparator: ".", radix: ",", mapToRadix: ["."], expose: true };
+	if (typeof scale === "number") d.scale = scale;
+	return { mask: [prefix, "d", suffix].filter(e => e).join(" "), lazy: false, unmask: true, blocks: { d } };
+};
+/** @type {AmountMask} */
+export const EnteroMask = deepFreeze(CantidadMask({ scale: 0 }));
+/** @type {AmountMask} */
+export const PesosMask = deepFreeze(CantidadMask({ prefix: "$", scale: 2 }));
+/** @type {AmountMask} */
+export const InteresesMask = deepFreeze(CantidadMask({ prefix: "$", scale: 4 }));
+/** @type {AmountMask} */
+export const PorcentajeMask = deepFreeze(CantidadMask({ suffix: "%", scale: 4 }));
+/** @type {{ mask: "00-00.000.000-0", unmask: true }} */
 export const CUITMask = deepFreeze({ mask: "00-00.000.000-0", unmask: true });
+/** @type {{ mask: Number, unmask: "typed", scale: 0, thousandsSeparator: ".", min: 0, max: 99999999 }} */
 export const DNIMask = deepFreeze({ mask: Number, unmask: "typed", scale: 0, thousandsSeparator: ".", min: 0, max: 99999999 });
+/** @type {{ mask: "S-0000", unmask: false }} */
 export const CodSeccional = deepFreeze({ mask: "S-0000", unmask: false });
-export const PesosMask = deepFreeze({
-	mask: "$ d",
-	lazy: false,
-	blocks: {
-		d: {
-			mask: Number,
-			scale: 2,
-			thousandsSeparator: ".",
-			radix: ",",
-			mapToRadix: ["."],
-			expose: true,
-		},
-	},
-	unmask: true,
-});
 
 const InputMaterial = ({
 	id,
@@ -38,7 +76,6 @@ const InputMaterial = ({
 	...x
 }) => {
 	const state = useMemo(() => ({ id: id ?? `UUID${crypto.randomUUID()}` }), [id]);
-
 	const handleOnChange = (value) => {
 		switch (state.id) {
 			case "cuit":
