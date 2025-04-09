@@ -795,8 +795,25 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				sort: true,
 				style: { textAlign: "left" },
 			},
-			{ dataField: "esRural" },
-			{ dataField: "afiliadoId" },
+			// { dataField: "esRural" },
+			{
+				dataField: "esRural",
+				text: "Es Rural",
+				sort: true,
+				headerStyle: { width: "100px" },
+				formatter: Formato.Booleano,
+				style: { textAlign: "center" },
+			},
+			// { dataField: "afiliadoId" },
+			{
+				dataField: "afiliadoId",
+				text: "Es Afiliado",
+				sort: true,
+				headerStyle: { width: "120px" },
+				formatter: (value) =>
+					Formato.Booleano(!!value),
+				style: { textAlign: "center" },
+			},
 			{ dataField: "remuneracionImponible" },
 		],
 	});
