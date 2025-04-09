@@ -112,6 +112,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		options: [],
 		selected: { value: 0, label: "", data: null },
 		error: null,
+		autocomplete: { open: true },
 	});
 	// Inicio
 	useEffect(() => {
@@ -217,14 +218,19 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 					error={!!formaPagoSelect.error}
 					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
 					value={formaPagoSelect.selected}
-					onChange={(selected) =>
-						setFormaPagoSelect((o) => ({ ...o, selected }))
+					onChange={(selected) => 
+						setFormaPagoSelect((o) => ({ ...o,
+							selected,
+							autocomplete: { open: !selected.value }
+						}))
 					}
 					options={formaPagoSelect.options}
+					defaultOption={{ label: "", value: 0 }}
 					onTextChange={(buscar) =>
 						setFormaPagoSelect((o) => ({ ...o, buscar }))
 					}
 					required
+					autocompleteProps={formaPagoSelect.autocomplete}
 				/>
 				{formaPagoSelect.error == null ? null : (
 					<text style={{ color: "red" }}>{formaPagoSelect.error}</text>
