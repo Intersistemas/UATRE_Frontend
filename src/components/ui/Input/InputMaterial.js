@@ -57,7 +57,7 @@ export const PesosMask = deepFreeze(CantidadMask({ prefix: "$", scale: 2 }));
 /** @type {AmountMask} */
 export const InteresesMask = deepFreeze(CantidadMask({ prefix: "$", scale: 4 }));
 /** @type {AmountMask} */
-export const PorcentajeMask = deepFreeze(CantidadMask({ suffix: "%", scale: 4 }));
+export const PorcentajeMask = deepFreeze(CantidadMask({ suffix: "%", scale: 6 }));
 /** @type {{ mask: "00-00.000.000-0", unmask: true }} */
 export const CUITMask = deepFreeze({ mask: "00-00.000.000-0", unmask: true });
 /** @type {{ mask: Number, unmask: "typed", scale: 0, thousandsSeparator: ".", min: 0, max: 99999999 }} */
