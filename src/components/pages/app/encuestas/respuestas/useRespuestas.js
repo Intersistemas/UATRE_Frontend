@@ -681,7 +681,7 @@ const render = () => {
       {list.selection.record && (
         <div style={{ marginTop: "20px" }}>
           <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
-            Detalles de la pregunta seleccionada
+            Detalles de la pregunta del usuario seleccionado
           </h3>
 
           {/*---------------------------- Verificamos si hay datos relacionados con el registro seleccionado------------------------- */}
