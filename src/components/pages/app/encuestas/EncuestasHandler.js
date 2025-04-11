@@ -520,7 +520,7 @@
 // 	);
 // };
 
-// export default EncuestasHandler;
+// export default EncuestasHandler ;
 
 
 
