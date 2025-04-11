@@ -1017,7 +1017,7 @@ const EncuestasHandler = () => {
 
   {/* Tabs */}
   <Grid className="tabs">
-    <text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " "}</text>
+    {/* <text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " "}</text> */}
     <Tabs value={tab} onChange={(_, v) => setTab(v)}>
       {tabs.map((r) => r.header())}
     </Tabs>
