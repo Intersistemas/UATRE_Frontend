@@ -24,7 +24,7 @@
     "dayjs": "^1.11.7",
     "downloadjs": "^1.4.7",
     "env-cmd": "^10.1.0",
-    "imask": "^7.3.0",
+    "imask": "^7.6.1",
     "jsbarcode": "^3.11.5",
     "moment": "^2.29.4",
     "mui-tel-input": "^5.0.0",

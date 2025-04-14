@@ -11,7 +11,7 @@ import Round from "components/helpers/Round";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask, EnteroMask, InteresesMask, PesosMask, PorcentajeMask } from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
 import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
@@ -120,7 +120,7 @@ const LiquidacionCabecera = ({
 					}
 				/>
 				<InputMaterial
-					type="number"
+					mask={PorcentajeMask}
 					label="% Interes diario Post. Venc."
 					value={data.interesesDiariosPosteriorVencimiento}
 					disabled//={!!disabled.fechaPagoEstimada}
@@ -132,7 +132,7 @@ const LiquidacionCabecera = ({
 			</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
-					type="number"
+					mask={EnteroMask}
 					label="Cantidad de trabajadores"
 					value={data.cantidadTrabajadores}
 					disabled
@@ -144,7 +144,7 @@ const LiquidacionCabecera = ({
 					// }
 				/>
 				<InputMaterial
-					type="number"
+					mask={PesosMask}
 					label="Total remuneraciones"
 					value={data.totalRemuneraciones}
 					disabled
@@ -172,18 +172,21 @@ const LiquidacionCabecera = ({
 			<Grid style={{ fontWeight: "bold" }}>Totales</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
+					mask={PesosMask}
 					label="Aporte"
-					value={Formato.Moneda(data.totalAporte)}
+					value={data.totalAporte}
 					disabled
 				/>
 				<InputMaterial
+					mask={InteresesMask}
 					label="Intereses"
-					value={Formato.Moneda(data.totalIntereses)}
+					value={data.totalIntereses}
 					disabled
 				/>
 				<InputMaterial
+					mask={PesosMask}
 					label="Total a pagar"
-					value={Formato.Moneda(data.totalImporte)}
+					value={data.totalImporte}
 					disabled
 				/>
 			</Grid>
@@ -254,15 +257,16 @@ const LiquidacionNomina = ({
 			</Grid>
 			<Grid width="full" gap="inherit">
 				<Grid width="25%">
-					<InputMaterial label="CUIL" value={Formato.Cuit(data.cuil)} />
+					<InputMaterial mask={CUITMask} label="CUIL" value={data.cuil} />
 				</Grid>
 				<Grid width="50%">
 					<InputMaterial label="Nombre" value={data.nombre} />
 				</Grid>
 				<Grid width="25%">
 					<InputMaterial
+						mask={PesosMask}
 						label="Remuneración imponible"
-						value={Formato.Moneda(data.remuneracionImponible)}
+						value={data.remuneracionImponible}
 					/>
 				</Grid>
 			</Grid>
@@ -791,8 +795,25 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				sort: true,
 				style: { textAlign: "left" },
 			},
-			{ dataField: "esRural" },
-			{ dataField: "afiliadoId" },
+			// { dataField: "esRural" },
+			{
+				dataField: "esRural",
+				text: "Es Rural",
+				sort: true,
+				headerStyle: { width: "100px" },
+				formatter: Formato.Booleano,
+				style: { textAlign: "center" },
+			},
+			// { dataField: "afiliadoId" },
+			{
+				dataField: "afiliadoId",
+				text: "Es Afiliado",
+				sort: true,
+				headerStyle: { width: "120px" },
+				formatter: (value) =>
+					Formato.Booleano(!!value),
+				style: { textAlign: "center" },
+			},
 			{ dataField: "remuneracionImponible" },
 		],
 	});

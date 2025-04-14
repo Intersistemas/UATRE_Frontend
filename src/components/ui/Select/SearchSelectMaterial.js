@@ -103,6 +103,7 @@ export const includeSearch = (option, search, ignoreCase = true) =>
  * @param {string} [props.label]
  * @param {SearchSelectOption} [props.value]
  * @param {SearchSelectOption[]} [props.options]
+ * @param {SearchSelectOption} [props.defaultOption]
  * @param {string | number} [props.width]
  * @param {boolean} [props.disabled]
  * @param {boolean} [props.readOnly]
@@ -110,12 +111,14 @@ export const includeSearch = (option, search, ignoreCase = true) =>
  * @param {object} [props.style]
  * @param {SearchSelectOnChange} [props.onChange]
  * @param {SearchSelectOnTextChange} [props.onTextChange]
+ * @param {object} [props.autocompleteProps]
  */
 const SearchSelectMaterial = ({
 	name = "",
 	label = "",
 	value = {},
 	options = [],
+	defaultOption = null,
 	width = "100%",
 	disabled = false,
 	readOnly = false,
@@ -123,6 +126,7 @@ const SearchSelectMaterial = ({
 	style: styleInit = {},
 	onChange = () => {},
 	onTextChange = () => {},
+	autocompleteProps = {},
 	...x
 }) => {
 	const formControlProps = {
@@ -133,6 +137,7 @@ const SearchSelectMaterial = ({
 			...styleInit,
 		},
 	};
+	defaultOption ??= options.length > 0 ? options[0] : value;
 
 	return (
 		<FormControl {...formControlProps}>
@@ -153,9 +158,10 @@ const SearchSelectMaterial = ({
 				//MenuProps={MenuProps}
 				size="small"
 				value={value}
-				onChange={(_, newValue) => onChange(newValue ?? options[0], name)}
+				onChange={(_, newValue) => onChange(newValue ?? defaultOption, name)}
 				getOptionLabel={(option) => option.label || ""}
 				//defaultValue={props.defaultValue}
+				{...autocompleteProps}
 				renderInput={(params) => (
 					<InputMaterial
 						label={label}
