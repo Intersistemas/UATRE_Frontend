@@ -61,7 +61,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	//#endregion configuraciones API
 
 	const sinFechaPagoEstimada = liquidacionCabecera.fechaPagoEstimada == null;
-	const vencido = sinFechaPagoEstimada || dayjs(liquidacionCabecera.fechaPagoEstimada) < dayjs();
+	const vencido = sinFechaPagoEstimada || dayjs(liquidacionCabecera.fechaPagoEstimada).add(1, "days") < dayjs();
 
 	//#region dependencias
 
