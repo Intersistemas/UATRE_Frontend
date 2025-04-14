@@ -210,7 +210,7 @@ const LiquidacionesForm = ({
 					)}
 				</Grid>
 				<Grid width="full" gap="inherit">
-					<Grid width="full">
+					{/* <Grid width="full">
 						{hide.liquidacionTipoPagoId ? null : (
 							<SelectMaterial
 								name="liquidacionTipoPagoId"
@@ -244,7 +244,7 @@ const LiquidacionesForm = ({
 								onChange={(value) => onChange({ interesPorcentaje: Number(value) })}
 							/>
 						)}
-					</Grid>
+					</Grid> */}
 					<Grid width="full">
 						{hide.cantidadTrabajadores ? null : (
 							<InputMaterial
