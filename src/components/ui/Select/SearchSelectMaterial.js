@@ -2,6 +2,7 @@ import React from "react";
 import { FormControl, Autocomplete } from "@mui/material";
 import styles from "./SearchSelectMaterial.module.css";
 import InputMaterial from "../Input/InputMaterial";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * @typedef {object} SearchSelectOption
@@ -153,7 +154,7 @@ const SearchSelectMaterial = ({
 				)}
 				disabled={disabled}
 				readOnly={readOnly}
-				id={`${name || x.id || label || crypto.randomUUID()}-label`}
+				id={`${name || x.id || label || uuidv4()}-label`}
 				options={options}
 				//MenuProps={MenuProps}
 				size="small"

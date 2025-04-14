@@ -5,6 +5,7 @@ import { TextField } from "@mui/material";
 import { deepFreeze, getType } from "components/helpers/Utils";
 import DateTimePicker from "../DateTimePicker/DateTimePicker";
 import { MaskTextField } from "./MaskTextField";
+import { v4 as uuidv4 } from "uuid";
 
 const onChangeDef = (value, id) => { };
 
@@ -75,7 +76,7 @@ const InputMaterial = ({
 	onChange = onChangeDef,
 	...x
 }) => {
-	const state = useMemo(() => ({ id: id ?? `UUID${crypto.randomUUID()}` }), [id]);
+	const state = useMemo(() => ({ id: id ?? `UUID${uuidv4()}` }), [id]);
 	const handleOnChange = (value) => {
 		switch (state.id) {
 			case "cuit":
