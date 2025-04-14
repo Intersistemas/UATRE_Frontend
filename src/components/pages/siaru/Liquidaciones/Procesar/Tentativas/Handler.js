@@ -174,19 +174,19 @@ const LiquidacionCabecera = ({
 				<InputMaterial
 					mask={PesosMask}
 					label="Aporte"
-					value={Formato.Moneda(data.totalAporte)}
+					value={data.totalAporte}
 					disabled
 				/>
 				<InputMaterial
 					mask={InteresesMask}
 					label="Intereses"
-					value={Formato.Moneda(data.totalIntereses)}
+					value={data.totalIntereses}
 					disabled
 				/>
 				<InputMaterial
 					mask={PesosMask}
 					label="Total a pagar"
-					value={Formato.Moneda(data.totalImporte)}
+					value={data.totalImporte}
 					disabled
 				/>
 			</Grid>
