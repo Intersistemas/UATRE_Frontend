@@ -6,6 +6,7 @@ import {
 	USUARIO_LOGUEADO, //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
 	LIQUIDACION_PROCESAR_SELECCIONAR,
 	SET_NAV_FUNCTION,
+	TASAS_ARCA,
 } from "./actionTypes";
 
 const Item = (k) => `redux_${k}`;
@@ -15,6 +16,7 @@ export const limpiarReducer = () => {
 	localStorage.removeItem(Item(EMPRESA_SELECCIONAR));
 	localStorage.removeItem(Item(USUARIO_LOGUEADO)); //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
 	localStorage.removeItem(Item(LIQUIDACION_PROCESAR_SELECCIONAR));
+	localStorage.removeItem(Item(TASAS_ARCA));
 };
 
 const escribirReducer = (k, v) =>
@@ -33,6 +35,7 @@ const liquidacionProcesarDef = {
 		periodo: null,
 	},
 };
+const tasasARCADef = [];
 const leerReducer = (k) => {
 	//console.log('leerReducer_K:',k);
 	const v = localStorage.getItem(Item(k));
@@ -48,6 +51,8 @@ const leerReducer = (k) => {
 				return v ? JSON.parse(v) : {};
 			case LIQUIDACION_PROCESAR_SELECCIONAR:
 				return v ? JSON.parse(v) : liquidacionProcesarDef;
+			case TASAS_ARCA:
+				return v ? JSON.parse(v) : tasasARCADef;
 			default:
 				return v;
 		}
@@ -66,6 +71,7 @@ const initialState = {
 	moduloAccion: "",
 	usuarioLogueado: leerReducer(USUARIO_LOGUEADO), //ToDo: Cambiar para obtener este dato mediante consulta al api y almacenarlo en un estado en authContext
 	liquidacionProcesar: leerReducer(LIQUIDACION_PROCESAR_SELECCIONAR),
+	tasasInteresARCA: leerReducer(TASAS_ARCA),
 	nav: {},
 };
 
@@ -95,6 +101,13 @@ const reducer = (state = initialState, { type, payload }) => {
 				: liquidacionProcesarDef;
 			escribirReducer(LIQUIDACION_PROCESAR_SELECCIONAR, liquidacionProcesar);
 			return { ...state, liquidacionProcesar };
+		}
+		case TASAS_ARCA: {
+			const tasasARCA = payload
+				? [...payload]
+				: tasasARCADef;
+			escribirReducer(TASAS_ARCA, tasasARCA);
+			return { ...state, tasasARCA };
 		}
 		case SET_NAV_FUNCTION: {
 			return {
