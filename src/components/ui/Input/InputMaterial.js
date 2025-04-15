@@ -47,7 +47,7 @@ const onChangeDef = (value, id) => { };
  * }}
  */
 export const CantidadMask = ({ prefix = "", suffix = "", scale } = { prefix: "", suffix: ""}) => {
-	const d = { mask: Number, thousandsSeparator: ".", radix: ",", mapToRadix: ["."], expose: true };
+	const d = { mask: Number, thousandsSeparator: ".", radix: ",", mapToRadix: ["."], unmask: "typed", expose: true };
 	if (typeof scale === "number") d.scale = scale;
 	return { mask: [prefix, "d", suffix].filter(e => e).join(" "), lazy: false, unmask: true, blocks: { d } };
 };
@@ -134,8 +134,19 @@ const InputMaterial = ({
 	textFieldProps.value ??= ""
 
 	if (mask) {
-		const { onChange: onAccept, ...mtfProps } = { ...mask, ...textFieldProps };
-		mtfProps.onAccept = onAccept;
+		const { onChange, ...mtfProps } = { ...mask, ...textFieldProps };
+		mtfProps.onAccept = (value, mask) => {
+			const exposeBlock = mask?.masked?.exposeBlock;
+			if (exposeBlock) {
+				switch (exposeBlock.unmask) {
+					case "typed": value = exposeBlock.typedValue; break;
+					case true: value = exposeBlock.unmaskedValue; break;
+					default: value = exposeBlock.value; break;
+				}
+			}
+			if (value === x.value) return;
+			onChange(value);
+		};
 		mtfProps.value = `${textFieldProps.value}`; // value debe ser string
 		return <MaskTextField {...mtfProps} />;
 	}
