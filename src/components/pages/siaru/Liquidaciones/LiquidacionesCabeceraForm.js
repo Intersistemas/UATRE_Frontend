@@ -14,6 +14,7 @@ import InputMaterial, { EnteroMask, InteresesMask, PesosMask } from "components/
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidaciones from "./useLiquidaciones";
 import useLiquidacionesNomina from "./useLiquidacionesNomina";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
 
 const dependeciesDef = {
 	motivosBaja: {
@@ -35,6 +36,8 @@ const LiquidacionesCabeceraForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
+	const { calculo: calculoResarcitorios } = useCalculoResarcitorios();
+
 	data ??= {};
 	data.totalImporte = Round(
 		(data.totalAporte ?? 0) + (data.totalIntereses ?? 0),
@@ -108,9 +111,31 @@ const LiquidacionesCabeceraForm = ({
 								value={data.fechaVencimiento}
 								minDate={dayjs().format("YYYY-MM-DD")}
 								disabled={disabled.fechaVencimiento}
-								onChange={(f) =>
-									onChange({ fechaVencimiento: f?.format("YYYY-MM-DD") })
-								}
+								onChange={(f) => {
+									const changes = {
+										fechaVencimiento: f?.format("YYYY-MM-DD"),
+										totalIntereses: 0,
+										diasVencimiento: 0,
+									};
+									calculoResarcitorios(changes.fechaVencimiento, data.fechaPagoEstimada, data.totalAporte ?? 0)
+										.forEach(({ interes, dias }) => {
+											changes.totalIntereses += interes;
+											changes.diasVencimiento += dias;
+										});
+									changes.totalIntereses = Round(changes.totalIntereses, 2);
+									changes.diasVencimiento = Round(changes.diasVencimiento);
+									changes.liquidaciones = AsArray(data.liquidaciones).map(
+										(l) => {
+											const r = { ...l, interesImporte: 0 };
+											calculoResarcitorios(changes.fechaVencimiento, data.fechaPagoEstimada, r.interesNeto ?? 0)
+												.forEach(({ interes }) => r.interesImporte += interes);
+											r.interesImporte = Round(r.interesImporte, 2);
+											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
+											return r;
+										}
+									);
+									onChange(changes);
+								}}
 							/>
 						)}
 					</Grid>
@@ -125,29 +150,26 @@ const LiquidacionesCabeceraForm = ({
 								onChange={(f) => {
 									const changes = {
 										fechaPagoEstimada: f?.format("YYYY-MM-DD"),
-										diasVencimiento: Number(
-											f?.diff(data.fechaVencimiento, "days") ?? 0
-										),
 										totalIntereses: 0,
+										diasVencimiento: 0,
 									};
-									if (changes.diasVencimiento < 0) changes.diasVencimiento = 0;
+									calculoResarcitorios(data.fechaVencimiento, changes.fechaPagoEstimada, data.totalAporte ?? 0)
+										.forEach(({ interes, dias }) => {
+											changes.totalIntereses += interes;
+											changes.diasVencimiento += dias;
+										});
+									changes.totalIntereses = Round(changes.totalIntereses, 2);
+									changes.diasVencimiento = Round(changes.diasVencimiento);
 									changes.liquidaciones = AsArray(data.liquidaciones).map(
 										(l) => {
-											const r = { ...l };
-											r.interesImporte = Round(
-												Number(r.totalRemuneraciones ?? 0) *
-													(Number(
-														data.interesesDiariosPosteriorVencimiento ?? 0
-													) /
-														100) *
-													changes.diasVencimiento,
-												2
-											);
-											changes.totalIntereses += r.interesImporte;
+											const r = { ...l, interesImporte: 0 };
+											calculoResarcitorios(data.fechaVencimiento, changes.fechaPagoEstimada, r.interesNeto ?? 0)
+												.forEach(({ interes }) => r.interesImporte += interes);
+											r.interesImporte = Round(r.interesImporte, 2);
+											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
 											return r;
 										}
 									);
-									changes.totalIntereses = Round(changes.totalIntereses, 2)
 									onChange(changes);
 								}}
 							/>
