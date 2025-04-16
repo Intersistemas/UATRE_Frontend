@@ -30,11 +30,11 @@ const FormaPagoPDF = ({
 					<Grid col width="395">
 						<Grid><Text>&nbsp;</Text></Grid>
 						<Grid width="395" style={{ ...styles.borderTop, ...styles.borderBottom, ...styles.borderRight }}>
-							<Grid width="180" gap="5" style={{ ...styles.paddingBox, ...styles.borderRight }}>
+							<Grid width="100" gap="5" style={{ ...styles.paddingBox, ...styles.borderRight }}>
 								<Text style={styles.titulo}>CUIT:</Text>
 								<Text>{Formato.Cuit(empresa.cuit)}</Text>
 							</Grid>
-							<Grid width="215" gap="5" style={styles.paddingBox}>
+							<Grid width="295" gap="5" style={styles.paddingBox}>
 								<Text style={styles.titulo}>RAZON SOCIAL:</Text>
 								<Text style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", maxLines: 1 }}>{empresa.razonSocial}</Text>
 							</Grid>
