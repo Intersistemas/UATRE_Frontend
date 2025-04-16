@@ -16,29 +16,26 @@ import Button from "components/ui/Button/Button";
 import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
 
-const RangoDias = (desde, hasta) => {
-	const dias = dayjs(hasta).diff(desde, "days");
-	if (dias < 0) return 0;
-	return dias;
-};
-
+/**
+ * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")
+ * @param {string} pago Fecha de pago ("YYYY-MM-DD")
+ * @param {number} importe importe del pago
+ * @returns {{desde: string, hasta: string, tasa: number, interes: number, dias: number}[]}
+*/
+let calculoResarcitorioLiquidacion = (vencimiento, pago, importe) => [];
 const calculosLiquidacion = ({ liquidacion = {}, cabecera = {} }) => {
-	const calculos = {};
-	calculos.interesNeto = Round(
-		liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
-		2
-	);
-	calculos.interesImporte = Round(
-		liquidacion.totalRemuneraciones *
-			(cabecera.interesesDiariosPosteriorVencimiento / 100) *
-			(cabecera.diasVencimiento ?? 0),
-		2
-	);
-	calculos.importeTotal = Round(
-		calculos.interesImporte + calculos.interesNeto,
-		2
-	);
+	const calculos = {
+		interesNeto: Round(liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100), 2),
+		interesImporte: 0,
+		importeTotal: 0,
+	};
+	calculoResarcitorioLiquidacion(cabecera.fechaVencimiento, cabecera.fechaPagoEstimada, calculos.interesNeto)
+		.forEach(({ interes}) => calculos.interesImporte += interes);
+	calculos.interesImporte = Round(calculos.interesImporte, 2);
+
+	calculos.importeTotal = Round(calculos.interesImporte + calculos.interesNeto, 2);
 	return calculos;
 };
 
@@ -119,7 +116,7 @@ const LiquidacionCabecera = ({
 						onChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") })
 					}
 				/>
-				<InputMaterial
+				{/* <InputMaterial
 					mask={PorcentajeMask}
 					label="% Interes diario Post. Venc."
 					value={data.interesesDiariosPosteriorVencimiento}
@@ -128,7 +125,7 @@ const LiquidacionCabecera = ({
 					// onChange={(interesesDiariosPosteriorVencimiento) =>
 					// 	onChange({ interesesDiariosPosteriorVencimiento })
 					// }
-				/>
+				/> */}
 			</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
@@ -301,6 +298,8 @@ const LiquidacionNomina = ({
 
 const Handler = ({ periodo, tentativas = [] }) => {
 	const navigate = useNavigate();
+	const { calculo: calculoResarcitorios } = useCalculoResarcitorios();
+	calculoResarcitorioLiquidacion = calculoResarcitorios
 
 	const empresa = useSelector((state) => state.empresa);
 	const [redirect, setRedirect] = useState({ to: "", options: null });
@@ -600,10 +599,13 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		const cabecera = {
 			interesesDiariosPosteriorVencimiento:
 				estado.cabecera.interesesDiariosPosteriorVencimiento,
-			diasVencimiento: RangoDias(
-				estado.cabecera.fechaVencimiento,
-				estado.cabecera.fechaPagoEstimada
-			),
+			// diasVencimiento: RangoDias(
+			// 	estado.cabecera.fechaVencimiento,
+			// 	estado.cabecera.fechaPagoEstimada
+			// ),
+			fechaVencimiento: estado.cabecera.fechaVencimiento,
+			fechaPagoEstimada: estado.cabecera.fechaPagoEstimada,
+			diasVencimiento: 0,
 			cantidadTrabajadores: 0,
 			totalRemuneraciones: 0,
 			totalAporte: 0,
@@ -704,8 +706,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				cabecera.cantidadTrabajadores += liquidacion.cantidadTrabajadores;
 				cabecera.totalRemuneraciones += liquidacion.totalRemuneraciones;
 				cabecera.totalAporte += liquidacion.interesNeto;
-				cabecera.totalIntereses += liquidacion.interesImporte;
-				cabecera.totalImporte += liquidacion.importeTotal;
 
 				switch (liquidacion.liquidacionTipoPagoId) {
 					case liquidaciones.tipoPagoSindical.id: {
@@ -724,11 +724,17 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		cabecera.cantidadTrabajadores = Round(cabecera.cantidadTrabajadores);
 		cabecera.totalRemuneraciones = Round(cabecera.totalRemuneraciones, 2);
 		cabecera.totalAporte = Round(cabecera.totalAporte, 2);
-		cabecera.totalIntereses = Round(cabecera.totalIntereses, 2);
-		cabecera.totalImporte = Round(cabecera.totalImporte, 2);
 		cabecera.totalSindical = Round(cabecera.totalSindical, 2);
 		cabecera.totalSolidario = Round(cabecera.totalSolidario, 2);
-
+		
+		calculoResarcitorios(cabecera.fechaVencimiento, cabecera.fechaPagoEstimada, cabecera.totalAporte)
+			.forEach(({ interes, dias }) => {
+				cabecera.totalIntereses += interes;
+				cabecera.diasVencimiento += dias;
+			});
+		cabecera.totalIntereses = Round(cabecera.totalIntereses, 2);
+		cabecera.totalImporte = Round(cabecera.totalAporte + cabecera.totalIntereses, 2);
+		cabecera.diasVencimiento = Round(cabecera.diasVencimiento);
 		totalRemuneraciones = Round(totalRemuneraciones, 2);
 		
 		setEstado((o) => ({
@@ -805,15 +811,15 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				style: { textAlign: "center" },
 			},
 			// { dataField: "afiliadoId" },
-			{
-				dataField: "afiliadoId",
-				text: "Es Afiliado",
-				sort: true,
-				headerStyle: { width: "120px" },
-				formatter: (value) =>
-					Formato.Booleano(!!value),
-				style: { textAlign: "center" },
-			},
+			// {
+			// 	dataField: "afiliadoId",
+			// 	text: "Es Afiliado",
+			// 	sort: true,
+			// 	headerStyle: { width: "120px" },
+			// 	formatter: (value) =>
+			// 		Formato.Booleano(!!value),
+			// 	style: { textAlign: "center" },
+			// },
 			{ dataField: "remuneracionImponible" },
 		],
 	});
@@ -886,12 +892,12 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				),
 				headerStyle: { width: "110px" },
 				events: {
-					onClick: (e, column, columnIndex, row, rowIndex) => {
+					onClick: (e, column, columnIndex, record, rowIndex) => {
 						e.stopPropagation();
 						request("selected", {
 							request: "M",
-							record: row,
 							action: "Genera liquidacion",
+							record,
 						});
 					},
 				},
