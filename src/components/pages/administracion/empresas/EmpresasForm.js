@@ -40,11 +40,16 @@ const getProvinciaOption = (provincia) =>
 		  }
 		: null;
 
+const getLocalidadLabel = ({ nombre, codPostal }) =>
+	[codPostal, nombre]
+		.filter(r => r)
+		.join(" - ");
+
 const getLocalidadOption = (localidad) =>
 	localidad
 		? {
 				value: localidad.id,
-				label: localidad.nombre,
+				label: getLocalidadLabel(localidad),
 		  }
 		: null;
 
