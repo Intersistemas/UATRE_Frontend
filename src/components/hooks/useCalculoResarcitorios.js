@@ -31,6 +31,7 @@ function esEntero(num1) {
 }
 
 function esFecha(fec1) {
+	fec1 ??= "";
 	if (fec1.indexOf("-") == -1) return false;
 	let f1 = fec1.slice(0, 10).split("-");
 	if (!f1[0] || !f1[1] || !f1[2]) return false;
@@ -268,5 +269,38 @@ export default function useCalculoResarcitorios() {
 		return retorno;
 	}
 
-	return { ready: !!state.ready, calculo };
+	/**
+	 * @param {{ desde: string, hasta: string, tasa: number, interes: number, dias: number }[]} calc
+	 * @returns {{ desde: string, hasta: string, tasa: number, interes: number, dias: number }}
+	 **/
+	const resumen = (calc) => {
+		let retorno = {
+			desde: undefined,
+			hasta: undefined,
+			tasa: 0,
+			interes: 0,
+			dias: 0
+		};
+		if (calc.length === 0) return retorno;
+		retorno = calc.reduce((a, b) => ({
+			desde: a.desde < b.desde ? a.desde : b.desde,
+			hasta: a.hasta > b.hasta ? a.hasta : b.hasta,
+			tasa: a.tasa + b.tasa,
+			interes: a.interes + b.interes,
+			dias: a.dias + b.dias,
+		}));
+		retorno.tasa = Round(retorno.tasa / calc.length, 6);
+		retorno.interes = Round(retorno.interes, 2);
+		return retorno;
+	}
+
+	/**
+	 * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")
+	 * @param {string} pago Fecha de pago ("YYYY-MM-DD")
+	 * @param {number} importe importe del pago
+	 * @returns {{ desde: string, hasta: string, tasa: number, interes: number, dias: number }}
+	 **/
+	const calculoResumen = (vencimiento, pago, importe) => resumen(calculo(vencimiento, pago, importe))
+
+	return { ready: !!state.ready, calculo, resumen, calculoResumen };
 }
