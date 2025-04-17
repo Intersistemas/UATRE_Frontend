@@ -22,18 +22,22 @@ import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
  * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")
  * @param {string} pago Fecha de pago ("YYYY-MM-DD")
  * @param {number} importe importe del pago
- * @returns {{desde: string, hasta: string, tasa: number, interes: number, dias: number}[]}
+ * @returns {{desde: string, hasta: string, tasa: number, interes: number, dias: number}}
 */
-let calculoResarcitorioLiquidacion = (vencimiento, pago, importe) => [];
+let calculoResarcitorioLiquidacion = (vencimiento, pago, importe) => ({ tasa: 0, interes: 0, dias: 0 });
 const calculosLiquidacion = ({ liquidacion = {}, cabecera = {} }) => {
 	const calculos = {
 		interesNeto: Round(liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100), 2),
 		interesImporte: 0,
 		importeTotal: 0,
 	};
-	calculoResarcitorioLiquidacion(cabecera.fechaVencimiento, cabecera.fechaPagoEstimada, calculos.interesNeto)
-		.forEach(({ interes}) => calculos.interesImporte += interes);
-	calculos.interesImporte = Round(calculos.interesImporte, 2);
+	(
+		{
+			interes: calculos.interesImporte
+		} = calculoResarcitorioLiquidacion(cabecera.fechaVencimiento,
+			cabecera.fechaPagoEstimada,
+			calculos.interesNeto)
+	);
 
 	calculos.importeTotal = Round(calculos.interesImporte + calculos.interesNeto, 2);
 	return calculos;
@@ -298,7 +302,7 @@ const LiquidacionNomina = ({
 
 const Handler = ({ periodo, tentativas = [] }) => {
 	const navigate = useNavigate();
-	const { calculo: calculoResarcitorios } = useCalculoResarcitorios();
+	const { calculoResumen: calculoResarcitorios } = useCalculoResarcitorios();
 	calculoResarcitorioLiquidacion = calculoResarcitorios
 
 	const empresa = useSelector((state) => state.empresa);
@@ -726,15 +730,15 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		cabecera.totalAporte = Round(cabecera.totalAporte, 2);
 		cabecera.totalSindical = Round(cabecera.totalSindical, 2);
 		cabecera.totalSolidario = Round(cabecera.totalSolidario, 2);
-		
-		calculoResarcitorios(cabecera.fechaVencimiento, cabecera.fechaPagoEstimada, cabecera.totalAporte)
-			.forEach(({ interes, dias }) => {
-				cabecera.totalIntereses += interes;
-				cabecera.diasVencimiento += dias;
-			});
-		cabecera.totalIntereses = Round(cabecera.totalIntereses, 2);
+		(
+			{
+				interes: cabecera.totalIntereses,
+				dias: cabecera.diasVencimiento
+			} = calculoResarcitorios(cabecera.fechaVencimiento,
+				cabecera.fechaPagoEstimada,
+				cabecera.totalAporte)
+		);
 		cabecera.totalImporte = Round(cabecera.totalAporte + cabecera.totalIntereses, 2);
-		cabecera.diasVencimiento = Round(cabecera.diasVencimiento);
 		totalRemuneraciones = Round(totalRemuneraciones, 2);
 		
 		setEstado((o) => ({
