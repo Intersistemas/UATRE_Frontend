@@ -58,8 +58,8 @@ const EstablecimientoDetails = ({ data = {} }) => {
 					{...im}
 				/>
 			</Grid>
-			<Grid full="width">
-				<Grid className={styles.grupo} col full>
+			<Grid full="width" gap="inherit">
+				<Grid className={styles.grupo} col full gap="inherit">
 					<Grid full="width">
 						<Grid className={styles.titulo} grow>
 							Domicilio
@@ -104,7 +104,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 							/> */}
 						</Grid>
 					</Grid>
-					<Grid full="width" gap="inherit">
+					{/* <Grid full="width" gap="inherit">
 						<InputMaterial
 							label="Localidad"
 							value={valor(data.localidadDescripcion)}
@@ -115,7 +115,7 @@ const EstablecimientoDetails = ({ data = {} }) => {
 							value={valor(data.provinciaDescripcion)}
 							{...im}
 						/>
-					</Grid>
+					</Grid> */}
 				</Grid>
 			</Grid>
 		</Grid>

@@ -36,7 +36,7 @@ const LiquidacionesCabeceraForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
-	const { calculo: calculoResarcitorios } = useCalculoResarcitorios();
+	const { calculoResumen: calculoResarcitorios } = useCalculoResarcitorios();
 
 	data ??= {};
 	data.totalImporte = Round(
@@ -117,19 +117,24 @@ const LiquidacionesCabeceraForm = ({
 										totalIntereses: 0,
 										diasVencimiento: 0,
 									};
-									calculoResarcitorios(changes.fechaVencimiento, data.fechaPagoEstimada, data.totalAporte ?? 0)
-										.forEach(({ interes, dias }) => {
-											changes.totalIntereses += interes;
-											changes.diasVencimiento += dias;
-										});
-									changes.totalIntereses = Round(changes.totalIntereses, 2);
-									changes.diasVencimiento = Round(changes.diasVencimiento);
+									(
+										{
+											interes: changes.totalIntereses,
+											dias: changes.diasVencimiento
+										} = calculoResarcitorios(changes.fechaVencimiento,
+											data.fechaPagoEstimada,
+											data.totalAporte ?? 0)
+									);
 									changes.liquidaciones = AsArray(data.liquidaciones).map(
 										(l) => {
 											const r = { ...l, interesImporte: 0 };
-											calculoResarcitorios(changes.fechaVencimiento, data.fechaPagoEstimada, r.interesNeto ?? 0)
-												.forEach(({ interes }) => r.interesImporte += interes);
-											r.interesImporte = Round(r.interesImporte, 2);
+											(
+												{
+													interes: r.interesImporte
+												} = calculoResarcitorios(changes.fechaVencimiento,
+													data.fechaPagoEstimada,
+													r.interesNeto ?? 0)
+											);
 											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
 											return r;
 										}
@@ -153,19 +158,24 @@ const LiquidacionesCabeceraForm = ({
 										totalIntereses: 0,
 										diasVencimiento: 0,
 									};
-									calculoResarcitorios(data.fechaVencimiento, changes.fechaPagoEstimada, data.totalAporte ?? 0)
-										.forEach(({ interes, dias }) => {
-											changes.totalIntereses += interes;
-											changes.diasVencimiento += dias;
-										});
-									changes.totalIntereses = Round(changes.totalIntereses, 2);
-									changes.diasVencimiento = Round(changes.diasVencimiento);
+									(
+										{
+											interes: changes.totalIntereses,
+											dias: changes.diasVencimiento
+										} = calculoResarcitorios(data.fechaVencimiento,
+											changes.fechaPagoEstimada,
+											data.totalAporte ?? 0)
+									);
 									changes.liquidaciones = AsArray(data.liquidaciones).map(
 										(l) => {
 											const r = { ...l, interesImporte: 0 };
-											calculoResarcitorios(data.fechaVencimiento, changes.fechaPagoEstimada, r.interesNeto ?? 0)
-												.forEach(({ interes }) => r.interesImporte += interes);
-											r.interesImporte = Round(r.interesImporte, 2);
+											(
+												{
+													interes: r.interesImporte
+												} = calculoResarcitorios(data.fechaVencimiento,
+													changes.fechaPagoEstimada,
+													r.interesNeto ?? 0)
+											);
 											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
 											return r;
 										}

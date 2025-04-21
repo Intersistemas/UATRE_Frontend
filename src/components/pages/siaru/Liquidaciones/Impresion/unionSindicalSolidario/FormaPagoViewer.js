@@ -5,8 +5,11 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import FormaPagoPDF from "./FormaPagoPDF";
 import Formato from "components/helpers/Formato";
 import { insertString } from "components/helpers/Utils";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
+import Round from "components/helpers/Round";
 
 const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
+	const { calculoResumen } = useCalculoResarcitorios();
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -198,8 +201,18 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 				r.trabajadores += formaPago.trabajadores ?? 0;
 				r.remuneraciones += formaPago.remuneraciones ?? 0;
 				r.capital += formaPago.capital ?? 0;
-				r.intereses += formaPago.intereses ?? 0;
-				r.total += formaPago.total ?? 0;
+				// r.intereses += formaPago.intereses ?? 0;
+				// r.total += formaPago.total ?? 0;
+				(
+					{
+						interes: r.intereses
+					} = calculoResumen(
+						newCabecera.fechaVencimiento,
+						newCabecera.fechaPagoEstimada,
+						r.capital
+					)
+				);
+				r.total = Round(r.capital + r.intereses, 2);
 				Object.entries(formaPago).forEach(([k, v]) => {
 					if (r[k] !== undefined) return;
 					r[k] = v;
@@ -239,8 +252,18 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 			oldLinea.trabajadores += linea.trabajadores ?? 0;
 			oldLinea.remuneraciones += linea.remuneraciones ?? 0;
 			oldLinea.capital += linea.capital ?? 0;
-			oldLinea.intereses += linea.intereses ?? 0;
-			oldLinea.total += linea.total ?? 0;
+			// oldLinea.intereses += linea.intereses ?? 0;
+			// oldLinea.total += linea.total ?? 0;
+			(
+				{
+					interes: oldLinea.intereses
+				} = calculoResumen(
+					newCabecera.fechaVencimiento,
+					newCabecera.fechaPagoEstimada,
+					oldLinea.capital
+				)
+			);
+			oldLinea.total = Round(oldLinea.capital + oldLinea.intereses, 2);
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
