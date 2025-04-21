@@ -476,8 +476,8 @@ const useEmpresas = ({
 							errors.domicilioProvinciasId = "Dato requerido";
 						if ((record.domicilioLocalidadesId ?? 0) === 0)
 							errors.domicilioLocalidadesId = "Dato requerido";
-						if (!record.actividadPrincipalDescripcion)
-							errors.actividadPrincipalDescripcion = "Dato requerido";
+						if (record.actividadPrincipalId == null)
+							errors.actividadPrincipalId = "Dato requerido";
 						if (!record.telefono) errors.telefono = "Dato requerido";
 						else if (!matchIsValidTel(record.telefono)) errors.telefono = "Dato incorrecto";
 						if (!record.email) errors.email = "Dato requerido";
