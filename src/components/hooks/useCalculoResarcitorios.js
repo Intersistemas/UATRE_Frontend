@@ -145,11 +145,17 @@ export default function useCalculoResarcitorios() {
 		() => ({
 			config: {
 				baseURL: "Comunes",
-				endpoint: `/ARCATasasInteres/GetAll`,
+				endpoint: `/ARCATasasInteres`,
 				method: "GET",
 			},
 		}),
-		{ query: { config: { errorType: "response" } } }
+		{ query: {
+			config: { errorType: "response" },
+			params: {
+				deleted: false,
+				sort: "desdeFecha,hastaFecha"
+			}
+		} }
 	);
 
 	const tasasARCA = useSelector((state) => state.tasasARCA) ?? [];
