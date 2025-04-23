@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import useQueryState from "./useQueryState";
-import { handleTasasARCA } from "redux/actions";
 import Round from "components/helpers/Round";
 
 function sTOd(fec2) {
@@ -140,22 +138,26 @@ function difFecha(fec7,fec6) {
 }
 
 export default function useCalculoResarcitorios() {
-	const dispatch = useDispatch();
 	const { setState: setTasasInteresQuery } = useQueryState(
 		() => ({
 			config: {
 				baseURL: "Comunes",
-				endpoint: `/ARCATasasInteres/GetAll`,
+				endpoint: `/ARCATasasInteres`,
 				method: "GET",
 			},
 		}),
-		{ query: { config: { errorType: "response" } } }
+		{ query: {
+			config: { errorType: "response" },
+			params: {
+				deleted: false,
+				sort: "desdeFecha,hastaFecha"
+			}
+		} }
 	);
 
-	const tasasARCA = useSelector((state) => state.tasasARCA) ?? [];
 	const [state, setState] = useState({
-		ready: !!tasasARCA?.length,
-		data: tasasARCA
+		ready: false,
+		data: []
 	})
 
 	useEffect(() => {
@@ -186,10 +188,9 @@ export default function useCalculoResarcitorios() {
 				})
 				if (previo) previo.hasta = 20991231;
 				setState((o) => ({ ...o, ready: true, loading: false, data }));
-				dispatch(handleTasasARCA(data));
 			}
 		}))
-	}, [state, setTasasInteresQuery, dispatch]);
+	}, [state, setTasasInteresQuery]);
 
 	/**
 	 * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")

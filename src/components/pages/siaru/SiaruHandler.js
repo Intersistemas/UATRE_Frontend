@@ -354,7 +354,7 @@ const SiaruHandler = () => {
 
 					if (!record.domicilioLocalidadesId) errors.domicilioLocalidadesId = "Dato requerido";
 
-					if (!record.actividadPrincipalId) errors.actividadPrincipalId = "Dato requerido";
+					if (record.actividadPrincipalId == null) errors.actividadPrincipalId = "Dato requerido";
 
 					if (!record.telefono) errors.telefono = "Dato requerido";
 					else if (!isPossiblePhoneNumber(record.telefono)) errors.telefono = "Dato inválido";

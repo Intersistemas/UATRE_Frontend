@@ -23,7 +23,10 @@ export function Numero(numero) {
 
 export function Porcentaje(numero) {
 	if (numero == null) return "";
-	return Intl.NumberFormat("es-AR", { style: "percent" }).format(numero);
+	return Intl.NumberFormat("es-AR", {
+		style: "percent",
+		maximumFractionDigits: 6,
+	}).format(numero);
 }
 
 export function Unidad(numero, unidad = null, display = "short") {
@@ -60,7 +63,7 @@ export function Hora(isoString) {
 export function FechaHora(isoString, type = "datetime") {
 	if (isoString == null) return "";
 	let ms = Date.parse(isoString);
-	if (isNaN(ms) || ms < 0) return "";
+	if (isNaN(ms)) return "";
 
 	const options = typeof type === "object" ? type : {};
 	if (typeof type === "string") {
@@ -76,6 +79,7 @@ export function FechaHora(isoString, type = "datetime") {
 			options.second = "2-digit";
 		}
 	}
+	options.timeZone ??= "UTC"
 
 	return Intl.DateTimeFormat("es-AR", options).format(new Date(ms));
 }

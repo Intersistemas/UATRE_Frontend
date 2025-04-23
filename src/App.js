@@ -47,6 +47,8 @@ import AfiliadoFormulariosAfiliacionHandler from 'components/pages/consultas/sol
 
 import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 
+import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
+
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
 import "./components/fonts/SantanderLogoRegular.ttf";*/
@@ -114,6 +116,7 @@ const App = () => {
               <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
               <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
               <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
+              <Route path="Inicio/Administracion/Tasas" element={<TasasARCAHandler />} />
 
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
