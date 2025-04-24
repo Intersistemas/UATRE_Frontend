@@ -215,7 +215,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 									label="CUIL"
 									//mask="99-99.999.999-9"
 									mask={CUITMask}
-									value={afiliados.selected.cuil}
+									value={afiliados.selected.cuilValidado != 0 ? afiliados.selected.cuilValidado : afiliados.selected.cuil}
 								/>
 								<InputMaterialDetail
 									label="Documento"
