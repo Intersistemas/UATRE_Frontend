@@ -305,7 +305,8 @@ const AfiliadosLista = (props) => {
 			text: "CUIL",
 			sort: true,
 			headerStyle: { width: "10rem", textAlign: "center" },
-			formatter: (v) => Formato.Cuit(v),
+		  formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+			//formatter: (v) => Formato.Cuit(v),
 		},
 		{
 			headerTitle: true,
