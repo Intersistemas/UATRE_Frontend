@@ -59,7 +59,7 @@ const FormularioOspreraHandler = () => {
 		];
 		const desc =formularioSelected?.id;
 			//Formato.Cuit(formularioSelected?.cuitTitular) || formularioSelected?.cuitTitular;
-
+	console.log("formularioSelected",formularioSelected)
 		actions.push(
 			createAction({
 				action: `Consulta Gestión ${desc}`,
@@ -129,7 +129,7 @@ const FormularioOspreraHandler = () => {
 				request: "E",
 				record: {},
 				tarea: "Osprera_GestionEnvioEmail",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
+				...(formularioSelected?.medioGestion == 'telefono' || !formularioSelected?.id
 					? { disabled: true }
 					: {
 							disabled: false,

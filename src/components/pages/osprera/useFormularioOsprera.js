@@ -362,14 +362,19 @@ const useFormularioOsprera = ({
 								fechaNacimiento: true,
 								sexo: true,
 								texto: true,	
-								telefono: true,							
+								telefono: true,
+								resultadoLlamada: true,
+								medioGestion: true,
+								tipoDocumentoId: true,
+								direccionesEmailDestino: true,
+								seccionalId: true,
 						  };
-					if (list.selection.request !== "B") r.deletedObs = true;
-					r.deletedBy = true;
-					r.deletedDate = true;
-
-					r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la seccionalId
-
+					if (list.selection.request !== "B") {
+							r.deletedObs = true;
+							r.deletedBy = true;
+							r.deletedDate = true;
+							r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la seccionalId
+						}
 					return r;
 				})()}
 				hide={
@@ -467,7 +472,7 @@ const useFormularioOsprera = ({
 						if (!record.nombreyApellido) errors.nombreyApellido = "Dato requerido";
 						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
 						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
-						if (!record.texto) errors.texto = "Dato requerido";
+						//if (!record.texto) errors.texto = "Dato requerido";
 						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
 						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";

@@ -17,6 +17,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import download from "downloadjs";
 import {
   Dialog,
   DialogActions,
@@ -31,6 +32,7 @@ import SearchSelectMaterial, {
 	includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
 import moment from "moment/moment";
+import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -95,7 +97,10 @@ const FormularioOspreraForm = ({
 	const [selectedTab, setSelectedTab] = useState(0);
 	const [mostrarAlertas, setMostrarAlertas] = useState(false);
 	const [titular, setTitular] = useState({
-		existeEn: "",
+		existeEnUATRE: null,
+		existeEnOSPRERA: null,
+		existeEnAFIP: null,
+		tieneDDJJ: null,
 		cuil: "",
 		tipoDocumentoId: 0,
 		nombreyApellido: "",
@@ -104,9 +109,60 @@ const FormularioOspreraForm = ({
 	})
 	const [titularPaciente, setTitularPaciente] = useState(false);
 	const [documentacionList, setDocumentacionList] = useState([]);
+	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+	  //#region Alert
+	  const [openDialog, setOpenDialog] = useState(false);
+	  const [dialogTexto, setDialogTexto] = useState("");
+	  //#endregion
 	
+	const onDownloadSolicitudAfiliacion = (conDatos = false) => {
 
-	//console.log("request,",request);
+		const dataFormulario = {
+						"seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
+						...Object.fromEntries(
+							`${data?.fecha || ""}`
+								.split("-")
+								.map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
+						),
+						...Object.fromEntries(
+							`${Formato.Cuit(data?.cuitTitular)}`
+								.split("-")
+								.map((v, i) => [
+									`trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
+									v,
+								])
+						),
+						"trabajador.documento": [
+							tipoDocumentoSelect?.selected?.label,
+							data?.dniPaciente,
+						].join(" "),
+						"trabajador.nacionalidad": "",
+						"trabajador.apellidos": data?.nombreyApellido,
+						"trabajador.nombres": data?.nombreyApellido,
+						"trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
+						"trabajador.estado_civil": "",
+						"trabajador.sexo": sexoSelect?.selected?.label,
+						"trabajador.domicilio": "",
+						"trabajador.localidad": "",
+						"trabajador.provincia": "",
+						"trabajador.oficio": "",
+						"trabajador.actividad": "",
+						"trabajador.telefono": data?.telefono,
+						"trabajador.correo": data?.direccionesEmailDestino,
+						"trabajador.cuil": data?.cuitTitular,
+					};
+		if (data.request !== "A") return;
+		conDatos ?
+		solicitudAfiliacion({data: dataFormulario,
+			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+		})
+		:
+		solicitudAfiliacion({
+			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+		})
+	};
+	
+	
 	console.log("data,",data);
 	
 	const { setState: setDocumentosQuery } = useQueryState(
@@ -184,6 +240,9 @@ const FormularioOspreraForm = ({
 
 	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
+		
+		console.log("Action",action);
+		console.log("params",params);
 		switch (action) {
 			case "GetAfiliado": {
 				return {
@@ -199,6 +258,15 @@ const FormularioOspreraForm = ({
 					config: {
 						baseURL: "Comunes",
 						endpoint: "/RefCIIU",
+						method: "GET",
+					},
+				};
+			}
+			case "GetDDJJ": {
+				return {
+					config: {
+						baseURL: "DDJJ",
+						endpoint: `/DDJJUatre/GetCUILUltimoAnio`,
 						method: "GET",
 					},
 				};
@@ -236,6 +304,16 @@ const FormularioOspreraForm = ({
 		}));
 	}, [tipoDocumentoSelect.buscar, tipoDocumentoSelect.data]);
 	
+
+	useEffect(() => {
+		setTipoDocumentoSelect((o) => ({
+			...o,
+			selected: {value: data.tipoDocumentoId, label: tipoDocumentoSelect.options.find((r) => r.value === data.tipoDocumentoId)?.label},
+		}));
+		
+	}, [tipoDocumentoSelect.options, data.tipoDocumentoId]);
+	//#endregion select sexo
+
 	//Carga inicial select tipo documento
 	useEffect(() => {
 		setTiposDocumentosQuery((o) => ({
@@ -273,6 +351,16 @@ const FormularioOspreraForm = ({
 	}, [sexoSelect.buscar, sexoSelect.data]);
 	//select sexo
 
+	// Buscador
+	useEffect(() => {
+		setSexoSelect((o) => ({
+			...o,
+			selected: {value: data.sexoId, label: sexoSelect.options.find((r) => r.value === data.sexoId)?.label},
+		}));
+		
+	}, [sexoSelect.options]);
+	//#endregion select sexo
+	
 	//Carga inicial select sexo
 	useEffect(() => {
 		setSexosQuery((o) => ({
@@ -301,6 +389,7 @@ const FormularioOspreraForm = ({
 		error: null,
 		options: [],
 		selected: {},
+		selectedAditionalData: {},
 		origen: "",
 	});
 	// Buscador
@@ -319,8 +408,9 @@ const FormularioOspreraForm = ({
 		setSeccionalSelect((o) => ({
 			...o,
 			selected: {value: data.seccionalId, label: seccionalSelect.options.find((r) => r.value === data.seccionalId)?.label},
+			selectedAditionalData: seccionalSelect?.options.find((r) => r.value === data?.seccionalId)?.record
 		}));
-		
+		console.log("seccional",seccionalSelect)
 	}, [seccionalSelect.options]);
 	//#endregion select seccionales
 
@@ -381,15 +471,21 @@ const FormularioOspreraForm = ({
 					changes.validado = "Titular NO registrado en UATRE";
 					changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
 
-					 onChange({
+					onChange({
 						existe: true,
 						cuitTitular: ok.cuit,
 						nombreyApellidoTitular: `${ok.apellido} ${ok.nombre}`  ?? "",
 						//tipoDocumento: puedo hacer un find en le tipoDocOptions
 					});
 
-					 setTitular(o => ({...o,
-						existeEn: "AFIP",
+					if (ok.tipoDocumento == "DNI"){
+						onChange({
+							tipoDocumentoId: tipoDocumentoSelect.options.find((r) => r.label == "DNI")?.value
+						});
+					}
+
+					setTitular(o => ({...o,
+						existeEnAFIP: true,
 						cuil: ok?.cuit,
 						tipoDocumentoId: 0,
 						sexoId: 0,
@@ -421,7 +517,7 @@ const FormularioOspreraForm = ({
 				});
 				
 				setTitular(o => ({...o,
-					existeEn: "UATRE",
+					existeEnUATRE: true,
 					cuil: ok?.cuil,
 					tipoDocumentoId: ok?.tipoDocumentoId,
 					nombreyApellido: `${ok?.nombre}`,
@@ -436,6 +532,29 @@ const FormularioOspreraForm = ({
 				setValidacionCUIT((o) => ({ ...o, ...changes }));
 			},
 		});
+
+		pushQuery({
+			action: "GetDDJJ",
+			params: { cuil: data.cuitTitular},
+		
+			onOk: async (ok) => {
+				console.log("ok_GetDDJJ:",ok)
+				if (ok.length > 0) {
+					onChange({ titularConDDJJ: true });
+				}
+			},
+			onError: async (error) => {
+				console.log("error_GetDDJJ:",error)
+				onChange({ titularConDDJJ: false });
+			},
+			onFinally: async () => {
+				loading = false;
+				setTitular(o => ({...o,
+					tieneDDJJ: data.titularConDDJJ,
+				}));
+			},
+		});
+		
 	};
 	//#endregion
 
@@ -463,10 +582,45 @@ const FormularioOspreraForm = ({
 			setMostrarAlertas(true);
 	}
 
+	const handleConfirma = () => {
+		onDownloadSolicitudAfiliacion(data)
+		if (data.request == "A"){
+			const cuilValidado = async() => validarCUITHandler()
+			if (!titular.existeEnUATRE && (!titular.tieneDDJJ || !titular.existeEnAFIP)) {
+				setDialogTexto("Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual.")
+				setOpenDialog(true)
+				onDownloadSolicitudAfiliacion(false)
+			}else{
+				onDownloadSolicitudAfiliacion(true)
+			}
+		}
+		onClose(true)
+	}
+
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+
 	return (
+	<>
+
+		<div>
+			<Dialog onClose={()=>(setDialogTexto(""), setOpenDialog(false))} open={openDialog}>
+				<DialogContent dividers>
+					<Typography 
+						gutterBottom
+						style={{whiteSpace: 'pre-line'}}
+						>{dialogTexto}
+					</Typography>
+					
+				</DialogContent>
+				<DialogActions>
+					<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), setOpenDialog(false))}>
+						Cierra
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</div>
 		<Modal show /*onHide={() => onClose()}*/ size="lg" centered>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
 				<h3>{title}</h3>
@@ -529,7 +683,7 @@ const FormularioOspreraForm = ({
 										seccionalSelect.loading ?? seccionalSelect.error ?? errors.seccionalId
 									}
 									value={seccionalSelect.selected}
-									disabled={disabled.seccionalId ?? false}
+									disabled={disabled.seccionalId}
 									onChange={(selected = {}) => {
 										setSeccionalSelect((o) => ({ ...o, selected, origen: "option" }));
 										onChange({seccionalId: selected.value});
@@ -566,7 +720,7 @@ const FormularioOspreraForm = ({
 									errors.tipoDocumentoId
 								}
 								value={tipoDocumentoSelect.selected}
-								disabled={disabled.trabajador}
+								disabled={disabled.dniPaciente}
 								onChange={(selected = {}) => {
 									setTipoDocumentoSelect((o) => ({
 										...o,
@@ -642,6 +796,20 @@ const FormularioOspreraForm = ({
 							}
 						/>
 					</Grid>
+					<Grid width="full" gap="inherit">
+						<TextField
+							fullWidth
+							multiline
+							maxRows={4}
+							label="Detalle de la Gestión"
+							error={!!errors.texto}
+							helperText={errors.texto ?? ""}
+							value={data.texto}
+							disabled={disabled.texto ?? false}
+							onChange={(texto) => onChange({ texto: texto.target.value })}
+						/>
+						
+					</Grid>
 					<FormControl error={!!errors.medioGestion} component="fieldset" variant="standard">
 						<FormLabel id="demo-row-radio-buttons-group-label">Medio de Gestión:</FormLabel>
 						<RadioGroup
@@ -697,20 +865,6 @@ const FormularioOspreraForm = ({
 						</Grid>
 						}
 						</Grid>
-					</Grid>
-					<Grid width="full" gap="inherit">
-							<TextField
-								fullWidth
-								multiline
-								maxRows={4}
-								label="Observaciones"
-								error={!!errors.texto}
-								helperText={errors.texto ?? ""}
-								value={data.texto}
-								disabled={disabled.texto ?? false}
-								onChange={(texto) => onChange({ texto: texto.target.value })}
-							/>
-						
 					</Grid>
 					{hide.deletedObs ? null : (
 						<Grid width="full" gap="inherit">
@@ -775,13 +929,14 @@ const FormularioOspreraForm = ({
 					className="botonAzul"
 					loading={loading}
 					width={25}
-					onClick={request == "E" ? 
+					onClick={
+						
+						request == "E" ? 
 							() => hanlerEnviaEmail() 
 							: 
-							() => onClose(true)
+							() =>(handleConfirma())
 						}
 				>
-					
 					{request == "E" || data.medioGestion == "email" ? "CONFIRMA y ENVIA" : "CONFIRMA"}
 				</Button>
 
@@ -803,6 +958,7 @@ const FormularioOspreraForm = ({
 				</Stack>}
 			</Modal.Footer>
 		</Modal>
+	</>
 	);
 };
 

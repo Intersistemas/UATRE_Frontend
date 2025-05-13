@@ -36,6 +36,7 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 		{
 			dataField: "dniPaciente",
 			text: "DNI Paciente",
+			formatter: Formato.DNI,
 			style: { textAlign: "left" },
 		},
 		{
