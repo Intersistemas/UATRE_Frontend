@@ -61,13 +61,12 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	//#endregion configuraciones API
 
 	const sinFechaPagoEstimada = liquidacionCabecera.fechaPagoEstimada == null;
-	const vencido = sinFechaPagoEstimada || dayjs(liquidacionCabecera.fechaPagoEstimada).add(1, "days") < dayjs();
 
 	//#region dependencias
 
 	//#region formasPago
 	const [formasPago, setFormasPago] = useState({
-		reload: !vencido,
+		reload: true,
 		loading: null,
 		liquidacionCabeceraId: liquidacionCabecera.id,
 		data: [],
@@ -106,7 +105,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 
 	//#region select formaPago
 	const [formaPagoSelect, setFormaPagoSelect] = useState({
-		loading: vencido ? null : "Cargando...",
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		options: [],
@@ -200,14 +199,6 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 				style={{ color: "red" }}
 			>{`No se puede imprimir porque la boleta no tiene fecha de vencimiento`}</text>
 		);
-	} else if (vencido) {
-		contenido = (
-			<text
-				style={{ color: "red" }}
-			>{`No se puede imprimir una boleta vencida (Fecha de pago: ${Formato.Fecha(
-				liquidacionCabecera.fechaPagoEstimada
-			)})`}</text>
-		);
 	} else if (formasPago.loading || formaPago.loading) {
 		contenido = <text>Cargando...</text>;
 	} else if (formaPago.data == null) {
@@ -271,9 +262,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 							{formaPago.data != null ? null : (
 								<Button
 									className="botonAmarillo"
-									disabled={
-										(formaPagoSelect.selected?.value ?? 0) === 0 || vencido
-									}
+									disabled={(formaPagoSelect.selected?.value ?? 0) === 0}
 									loading={formaPago.loading}
 									onClick={() => onImprime()}
 								>
