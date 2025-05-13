@@ -9,6 +9,7 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
+import SolicitudAutorizacionAfiliacion from "./solicitudAfiliacion/AfiliacionesPorEmpresa/SolicitudAutorizacionAfiliacion";
 import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
@@ -128,6 +129,23 @@ const ConsultasHandler = () => {
 						tarea="Consultas_NotificacionEmpresa"
 					>
 						Notificación a Empresa
+					</Button>
+				
+				</Grid>
+				{/**Nuevo boton agregado */}
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						
+						onClick={() =>
+							setConsulta(
+								<SolicitudAutorizacionAfiliacion onClose={() => setConsulta(null)} />
+							)
+						}
+						width="32"
+						tarea="Informes_Afiliados_AfiliadosEmpresa"
+					>
+						Afiliaciónes por Empresa
 					</Button>
 				
 				</Grid>
