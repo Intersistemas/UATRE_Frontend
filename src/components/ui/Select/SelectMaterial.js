@@ -49,8 +49,8 @@ const SelectMaterial = (props) => {
 					style: { minHeight: "inherit", ...props.SelectDisplayProps?.style },
 				}}
 			>
-				{props.options.map((option) => (
-					<MenuItem key={option.value} value={option.value}>
+				{props.options.map((option, index) => (
+					<MenuItem key={index} value={option.value}>
 						{option.label}
 					</MenuItem>
 				))}
