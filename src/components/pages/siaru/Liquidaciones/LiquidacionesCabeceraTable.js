@@ -52,7 +52,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 		},
 		{
 			dataField: "totalAporte",
-			text: "T. aporte",
+			text: "Capital",
 			formatter: (v) => Formato.Moneda(v),
 			sort: true,
 			headerStyle: { width: "120px" },
