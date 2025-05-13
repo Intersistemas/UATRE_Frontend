@@ -45,6 +45,8 @@ import InformesHandler from 'components/pages/informes/InformesHandler';
 import ConsultasHandler from 'components/pages/consultas/ConsultasHandler';
 import AfiliadoFormulariosAfiliacionHandler from 'components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler';
 
+import GestionOspreraHandler from 'components/pages/osprera/FormularioOspreraHandler';
+
 import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 
 import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
@@ -122,6 +124,9 @@ const App = () => {
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
               <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler/>}/>
               <Route path="Inicio/Auditorias" element={<AuditoriasHandler />}/>
+
+              <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>
+              
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
