@@ -1,7 +1,10 @@
+
+
+
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
-// import downloadjs from "downloadjs";
-// import ArrayToCSV from "components/helpers/ArrayToCSV";
+import downloadjs from "downloadjs";
+import ArrayToCSV from "components/helpers/ArrayToCSV";
 import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
@@ -204,16 +207,16 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
             changes.loading = null;
             changes.error = error.toString();
         };
-        // query.onFinally = async () => {
-        //     setCSV((o) => ({ ...o, ...changes }));
-        //     if (changes.loading) return;
-        //     if (changes.error) return;
-        //     downloadjs(
-        //         ArrayToCSV(changes.data),
-        //         "EstadosSolicitudesEmpresas.csv",
-        //         "text/csv"
-        //     );
-        // };
+        query.onFinally = async () => {
+            setCSV((o) => ({ ...o, ...changes }));
+            if (changes.loading) return;
+            if (changes.error) return;
+            downloadjs(
+                ArrayToCSV(changes.data),
+                "EstadosSolicitudesEmpresas.csv",
+                "text/csv"
+            );
+        };
         setCSV((o) => ({ ...o, ...changes }));
         pushQuery(query);
     }, [csv, pushQuery]);
@@ -224,260 +227,531 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
     UseKeyPress(["Escape"], () => onClose());
     UseKeyPress(["Enter"], () => onCSV(), "AltKey");
 
+    // return (
+    //     <Modal size="xl" centered show >
+    //         <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
+    //             Estados de solicitudes por empresa
+    //         </Modal.Header>
+    //         <Modal.Body>
+    //             <Grid col full gap="15px">
+    //                 <Grid width gap="inherit">
+    //                     <Grid width="200px">
+    //                         <InputMaterial
+    //                             label="CUIT empresa"
+    //                             //mask="99\-99.999.999\-9"
+    //                             mask={CUITMask}
+    //                             value={filtros.cuit}
+    //                             onChange={(cuit) =>
+    //                                 setFiltros((o) => {
+    //                                     cuit = cuit.replace(/[^0-9]+/g, "");
+    //                                     const r = { ...o, cuit };
+    //                                     if (!cuit) delete r.cuit;
+    //                                     return r;
+    //                                 })
+    //                             }
+    //                         />
+    //                     </Grid>
+    //                     <Grid grow>
+    //                         <InputMaterial
+    //                             label="Razón social empresa"
+    //                             value={filtros.razonSocial}
+    //                             onChange={(razonSocial) =>
+    //                                 setFiltros((o) => {
+    //                                     const r = { ...o, razonSocial };
+    //                                     if (!razonSocial) delete r.razonSocial;
+    //                                     return r;
+    //                                 })
+    //                             }
+    //                         />
+    //                     </Grid>
+    //                 </Grid>
+    //                 <Grid width gap="inherit">
+    //                     <Grid grow>
+    //                         <SearchSelectMaterial
+    //                             id="estadoSelect"
+    //                             label="Estado"
+    //                             error={!!estadoSelect.error}
+    //                             helperText={estadoSelect.loading ?? estadoSelect?.error}
+    //                             value={estadoSelect.selected}
+    //                             onChange={(selected) => {
+    //                                 setEstadoSelect((o) => ({ ...o, selected }));
+    //                                 setFiltros((o) => {
+    //                                     const filtros = {
+    //                                         ...o,
+    //                                         estadoSolicitudId: selected.value,
+    //                                     };
+    //                                     if (selected === estadoSelectTodos)
+    //                                         delete filtros.estadoSolicitudId;
+    //                                     return filtros;
+    //                                 });
+    //                             }}
+    //                             options={estadoSelect.options}
+    //                             onTextChange={(buscar) =>
+    //                                 setEstadoSelect((o) => ({ ...o, buscar }))
+    //                             }
+    //                         />
+    //                     </Grid>
+    //                     <Grid width="200px">
+    //                         <Button
+    //                             className="botonAzul"
+    //                             disabled={
+    //                                 JSON.stringify(list.filtros) === JSON.stringify(filtros)
+    //                             }
+    //                             onClick={() => {
+    //                                 setList((o) => ({
+    //                                     ...o,
+    //                                     filtros,
+    //                                     data: [],
+    //                                     error: null,
+    //                                     loading: "Cargando...",
+    //                                     pagination: {...o.pagination, index: 1 },
+    //                                 }));
+    //                                 setCSV((o) => ({ ...o, filtros }));
+    //                             }}
+    //                         >
+    //                             Aplica filtros
+    //                         </Button>
+    //                     </Grid>
+    //                     <Grid width="200px">
+    //                         <Button
+    //                             className="botonAzul"
+    //                             disabled={Object.keys(filtros).length === 0}
+    //                             onClick={() => {
+    //                                 const filtros = {};
+    //                                 setEstadoSelect((o) => ({
+    //                                     ...o,
+    //                                     selected: estadoSelectTodos,
+    //                                 }));
+    //                                 setFiltros(filtros);
+    //                                 if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+    //                                     return;
+    //                                 setList((o) => ({
+    //                                     ...o,
+    //                                     filtros,
+    //                                     data: [],
+    //                                     error: null,
+    //                                     loading: "Cargando...",
+    //                                 }));
+    //                                 setCSV((o) => ({ ...o, filtros }));
+    //                             }}
+    //                         >
+    //                             Limpia filtros
+    //                         </Button>
+    //                     </Grid>
+    //                 </Grid>
+    //                 <Table
+    //                     remote
+    //                     keyField="id"
+    //                     data={list.data}
+    //                     mostrarBuscar={false}
+    //                     pagination={{
+    //                         ...list.pagination,
+    //                         onChange: (pagination) =>
+    //                             setList((o) => ({
+    //                                 ...o,
+    //                                 loading: "Cargando...",
+    //                                 pagination: { ...o.pagination, ...pagination },
+    //                                 data: [],
+    //                                 error: null,
+    //                             })),
+    //                     }}
+    //                     noDataIndication={
+    //                         list.loading || list.error || "No existen datos para mostrar "
+    //                     }
+    //                     columns={[
+    //                         {
+    //                             dataField: "empresaCUIT",
+    //                             text: "CUIT empresa",
+    //                             sort: true,
+    //                             formatter: (v) => Formato.Cuit(v),
+    //                             style: { textAlign: "center" },
+    //                         },
+    //                         {
+    //                             dataField: "empresaRazonSocial",
+    //                             text: "Razón social empresa",
+    //                             sort: true,
+    //                             style: { textAlign: "left" },
+    //                         },
+    //                         {
+    //                             dataField: "estadoSolicitudDescripcion",
+    //                             text: "Estado",
+    //                             sort: true,
+    //                             style: { textAlign: "left" },
+    //                         },
+    //                         {
+    //                             dataField: "total",
+    //                             text: "Cantidad",
+    //                             formatter: (v) => Formato.Numero(v),
+    //                             style: { textAlign: "right" },
+    //                         },
+    //                     ]}
+    //                     onTableChange={(type, { sortOrder, sortField }) => {
+    //                         switch (type) {
+    //                             case "sort": {
+    //                                 sortField =
+    //                                     { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
+    //                                         sortField
+    //                                     ] ?? sortField;
+    //                                 const sortBy = `${
+    //                                     sortOrder === "desc" ? "-" : "+"
+    //                                 }${sortField}`;
+    //                                 setList((o) => ({
+    //                                     ...o,
+    //                                     loading: "Cargando...",
+    //                                     params: { ...o.params, sortBy },
+    //                                     data: [],
+    //                                     error: null,
+    //                                 }));
+    //                                 setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
+    //                                 return;
+    //                             }
+    //                             default:
+    //                                 return;
+    //                         }
+    //                     }}
+    //                 />
+    //             </Grid>
+    //         </Modal.Body>
+    //         <Modal.Footer>
+    //             <Grid col gap="5px">
+    //                 <Grid gap="20px" justify="end">
+    //                      <Grid gap="20px" justify="end">
+    //                        {
+    //                         filtros.cuit > 10000000000 ? (
+    //                              <Grid width="auto">
+    //                         <Button
+    //                             className="botonAmarillo"
+    //                             loading={!!csv.loading}
+    //                             // onClick={() => onCSV()}
+    //                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+    //                         >
+    //                             ANALIZAR CUIT
+    //                         </Button>
+    //                     </Grid>
+    //                         ) : (
+    //                             null
+    //                         )
+
+    //                        }
+    //                     <Grid width="auto">
+    //                         <Button
+    //                             className="botonAmarillo"
+    //                             loading={!!csv.loading}
+    //                             // onClick={() => onCSV()}
+    //                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+    //                         >
+    //                             SOLICITAR AUTORIZACION AFILIACIONES
+    //                         </Button>
+    //                     </Grid>
+    //                     <Grid width="auto">
+    //                         <Button
+    //                             className="botonAmarillo"
+    //                             loading={!!csv.loading}
+    //                             // onClick={() => onCSV()}
+    //                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+    //                         >
+    //                             AUTORIZAR AFILIACIONES
+    //                         </Button>
+    //                     </Grid>
+                       
+    //                 </Grid>
+    //                     <Grid width="auto">
+    //                         <Button
+    //                             className="botonAmarillo"
+    //                             loading={!!csv.loading}
+    //                             // onClick={() => onCSV()}
+    //                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+    //                         >
+    //                             GENERAR FORMULARIO DE AFILIACIONES
+    //                         </Button>
+    //                     </Grid>
+                       
+    //                 </Grid>
+    //                 {csv.loading == null ? null : (
+    //                     <text style={{ color: "green" }}>{csv.loading}</text>
+    //                 )}
+    //                 {csv.error == null ? null : (
+    //                     <text style={{ color: "red" }}>{csv.error}</text>
+    //                 )}
+    //             </Grid>
+    //         </Modal.Footer>
+    //     </Modal>
+    // );
+
+
     return (
-        <Modal size="xl" centered show >
-            <Modal.Header className={modalCss.modalCabecera}  onClick={() => onClose()} closeButton>
-                Solicitud de Autorización de Afiliaciones
-            </Modal.Header>
-            <Modal.Body>
-                <Grid col full gap="15px">
-                    <Grid width gap="inherit">
-                        <Grid width="200px">
-                            <InputMaterial
-                                label="CUIT empresa"
-                                //mask="99\-99.999.999\-9"
-                                mask={CUITMask}
-                                value={filtros.cuit}
-                                onChange={(cuit) =>
-                                    setFiltros((o) => {
-                                        cuit = cuit.replace(/[^0-9]+/g, "");
-                                        const r = { ...o, cuit };
-                                        if (!cuit) delete r.cuit;
-                                        return r;
-                                    })
-                                }
-                            />
-                        </Grid>
-                        <Grid grow>
-                            <InputMaterial
-                                label="Razón social empresa"
-                                value={filtros.razonSocial}
-                                onChange={(razonSocial) =>
-                                    setFiltros((o) => {
-                                        const r = { ...o, razonSocial };
-                                        if (!razonSocial) delete r.razonSocial;
-                                        return r;
-                                    })
-                                }
-                            />
-                        </Grid>
+    <Modal size="xl" centered show >
+        <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
+            Estados de solicitudes por empresa
+        </Modal.Header>
+        <Modal.Body>
+            <Grid col full gap="15px">
+                <Grid width gap="inherit">
+                    <Grid width="200px">
+                        <InputMaterial
+                            label="CUIT empresa"
+                            //mask="99\-99.999.999\-9"
+                            mask={CUITMask}
+                            value={filtros.cuit}
+                            onChange={(cuit) =>
+                                setFiltros((o) => {
+                                    cuit = cuit.replace(/[^0-9]+/g, "");
+                                    const r = { ...o, cuit };
+                                    if (!cuit) delete r.cuit;
+                                    return r;
+                                })
+                            }
+                        />
                     </Grid>
-                    <Grid width gap="inherit">
-                        <Grid grow>
-                            <SearchSelectMaterial
-                                id="estadoSelect"
-                                label="Estado"
-                                error={!!estadoSelect.error}
-                                helperText={estadoSelect.loading ?? estadoSelect?.error}
-                                value={estadoSelect.selected}
-                                onChange={(selected) => {
-                                    setEstadoSelect((o) => ({ ...o, selected }));
-                                    setFiltros((o) => {
-                                        const filtros = {
-                                            ...o,
-                                            estadoSolicitudId: selected.value,
-                                        };
-                                        if (selected === estadoSelectTodos)
-                                            delete filtros.estadoSolicitudId;
-                                        return filtros;
-                                    });
-                                }}
-                                options={estadoSelect.options}
-                                onTextChange={(buscar) =>
-                                    setEstadoSelect((o) => ({ ...o, buscar }))
-                                }
-                            />
-                        </Grid>
-                        <Grid width="200px">
-                            <Button
-                                className="botonAzul"
-                                disabled={
-                                    JSON.stringify(list.filtros) === JSON.stringify(filtros)
-                                }
-                                onClick={() => {
-                                    setList((o) => ({
-                                        ...o,
-                                        filtros,
-                                        data: [],
-                                        error: null,
-                                        loading: "Cargando...",
-                                        pagination: {...o.pagination, index: 1 },
-                                    }));
-                                    setCSV((o) => ({ ...o, filtros }));
-                                }}
-                            >
-                                Aplica filtros
-                            </Button>
-                        </Grid>
-                        <Grid width="200px">
-                            <Button
-                                className="botonAzul"
-                                disabled={Object.keys(filtros).length === 0}
-                                onClick={() => {
-                                    const filtros = {};
-                                    setEstadoSelect((o) => ({
-                                        ...o,
-                                        selected: estadoSelectTodos,
-                                    }));
-                                    setFiltros(filtros);
-                                    if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
-                                        return;
-                                    setList((o) => ({
-                                        ...o,
-                                        filtros,
-                                        data: [],
-                                        error: null,
-                                        loading: "Cargando...",
-                                    }));
-                                    setCSV((o) => ({ ...o, filtros }));
-                                }}
-                            >
-                                Limpia filtros
-                            </Button>
-                        </Grid>
+                    <Grid grow>
+                        <InputMaterial
+                            label="Razón social empresa"
+                            value={filtros.razonSocial}
+                            onChange={(razonSocial) =>
+                                setFiltros((o) => {
+                                    const r = { ...o, razonSocial };
+                                    if (!razonSocial) delete r.razonSocial;
+                                    return r;
+                                })
+                            }
+                        />
                     </Grid>
-                    <Table
-                        remote
-                        keyField="id"
-                        data={list.data}
-                        mostrarBuscar={false}
-                        pagination={{
-                            ...list.pagination,
-                            onChange: (pagination) =>
+                </Grid>
+                <Grid width gap="inherit">
+                    {/* Reemplazo el filtro de estado por los de fecha */}
+                    <Grid width="200px">
+                        <InputMaterial
+                            label="Desde"
+                            type="date"
+                            value={filtros.desde || ""}
+                            onChange={(desde) =>
+                                setFiltros((o) => ({
+                                    ...o,
+                                    desde,
+                                }))
+                            }
+                        />
+                    </Grid>
+                    <Grid width="200px">
+                        <InputMaterial
+                            label="Hasta"
+                            type="date"
+                            value={filtros.hasta || ""}
+                            onChange={(hasta) =>
+                                setFiltros((o) => ({
+                                    ...o,
+                                    hasta,
+                                }))
+                            }
+                        />
+                    </Grid>
+                    {/* <Grid width="200px">
+                        <Button
+                            className="botonAzul"
+                            disabled={
+                                Object.keys(filtros).length === 0 ||
+                                (filtros.desde === "" && filtros.hasta === "" && filtros.cuit === "" && filtros.razonSocial === "")
+                            }
+                            onClick={() => {
+                                const filtrosVacios = {};
+                                setFiltros(filtrosVacios);
+                                setList((o) => ({
+                                    ...o,
+                                    filtros: filtrosVacios,
+                                    data: [],
+                                    error: null,
+                                    loading: "Cargando...",
+                                }));
+                                setCSV((o) => ({ ...o, filtros: filtrosVacios }));
+                            }}
+                        >
+                            Limpiar filtros
+                        </Button>
+                    </Grid> */}
+
+                    <Grid width="200px">
+                    <Button
+                        className="botonAzul"
+                        disabled={JSON.stringify(list.filtros) === JSON.stringify(filtros)}
+                        onClick={() => {
+                            setList((o) => ({
+                                ...o,
+                                filtros,
+                                data: [],
+                                error: null,
+                                loading: "Cargando...",
+                                pagination: { ...o.pagination, index: 1 },
+                            }));
+                            setCSV((o) => ({ ...o, filtros }));
+                        }}
+                    >
+                        Aplicar filtros
+                    </Button>
+                </Grid>
+                <Grid width="200px">
+                    <Button
+                        className="botonAzul"
+                        disabled={
+                            Object.keys(filtros).length === 0 ||
+                            (filtros.desde === "" && filtros.hasta === "" && filtros.cuit === "" && filtros.razonSocial === "")
+                        }
+                        onClick={() => {
+                            const filtrosVacios = {};
+                            setFiltros(filtrosVacios);
+                            setList((o) => ({
+                                ...o,
+                                filtros: filtrosVacios,
+                                data: [],
+                                error: null,
+                                loading: "Cargando...",
+                            }));
+                            setCSV((o) => ({ ...o, filtros: filtrosVacios }));
+                        }}
+                    >
+                        Limpiar filtros
+                    </Button>
+                </Grid>
+
+                </Grid>
+                {filtros.cuit > 10000000000 ? <text style={{textAlign: "center"}}>AUTORIZACION DE AFILIACION PENDIENTE DE AUTORIZAR SOLICITADA EL DIA @@@@</text> : null}
+                <Table
+                    remote
+                    keyField="id"
+                    data={Array.isArray(list.data) ? list.data : []}
+                    mostrarBuscar={false}
+                    pagination={{
+                        ...list.pagination,
+                        onChange: (pagination) =>
+                            setList((o) => ({
+                                ...o,
+                                loading: "Cargando...",
+                                pagination: { ...o.pagination, ...pagination },
+                                data: [],
+                                error: null,
+                            })),
+                    }}
+                    noDataIndication={
+                        list.loading || list.error || "No existen datos para mostrar "
+                    }
+                    columns={[
+                        {
+                            dataField: "empresaCUIT",
+                            text: "CUIT empresa",
+                            sort: true,
+                            formatter: (v) => Formato.Cuit(v),
+                            style: { textAlign: "center" },
+                        },
+                        {
+                            dataField: "empresaRazonSocial",
+                            text: "Razón social empresa",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "estadoSolicitudDescripcion",
+                            text: "Estado",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "total",
+                            text: "Cantidad",
+                            formatter: (v) => Formato.Numero(v),
+                            style: { textAlign: "right" },
+                        },
+                    ]}
+                    onTableChange={(type, { sortOrder, sortField }) => {
+                        switch (type) {
+                            case "sort": {
+                                sortField =
+                                    { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
+                                        sortField
+                                    ] ?? sortField;
+                                const sortBy = `${
+                                    sortOrder === "desc" ? "-" : "+"
+                                }${sortField}`;
                                 setList((o) => ({
                                     ...o,
                                     loading: "Cargando...",
-                                    pagination: { ...o.pagination, ...pagination },
+                                    params: { ...o.params, sortBy },
                                     data: [],
                                     error: null,
-                                })),
-                        }}
-                        noDataIndication={
-                            list.loading || list.error || "No existen datos para mostrar "
-                        }
-                        columns={[
-                            {
-                                dataField: "empresaCUIT",
-                                text: "CUIT empresa",
-                                sort: true,
-                                formatter: (v) => Formato.Cuit(v),
-                                style: { textAlign: "center" },
-                            },
-                            {
-                                dataField: "empresaRazonSocial",
-                                text: "Razón social empresa",
-                                sort: true,
-                                style: { textAlign: "left" },
-                            },
-                            {
-                                dataField: "estadoSolicitudDescripcion",
-                                text: "Estado",
-                                sort: true,
-                                style: { textAlign: "left" },
-                            },
-                            {
-                                dataField: "total",
-                                text: "Cantidad",
-                                formatter: (v) => Formato.Numero(v),
-                                style: { textAlign: "right" },
-                            },
-                        ]}
-                        onTableChange={(type, { sortOrder, sortField }) => {
-                            switch (type) {
-                                case "sort": {
-                                    sortField =
-                                        { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
-                                            sortField
-                                        ] ?? sortField;
-                                    const sortBy = `${
-                                        sortOrder === "desc" ? "-" : "+"
-                                    }${sortField}`;
-                                    setList((o) => ({
-                                        ...o,
-                                        loading: "Cargando...",
-                                        params: { ...o.params, sortBy },
-                                        data: [],
-                                        error: null,
-                                    }));
-                                    setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
-                                    return;
-                                }
-                                default:
-                                    return;
+                                }));
+                                setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
+                                return;
                             }
-                        }}
-                    />
-                </Grid>
-            </Modal.Body>
-            <Modal.Footer>
-                <Grid col gap="5px">
-                    <Grid gap="20px" justify="end">
-                        {/* <Grid width="250px">
-                            <Button
-                                className="botonAmarillo"
-                                loading={!!csv.loading}
-                                onClick={() => onCSV()}
-                                tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            >
-                                GENERA ARCHIVO CSV
-                            </Button>
-                        </Grid> */}
-                        <Grid width="250px">
-                            <Button
-                                className="botonAmarillo"
-                                // loading={!!csv.loading}
-                                onClick={() => {}}
-                                // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            >
-                                NUEVA AUTORIZACION DE AFILIACIONESS
-                            </Button>
-                        </Grid>
-                        <Grid width="250px">
-                            <Button
-                                className="botonAmarillo"
-                                // loading={!!csv.loading}
-                                onClick={() => {}}
-                                // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            >
-                                RECHAZAR SOLICITUD DE AFILIACIONES
-                            </Button>
-                        </Grid>
-                        <Grid width="250px">
-                            <Button
-                                className="botonAmarillo"
-                                // loading={!!csv.loading}
-                                onClick={() => {}}
-                                // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            >
-                                 AUTORIZAR SOLICITUD DE AFILIACION
-                            </Button>
-                        </Grid>
-                        <Grid width="250px">
-                            <Button
-                                className="botonAmarillo"
-                                // loading={!!csv.loading}
-                                onClick={() => {}}
-                                // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            >
-                                DESCARGAR FORMULARIO DE AFILIACION
-                            </Button>
-                        </Grid>
-                        {/* <Grid width="150px">
-                            <Button className="botonAmarillo" onClick={() => onClose()}>
-                                FINALIZA
-                            </Button>
-                        </Grid> */}
+                            default:
+                                return;
+                        }
+                    }}
+                />
+            </Grid>
+        </Modal.Body>
+        <Modal.Footer>
+            <Grid col gap="5px">
+                <Grid gap="20px" justify="end">
+                    {
+                       filtros.cuit > 10000000000 && list.data ? (
+                            <Grid width="auto">
+                        <Button
+                            className="botonAmarillo"
+                            loading={!!csv.loading}
+                            // onClick={() => onCSV()}
+                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        >
+                            ANALIZAR CUIT
+                        </Button>
                     </Grid>
-                    {csv.loading == null ? null : (
-                        <text style={{ color: "green" }}>{csv.loading}</text>
-                    )}
-                    {csv.error == null ? null : (
-                        <text style={{ color: "red" }}>{csv.error}</text>
-                    )}
+                        ) : (
+                            null
+                        )
+
+                    }
+
+                    {/* ACTUALMENTE ESTA DESACTIVADO, SE ACTIVA UNICAMENTE CUANDO SE "ANALIZA CUIT" */}
+                    {/* <Grid width="auto">
+                        <Button
+                            className="botonAmarillo"
+                            loading={!!csv.loading}
+                            // onClick={() => onCSV()}
+                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        >
+                            SOLICITAR AUTORIZACION AFILIACIONES
+                        </Button>
+                    </Grid> */}
+                    <Grid width="auto">
+                        <Button
+                            className="botonAmarillo"
+                            loading={!!csv.loading}
+                            // onClick={() => onCSV()}
+                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        >
+                            AUTORIZAR AFILIACIONES
+                        </Button>
+                    </Grid>
+                     <Grid width="auto">
+                    <Button
+                        className="botonAmarillo"
+                        loading={!!csv.loading}
+                        // onClick={() => onCSV()}
+                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                    >
+                        GENERAR FORMULARIO DE AFILIACIONES
+                    </Button>
                 </Grid>
-            </Modal.Footer>
-        </Modal>
-    );
+                {csv.loading == null ? null : (
+                    <text style={{ color: "green" }}>{csv.loading}</text>
+                )}
+                {csv.error == null ? null : (
+                    <text style={{ color: "red" }}>{csv.error}</text>
+                )}
+            </Grid>
+                </Grid>
+               
+        </Modal.Footer>
+    </Modal>
+);
+
 };
 
 export default SolicitudAutorizacionAfiliacion;
