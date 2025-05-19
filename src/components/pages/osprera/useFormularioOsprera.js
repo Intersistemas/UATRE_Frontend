@@ -82,7 +82,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: "/AccesoOsprera/GetAccesoOSpreraSpec",
+						endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
 						method: "POST",
 					},
 				};
@@ -92,7 +92,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/AccesoOsprera/GetAccesoOspreraSpecs`,
+						endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
 						method: "POST",
 					},
 				};
@@ -101,7 +101,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/AccesoOsprera`,
+						endpoint: `/GestionOsprera`,
 						method: "POST",
 					},
 				};
@@ -110,7 +110,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/AccesoOsprera`,
+						endpoint: `/GestionOsprera`,
 						method: "PUT",
 					},
 				};
@@ -119,7 +119,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/AccesoOsprera/DarDeBaja`,
+						endpoint: `/GestionOsprera/DarDeBaja`,
 						method: "PATCH",
 					},
 				};
@@ -128,7 +128,7 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: `/AccesoOsprera/Reactivar`,
+						endpoint: `/GestionOsprera/Reactivar`,
 						method: "PATCH",
 					},
 				};
@@ -334,6 +334,7 @@ const useFormularioOsprera = ({
 							respuestaEnvioEmail: null,
 							usuarioId: usuario?.id ?? "",*/
 							seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
+							elPacienteEsTitular: list.selection.edit.elPacienteEsTitular ?? false,
 						}
 						:
 						["B"].includes(list.selection.request) ? //INIT PARA BAJA
@@ -352,13 +353,41 @@ const useFormularioOsprera = ({
 				// help={list.selection.help}
 				loading={!!list.loading}
 				disabled={(() => {
-					const r = ["A", "M"].includes(list.selection.request)
-						? {fecha: true}
+					const r = ["A"].includes(list.selection.request)
+						? {
+							
+							fecha: true,
+							telefonoContaco: true,
+							telefonoContaco2: true,
+							emailContacto: true,
+							emailContacto2: true,
+							elPacienteEsTitular: true,
+							dniPaciente: true,
+							nombrePaciente: true,
+							apellidoPaciente: true,
+							fechaNacimiento: true,
+							sexo: true,
+							texto: true,	
+							telefono: true,
+							resultadoLlamada: true,
+							medioGestion: true,
+							tipoDocumentoId: true,
+							direccionesEmailDestino: true,
+							seccionalId: true,
+						}
 						: {
-								fecha: true,
 								cuitTitular: true,
+								fecha: true,
+								nombreTitular: true,
+								apellidoTitular: true,
+								telefonoContaco: true,
+								telefonoContaco2: true,
+								emailContacto: true,
+								emailContacto2: true,
+								elPacienteEsTitular: true,
 								dniPaciente: true,
-								nombreyApellido: true,
+								nombrePaciente: true,
+								apellidoPaciente: true,
 								fechaNacimiento: true,
 								sexo: true,
 								texto: true,	
@@ -386,32 +415,10 @@ const useFormularioOsprera = ({
 					console.log("edit:",edit)
 					const changes = { edit: { ...edit }, errors: {}, help: {} };
 					if ("cuitTitular" in edit) {
-						changes.errors.cuitTitular = "";
-						changes.help.cuitTitular = "";
+						
 						if (edit.cuitTitular && `${edit.cuitTitular}`.length === 11) {
 							if (ValidarCUIT(edit.cuitTitular)) {
-								changes.help.cuitTitular = "Cargando...";
-								pushQuery({
-									action: "GetAccesoOspreraSpecs",
-									config: {
-										body: {
-											...list.params,
-											pageIndex: list.pagination.index,
-											pageSize: list.pagination.size,
-										},
-									},
-									onOk: async (record) => {
-										const params = { record };
-										if (record.deletedDate) {
-											params.request = "R";
-											params.action = `Reactiva Gestión ${Formato.Cuit(record.cuit)}`;
-										} else {
-											params.request = "M";
-											params.action = `Modifica Gestión ${Formato.Cuit(record.cuit)}`;
-										}
-										request("selected", params);
-									}
-								})
+								//changes.help.cuitTitular = "Cargando...";
 							} else {
 								changes.errors.cuitTitular = "CUIT inválido";
 							}
@@ -469,10 +476,13 @@ const useFormularioOsprera = ({
 					if (["A", "M"].includes(list.selection.request)) {
 						if (!record.cuitTitular) errors.cuitTitular = "Dato requerido"; else if (!ValidarCUIT(record.cuitTitular)) errors.cuitTitular = "CUIT Incorrecto";
 						if (!record.dniPaciente) errors.dniPaciente = "Dato requerido";
-						if (!record.nombreyApellido) errors.nombreyApellido = "Dato requerido";
+
+						if (!record.apellidoTitular) errors.apellidoTitular = "Dato requerido";
+						if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
+						if (!record.apellidoPaciente) errors.apellidoPaciente = "Dato requerido";
+						if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
 						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
 						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
-						//if (!record.texto) errors.texto = "Dato requerido";
 						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
 						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";

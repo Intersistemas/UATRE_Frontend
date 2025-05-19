@@ -72,6 +72,7 @@ const DocumentacionForm = ({ config }) => {
 								onChange({
 									archivoBase64: reader.result?.split("base64,")[1],
 									archivoNombre: archivo.name,
+									archivoTipo: archivo.type,
 								});
 						}}
 					/>

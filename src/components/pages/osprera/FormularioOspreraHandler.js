@@ -142,7 +142,7 @@ const FormularioOspreraHandler = () => {
 	}, [formularioOspreraRequest, formularioSelected]);
 
 	tabs.push({
-		header: () => <Tab label="Gestiones Osprera" />,
+		header: () => <Tab label="Gestiones de Obra Social" />,
 		body: () => (
 			<Grid width col gap="10px">
 				<Grid />

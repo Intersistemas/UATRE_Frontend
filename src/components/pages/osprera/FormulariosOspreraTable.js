@@ -28,9 +28,17 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},
 		{
-			dataField: "nombreyApellido",
-			text: "Nombre y Apellido",
-			sort: true,
+			dataField: "apellidoTitular",
+			text: "Titular",
+			sort: false,
+			formatter : (value, row) => `${row.apellidoTitular} ${row.nombreTitular}`,
+			style: { textAlign: "left" },
+		},
+		{
+			dataField: "apellidoPaciente",
+			text: "Paciente",
+			sort: false,
+			formatter : (value, row) => `${row.apellidoPaciente} ${row.nombrePaciente}`,
 			style: { textAlign: "left" },
 		},
 		{
