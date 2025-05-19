@@ -717,7 +717,9 @@ const FormularioOspreraForm = ({
 			}else{
 				onDownloadSolicitudAfiliacion(true)
 				if (data.medioGestion == "email") sendEnviarEmailHandler()
+					
 			}
+			onClose(true)
 		}else{
 			onClose(true)
 		}
