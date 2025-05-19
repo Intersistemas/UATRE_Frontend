@@ -632,7 +632,7 @@ const FormularioOspreraForm = ({
 			action: "GetAfiliado",
 			params: { CUIL: data.cuitTitular},
 			onOk: async (ok) => {
-				changes.validado = "Titular Afiliado a UATRE";
+				changes.validado = ok?.estadoSolicitudId == 2 ? "Titular Afiliado a UATRE" : `Titular ${ok?.estadoSolicitud} en UATRE - ${ok?.refMotivoBajaDescripcion}`;
 				changes.datoAFIP = "";
 				const [apellidoTitular, nombreTitular] = ok.nombre.split(" ");
 				onChange({
