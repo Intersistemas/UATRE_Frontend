@@ -315,7 +315,7 @@ const FormularioOspreraHandler = () => {
 			<div className="tabs">
 				<text>
 					{formularioSelected?.cuitTitular
-						? ` Nro. Gestión: ${formularioSelected?.id} (${formularioSelected?.cuitTitular} - ${formularioSelected.nombreyApellido ?? ""})`
+						? ` Nro. Gestión: ${formularioSelected?.id} (${Formato.Cuit(formularioSelected?.cuitTitular)}  |  ${formularioSelected?.apellidoTitular}${formularioSelected?.nombreTitular})`
 						: " "}
 				</text>
 
