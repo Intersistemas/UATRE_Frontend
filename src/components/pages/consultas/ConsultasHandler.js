@@ -26,11 +26,14 @@ const ConsultasHandler = () => {
 	console.log("disableTabSeccionales",disableTabSeccionales)
 	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 
+	///////////////////////////////////0//////////////////////////////////////
 	const onDownloadSolicitudAfiliacion = () => {
 		solicitudAfiliacion({
 			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
 		});
 	};
+
+	////////////////////////////////0///////////////////////////////////////
 
 	const onDownloadSolicitudCambioSeccional = () => {
 		const link = document.createElement("a");
@@ -72,6 +75,7 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
+					{/* //////////////////////////////0///////////////////////////////////// */}
 					<Button
 						className="botonAmarillo"
 						onClick={() => onDownloadSolicitudAfiliacion()}
@@ -80,6 +84,7 @@ const ConsultasHandler = () => {
 					>
 						Solicitud de Afiliación
 					</Button>
+					{/* ///////////////////////////////0/////////////////////////////////// */}
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
 					<Button

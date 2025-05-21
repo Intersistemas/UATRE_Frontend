@@ -1,7 +1,18 @@
 
+//----------------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
 
 import React, { use, useEffect, useState } from "react";
+import download from "downloadjs";
 import { Modal } from "react-bootstrap";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
@@ -20,7 +31,13 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import { Alert } from "bootstrap/dist/js/bootstrap.bundle.min";
 
+import useSolicitudAfiliacion from "./AfiliacionesPorEmpresaPDF/useSolicitudAfiliacion";
+
 const onCloseDef = () => {};
+
+
+
+
 
 //#region estadoSelectOptions
 const estadoSelectTodos = { value: 0, label: "Todos" };
@@ -64,8 +81,38 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
     const [rechazarAutorizacion, setRechazarAutorizacion] = useState(false);
     const [textInformativo, setTextInformativo] = useState(false);
     const [autorizacion_afil, setAutorizacion_afil] = useState(false)
+    const [desactivarBtn, setDesactivarBtn] = useState(false)
+
+    //-----------------------------------------------------------
+
+    const [showPDF, setShowPDF] = useState(false);
+    const [pdfData, setPdfData] = useState([]);
+    const [ambitoUser, setAmbitoUser] = useState({}); // Ajusta según tu contexto real
+
+
+
+    //----------------------------------------------
+
+    // Calcula la fecha de 3 meses atrás
+        const getFechaTresMesesAtras = () => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 3);
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        };
+
+//-----------------------------------------------
     //#region filtros
-    const [filtros, setFiltros] = useState({});
+    // const [filtros, setFiltros] = useState({});
+    // Estado inicial de filtros
+const [filtros, setFiltros] = useState({
+    desde: getFechaTresMesesAtras(),
+    hasta: "",
+    cuit: "",
+    razonSocial: ""
+});
 
 
     //#region filtro estado
@@ -80,30 +127,45 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
         selected: estadoSelectTodos,
     });
 
-    useEffect(() => {
-        if (!estadoSelect.reload) return;
-        const changes = {
-            reload: null,
-            loading: "Cargando...",
-            data: [],
-            error: null,
-            buscar: "",
-            options: [],
-        };
-        setEstadoSelect((o) => ({ ...o, ...changes }));
-        pushQuery({
-            action: "GetEstados",
-            params: { ...estadoSelect.params },
-            onOk: (data) => {
-                if (!Array.isArray(data))
-                    return console.error("Se esperaba un arreglo", data);
-                changes.data = data;
-            },
-            onError: (error) => (changes.error = error.toString()),
-            onFinally: () =>
-                setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
-        });
-    }, [estadoSelect, pushQuery]);
+    
+
+    // Este useEffect se encarga de cargar las opciones del select de "estado" desde la API.
+// Se ejecuta cada vez que cambia 'estadoSelect' o 'pushQuery'.
+useEffect(() => {
+    // Si no se requiere recargar (reload es falso), no hace nada.
+    if (!estadoSelect.reload) return;
+
+    // Prepara un objeto con los cambios iniciales: pone el loading, limpia datos previos, etc.
+    const changes = {
+        reload: null,            // Ya no se necesita recargar
+        loading: "Cargando...",  // Muestra mensaje de carga
+        data: [],                // Limpia datos anteriores
+        error: null,             // Limpia errores anteriores
+        buscar: "",              // Limpia búsqueda previa
+        options: [],             // Limpia opciones previas
+    };
+
+    // Actualiza el estado para reflejar que está cargando
+    setEstadoSelect((o) => ({ ...o, ...changes }));
+
+    // Llama a la API para obtener los estados
+    pushQuery({
+        action: "GetEstados",                // Acción a ejecutar (ver configuración en pushQuery)
+        params: { ...estadoSelect.params },  // Parámetros para la consulta
+        onOk: (data) => {
+            // Si la respuesta no es un array, muestra error en consola
+            if (!Array.isArray(data))
+                return console.error("Se esperaba un arreglo", data);
+            // Si es un array, guarda los datos en 'changes'
+            changes.data = data;
+        },
+        onError: (error) => (changes.error = error.toString()), // Guarda el error si ocurre
+        onFinally: () =>
+            // Al finalizar, actualiza el estado con los cambios y quita el loading
+            setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+    });
+}, [estadoSelect, pushQuery]);
+    
     // Buscador
     useEffect(() => {
         if (estadoSelect.reload) return;
@@ -124,32 +186,49 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
         error: null,
     });
 
-    useEffect(() => {
-        if (!list.loading) return;
-        const changes = { loading: null, data: [], error: null };
-        pushQuery({
-            action: "GetData",
-            params: {
-                ...list.params,
-                ...list.filtros,
-                pageIndex: list.pagination.index,
-                pageSize: list.pagination.size,
-            },
-            config: {
-                errorType: "response",
-            },
-            onOk: async ({ data, ...pagination }) => {
-                if (Array.isArray(data)) {
-                    changes.data = data;
-                    changes.pagination = pagination;
-                } else {
-                    console.error("Se esperaba un arreglo", data);
-                }
-            },
-            onError: async (error) => (changes.error = error.toString()),
-            onFinally: async () => setList((o) => ({ ...o, ...changes })),
-        });
-    }, [list, pushQuery]);
+// Este useEffect se encarga de cargar los datos de la tabla principal (list.data) desde la API.
+// Se ejecuta cada vez que cambia el estado 'list' o la función 'pushQuery'.
+useEffect(() => {
+    // Si no está en estado de "loading", no hace nada (evita llamadas innecesarias).
+    if (!list.loading) return;
+
+    // Prepara un objeto con los cambios iniciales: quita el loading, limpia datos y errores previos.
+    const changes = { loading: null, data: [], error: null };
+
+    // Llama a la API para obtener los datos de la tabla.
+    pushQuery({
+        action: "GetData", // Acción que define la consulta (ver configuración en pushQuery).
+        params: {
+            ...list.params,         // Parámetros adicionales (por ejemplo, ordenamiento).
+            ...list.filtros,        // Filtros aplicados (CUIT, razón social, fechas, etc).
+            pageIndex: list.pagination.index, // Página actual.
+            pageSize: list.pagination.size,   // Cantidad de registros por página.
+        },
+        config: {
+            errorType: "response", // Configuración para manejo de errores.
+        },
+        // Si la consulta es exitosa:
+        onOk: async ({ data, ...pagination }) => {
+
+            console.log("Datos recibidos de la API:", data);
+
+            // Si la respuesta es un array, guarda los datos y la paginación.
+            if (Array.isArray(data)) {
+                changes.data = data;
+                changes.pagination = pagination;
+            } else {
+                // Si no es un array, muestra un error en consola.
+                console.error("Se esperaba un arreglo", data);
+            }
+        },
+        // Si ocurre un error, lo guarda en el estado.
+        onError: async (error) => (changes.error = error.toString()),
+        // Al finalizar (éxito o error), actualiza el estado de la lista.
+        onFinally: async () => setList((o) => ({ ...o, ...changes })),
+    });
+}, [list, pushQuery]);
+
+
     //#endregion
 
     //#region CSV
@@ -242,8 +321,58 @@ const getCurrentDate = () => {
 }
  const fechaActual = getCurrentDate();
 
+
+
+     const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+ 
+    ///////////////////////////////////0//////////////////////////////////////
+    const onDownloadSolicitudAfiliacion = () => {
+        solicitudAfiliacion({
+            onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+        });
+    };
+ 
+    ////////////////////////////////0///////////////////////////////////////
+ 
+
+
+ //////////////////////////////DATOS DE PRUBA///////////////////////////////////////////
+ ///////////////////////////////////////////////////////////////////////////////////////
+
+ const datosPrueba = [
+  {
+    seccional: {
+      codigo: "001",
+      nombre: "Seccional Prueba",
+      provincia: "Buenos Aires",
+    },
+    afiliados: [
+      {
+        nombre: "Juan Pérez",
+        documento: "12345678",
+        cuil: "20-12345678-3",
+        nroAfiliado: "A001",
+        empresaDescripcion: "MAZZINO LIBANO SA",
+        fechaIngreso: "2023-01-15",
+      },
+      {
+        nombre: "Ana Gómez",
+        documento: "87654321",
+        cuil: "27-87654321-5",
+        nroAfiliado: "A002",
+        empresaDescripcion: "MAZZINO LIBANO SA",
+        fechaIngreso: "2022-11-10",
+      },
+      
+    ],
+  },
+];
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
     return (
-    <Modal size="xl" centered show >
+        <>
+                <Modal size="xl" centered show >
         <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
             Estados de solicitudes por empresa  
         </Modal.Header>
@@ -253,7 +382,7 @@ const getCurrentDate = () => {
                     <Grid width="200px">
                         <InputMaterial
                             label="CUIT empresa"
-                            //mask="99\-99.999.999\-9"
+                           
                             mask={CUITMask}
                             value={filtros.cuit}
                             onChange={(cuit) =>
@@ -313,7 +442,14 @@ const getCurrentDate = () => {
                     <Grid width="200px">
                     <Button
                         className="botonAzul"
-                        disabled={JSON.stringify(list.filtros) === JSON.stringify(filtros)}
+                        // disabled={JSON.stringify(list.filtros) === JSON.stringify(filtros)}
+                        disabled={
+                            !(
+                                (filtros.cuit || filtros.razonSocial) &&
+                                ( filtros.desde && filtros.hasta)
+                            )
+                        }   
+                        
                         onClick={() => {
                             setList((o) => ({
                                 ...o,
@@ -446,7 +582,7 @@ const getCurrentDate = () => {
               <Modal.Footer>
     
                 <Grid gap="20px" col marginTop="10px" >
-                    {
+                    {/* {
                      
                             <Grid width="auto">
                         <Button
@@ -456,7 +592,7 @@ const getCurrentDate = () => {
                             // Solo habilitado si hay coincidencia de CUIT
                             disabled={
                                 !(
-                                    filtros.cuit &&
+                                    filtros.cuit && 
                                     list.data.some(e => String(e.empresaCUIT) === String(filtros.cuit))
                                 )
                             }
@@ -470,7 +606,8 @@ const getCurrentDate = () => {
                     </Grid>
                    
 
-                    }
+                    } */}
+                 
 
                     {/* ACTUALMENTE ESTA DESACTIVADO, SE ACTIVA UNICAMENTE CUANDO SE "ANALIZA CUIT" */}
                     <Grid width="auto">
@@ -479,42 +616,125 @@ const getCurrentDate = () => {
                             loading={!!csv.loading}
                             // onClick={() => onCSV()}
                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            disabled={autorizacion_afil == true ? false : true}
-                            onClick={() => {
-                                alert("Se ha solicitado la autorización de afiliación para el CUIT ingresado");
-                               setTextInformativo(true);
-                            }}  
+                            // disabled={autorizacion_afil == true ? false : true}
+                            // onClick={() => {
+                            //     alert("Se ha solicitado la autorización de afiliación para el CUIT ingresado");
+                            //    setTextInformativo(true);
+                            //      setDesactivarBtn(true);
+                            // }}  
+                             onClick={() => {
+                            //    alert("Analizando CUIT...");
+                               setAutorizacion_afil(true);
+                            }}
+                            
                         >
-                            SOLICITAR AUTORIZACION AFILIACIONES
+                            SOLICITAR NUEVA AUTORIZACION AFILIACION
                         </Button>
                     </Grid>
 
-                     <Grid width="auto">
-                    <Button
+                       {/*<Grid width="auto">
+                   <Button
                         className="botonAmarillo"
                         loading={!!csv.loading}
                         // onClick={() => onCSV()}
                         onClick={() => {
-                            alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
+                            // alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
                             setRechazarAutorizacion(true);
                         }}
                         tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                         disabled={autorizacion_afil == true ? false : true}
+                        
+                         disabled={!desactivarBtn && (autorizacion_afil == true) ? false : true}
+                    >
+                        RECHAZAR SOLICITUD DE AFILIACION
+                    </Button> */}
+                    
+                    {/* <Button
+                        className="botonAmarillo"
+                        loading={!!csv.loading}
+                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        disabled={false}
+                        onClick={() => {
+                            // Suponiendo que list.data tiene los afiliados de la empresa seleccionada
+                            // y que tienes la info de la seccional (ajusta según tu estructura real)
+                            setPdfData([
+                                {
+                                    seccional: {
+                                        codigo: "001", // Ajusta según corresponda
+                                        nombre: "Nombre Seccional",
+                                        provincia: "Provincia",
+                                    },
+                                    afiliados: list.data, // O filtra según lo que necesites
+                                },
+                            ]);
+                             console.log("Datos enviados al PDF:", pdfData);
+                            setShowPDF(true);
+                        }}
+                    >
+                        GENERAR FORMULARIO DE AFILIACIONES
+                    </Button> */}
+                    <Grid width="auto">
+                     <Button
+                        className="botonAmarillo"
+                        loading={!!csv.loading}
+                        // onClick={() => onCSV()}
+                        onClick={() => {
+                            // alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
+                            setRechazarAutorizacion(true);
+                        }}
+                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        
+                         disabled={!desactivarBtn && (autorizacion_afil == true) ? false : true}
                     >
                         RECHAZAR SOLICITUD DE AFILIACION
                     </Button>
                 </Grid>
-
-                     <Grid width="auto">
-                    <Button
+                <Grid width="auto">
+                    {/* <Button
                         className="botonAmarillo"
                         loading={!!csv.loading}
-                        // onClick={() => onCSV()}
                         tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                         disabled={true}
+                        disabled={false}
+                        onClick={() => {
+                            setPdfData(datosPrueba); // Usa los datos de prueba
+                            setShowPDF(true);
+                        }}
                     >
                         GENERAR FORMULARIO DE AFILIACIONES
-                    </Button>
+                    </Button> */}
+                    <Button
+						className="botonAmarillo"
+						// onClick={() => onDownloadSolicitudAfiliacion()}
+						tarea="Consultas_SolicitudAfiliacion"
+					>
+						 AUTORIZAR SOLICITUD AFILIACION
+					</Button>
+                      
+                </Grid>
+                <Grid width="auto">
+                    {/* <Button
+                        className="botonAmarillo"
+                        loading={!!csv.loading}
+                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                        disabled={false}
+                        onClick={() => {
+                            setPdfData(datosPrueba); // Usa los datos de prueba
+                            setShowPDF(true);
+                        }}
+                    >
+                        GENERAR FORMULARIO DE AFILIACIONES
+                    </Button> */}
+                    <Button
+						className="botonAmarillo"
+						onClick={() => onDownloadSolicitudAfiliacion()}
+						tarea="Consultas_SolicitudAfiliacion"
+					>
+						 DESCARGAR FORMULARIO DE AFILIACIONES
+					</Button>
+                      
+                </Grid>
+
+                     <Grid width="auto">
+                
                 </Grid>
 
                 {csv.loading == null ? null : (
@@ -531,10 +751,187 @@ const getCurrentDate = () => {
                 </div>
             </Grid>
         </Modal.Body>
+        { /* Modal de confirmación de rechazo de autorización */}
+        <Modal
+            size="sm"
+            centered
+            show={rechazarAutorizacion}
+            onHide={() => setRechazarAutorizacion(false)}
+            backdrop="static"
+            keyboard={false}
+        >
+            <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => setRechazarAutorizacion(false)}>
+                Rechazar autorización de afiliación
+            </Modal.Header>
+            <Modal.Body>
+                {/* <text style={{ textAlign: "center", color: "red" }}>
+                    ¿Está seguro que desea rechazar la autorización de afiliación?
+                </text> */}
+                <InputMaterial
+                    label="Observaciones"
+                    value={filtros.observaciones}
+                    maxLength={30}
+                    onChange={(observaciones) =>
+                        setFiltros((o) => {
+                            const r = { ...o, observaciones };
+                            if (!observaciones) delete r.observaciones;
+                            return r;
+                        })
+                    }
+                />
+
+
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    className="botonAmarillo"
+                    onClick={() => {
+                        // alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
+                        setRechazarAutorizacion(false);
+                    }}
+                >
+                    Aceptar
+                </Button>
+
+            </Modal.Footer>
+        </Modal>
+        {/* Modal de confirmación de autorización de afiliación */}
+{/* ///////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////// */}
+
+        <Modal
+            size="xl"
+            height= "100%"
+            centered
+            show={autorizacion_afil}
+            onHide={() => setAutorizacion_afil(false)}
+            backdrop="static"
+            keyboard={false}
+        >
+            <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => setAutorizacion_afil(false)}>
+                Solicitar autorización de afiliación
+            </Modal.Header>
+            <Modal.Body>
+
+                                <Table
+                    remote
+                    keyField="id"
+                    data={Array.isArray(list.data) ? list.data : []}
+                    mostrarBuscar={false}
+                    pagination={{
+                        ...list.pagination,
+                        onChange: (pagination) =>
+                            setList((o) => ({
+                                ...o,
+                                loading: "Cargando...",
+                                pagination: { ...o.pagination, ...pagination },
+                                data: [],
+                                error: null,
+                            })),
+                    }}
+                    noDataIndication={
+                        list.loading || list.error || "No existen datos para mostrar "
+                    }
+                    columns={[
+                        {
+                            dataField: "empresaCUIT",
+                            text: "CUIT empresa",
+                            sort: true,
+                            formatter: (v) => Formato.Cuit(v),
+                            style: { textAlign: "center" },
+                        },
+                        {
+                            dataField: "empresaRazonSocial",
+                            text: "Razón social empresa",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "estadoSolicitudDescripcion",
+                            text: "Estado",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "total",
+                            text: "Cantidad",
+                            formatter: (v) => Formato.Numero(v),
+                            style: { textAlign: "right" },
+                        },
+                    ]}
+                    onTableChange={(type, { sortOrder, sortField }) => {
+                        switch (type) {
+                            case "sort": {
+                                sortField =
+                                    { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
+                                        sortField
+                                    ] ?? sortField;
+                                const sortBy = `${
+                                    sortOrder === "desc" ? "-" : "+"
+                                }${sortField}`;
+                                setList((o) => ({
+                                    ...o,
+                                    loading: "Cargando...",
+                                    params: { ...o.params, sortBy },
+                                    data: [],
+                                    error: null,
+                                }));
+                                setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
+                                return;
+                            }
+                            default:
+                                return;
+                        }
+                    }}
+                />
+                
+            </Modal.Body>
+            <Modal.Footer>
+                {/* <Button
+                    className="botonAmarillo"
+                    onClick={() => {
+                        alert("Se ha solicitado la autorización de afiliación para el CUIT ingresado");
+                        setAutorizacion_afil(false);
+                    }}
+                >
+                    Aceptar
+                </Button> */}
+                 <Button
+                            className="botonAmarillo"
+                            loading={!!csv.loading}
+                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
+                            // Solo habilitado si hay coincidencia de CUIT
+                            disabled={
+                                !(
+                                    filtros.cuit && 
+                                    list.data.some(e => String(e.empresaCUIT) === String(filtros.cuit))
+                                )
+                            }
+                            // onClick={() => {
+                            //    alert("Analizando CUIT...");
+                            //    setAutorizacion_afil(true);
+                            // }}
+                        >
+                            ANALIZAR CUIT
+                        </Button>
+
+            </Modal.Footer>
+        </Modal>
+
+        {/* ///////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////// */}
+
 
     </Modal>
-);
 
-};
+        </>
 
+    
+    );
+
+}
 export default SolicitudAutorizacionAfiliacion;
