@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './App.css';
 
 import Login from './components/auth/Login';
@@ -50,6 +50,7 @@ import GestionOspreraHandler from 'components/pages/osprera/FormularioOspreraHan
 import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 
 import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
+import AnuncioModal from 'components/pages/inicio/AnuncioModal';
 
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
@@ -59,6 +60,24 @@ import "./components/fonts/SantanderLogoRegular.ttf";*/
 const App = () => {
   const authContext = useContext(AuthContext); 
   const isLoggedIn = authContext.isLoggedIn;
+  const Usuario = authContext.usuario;
+
+  console.log("Usuario?.verAnuncio",Usuario?.verAnuncio)
+
+  const [showModal, setShowModal] = useState(Usuario?.verAnuncio ? true : false);
+
+  const handleShowModal = () => {
+    setShowModal(!showModal);
+  };
+
+  useEffect(() => {
+    if (Usuario?.verAnuncio) {
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+    }
+  }
+  , [Usuario?.verAnuncio]);
 
   return (
 
@@ -126,12 +145,12 @@ const App = () => {
               <Route path="Inicio/Auditorias" element={<AuditoriasHandler />}/>
 
               <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>
-              
 
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
-         
         </SideBar>)}
+       {isLoggedIn && showModal && <AnuncioModal onClose={() => handleShowModal()}/> }
+        
 
     </div>
 

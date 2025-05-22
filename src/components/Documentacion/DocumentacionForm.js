@@ -41,7 +41,7 @@ const DocumentacionForm = ({
 		}
 
 		console.log("archivoRef",archivoRef)
-		if (archivoRef.current?.files.length === 0) {
+		if (archivoRef.current?.files.length === 0 && request == 1) {
 			setErrors((o) => ({
 				...o,
 				archivo: true,

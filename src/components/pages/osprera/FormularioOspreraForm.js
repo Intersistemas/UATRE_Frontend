@@ -33,10 +33,10 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
-import { error } from "pdf-lib";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
+const onValidateDef = (confirm = false) => {};
 
 /**
  * Proceso a ejecutar posterior carga
@@ -84,19 +84,22 @@ const FormularioOspreraForm = ({
 	errors = {},
 	onChange = onChangeDef,
 	onClose = onCloseDef,
+	onValidate = onValidateDef,
 	loading = {},
 	request = "",
 }) => {
 	data ??= {};
 	request ??= {};
-	disabled ??= {};
+	
 	hide ??= {};
 	errors ??= {};
 	onChange ??= onChangeDef;
 	onClose ??= onCloseDef;
+	onValidate ??= onValidateDef;
 
 	const [selectedTab, setSelectedTab] = useState(0);
 	const [mostrarAlertas, setMostrarAlertas] = useState(false);
+	const [disabledItems, setDisabledItems] = useState(disabled);
 	const [titular, setTitular] = useState({
 		existeEnUATRE: null,
 		existeEnOSPRERA: null,
@@ -108,16 +111,17 @@ const FormularioOspreraForm = ({
 		fechaNacimiento: "",
 		sexoId: 0,
 	})
-	const [titularPaciente, setTitularPaciente] = useState(false);
 	const [documentacionList, setDocumentacionList] = useState([]);
 	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 	//#region Alert
 	const [openDialog, setOpenDialog] = useState(false);
 	const [dialogTexto, setDialogTexto] = useState("");
 	//#endregion
+	
+	console.log("errors1",errors) 
+	console.log("loading10",loading)
 		
-	console.log("disabled",disabled)
-	console.log("data,",data);
+	//console.log("data,",data);
 	//#region EMAIL
 	//Se debe procesar el(envio de email)
 
@@ -144,16 +148,57 @@ const FormularioOspreraForm = ({
 			},
 			onFinally: async () => {
 				loading = false;
-				onClose(true)
+				//onClose(true)
 			},
 		});
 	};
 	//#endregion
 
+	//#region DISABLED 0303
+	useEffect(() => {
 
+		const changes = {}
+		if (titular?.confirmado) {
+			changes.cuitTitular = true;
+			changes.apellidoTitular = true;
+			changes.nombreTitular = true;
+			if (request == "A"){
+				changes.elPacienteEsTitular = false;
+				changes.tipoDocumentoId = false;
+				changes.dniPaciente = false;
+				changes.apellidoPaciente = false;
+				changes.nombrePaciente = false;
+
+				changes.fechaNacimiento = false;
+				changes.sexo = false;
+
+				changes.telefonoContacto = false;
+				changes.telefonoContacto2 = false;
+				changes.emailContacto = false;
+				changes.emailContacto2 = false;
+
+				changes.titularPaciente = false;
+				changes.medioGestion = false;
+				changes.telefono = false;
+				changes.resultadoLlamada = false;
+				changes.direccionesEmailDestino = false;
+				changes.texto = false;
+			}
+		}
+
+		if (titular.existeEnUATRE){
+			changes.apellidoTitular = true;
+			changes.nombreTitular = true;
+		}
+
+		setDisabledItems((o) => ({ ...o, 
+				...changes
+			}));
+	},[titular])
+	//#endregion
 
 	const onDownloadSolicitudAfiliacion = (conDatos) => {
-
+	console.log("onDownloadSolicitudAfiliacion",conDatos)
 		const dataFormulario = {
 						"seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
 						...Object.fromEntries(
@@ -214,11 +259,11 @@ const FormularioOspreraForm = ({
 	//#region Controlo cada vez que se modifican los datos del titular
 	useEffect(()=>{
 		
-		if (titularPaciente) {
+		if (data?.elPacienteEsTitular) {
 			handleDatosPaciente(true, titular)
 		}
 
-	},[titular, titularPaciente])
+	},[titular, data?.elPacienteEsTitular])
 	//#endregion
 	
 
@@ -511,8 +556,6 @@ const FormularioOspreraForm = ({
 		setTitular((o) => ({ ...o, confirmado: true }));
 	}
 
-
-
 	const validarCUITHandler = () => {
 		const changes = {
 			loading: true,
@@ -542,13 +585,14 @@ const FormularioOspreraForm = ({
 		});
 
 		const validaOSPRERA = () => {
+
+
 			const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
 			pushQuery({
 				action: "ConsultaOsprera",
 				params: { documento: match[2]},
 			
 				onOk: async (ok) => {
-					console.log("Padron OSPRERA", ok);
 					changes.validado = "Titular en padrón OSPRERA";
 					changes.datoAFIP = `Dato AFIP:  ${ok.nombre}`;
 					const [apellidoTitularDes, nombreTitularDes] = ok.nombre.split(" ");
@@ -651,6 +695,7 @@ const FormularioOspreraForm = ({
 					seccionalId: ok?.seccionalId,
 					fechaNacimiento: ok?.fechaNacimiento
 				}));
+				validaOSPRERA()
 			},
 			onError: async (error) => validaOSPRERA(),
 			onFinally: async () => {
@@ -703,12 +748,13 @@ const FormularioOspreraForm = ({
 			setMostrarAlertas(true);
 	}
 
-	const handleConfirma = () => {
-		////onDownloadSolicitudAfiliacion(data)
-		//if (data.medioGestion == "email") sendEnviarEmailHandler()
+	const handleConfirma = async(e) => {
 
-		if (request == "A" && errors.length == 0) {
-			const cuilValidado = async() => validarCUITHandler()
+		const isValid = await onValidate(true);
+		
+		if (!isValid) return;
+
+		if (request == "A" ) {
 			if (!titular.existeEnUATRE && !titular.existeEnOSPRERA && !titular.existeEnAFIP) {
 				setDialogTexto("Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual.")
 				setOpenDialog(true)
@@ -719,21 +765,19 @@ const FormularioOspreraForm = ({
 				if (data.medioGestion == "email") sendEnviarEmailHandler()
 					
 			}
-			onClose(true)
-		}else{
-			onClose(true)
 		}
+		onClose(true);
 	}
 
 	UseKeyPress(["Escape"], () => onClose());
-	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
+	UseKeyPress(["Enter"], () => handleConfirma(), "AltKey");
 
 
 	return (
 	<>
 
 		<div>
-			<Dialog onClose={()=>(setDialogTexto(""), setOpenDialog(false), onClose(true))} open={openDialog}>
+			<Dialog onClose={()=>(setDialogTexto(""), setOpenDialog(false))} open={openDialog}>
 				<DialogContent dividers>
 					<Typography 
 						gutterBottom
@@ -743,7 +787,7 @@ const FormularioOspreraForm = ({
 					
 				</DialogContent>
 				<DialogActions>
-					<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), setOpenDialog(false), onClose(true))}>
+					<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), setOpenDialog(false))}>
 						Cierra
 					</Button>
 				</DialogActions>
@@ -795,23 +839,38 @@ const FormularioOspreraForm = ({
 				<Grid col width="full" gap="15px"> 
 					<Grid width="full" gap="inherit">
 						<Grid>
-							<Grid width="170px">
-								<InputMaterial
-									id="cuitTitular"
-									label="CUIL Titular"
-									//mask="99-99.999.999-9"
-									mask={CUITMask}
-									required
-									error={!!errors.cuitTitular}
-									helperText={
-										errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
-									}
-									value={data.cuitTitular}
-									disabled={disabled?.cuitTitular || titular?.confirmado}
-									onChange={(value) =>
-										onChange({ cuitTitular: value.replace(/[^0-9]+/g, "") })
-									} 
-								/>
+							<Grid col>
+
+							
+								<Grid width="170px">
+									<InputMaterial
+										id="cuitTitular"
+										label="CUIL Titular"
+										//mask="99-99.999.999-9"
+										mask={CUITMask}
+										required
+										error={!!errors.cuitTitular}
+										/*helperText={
+											errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
+										}
+										FormHelperTextProps={{
+											sx: {
+											margin: 0, // elimina el margen superior
+											},
+										}}*/
+										value={data.cuitTitular}
+										disabled={disabledItems?.cuitTitular}
+										onChange={(value) =>
+											onChange({ cuitTitular: value.replace(/[^0-9]+/g, "") })
+										} 
+									/>
+								</Grid>
+								{(titular?.existeEnUATRE || titular?.existeEnOSPRERA || titular?.existeEnAFIP) && (
+									<div>
+										<h6 style={{ fontSize: "small", displa: titular?.existeEnUATRE || (!!titular?.existeEnUATRE && titular.existeEnOSPRERA && !!titular.existeEnAFIP) ? 'none' : 'flex'}}> {titular.existeEnOSPRERA ? "Titular en Padron OSPRERA" : titular.existeEnAFIP ? "Titular en AFIP" : ""} </h6>
+										<h6 style={{ fontSize: "small"}}>{titular.existeEnUATRE ? "Afiliado a UATRE" : (!!titular.existeEnOSPRERA && !!titular.existeEnAFIP) ? "No se encontraron datos para el CUIL ingresado" : "No Afiliado a UATRE"}</h6>
+									</div>
+								)}
 							</Grid>
 							<Grid col width="70px" >
 								<Button
@@ -823,17 +882,17 @@ const FormularioOspreraForm = ({
 									<h6>{!validacionCUIT.loading ? `Valida` : ` `}</h6>
 								</Button>
 							</Grid>
-							
 						</Grid>
 						<Grid>
 							<Grid width="150px">
 								<InputMaterial
 									id="apellidoTitular"
 									label="Apellido"
+									required
 									error={!!errors.apellidoTitular}
 									helperText={errors.apellidoTitular ?? ""}
 									value={data.apellidoTitular}
-									disabled={(titular.existeEnUATRE || titular.confirmado) || disabled?.apellidoTitular}
+									disabled={(titular.existeEnUATRE || titular.confirmado) || (disabled?.apellidoTitular && (!titular.existeEnAFIP && !titular.existeEnOSPRERA))}
 									onChange={(apellidoTitular) => onChange({ apellidoTitular })}
 								/>
 							</Grid>
@@ -841,10 +900,11 @@ const FormularioOspreraForm = ({
 								<InputMaterial
 									id="nombreTitular"
 									label="Nombre"
+									required
 									error={!!errors.nombreTitular}
 									helperText={errors.nombreTitular ?? ""}
 									value={data.nombreTitular}
-									disabled={(titular.existeEnUATRE || titular.confirmado) || disabled?.nombreTitular} //disabled.nombreTitular 
+									disabled={(titular.existeEnUATRE || titular.confirmado) || (disabled?.nombreTitular && (!titular.existeEnAFIP && !titular.existeEnOSPRERA))} //disabled.nombreTitular 
 									onChange={(nombreTitular) => onChange({ nombreTitular })}
 								/>
 							</Grid>
@@ -853,7 +913,7 @@ const FormularioOspreraForm = ({
 									className="botonAzul"
 									onClick={confirmaTitularHandler}
 									loading={validacionCUIT.loading}
-									disabled={!titular?.existeEnUATRE && !titular?.existeEnAFIP && !titular?.existeEnOSPRERA || titular.confirmado}
+									disabled={`${data.cuitTitular ?? ""}`.length !== 11 || !titular?.existeEnUATRE && !titular?.existeEnAFIP && !titular?.existeEnOSPRERA || titular.confirmado}
 								>
 									<h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
 								</Button>
@@ -864,9 +924,10 @@ const FormularioOspreraForm = ({
 						<CheckboxMaterial
 							id="titularPaciente"
 							label="El Paciente es El Titular"
+							required
 							value={data?.elPacienteEsTitular}
 							onChange={(v) => handleDatosPaciente(v)}
-							disabled={!titular?.confirmado}
+							disabled={disabledItems.elPacienteEsTitular}
 						/>
 					</Grid>
 					<Grid width="full" gap="inherit">
@@ -874,6 +935,7 @@ const FormularioOspreraForm = ({
 							<SearchSelectMaterial
 								id="tipoDocumentoId"
 								label="Tipo Doc."
+								required
 								error={
 									!!(
 										tipoDocumentoSelect.error || errors.tipoDocumentoId
@@ -885,7 +947,7 @@ const FormularioOspreraForm = ({
 									errors.tipoDocumentoId
 								}
 								value={tipoDocumentoSelect.selected}
-								disabled={!titular?.confirmado ?? disabled.dniPaciente}
+								disabled={disabledItems.tipoDocumentoId}
 								onChange={(selected = {}) => {
 									setTipoDocumentoSelect((o) => ({
 										...o,
@@ -895,13 +957,6 @@ const FormularioOspreraForm = ({
 									onChange({ tipoDocumentoId: selected.value });
 								}}
 								options={tipoDocumentoSelect.options}
-								onTextChange={(buscar) =>
-									setTipoDocumentoSelect((o) => ({
-										...o,
-										buscar,
-										origen: "text",
-									}))
-								}
 							/>
 						</Grid>
 						<Grid width="130px">
@@ -909,10 +964,11 @@ const FormularioOspreraForm = ({
 								id="dniPaciente"
 								mask={DNIMask}
 								label="Número Doc."
+								required
 								value={data.dniPaciente}
 								error={!!errors.dniPaciente}
 								helperText={errors.dniPaciente ?? ""}
-								disabled={!titular?.confirmado ?? disabled.dniPaciente}
+								disabled={disabledItems.dniPaciente}
 								onChange={(value) =>
 									onChange({ dniPaciente: value})
 								} 
@@ -922,10 +978,11 @@ const FormularioOspreraForm = ({
 							<InputMaterial
 								id="apellidoPaciente"
 								label="Apellido"
+								required
 								error={!!errors.apellidoPaciente}
 								helperText={errors.apellidoPaciente ?? ""}
 								value={data.apellidoPaciente}
-								disabled={!titular?.confirmado ?? disabled.apellidoPaciente}
+								disabled={disabledItems.apellidoPaciente}
 								onChange={(apellidoPaciente) => onChange({ apellidoPaciente })}
 							/>
 						</Grid>
@@ -933,10 +990,11 @@ const FormularioOspreraForm = ({
 							<InputMaterial
 								id="nombrePaciente"
 								label="Nombre"
+								required
 								error={!!errors.nombrePaciente}
 								helperText={errors.nombrePaciente ?? ""}
 								value={data.nombrePaciente}
-								disabled={!titular?.confirmado ?? disabled.nombrePaciente}
+								disabled={disabledItems.nombrePaciente}
 								onChange={(nombrePaciente) => onChange({ nombrePaciente })}
 							/>
 						</Grid>
@@ -947,29 +1005,28 @@ const FormularioOspreraForm = ({
 							id="fechaNacimiento"
 							type="date"
 							label="Fecha de nacimiento"
+							required
 							value={data.fechaNacimiento}
 							maxDate={moment().format("YYYY-MM-DD")}
 							error={errors.fechaNacimiento}
-							disabled={!titular?.confirmado ?? disabled.fechaNacimiento ?? false}
+							disabled={disabledItems.fechaNacimiento}
 							onChange={(fechaNacimiento) => onChange({fechaNacimiento})}							
 						/>
 						<SearchSelectMaterial
 							id="sexoSelect"
 							label="Sexo"
+							required
 							error={!!(sexoSelect.error || errors.sexoId)}
 							helperText={
 								sexoSelect.loading ?? sexoSelect.error ?? errors.sexoId
 							}
 							value={sexoSelect.selected}
-							disabled={!titular?.confirmado ?? disabled.sexo ?? false}
+							disabled={disabledItems.sexo}
 							onChange={(selected = {}) => {
 								setSexoSelect((o) => ({ ...o, selected, origen: "option" }));
 								onChange({sexoId: selected.value});
 							}}
 							options={sexoSelect.options}
-							onTextChange={(buscar) =>
-								setSexoSelect((o) => ({ ...o, buscar, origen: "text" }))
-							}
 						/>
 					</Grid>
 					<Grid  width="100%" gap="inherit">
@@ -981,7 +1038,7 @@ const FormularioOspreraForm = ({
 								error={!!errors.telefonoContacto}
 								helperText={errors.telefonoContacto ?? ""}
 								value={data.telefonoContacto}
-								disabled={!titular?.confirmado ?? disabled.telefonoContacto ?? false}
+								disabled={disabledItems.telefonoContacto}
 								onChange={(telefonoContacto) => onChange({ telefonoContacto })}
 							/>
 						
@@ -992,7 +1049,7 @@ const FormularioOspreraForm = ({
 								error={!!errors.telefonoContacto2}
 								helperText={errors.telefonoContacto2 ?? ""}
 								value={data.telefonoContacto2}
-								disabled={!titular?.confirmado ?? disabled.telefonoContacto2 ?? false}
+								disabled={disabledItems.telefonoContacto2}
 								onChange={(telefonoContacto2) => onChange({ telefonoContacto2 })}
 							/>
 						</Grid>
@@ -1006,7 +1063,7 @@ const FormularioOspreraForm = ({
 								error={!!errors.emailContacto}
 								helperText={errors.emailContacto ?? ""}
 								value={data.emailContacto}
-								disabled={!titular?.confirmado ?? disabled.emailContacto}
+								disabled={disabledItems.emailContacto}
 								onChange={(emailContacto) => onChange({ emailContacto })}
 							/>
 					
@@ -1017,7 +1074,7 @@ const FormularioOspreraForm = ({
 								error={!!errors.emailContacto2}
 								helperText={errors.emailContacto2 ?? ""}
 								value={data.emailContacto2}
-								disabled={!titular?.confirmado ?? disabled.emailContacto2}
+								disabled={disabledItems.emailContacto2}
 								onChange={(emailContacto2) => onChange({ emailContacto2 })}
 							/>
 						</Grid>
@@ -1031,12 +1088,12 @@ const FormularioOspreraForm = ({
 							error={!!errors.texto}
 							helperText={errors.texto ?? ""}
 							value={data.texto}
-							disabled={!titular?.confirmado ?? disabled.texto ?? false}
+							disabled={disabledItems.texto}
 							onChange={(texto) => onChange({ texto: texto.target.value })}
 						/>
 						
 					</Grid>
-					<FormControl error={!!errors.medioGestion} component="fieldset" variant="standard">
+					<FormControl disabled={disabledItems.medioGestion} error={!!errors.medioGestion} component="fieldset" variant="standard">
 						<FormLabel id="demo-row-radio-buttons-group-label">Medio de Gestión:</FormLabel>
 						<RadioGroup
 							row
@@ -1060,7 +1117,7 @@ const FormularioOspreraForm = ({
 								error={!!errors.direccionesEmailDestino}
 								helperText={errors.direccionesEmailDestino ?? ""}
 								value={data.direccionesEmailDestino}
-								disabled={!titular?.confirmado ?? disabled.direccionesEmailDestino}
+								disabled={disabledItems.direccionesEmailDestino}
 								onChange={(direccionesEmailDestino) => onChange({ direccionesEmailDestino })}
 							/>
 						||
@@ -1074,7 +1131,7 @@ const FormularioOspreraForm = ({
 									error={!!errors.telefono}
 									helperText={errors.telefono ?? ""}
 									value={data.telefono}
-									disabled={!titular?.confirmado ?? disabled.telefono ?? false}
+									disabled={disabledItems.telefono}
 									onChange={(telefono) => onChange({ telefono })}
 								/>
 							</Grid>
@@ -1084,7 +1141,7 @@ const FormularioOspreraForm = ({
 									error={!!errors.resultadoLlamada}
 									helperText={errors.resultadoLlamada ?? ""}
 									value={data.resultadoLlamada}
-									disabled={!titular?.confirmado ?? disabled.resultadoLlamada ?? false}
+									disabled={disabledItems.resultadoLlamada}
 									onChange={(resultadoLlamada) => onChange({ resultadoLlamada })}
 								/>
 							</Grid>
@@ -1155,6 +1212,7 @@ const FormularioOspreraForm = ({
 					className="botonAzul"
 					loading={loading}
 					width={25}
+					disabled={!titular?.confirmado}
 					onClick={
 						
 						request == "E" ? 

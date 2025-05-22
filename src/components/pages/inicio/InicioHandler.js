@@ -1,9 +1,7 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Inicio from "./Inicio";
 import { handleModuloSeleccionar } from "../../../redux/actions";
-import AnuncioModal from "./AnuncioModal";
-import AuthContext from "store/authContext";
 
 const InicioHandler = () => {
   
@@ -16,11 +14,6 @@ const InicioHandler = () => {
       (state) => state.usuarioLogueado
     );
     
-    const authContext = useContext(AuthContext)
-    const Usuario = authContext.usuario;
-
-    const [anuncio, setAnuncio] = React.useState(Usuario?.verAnuncio);
-
     let modulos = [];
 
     usuarioLogueado?.modulosTareas.forEach((mod) => {
@@ -32,7 +25,6 @@ const InicioHandler = () => {
     return (
       <div>
         <Inicio modulos={modulos} tareas={usuarioLogueado?.modulosTareas} roles={usuarioLogueado?.roles}/>
-        {anuncio && <AnuncioModal onClose={() => setAnuncio(false)}/>}
       </div>
     );
 };

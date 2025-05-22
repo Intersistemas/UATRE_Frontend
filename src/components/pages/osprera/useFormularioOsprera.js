@@ -353,29 +353,7 @@ const useFormularioOsprera = ({
 				// help={list.selection.help}
 				loading={!!list.loading}
 				disabled={(() => {
-					const r = ["A"].includes(list.selection.request)
-						? {
-							
-							fecha: true,
-							telefonoContaco: true,
-							telefonoContaco2: true,
-							emailContacto: true,
-							emailContacto2: true,
-							elPacienteEsTitular: true,
-							dniPaciente: true,
-							nombrePaciente: true,
-							apellidoPaciente: true,
-							fechaNacimiento: true,
-							sexo: true,
-							texto: true,	
-							telefono: true,
-							resultadoLlamada: true,
-							medioGestion: true,
-							tipoDocumentoId: true,
-							direccionesEmailDestino: true,
-							seccionalId: true,
-						}
-						: {
+					const r = { //TODOS LOS CAMPOS DESHABILITADOS POR DEFECTO
 								cuitTitular: true,
 								fecha: true,
 								nombreTitular: true,
@@ -396,14 +374,42 @@ const useFormularioOsprera = ({
 								medioGestion: true,
 								tipoDocumentoId: true,
 								direccionesEmailDestino: true,
-								seccionalId: true,
-						  };
+								seccionalId: true
+							}
+					
+					
+					if (["A"].includes(list.selection.request)) {
+							r.cuitTitular = false
+					}
+						
+					if (["M"].includes(list.selection.request)) {
+						 		r.telefonoContaco= false;
+								r.telefonoContaco2= false;
+								r.emailContacto= false;
+								r.emailContacto2= false;
+								r.elPacienteEsTitular= false;
+								r.dniPaciente= false;
+								r.nombrePaciente= false;
+								r.apellidoPaciente= false;
+								r.fechaNacimiento= false;
+								r.sexo= false;
+								r.texto= false;
+								r.telefono= false;
+								r.resultadoLlamada= false;
+								r.medioGestion= false;
+								r.tipoDocumentoId= false;
+								r.direccionesEmailDestino= false;
+					}
+						
+					
 					if (list.selection.request !== "B") {
-							r.deletedObs = true;
-							r.deletedBy = true;
-							r.deletedDate = true;
-							r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la seccionalId
-						}
+						r.deletedObs = true;
+						r.deletedBy = true;
+						r.deletedDate = true;
+						
+					}
+					
+					r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la secc=onalId
 					return r;
 				})()}
 				hide={
@@ -433,6 +439,56 @@ const useFormularioOsprera = ({
 						},
 					}));
 				}}
+				onValidate={(confirm) => {
+					
+					const record = {
+						fecha: moment().format("YYYY-MM-DD"),
+						fechaEnvioMail: null,
+						direccionesEmailDestino: null,
+						respuestaEnvioEmail: null,
+						usuarioId: usuario?.id ?? "",
+						seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
+						...list.selection.edit
+					}					
+					//Validaciones
+					const errors = {};
+					if (list.selection.request === "B") {
+						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+					}
+
+					if (["A", "M"].includes(list.selection.request)) {
+						if (!record.cuitTitular) errors.cuitTitular = "Dato requerido"; else if (!ValidarCUIT(record.cuitTitular)) errors.cuitTitular = "CUIT Incorrecto";
+						if (!record.dniPaciente) errors.dniPaciente = "Dato requerido";
+
+						if (!record.apellidoTitular) errors.apellidoTitular = "Dato requerido";
+						if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
+						if (!record.apellidoPaciente) errors.apellidoPaciente = "Dato requerido";
+						if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
+						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
+						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
+						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
+						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
+						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
+
+						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
+						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
+						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
+					}
+
+					if (Object.keys(errors).length) {
+						setList((o) => ({
+							...o,
+							selection: {
+								...o.selection,
+								errors,
+							},
+						}));
+						return false;
+					}else {
+						return true;
+					}
+				}}
+
 				onClose={(confirm) => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request)) {
 						confirm = false;
@@ -488,7 +544,7 @@ const useFormularioOsprera = ({
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
 
 						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
-						if (record.medioGestion == "telefono" && !record.telefono) errors.telefono = "Dato requerido";
+						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
 						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
 					}
 
