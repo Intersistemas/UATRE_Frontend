@@ -117,11 +117,8 @@ const FormularioOspreraForm = ({
 	const [openDialog, setOpenDialog] = useState(false);
 	const [dialogTexto, setDialogTexto] = useState("");
 	//#endregion
-	
-	console.log("errors1",errors) 
-	console.log("loading10",loading)
-		
-	//console.log("data,",data);
+
+	console.log("data,",data);
 	//#region EMAIL
 	//Se debe procesar el(envio de email)
 
@@ -199,6 +196,7 @@ const FormularioOspreraForm = ({
 
 	const onDownloadSolicitudAfiliacion = (conDatos) => {
 	console.log("onDownloadSolicitudAfiliacion",conDatos)
+		const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
 		const dataFormulario = {
 						"seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
 						...Object.fromEntries(
@@ -215,15 +213,15 @@ const FormularioOspreraForm = ({
 								])
 						),
 						"trabajador.documento": [
-							tipoDocumentoSelect?.selected?.label,
-							data?.dniPaciente,
+							"DNI",
+							match[2],
 						].join(" "),
 						"trabajador.nacionalidad": "",
-						"trabajador.apellidos": data?.apellidoPaciente,
-						"trabajador.nombres": data?.nombrePaciente,
-						"trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
+						"trabajador.apellidos": data?.apellidoTitular,
+						"trabajador.nombres": data?.nombreTitular,
+						//"trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
 						"trabajador.estado_civil": "",
-						"trabajador.sexo": sexoSelect?.selected?.label,
+						//"trabajador.sexo": sexoSelect?.selected?.label,
 						"trabajador.domicilio": "",
 						"trabajador.localidad": "",
 						"trabajador.provincia": "",
@@ -720,7 +718,6 @@ const FormularioOspreraForm = ({
 				loading = false;
 			},
 		});
-		
 	};
 	//#endregion
 
@@ -756,17 +753,19 @@ const FormularioOspreraForm = ({
 
 		if (request == "A" ) {
 			if (!titular.existeEnUATRE && !titular.existeEnOSPRERA && !titular.existeEnAFIP) {
-				setDialogTexto("Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual.")
-				setOpenDialog(true)
 				onDownloadSolicitudAfiliacion(false)
 				if (data.medioGestion == "email") sendEnviarEmailHandler()
+				setDialogTexto("Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual.")
+				setOpenDialog(true)
 			}else{
 				onDownloadSolicitudAfiliacion(true)
 				if (data.medioGestion == "email") sendEnviarEmailHandler()
-					
+				setDialogTexto("Se descargó la Solicitud de Afiliación de: " + data?.apellidoTitular + " " + data?.nombreTitular)
+				setOpenDialog(true)
 			}
+		}else{
+			onClose(true);
 		}
-		onClose(true);
 	}
 
 	UseKeyPress(["Escape"], () => onClose());
@@ -777,7 +776,7 @@ const FormularioOspreraForm = ({
 	<>
 
 		<div>
-			<Dialog onClose={()=>(setDialogTexto(""), setOpenDialog(false))} open={openDialog}>
+			<Dialog onClose={()=>(setDialogTexto(""), setOpenDialog(false), onClose(true))} open={openDialog}>
 				<DialogContent dividers>
 					<Typography 
 						gutterBottom
@@ -787,7 +786,7 @@ const FormularioOspreraForm = ({
 					
 				</DialogContent>
 				<DialogActions>
-					<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), setOpenDialog(false))}>
+					<Button className="botonAmarillo" onClick={()=>(setDialogTexto(""), setOpenDialog(false), onClose(true))}>
 						Cierra
 					</Button>
 				</DialogActions>

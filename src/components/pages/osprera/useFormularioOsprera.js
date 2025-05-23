@@ -358,8 +358,8 @@ const useFormularioOsprera = ({
 								fecha: true,
 								nombreTitular: true,
 								apellidoTitular: true,
-								telefonoContaco: true,
-								telefonoContaco2: true,
+								telefonoContacto: true,
+								telefonoContacto2: true,
 								emailContacto: true,
 								emailContacto2: true,
 								elPacienteEsTitular: true,
@@ -383,8 +383,8 @@ const useFormularioOsprera = ({
 					}
 						
 					if (["M"].includes(list.selection.request)) {
-						 		r.telefonoContaco= false;
-								r.telefonoContaco2= false;
+						 		r.telefonoContacto= false;
+								r.telefonoContacto2= false;
 								r.emailContacto= false;
 								r.emailContacto2= false;
 								r.elPacienteEsTitular= false;
@@ -466,6 +466,7 @@ const useFormularioOsprera = ({
 						if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
 						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
 						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
+						if (!record.texto) errors.texto = "Dato requerido";
 						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
 						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
