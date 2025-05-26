@@ -149,7 +149,7 @@ const FormularioOspreraHandler = () => {
 				<Grid gap="inherit">
 					<Grid grow>
 						<InputMaterial
-							label="Filtro por CUIL / Nombre"
+							label="Filtro por CUIL / Apellido Titular"
 							value={paramsEdit.filtro}
 							onChange={(filtro) =>
 								setParamsEdit((o) => {

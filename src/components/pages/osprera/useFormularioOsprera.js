@@ -77,14 +77,18 @@ const useFormularioOsprera = ({
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
+		console.log("useFormularioOsprera, params", params);
+		console.log("useFormularioOsprera, action", action);
 		switch (action) {
 			case "GetList": {
+				const { filtro2, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Afiliaciones",
 						endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
 						method: "POST",
 					},
+					params: otherParams,
 				};
 			}
 			
@@ -192,6 +196,9 @@ const useFormularioOsprera = ({
 			return;
 		}
 		changes.data = [];
+		console.log("userFormularioOsprera_list",list)
+		const soloLetras = /^[A-Za-z]+$/;
+		const filtro = list?.params?.filtro
 
 		pushQuery({
 			action: "GetList",
@@ -200,6 +207,7 @@ const useFormularioOsprera = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
 				},
 			},
 			
