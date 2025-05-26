@@ -3,16 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
-
-
-
-import React, { use, useEffect, useState } from "react";
-import download from "downloadjs";
+import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
@@ -29,9 +20,16 @@ import SearchSelectMaterial, {
     includeSearch,
     mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
-import { Alert } from "bootstrap/dist/js/bootstrap.bundle.min";
 
-import useSolicitudAfiliacion from "./AfiliacionesPorEmpresaPDF/useSolicitudAfiliacion";
+// import PDFViewer from "./AfiliacionPDF/PDFViewer";
+
+import { PDF } from "./AfiliacionPDF/PDF";
+import dataFicticia from "./AfiliacionPDF/data.json";
+import InformacionDetallada from "./InformacionDetallada"
+
+
+
+
 
 const onCloseDef = () => {};
 
@@ -81,13 +79,31 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
     const [rechazarAutorizacion, setRechazarAutorizacion] = useState(false);
     const [textInformativo, setTextInformativo] = useState(false);
     const [autorizacion_afil, setAutorizacion_afil] = useState(false)
-    const [desactivarBtn, setDesactivarBtn] = useState(false)
+
+
+    const [registroSeleccionado, setRegistroSeleccionado] = useState(null);
+    
+    const [accionSeleccionada, setAccionSeleccionada] = useState(null); // 'rechazar' | 'autorizar' | null
+    const [generandoPDF, setGenerandoPDF] = useState(false);
+
+    const [pdfGenerado, setPdfGenerado] = useState(null);
+
+
+   
+    const [analizarCuil, setAnalizarCuil] = useState(false);
+
+
+    const [registroAnalizado, setRegistroAnalizado] = useState(null);
+
+    const [cargandoBloques, setCargandoBloques] = useState(false);
+    const [bloqueActual, setBloqueActual] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+
+
+
+
 
     //-----------------------------------------------------------
-
-    const [showPDF, setShowPDF] = useState(false);
-    const [pdfData, setPdfData] = useState([]);
-    const [ambitoUser, setAmbitoUser] = useState({}); // Ajusta según tu contexto real
 
 
 
@@ -111,7 +127,8 @@ const [filtros, setFiltros] = useState({
     desde: getFechaTresMesesAtras(),
     hasta: "",
     cuit: "",
-    razonSocial: ""
+    razonSocial: "",
+     estado: 0, 
 });
 
 
@@ -125,6 +142,7 @@ const [filtros, setFiltros] = useState({
         buscar: "",
         options: [],
         selected: estadoSelectTodos,
+        
     });
 
     
@@ -188,47 +206,43 @@ useEffect(() => {
 
 // Este useEffect se encarga de cargar los datos de la tabla principal (list.data) desde la API.
 // Se ejecuta cada vez que cambia el estado 'list' o la función 'pushQuery'.
+
 useEffect(() => {
-    // Si no está en estado de "loading", no hace nada (evita llamadas innecesarias).
     if (!list.loading) return;
 
-    // Prepara un objeto con los cambios iniciales: quita el loading, limpia datos y errores previos.
     const changes = { loading: null, data: [], error: null };
 
-    // Llama a la API para obtener los datos de la tabla.
+    // Usa list.filtros, no filtros
+    const params = {
+        ...list.params,
+        ...list.filtros,
+        pageIndex: list.pagination.index,
+        pageSize: list.pagination.size,
+    };
+    if (list.filtros.estado && list.filtros.estado !== 0) {
+        params.estado = list.filtros.estado;
+    } else {
+        delete params.estado; // No envíes estado si es "Todos"
+    }
+
     pushQuery({
-        action: "GetData", // Acción que define la consulta (ver configuración en pushQuery).
-        params: {
-            ...list.params,         // Parámetros adicionales (por ejemplo, ordenamiento).
-            ...list.filtros,        // Filtros aplicados (CUIT, razón social, fechas, etc).
-            pageIndex: list.pagination.index, // Página actual.
-            pageSize: list.pagination.size,   // Cantidad de registros por página.
-        },
+        action: "GetData",
+        params,
         config: {
-            errorType: "response", // Configuración para manejo de errores.
+            errorType: "response",
         },
-        // Si la consulta es exitosa:
         onOk: async ({ data, ...pagination }) => {
-
-            console.log("Datos recibidos de la API:", data);
-
-            // Si la respuesta es un array, guarda los datos y la paginación.
             if (Array.isArray(data)) {
                 changes.data = data;
                 changes.pagination = pagination;
             } else {
-                // Si no es un array, muestra un error en consola.
                 console.error("Se esperaba un arreglo", data);
             }
         },
-        // Si ocurre un error, lo guarda en el estado.
         onError: async (error) => (changes.error = error.toString()),
-        // Al finalizar (éxito o error), actualiza el estado de la lista.
         onFinally: async () => setList((o) => ({ ...o, ...changes })),
     });
 }, [list, pushQuery]);
-
-
     //#endregion
 
     //#region CSV
@@ -323,184 +337,112 @@ const getCurrentDate = () => {
 
 
 
-     const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
- 
-    ///////////////////////////////////0//////////////////////////////////////
-    const onDownloadSolicitudAfiliacion = () => {
-        solicitudAfiliacion({
-            onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        });
-    };
- 
-    ////////////////////////////////0///////////////////////////////////////
- 
-
-
- //////////////////////////////DATOS DE PRUBA///////////////////////////////////////////
- ///////////////////////////////////////////////////////////////////////////////////////
-
- const datosPrueba = [
-  {
-    seccional: {
-      codigo: "001",
-      nombre: "Seccional Prueba",
-      provincia: "Buenos Aires",
-    },
-    afiliados: [
-      {
-        nombre: "Juan Pérez",
-        documento: "12345678",
-        cuil: "20-12345678-3",
-        nroAfiliado: "A001",
-        empresaDescripcion: "MAZZINO LIBANO SA",
-        fechaIngreso: "2023-01-15",
-      },
-      {
-        nombre: "Ana Gómez",
-        documento: "87654321",
-        cuil: "27-87654321-5",
-        nroAfiliado: "A002",
-        empresaDescripcion: "MAZZINO LIBANO SA",
-        fechaIngreso: "2022-11-10",
-      },
-      
-    ],
-  },
-];
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+//Obtengo la funcion para generar el pdf
+
+//---------------------------------------------
+const { request: generarPDF } = PDF();
+//----------------------------------------------
+
+
 
     return (
         <>
+       
                 <Modal size="xl" centered show >
         <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
-            Estados de solicitudes por empresa  
+            SOLICITUDES DE AUTORIZACION DE AFILIACION  
         </Modal.Header>
         <Modal.Body>
             <Grid col full gap="15px">
-                <Grid width gap="inherit">
-                    <Grid width="200px">
-                        <InputMaterial
-                            label="CUIT empresa"
-                           
-                            mask={CUITMask}
-                            value={filtros.cuit}
-                            onChange={(cuit) =>
-                                setFiltros((o) => {
-                                    cuit = cuit.replace(/[^0-9]+/g, "");
-                                    const r = { ...o, cuit };
-                                    if (!cuit) delete r.cuit;
-                                    return r;
-                                })
-                            }
-                        />
-                    </Grid>
-                    <Grid grow>
-                        <InputMaterial
-                            label="Razón social empresa"
-                            value={filtros.razonSocial}
-                            onChange={(razonSocial) =>
-                                setFiltros((o) => {
-                                    const r = { ...o, razonSocial };
-                                    if (!razonSocial) delete r.razonSocial;
-                                    return r;
-                                })
-                            }
-                        />
-                    </Grid>
-                </Grid>
-                <Grid width gap="inherit">
-                    {/* Reemplazo el filtro de estado por los de fecha */}
-                    <Grid width="200px">
-                        <InputMaterial
-                            label="Desde"
-                            type="date"
-                            value={filtros.desde || ""}
-                            onChange={(desde) =>
-                                setFiltros((o) => ({
-                                    ...o,
-                                    desde,
-                                }))
-                            }
-                        />
-                    </Grid>
-                    <Grid width="200px">
-                        <InputMaterial
-                            label="Hasta"
-                            type="date"
-                            value={filtros.hasta || ""}
-                            onChange={(hasta) =>
-                                setFiltros((o) => ({
-                                    ...o,
-                                    hasta,
-                                }))
-                            }
-                        />
-                    </Grid>
-
-
-                    <Grid width="200px">
-                    <Button
-                        className="botonAzul"
-                        // disabled={JSON.stringify(list.filtros) === JSON.stringify(filtros)}
-                        disabled={
-                            !(
-                                (filtros.cuit || filtros.razonSocial) &&
-                                ( filtros.desde && filtros.hasta)
-                            )
-                        }   
-                        
-                        onClick={() => {
-                            setList((o) => ({
-                                ...o,
-                                filtros,
-                                data: [],
-                                error: null,
-                                loading: "Cargando...",
-                                pagination: { ...o.pagination, index: 1 },
-                            }));
-                            setCSV((o) => ({ ...o, filtros }));
-                        }}
-                    >
-                        Aplicar filtros
-                    </Button>
-                </Grid>
-                <Grid width="200px">
-                    <Button
-                        className="botonAzul"
-                        disabled={
-                            Object.keys(filtros).length === 0 ||
-                            (filtros.desde === "" && filtros.hasta === "" && filtros.cuit === "" && filtros.razonSocial === "")
-                        }
-                        onClick={() => {
-                            const filtrosVacios = {};
-                            setFiltros(filtrosVacios);
-                            setList((o) => ({
-                                ...o,
-                                filtros: filtrosVacios,
-                                data: [],
-                                error: null,
-                                loading: "Cargando...",
-                            }));
-                            setCSV((o) => ({ ...o, filtros: filtrosVacios }));
-                        }}
-                    >
-                        Limpiar filtros
-                    </Button>
-                </Grid>
-
-                </Grid>
+                                    <Grid width gap="inherit">
+                                        <Grid grow>
+                                            <SearchSelectMaterial
+                                                id="estadoSelect"
+                                                label="Estado"
+                                                error={!!estadoSelect.error}
+                                                helperText={estadoSelect.loading ?? estadoSelect?.error}
+                                                value={estadoSelect.selected}
+                                                onChange={(selected) => {
+                                                    setEstadoSelect((o) => ({ ...o, selected }));
+                                                    setFiltros((o) => {
+                                                        const filtros = {
+                                                            ...o,
+                                                            estadoSolicitudId: selected.value,
+                                                        };
+                                                        if (selected === estadoSelectTodos)
+                                                            delete filtros.estadoSolicitudId;
+                                                        return filtros;
+                                                    });
+                                                }}
+                                                options={estadoSelect.options}
+                                                onTextChange={(buscar) =>
+                                                    setEstadoSelect((o) => ({ ...o, buscar }))
+                                                }
+                                            />
+                                        </Grid>
+                                        <Grid width="200px">
+                                            <Button
+                                                className="botonAzul"
+                                                disabled={
+                                                    JSON.stringify(list.filtros) === JSON.stringify(filtros)
+                                                }
+                                                onClick={() => {
+                                                    setList((o) => ({
+                                                        ...o,
+                                                        filtros,
+                                                        data: [],
+                                                        error: null,
+                                                        loading: "Cargando...",
+                                                        pagination: {...o.pagination, index: 1 },
+                                                    }));
+                                                    setCSV((o) => ({ ...o, filtros }));
+                                                }}
+                                            >
+                                                Aplica filtros
+                                            </Button>
+                                        </Grid>
+                                        <Grid width="200px">
+                                            <Button
+                                                className="botonAzul"
+                                                disabled={Object.keys(filtros).length === 0}
+                                                onClick={() => {
+                                                    const filtros = {};
+                                                    setEstadoSelect((o) => ({
+                                                        ...o,
+                                                        selected: estadoSelectTodos,
+                                                    }));
+                                                    setFiltros(filtros);
+                                                    if (JSON.stringify(list.filtros) === JSON.stringify(filtros))
+                                                        return;
+                                                    setList((o) => ({
+                                                        ...o,
+                                                        filtros,
+                                                        data: [],
+                                                        error: null,
+                                                        loading: "Cargando...",
+                                                    }));
+                                                    setCSV((o) => ({ ...o, filtros }));
+                                                }}
+                                            >
+                                                Limpia filtros
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+               
                 {
                         
 
-                    textInformativo == false ?
+                    textInformativo === false ?
                     (
                         filtros.cuit &&
                         list.data.some(e => String(e.empresaCUIT) === String(filtros.cuit))
                         
                     ) ? <text style={{textAlign: "center", color: "red"}}>AUTORIZACION DE AFILIACION PENDIENTE DE AUTORIZAR SOLICITADA EL DIA [{fechaActual}]</text> : null
                     :
-                    <text style={{textAlign: "center", color: "green"}}>SOLICITANDO AUTORIZACION DE AFILIACION </text>
+                    null
                 }
                     
                 <div style={{ width: "100%", height: "auto", overflowY: "auto", display: "flex", flexDirection: "row" }}>
@@ -509,6 +451,9 @@ const getCurrentDate = () => {
                     remote
                     keyField="id"
                     data={Array.isArray(list.data) ? list.data : []}
+                     rowEvents={{
+                        onClick: (e, row) => setRegistroSeleccionado(row),
+                    }}
                     mostrarBuscar={false}
                     pagination={{
                         ...list.pagination,
@@ -526,11 +471,17 @@ const getCurrentDate = () => {
                     }
                     columns={[
                         {
-                            dataField: "empresaCUIT",
-                            text: "CUIT empresa",
+                            dataField: "procesoFecha",
+                            text: "Fecha",
                             sort: true,
-                            formatter: (v) => Formato.Cuit(v),
+                            formatter: (v) => Formato.Fecha(v),
                             style: { textAlign: "center" },
+                        },
+                         {
+                            dataField: "empresaCUIT",
+                            text: "Cuit",
+                            formatter: (v) => Formato.Cuit(v),
+                            style: { textAlign: "right" },
                         },
                         {
                             dataField: "empresaRazonSocial",
@@ -544,12 +495,7 @@ const getCurrentDate = () => {
                             sort: true,
                             style: { textAlign: "left" },
                         },
-                        {
-                            dataField: "total",
-                            text: "Cantidad",
-                            formatter: (v) => Formato.Numero(v),
-                            style: { textAlign: "right" },
-                        },
+                       
                     ]}
                     onTableChange={(type, { sortOrder, sortField }) => {
                         switch (type) {
@@ -576,37 +522,19 @@ const getCurrentDate = () => {
                         }
                     }}
                 />
+                {registroSeleccionado && (
+
+                     <InformacionDetallada afiliado={registroSeleccionado} />
+                     
+                )}
+
                     </div>
                 {/* -----------------*/}
                     <div style={{ width: "30%", height: "auto", justifyContent: "center", alignItems: "center" }}>
               <Modal.Footer>
     
                 <Grid gap="20px" col marginTop="10px" >
-                    {/* {
-                     
-                            <Grid width="auto">
-                        <Button
-                            className="botonAmarillo"
-                            loading={!!csv.loading}
-                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            // Solo habilitado si hay coincidencia de CUIT
-                            disabled={
-                                !(
-                                    filtros.cuit && 
-                                    list.data.some(e => String(e.empresaCUIT) === String(filtros.cuit))
-                                )
-                            }
-                            onClick={() => {
-                               alert("Analizando CUIT...");
-                               setAutorizacion_afil(true);
-                            }}
-                        >
-                            ANALIZAR CUIT
-                        </Button>
-                    </Grid>
-                   
-
-                    } */}
+                    
                  
 
                     {/* ACTUALMENTE ESTA DESACTIVADO, SE ACTIVA UNICAMENTE CUANDO SE "ANALIZA CUIT" */}
@@ -616,12 +544,7 @@ const getCurrentDate = () => {
                             loading={!!csv.loading}
                             // onClick={() => onCSV()}
                             tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            // disabled={autorizacion_afil == true ? false : true}
-                            // onClick={() => {
-                            //     alert("Se ha solicitado la autorización de afiliación para el CUIT ingresado");
-                            //    setTextInformativo(true);
-                            //      setDesactivarBtn(true);
-                            // }}  
+            
                              onClick={() => {
                             //    alert("Analizando CUIT...");
                                setAutorizacion_afil(true);
@@ -632,104 +555,126 @@ const getCurrentDate = () => {
                         </Button>
                     </Grid>
 
-                       {/*<Grid width="auto">
-                   <Button
-                        className="botonAmarillo"
-                        loading={!!csv.loading}
-                        // onClick={() => onCSV()}
-                        onClick={() => {
-                            // alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
-                            setRechazarAutorizacion(true);
-                        }}
-                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        
-                         disabled={!desactivarBtn && (autorizacion_afil == true) ? false : true}
-                    >
-                        RECHAZAR SOLICITUD DE AFILIACION
-                    </Button> */}
-                    
-                    {/* <Button
-                        className="botonAmarillo"
-                        loading={!!csv.loading}
-                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        disabled={false}
-                        onClick={() => {
-                            // Suponiendo que list.data tiene los afiliados de la empresa seleccionada
-                            // y que tienes la info de la seccional (ajusta según tu estructura real)
-                            setPdfData([
-                                {
-                                    seccional: {
-                                        codigo: "001", // Ajusta según corresponda
-                                        nombre: "Nombre Seccional",
-                                        provincia: "Provincia",
-                                    },
-                                    afiliados: list.data, // O filtra según lo que necesites
-                                },
-                            ]);
-                             console.log("Datos enviados al PDF:", pdfData);
-                            setShowPDF(true);
-                        }}
-                    >
-                        GENERAR FORMULARIO DE AFILIACIONES
-                    </Button> */}
+                     
+   
                     <Grid width="auto">
-                     <Button
+
+                    <Button
                         className="botonAmarillo"
                         loading={!!csv.loading}
-                        // onClick={() => onCSV()}
                         onClick={() => {
-                            // alert("Se ha rechazado la solicitud de afiliación para el CUIT ingresado");
-                            setRechazarAutorizacion(true);
+                            if (registroAnalizado) {
+                                setRechazarAutorizacion(true);
+                                setAccionSeleccionada('rechazar');
+                            }
                         }}
                         tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        
-                         disabled={!desactivarBtn && (autorizacion_afil == true) ? false : true}
+                        disabled={accionSeleccionada === 'autorizar' || !registroAnalizado}
                     >
-                        RECHAZAR SOLICITUD DE AFILIACION
+                        RECHAZAR SOLICITUD DE AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}
                     </Button>
+
                 </Grid>
                 <Grid width="auto">
-                    {/* <Button
-                        className="botonAmarillo"
-                        loading={!!csv.loading}
-                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        disabled={false}
-                        onClick={() => {
-                            setPdfData(datosPrueba); // Usa los datos de prueba
-                            setShowPDF(true);
-                        }}
-                    >
-                        GENERAR FORMULARIO DE AFILIACIONES
-                    </Button> */}
-                    <Button
-						className="botonAmarillo"
-						// onClick={() => onDownloadSolicitudAfiliacion()}
-						tarea="Consultas_SolicitudAfiliacion"
-					>
-						 AUTORIZAR SOLICITUD AFILIACION
-					</Button>
-                      
+                   
+
+
+
+<Button
+    className="botonAmarillo"
+    tarea="Consultas_SolicitudAfiliacion"
+    onClick={async () => {
+        if (registroAnalizado) {
+            setTextInformativo(true);
+            setGenerandoPDF(true);
+            setAccionSeleccionada('autorizar');
+            setCargandoBloques(false);
+            setBloqueActual(0);
+            setTotalPaginas(0);
+
+            // 1. Generar el PDF y obtener el base64 original (con prefijo)
+            let base64Original = null;
+            await generarPDF({
+                data: dataFicticia,
+                onLoad: (b64) => {
+                    base64Original = b64;
+                }
+            });
+
+            // 2. Validar y limpiar prefijo solo para pdf-lib
+            let base64 = base64Original;
+            if (base64 && base64.startsWith("data:application/pdf;base64,")) {
+                base64 = base64.replace("data:application/pdf;base64,", "");
+            }
+            if (!base64) {
+                alert("El PDF no se generó correctamente.");
+                setGenerandoPDF(false);
+                setCargandoBloques(false);
+                return;
+            }
+
+            // 3. Contar páginas del PDF generado (usando pdf-lib)
+            const { PDFDocument } = await import("pdf-lib");
+            const pdfBytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            const pdfDoc = await PDFDocument.load(pdfBytes);
+            const paginas = pdfDoc.getPageCount();
+            setTotalPaginas(paginas);
+            setCargandoBloques(true);
+
+            // 4. Simular carga de bloques/páginas
+            for (let i = 1; i <= paginas; i++) {
+                setBloqueActual(i);
+                await new Promise(res => setTimeout(res, 300));
+            }
+
+            setCargandoBloques(false);
+            setGenerandoPDF(false);
+            setPdfGenerado(base64Original); // <-- Guardá el base64 original para la descarga
+        }
+    }}
+            disabled={
+                accionSeleccionada === 'rechazar' ||
+                generandoPDF ||
+                !registroAnalizado ||
+                !!pdfGenerado // <--- Deshabilita si ya hay PDF generado
+            }
+        >
+            {generandoPDF ? (
+                <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
+                }}>
+                    <span className="spinner-border spinner-border-sm" />
+                    <span style={{ fontWeight: "bold", marginTop: 8 }}>
+                        Generando PDF...
+                    </span>
+                    {cargandoBloques && totalPaginas > 0 && (
+                        <span style={{ fontWeight: "bold", marginTop: 8 }}>
+                            Cargando bloque {bloqueActual} de {totalPaginas}...
+                        </span>
+                    )}
+                </div>
+            ) : (
+                <>AUTORIZAR SOLICITUD AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}</>
+            )}
+        </Button>
+
+
                 </Grid>
                 <Grid width="auto">
-                    {/* <Button
-                        className="botonAmarillo"
-                        loading={!!csv.loading}
-                        tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        disabled={false}
-                        onClick={() => {
-                            setPdfData(datosPrueba); // Usa los datos de prueba
-                            setShowPDF(true);
-                        }}
-                    >
-                        GENERAR FORMULARIO DE AFILIACIONES
-                    </Button> */}
-                    <Button
-						className="botonAmarillo"
-						onClick={() => onDownloadSolicitudAfiliacion()}
-						tarea="Consultas_SolicitudAfiliacion"
-					>
-						 DESCARGAR FORMULARIO DE AFILIACIONES
-					</Button>
+                
+                <Button
+            className="botonAmarillo"
+            tarea="Consultas_SolicitudAfiliacion"
+            onClick={() => {
+                if (pdfGenerado) {
+                    downloadjs(pdfGenerado, "SolicitudAfiliacion.pdf");
+                }
+            }}
+            disabled={!pdfGenerado}
+        >
+            DESCARGAR FORMULARIO DE AFILIACIONES
+        </Button>
+
                       
                 </Grid>
 
@@ -750,7 +695,12 @@ const getCurrentDate = () => {
                     </div>
                 </div>
             </Grid>
+
         </Modal.Body>
+
+
+
+
         { /* Modal de confirmación de rechazo de autorización */}
         <Modal
             size="sm"
@@ -794,12 +744,13 @@ const getCurrentDate = () => {
                 </Button>
 
             </Modal.Footer>
+
         </Modal>
         {/* Modal de confirmación de autorización de afiliación */}
-{/* ///////////////////////////////////////////////////////////////////////
-// ////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////
-// /////////////////////////////////////////////////////////////////////// */}
+        {/* ///////////////////////////////////////////////////////////////////////
+        // ////////////////////////////////////////////////////////////////////////
+        // ///////////////////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////////////////// */}
 
         <Modal
             size="xl"
@@ -813,50 +764,158 @@ const getCurrentDate = () => {
             <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => setAutorizacion_afil(false)}>
                 Solicitar autorización de afiliación
             </Modal.Header>
-            <Modal.Body>
+                    <Modal.Body>
+            <Grid col full gap="15px">
+                <Grid width gap="inherit">
+                    <Grid width="200px">
+                      
+                        <InputMaterial
+                            label="CUIT empresa"
+                            mask={CUITMask}
+                            value={filtros.cuit}
+                            onChange={(cuit) => {
+                                setFiltros((o) => ({ ...o, cuit }));
+                                setAnalizarCuil(false);
+                            }}
+                        />
+                    </Grid>
+                    <Grid grow>
+                        <InputMaterial
+                            label="Razón social empresa"
+                            value={filtros.razonSocial}
+                            onChange={(razonSocial) =>
+                                setFiltros((o) => {
+                                    const r = { ...o, razonSocial };
+                                    if (!razonSocial) delete r.razonSocial;
+                                    return r;
+                                })
+                            }
+                        />
+                    </Grid>
+                </Grid>
+                <Grid width gap="inherit">
+                    {/* Reemplazo el filtro de estado por los de fecha */}
+                    <Grid width="auto">
+                      
+                        <InputMaterial
+                            label="Desde"
+                            type="date"
+                            value={filtros.desde || ""}
+                            onChange={(desde) => {
+                                setFiltros((o) => ({ ...o, desde }));
+                                setAnalizarCuil(false);
+                            }}
+                        />
+                    </Grid>
+                    <Grid width="auto">
+                      
+                        <InputMaterial
+                            label="Hasta"
+                            type="date"
+                            value={filtros.hasta || ""}
+                            onChange={(hasta) => {
+                                setFiltros((o) => ({ ...o, hasta }));
+                                setAnalizarCuil(false);
+                            }}
+                        />
+                    </Grid>
 
-                                <Table
-                    remote
-                    keyField="id"
-                    data={Array.isArray(list.data) ? list.data : []}
-                    mostrarBuscar={false}
-                    pagination={{
-                        ...list.pagination,
-                        onChange: (pagination) =>
-                            setList((o) => ({
-                                ...o,
-                                loading: "Cargando...",
-                                pagination: { ...o.pagination, ...pagination },
-                                data: [],
-                                error: null,
-                            })),
-                    }}
-                    noDataIndication={
-                        list.loading || list.error || "No existen datos para mostrar "
-                    }
+
+                    <Grid width="auto">
+                
+                   <Button
+                        className="botonAmarillo"
+                        disabled={
+                            !(filtros.cuit && filtros.desde && filtros.hasta)
+                        }
+                        onClick={() => {
+                            setAnalizarCuil(true);
+                            // Buscá el primer registro que coincida con el CUIT filtrado
+                            const registro = Array.isArray(list.data)
+                                ? list.data.find(row => String(row.empresaCUIT) === String(filtros.cuit))
+                                : null;
+                            setRegistroAnalizado(registro || null);
+                        }}
+                    >
+                        ANALIZAR CUIL
+                    </Button>
+                </Grid>
+             
+                </Grid>
+        <Modal.Body>
+                    {/*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
+                    {/*|||||||||||||||||||||||||||||||||SUB TABLA||||||||||||||||||||||||||||||||||| */}
+                    {/*||||||||||||||||||||||SOLICITAR NUEVA AUTORIZACION||||||||||||||||||||||||||| */}
+                    {/*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
+                <Table
+                   
+                       remote
+                        keyField="id"
+                        data={
+                            analizarCuil && filtros.cuit && filtros.desde && filtros.hasta
+                                ? (Array.isArray(list.data)
+                                    ? list.data.filter(row => {
+                                        const cuitOk = String(row.empresaCUIT) === String(filtros.cuit);
+                                        // Si querés filtrar por fecha, agregalo acá
+                                        return cuitOk;
+                                    })
+                                    : [])
+                                : []
+                        }
+                           
+                        noDataIndication={
+                            filtros.cuit && filtros.desde && filtros.hasta
+                                ? (list.loading || list.error || "Sin datos para el CUIT y fechas ingresados")
+                                : "Ingrese CUIT y rango de fechas para ver datos"
+                        }
                     columns={[
                         {
                             dataField: "empresaCUIT",
-                            text: "CUIT empresa",
+                            text: "Periodo",
+                            sort: true,
+                            formatter: (v) => Formato.Cuit(v),
+                            style: { textAlign: "center" },
+                        },
+                        {
+                            dataField: "empresaCUIT",
+                            text: "Cant.Tot.Trab",
                             sort: true,
                             formatter: (v) => Formato.Cuit(v),
                             style: { textAlign: "center" },
                         },
                         {
                             dataField: "empresaRazonSocial",
-                            text: "Razón social empresa",
+                            text: "Cant.Trab.Rural",
                             sort: true,
                             style: { textAlign: "left" },
                         },
                         {
                             dataField: "estadoSolicitudDescripcion",
-                            text: "Estado",
+                            text: "Cant.Trab.No.Rural",
                             sort: true,
                             style: { textAlign: "left" },
                         },
                         {
                             dataField: "total",
-                            text: "Cantidad",
+                            text: "Cant.Trab.Rural.Afi",
+                            formatter: (v) => Formato.Numero(v),
+                            style: { textAlign: "right" },
+                        },
+                         {
+                            dataField: "empresaRazonSocial",
+                            text: "Cant.Trab.Rural.No.Afi",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "estadoSolicitudDescripcion",
+                            text: "Cant.Trab.No.Rural.Afi",
+                            sort: true,
+                            style: { textAlign: "left" },
+                        },
+                        {
+                            dataField: "total",
+                            text: "Cant.Trab.No.Rural.No.Afi",
                             formatter: (v) => Formato.Numero(v),
                             style: { textAlign: "right" },
                         },
@@ -888,50 +947,55 @@ const getCurrentDate = () => {
                 />
                 
             </Modal.Body>
-            <Modal.Footer>
-                {/* <Button
-                    className="botonAmarillo"
-                    onClick={() => {
-                        alert("Se ha solicitado la autorización de afiliación para el CUIT ingresado");
-                        setAutorizacion_afil(false);
-                    }}
-                >
-                    Aceptar
-                </Button> */}
-                 <Button
-                            className="botonAmarillo"
-                            loading={!!csv.loading}
-                            tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                            // Solo habilitado si hay coincidencia de CUIT
-                            disabled={
-                                !(
-                                    filtros.cuit && 
-                                    list.data.some(e => String(e.empresaCUIT) === String(filtros.cuit))
-                                )
-                            }
-                            // onClick={() => {
-                            //    alert("Analizando CUIT...");
-                            //    setAutorizacion_afil(true);
-                            // }}
-                        >
-                            ANALIZAR CUIT
-                        </Button>
+            </Grid>
+        </Modal.Body>
 
-            </Modal.Footer>
+       
+            
         </Modal>
 
-        {/* ///////////////////////////////////////////////////////////////////////
-// ////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////
-// /////////////////////////////////////////////////////////////////////// */}
 
 
     </Modal>
 
+
+
         </>
+
+
 
     
     );
 
 }
 export default SolicitudAutorizacionAfiliacion;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

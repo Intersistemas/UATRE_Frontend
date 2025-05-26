@@ -150,7 +150,7 @@ const ConsultasHandler = () => {
 						width="32"
 						tarea="Informes_Afiliados_AfiliadosEmpresa"
 					>
-						Afiliaciónes por Empresa
+						Afiliaciones por Empresa
 					</Button>
 				
 				</Grid>
