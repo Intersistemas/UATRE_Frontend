@@ -18,7 +18,7 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			text: "Fecha",
 			sort: true,
 			formatter: (v) => Formato.Fecha(v),
-			headerStyle: { width: "10%", textAlign: "center" },
+			headerStyle: { width: "120px", textAlign: "center" },
 		},
 		{
 			dataField: "cuitTitular",
@@ -45,13 +45,14 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			dataField: "dniPaciente",
 			text: "DNI Paciente",
 			formatter: Formato.DNI,
-			style: { textAlign: "left" },
+			style: { textAlign: "left"},
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},
 		{
 			dataField: "fechaNacimiento",
 			text: "Fecha Nacimiento",
 			formatter: (v) => Formato.Fecha(v),
-			headerStyle: { width: "10%", textAlign: "center" },
+			headerStyle: { width: "120px", textAlign: "center" },
 		},
 		{
 			dataField: "texto",
@@ -62,7 +63,7 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			dataField: "deletedDate",
 			text: "Fecha baja",
 			formatter: Formato.Fecha,
-			headerStyle: { width: "100px" },
+			headerStyle: { width: "120px" },
 			style: (v) => {
 				const r = { textAlign: "center" };
 				if (v) {
