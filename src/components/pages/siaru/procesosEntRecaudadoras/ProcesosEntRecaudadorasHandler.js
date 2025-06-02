@@ -5,8 +5,8 @@ import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
+import { Modal } from "react-bootstrap";
 
 const onCloseDef = () => {};
 /**
@@ -167,6 +167,7 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
     contenido = (
       <Grid width col>
         <SearchSelectMaterial
+          onKeyDown={(e) => {e.preventDefault();}}
           label="Forma de pago"
           error={!!formaPagoSelect.error}
           helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
@@ -236,14 +237,14 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
                   loading={formaPago.loading}
                   disabled={isBusy}
                   onClick={() => {
-                    setIsBusy(!isBusy);                    
-                    pushQuery({                      
+                    setIsBusy(!isBusy);
+                    pushQuery({
                       action: "PostProcesoEntidadesRecaudadoras",
                       params: {
                         formaPagoId: formaPago,
                         archivo: archivoSeleccionado,
                       },
-                      onOk: async (data) => {                        
+                      onOk: async (data) => {
                         const blob = data;
                         const urlBlob = window.URL.createObjectURL(blob);
                         const a = document.createElement("a");
@@ -252,7 +253,7 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
                         document.body.appendChild(a);
                         a.click();
                         a.remove();
-                        window.URL.revokeObjectURL(urlBlob);                        
+                        window.URL.revokeObjectURL(urlBlob);
                       },
                       onError: async (error) => {
                         setModal(
@@ -267,7 +268,7 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
                               </Grid>
                             </Modal.Body>
                             <Modal.Footer>
-                              <Grid gap="20px">                                
+                              <Grid gap="20px">
                                 <Grid width="150px">
                                   <Button
                                     className="botonAmarillo"
@@ -282,7 +283,7 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
                         );
                       },
                       onFinally: async () => setIsBusy(false),
-                    });                    
+                    });
                   }}
                 >
                   PROCESA
