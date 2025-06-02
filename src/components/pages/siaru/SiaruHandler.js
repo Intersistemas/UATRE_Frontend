@@ -496,6 +496,12 @@ const SiaruHandler = () => {
 				"q",
 				"Siaru_EmpresaLiquidaciones",
 			);
+			addAction(
+				`Importar archivo recaudaciones`,
+				(_) => navigate("ProcesosEntRecaudadoras"),
+				"i",
+				"Siaru_ProcesosEntRecaudadoras",
+			);
 		}
 		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
 		setAcciones(acciones);
