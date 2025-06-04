@@ -1,4 +1,4 @@
-.fondo {
+/* .fondo {
 	background-color: #ffffffb3;
 }
 
@@ -25,4 +25,47 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+} */
+
+.fondo {
+	background-color: #ffffffb3;
+}
+
+.grupo {
+	padding: 0rem 5px;
+	color: #186090;
+	text-align: left;
+	border: solid 1px;
+	border-radius: 20px;
+}
+
+.contenido {
+	padding: 0 1rem;
+}
+
+.titulo {
+	font-weight: bold;
+	text-align: left;
+	justify-content: start;
+}
+
+.label {
+	font-weight: bold;
+	text-align: right;
+	justify-content: end;
+	flex-shrink: 0;
+}
+
+.data {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	flex-grow: 1;
+	width: 0;
+}
+
+.afiliadoDetalle{
+  position: absolute;
+  bottom: 0.1rem;
+  width: inherit;
 }
