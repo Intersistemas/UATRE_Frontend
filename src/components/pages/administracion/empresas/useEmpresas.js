@@ -54,7 +54,7 @@ const useEmpresas = ({
 	loading,
 	error,
 	params: paramsInit = {},
-	multi: multiInit = false,
+	multi: multiInit = false, 
 	pagination: paginationInit = { index: 1, size: 15 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
 	onDataChange: onDataChangeInit = onDataChangeDef,
@@ -188,6 +188,7 @@ const useEmpresas = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
+				console.log("Empresas data", data);
 				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;

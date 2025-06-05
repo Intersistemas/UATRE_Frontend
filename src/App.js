@@ -34,7 +34,7 @@ import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHa
 //---AFILIADOS---
 import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
-import EstablecimientosHandler from './components/pages/siaru/establecimientos/EstablecimientosHandler';
+import EstablecimientosHandler from './components/pages/siaru/Establecimientos/EstablecimientosHandler';
 
 import PantallaEnDesarrollo from './components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo'
 
@@ -148,6 +148,7 @@ const App = () => {
 
               <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>
 
+                
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
         </SideBar>)}

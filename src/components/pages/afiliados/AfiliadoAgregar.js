@@ -24,7 +24,7 @@ import {
   AFILIADO_DATOSAFIPACTUALIZADO,
   AFILIADO_AGREGADO_ACTIVO,
 } from "components/helpers/Mensajes";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 import UseKeyPress from 'components/helpers/UseKeyPress';
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
 import classes from "./AfiliadoAgregar.module.css";
