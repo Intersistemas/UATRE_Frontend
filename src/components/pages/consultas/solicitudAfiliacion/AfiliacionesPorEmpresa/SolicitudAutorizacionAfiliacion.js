@@ -1545,7 +1545,7 @@ setMensajeExito(
     // Armo el objeto POST:
 const datos = {
   fecha: new Date().toISOString(), 
-seccionalId: 103423, 
+  seccionalId: null, 
   empresaId: registroAnalizadoTemporal?.empresaId ?? 0,
   estadoSolicitudId: 1,  
   estadoFecha: new Date().toISOString(),

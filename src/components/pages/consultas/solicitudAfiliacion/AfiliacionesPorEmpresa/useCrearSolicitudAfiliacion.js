@@ -4,16 +4,13 @@ import useQueryQueue from "../../../../hooks/useQueryQueue";
 const useCrearSolicitudAfiliacion = () => {
   const [loading, setLoading] = useState(false);
   const pushQuery = useQueryQueue((action, params) => {
+    console.log("params--",params);
     if (action === "crearSolicitud") {
       return {
         config: {
           baseURL: "Afiliaciones",
           endpoint: "/SolicitudAfiliacionEmpresas",
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json" 
-          },
-          body: params,   // <-- esto es lo que envías
+          method: "POST"  // <-- esto es lo que envías
         },
       };
     }
@@ -21,10 +18,13 @@ const useCrearSolicitudAfiliacion = () => {
   });
 
   const crearSolicitud = (data) => {
+    console.log("crearSolicitud", data)
     setLoading(true);
     pushQuery({
       action: "crearSolicitud",
-      params: data,  // <-- mandamos el objeto JSON
+      config:{
+        body: data,  // <-- mandamos el objeto JSON
+      },
       onOk: (response) => {
         console.log("Solicitud creada con éxito", response);
         alert("Solicitud enviada con éxito!");
