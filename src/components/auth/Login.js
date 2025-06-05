@@ -74,7 +74,10 @@ const Login = () => {
       userObject.token.tokenId,
       userObject.token.validTo.toString(),
       userObject.rol,
-      userObject
+      {
+        ...userObject,
+        verAnuncio: enteredPassword == enteredCUIT && userObject?.roles.includes("Osprera") ? true : false,
+      }
     );
     //pasar al authcontext el usuario
 

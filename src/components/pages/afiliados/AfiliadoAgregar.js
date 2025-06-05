@@ -866,7 +866,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         },
         processGetEmpresa
       );
-    }
+    } 
   }, [request, afiliadoExiste, empresaIdExiste]);
   //#endregion
 

@@ -134,7 +134,7 @@ function difFecha(fec7,fec6) {
 		meses -= 1;
 		dias = difDias(fec7,sumMeses(fec6,meses));
 	} else dias = dx7 - dx6;
-	return meses+","+dias;
+	return [meses,dias];
 }
 
 export default function useCalculoResarcitorios() {
@@ -157,6 +157,7 @@ export default function useCalculoResarcitorios() {
 
 	const [state, setState] = useState({
 		ready: false,
+		/** @type {{ desde: number, hasta: number, tasa: number }[]} */
 		data: []
 	})
 
@@ -215,14 +216,11 @@ export default function useCalculoResarcitorios() {
 		let f001 = sTOd(vencimiento);
 		let f002 = sTOd(pago);
 		const data = state.data ?? [];
-		let xind = data?.length;
 		let linx = 0;
-		/**
-		 * @type {{ desde: string, hasta: string, tasa: number }[]}
-		 */
-		let cArr = [];
+		/** @type {data} */
+		const cArr = [];
 		let calc = {};
-		for (let x = 0; x < xind; x++) {
+		for (let x = 0; x < data.length; x++) {
 			let todo = true;
 			if (!mini) {
 				if ((f001 >= data[x].desde) && (f001 <= data[x].hasta)) {
@@ -255,9 +253,9 @@ export default function useCalculoResarcitorios() {
 		}
 
 		for (let x = 0; x < linx; x++) {
-			let dif0 = difFecha(cArr[x].hasta, cArr[x].desde).split(",");
-			let mmm = parseInt(dif0[0]);
-			let ddd = parseInt(dif0[1]);
+			const [mmm,ddd] = cArr[x].desde > cArr[x].hasta
+				? [0,0]
+				: difFecha(cArr[x].hasta, cArr[x].desde);
 			const valor = {
 				desde: dTOs(diaMas(cArr[x].desde)),
 				hasta: dTOs(cArr[x].hasta),

@@ -106,10 +106,17 @@ const EstablecimientosForm = ({
 
 	//#region select Provincia
 	const [provincia, setProvincia] = useState({
-		buscar: "",
-		options: [],
-		selected: { value: 0, label: "" },
 		inicio: true,
+		...(((v) => ({
+				default: v,
+				options: [v],
+				selected: v,
+			}))
+			({
+				value: data.domicilioProvinciasId ?? 0,
+				label: ""
+			})
+		),
 	});
 	// Inicio
 	useEffect(() => {
@@ -119,24 +126,11 @@ const EstablecimientosForm = ({
 			options: provincias.data,
 			selected: provincias.data.find(
 				({ value }) => value === data.domicilioProvinciasId
-			) ?? { value: 0, label: "" },
+			) ?? provincia.default,
 			inicio: false,
 		};
 		setProvincia((o) => ({ ...o, ...changes }));
 	}, [provincias, provincia, data.domicilioProvinciasId]);
-	// Buscador
-	useEffect(() => {
-		if (provincias.loading) return;
-		if (provincia.inicio) return;
-		const options = provincias.data.filter((r) =>
-			provincia.buscar !== ""
-				? r.label
-						.toLocaleLowerCase()
-						.includes(provincia.buscar.toLocaleLowerCase())
-				: true
-		);
-		setProvincia((o) => ({ ...o, options }));
-	}, [provincias, provincia.buscar]);
 	// Change
 	useEffect(() => {
 		if (provincias.loading) return;
@@ -275,25 +269,25 @@ const EstablecimientosForm = ({
 							<Grid width="full" gap="inherit">
 								<Grid width="50%">
 									{hide.domicilioProvinciasId ? null : (
-										<SearchSelectMaterial
+										<SelectMaterial
 											id="domicilioProvinciasId"
 											name="domicilioProvinciasId"
 											label="Provincia"
-											error={!!errors.domicilioProvinciasId}
-											helperText={
+											options={provincia.options}
+											value={data.domicilioProvinciasId ?? 0}
+											error={
 												provincias.loading ??
 												provincias.error?.message ??
 												errors.domicilioProvinciasId ??
 												""
 											}
-											value={provincia.selected}
 											disabled={disabled.domicilioProvinciasId ?? false}
-											onChange={(selected) =>
-												setProvincia((o) => ({ ...o, selected }))
-											}
-											options={provincia.options}
-											onTextChange={( buscar ) =>
-												setProvincia((o) => ({ ...o, buscar }))
+											onChange={(value) =>
+												setProvincia((o) => ({
+													...o,
+													selected: provincia.options.find(p => p.value === value)
+														?? provincia.default
+												}))
 											}
 											required
 										/>
