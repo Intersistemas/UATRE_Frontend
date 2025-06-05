@@ -25,7 +25,8 @@ import InformacionDetallada from "./InformacionDetallada"
 import AfiliadosTabs from "./AfiliadosTabs";
 import useAmbitos from "../../../../hooks/useAmbitos";
 
-
+import useBuscarEmpresas from "./useBuscarEmpresas"; // Ajustá el path
+import useCrearSolicitudAfiliacion from "./useCrearSolicitudAfiliacion";
 
 
 
@@ -149,30 +150,47 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
     const [deboBuscar, setDeboBuscar] = useState(false);
 
 
+
+
 const ambito = useAmbitos().ambitoUser();
+ 
+const { resultados, loading, buscarEmpresa } = useBuscarEmpresas();
+
+const { crearSolicitud, loading: creandoSolicitud } = useCrearSolicitudAfiliacion();
 
 
 
+
+// const buscarEmpresas = () => {
+//   if (busquedaEmpresa.trim() === "") {
+//     setResultadosEmpresa([]);
+//     setMostrarResultadosBusqueda(false);
+//     return; // No hagas nada si el input está vacío
+//   }
+
+//   let data = Array.isArray(list.data) ? list.data : [];
+//   const filtro = busquedaEmpresa.toLowerCase();
+// data = data.filter(
+//   r =>
+//     (String(r.empresaCUIT).includes(filtro) ||
+//     (r.empresaRazonSocial || "").toLowerCase().includes(filtro)) &&
+//     r.estadoSolicitudDescripcion === "Activo" // <<--- filtro solo activos
+// );
+  
+//   setResultadosEmpresa(data);
+//   setMostrarResultadosBusqueda(true); // Solo mostramos resultados si hizo click en "Buscar"
+//   setPaginaEmpresa(1);
+// };
 const buscarEmpresas = () => {
   if (busquedaEmpresa.trim() === "") {
-    setResultadosEmpresa([]);
     setMostrarResultadosBusqueda(false);
-    return; // No hagas nada si el input está vacío
+    return;
   }
 
-  let data = Array.isArray(list.data) ? list.data : [];
-  const filtro = busquedaEmpresa.toLowerCase();
-data = data.filter(
-  r =>
-    (String(r.empresaCUIT).includes(filtro) ||
-    (r.empresaRazonSocial || "").toLowerCase().includes(filtro)) &&
-    r.estadoSolicitudDescripcion === "Activo" // <<--- filtro solo activos
-);
-  
-  setResultadosEmpresa(data);
-  setMostrarResultadosBusqueda(true); // Solo mostramos resultados si hizo click en "Buscar"
-  setPaginaEmpresa(1);
+  buscarEmpresa(busquedaEmpresa); // <-- Ahora llamás a tu hook nuevo
+  setMostrarResultadosBusqueda(true);
 };
+
 
 
 // En el onChange del input:
@@ -621,6 +639,7 @@ const { request: generarPDF } = PDF();
                 <Modal size="xl" centered show >
         <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
             SOLICITUDES DE AUTORIZACION DE AFILIACION  
+   
         </Modal.Header>
         <AfiliadosTabs
             selectedTab={selectedTab}
@@ -1294,25 +1313,35 @@ const { request: generarPDF } = PDF();
     </Grid>
   </Grid>
 
+
+
   {/* Mostrar tabla si hay resultados */}
-  {mostrarResultadosBusqueda && resultadosEmpresa.length > 0 && (
+  {mostrarResultadosBusqueda && resultados.length > 0 && (
     <Grid>
       <Table
-        mostrarBuscar={false}
-        keyField="empresaCUIT"
-        data={resultadosPaginados}
+        mostrarBuscar={false} 
+        keyField="cuit"
+    
+        data={resultados.slice(
+            (paginaEmpresa - 1) * pageSizeEmpresa,
+            paginaEmpresa * pageSizeEmpresa
+        )}
+        loading={loading}
         columns={[
-          { dataField: "empresaCUIT", text: "CUIT", formatter: (v) => Formato.Cuit(v), style: { textAlign: "left" } },
-          { dataField: "empresaRazonSocial", text: "Razón Social", style: { textAlign: "left" } },
+        //   { dataField: "empresaCUIT", text: "CUIT", formatter: (v) => Formato.Cuit(v), style: { textAlign: "left" } },
+        //   { dataField: "empresaRazonSocial", text: "Razón Social", style: { textAlign: "left" } },
+        { dataField: "cuit", text: "CUIT", formatter: (v) => Formato.Cuit(v), style: { textAlign: "left" } },
+          { dataField: "razonSocial", text: "Razón Social", style: { textAlign: "left" } },
         ]}
         rowEvents={{
           onClick: (e, row) => {
             setFiltros(o => ({
               ...o,
-              cuit: row.empresaCUIT,
-              razonSocial: row.empresaRazonSocial,
+              cuit: row.cuit,
+              razonSocial: row.razonSocial,
             }));
-            setBusquedaEmpresa(String(row.empresaCUIT));
+                 setBusquedaEmpresa(String(row.cuit));
+              
           }
         }}
         noDataIndication="Sin resultados"
@@ -1321,7 +1350,7 @@ const { request: generarPDF } = PDF();
   )}
 
   {/* Mostrar mensaje si NO hay resultados */}
-  {mostrarResultadosBusqueda && resultadosEmpresa.length === 0 && (
+  {mostrarResultadosBusqueda && resultados.length === 0 && (
     <div style={{ marginTop: "10px" }}>
       <text  style={{ color: "red", textAlign: "center" }}>No se encontraron resultados para la búsqueda.</text>
     </div>
@@ -1506,47 +1535,49 @@ setMensajeExito(
 <Grid width="100%" justify="center" gap="20px" style={{ marginTop: 20 }}>
 
 
-    <Button
-    className="botonAzul"
-    disabled={
-        !(
-            Array.isArray(totalesEmpresa.data) &&
-            totalesEmpresa.data.length > 0
-        )
-    }
-    onClick={() => {
-        // Estructura el array como pediste
-        const resultado = [
+<Button
+  className="botonAzul"
+  disabled={!(
+    Array.isArray(totalesEmpresa.data) &&
+    totalesEmpresa.data.length > 0
+  )}
+  onClick={() => {
+    // Armo el objeto POST:
+const datos = {
+  fecha: new Date().toISOString(), 
+seccionalId: 103423, 
+  empresaId: registroAnalizadoTemporal?.empresaId ?? 0,
+  estadoSolicitudId: 1,  
+  estadoFecha: new Date().toISOString(),
+  estadoSolicitudObservaciones: filtros.observaciones || "Sin observaciones",
+  estadoSolicitudUsuario: ambito?.username || "desconocido",
+  solicitudAfiliacionEmpresasDetalle: Array.isArray(totalesEmpresa.data)
+    ? totalesEmpresa.data.map((item) => ({
+        periodo: item.periodo,
+        total_Trabajadores: item.total_Trabajadores,
+        total_Trab_Rurales: item.total_Trab_Rurales,
+        total_Trab_NoRurales: item.total_Trab_NoRurales,
+        total_Trab_Rurales_Afiliados: item.total_Trab_Rurales_Afiliados,
+        total_Trab_Rurales_NoAfiliados: item.total_Trab_Rurales_NoAfiliados,
+        total_Trab_NoRurales_Afiliados: item.total_Trab_NoRurales_Afiliados,
+        total_Trab_NoRurales_NoAfiliados: item.total_Trab_NoRurales_NoAfiliados,
+    }))
+    : []
+};
 
-            {   
-                id: filtros.cuit || "desconocido",
-                Fecha: new Date().toLocaleDateString(),
-                Seccional: ambito.tipo === "Seccionales" ? ambito.ids[0] : "0", 
-                CUITEmpresa: filtros.cuit,
-                Estado: filtros.estado || "desconocido",
-                EstadoObservaciones: filtros.observaciones || "Sin observaciones",
-                EstadoFecha: new Date().toLocaleDateString(),
-                EstadoUsuario: ambito?.username || "desconocido",
-                ArchivoPDF: pdfGenerado || "No generado",
-                
-                periodos: Array.isArray(totalesEmpresa.data) ? totalesEmpresa.data : []
-            }
-        ];
+    console.log("Enviando datos:", datos); // Por las dudas
+    crearSolicitud(datos);  // <-- ACÁ HACEMOS EL POST
 
-console.log("Resultado estructurado:", resultado); // Muestra el array en la consola
-
-alert(JSON.stringify(resultado, null, 2));
-        alert(JSON.stringify(resultado, null, 2)); // Muestra el array en formato legible
-
-        // Lógica original
-        setRegistroAnalizado(registroAnalizadoTemporal);
-        setAutorizacion_afil(false);
-        setRegistroAnalizadoTemporal(null);
-        setAnalizarCuil(false);
-    }}
+    // Limpiás después:
+    setRegistroAnalizado(registroAnalizadoTemporal);
+    setAutorizacion_afil(false);
+    setRegistroAnalizadoTemporal(null);
+    setAnalizarCuil(false);
+  }}
 >
-    Confirmar
+  {creandoSolicitud ? "Enviando..." : "Confirmar"}
 </Button>
+
 <Button
     className="botonAmarillo"
     onClick={() => {
