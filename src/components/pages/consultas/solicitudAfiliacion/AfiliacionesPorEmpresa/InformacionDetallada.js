@@ -71,7 +71,7 @@ const InformacionDetallada = (props) => {
                    											
                   {/* <InputMaterial label="Razon Social Empresa" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? "-"}`}/> */}
                   {/* <InputMaterial  label="Nombre de Seccional" width="87rem" value={validar(data.empresaRazonSocial)}/> */}
-                   <InputMaterial  label="Nombre de Seccional" width="87rem" value={"-"}/>
+                   <InputMaterial  label="Nombre de Seccional" width="87rem" value={data?.seccionalCodigo ? `${data?.seccionalCodigo}-${data?.seccional}` : "Sin Asignación"}/>
                   <InputMaterial label="Estado Observaciones" value={validar(data.estadoSolicitudDescripcion)}/>		
                   {/* <InputMaterial label="Estado" value={validar(data.estadoSolicitudDescripcion)}/> */}
                   {/* <InputMaterial label="Tipo Clave" value={validar(data.afipTipoClave)} />	 */}

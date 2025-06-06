@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Modal } from "react-bootstrap";
 import downloadjs from "downloadjs";
 import ArrayToCSV from "components/helpers/ArrayToCSV";
@@ -16,6 +16,7 @@ import SearchSelectMaterial, {
     includeSearch,
     mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
+import AuthContext from "store/authContext";
 
 // import PDFViewer from "./AfiliacionPDF/PDFViewer";
 
@@ -25,16 +26,52 @@ import InformacionDetallada from "./InformacionDetallada"
 import AfiliadosTabs from "./AfiliadosTabs";
 import useAmbitos from "../../../../hooks/useAmbitos";
 
-import useBuscarEmpresas from "./useBuscarEmpresas"; // Ajustá el path
 import useCrearSolicitudAfiliacion from "./useCrearSolicitudAfiliacion";
-
+import useEmpresas, { onLoadSelectKeepOrFirst } from "components/pages/administracion/empresas/useEmpresas";
+import { Hidden } from "@mui/material";
 
 
  
 const onCloseDef = () => {};
 
+const selectionDef = {
+    action: "",
+    request: "",
+    index: null,
+    record: null,
+    edit: null,
+    errors: null,
+};
 
+export const onLoadSelectFirst = ({ data, multi, record }) => {
+    const dataArray = AsArray(data);
+    if (multi) {
+        record = AsArray(record);
+        let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
+        if (retorno.length === 0) retorno = [dataArray.at(0)].filter((r) => r);
+        return retorno.length ? retorno : null;
+    }
+    return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
+};
 
+export const onLoadSelectSame = ({ data, multi, record }) => {
+    const dataArray = AsArray(data);
+    if (multi) {
+        record = AsArray(record);
+        let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
+        return retorno.length ? retorno : null;
+    }
+    return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
+};
+
+export const onLoadSelectKeep = ({ record }) => record;
+
+export const onDataChangeDef = (data = []) => {};
+
+const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
+    true;
+const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
+const onEditCompleteDef = ({ edit = {}, response = null, request = "", } = {}) => {};
 
 
 //#region estadoSelectOptions
@@ -49,31 +86,45 @@ const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
     });
 //#endregion estadoSelectOptions
 
-const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
+const SolicitudAutorizacionAfiliacion = ({ 
+    onClose,
+    remote: remoteInit = true,
+    data: dataInit = [],
+    error,
+    multi: multiInit = false,
+    pagination: paginationInit = { index: 1, size: 12 },
+    params: paramsInit = {
+        sort: "-Id",
+        verDetalles: false,
+    },
+    onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
+    onDataChange: onDataChangeInit = onDataChangeDef,
+    onEditChange: onEditChangeInit = onEditChangeDef,
+    onEditValidate: onEditValidateInit = onEditValidateDef,
+    onEditComplete: onEditCompleteInit = onEditCompleteDef,
+    columns,
+    hideSelectColumn = true,
+    mostrarBuscar = false,
+ }) => {
     //#region Trato queries a APIs
     // const pushQuery = useQueryQueue((action) => {
+        const [selectedRowId, setSelectedRowId] = useState(null);
+        const Usuario = useContext(AuthContext).usuario;
+        onClose??=onCloseDef
+
+
         const pushQuery = useQueryQueue((action, params) => {
         switch (action) {
             // Obtener datos de la tabla principal
-            case "GetData": {
+            case "GetSolicitudes": {
                 return {
                     config: {
-                        baseURL: "Estadisticas",
-                        endpoint: `/Afiliados/EmpresasAfiliadosEstados`,
-                        method: "GET",
+                        baseURL: "Afiliaciones",
+                        endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
+                        method: "POST",
                     },
                 };
             }
-            case "GetList": {
-                return {
-                    config: {
-                        baseURL: "Comunes",
-                        endpoint: "/Empresas/GetEmpresasListSpecs",
-                        method: "GET",
-                            },
-                };
-            }
-
             // Obtener datos de la tabla principal
             case "GetEstados": {
                 return {
@@ -105,14 +156,22 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
                     },
                 };
             }
-
-            
+             case "GetDetallesBySolicitudId" : {
+                return {
+                    config: { 
+                        baseURL: "Afiliaciones",
+                        endpoint: `/SolicitudAfiliacionEmpresas/GetaDetallesBySolicitudIdPaginationSpecs`,
+                        method: "GET",
+                    },
+                };
+            }
             
             default:
                 return null;
         }
     });
     //#endregion
+
     const [rechazarAutorizacion, setRechazarAutorizacion] = useState(false);
     const [textInformativo, setTextInformativo] = useState(false);
     const [autorizacion_afil, setAutorizacion_afil] = useState(false)
@@ -148,59 +207,79 @@ const SolicitudAutorizacionAfiliacion = ({ onClose = onCloseDef }) => {
     const [mensajeExito, setMensajeExito] = useState("");
 
     const [deboBuscar, setDeboBuscar] = useState(false);
+    const ambito = useAmbitos().ambitoUser();
+    const { crearSolicitud, loading: creandoSolicitud } = useCrearSolicitudAfiliacion();
+    const [mostrarTableEmpresas, setMostrarTableEmpresas] = useState(false);
+
+    //#region Empresas Params
+        const [paramsEdit, setParamsEdit] = useState({});
+        const [paramsSend, setParamsSend] = useState({});
+    //#endregion
 
 
+    const columnsDef = [
+		{
+			dataField: "cuit",
+			text: "CUIT",
+			sort: true,
+			formatter: Formato.Cuit,
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+		},
+		{
+			dataField: "razonSocial",
+			text: "Razon Social",
+			sort: true,
+			style: { textAlign: "left" },
+		},
+		{
+			dataField: "actividadPrincipalDescripcion",
+			text: "Actividad Principal",
+            hidden: true,
+			style: { textAlign: "left" },
+		},
+		{
+			dataField: "domicilioCalle",
+			text: "Domicilio",
+            hidden: true,
+			style: { textAlign: "left" },
+		},
+		{
+			dataField: "telefono",
+            hidden: true,
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+			text: "Teléfono",
+			style: { textAlign: "left" },
+		},
+		{
+			dataField: "deletedDate",
+			text: "Fecha baja",
+            hidden: true,
+			formatter: Formato.Fecha,
+			headerStyle: { width: "100px" },
+			style: (v) => {
+				const r = { textAlign: "center" };
+				if (v) {
+					r.background = "#ff6464cc";
+					r.color = "#FFF";
+				}
+				return r;
+			},
+		},
+	];
+    //#region Tab Empresas
+    const {
+        render: empresasRender,
+        request: empresasRequest,
+        selected: empresaSelected,
+    } = useEmpresas({
+        params: { orderBy: "razonSocial", soloActivos: true },
+        onLoadSelect: onLoadSelectKeepOrFirst,
+        columns: columnsDef,
+    });
+    
+    console.log("empresasRender",empresasRender())
 
 
-const ambito = useAmbitos().ambitoUser();
- 
-const { resultados, loading, buscarEmpresa } = useBuscarEmpresas();
-
-const { crearSolicitud, loading: creandoSolicitud } = useCrearSolicitudAfiliacion();
-
-
-
-
-// const buscarEmpresas = () => {
-//   if (busquedaEmpresa.trim() === "") {
-//     setResultadosEmpresa([]);
-//     setMostrarResultadosBusqueda(false);
-//     return; // No hagas nada si el input está vacío
-//   }
-
-//   let data = Array.isArray(list.data) ? list.data : [];
-//   const filtro = busquedaEmpresa.toLowerCase();
-// data = data.filter(
-//   r =>
-//     (String(r.empresaCUIT).includes(filtro) ||
-//     (r.empresaRazonSocial || "").toLowerCase().includes(filtro)) &&
-//     r.estadoSolicitudDescripcion === "Activo" // <<--- filtro solo activos
-// );
-  
-//   setResultadosEmpresa(data);
-//   setMostrarResultadosBusqueda(true); // Solo mostramos resultados si hizo click en "Buscar"
-//   setPaginaEmpresa(1);
-// };
-const buscarEmpresas = () => {
-  if (busquedaEmpresa.trim() === "") {
-    setMostrarResultadosBusqueda(false);
-    return;
-  }
-
-  buscarEmpresa(busquedaEmpresa); // <-- Ahora llamás a tu hook nuevo
-  setMostrarResultadosBusqueda(true);
-};
-
-
-
-// En el onChange del input:
-// const handleChangeBusqueda = (valor) => {
-//   setBusquedaEmpresa(valor);
-//   if (valor.trim() === "") {
-//     setResultadosEmpresa([]); // Vacía resultados si el input queda vacío
-//     setMostrarResultadosBusqueda(false);
-//   }
-// };
 const handleChangeBusqueda = (valor) => {
   setBusquedaEmpresa(valor);
   
@@ -233,15 +312,12 @@ const formatFechaMesAnio = (fecha) => {
   return `${month}/${year}`;
 };
 
-
-console.log("ambitos_ maxi",ambito);
-
-    //----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
     const [totalesEmpresa, setTotalesEmpresa] = useState({
-    loading: false,
-    data: null,
-    error: null,
-});
+        loading: false,
+        data: null,
+        error: null,
+    });
 //----------------------------------------------------------------------------------------
 
 
@@ -254,25 +330,6 @@ const [busquedaEmpresa, setBusquedaEmpresa] = useState("");
 const [resultadosEmpresa, setResultadosEmpresa] = useState([]);
 const [paginaEmpresa, setPaginaEmpresa] = useState(1);
 const pageSizeEmpresa = 3;
-
-// Buscar empresas por CUIT o Razón Social
-// const buscarEmpresas = () => {
-//     let data = Array.isArray(list.data) ? list.data : [];
-//     if (busquedaEmpresa.trim() !== "") {
-//         const filtro = busquedaEmpresa.toLowerCase();
-// data = data.filter(
-//     r =>
-//         String(r.empresaCUIT).includes(filtro) ||
-//         (r.empresaRazonSocial || "").toLowerCase().includes(filtro)
-// );
-//         setResultadosEmpresa(data);
-//         setPaginaEmpresa(1);
-//     } else {
-//         setResultadosEmpresa([]); // Si no hay filtro, no muestres nada
-//         setPaginaEmpresa(1);
-//     }
-// };
-// Cambiar esta función:
 
 
 const resultadosPaginados = resultadosEmpresa.slice(
@@ -371,19 +428,40 @@ useEffect(() => {
 
     //#region list
     const [list, setList] = useState({
-        loading: "Cargando...",
-        pagination: { index: 1, size: 10 },
-        filtros: {},
-        params: {},
-        data: [],
-        error: null,
+            loading: "Cargando...",
+            remote: remoteInit,
+            params: { ...paramsInit },
+            paramsDef: {
+                ambitoTodos: Usuario.ambitoTodos,
+                ambitoProvincias: Usuario.ambitoProvincias,
+                ambitoDelegaciones: Usuario.ambitoDelegaciones,
+                ambitoSeccionales: Usuario.ambitoSeccionales
+            },
+            delegaciones: [],
+            pagination: { index: 1, size: 12, ...paginationInit },
+            data: [...AsArray(dataInit, true)],
+            error,
+            selection: {
+                ...selectionDef,
+                multi: multiInit,
+            },
+            onLoadSelect:
+                onLoadSelectInit === onLoadSelectFirst && multiInit
+                    ? onLoadSelectSame
+                    : onLoadSelectInit,
+            onDataChange: onDataChangeInit ?? onDataChangeDef,
+            onEditChange: onEditChangeInit ?? onEditChangeDef,
+            onEditValidate: onEditValidateInit ?? onEditValidateDef,
+            onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
     });
 
 // Este useEffect se encarga de cargar los datos de la tabla principal (list.data) desde la API.
 // Se ejecuta cada vez que cambia el estado 'list' o la función 'pushQuery'.
 
 useEffect(() => {
-    if (!list.loading) return;
+   console.log("1",creandoSolicitud)
+   console.log("2",list.loading)
+   if (!list.loading && !creandoSolicitud) return;
 
     const changes = { loading: null, data: [], error: null };
 
@@ -394,23 +472,24 @@ useEffect(() => {
         pageIndex: list.pagination.index,
         pageSize: list.pagination.size,
     };
-    if (list.filtros.estado && list.filtros.estado !== 0) {
+    if (list?.filtros?.estado && list?.filtros?.estado !== 0) {
         params.estado = list.filtros.estado;
     } else {
         delete params.estado; // No envíes estado si es "Todos"
     }
 
     pushQuery({
-    action: "GetData",
-    params,
+    action: "GetSolicitudes",
     config: {
         errorType: "response",
+        body:params,
     },
     onOk: async ({ data, ...pagination }) => {
         console.log("Datos recibidos de la consulta 1:", data); // <-- Agregá esta línea
         if (Array.isArray(data)) {
             changes.data = data;
             changes.pagination = pagination;
+            setSelectedRowId(data[0].id);
         } else {
             console.error("Se esperaba un arreglo", data);
         }
@@ -419,7 +498,7 @@ useEffect(() => {
     onFinally: async () => setList((o) => ({ ...o, ...changes })),
 });
 
-}, [list, pushQuery]);
+}, [list, pushQuery, creandoSolicitud]);
 
 
     
@@ -443,7 +522,7 @@ useEffect(() => {
             error: null,
         };
         const query = {
-            action: "GetData",
+            action: "GetSolicitudes",
             params: {
                 ...csv.params,
                 ...csv.filtros,
@@ -545,85 +624,87 @@ const fechaToPeriodo = (fecha) => {
     }
 };
 
-// useEffect(() => {
-//     if (!autorizacion_afil) return;
-//     if (!(filtros.cuit && filtros.desde && filtros.hasta)) return;
-
-//     const cuit = String(filtros.cuit).replace(/\D/g, "");
-//     const PeriodoDesde = fechaToPeriodo(filtros.desde);
-//     const PeriodoHasta = fechaToPeriodo(filtros.hasta);
-
-//     if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
-
-//     setTotalesEmpresa({ loading: true, data: null, error: null });
-
-//     pushQuery({
-//         action: "dataTotalesDesdeApi",
-//         params: {
-//             CUIT: cuit,
-//             PeriodoDesde,
-//             PeriodoHasta,
-//         },
-//         onOk: (data) => {
-//             // Si la API responde pero no hay datos
-//             if (!data || (Array.isArray(data) && data.length === 0)) {
-//                 setTotalesEmpresa({
-//                     loading: false,
-//                     data: [],
-//                     error: "No hay datos para el CUIT y período seleccionados.",
-//                 });
-//             } else {
-//                 setTotalesEmpresa({ loading: false, data, error: null });
-//             }
-//         },
-
-        
-//     });
-// }, [autorizacion_afil, filtros.cuit, filtros.desde, filtros.hasta, pushQuery]);
-
-
 useEffect(() => {
-  if (!deboBuscar) return; // Solo buscar cuando apretamos ANALIZAR
-  if (!(filtros.cuit && filtros.desde && filtros.hasta)) return;
+    if (!(registroSeleccionado?.id) || !registroSeleccionado) return;
+    pushQuery({
+        action: "GetDetallesBySolicitudId",
+        params: {
+        SolicitudAfiliacionEmpresasId: registroSeleccionado?.id,
+        pageIndex: 1,
+        pageSize: 12,
+        },
+        onOk: (data) => {
+        console.log("data//",data)
+        if (!data || (Array.isArray(data.data) && data.data.length === 0)) {
+            setTotalesEmpresa({
+            loading: false,
+            data: [],
+            error: "No hay datos para el CUIT y período seleccionados.",
+            });
+        } else {
+            setTotalesEmpresa({ loading: false, data: data.data, error: null });
+        }
+        },
+    });
 
-  const cuit = String(filtros.cuit).replace(/\D/g, "");
-  const PeriodoDesde = fechaToPeriodo(filtros.desde);
-  const PeriodoHasta = fechaToPeriodo(filtros.hasta);
-
-  if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
-
-  setTotalesEmpresa({ loading: true, data: null, error: null });
-
-  pushQuery({
-    action: "dataTotalesDesdeApi",
-    params: {
-      CUIT: cuit,
-      PeriodoDesde,
-      PeriodoHasta,
-    },
-    onOk: (data) => {
-      if (!data || (Array.isArray(data) && data.length === 0)) {
-        setTotalesEmpresa({
-          loading: false,
-          data: [],
-          error: "No hay datos para el CUIT y período seleccionados.",
-        });
-      } else {
-        setTotalesEmpresa({ loading: false, data, error: null });
-      }
-    },
-  });
-
-  setDeboBuscar(false); // Apago la bandera después de buscar
-}, [deboBuscar, filtros.cuit, filtros.desde, filtros.hasta, pushQuery]);
+    setDeboBuscar(false); // Apago la bandera después de buscar
+}, [registroSeleccionado]);
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
+const handlerBuscarTotales = () =>{
+    const cuit = String(empresaSelected.cuit).replace(/\D/g, "");
+    const PeriodoDesde = fechaToPeriodo(filtros.desde);
+    const PeriodoHasta = fechaToPeriodo(filtros.hasta);
+
+    if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
+
+    setTotalesEmpresa({ loading: true, data: null, error: null });
+
+    pushQuery({
+        action: "dataTotalesDesdeApi",
+        params: {
+        CUIT: cuit,
+        PeriodoDesde,
+        PeriodoHasta,
+        },
+        onOk: (data) => {
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            setTotalesEmpresa({
+            loading: false,
+            data: [],
+            error: "No hay datos para el CUIT y período seleccionados.",
+            });
+        } else {
+            setTotalesEmpresa({ loading: false, data, error: null });
+        }
+        },
+    });
+}
+
+
+const handleModalNuevaSolicitud = ()=>{
+    
+    setTotalesEmpresa({data: []});
+    setMostrarResultadosBusqueda(false);
+    setAutorizacion_afil(true);
+    setFiltros((o) => ({
+        ...o,
+        desde: getFechaTresMesesAtras(),
+        hasta: getCurrentDate(), // <-- Setea la fecha actual en "hasta"
+    }));
+}
+
+
+//Carga de lista según parametros
+useEffect(() => {
+    empresasRequest("list", {
+        params: paramsSend,
+        pagination: { index: 1, size: 5 },
+        onLoadSelect: onLoadSelectKeepOrFirst,
+    });
+}, [empresasRequest, paramsSend]);
+//#endregion
+
 
 //Obtengo la funcion para generar el pdf
 
@@ -631,12 +712,19 @@ useEffect(() => {
 const { request: generarPDF } = PDF();
 //----------------------------------------------
 
+const limpiarBuscadorHandle = () => {
+    const paramsEdit = {};
+    setParamsEdit(paramsEdit);
+    if (JSON.stringify(paramsEdit) === JSON.stringify(paramsSend))
+        return;
+    setParamsSend({ ...paramsEdit });
+}
 
 
     return (
         <>
        
-                <Modal size="xl" centered show >
+        <Modal size="xl" centered show >
         <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => onClose()}>
             SOLICITUDES DE AUTORIZACION DE AFILIACION  
    
@@ -746,6 +834,18 @@ const { request: generarPDF } = PDF();
                                 remote
                                 keyField="id"
                                 data={Array.isArray(list.data) ? list.data : []}
+                                selectRow={{
+                                        mode: 'radio',
+                                        hideSelectColumn: true,
+                                        style: {
+                                            backgroundColor: "#EEC85E",
+                                            color: "black",
+                                            fontWeight: "bold",
+                                        },
+                                        clickToSelect: true,
+                                        selected: selectedRowId ? [selectedRowId] : [],
+                                        onSelect: (row) => setSelectedRowId(row.id)
+                                    }}
                                 rowEvents={{
                                     onClick: (e, row) => setRegistroSeleccionado(row),
                                 }}
@@ -762,11 +862,11 @@ const { request: generarPDF } = PDF();
                                         })),
                                 }}
                                 noDataIndication={
-                                    list.loading || list.error || "No existen datos para mostrar "
+                                     list.loading || list.error || "No existen datos para mostrar"
                                 }
                                 columns={[
                                     {
-                                        dataField: "procesoFecha",
+                                        dataField: "fecha",
                                         text: "FECHA",
                                         sort: true,
                                         formatter: (v) => Formato.Fecha(v),
@@ -782,20 +882,20 @@ const { request: generarPDF } = PDF();
                                         headerStyle: { width: "140px" },
                                     },
                                     {
-                                        dataField: "empresaRazonSocial",
+                                        dataField: "empresaDescripcion",
                                         text: "RAZON SOCIAL EMPRESA",
                                         sort: true,
                                         style: { textAlign: "left" },
                                     },
                                     {
-                                        dataField: "empresaId",
+                                        dataField: "seccionalCodigo",
                                         text: "CODIGO SECCIONAL",
                                         sort: true,
                                         style: { textAlign: "left" },
                                         headerStyle: { width: "120px" },
                                     },
                                     {
-                                        dataField: "estadoSolicitudDescripcion",
+                                        dataField: "estado",
                                         text: "ESTADO",
                                         sort: true,
                                         style: { textAlign: "left" },
@@ -828,273 +928,232 @@ const { request: generarPDF } = PDF();
                                     }
                                 }}
                             />
-
-                            
-
-                                </div>
+                            </div>
                             {/* -----------------*/}
-                                <div style={{ width: "30%", height: "auto", justifyContent: "center", alignItems: "center" }}>
-                        <Modal.Footer>
-                
-                            <Grid gap="20px" col marginTop="10px" >
-                                
-                            
-
+                            <div style={{ width: "30%", height: "auto", justifyContent: "center", alignItems: "center" }}>
+                                <Modal.Footer>
+                                <Grid gap="20px" col marginTop="10px" >
                                 {/* ACTUALMENTE ESTA DESACTIVADO, SE ACTIVA UNICAMENTE CUANDO SE "ANALIZA CUIT" */}
                                 <Grid width="auto">
                                     <Button
                                         className="botonAmarillo"
                                         loading={!!csv.loading}
-                                        // onClick={() => onCSV()}
-                                        // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                        
-                                    onClick={() => {
-                                        setAutorizacion_afil(true);
-                                        setFiltros((o) => ({
-                                            ...o,
-                                            hasta: getCurrentDate(), // <-- Setea la fecha actual en "hasta"
-                                        }));
-                                    }}
-                                        
+                                        onClick={() => {handleModalNuevaSolicitud()}}
                                     >
                                         SOLICITAR NUEVA AUTORIZACION AFILIACION
                                     </Button>
                                 </Grid>
 
-                                
-            
                                 <Grid width="auto">
-
-                                <Button
-                                    className="botonAmarillo"
-                                    loading={!!csv.loading}
-                                    onClick={() => {
-                                        if (registroAnalizado) {
-                                            setRechazarAutorizacion(true);
-                                            setAccionSeleccionada('rechazar');
-                                        }
-                                    }}
-                                    // tarea="Informes_Afiliados_AfiliadosEmpresa_CSV"
-                                    disabled={accionSeleccionada === 'autorizar' || !registroAnalizado}
-                                >
-                                    RECHAZAR SOLICITUD DE AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}
-                                </Button>
-
-                            </Grid>
-                            <Grid width="auto">
-                            
-
-
-
-                                <Button
-                            className="botonAmarillo"
-                            tarea="Consultas_SolicitudAfiliacion"
-                        
-
-                            onClick={async () => {
-                                const fechaToPeriodo = (fecha) => {
-                                    if (!fecha) return "";
-                                    const d = new Date(fecha);
-                                    const y = d.getFullYear();
-                                    const m = String(d.getMonth() + 1).padStart(2, "0");
-                                    return `${y}${m}`;
-                                };
-                                if (registroAnalizado) {
-                                    setTextInformativo(true);
-                                    setGenerandoPDF(true);
-                                    setAccionSeleccionada('autorizar');
-                                    setCargandoBloques(false);
-                                    setBloqueActual(0);
-                                    setTotalPaginas(0);
-
-                                    pushQuery({
-                                        action: "dataPFDDesdeApi",
-                                        params: {
-                                            CUIT: registroAnalizado.empresaCUIT,
-                                            PeriodoDesde: fechaToPeriodo(filtros.desde),
-                                            PeriodoHasta: fechaToPeriodo(filtros.hasta),
-                                        },
-
-                                onOk: async (dataApi) => {
-                                console.log("Respuesta de la API para el PDF (onOk):", dataApi);
-
-                                if (!dataApi || (Array.isArray(dataApi) && dataApi.length === 0)) {
-                                    alert("No se encontraron datos para el CUIT y período seleccionado.");
-                                    setGenerandoPDF(false);
-                                    return;
-                                }
-
-                                // Si la API devuelve un array, usá todos los elementos
-                                const datosArray = Array.isArray(dataApi) ? dataApi : [dataApi];
-
-                                // Mapeo para el PDF (uno por cada registro)
-                                const datosPDFArray = datosArray.map(datos => {
-                                    const splitCuil = (cuil) => {
-                                        const str = String(cuil).padStart(11, "0");
-                                        return {
-                                            tipo: str.substring(0, 2),
-                                            id: str.substring(2, 10),
-                                            verificador: str.substring(10, 11),
+                                    <Button
+                                        className="botonAmarillo"
+                                    onClick={async () => {
+                                        const fechaToPeriodo = (fecha) => {
+                                            if (!fecha) return "";
+                                            const d = new Date(fecha);
+                                            const y = d.getFullYear();
+                                            const m = String(d.getMonth() + 1).padStart(2, "0");
+                                            return `${y}${m}`;
                                         };
-                                    };
-                                    const cuilParts = splitCuil(datos.cuil);
-                                    const cuitParts = splitCuil(datos.cuit);
-                                    const fechaPresentacion = datos.presentacionFecha
-                                        ? new Date(datos.presentacionFecha)
-                                        : new Date();
-                                    const fechaNac = { dia: "--", mes: "--", anio: "----" };
-                                    const procesoFechax = datos.procesoFecha
-                                        ? new Date(datos.procesoFecha)
-                                        : new Date();
-                            
-                                // Mapeo para el PDF
-                                        const datosPDF = {
-                                            // Afiliado
-                                            "afiliado.numero": datos.id,
+                                    if (registroAnalizado) {
+                                        setTextInformativo(true);
+                                        setGenerandoPDF(true);
+                                        setAccionSeleccionada('autorizar');
+                                        setCargandoBloques(false);
+                                        setBloqueActual(0);
+                                        setTotalPaginas(0);
 
-                                            // Trabajador
-                                            "trabajador.apellidos": datos.afiliadoNombre,
-                                            "trabajador.nombres": "-", // No viene en la API
-                                            "trabajador.cuil.tipo": cuilParts.tipo,
-                                            "trabajador.cuil.id": cuilParts.id,
-                                            "trabajador.cuil.verificador": cuilParts.verificador,
-                                            "trabajador.documento": "-", // No viene en la API
-                                            "trabajador.nacionalidad": "-", // No viene en la API
-                                            "trabajador.nacimiento.fecha": `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
-                                            "trabajador.estado_civil": "-", // No viene en la API
-                                            "trabajador.sexo": "-", // No viene en la API
-                                            "trabajador.domicilio": "-", // No viene en la API
-                                            "trabajador.localidad": datos.zona,
-                                            "trabajador.provincia": "-", // No viene en la API
-                                            "trabajador.oficio": datos.modalidadDescripcion,
-                                            "trabajador.actividad": datos.actividadDescripcion,
-                                            "trabajador.telefono": "-", // No viene en la API
-                                            "trabajador.correo": "-", // No viene en la API
+                                        pushQuery({
+                                            action: "dataPFDDesdeApi",
+                                            params: {
+                                                CUIT: registroAnalizado.empresaCUIT,
+                                                PeriodoDesde: fechaToPeriodo(filtros.desde),
+                                                PeriodoHasta: fechaToPeriodo(filtros.hasta),
+                                            },
 
-                                            // Empleador
-                                            "empleador.cuit.tipo": cuitParts.tipo,
-                                            "empleador.cuit.id": cuitParts.cuit,
-                                            "empleador.cuit.verificador": cuitParts.verificador,
-                                            "empleador.razon_social": "-", // No viene en la API
-                                            "empleador.domicilio": "-", // No viene en la API
-                                            "empleador.localidad": "-",
-                                            "empleador.provincia": datos.zona, // No viene en la API
-                                            "empleador.actividad": datos.modalidadDescripcion,
-                                            "empleador.telefono": "-", // No viene en la API
-                                            "empleador.correo": "-", // No viene en la API
+                                    onOk: async (dataApi) => {
+                                    console.log("Respuesta de la API para el PDF (onOk):", dataApi);
 
-                                            // Carnet (fecha)
-                                            "carnet.fecha.dia": String(procesoFechax.getDate()).padStart(2, "0"),
-                                            "carnet.fecha.mes": String(procesoFechax.getMonth() + 1).padStart(2, "0"),
-                                            "carnet.fecha.anio": String(procesoFechax.getFullYear()),
+                                    if (!dataApi || (Array.isArray(dataApi) && dataApi.length === 0)) {
+                                        alert("No se encontraron datos para el CUIT y período seleccionado.");
+                                        setGenerandoPDF(false);
+                                        return;
+                                    }
 
-                                            // Fecha de presentación
-                                            "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
-                                            "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2, "0"),
-                                            "fecha.anio": String(fechaPresentacion.getFullYear()),
+                                    // Si la API devuelve un array, usá todos los elementos
+                                    const datosArray = Array.isArray(dataApi) ? dataApi : [dataApi];
+
+                                    // Mapeo para el PDF (uno por cada registro)
+                                    const datosPDFArray = datosArray.map(datos => {
+                                        const splitCuil = (cuil) => {
+                                            const str = String(cuil).padStart(11, "0");
+                                            return {
+                                                tipo: str.substring(0, 2),
+                                                id: str.substring(2, 10),
+                                                verificador: str.substring(10, 11),
+                                            };
                                         };
+                                        const cuilParts = splitCuil(datos.cuil);
+                                        const cuitParts = splitCuil(datos.cuit);
+                                        const fechaPresentacion = datos.presentacionFecha
+                                            ? new Date(datos.presentacionFecha)
+                                            : new Date();
+                                        const fechaNac = { dia: "--", mes: "--", anio: "----" };
+                                        const procesoFechax = datos.procesoFecha
+                                            ? new Date(datos.procesoFecha)
+                                            : new Date();
+                                
+                                    // Mapeo para el PDF
+                                            const datosPDF = {
+                                                // Afiliado
+                                                "afiliado.numero": datos.id,
 
-                                        // Convertir todos los valores a string
-                                                return Object.fromEntries(
-                                                    Object.entries(datosPDF).map(([k, v]) => [k, v == null ? "" : String(v)])
-                                                );
-                                            });
-                                            setDatosPDF(datosPDFArray);
+                                                // Trabajador
+                                                "trabajador.apellidos": datos.afiliadoNombre,
+                                                "trabajador.nombres": "-", // No viene en la API
+                                                "trabajador.cuil.tipo": cuilParts.tipo,
+                                                "trabajador.cuil.id": cuilParts.id,
+                                                "trabajador.cuil.verificador": cuilParts.verificador,
+                                                "trabajador.documento": "-", // No viene en la API
+                                                "trabajador.nacionalidad": "-", // No viene en la API
+                                                "trabajador.nacimiento.fecha": `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
+                                                "trabajador.estado_civil": "-", // No viene en la API
+                                                "trabajador.sexo": "-", // No viene en la API
+                                                "trabajador.domicilio": "-", // No viene en la API
+                                                "trabajador.localidad": datos.zona,
+                                                "trabajador.provincia": "-", // No viene en la API
+                                                "trabajador.oficio": datos.modalidadDescripcion,
+                                                "trabajador.actividad": datos.actividadDescripcion,
+                                                "trabajador.telefono": "-", // No viene en la API
+                                                "trabajador.correo": "-", // No viene en la API
 
-                                            // Generar el PDF con todas las páginas
-                                            let base64Original = null;
-                                            await generarPDF({
-                                                data: datosPDFArray, // <-- Pasar el array
-                                                onLoad: (b64) => {
-                                                    base64Original = b64;
-                                                }
-                                            });
+                                                // Empleador
+                                                "empleador.cuit.tipo": cuitParts.tipo,
+                                                "empleador.cuit.id": cuitParts.cuit,
+                                                "empleador.cuit.verificador": cuitParts.verificador,
+                                                "empleador.razon_social": "-", // No viene en la API
+                                                "empleador.domicilio": "-", // No viene en la API
+                                                "empleador.localidad": "-",
+                                                "empleador.provincia": datos.zona, // No viene en la API
+                                                "empleador.actividad": datos.modalidadDescripcion,
+                                                "empleador.telefono": "-", // No viene en la API
+                                                "empleador.correo": "-", // No viene en la API
 
-                                                        let base64 = base64Original;
-                                                        if (base64 && base64.startsWith("data:application/pdf;base64,")) {
-                                                            base64 = base64.replace("data:application/pdf;base64,", "");
-                                                        }
-                                                        if (!base64) {
-                                                            alert("El PDF no se generó correctamente.");
-                                                            setGenerandoPDF(false);
-                                                            setCargandoBloques(false);
-                                                            return;
-                                                        }
-                                                        const { PDFDocument } = await import("pdf-lib");
-                                                        const pdfBytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-                                                        const pdfDoc = await PDFDocument.load(pdfBytes);
-                                                        const paginas = pdfDoc.getPageCount();
-                                                        setTotalPaginas(paginas);
-                                                        setCargandoBloques(true);
-                                                        for (let i = 1; i <= paginas; i++) {
-                                                            setBloqueActual(i);
-                                                            await new Promise(res => setTimeout(res, 300));
-                                                        }
-                                                        setCargandoBloques(false);
-                                                        setGenerandoPDF(false);
-                                                        setPdfGenerado(base64Original);
-                                                    },
-                                                    onError: (error) => {
-                                                        console.log("Error de la API para el PDF (onError):", error); // <-- LOG SIEMPRE
-                                                        if (error?.status === 404) {
-                                                            alert("No se encontraron datos para el CUIT y período seleccionado.");
-                                                        } else {
-                                                            alert("No se pudieron obtener los datos para el PDF.");
-                                                        }
-                                                        setGenerandoPDF(false);
+                                                // Carnet (fecha)
+                                                "carnet.fecha.dia": String(procesoFechax.getDate()).padStart(2, "0"),
+                                                "carnet.fecha.mes": String(procesoFechax.getMonth() + 1).padStart(2, "0"),
+                                                "carnet.fecha.anio": String(procesoFechax.getFullYear()),
+
+                                                // Fecha de presentación
+                                                "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
+                                                "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2, "0"),
+                                                "fecha.anio": String(fechaPresentacion.getFullYear()),
+                                            };
+
+                                            // Convertir todos los valores a string
+                                                    return Object.fromEntries(
+                                                        Object.entries(datosPDF).map(([k, v]) => [k, v == null ? "" : String(v)])
+                                                    );
+                                                });
+                                                setDatosPDF(datosPDFArray);
+
+                                                // Generar el PDF con todas las páginas
+                                                let base64Original = null;
+                                                await generarPDF({
+                                                    data: datosPDFArray, // <-- Pasar el array
+                                                    onLoad: (b64) => {
+                                                        base64Original = b64;
                                                     }
                                                 });
+
+                                                            let base64 = base64Original;
+                                                            if (base64 && base64.startsWith("data:application/pdf;base64,")) {
+                                                                base64 = base64.replace("data:application/pdf;base64,", "");
+                                                            }
+                                                            if (!base64) {
+                                                                alert("El PDF no se generó correctamente.");
+                                                                setGenerandoPDF(false);
+                                                                setCargandoBloques(false);
+                                                                return;
+                                                            }
+                                                            const { PDFDocument } = await import("pdf-lib");
+                                                            const pdfBytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+                                                            const pdfDoc = await PDFDocument.load(pdfBytes);
+                                                            const paginas = pdfDoc.getPageCount();
+                                                            setTotalPaginas(paginas);
+                                                            setCargandoBloques(true);
+                                                            for (let i = 1; i <= paginas; i++) {
+                                                                setBloqueActual(i);
+                                                                await new Promise(res => setTimeout(res, 300));
+                                                            }
+                                                            setCargandoBloques(false);
+                                                            setGenerandoPDF(false);
+                                                            setPdfGenerado(base64Original);
+                                                        },
+                                                        onError: (error) => {
+                                                            console.log("Error de la API para el PDF (onError):", error); // <-- LOG SIEMPRE
+                                                            if (error?.status === 404) {
+                                                                alert("No se encontraron datos para el CUIT y período seleccionado.");
+                                                            } else {
+                                                                alert("No se pudieron obtener los datos para el PDF.");
+                                                            }
+                                                            setGenerandoPDF(false);
+                                                        }
+                                                    });
+                                                }
+                                            }}
+
+                                    disabled={registroSeleccionado?.estadoSolicitudId == 1 ? false : true}
+                                    >
+                                        {generandoPDF ? (
+                                            <div style={{
+                                                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
+                                            }}>                           
+
+                                                <span className="spinner-border spinner-border-sm" />
+                                                <span style={{ fontWeight: "bold", marginTop: 8 }}>
+                                                    Generando PDF...
+                                                </span>
+                                                {cargandoBloques && totalPaginas > 0 && (
+                                                    <span style={{ fontWeight: "bold", marginTop: 8 }}>
+                                                        Cargando bloque {bloqueActual} de {totalPaginas}...
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <>AUTORIZAR SOLICITUD AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}</>
+                                        )}
+                                    </Button>
+                                </Grid>
+                                <Grid width="auto">
+                                        <Button
+                                            className="botonAmarillo"
+                                            onClick={() => {
+                                                if (pdfGenerado) {
+                                                    downloadjs(pdfGenerado, "SolicitudAfiliacion.pdf");
+                                                }
+                                            }}
+                                            disabled={!pdfGenerado}
+                                        >
+                                            DESCARGAR FORMULARIO DE AFILIACIONES
+                                        </Button>
+                                </Grid>
+                                <Grid width="auto">
+                                    <Button
+                                        className="botonAmarillo"
+                                        loading={!!csv.loading}
+                                        onClick={() => {
+                                            if (registroAnalizado) {
+                                                setRechazarAutorizacion(true);
+                                                setAccionSeleccionada('rechazar');
                                             }
                                         }}
-
-                                    disabled={
-                                        accionSeleccionada === 'rechazar' ||
-                                        generandoPDF ||
-                                        !registroAnalizado ||
-                                        !!pdfGenerado // <--- Deshabilita si ya hay PDF generado
-                                    }
-                                >
-                                    {generandoPDF ? (
-                                        <div style={{
-                                            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
-                                        }}>                           
-
-                                            <span className="spinner-border spinner-border-sm" />
-                                            <span style={{ fontWeight: "bold", marginTop: 8 }}>
-                                                Generando PDF...
-                                            </span>
-                                            {cargandoBloques && totalPaginas > 0 && (
-                                                <span style={{ fontWeight: "bold", marginTop: 8 }}>
-                                                    Cargando bloque {bloqueActual} de {totalPaginas}...
-                                                </span>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <>AUTORIZAR SOLICITUD AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}</>
-                                    )}
-                                </Button>
-
-
-                            </Grid>
+                                        disabled={registroSeleccionado?.estadoSolicitudId == 1 ? false : true}
+                                    >
+                                        RECHAZAR SOLICITUD DE AFILIACION {registroAnalizado?.cuil || registroAnalizado?.empresaCUIT || ""}
+                                    </Button>
+                                </Grid>            
                             <Grid width="auto">
-                            
-                                <Button
-                            className="botonAmarillo"
-                            tarea="Consultas_SolicitudAfiliacion"
-                            onClick={() => {
-                                if (pdfGenerado) {
-                                    downloadjs(pdfGenerado, "SolicitudAfiliacion.pdf");
-                                }
-                            }}
-                            disabled={!pdfGenerado}
-                        >
-                            DESCARGAR FORMULARIO DE AFILIACIONES
-                                </Button>
-
-                                
-                            </Grid>
-
-                                <Grid width="auto">
                             
                             </Grid>
 
@@ -1111,14 +1170,13 @@ const { request: generarPDF } = PDF();
                                 </div>
                             </div>
                         </Grid>
-                        {registroSeleccionado && (
-                            <div style={{width:"100%", alignSelf: "center", height: "auto"}}>
-                                <InformacionDetallada
+                        <div style={{width:"100%", alignSelf: "center", height: "auto"}}>
+                            <InformacionDetallada
                                 config={{ data: registroSeleccionado }}
                                 onClose={() => setRegistroSeleccionado(null)}
                             />
-                            </div>
-                        )}
+                        </div>
+                       
 
                     </Modal.Body>
 
@@ -1210,13 +1268,7 @@ const { request: generarPDF } = PDF();
 
             </Grid>
         </Modal.Body>
-
-
-//////////////////////////////////////////////
-//////////////////////////////////////////////
-/////////////////////////////////////////////
-////////////////////////////////////////////
-)}
+    )}
 
 
 
@@ -1225,13 +1277,13 @@ const { request: generarPDF } = PDF();
 
 
         <Modal
-        size="lg"
-        centered
-        show={rechazarAutorizacion}
-        onHide={() => setRechazarAutorizacion(false)}
-        backdrop="static"
-        keyboard={false}
-    >
+            size="lg"
+            centered
+            show={rechazarAutorizacion}
+            onHide={() => setRechazarAutorizacion(false)}
+            backdrop="static"
+            keyboard={false}
+        >
             <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => setRechazarAutorizacion(false)}>
                 Rechazar autorización de afiliación
             </Modal.Header>
@@ -1266,11 +1318,6 @@ const { request: generarPDF } = PDF();
             </Modal.Footer>
 
         </Modal>
-        {/* Modal de confirmación de autorización de afiliación */}
-        {/* ///////////////////////////////////////////////////////////////////////
-        // ////////////////////////////////////////////////////////////////////////
-        // ///////////////////////////////////////////////////////////////////////
-        // /////////////////////////////////////////////////////////////////////// */}
 
         <Modal
             size="xl"
@@ -1281,255 +1328,200 @@ const { request: generarPDF } = PDF();
             backdrop="static"
             keyboard={false}
         >
-            <Modal.Header className={modalCss.modalCabecera} closeButton onClick={() => setAutorizacion_afil(false)}>
+            <Modal.Header 
+                className={modalCss.modalCabecera} 
+                closeButton 
+                onClick={() => {
+                    setAutorizacion_afil(false)
+                    setMostrarTableEmpresas(false)
+                    limpiarBuscadorHandle()
+                }
+                    }>
                 Solicitar autorización de afiliación
             </Modal.Header>
                     <Modal.Body>
             <Grid col full gap="15px">
                 <Grid width gap="inherit">
-                  
-
+                    <Grid col gap="10px">
                     
-{/*------------CODIGO NUEVO AGREGADO--------------> */}
-{/* ---FILTRO ACTUAL PARA BUCAR POR EMPRESA O CUIT- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-
-<Grid col gap="10px">
-  <Grid width gap="inherit">
-    <Grid grow>
-      <InputMaterial
-        label="Buscar empresa por CUIT o Razón social"
-        value={busquedaEmpresa}
-        onChange={handleChangeBusqueda}
-        onKeyDown={(e) => { if (e.key === "Enter") buscarEmpresas(); }}
-      />
-    </Grid>
-    <Grid width="200px">
-      <Button className="botonAzul" onClick={buscarEmpresas}>
-        Buscar
-      </Button>
-    </Grid>
-  </Grid>
-
-
-
-  {/* Mostrar tabla si hay resultados */}
-  {mostrarResultadosBusqueda && resultados.length > 0 && (
-    <Grid>
-      <Table
-        mostrarBuscar={false} 
-        keyField="cuit"
-    
-        data={resultados.slice(
-            (paginaEmpresa - 1) * pageSizeEmpresa,
-            paginaEmpresa * pageSizeEmpresa
-        )}
-        loading={loading}
-        columns={[
-        //   { dataField: "empresaCUIT", text: "CUIT", formatter: (v) => Formato.Cuit(v), style: { textAlign: "left" } },
-        //   { dataField: "empresaRazonSocial", text: "Razón Social", style: { textAlign: "left" } },
-        { dataField: "cuit", text: "CUIT", formatter: (v) => Formato.Cuit(v), style: { textAlign: "left" } },
-          { dataField: "razonSocial", text: "Razón Social", style: { textAlign: "left" } },
-        ]}
-        rowEvents={{
-          onClick: (e, row) => {
-            setFiltros(o => ({
-              ...o,
-              cuit: row.cuit,
-              razonSocial: row.razonSocial,
-            }));
-                 setBusquedaEmpresa(String(row.cuit));
-              
-          }
-        }}
-        noDataIndication="Sin resultados"
-      />
-    </Grid>
-  )}
-
-  {/* Mostrar mensaje si NO hay resultados */}
-  {mostrarResultadosBusqueda && resultados.length === 0 && (
-    <div style={{ marginTop: "10px" }}>
-      <text  style={{ color: "red", textAlign: "center" }}>No se encontraron resultados para la búsqueda.</text>
-    </div>
-  )}
-</Grid>
-
-
-
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
-{/* ----------------------------------------------- */}
+                    {/* Mostrar tabla si hay resultados */}
+                    <Grid width col gap="10px">
+                     <Grid />
+                     <Grid gap="inherit" >
+                            <Grid width="700px" grow>
+                                <InputMaterial
+                                    label="Filtro por CUIT / Razón social"
+                                    value={paramsEdit.filtro}
+                                    onChange={(filtro) =>
+                                        setParamsEdit((o) => {
+                                            const paramsEdit = { ...o, filtro };
+                                            if (!filtro) delete paramsEdit.filtro;
+                                            return paramsEdit;
+                                        })
+                                    }
+                                />
+                            </Grid>
+                            <Grid width="200px">
+                                <Button
+                                    className="botonAzul"
+                                    disabled={
+                                        JSON.stringify(paramsEdit) === JSON.stringify(paramsSend)
+                                    }
+                                    onClick={() => {
+                                        setParamsSend(paramsEdit)
+                                        setMostrarTableEmpresas(true)
+                                    }
+                                    }
+                                >
+                                    Aplica filtro
+                                </Button>
+                            </Grid>
+                            <Grid width="200px">
+                                <Button
+                                    className="botonAzul"
+                                    disabled={Object.entries(paramsEdit).length === 0}
+                                    onClick={() => {
+                                        const paramsEdit = {};
+                                        setParamsEdit(paramsEdit);
+                                        if (JSON.stringify(paramsEdit) === JSON.stringify(paramsSend))
+                                            return;
+                                        setParamsSend({ ...paramsEdit });
+                                    }}
+                                >
+                                    Limpia filtro
+                                </Button>
+                            </Grid>
+                        </Grid>
+                        <div style={{ minHeight: 250, maxHeight: 550, overflowY: "auto" }}>
+                            {mostrarTableEmpresas &&  empresasRender().props.children[0].props?.loading == false && empresasRender()}
+                        </div>
+                    </Grid>                    
+                    </Grid>
                 </Grid>
                 <Grid width gap="inherit">
                     {/* Reemplazo el filtro de estado por los de fecha */}
                     <Grid width="auto">
                       
                       <InputMaterial
-  label="Desde"
-  type="date"
-  value={filtros.desde || ""}
-onChange={(e) => {
-  let value = e?.target?.value || e;
-  setFiltros((o) => ({ ...o, desde: value }));
-  setTotalesEmpresa({ loading: false, data: null, error: null });
-}}
+                        label="Desde"
+                        type="date"
+                        value={filtros.desde || ""}
+                        onChange={(e) => {
+                        let value = e?.target?.value || e;
+                        setFiltros((o) => ({ ...o, desde: value }));
+                        setTotalesEmpresa({ loading: false, data: null, error: null });
+                        }}
 
-/>
+                    />
                     </Grid>
                     <Grid width="auto">
                       
                      <InputMaterial
-  label="Hasta"
-  type="date"
-  value={filtros.hasta || ""}
-onChange={(e) => {
-  let value = e?.target?.value || e;
-  setFiltros((o) => ({ ...o, hasta: value }));
-  setTotalesEmpresa({ loading: false, data: null, error: null });
-}}
-/>
+                        label="Hasta"
+                        type="date"
+                        value={filtros.hasta || ""}
+                        onChange={(e) => {
+                        let value = e?.target?.value || e;
+                        setFiltros((o) => ({ ...o, hasta: value }));
+                        setTotalesEmpresa({ loading: false, data: null, error: null });
+                        }}
+                    />
                     </Grid>
 
 
                     <Grid width="auto">
-                
-
-                    {/* <Button
+                        <Button
                         className="botonAmarillo"
-                        disabled={!(filtros.cuit && filtros.desde && filtros.hasta)}
+                        disabled={!(empresaSelected && filtros.desde && filtros.hasta)}
                         onClick={() => {
-                            setAnalizarCuil(true);
-                            // Solo setea el temporal
-                            const registro = Array.isArray(list.data)
-                                ? list.data.find(row => String(row.empresaCUIT) === String(filtros.cuit))
-                                : null;
-                            setRegistroAnalizadoTemporal(registro || null);
-                            list.data.length > 0 && setAnalizarSeleccionado(true);
-                            console.log("Registro temporal para analizar:", registro);
-                            // Llama a la API para obtener los totales de la empresa
-                            console.log("Datos para analizar:", totalesEmpresa);
-
-                           
-                            
+                            console.log("empresaSelected",empresaSelected)
+                            setDeboBuscar(true); // Solo buscar cuando tocamos
+                            setMostrarResultadosBusqueda(true); // Opcional: ocultar resultados de la búsqueda anterior
+                            setMensajeExito(
+                            `Información del CUIT ${empresaSelected.cuit} en el período ${formatFechaMesAnio(filtros.desde)} a ${formatFechaMesAnio(filtros.hasta)}.`
+                            );
+                            handlerBuscarTotales()
                         }}
-                    >
-                        ANALIZAR
-                    </Button> */}
-<Button
-  className="botonAmarillo"
-  disabled={!(filtros.cuit && filtros.desde && filtros.hasta)}
-  onClick={() => {
-    setDeboBuscar(true); // Solo buscar cuando tocamos
-    setMostrarResultadosBusqueda(false); // Opcional: ocultar resultados de la búsqueda anterior
-setMensajeExito(
-  `Información del CUIT ${filtros.cuit} en el período ${formatFechaMesAnio(filtros.desde)} a ${formatFechaMesAnio(filtros.hasta)}.`
-);
-
- 
-
-
-    const registro = Array.isArray(list.data)
-      ? list.data.find(row => String(row.empresaCUIT) === String(filtros.cuit))
-      : null;
-    setRegistroAnalizadoTemporal(registro || null);
-    list.data.length > 0 && setAnalizarSeleccionado(true);
-  }}
->
-  ANALIZAR
-</Button>
-
-
-                </Grid>
+                        >
+                            ANALIZAR
+                        </Button>
+                    </Grid>
              
                 </Grid>
         <Modal.Body>
-                    {/*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
-                    {/*|||||||||||||||||||||||||||||||||SUB TABLA||||||||||||||||||||||||||||||||||| */}
-                    {/*||||||||||||||||||||||SOLICITAR NUEVA AUTORIZACION||||||||||||||||||||||||||| */}
-                    {/*||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
+                   
+        <div style={{ minHeight: 350, maxHeight: 550, overflowY: "auto" }}>
 
-
-<div style={{ minHeight: 300, maxHeight: 350, overflowY: "auto" }}>
-
-{mensajeExito && (
-  <div style={{ backgroundColor: "#d4edda", padding: "10px", borderRadius: "5px", color: "#155724", marginBottom: "15px", textAlign: "center" }}>
-    {mensajeExito}
-  </div>
-)}
-
-<Table
-    mostrarBuscar={false}
-    remote
-    keyField="empresaCUIT"
-    data={
-        
-        Array.isArray(totalesEmpresa.data) && totalesEmpresa.data.length > 0
-            ? totalesEmpresa.data
-            : []
-    }
-        noDataIndication={
-        totalesEmpresa.loading.length > 0
-            ? "Cargando..."
-            :  analizarSeleccionado === true ? 
-            "No hay datos para el período seleccionados."
-                : null
-        }
-        columns={[
-            // { dataField: "periodo", text: "Periodo", style: { textAlign: "center" } },
-            {
-  dataField: "periodo",
-  text: "Periodo",
-  style: { textAlign: "center" },
-  formatter: (periodo) => {
-    if (!periodo) return "";
-    const anio = String(periodo).substring(0, 4);
-    const mes = String(periodo).substring(4, 6);
-    return `${mes}/${anio}`;
-  }
-},
-
-            { dataField: "total_Trabajadores", text: "Cant.Tot.Trab", style: { textAlign: "center" } },
-            { dataField: "total_Trab_Rurales", text: "Cant.Trab.Rural", style: { textAlign: "center" } },
-            { dataField: "total_Trab_NoRurales", text: "Cant.Trab.No.Rural", style: { textAlign: "center" } },
-            { dataField: "total_Trab_Rurales_Afiliados", text: "Cant.Trab.Rural.Afi", style: { textAlign: "center" } },
-            { dataField: "total_Trab_Rurales_NoAfiliados", text: "Cant.Trab.Rural.No.Afi", style: { textAlign: "center" } },
-            { dataField: "total_Trab_NoRurales_Afiliados", text: "Cant.Trab.No.Rural.Afi", style: { textAlign: "center" } },
-            { dataField: "total_Trab_NoRurales_NoAfiliados", text: "Cant.Trab.No.Rural.No.Afi", style: { textAlign: "center" } },
-        ]}
+        {mensajeExito && (
+        <div style={{ backgroundColor: "#d4edda", padding: "10px", borderRadius: "5px", color: "#155724", marginBottom: "15px", textAlign: "center" }}>
+            {mensajeExito}
+        </div>
+        )}
+        {
+        (<Table
+            mostrarBuscar={false}
+            remote
+            keyField="periodo"
+            data={
+                
+                Array.isArray(totalesEmpresa?.data) && totalesEmpresa?.data?.length > 0
+                    ? totalesEmpresa?.data
+                    : []
+            }
+            noDataIndication={
+                totalesEmpresa?.loading?.length > 0
+                ? "Cargando..."
+                :  analizarSeleccionado === true ? 
+                "No hay datos para el período seleccionados."
+                    : null
+            }
+            columns={[
+                {
+                    dataField: "periodo",
+                    text: "Periodo",
+                    style: { textAlign: "center" },
+                    formatter: (periodo) => {
+                        if (!periodo) return "";
+                        const anio = String(periodo).substring(0, 4);
+                        const mes = String(periodo).substring(4, 6);
+                        return `${mes}/${anio}`;
+                    }
+                },
+                { dataField: "total_Trabajadores", text: "Cant.Tot.Trab", style: { textAlign: "center" } },
+                { dataField: "total_Trab_Rurales", text: "Cant.Trab.Rural", style: { textAlign: "center" } },
+                { dataField: "total_Trab_NoRurales", text: "Cant.Trab.No.Rural", style: { textAlign: "center" } },
+                { dataField: "total_Trab_Rurales_Afiliados", text: "Cant.Trab.Rural.Afi", style: { textAlign: "center" } },
+                { dataField: "total_Trab_Rurales_NoAfiliados", text: "Cant.Trab.Rural.No.Afi", style: { textAlign: "center" } },
+                { dataField: "total_Trab_NoRurales_Afiliados", text: "Cant.Trab.No.Rural.Afi", style: { textAlign: "center" } },
+                { dataField: "total_Trab_NoRurales_NoAfiliados", text: "Cant.Trab.No.Rural.No.Afi", style: { textAlign: "center" } },
+            ]}
         //-----------------------------------------------------------------------------------------------
-        onTableChange={(type, { sortOrder, sortField }) => {
-                                    switch (type) {
-                                        case "sort": {
-                                            sortField =
-                                                { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
-                                                    sortField
-                                                ] ?? sortField;
-                                            const sortBy = `${
-                                                sortOrder === "desc" ? "-" : "+"
-                                            }${sortField}`;
-                                            setList((o) => ({
-                                                ...o,
-                                                loading: "Cargando...",
-                                                params: { ...o.params, sortBy },
-                                                data: [],
-                                                error: null,
-                                            }));
-                                            setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
-                                            return;
-                                        }
-                                        default:
-                                            return;
-                                    }
-                                }}
-
-        //---------------------------------------------------------------------------------------------------
-    />
+            onTableChange={(type, { sortOrder, sortField }) => {
+                switch (type) {
+                    case "sort": {
+                        sortField =
+                            { empresaCUIT: "cuit", empresaRazonSocial: "razonsocial" }[
+                                sortField
+                            ] ?? sortField;
+                        const sortBy = `${
+                            sortOrder === "desc" ? "-" : "+"
+                        }${sortField}`;
+                        setList((o) => ({
+                            ...o,
+                            loading: "Cargando...",
+                            params: { ...o.params, sortBy },
+                            data: [],
+                            error: null,
+                        }));
+                        setCSV((o) => ({ ...o, params: { ...o.params, sortBy } }));
+                        return;
+                    }
+                    default:
+                        return;
+                }
+            }}
+        />
+                            )}
 </div>
                     {/* Botones debajo de la tabla */}
 <Grid width="100%" justify="center" gap="20px" style={{ marginTop: 20 }}>
@@ -1575,12 +1567,15 @@ const datos = {
     setAnalizarCuil(false);
   }}
 >
-  {creandoSolicitud ? "Enviando..." : "Confirmar"}
+  {creandoSolicitud ? "Enviando..." : "Confirma"}
 </Button>
 
 <Button
     className="botonAmarillo"
     onClick={() => {
+        setMostrarTableEmpresas(false);
+        limpiarBuscadorHandle();
+
         setRegistroAnalizadoTemporal(null);
         setAnalizarCuil(false);
         setAutorizacion_afil(false);
@@ -1601,7 +1596,7 @@ const datos = {
         setTotalesEmpresa({ loading: false, data: null, error: null });
     }}
 >
-    Cancelar
+    Cancela
 </Button>
 
 </Grid>

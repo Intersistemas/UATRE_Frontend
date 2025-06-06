@@ -27,11 +27,11 @@ const useCrearSolicitudAfiliacion = () => {
       },
       onOk: (response) => {
         console.log("Solicitud creada con éxito", response);
-        alert("Solicitud enviada con éxito!");
+        //alert("Solicitud enviada con éxito!");
       },
       onError: (error) => {
         console.error("Error al crear solicitud", error);
-        alert("Error al enviar solicitud");
+        //alert("Error al enviar solicitud");
       },
       onFinally: () => {
         setLoading(false);
