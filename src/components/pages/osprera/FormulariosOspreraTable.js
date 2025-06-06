@@ -55,6 +55,18 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			headerStyle: { width: "120px", textAlign: "center" },
 		},
 		{
+			dataField: "gestionEstadoDescripcion",
+			text: "Estado",
+			style: { textAlign: "left" },
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+		},
+		{
+			dataField: "gestionSituacionDescripcion",
+			text: "Situación",
+			style: { textAlign: "left" },
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
+		},
+		{
 			dataField: "texto",
 			text: "Texto",
 			style: { textAlign: "left" },
