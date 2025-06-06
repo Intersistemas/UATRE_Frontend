@@ -77,8 +77,8 @@ const useFormularioOsprera = ({
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log("useFormularioOsprera, params", params);
-		console.log("useFormularioOsprera, action", action);
+		// console.log("useFormularioOsprera, params", params);
+		// console.log("useFormularioOsprera, action", action);
 		switch (action) {
 			case "GetList": {
 				const { filtro2, ...otherParams } = params;
@@ -196,7 +196,7 @@ const useFormularioOsprera = ({
 			return;
 		}
 		changes.data = [];
-		console.log("userFormularioOsprera_list",list)
+		// console.log("userFormularioOsprera_list",list)
 		const soloLetras = /^[A-Za-z]+$/;
 		const filtro = list?.params?.filtro
 
@@ -343,6 +343,9 @@ const useFormularioOsprera = ({
 							usuarioId: usuario?.id ?? "",*/
 							seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
 							elPacienteEsTitular: list.selection.edit.elPacienteEsTitular ?? false,
+							atencionesPrevias: list.selection.edit.atencionesPrevias ?? "",
+							conCoberturaOsprera: list.selection.edit.conCoberturaOsprera ?? "",
+							tipoPrestador: list.selection.edit.tipoPrestador ?? "",
 						}
 						:
 						["B"].includes(list.selection.request) ? //INIT PARA BAJA
@@ -382,7 +385,12 @@ const useFormularioOsprera = ({
 								medioGestion: true,
 								tipoDocumentoId: true,
 								direccionesEmailDestino: true,
-								seccionalId: true
+								seccionalId: true,
+								gestionRubro: true,
+								gestionSubRubro: true,
+								gestionEstado: true,
+								gestionSituacion: true,
+								gestionAreaOsprera: true,
 							}
 					
 					
@@ -391,22 +399,27 @@ const useFormularioOsprera = ({
 					}
 						
 					if (["M"].includes(list.selection.request)) {
-						 		r.telefonoContacto= false;
-								r.telefonoContacto2= false;
-								r.emailContacto= false;
-								r.emailContacto2= false;
-								r.elPacienteEsTitular= false;
-								r.dniPaciente= false;
-								r.nombrePaciente= false;
-								r.apellidoPaciente= false;
-								r.fechaNacimiento= false;
-								r.sexo= false;
-								r.texto= false;
-								r.telefono= false;
-								r.resultadoLlamada= false;
-								r.medioGestion= false;
-								r.tipoDocumentoId= false;
-								r.direccionesEmailDestino= false;
+						 		// r.telefonoContacto= false;
+								// r.telefonoContacto2= false;
+								// r.emailContacto= false;
+								// r.emailContacto2= false;
+								// r.elPacienteEsTitular= false;
+								// r.dniPaciente= false;
+								// r.nombrePaciente= false;
+								// r.apellidoPaciente= false;
+								// r.fechaNacimiento= false;
+								// r.sexo= false;
+								// r.texto= false;
+								// r.telefono= false;
+								// r.resultadoLlamada= false;
+								// r.medioGestion= false;
+								// r.tipoDocumentoId= false;
+								// r.direccionesEmailDestino= false;
+								// r.gestionRubro= false;
+								// r.gestionSubRubro= false;
+								r.gestionEstado= false;
+								r.gestionSituacion= false;
+								// r.gestionAreaOsprera= false;
 					}
 						
 					
@@ -426,7 +439,7 @@ const useFormularioOsprera = ({
 						: {}
 				}
 				onChange={(edit) => {
-					console.log("edit:",edit)
+					// console.log("edit:",edit)
 					const changes = { edit: { ...edit }, errors: {}, help: {} };
 					if ("cuitTitular" in edit) {
 						
@@ -456,6 +469,9 @@ const useFormularioOsprera = ({
 						respuestaEnvioEmail: null,
 						usuarioId: usuario?.id ?? "",
 						seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
+						atencionesPrevias: "",
+						conCoberturaOsprera: "",
+						tipoPrestador: "",
 						...list.selection.edit
 					}					
 					//Validaciones
@@ -527,7 +543,7 @@ const useFormularioOsprera = ({
 						seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
 						...list.selection.edit
 					}
-						
+					// console.log("record",record);
 					
 					
 					console.log("list",list);
