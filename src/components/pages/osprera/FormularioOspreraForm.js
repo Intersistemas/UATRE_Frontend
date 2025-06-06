@@ -36,7 +36,6 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
-import DocumentacionList from "../afiliados/documentacion/DocumentacionList";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -174,6 +173,11 @@ const FormularioOspreraForm = ({
     texto: "",
     respuesta: "",
   });
+  const [modalDocumentacion, setModalDocumentacion] = useState({
+    visible: false,
+    documentacionOK: false,
+  });
+
   const [respuestas, setRespuestas] = useState({
     pregunta1: null,
     pregunta2: null,
@@ -1185,19 +1189,32 @@ const FormularioOspreraForm = ({
 
   const handlePreguntasConfirma = async () => {
     if (request == "A") {
-      //   if (DocumentacionList.length === 0) {
-
-      //   }
-
       const isValid = await onValidate(true);
       if (!isValid) return;
-      setModalPreguntas({
-        visible: true,
-      });
+
+      if (documentacionList.length !== 0) {
+        setModalDocumentacion({ documentacionOK: true });
+      } else {
+        //Modal preguntando documentacion
+        setModalDocumentacion({
+          visible: true,
+          documentacionOK: false,
+        });
+      }
     } else {
       handleConfirma();
     }
   };
+
+  useEffect(() => {
+    if (!modalDocumentacion?.documentacionOK) {
+      return;
+    }
+    console.log("modalDocumentacion", modalDocumentacion);
+    setModalPreguntas({
+      visible: true,
+    });
+  }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
     // const isValid = await onValidate(true);
@@ -1274,6 +1291,14 @@ const FormularioOspreraForm = ({
     setModalPreguntas({ visible: false });
   };
 
+  const handleContinuarDocumentacionModal = () => {
+    setModalDocumentacion({ visible: false, documentacionOK: true });
+  };
+
+  const handleNoContinuarDocumentacionModal = () => {
+    setModalDocumentacion({ visible: false, documentacionOK: false });
+  };
+
   return (
     <>
       <div>
@@ -1348,7 +1373,10 @@ const FormularioOspreraForm = ({
               aria-label="basic tabs example"
             >
               <Tab label="Datos Personales" />
-              <Tab label="Documentacion" disabled={!titular.confirmado} />
+              <Tab
+                label="Documentacion"
+                disabled={!titular.confirmado || request !== "A"}
+              />
             </Tabs>
           </Grid>
 
@@ -1966,11 +1994,10 @@ const FormularioOspreraForm = ({
       </Modal>
       {modalPreguntas.visible && (
         <Modal show>
-          <Modal.Header className={modalPreguntas.modalCabecera} closeButton>
-            <h3>Confirmación</h3>
+          <Modal.Header className={modalPreguntas.modalCabecera}>
+            <h3>CONFIRMACION</h3>
           </Modal.Header>
           <Modal.Body>
-            {/* Pregunta 1 */}
             <div>
               <p>¿Ha realizado atenciones médicas previas?</p>
               <Button
@@ -2067,6 +2094,34 @@ const FormularioOspreraForm = ({
               onClick={handleCancelarRespuestasModal}
             >
               CANCELA
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+      {modalDocumentacion.visible && (
+        <Modal show>
+          <Modal.Header
+            className={modalDocumentacion.modalCabecera}
+            closeButton
+          >
+            <h3>DOCUMENTACION</h3>
+          </Modal.Header>
+          <Modal.Body>
+            <p>No tiene documentación cargada. ¿Desea continuar?</p>
+            {/* Aquí puedes agregar un componente para subir archivos */}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              className="botonAzul"
+              onClick={handleContinuarDocumentacionModal}
+            >
+              SÍ
+            </Button>
+            <Button
+              className="botonAmarillo"
+              onClick={handleNoContinuarDocumentacionModal}
+            >
+              NO
             </Button>
           </Modal.Footer>
         </Modal>
