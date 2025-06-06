@@ -483,7 +483,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
       if (error?.data?.statusCode === 408 && cuilLoading) {
         setCUILLoading(false);
         setDialogTexto(
-          `No se pudo conectar con AFIP, se habilita la carga MANUAL del Afiliado`
+          `No se pudo conectar con ARCA, se habilita la carga MANUAL del Afiliado`
         );
         setOpenDialog(true);
         setErrorAFIP(false); // afip no respondio no se considera un error para impedir la carga
@@ -494,7 +494,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setCUILLoading(false);
         setDialogTexto(
          //`Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
-         `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)` : error?.message) : "Error consultando AFIP"}`
+         `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)` : error?.message) : "Error consultando ARCA"}`
         );
         setOpenDialog(true);
         setErrorAFIP(true);
@@ -513,7 +513,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         setCUITLoading(false);
         setDialogTexto(
           //`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
-          `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)` : error?.message) : "Error consultando AFIP"}`
+          `${error?.message ? (error?.message.includes("objeto") ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)` : error?.message) : "Error consultando ARCA"}`
         );
         setOpenDialog(true);
         setErrorAFIP(true);

@@ -232,7 +232,7 @@ const LiquidacionesCabeceraForm = ({
 					<Grid width="full">
 						{hide.totalAporte ? null : (
 							<InputMaterial
-								label="Aporte"
+								label="Capital"
 								value={data.totalAporte}
 								disabled={!!disabled.totalAporte}
 								error={!!errors.totalAporte}

@@ -279,7 +279,7 @@ const LiquidacionesForm = ({
 					<Grid width="full">
 						<InputMaterial
 							mask={PesosMask}
-							label="Aporte"
+							label="Capital"
 							value={data.interesNeto}
 							disabled
 						/>

@@ -601,6 +601,7 @@ const EmpresasForm = ({
 						</Grid>
 						<Grid grow>
 							<InputMaterial
+								required
 								id="razonSocial"
 								label="Razon Social"
 								error={!!errors.razonSocial}
@@ -614,6 +615,7 @@ const EmpresasForm = ({
 					<Grid width="full" gap="inherit">
 						<Grid width="full">
 							<InputMaterial
+								required
 								id="domicilioCalle"
 								label="Dirección - Calle"
 								error={!!errors.domicilioCalle}
@@ -625,6 +627,7 @@ const EmpresasForm = ({
 						</Grid>
 						<Grid width="full" gap="inherit">
 							<InputMaterial
+								required
 								id="domicilioNumero"
 								label="Dir. - Nro."
 								error={!!errors.domicilioNumero}
@@ -657,6 +660,7 @@ const EmpresasForm = ({
 					<Grid width gap="inherit">
 						<Grid col width>
 							<SearchSelectMaterial
+								onKeyDown={(e) => { e.preventDefault(); }}
 								id="domicilioProvinciasId"
 								name="domicilioProvinciasId"
 								label="Provincia"
@@ -664,7 +668,7 @@ const EmpresasForm = ({
 								helperText={errors.domicilioProvinciasId ?? ""}
 								value={provincias.selected}
 								disabled={disabled.domicilioProvinciasId ?? false}
-								onChange={({ value, label }) => {
+								onChange={({ value, label }) => {									
 									if (value === data.domicilioProvinciasId) return;
 									setLocalidades((o) => ({
 										...o,
@@ -696,6 +700,7 @@ const EmpresasForm = ({
 
 						<Grid width>
 							<SearchSelectMaterial
+								freeSolo={false}
 								id="domicilioLocalidadesId"
 								name="domicilioLocalidadesId"
 								label="Localidad"
@@ -710,6 +715,7 @@ const EmpresasForm = ({
 								disabled={disabled.domicilioLocalidadesId ?? false}
 								onChange={({ value, label }) => {
 									if (value === data.domicilioLocalidadesId) return;
+									console.log("onChange localidad", { value, label });
 									onChange({
 										domicilioLocalidadesId: value,
 										localidadNombre: label,
@@ -724,6 +730,7 @@ const EmpresasForm = ({
 						</Grid>
 						<Grid width>
 							<InputMaterial
+								required
 								id="telefono"
 								label="Teléfono"
 								type="tel"
@@ -738,6 +745,7 @@ const EmpresasForm = ({
 					<Grid width="full" gap="inherit">
 						<Grid width>
 							<InputMaterial
+								required
 								id="email"
 								name="email"
 								label="Email"

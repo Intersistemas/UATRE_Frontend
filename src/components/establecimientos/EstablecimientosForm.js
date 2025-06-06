@@ -270,6 +270,7 @@ const EstablecimientosForm = ({
 								<Grid width="50%">
 									{hide.domicilioProvinciasId ? null : (
 										<SelectMaterial
+											onKeyDown={(e) => { e.preventDefault(); }}
 											id="domicilioProvinciasId"
 											name="domicilioProvinciasId"
 											label="Provincia"
@@ -296,6 +297,7 @@ const EstablecimientosForm = ({
 								<Grid width="50%">
 									{hide.domicilioLocalidadesId ? null : (
 										<SearchSelectMaterial
+											freeSolo={false}
 											id="domicilioLocalidadesId"
 											name="domicilioLocalidadesId"
 											label="Localidad"

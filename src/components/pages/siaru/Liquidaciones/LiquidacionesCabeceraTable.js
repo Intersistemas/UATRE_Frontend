@@ -7,8 +7,8 @@ import Table from "components/ui/Table/Table";
 const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 	const columnsDef = [
 		{
-			dataField: "id",
-			text: "Número",
+			dataField: "boletaId",
+			text: "Boleta Id",
 			sort: true,
 			headerStyle: { width: "100px" },
 			style: { textAlign: "center" },

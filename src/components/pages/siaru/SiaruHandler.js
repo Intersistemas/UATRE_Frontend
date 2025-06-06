@@ -517,11 +517,18 @@ const SiaruHandler = () => {
         "q",
         "Siaru_EmpresaLiquidaciones"
       );
+
+      addAction(
+        `Desvincular usuario de ${desc}`,
+        (_) => navigate("DesvincularUsuarioEmpresa"),
+        "d",
+        "Siaru_DesvincularUsuarioEmpresa"
+      );
     }
     dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
     setAcciones(acciones);
   }, [empresa.data, dispatch, navigate]);
-  //#endregion
+  //#endregion  
 
   return (
     <Grid col height="100vh" gap="10px">

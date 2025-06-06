@@ -205,6 +205,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		contenido = (
 			<Grid width col>
 				<SearchSelectMaterial
+					onKeyDown={(e) => { e.preventDefault(); }}
 					label="Forma de pago"
 					error={!!formaPagoSelect.error}
 					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}

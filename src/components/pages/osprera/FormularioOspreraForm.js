@@ -637,8 +637,8 @@ const FormularioOspreraForm = ({
 				params: { cuit: data.cuitTitular, VerificarHistorico: false },
 			
 				onOk: async (ok) => {
-					changes.validado = "Titular datos en AFIP";
-					changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
+					changes.validado = "Titular datos en ARCA";
+					changes.datoAFIP = `Dato ARCA:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
 
 					onChange({
 						existe: true,
@@ -866,7 +866,7 @@ const FormularioOspreraForm = ({
 								</Grid>
 								{(titular?.existeEnUATRE || titular?.existeEnOSPRERA || titular?.existeEnAFIP) && (
 									<div>
-										<h6 style={{ fontSize: "small", displa: titular?.existeEnUATRE || (!!titular?.existeEnUATRE && titular.existeEnOSPRERA && !!titular.existeEnAFIP) ? 'none' : 'flex'}}> {titular.existeEnOSPRERA ? "Titular en Padron OSPRERA" : titular.existeEnAFIP ? "Titular en AFIP" : ""} </h6>
+										<h6 style={{ fontSize: "small", displa: titular?.existeEnUATRE || (!!titular?.existeEnUATRE && titular.existeEnOSPRERA && !!titular.existeEnAFIP) ? 'none' : 'flex'}}> {titular.existeEnOSPRERA ? "Titular en Padron OSPRERA" : titular.existeEnAFIP ? "Titular en ARCA" : ""} </h6>
 										<h6 style={{ fontSize: "small"}}>{titular.existeEnUATRE ? "Afiliado a UATRE" : (!!titular.existeEnOSPRERA && !!titular.existeEnAFIP) ? "No se encontraron datos para el CUIL ingresado" : "No Afiliado a UATRE"}</h6>
 									</div>
 								)}

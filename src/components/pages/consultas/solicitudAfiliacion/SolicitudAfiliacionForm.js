@@ -910,7 +910,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
-															changes.errors.cuil = "No existe en AFIP";
+															changes.errors.cuil = "No existe en ARCA";
 														} else {
 															changes.errors.cuil = error.toString();
 															audit({
@@ -1512,7 +1512,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														if (error.code === 404) {
-															changes.errors.cuitEmpresa = "No existe en AFIP";
+															changes.errors.cuitEmpresa = "No existe en ARCA";
 														} else {
 															changes.errors.cuitEmpresa = error.toString();
 															audit({
