@@ -1007,11 +1007,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setMotivosBajaSelect((o) => ({ ...o, selected: o.selectedDef }));
-		if (ambito.tipo == "Delegaciones"){
-			setEstadoSelect((o) => ({ ...o, selected: {value: 2, label: "Activo"}}));
-		} else {
-			setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
-		}
+		setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setProvinciaSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setFiltros(filtros);
 		if (JSON.stringify(list.params) === JSON.stringify(filtros)) return;
@@ -1180,7 +1176,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
-								disabled={ambito.tipo == "Delegaciones" ? true : false}
+								//disabled={ambito.tipo == "Delegaciones" ? true : false}
 							/>
 						</Grid>
 						<Grid grow>
