@@ -498,6 +498,12 @@ const useFormularioOsprera = ({
 						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
 						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
 						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
+
+						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
+						if (!record.gestionSubRubroId || record.gestionSubRubroId == 0) errors.gestionSubRubro = "Dato requerido";
+						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
+						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
+						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
 					}
 
 					if (Object.keys(errors).length) {
@@ -571,6 +577,12 @@ const useFormularioOsprera = ({
 						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
 						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
 						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
+
+						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
+						if (!record.gestionSubRubroId || record.gestionSubRubroId == 0) errors.gestionSubRubro = "Dato requerido";
+						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
+						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
+						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
 					}
 
 					if (Object.keys(errors).length) {

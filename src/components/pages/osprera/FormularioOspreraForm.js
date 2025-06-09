@@ -178,30 +178,33 @@ const FormularioOspreraForm = ({
     documentacionOK: false,
   });
 
-  const [respuestas, setRespuestas] = useState({
-    pregunta1: null,
-    pregunta2: null,
-    pregunta3: null,
-  });
   //#endregion
 
   // console.log("data,",data);
   //#region EMAIL
   //Se debe procesar el(envio de email)
-
   const sendEnviarEmailHandler = async () => {
     const adjuntos = (documentacionList || []).map((r) => ({
       fileName: r.nombreArchivo,
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-
+    console.log("gestionRubroSelect", gestionRubroSelect.selected);
     pushQuery({
       action: "EnviarCorreo",
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
+          cuerpo:
+            `<p><i>En representación del Afiliado ${data?.apellidoTitular} ${
+              data?.nombreTitular
+            }, con DNI Nº ${data?.dniPaciente ?? ""}, Afiliado Nº ${
+              data?.cuitTitular ?? ""
+            } ` +
+            `se solicita ${gestionRubroSelect?.selected?.label} conforme lo que se detalla a continuación ${data?.texto}, ` +
+            `adjuntando la documentación respectiva en su caso.<br><br/>Se requiere que se brinde la misma a la mayor brevedad posible o se me indique por este mismo medio los pasos a ` +
+            `seguir al respecto.<br><br/>La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>Muchas gracias.<i/></p>`,
         },
       },
       onOk: async (ok) => {
@@ -1253,33 +1256,57 @@ const FormularioOspreraForm = ({
   UseKeyPress(["Enter"], () => handleConfirma(), "AltKey");
 
   // Manejar cambio de respuesta
-  const handleChange = (pregunta, valor) => {
-    let valorCortito = "";
-    if (valor === "Sí") {
-      valorCortito = "S";
-    } else if (valor === "No") {
-      valorCortito = "N";
-    }
-    if (pregunta === "pregunta1") {
-      onChange({ atencionesPrevias: valorCortito });
-    } else if (pregunta === "pregunta2") {
-      onChange({ conCoberturaOsprera: valorCortito });
-    } else if (pregunta === "pregunta3") {
-      onChange({ TipoPrestador: valor });
-    }
+  const handleChangeAtencionesPrevias = (event) => {
+    onChange({ atencionesPrevias: event.target.value });
 
-    setRespuestas((prev) => ({
-      ...prev,
-      [pregunta]: valor,
-      // Si la respuesta es "No", resetea las siguientes
-      ...(pregunta === "pregunta1" && valor === "No"
-        ? { pregunta2: null, pregunta3: null }
-        : {}),
-      ...(pregunta === "pregunta2" && valor === "No"
-        ? { pregunta3: null }
-        : {}),
-    }));
+    if (event.target.value === "No") {
+      // Si la respuesta es "No", resetea las siguientes preguntas
+      onChange({ conCoberturaOsprera: ""});
+      onChange({ tipoPrestador: "" });
+    }
   };
+
+  const handleChangeCoberturaOsprera = (event) => {
+    onChange({ conCoberturaOsprera: event.target.value });
+  };
+
+  const handleChangeTipoPrestador = (event) => {
+    onChange({ tipoPrestador: event.target.value });
+  };
+
+  // const handleChange = (event) => {
+  //   console.log("handleChange", event.target.value);
+  //   console.log("handleChange", event.target);
+  //   const valor = event.target.value;
+  //   const pregunta = event.target.name;
+  //   let valorCortito = "";
+  //   if (valor === "Sí") {
+  //     valorCortito = "S";
+  //   } else if (valor === "No") {
+  //     valorCortito = "N";
+  //   }
+  //   if (pregunta === "pregunta1") {
+  //     onChange({ atencionesPrevias: valorCortito });
+  //   } else if (pregunta === "pregunta2") {
+  //     onChange({ conCoberturaOsprera: valorCortito });
+  //   } else if (pregunta === "pregunta3") {
+  //     onChange({ TipoPrestador: valor });
+  //   }
+
+  //   setRespuestas((prev) => ({
+  //     // Mantiene las respuestas previas y actualiza la respuesta actual
+  //     ...prev,
+  //     [pregunta]: valor,
+  //     // Si la respuesta es "No", resetea las siguientes
+  //     ...(pregunta === "pregunta1" && valor === "No"
+  //       ? { pregunta2: null, pregunta3: null }
+  //       : {}),
+  //     ...(pregunta === "pregunta2" && valor === "No"
+  //       ? { pregunta3: null }
+  //       : {}),
+  //   }));
+  //   console.log("respuestas", respuestas);
+  // };
 
   const handleConfirmaRespuestasModal = async () => {
     // console.log("handleConfirmaRespuestasModal", respuestas);
@@ -1297,6 +1324,7 @@ const FormularioOspreraForm = ({
 
   const handleNoContinuarDocumentacionModal = () => {
     setModalDocumentacion({ visible: false, documentacionOK: false });
+    setSelectedTab(1);
   };
 
   return (
@@ -1999,79 +2027,75 @@ const FormularioOspreraForm = ({
           </Modal.Header>
           <Modal.Body>
             <div>
-              <p>¿Ha realizado atenciones médicas previas?</p>
-              <Button
-                variant={
-                  respuestas.pregunta1 === "Sí" ? "primary" : "outline-primary"
-                }
-                onClick={() => handleChange("pregunta1", "Sí")}
-                style={{ marginRight: 8 }}
+              <FormControl>
+              <FormLabel id="demo-controlled-radio-buttons-group">
+                ¿Ha realizado atenciones médicas previas?
+              </FormLabel>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                name="controlled-radio-buttons-group"
+                value={data.atencionesPrevias}
+                onChange={handleChangeAtencionesPrevias}
               >
-                Sí
-              </Button>
-              <Button
-                variant={
-                  respuestas.pregunta1 === "No" ? "danger" : "outline-danger"
-                }
-                onClick={() => handleChange("pregunta1", "No")}
-              >
-                No
-              </Button>
-            </div>
+                <FormControlLabel value="N" control={<Radio />} label="No" />
+                <FormControlLabel value="S" control={<Radio />} label="Sí" />
+              </RadioGroup>
+            </FormControl>
+            </div>            
 
             {/* Pregunta 2 */}
-            {respuestas.pregunta1 === "Sí" && (
+            {data.atencionesPrevias === "S" && (
               <div style={{ marginTop: 16 }}>
-                <p>¿Con cobertura de OSPRERA?</p>
-                <Button
-                  variant={
-                    respuestas.pregunta2 === "Sí"
-                      ? "primary"
-                      : "outline-primary"
-                  }
-                  onClick={() => handleChange("pregunta2", "Sí")}
-                  style={{ marginRight: 8 }}
-                >
-                  Sí
-                </Button>
-                <Button
-                  variant={
-                    respuestas.pregunta2 === "No" ? "danger" : "outline-danger"
-                  }
-                  onClick={() => handleChange("pregunta2", "No")}
-                >
-                  No
-                </Button>
+                <FormControl>
+                  <FormLabel id="demo-controlled-radio-buttons-group">
+                    ¿Con cobertura de OSPRERA?
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-controlled-radio-buttons-group"
+                    name="controlled-radio-buttons-group"
+                    value={data.conCoberturaOsprera}
+                    onChange={handleChangeCoberturaOsprera}
+                  >
+                    <FormControlLabel
+                      value="N"
+                      control={<Radio />}
+                      label="No"
+                    />
+                    <FormControlLabel
+                      value="S"
+                      control={<Radio />}
+                      label="Sí"
+                    />
+                  </RadioGroup>
+                </FormControl>
               </div>
             )}
 
             {/* Pregunta 3 */}
-            {respuestas.pregunta1 === "Sí" && respuestas.pregunta2 === "Sí" && (
+            {data.atencionesPrevias === "S" && (
               <Grid col style={{ marginTop: 16 }}>
-                <p>¿En que tipo de prestador?</p>
-                <Grid>
-                  <Button
-                    variant={
-                      respuestas.pregunta3 === "Publico"
-                        ? "primary"
-                        : "outline-primary"
-                    }
-                    onClick={() => handleChange("pregunta3", "Publico")}
-                    style={{ marginRight: 8 }}
+                <FormControl>
+                  <FormLabel id="demo-controlled-radio-buttons-group">
+                    ¿En qué tipo de prestador?
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-controlled-radio-buttons-group"
+                    name="controlled-radio-buttons-group"
+                    value={data.tipoPrestador}
+                    onChange={handleChangeTipoPrestador}
                   >
-                    Público
-                  </Button>
-                  <Button
-                    variant={
-                      respuestas.pregunta3 === "Privado"
-                        ? "danger"
-                        : "outline-danger"
-                    }
-                    onClick={() => handleChange("pregunta3", "Privado")}
-                  >
-                    Privado
-                  </Button>
-                </Grid>
+                    <FormControlLabel
+                      value="Publico"
+                      control={<Radio />}
+                      label="Público"
+                    />
+                    <FormControlLabel
+                      value="Privado"
+                      control={<Radio />}
+                      label="Privado"
+                    />
+                  </RadioGroup>
+                </FormControl>
               </Grid>
             )}
           </Modal.Body>
@@ -2080,11 +2104,9 @@ const FormularioOspreraForm = ({
               className="botonAzul"
               onClick={handleConfirmaRespuestasModal}
               disabled={
-                !respuestas.pregunta1 ||
-                (respuestas.pregunta1 === "Sí" && !respuestas.pregunta2) ||
-                (respuestas.pregunta1 === "Sí" &&
-                  respuestas.pregunta2 === "Sí" &&
-                  !respuestas.pregunta3)
+                !data.atencionesPrevias ||
+                (data.atencionesPrevias === "S" &&
+                  (!data.conCoberturaOsprera || !data.tipoPrestador))
               }
             >
               CONFIRMA
