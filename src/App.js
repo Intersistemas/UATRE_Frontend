@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './App.css';
 
 import Login from './components/auth/Login';
@@ -22,16 +22,13 @@ import LiquidacionesProcesarHandler from './components/pages/siaru/liquidaciones
 import LiquidacionesProcesarExistenteHandler from './components/pages/siaru/liquidaciones/procesar/existente/Handler';
 import LiquidacionesProcesarArchivoHandler from './components/pages/siaru/liquidaciones/procesar/archivo/Handler';
 import LiquidacionesProcesarManualHandler from './components/pages/siaru/liquidaciones/procesar/manual/Handler';
+import ProcesosEntRecaudadorasHandler from './components/pages/siaru/procesosEntRecaudadoras/ProcesosEntRecaudadorasHandler';
 
-//---ADMINISTRACION DATOS---
+//---ADMINISTRACION---
 import AdministracionHandler from './components/pages/administracion/AdministracionHandler';
 import SeccionalesHandler from "./components/pages/administracion/seccionales/SeccionalesHandler";
 import EmpresasHandler from "./components/pages/administracion/empresas/EmpresasHandler";
 import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHandler";
-
-//---ADMINISTRACION APP---
-import AppHandler from './components/pages/app/AppHandler';
-import EncuestasHandler from "./components/pages/app/encuestas/EncuestasHandler";
 
 
 //---AFILIADOS---
@@ -49,7 +46,12 @@ import InformesHandler from 'components/pages/informes/InformesHandler';
 import ConsultasHandler from 'components/pages/consultas/ConsultasHandler';
 import AfiliadoFormulariosAfiliacionHandler from 'components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler';
 
+import GestionOspreraHandler from 'components/pages/osprera/FormularioOspreraHandler';
+
 import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
+
+import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
+import AnuncioModal from 'components/pages/inicio/AnuncioModal';
 
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
@@ -59,6 +61,24 @@ import "./components/fonts/SantanderLogoRegular.ttf";*/
 const App = () => {
   const authContext = useContext(AuthContext); 
   const isLoggedIn = authContext.isLoggedIn;
+  const Usuario = authContext.usuario;
+
+  console.log("Usuario?.verAnuncio",Usuario?.verAnuncio)
+
+  const [showModal, setShowModal] = useState(Usuario?.verAnuncio ? true : false);
+
+  const handleShowModal = () => {
+    setShowModal(!showModal);
+  };
+
+  useEffect(() => {
+    if (Usuario?.verAnuncio) {
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+    }
+  }
+  , [Usuario?.verAnuncio]);
 
   return (
 
@@ -111,6 +131,7 @@ const App = () => {
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="Inicio/Empresas/ProcesosEntRecaudadoras" element={<ProcesosEntRecaudadorasHandler/>} />
 
               <Route path="Inicio/Administracion" element={<AdministracionHandler />}/>
               <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />
@@ -118,19 +139,21 @@ const App = () => {
               <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
               <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
               <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
+              <Route path="Inicio/Administracion/Tasas" element={<TasasARCAHandler />} />
 
-              <Route path="Inicio/App" element={<AppHandler />}/>
-              <Route path="Inicio/App/Encuestas" element={<EncuestasHandler/>} />
-              
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
               <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler/>}/>
               <Route path="Inicio/Auditorias" element={<AuditoriasHandler />}/>
 
+              <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>
+
+                
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
-         
         </SideBar>)}
+       {isLoggedIn && showModal && <AnuncioModal onClose={() => handleShowModal()}/> }
+        
 
     </div>
 

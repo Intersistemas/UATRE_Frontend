@@ -35,44 +35,7 @@ const DateTimePicker = ({
 	error,
 	required,
 	InputRenderProps = {},
-	renderInput = (props) => {
-		const renderProps = { ...props, ...InputRenderProps };
-		renderProps.className = [renderProps.className, styles.input]
-			.filter((e) => e)
-			.join(" ");
-		renderProps.size ??= "small";
-		if (error) {
-			renderProps.error = true;
-			if (React.isValidElement(error) || typeof error === "string") {
-				renderProps.helperText = error;
-			}
-		} else {
-			renderProps.error = false;
-		}
-		renderProps.required = required ? required : renderProps.required;
-		renderProps.style = {
-			...renderProps.style,
-			width: "100%",
-		};
-
-		const InputLabelProps = { ...renderProps.InputLabelProps };
-		InputLabelProps.shrink ??= true;
-
-		const InputProps = { ...renderProps.InputProps };
-		InputProps.style = { ...InputProps.style, background: "white" };
-
-		const inputProps = { ...renderProps.inputProps };
-		if (placeholder) inputProps.placeholder = placeholder;
-
-		return (
-			<TextField
-				{...renderProps}
-				InputLabelProps={InputLabelProps}
-				InputProps={InputProps}
-				inputProps={inputProps}
-			/>
-		);
-	},
+	renderInput = (props) => <TextField {...props} />,
 	onChange = () => {},
 	...x
 } = {}) => {
@@ -132,6 +95,40 @@ const DateTimePicker = ({
 			if (!placeholder) placeholder = "dd/mm/aaaa hh:mm";
 			break;
 	}
+
+	const myRenderInput = (p) => {
+		const renderProps = { ...p, ...InputRenderProps };
+		renderProps.className = [renderProps.className, styles.input]
+			.filter((e) => e)
+			.join(" ");
+		renderProps.size ??= "small";
+		if (error) {
+			renderProps.error = true;
+			if (React.isValidElement(error) || typeof error === "string") {
+				renderProps.helperText = error;
+			}
+		} else {
+			renderProps.error = false;
+		}
+		renderProps.required = required ? required : renderProps.required;
+		renderProps.style = {
+			...renderProps.style,
+			width: "100%",
+		};
+
+		const InputLabelProps = { ...renderProps.InputLabelProps };
+		InputLabelProps.shrink ??= true;
+
+		const InputProps = { ...renderProps.InputProps };
+		InputProps.style = { ...InputProps.style, background: "white" };
+
+		const inputProps = { ...renderProps.inputProps };
+		if (placeholder) inputProps.placeholder = placeholder;
+		if (!myValue) inputProps.value = "";
+
+		return renderInput({ ...renderProps, InputLabelProps, InputProps, inputProps });
+	};
+
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"es-mx"}>
 			<Picker
@@ -149,7 +146,7 @@ const DateTimePicker = ({
 					else if (o?.isValid()) onChange(undefined);
 					return v;
 				})}
-				renderInput={renderInput}
+				renderInput={myRenderInput}
 				{...x}
 			/>
 		</LocalizationProvider>

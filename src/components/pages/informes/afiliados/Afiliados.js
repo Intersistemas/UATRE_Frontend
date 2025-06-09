@@ -41,7 +41,8 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		//formatter: (v) => Formato.Cuit(v),
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
 	},
@@ -258,7 +259,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				method: "POST",
 			},
 		}),
-		{ query: { config: { errorType: "response" } } }
+		{ 
+			query: { 
+				config: { errorType: "response" } 
+			}
+		}
 	);
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -343,7 +348,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
-		filtros: {},
+		filtros: ambito.tipo == "Delegaciones" ? {estadoSolicitudId: 2} : {},
 		wait: { delegaciones: true, seccionales: true, provincias: true },
 		usuario,
 	});
@@ -1007,7 +1012,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setMotivosBajaSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
+		if (ambito.tipo == "Delegaciones"){
+			setEstadoSelect((o) => ({ ...o, selected: {value: 2, label: "Activo"}}));
+		} else {
+			setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
+		}
 		setProvinciaSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setFiltros(filtros);
 		if (JSON.stringify(list.params) === JSON.stringify(filtros)) return;

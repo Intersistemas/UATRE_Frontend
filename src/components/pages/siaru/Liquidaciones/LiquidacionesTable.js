@@ -79,7 +79,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 		},
 		{
 			dataField: "interesNeto",
-			text: "Total aporte",
+			text: "Capital",
 			formatter: (v) => Formato.Moneda(v),
 			headerStyle: { width: "150px" },
 			style: { textAlign: "right" },

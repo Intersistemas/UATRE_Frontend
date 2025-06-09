@@ -159,7 +159,7 @@ const Sidebar = ({children}) => {
         return(
             <NavLink {...nav}>
                 <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
-                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga}</div>
+                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga == 'GestionOsprera' ? "Gestión Obra Social" : miga}</div>
             </NavLink>    
         ) 
 

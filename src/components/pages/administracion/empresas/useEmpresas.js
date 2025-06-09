@@ -54,7 +54,7 @@ const useEmpresas = ({
 	loading,
 	error,
 	params: paramsInit = {},
-	multi: multiInit = false,
+	multi: multiInit = false, 
 	pagination: paginationInit = { index: 1, size: 15 },
 	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
 	onDataChange: onDataChangeInit = onDataChangeDef,
@@ -188,6 +188,7 @@ const useEmpresas = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
+				console.log("Empresas data", data);
 				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
@@ -476,8 +477,8 @@ const useEmpresas = ({
 							errors.domicilioProvinciasId = "Dato requerido";
 						if ((record.domicilioLocalidadesId ?? 0) === 0)
 							errors.domicilioLocalidadesId = "Dato requerido";
-						if (!record.actividadPrincipalDescripcion)
-							errors.actividadPrincipalDescripcion = "Dato requerido";
+						if (record.actividadPrincipalId == null)
+							errors.actividadPrincipalId = "Dato requerido";
 						if (!record.telefono) errors.telefono = "Dato requerido";
 						else if (!matchIsValidTel(record.telefono)) errors.telefono = "Dato incorrecto";
 						if (!record.email) errors.email = "Dato requerido";

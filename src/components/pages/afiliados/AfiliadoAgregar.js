@@ -310,6 +310,7 @@ const onLoadedDef = ({ data, error }) => {};
 const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [errorAFIP, setErrorAFIP] = useState(false);
+  const [consultaPadronCUILOk, setConsultaPadronCUILOk] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
@@ -670,231 +671,12 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         dispatchCUIL({ type: "USER_INPUT", value: cuilParam, isValid: ["30", "33", "34"].includes(cuilParam.toString().slice(0,2)) ? false : ValidarCUIT(cuilParam) });
       }
     }
-
-    if (props.accion === "AceptaSolicitud") {
-      setAfiliadoExiste(false);
-      setInputsTouched(true);
-      if (props?.afiliadoSeleccionado?.cuil > 0) {
-        dispatchCUIL({ type: "USER_INPUT", value: props?.afiliadoSeleccionado?.cuil, isValid: ["30", "33", "34"].includes(props?.afiliadoSeleccionado?.cuil.toString().slice(0,2)) ? false : ValidarCUIT(props?.afiliadoSeleccionado?.cuil) });
-      }
-      const validaAutomatica =
-				(ultimaDDJJ.data?.actividadTipo === "D" && ultimaDDJJ.data?.modalidadTipo === "D") &&
-				(padronEmpresaRespuesta?.ciiU1EsRural ||
-					padronEmpresaRespuesta?.ciiU2EsRural ||
-					padronEmpresaRespuesta?.ciiU3EsRural) && tarea.hasTarea("Afiliaciones_AfiliadoAutoValida");
-
-      const empresa = {
-        cuit: props.afiliadoSeleccionado?.cuitEmpresa,
-        razonSocial: props.afiliadoSeleccionado?.razonSocial,
-        //claveTipo: padronEmpresaRespuesta.tipoClave,
-        //claveEstado: padronEmpresaRespuesta.estadoClave,
-        //claveInactivaAsociada: padronEmpresaRespuesta.claveInactivaAsociada,
-        actividadPrincipalDescripcion: props.afiliadoSeleccionado?.actividadEmpresa,
-        actividadPrincipalId: props.afiliadoSeleccionado?.actividadIdEmpresa,
-        //actividadPrincipalPeriodo: padronEmpresaRespuesta.periodoActividadPrincipal,
-        //contratoSocialFecha: padronEmpresaRespuesta.fechaContratoSocial,
-        //cierreMes: padronEmpresaRespuesta.mesCierre,
-        email: props.afiliadoSeleccionado?.emailEmpresa,
-        telefono: props.afiliadoSeleccionado?.telefonoEmpresa ?? props.afiliadoSeleccionado?.celularEmpresa,
-        domicilioCalle: `${props.afiliadoSeleccionado?.domicilioEmpresa}`, 
-        domicilioNumero: 0,
-        domicilioPiso: "",
-        domicilioDpto: "",
-        domicilioSector: "",
-        domicilioTorre: "",
-        domicilioManzana: "",
-        domicilioProvinciasId: props.afiliadoSeleccionado?.provinciaidEmpresa,
-        domicilioLocalidadesId: props.afiliadoSeleccionado?.refLocalidadIdEmpresa,
-        domicilioCodigoPostal: 0,
-        domicilioCPA: "",
-        domicilioTipo: "",
-        domicilioEstado: "",
-        domicilioDatoAdicional: "",
-        domicilioDatoAdicionalTipo: "",
-        //ciiU1: padronEmpresaRespuesta.ciiU1,
-       // ciiU2: padronEmpresaRespuesta.ciiU2,
-        //ciiU3: padronEmpresaRespuesta.ciiU3,
-      };
-     
-      dispatchCUIT({ type: "USER_INPUT", value: empresa?.cuit });
-      setCUITEmpresa(empresa?.cuit);
-      setPadronEmpresaRespuesta(empresa);
-      setRazonSocialEmpresa(empresa?.razonSocial);
-      setActividadEmpresa(empresa?.actividadPrincipalDescripcion);
-      setDomicilioEmpresa(empresa?.domicilioCalle);
-      setLocalidadEmpresa(props.afiliadoSeleccionado?.nombreLocalidadEmpresa);
-      setTelefonoEmpresa(empresa?.telefono);
-      setCorreoEmpresa(empresa?.email);
-      setLugarTrabajoEmpresa("");
-     
-      const afiliadoSolicitud = {
-				cuil: props?.afiliadoSeleccionado?.cuil,
-        nombre:  `${props.afiliadoSeleccionado?.apellido} ${props.afiliadoSeleccionado?.nombre ?? "" }`,
-				puestoId: props?.afiliadoSeleccionado?.oficioId,
-				fechaIngreso: moment().format("YYYY-MM-DD"),
-				fechaEgreso: null,
-				nacionalidadId: +props.afiliadoSeleccionado?.nacionalidadId,
-				seccionalId: +props.afiliadoSeleccionado?.seccionalId,
-				sexoId: +props.afiliadoSeleccionado.sexoId,
-				tipoDocumentoId: +props.afiliadoSeleccionado?.tipoDocumentoId,
-				documento: +props.afiliadoSeleccionado?.documento,
-				actividadId: +props.afiliadoSeleccionado?.actividadIdAfiliado,
-        seccionalIdSolicitudAfiliacion: null,
-				//estadoSolicitud: afiliado.estadoSolicitud,
-				estadoSolicitudId: validaAutomatica ? 2 : 1,
-				estadoSolicitudObservaciones: validaAutomatica
-					? "Validación Automática"
-					: null,
-				estadoCivilId: props.afiliadoSeleccionado?.estadoCivilId ?? 0,
-				refLocalidadId: props.afiliadoSeleccionado?.refLocalidadIdAfiliado, //?? padronRespuesta?.localidadId,
-				domicilio: props.afiliadoSeleccionado?.domicilio,
-				telefono: props.afiliadoSeleccionado?.telefono,
-				correo: props.afiliadoSeleccionado?.email,
-				celular: props.afiliadoSeleccionado?.celular,
-				fechaNacimiento: props.afiliadoSeleccionado?.fechaNacimiento,
-        provinciaId: props.afiliadoSeleccionado?.provinciaId,
-        empresa: empresa,
-        cuilValidado: 0,
-				};
-      
-      console.log("AceptaSolicitud_afiliadoSolicitud",afiliadoSolicitud)
-        setAfiliado(afiliadoSolicitud)
-          setCuilValidado(false)
-          //dispatches para validar los campos
-          dispatchFechaNacimiento({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.fechaNacimiento !== null
-                ? moment(afiliadoSolicitud?.fechaNacimiento).format("yyyy-MM-DD")
-                : "",
-          });
-          dispatchCUIL({ type: "USER_INPUT", value: afiliadoSolicitud?.cuil, isValid: ValidarCUIT(afiliadoSolicitud?.cuil) });
-          
-          dispatchFechaIngreso({
-            type: "USER_INPUT",
-            value: moment(afiliadoSolicitud?.fechaIngreso).format("yyyy-MM-DD"),
-          });
-
-          dispatchActividad({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.actividadId === 0 ? "" : afiliadoSolicitud?.actividadId,
-          });
-                  
-          dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", 
-            value: afiliadoSolicitud?.seccionalIdSolicitudAfiliacion ? 
-            {value:afiliadoSolicitud?.seccionalIdSolicitudAfiliacion, label: `${afiliadoSolicitud?.seccionalCodigoSolicitudAfiliacion}-${afiliadoSolicitud?.seccionalDescripcionSolicitudAfiliacion}`}
-            :
-            {}
-          });
-
-          dispatchPuesto({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.puestoId === 0 ? "" : afiliadoSolicitud?.puestoId,
-          });
-          dispatchNacionalidad({
-            type: "USER_INPUT",
-            value:
-            afiliadoSolicitud?.nacionalidadId === 0 ? "" : afiliadoSolicitud?.nacionalidadId,
-          });
-          dispatchSexo({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.sexoId === 0 ? "" : afiliadoSolicitud?.sexoId,
-          });
-          dispatchEstadoCivil({
-            type: "USER_INPUT",
-            value:
-            afiliadoSolicitud?.estadoCivilId === 0 ? "" : afiliadoSolicitud?.estadoCivilId,
-          });
-          dispatchTipoDocumento({
-            type: "USER_INPUT",
-            value:
-            afiliadoSolicitud?.tipoDocumentoId === 0
-                ? ""
-                : afiliadoSolicitud?.tipoDocumentoId,
-          });
-
-          dispatchLocalidad({ type: "USER_INPUT", value: {value:afiliadoSolicitud?.refLocalidadId, label: afiliadoSolicitud?.localidad}});
-          dispatchSeccional({ type: "USER_INPUT", value: {value:afiliadoSolicitud?.seccionalId, label: afiliadoSolicitud?.seccional}});
-          
-          setProvincias((o) => ({
-            ...o,
-            loading: "Cargando...",
-            onLoaded: ({data}) => {
-                const provinciaSelected = data.find(
-                  (prov) => prov.value === afiliadoSolicitud?.provinciaId
-                ) ?? "";
-                    
-                dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-
-                setLocalidades((o) => ({
-                  ...o,
-                  loading: "Cargando...",
-                  params: provinciaSelected ? {provinciaId: provinciaSelected?.value} : {},
-                  onLoaded: ({ data }) => {
-                    if (!Array.isArray(data)) return;
-
-                    const myLocalidadId = data.find((r) => r.value === afiliadoSolicitud?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-                    const sinAsignar = myLocalidadId?.value === provinciaSelected?.localidadIdPorDefecto ? {provinciaId:  provinciaSelected?.value }:{localidadId: myLocalidadId.value} 
-                    dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
-
-
-                    //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
-                    
-                    const fechaIngres= moment(afiliadoSolicitud?.fechaIngreso).format("yyyy-MM-DD") 
-                    const esAnterior = moment(fechaIngres).isSameOrBefore("2024-02-05");
-                    console.log("esAnterior",esAnterior);
-                  
-                    setSeccionales((o) => ({
-                      ...o,
-                      loading: "Cargando...",
-                      params: esAnterior && afiliadoSolicitud?.seccionalId ? {afiliadoSolicitud: afiliadoSolicitud?.seccionalId} :  myLocalidadId ? {localidadId: myLocalidadId.value} : provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null,
-                      onLoaded: ({ data }) => {
-                        //if (!Array.isArray(data)) return;
-                        const mySeccionalId =
-                          data.find((r) => r.value === afiliadoSolicitud?.seccionalId) ??
-                          data.at(0) ??
-                          {};
-                        dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
-                      },
-                    }));
-                  },
-                }));
-            },
-          }));
-
-          dispatchNombre({ type: "USER_INPUT", value: afiliadoSolicitud?.nombre });
-          dispatchFechaNacimiento({
-            type: "USER_INPUT",
-            value:
-            afiliadoSolicitud?.fechaNacimiento !== null
-                ? moment(afiliadoSolicitud?.fechaNacimiento).format("yyyy-MM-DD")
-                : "",
-          });
-          dispatchNumeroDocumento({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.documento !== 0 ? afiliadoSolicitud?.documento : "",
-          });
-          dispatchDomicilio({
-            type: "USER_INPUT",
-            value: afiliadoSolicitud?.domicilio ?? "",
-          });
-          dispatchEmail({ type: "USER_INPUT", value: afiliadoSolicitud?.correo });
-
-          dispatchTelefono({ type: "USER_INPUT", value: afiliadoSolicitud?.telefono });
-
-          //datos empleador
-          dispatchCUIT({ type: "USER_INPUT", value: afiliadoSolicitud?.empresa?.cuit});
-          setCUITEmpresa(afiliadoSolicitud?.empresa?.cuit);
-          setRazonSocialEmpresa(afiliadoSolicitud?.empresa?.razonSocial);
-          setDocumentacionList([]);
-        };
-  }, [cuilParam, props.accion, props.afiliadoSeleccionado]);
-
+  }, [cuilParam, props.accion]);
 
   useEffect(() => {
     if (cuilState.value ) {
-      if (props.accion !== 'AceptaSolicitud'){ 
       console.log("cuilState",cuilState)
-      
+      //!cuilState.isValid ?
       const processGetAfiliado = async (afiliadoObj) => {
         console.log('afiliadoObj',afiliadoObj)
 
@@ -929,6 +711,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           :
           {}
         });
+
         dispatchPuesto({
           type: "USER_INPUT",
           value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
@@ -1027,7 +810,6 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 
         dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
 
-
         //datos empleador
         dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
         setCuitValidado(true);
@@ -1037,7 +819,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 				setDocumentacionList(afiliadoObj.documentacion ?? []);
 
         //alert
-        if ((props.accion === "Agrega" || props.accion === "AceptaSolicitud") || props.cuil !== afiliado.cuil) {
+        if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
           setDialogTexto(
             `El Afiliado: ${afiliadoObj?.nombre} ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo} ${afiliadoObj?.seccional}
             ${afiliadoObj.estadoSolicitud.includes("No Activo") ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`: "" }`
@@ -1056,7 +838,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         },
         processGetAfiliado
       );
-      }
+
     }
   }, [request, cuilState.value, cuilState.isValid]);
 
@@ -1084,7 +866,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
         },
         processGetEmpresa
       );
-    }
+    } 
   }, [request, afiliadoExiste, empresaIdExiste]);
   //#endregion
 
@@ -1870,16 +1652,20 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 			setInputsTouched(true);
     };
     
-    request(      
-      {        
-        baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${
-          afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
-        }&VerificarHistorico=${false}`,
-        method: "GET",
-      },
-      processConsultaPadron
-    );
+	request(
+		{
+			baseURL: "Comunes",
+			endpoint: `/AFIPConsulta?CUIT=${afiliado?.cuilValidado
+					? afiliado?.cuilValidado
+					: cuilState.value
+				}&VerificarHistorico=${false}`,
+			method: "GET",
+		},
+		async (response) => {
+			processConsultaPadron(response);
+			setConsultaPadronCUILOk(true);
+		}
+	);
   };
 
   const validarEmpresaCUITHandler = () => {
@@ -2059,6 +1845,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
           dispatchActividad({ type: "USER_INPUT", value: "" });
           dispatchSeccionalSolicitudAfiliacion({ type: "USER_INPUT", value: ""});
         }
+		setConsultaPadronCUILOk(false);
 
         break;
 
@@ -2202,35 +1989,31 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
   };
 
     const InputDisabled = (input) => {
+      console.log("cuilState",cuilState)
+      console.log("afiliadoExiste",afiliadoExiste)
+      console.log("afiliado?.estadoSolicitudId",afiliado?.estadoSolicitudId)
+      console.log("consultaPadronCUILOk",consultaPadronCUILOk)
 
-    
-    if (input !== "cuil" && props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3){
-      return true
-    }
+      //VALIDO PRIMERO EL CAMPO CUIL
+      if (input === "cuil"){
+        if (/*props.accion === "Modifica" && */afiliadoExiste && cuilValidado) {
+          return true;
+        } 
+      }else {
+        if (props.accion === "Modifica" && afiliadoExiste && afiliado?.estadoSolicitudId === 3) return true;
+        if (cuilState.value === "" || !cuilState.isValid) return true;
+        //if (!consultaPadronCUILOk || ) return true;
 
-    if (input !== "cuil" && cuilState.value === "") {
-      return true;
-    }
+        if (
+          afiliadoExiste &&
+          afiliado?.estadoSolicitudId !== 1 &&
+          afiliado?.estadoSolicitudId !== 4 &&
+          afiliado?.estadoSolicitudId !== 2
+        ) return true;
+      }
 
-    if (!input && !cuilState.isValid) {
-      return true;
-    }
-
-    if (
-      afiliadoExiste &&
-      afiliado?.estadoSolicitudId !== 1 &&
-      afiliado?.estadoSolicitudId !== 4 &&
-      afiliado?.estadoSolicitudId !== 2
-    ) {
-      return true;
-    }
-
-    if (/*props.accion === "Modifica"*/afiliadoExiste && cuilValidado && input === "cuil") {
-      return true;
-    }
-
-    return false;
-  };
+      return false;
+    };
 
   const AgregarModificarAfiliadoDisableHandler = () => {
 		let disable = false;
@@ -2375,7 +2158,7 @@ const [seccionalSolicitudAfiliacionState, dispatchSeccionalSolicitudAfiliacion] 
 					: afiliado.afipClaveInactivaAsociada,
       afipFechaFallecimiento:
         padronRespuesta !== null
-          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" || padronRespuesta.fechaFallecimiento === "2001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
+          ?  (padronRespuesta.fechaFallecimiento === "0001-01-01T00:00:00" ? null : padronRespuesta.fechaFallecimiento)
           : afiliado.afipFechaFallecimiento,
 			afipFormaJuridica:
 				padronRespuesta !== null

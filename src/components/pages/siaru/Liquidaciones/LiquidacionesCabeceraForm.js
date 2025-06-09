@@ -10,10 +10,11 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import Button from "components/ui/Button/Button";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { EnteroMask, InteresesMask, PesosMask } from "components/ui/Input/InputMaterial";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidaciones from "./useLiquidaciones";
 import useLiquidacionesNomina from "./useLiquidacionesNomina";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
 
 const dependeciesDef = {
 	motivosBaja: {
@@ -35,6 +36,8 @@ const LiquidacionesCabeceraForm = ({
 	onChange = onChangeDef,
 	onClose = onCloseDef,
 }) => {
+	const { calculoResumen: calculoResarcitorios } = useCalculoResarcitorios();
+
 	data ??= {};
 	data.totalImporte = Round(
 		(data.totalAporte ?? 0) + (data.totalIntereses ?? 0),
@@ -108,9 +111,36 @@ const LiquidacionesCabeceraForm = ({
 								value={data.fechaVencimiento}
 								minDate={dayjs().format("YYYY-MM-DD")}
 								disabled={disabled.fechaVencimiento}
-								onChange={(f) =>
-									onChange({ fechaVencimiento: f?.format("YYYY-MM-DD") })
-								}
+								onChange={(f) => {
+									const changes = {
+										fechaVencimiento: f?.format("YYYY-MM-DD"),
+										totalIntereses: 0,
+										diasVencimiento: 0,
+									};
+									(
+										{
+											interes: changes.totalIntereses,
+											dias: changes.diasVencimiento
+										} = calculoResarcitorios(changes.fechaVencimiento,
+											data.fechaPagoEstimada,
+											data.totalAporte ?? 0)
+									);
+									changes.liquidaciones = AsArray(data.liquidaciones).map(
+										(l) => {
+											const r = { ...l, interesImporte: 0 };
+											(
+												{
+													interes: r.interesImporte
+												} = calculoResarcitorios(changes.fechaVencimiento,
+													data.fechaPagoEstimada,
+													r.interesNeto ?? 0)
+											);
+											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
+											return r;
+										}
+									);
+									onChange(changes);
+								}}
 							/>
 						)}
 					</Grid>
@@ -125,29 +155,31 @@ const LiquidacionesCabeceraForm = ({
 								onChange={(f) => {
 									const changes = {
 										fechaPagoEstimada: f?.format("YYYY-MM-DD"),
-										diasVencimiento: Number(
-											f?.diff(data.fechaVencimiento, "days") ?? 0
-										),
 										totalIntereses: 0,
+										diasVencimiento: 0,
 									};
-									if (changes.diasVencimiento < 0) changes.diasVencimiento = 0;
+									(
+										{
+											interes: changes.totalIntereses,
+											dias: changes.diasVencimiento
+										} = calculoResarcitorios(data.fechaVencimiento,
+											changes.fechaPagoEstimada,
+											data.totalAporte ?? 0)
+									);
 									changes.liquidaciones = AsArray(data.liquidaciones).map(
 										(l) => {
-											const r = { ...l };
-											r.interesImporte = Round(
-												Number(r.totalRemuneraciones ?? 0) *
-													(Number(
-														data.interesesDiariosPosteriorVencimiento ?? 0
-													) /
-														100) *
-													changes.diasVencimiento,
-												2
+											const r = { ...l, interesImporte: 0 };
+											(
+												{
+													interes: r.interesImporte
+												} = calculoResarcitorios(data.fechaVencimiento,
+													changes.fechaPagoEstimada,
+													r.interesNeto ?? 0)
 											);
-											changes.totalIntereses += r.interesImporte;
+											r.importeTotal = Round((r.interesNeto ?? 0) + r.interesImporte, 2);
 											return r;
 										}
 									);
-									changes.totalIntereses = Round(changes.totalIntereses, 2)
 									onChange(changes);
 								}}
 							/>
@@ -158,30 +190,26 @@ const LiquidacionesCabeceraForm = ({
 					<Grid width="full">
 						{hide.cantidadTrabajadores ? null : (
 							<InputMaterial
-								type="number"
 								label="Cantidad de trabajadores"
 								value={data.cantidadTrabajadores}
 								disabled={!!disabled.cantidadTrabajadores}
 								error={!!errors.cantidadTrabajadores}
 								helperText={errors.cantidadTrabajadores}
-								onChange={(value) =>
-									onChange({ cantidadTrabajadores: Formato.Entero(value) })
-								}
+								mask={EnteroMask}
+								onChange={(cantidadTrabajadores) => onChange({ cantidadTrabajadores })}
 							/>
 						)}
 					</Grid>
 					<Grid width="full">
 						{hide.totalRemuneraciones ? null : (
 							<InputMaterial
-								type="number"
 								label="Total remuneraciones"
 								value={data.totalRemuneraciones}
 								disabled={!!disabled.totalRemuneraciones}
 								error={!!errors.totalRemuneraciones}
 								helperText={errors.totalRemuneraciones}
-								onChange={(value) =>
-									onChange({ totalRemuneraciones: Formato.Decimal(value) })
-								}
+								mask={PesosMask}
+								onChange={(value) => onChange({ totalRemuneraciones: Number(value) })}
 							/>
 						)}
 					</Grid>
@@ -204,45 +232,39 @@ const LiquidacionesCabeceraForm = ({
 					<Grid width="full">
 						{hide.totalAporte ? null : (
 							<InputMaterial
-								type="number"
 								label="Aporte"
 								value={data.totalAporte}
 								disabled={!!disabled.totalAporte}
 								error={!!errors.totalAporte}
 								helperText={errors.totalAporte}
-								onChange={(value) =>
-									onChange({ totalAporte: Formato.Decimal(value) })
-								}
+								mask={PesosMask}
+								onChange={(value) => onChange({ totalAporte: Number(value) })}
 							/>
 						)}
 					</Grid>
 					<Grid width="full">
 						{hide.totalIntereses ? null : (
 							<InputMaterial
-								type="number"
 								label="Intereses"
 								value={data.totalIntereses}
 								disabled={!!disabled.totalIntereses}
 								error={!!errors.totalIntereses}
 								helperText={errors.totalIntereses}
-								onChange={(value) =>
-									onChange({ totalIntereses: Formato.Decimal(value) })
-								}
+								mask={InteresesMask}
+								onChange={(value) => onChange({ totalIntereses: Number(value) })}
 							/>
 						)}
 					</Grid>
 					<Grid width="full">
 						{hide.totalImporte ? null : (
 							<InputMaterial
-								type="number"
 								label="Total a pagar"
 								value={data.totalImporte}
 								disabled={!!disabled.totalImporte}
 								error={!!errors.totalImporte}
 								helperText={errors.totalImporte}
-								onChange={(value) =>
-									onChange({ totalImporte: Formato.Decimal(value) })
-								}
+								mask={PesosMask}
+								onChange={(value) => onChange({ totalImporte: Number(value) })}
 							/>
 						)}
 					</Grid>

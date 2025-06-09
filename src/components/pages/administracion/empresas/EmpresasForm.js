@@ -19,18 +19,19 @@ const onCloseDef = (confirm = false) => {};
  */
 const onLoadedDef = ({ data, error }) => {};
 
+const CIIUSinAsignar = { value: null, label: "Sin Asignar" };
 const getCIIULabel = (ciiu) =>
 	[ciiu?.ciiu ?? "", ciiu?.descripcion ?? ""]
 		.filter((r) => r !== null)
 		.join(" - ");
 
 const getCIIUOption = (ciiu) =>
-	ciiu
-		? {
+	ciiu?.ciiu == null
+		? CIIUSinAsignar
+		: {
 				value: ciiu.ciiu,
 				label: getCIIULabel(ciiu),
-		  }
-		: null;
+		  };
 
 const getProvinciaOption = (provincia) =>
 	provincia
@@ -40,11 +41,16 @@ const getProvinciaOption = (provincia) =>
 		  }
 		: null;
 
+const getLocalidadLabel = ({ nombre, codPostal }) =>
+	[codPostal, nombre]
+		.filter(r => r)
+		.join(" - ");
+
 const getLocalidadOption = (localidad) =>
 	localidad
 		? {
 				value: localidad.id,
-				label: localidad.nombre,
+				label: getLocalidadLabel(localidad),
 		  }
 		: null;
 
@@ -256,6 +262,7 @@ const EmpresasForm = ({
 			onOk: async (data) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", { GetCIIUs: data });
+				data.unshift({ ciiu: CIIUSinAsignar.value, descripcion: CIIUSinAsignar.label });
 				changes.data = data.filter(
 					(v, i, a) => a.indexOf(a.find((r) => r.ciiu === v.ciiu)) === i
 				);
@@ -274,8 +281,8 @@ const EmpresasForm = ({
 		buscar: "",
 		options: [],
 		selected: getCIIUOption({
-			ciiu: data?.actividadPrincipalId ?? 0,
-			descripcion: data?.actividadPrincipalDescripcion ?? "",
+			ciiu: data?.actividadPrincipalId,
+			descripcion: data?.actividadPrincipalDescripcion,
 		}),
 	});
 	// Buscador
@@ -298,10 +305,7 @@ const EmpresasForm = ({
 		setActividadPrincipal((o) => ({
 			...o,
 			selected: getCIIUOption(
-				ciius.data.find((r) => r.ciiu === data.actividadPrincipalId) ?? {
-					ciiu: data.actividadPrincipalId ?? 0,
-					descripcion: data.actividadPrincipalDescripcion ?? "",
-				}
+				ciius.data.find((r) => r.ciiu === data.actividadPrincipalId)
 			),
 		}));
 	}, [ciius, data.actividadPrincipalId, data.actividadPrincipalDescripcion]);
@@ -312,8 +316,8 @@ const EmpresasForm = ({
 		buscar: "",
 		options: [],
 		selected: getCIIUOption({
-			ciiu: data?.ciiU1 ?? 0,
-			descripcion: data?.ciiU1Descripcion ?? "",
+			ciiu: data?.ciiU1,
+			descripcion: data?.ciiU1Descripcion,
 		}),
 	});
 	// Buscador
@@ -334,10 +338,7 @@ const EmpresasForm = ({
 		setCIIU1((o) => ({
 			...o,
 			selected: getCIIUOption(
-				ciius.data.find((r) => r.ciiu === data.ciiU1) ?? {
-					ciiu: data.ciiU1 ?? 0,
-					descripcion: data.ciiU1Descripcion ?? "",
-				}
+				ciius.data.find((r) => r.ciiu === data.ciiU1)
 			),
 		}));
 	}, [ciius, data.ciiU1, data.ciiU1Descripcion]);
@@ -348,8 +349,8 @@ const EmpresasForm = ({
 		buscar: "",
 		options: [],
 		selected: getCIIUOption({
-			ciiu: data?.ciiU2 ?? 0,
-			descripcion: data?.ciiU2Descripcion ?? "",
+			ciiu: data?.ciiU2,
+			descripcion: data?.ciiU2Descripcion,
 		}),
 	});
 	// Buscador
@@ -370,10 +371,7 @@ const EmpresasForm = ({
 		setCIIU2((o) => ({
 			...o,
 			selected: getCIIUOption(
-				ciius.data.find((r) => r.ciiu === data.ciiU2) ?? {
-					ciiu: data.ciiU2 ?? 0,
-					descripcion: data.ciiU2Descripcion ?? "",
-				}
+				ciius.data.find((r) => r.ciiu === data.ciiU2)
 			),
 		}));
 	}, [ciius, data.ciiU2, data.ciiU2Descripcion]);
@@ -384,8 +382,8 @@ const EmpresasForm = ({
 		buscar: "",
 		options: [],
 		selected: getCIIUOption({
-			ciiu: data?.ciiU3 ?? 0,
-			descripcion: data?.ciiU3Descripcion ?? "",
+			ciiu: data?.ciiU3,
+			descripcion: data?.ciiU3Descripcion,
 		}),
 	});
 	// Buscador
@@ -406,10 +404,7 @@ const EmpresasForm = ({
 		setCIIU3((o) => ({
 			...o,
 			selected: getCIIUOption(
-				ciius.data.find((r) => r.ciiu === data.ciiU3) ?? {
-					ciiu: data.ciiU3 ?? 0,
-					descripcion: data.ciiU3Descripcion ?? "",
-				}
+				ciius.data.find((r) => r.ciiu === data.ciiU3)
 			),
 		}));
 	}, [ciius, data.ciiU3, data.ciiU3Descripcion]);
@@ -470,9 +465,8 @@ const EmpresasForm = ({
 						cuit: ok.cuit,
 						razonSocial: ok.razonSocial ?? "",
 
-						actividadPrincipalId: ok.idActividadPrincipal ?? 0,
-						actividadPrincipalDescripcion:
-							ok.descripcionActividadPrincipal ?? "",
+						actividadPrincipalId: ok.idActividadPrincipal,
+						actividadPrincipalDescripcion: ok.descripcionActividadPrincipal,
 
 						domicilioCalle: ok.domicilios[0].direccion ?? "",
 						domicilioNumero: ok.domicilios[0].numero ?? "",
@@ -482,14 +476,14 @@ const EmpresasForm = ({
 						email: ok.email ?? "",
 						email2: ok.email2 ?? "",
 
-						ciiU1: ok.ciiU1 ?? 0,
-						ciiU1Descripcion: ok.ciiU1Descripcion ?? "",
+						ciiU1: ok.ciiU1,
+						ciiU1Descripcion: ok.ciiU1Descripcion,
 
-						ciiU2: ok.ciiU2 ?? 0,
-						ciiU2Descripcion: ok.ciiU2Descripcion ?? "",
+						ciiU2: ok.ciiU2,
+						ciiU2Descripcion: ok.ciiU2Descripcion,
 
-						ciiU3: ok.ciiU3 ?? 0,
-						ciiU3Descripcion: ok.ciiU3Descripcion ?? "",
+						ciiU3: ok.ciiU3,
+						ciiU3Descripcion: ok.ciiU3Descripcion,
 					});
 					setLocalidades((o) => ({
 						...o,
@@ -529,7 +523,7 @@ const EmpresasForm = ({
 					existe: true,
 					cuit: ok.cuit,
 					razonSocial: ok.razonSocial ?? "",
-					actividadPrincipalId: ok.actividadPrincipalId ?? 0,
+					actividadPrincipalId: ok.actividadPrincipalId,
 					domicilioCalle: ok.domicilioCalle ?? "",
 					domicilioNumero: ok.domicilioNro ?? "",
 					domicilioPiso: ok.domicilioPiso ?? "",
@@ -545,14 +539,14 @@ const EmpresasForm = ({
 					email: ok.email ?? "",
 					email2: ok.email2 ?? "",
 
-					ciiU1: ok.ciiU1 ?? 0,
-					ciiU1Descripcion: ok.ciiU1Descripcion ?? "",
+					ciiU1: ok.ciiU1,
+					ciiU1Descripcion: ok.ciiU1Descripcion,
 
-					ciiU2: ok.ciiU2 ?? 0,
-					ciiU2Descripcion: ok.ciiU2Descripcion ?? "",
+					ciiU2: ok.ciiU2,
+					ciiU2Descripcion: ok.ciiU2Descripcion,
 
-					ciiU3: ok.ciiU3 ?? 0,
-					ciiU3Descripcion: ok.ciiU3Descripcion ?? "",
+					ciiU3: ok.ciiU3,
+					ciiU3Descripcion: ok.ciiU3Descripcion,
 				});
 			},
 			onError: async (error) => validaAFIP(),
@@ -818,7 +812,7 @@ const EmpresasForm = ({
 								}}
 								options={ciiu1.options}
 								onTextChange={(buscar) => setCIIU1((o) => ({ ...o, buscar }))}
-								required
+								// required
 							/>
 						</Grid>
 					</Grid>
@@ -843,7 +837,7 @@ const EmpresasForm = ({
 								}}
 								options={ciiu2.options}
 								onTextChange={(buscar) => setCIIU2((o) => ({ ...o, buscar }))}
-								required
+								// required
 							/>
 						</Grid>
 					</Grid>
@@ -868,7 +862,7 @@ const EmpresasForm = ({
 								}}
 								options={ciiu3.options}
 								onTextChange={(buscar) => setCIIU3((o) => ({ ...o, buscar }))}
-								required
+								// required
 							/>
 						</Grid>
 					</Grid>

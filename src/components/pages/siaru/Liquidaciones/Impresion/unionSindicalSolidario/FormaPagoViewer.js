@@ -5,8 +5,11 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import FormaPagoPDF from "./FormaPagoPDF";
 import Formato from "components/helpers/Formato";
 import { insertString } from "components/helpers/Utils";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
+import Round from "components/helpers/Round";
 
 const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
+	const { calculoResumen } = useCalculoResarcitorios();
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -198,8 +201,18 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 				r.trabajadores += formaPago.trabajadores ?? 0;
 				r.remuneraciones += formaPago.remuneraciones ?? 0;
 				r.capital += formaPago.capital ?? 0;
-				r.intereses += formaPago.intereses ?? 0;
-				r.total += formaPago.total ?? 0;
+				// r.intereses += formaPago.intereses ?? 0;
+				// r.total += formaPago.total ?? 0;
+				(
+					{
+						interes: r.intereses
+					} = calculoResumen(
+						newCabecera.fechaVencimiento,
+						newCabecera.fechaPagoEstimada,
+						r.capital
+					)
+				);
+				r.total = Round(r.capital + r.intereses, 2);
 				Object.entries(formaPago).forEach(([k, v]) => {
 					if (r[k] !== undefined) return;
 					r[k] = v;
@@ -239,21 +252,27 @@ const FormaPagoViewer = ({ cabecera = {}, formasPago = [], modelo = 0 }) => {
 			oldLinea.trabajadores += linea.trabajadores ?? 0;
 			oldLinea.remuneraciones += linea.remuneraciones ?? 0;
 			oldLinea.capital += linea.capital ?? 0;
-			oldLinea.intereses += linea.intereses ?? 0;
-			oldLinea.total += linea.total ?? 0;
+			// oldLinea.intereses += linea.intereses ?? 0;
+			// oldLinea.total += linea.total ?? 0;
+			(
+				{
+					interes: oldLinea.intereses
+				} = calculoResumen(
+					newCabecera.fechaVencimiento,
+					newCabecera.fechaPagoEstimada,
+					oldLinea.capital
+				)
+			);
+			oldLinea.total = Round(oldLinea.capital + oldLinea.intereses, 2);
 		});
 	});
 	const newFormaPago = newFormasPago.length ? newFormasPago[0] : {};
-	if (formasPago.length > 1 && newFormaPago.codigoBarra?.length > 57) {
+	if (formasPago.length > 1 && newFormaPago.codigoBarra?.length === 80) {
 		// Rearmo codigo de barras de acuerdo al recálulo producto de la union de las formas de pago.
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 4, Formato.Mascara(newFormaPago.liquidacionTipoPagoId, "#"));
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 39, Formato.Mascara(newFormaPago.total * 100, "#########"));
 		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 48, Formato.Mascara(newFormaPago.trabajadores, "#####"));
-		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 53, Formato.Mascara(seccional.codigo?.substring(1), "####"));
-		const newData = `${newFormaPago.codigoBarra}`.substring(1, 57);
-		let acumulator = 0;
-		for (let i = 1; i < newData.length + 1; i++) acumulator += parseInt(newData.slice(-i)[0]) * ((i % 2 === 0) ? 1 : 3);
-		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 57, `${10 - (acumulator % 10)}`.slice(-1)[0]);
+		newFormaPago.codigoBarra = insertString(newFormaPago.codigoBarra, 53, Formato.Mascara(seccional.codigo.substring(1), "####"));
 	}
 	return (
 		<PDFViewer style={{ flexGrow: 1 }}>

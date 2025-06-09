@@ -325,3 +325,23 @@ export const insertString = (base, index, value, filler = " ") => {
 	}
 	return parts.join("");
 }
+
+/**
+ * Aplica `Object.freeze` a `o` y a todas sus propiedades recursivamente.
+ * @param {any} o Objecto a aplicar `Object.freeze` recursivamente
+ * @returns `o`
+ */
+export const deepFreeze = (o) => {
+	Object.freeze(o);
+	if (o === undefined) return o;
+
+	Object.getOwnPropertyNames(o).forEach((p) => {
+		if (o[p] !== null
+			&& (typeof o[p] === "object" || typeof o[p] === "function")
+			&& !Object.isFrozen(o[p])) {
+			deepFreeze(o[p]);
+		}
+	});
+
+	return o;
+};

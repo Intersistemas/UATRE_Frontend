@@ -1,3 +1,5 @@
+//Este componente es el -> "informes/afiliados/afiliados por seccional" de mi vista de informes
+
 import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
@@ -36,7 +38,8 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		//formatter: (v) => Formato.Cuit(v),
 		style: { textAlign: "center" },
 	},
 	{
@@ -568,13 +571,19 @@ const Handler = ({ onClose = () => {} }) => {
 		loading: null,
 		filtros: {},
 		/** @type {SeccionalAfiliados[]} */
+
+
+		//Aqui se guarda todos los datos de los afiliados
 		data: [],
 		error: null,
 		seccionales: [],
+
+		//Al momento de que se me carga mi data, se setea a true (padron.despliega = true)
+		//y se despliega el pdf
 		despliega: false,
 	});
 	//#endregion padron
-
+	
 	//#region Carga padron
 	useEffect(() => {
 		if (!padron.reload) return;
@@ -657,6 +666,16 @@ const Handler = ({ onClose = () => {} }) => {
 	}, [setAfiliacionesQuery, padron]);
 	//#endregion Carga padron
 
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+	//Se ejecuta dicha funcion cuando selecciono imprimir
+	//y se encarga de validar si la delegacion fue seleccionada
+	//y si no fue seleccionada, muestra un mensaje de error
+	//si fue seleccionada, se carga el padron
+	//y se despliega el pdf
+	//si no hay error, se carga el padron
+	//y se despliega el pdf
+
 	const onCargaPadron = () => {
 		if (!filtros.ambitoDelegaciones) {
 			setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
@@ -666,6 +685,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setPadron((o) => ({
 			...o,
+			//Me cambia mi estado a "true" para que se cargue el padron
 			reload: true,
 			seccionales: seccionalSelect.data
 				.map((s) => ({
@@ -677,6 +697,15 @@ const Handler = ({ onClose = () => {} }) => {
 				.filter((s) => s?.id),
 		}));
 	};
+
+
+
+	///////////////////////////////////////////////////////////
+	//Cuando (padron.despliega) es true, se despliega el pdf
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
 
 	const padronRender = !padron.despliega ? null : (
 		<PDFViewer

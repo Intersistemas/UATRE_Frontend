@@ -1,6 +1,5 @@
-import {useState, useEffect} from 'react';
-import Button from "../../ui/Button/Button";
-import Grid from "../../ui/Grid/Grid"; 
+import Button from "components/ui/Button/Button";
+import Grid from "components/ui/Grid/Grid"; 
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -19,7 +18,8 @@ const AdministracionHandler = () => {
 		tareas.hasTarea("Datos_Empresa")    && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Empresas")}>Empresas</Button>)
 		tareas.hasTarea("Datos_Delegacion") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Delegaciones")}>Delegaciones</Button>)
 		tareas.hasTarea("Datos_Localidad")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
-		tareas.hasTarea("Datos_Permisos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)	
+		tareas.hasTarea("Datos_Permisos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)
+		tareas.hasTarea("Datos_TasasARCA")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Tasas")}>Tasas ARCA</Button>)
 
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 

@@ -262,7 +262,7 @@ const AfiliadosEstadosEmpresas = ({ onClose = onCloseDef }) => {
 							/>
 						</Grid>
 					</Grid>
-					<Grid width gap="inherit">
+					<Grid width gap="inherit"> 
 						<Grid grow>
 							<SearchSelectMaterial
 								id="estadoSelect"
