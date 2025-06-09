@@ -20,6 +20,8 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/bootstrap": "^5.2.7",
     "@types/react-bootstrap-table-next": "^4.0.18",
+    "ajv": "^6.12.6",
+    "ajv-keywords": "^3.5.2",
     "bootstrap": "^5.3.2",
     "dayjs": "^1.11.7",
     "downloadjs": "^1.4.7",

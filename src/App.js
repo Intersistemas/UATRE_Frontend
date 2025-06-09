@@ -154,6 +154,7 @@ const App = () => {
 
               <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>
 
+                
               <Route path="/*" element={<PantallaEnDesarrollo/>} />
             </Routes>
         </SideBar>)}

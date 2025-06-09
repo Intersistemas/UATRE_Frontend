@@ -1,13 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { handleModuloSeleccionar } from "redux/actions";
-import { Tabs, Tab } from "@mui/material";
-import Grid from "components/ui/Grid/Grid";
-import Action from "components/helpers/Action";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import useAutoridades from "components/pages/administracion/seccionales/autoridades/useAutoridades";
-import KeyPress from "components/keyPress/KeyPress";
-import useSeccionales from "../administracion/seccionales/useSeccionales";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
