@@ -589,11 +589,7 @@ const AfiliadosLista = (props) => {
   });
 //#endregion 
 
-  const indication = 
-        ambito.tipo == "Delegaciones" ?
-        <h4>No se registran Afiliados Activos con esos datos</h4>
-        :
-        <h4>No hay información a mostrar</h4>
+  const indication = <h4>No hay información a mostrar</h4>
       
   
 

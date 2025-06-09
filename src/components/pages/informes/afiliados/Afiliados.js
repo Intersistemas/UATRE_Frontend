@@ -1185,7 +1185,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
-								disabled={ambito.tipo == "Delegaciones" ? true : false}
+								//disabled={ambito.tipo == "Delegaciones" ? true : false}
 							/>
 						</Grid>
 						<Grid grow>
