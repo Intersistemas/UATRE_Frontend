@@ -2046,7 +2046,7 @@ const FormularioOspreraForm = ({
             )}
 
             {/* Pregunta 3 */}
-            {respuestas.pregunta1 === "Sí" && respuestas.pregunta2 === "Sí" && (
+            {respuestas.pregunta1 === "Sí" && (
               <Grid col style={{ marginTop: 16 }}>
                 <p>¿En que tipo de prestador?</p>
                 <Grid>
