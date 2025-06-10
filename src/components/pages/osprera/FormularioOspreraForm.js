@@ -36,6 +36,7 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
+import { useSelector } from "react-redux";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -177,7 +178,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
-  const usuarioLogueado = usuarioLo();
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
   //#endregion
 
@@ -190,7 +191,7 @@ const FormularioOspreraForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    console.log("documentacionList", documentacionList);
+
     pushQuery({
       action: "EnviarCorreo",
       config: {
@@ -198,14 +199,26 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>OSPRERA<br></br>DELEGACION<br></br><br></br>`+
-            `En representación del Afiliado <strong>${data?.apellidoTitular} ${data?.nombreTitular}</strong>, con DNI Nº <strong>${data?.dniPaciente ?? ""}</strong>, Afiliado Nº <strong>${data?.cuitTitular ?? ""}</strong> ` +
-            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>`+
-            `${data?.texto}, adjuntando la documentación respectiva en su caso.<br><br/>` +
-            `Tipo de Adjuntos: ${documentacionList.map((a) => a.fileName).join(", ")}<br></br>` +
+            `<p>OSPRERA<br></br>DELEGACION<br></br><br></br>` +
+            `En representación del Afiliado <strong>${data?.apellidoTitular} ${
+              data?.nombreTitular
+            }</strong>, con DNI Nº <strong>${
+              data?.dniPaciente ?? ""
+            }</strong>, Afiliado Nº <strong>${
+              data?.cuitTitular ?? ""
+            }</strong> ` +
+            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>` +
+            `<strong>${data?.texto}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
+            `Tipo de Adjuntos: <strong>${
+              documentacionList.length === 0
+                ? "Sin archivos adjuntos"
+                : documentacionList
+                    .map((a) => a.refTipoDocumentacionDescripcion)
+                    .join("\ ")
+            }</strong><br></br>` +
             `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
-            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>`+
-            `Muchas gracias.<br></br>MAIL: ${usuarioLogueado.email}<br></br>TELEFONO: ${usuarioLogueado.phoneNumber}</p>`,	
+            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
+            `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
         },
       },
       onOk: async (ok) => {
@@ -291,14 +304,14 @@ const FormularioOspreraForm = ({
       "trabajador.nacionalidad": "",
       "trabajador.apellidos": data?.apellidoTitular,
       "trabajador.nombres": data?.nombreTitular,
-      //"trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
-      "trabajador.estado_civil": "",
-      //"trabajador.sexo": sexoSelect?.selected?.label,
-      "trabajador.domicilio": "",
-      "trabajador.localidad": "",
-      "trabajador.provincia": "",
-      "trabajador.oficio": "",
-      "trabajador.actividad": "",
+      "trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
+      "trabajador.estado_civil": "", //estadoCivilSelect?.selected?.label,
+      "trabajador.sexo": sexoSelect?.selected?.label,
+      "trabajador.domicilio": data.domicilio,
+      "trabajador.localidad": data.localidad,
+      "trabajador.provincia": data.provincia,
+      "trabajador.oficio": "", //oficioSelect?.selected?.label,
+      "trabajador.actividad": "", //data.actividad,
       "trabajador.telefono": data?.telefonoContacto,
       "trabajador.correo": data?.emailContacto,
       "trabajador.cuil": data?.cuitTitular,
@@ -737,7 +750,6 @@ const FormularioOspreraForm = ({
     }));
   }, [setGestionRubroQuery]);
   //#endregion select GestionesRubro
-  //   console.log("gestionRubroSelect", gestionRubroSelect);
 
   //#region select GestionesSubRubro
   const [gestionSubRubroSelect, setGestionSubRubroSelect] = useState({
@@ -772,22 +784,7 @@ const FormularioOspreraForm = ({
 
   //Carga inicial select GestionSubRubro
   useEffect(() => {
-    if (!gestionRubroSelect.selected?.value) return;
-    // setGestionSubRubroQuery((o) => ({
-    //   ...o,
-    //   params: { gestionRubroId: gestionRubroSelect.selected?.value },
-    //   onLoad: ({ ok, error }) => {
-    //     let data = [];
-    // 	console.log("subRubros", ok);
-    //     if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-    //     setGestionSubRubroSelect((o) => ({
-    //       ...o,
-    //       loading: null,
-    //       data,
-    //       error: error?.toString(),
-    //     }));
-    //   },
-    // }));
+    if (!gestionRubroSelect.selected?.value) return;   
     pushQuery({
       action: "GestionesSubRubroByRubro",
       params: { GestionRubroId: gestionRubroSelect.selected?.value },
@@ -892,19 +889,7 @@ const FormularioOspreraForm = ({
   //Carga inicial select GestionSituacion
   useEffect(() => {
     if (!gestionEstadoSelect.selected?.value) return;
-    // setGestionSituacionQuery((o) => ({
-    //   ...o,
-    //   onLoad: ({ ok, error }) => {
-    //     let data = [];
-    //     if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-    //     setGestionSituacionSelect((o) => ({
-    //       ...o,
-    //       loading: null,
-    //       data,
-    //       error: error?.toString(),
-    //     }));
-    //   },
-    // }));
+    
     pushQuery({
       action: "GestionesSituacionByEstado",
       params: { GestionEstadoId: gestionEstadoSelect.selected?.value },
@@ -988,7 +973,7 @@ const FormularioOspreraForm = ({
     setTitular((o) => ({ ...o, confirmado: true }));
   };
 
-  const validarCUITHandler = () => {
+  const validarCUITHandler = async () => {
     const changes = {
       loading: true,
       validado: "",
@@ -1062,7 +1047,7 @@ const FormularioOspreraForm = ({
             fechaNacimiento: ok?.fechaNacimiento,
           }));
         },
-        onError: async (error) => validaAFIP(),
+        // onError: async (error) => validaAFIP(),
         onFinally: async () => {
           changes.loading = false;
           setValidacionCUIT((o) => ({ ...o, ...changes }));
@@ -1076,14 +1061,21 @@ const FormularioOspreraForm = ({
         params: { cuit: data.cuitTitular, VerificarHistorico: false },
 
         onOk: async (ok) => {
+          // console.log("ConsultaAFIP", ok);
           changes.validado = "Titular datos en AFIP";
           changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
-
+          const domicilioReal = ok.domicilios.find(
+            (d) => d.tipoDomicilio == "LEGAL/REAL"
+          );
           onChange({
             existe: true,
             cuitTitular: ok.cuit,
             apellidoTitular: ok.apellido,
             nombreTitular: ok.nombre,
+            domicilio: domicilioReal?.direccion ?? "",
+            localidad: domicilioReal?.localidad ?? "",
+            provincia: domicilioReal?.descripcionProvincia ?? "",
+            actividad: ok.descripcionActividadPrincipal ?? ""
             //tipoDocumento: puedo hacer un find en le tipoDocOptions
           });
 
@@ -1138,9 +1130,13 @@ const FormularioOspreraForm = ({
           seccionalId: ok?.seccionalId,
           fechaNacimiento: ok?.fechaNacimiento,
         }));
-        validaOSPRERA();
+        await validaOSPRERA();
+        await validaAFIP();
       },
-      onError: async (error) => validaOSPRERA(),
+      onError: async (error) => {
+        await validaOSPRERA();
+        await validaAFIP();
+      },
       onFinally: async () => {
         changes.loading = false;
         setValidacionCUIT((o) => ({ ...o, ...changes }));
@@ -1214,22 +1210,18 @@ const FormularioOspreraForm = ({
     if (!modalDocumentacion?.documentacionOK) {
       return;
     }
-    console.log("modalDocumentacion", modalDocumentacion);
+    // console.log("modalDocumentacion", modalDocumentacion);
     setModalPreguntas({
       visible: true,
     });
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    // const isValid = await onValidate(true);
-
-    // if (!isValid) return;
-
     if (request == "A") {
       if (
-        !titular.existeEnUATRE
-        // !titular.existeEnOSPRERA &&
-        // !titular.existeEnAFIP
+        !titular.existeEnUATRE &&
+        !titular.existeEnOSPRERA &&
+        !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
         if (data.medioGestion == "email") sendEnviarEmailHandler();
@@ -1238,15 +1230,17 @@ const FormularioOspreraForm = ({
         );
         setOpenDialog(true);
       } else {
-        onDownloadSolicitudAfiliacion(true);
-        if (data.medioGestion == "email") sendEnviarEmailHandler();
-        setDialogTexto(
-          "Se descargó la Solicitud de Afiliación de: " +
-            data?.apellidoTitular +
-            " " +
-            data?.nombreTitular
-        );
-        setOpenDialog(true);
+        if (!titular.existeEnUATRE) {
+          onDownloadSolicitudAfiliacion(true);
+          if (data.medioGestion == "email") sendEnviarEmailHandler();
+          setDialogTexto(
+            "Se descargó la Solicitud de Afiliación de: " +
+              data?.apellidoTitular +
+              " " +
+              data?.nombreTitular
+          );
+          setOpenDialog(true);
+        }
       }
     } else {
       onClose(true);
@@ -1262,7 +1256,7 @@ const FormularioOspreraForm = ({
 
     if (event.target.value === "No") {
       // Si la respuesta es "No", resetea las siguientes preguntas
-      onChange({ conCoberturaOsprera: ""});
+      onChange({ conCoberturaOsprera: "" });
       onChange({ tipoPrestador: "" });
     }
   };
@@ -1294,6 +1288,8 @@ const FormularioOspreraForm = ({
     setSelectedTab(1);
   };
 
+  console.log("documentacionList", documentacionList);
+  // console.log("data", data);
   return (
     <>
       <div>
@@ -1995,20 +1991,20 @@ const FormularioOspreraForm = ({
           <Modal.Body>
             <div>
               <FormControl>
-              <FormLabel id="demo-controlled-radio-buttons-group">
-                ¿Ha realizado atenciones médicas previas?
-              </FormLabel>
-              <RadioGroup
-                aria-labelledby="demo-controlled-radio-buttons-group"
-                name="controlled-radio-buttons-group"
-                value={data.atencionesPrevias}
-                onChange={handleChangeAtencionesPrevias}
-              >
-                <FormControlLabel value="N" control={<Radio />} label="No" />
-                <FormControlLabel value="S" control={<Radio />} label="Sí" />
-              </RadioGroup>
-            </FormControl>
-            </div>            
+                <FormLabel id="demo-controlled-radio-buttons-group">
+                  ¿Ha realizado atenciones médicas previas?
+                </FormLabel>
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  name="controlled-radio-buttons-group"
+                  value={data.atencionesPrevias}
+                  onChange={handleChangeAtencionesPrevias}
+                >
+                  <FormControlLabel value="N" control={<Radio />} label="No" />
+                  <FormControlLabel value="S" control={<Radio />} label="Sí" />
+                </RadioGroup>
+              </FormControl>
+            </div>
 
             {/* Pregunta 2 */}
             {data.atencionesPrevias === "S" && (
@@ -2096,7 +2092,10 @@ const FormularioOspreraForm = ({
             <h3>DOCUMENTACION</h3>
           </Modal.Header>
           <Modal.Body>
-            <p>No tiene documentación cargada. ¿Desea cargar la documentación ahora?</p>
+            <p>
+              No tiene documentación cargada. ¿Desea cargar la documentación
+              ahora?
+            </p>
             {/* Aquí puedes agregar un componente para subir archivos */}
           </Modal.Body>
           <Modal.Footer>
