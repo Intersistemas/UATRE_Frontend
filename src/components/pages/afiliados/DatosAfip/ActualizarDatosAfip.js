@@ -98,82 +98,82 @@ export const ActualizarDatosAfip = (props) => {
     {
       path: "AFIPDomicilioDireccion",
       op: "replace",
-      value: `${domicilioRealAFIP.calle} ${domicilioRealAFIP.numero}`,
+      value: `${domicilioRealAFIP?.calle} ${domicilioRealAFIP?.numero}`,
     },
     {
       path: "AFIPDomicilioCalle",
       op: "replace",
-      value: domicilioRealAFIP.calle,
+      value: domicilioRealAFIP?.calle,
     },
     {
       path: "AFIPDomicilioNumero",
       op: "replace",
-      value: domicilioRealAFIP.numero,
+      value: domicilioRealAFIP?.numero,
     },
     {
       path: "AFIPDomicilioPiso",
       op: "replace",
-      value: domicilioRealAFIP.piso,
+      value: domicilioRealAFIP?.piso,
     },
     {
       path: "AFIPDomicilioDepto",
       op: "replace",
-      value: domicilioRealAFIP.depto,
+      value: domicilioRealAFIP?.depto,
     },
     {
       path: "AFIPDomicilioSector",
       op: "replace",
-      value: domicilioRealAFIP.sector,
+      value: domicilioRealAFIP?.sector,
     },
     {
       path: "AFIPDomicilioTorre",
       op: "replace",
-      value: domicilioRealAFIP.torre,
+      value: domicilioRealAFIP?.torre,
     },
     {
       path: "AFIPDomicilioManzana",
       op: "replace",
-      value: domicilioRealAFIP.manzana,
+      value: domicilioRealAFIP?.manzana,
     },
     {
       path: "AFIPDomicilioLocalidad",
       op: "replace",
-      value: domicilioRealAFIP.localidad,
+      value: domicilioRealAFIP?.localidad,
     },
     {
       path: "AFIPDomicilioProvincia",
       op: "replace",
-      value: domicilioRealAFIP.provincia,
+      value: domicilioRealAFIP?.provincia,
     },
     {
       path: "AFIPDomicilioIdProvincia",
       op: "replace",
-      value: domicilioRealAFIP.idProvincia,
+      value: domicilioRealAFIP?.idProvincia,
     },
     {
       path: "AFIPDomicilioCodigoPostal",
       op: "replace",
-      value: domicilioRealAFIP.codigoPostal,
+      value: domicilioRealAFIP?.codigoPostal,
     },
     {
       path: "AFIPDomicilioTipo",
       op: "replace",
-      value: domicilioRealAFIP.tipoDomicilio,
+      value: domicilioRealAFIP?.tipoDomicilio,
     },
     {
       path: "AFIPDomicilioEstado",
       op: "replace",
-      value: domicilioRealAFIP.estadoDomicilio,
+      value: domicilioRealAFIP?.estadoDomicilio,
     },
     {
       path: "AFIPDomicilioDatoAdicional",
       op: "replace",
-      value: domicilioRealAFIP.datoAdicional,
+      value: domicilioRealAFIP?.datoAdicional,
     },
     {
       path: "AFIPDomicilioTipoDatoAdicional",
       op: "replace",
-      value: domicilioRealAFIP.tipoDatoAdicional,
+      value: domicilioRealAFIP?.tipoDatoAdicional,
     },
   ];
 
