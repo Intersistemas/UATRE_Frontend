@@ -407,7 +407,7 @@ const SolicitudAutorizacionAfiliacion = ({
           return console.error("Se esperaba un arreglo", data);
         console.log("Datos recibidos de la consulta 22:", data); // <-- Agregá esta línea
         // Si es un array, guarda los datos en 'changes'
-        changes.data = data;
+        changes.data = data.filter((d) => d.tipo == "Solicitudes"); // Filtra el estado "Todos" (id 0)
       },
       onError: (error) => (changes.error = error.toString()), // Guarda el error si ocurre
       onFinally: () =>
@@ -1187,7 +1187,7 @@ const SolicitudAutorizacionAfiliacion = ({
                           className="botonAmarillo"
                           onClick={() => handleAutorizarSolicitud()}
                           disabled={
-                            registroSeleccionado?.estadoSolicitudId == 1
+                            registroSeleccionado?.estadoSolicitudId == estadoSelect?.options.find((o) => o?.label === "Pendiente")?.value
                               ? false
                               : true
                           }
@@ -1237,7 +1237,9 @@ const SolicitudAutorizacionAfiliacion = ({
                               );
                             }
                           }}
-                          disabled={!pdfGenerado}
+                          disabled={ registroSeleccionado?.estadoSolicitudId == estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value
+                              ? false
+                              : true}
                         >
                           DESCARGAR FORMULARIO DE AFILIACIONES
                         </Button>
@@ -1248,7 +1250,7 @@ const SolicitudAutorizacionAfiliacion = ({
                           loading={!!csv.loading}
                           onClick={()=>handleRechazaSolicitud()}
                           disabled={
-                            registroSeleccionado?.estadoSolicitudId == 1
+                            registroSeleccionado?.estadoSolicitudId == estadoSelect?.options.find((o) => o?.label === "Pendiente")?.value
                               ? false
                               : true
                           }
@@ -1292,8 +1294,27 @@ const SolicitudAutorizacionAfiliacion = ({
           //............................................
           //////////////////////////////////////////////
           /////////////////////////////////////////////
-          <Modal.Body size="xl" maxHeight="100%" centered>
-            <Grid col full gap="15px">
+          <Modal.Body size="xl" maxHeight="100%" centered >
+            <Grid col full
+                style={{
+                    minHeight: 600,
+                    maxHeight: 550,
+                    overflowY: "auto",
+                }}
+            >
+                 
+                <Grid width="100%" display="flex" justifyContent="center">
+                    <th style={{  width: "33.3%"}} className="text-center">
+                            
+                    </th>
+                    <th style={{ border: "1px solid black", borderBottom: "none", width:"50%" }} className="text-center">
+                        TRABAJADORES RURALES
+                    </th>
+                    <th style={{ border: "1px solid black", borderBottom: "none", width:"50%" }} className="text-center">
+                        TRABAJADORES NO RURALES
+                    </th>
+                </Grid>
+
               <Table
                 mostrarBuscar={false}
                 remote
@@ -1326,40 +1347,41 @@ const SolicitudAutorizacionAfiliacion = ({
                     },
                   },
                   {
-                    dataField: "total_Trabajadores",
-                    text: "Cant.Tot.Trab",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_Rurales",
-                    text: "Cant.Trab.Rural",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_NoRurales",
-                    text: "Cant.Trab.No.Rural",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_Rurales_Afiliados",
-                    text: "Cant.Trab.Rural.Afi",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_Rurales_NoAfiliados",
-                    text: "Cant.Trab.Rural.No.Afi",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_NoRurales_Afiliados",
-                    text: "Cant.Trab.No.Rural.Afi",
-                    style: { textAlign: "center" },
-                  },
-                  {
-                    dataField: "total_Trab_NoRurales_NoAfiliados",
-                    text: "Cant.Trab.No.Rural.No.Afi",
-                    style: { textAlign: "center" },
-                  },
+                          dataField: "total_Trabajadores",
+                          text: "Total General",
+                          style: { textAlign: "center" },
+                        },
+                        {
+                          dataField: "total_Trab_Rurales",
+                          text: "Totales",
+                          style: { textAlign: "center" },
+                        },
+                        {
+                          dataField: "total_Trab_Rurales_Afiliados",
+                          text: "Afiliados",
+                          style: { textAlign: "center" },
+                        },
+                        {
+                          dataField: "total_Trab_Rurales_NoAfiliados",
+                          text: "No Afiliados",
+                          style: { textAlign: "center" },
+                        },
+
+                        {
+                          dataField: "total_Trab_NoRurales",
+                          text: "Totales",
+                          style: { textAlign: "center" },
+                        },
+                        {
+                          dataField: "total_Trab_NoRurales_Afiliados",
+                          text: "Afiliados",
+                          style: { textAlign: "center" },
+                        },
+                        {
+                          dataField: "total_Trab_NoRurales_NoAfiliados",
+                          text: "No Afiliados",
+                          style: { textAlign: "center" },
+                        },
                 ]}
                 onTableChange={(type, { sortOrder, sortField }) => {
                   switch (type) {
@@ -1513,7 +1535,7 @@ const SolicitudAutorizacionAfiliacion = ({
                     </Grid>
                     <div
                       style={{
-                        minHeight: 250,
+                        minHeight: 150,
                         maxHeight: 550,
                         overflowY: "auto",
                       }}
@@ -1735,7 +1757,7 @@ const SolicitudAutorizacionAfiliacion = ({
                         fecha: new Date().toISOString(),
                         seccionalId: null,
                         empresaId: empresaSelected?.id ?? 0,
-                        estadoSolicitudId: 1,
+                        estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Pendiente")?.value,
                         estadoFecha: new Date().toISOString(),
                         estadoSolicitudObservaciones:
                           filtros.observaciones || "Sin observaciones",
