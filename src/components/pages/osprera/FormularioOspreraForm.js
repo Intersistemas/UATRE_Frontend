@@ -177,6 +177,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
+  const usuarioLogueado = usuarioLo();
 
   //#endregion
 
@@ -189,7 +190,7 @@ const FormularioOspreraForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    console.log("gestionRubroSelect", gestionRubroSelect.selected);
+    console.log("documentacionList", documentacionList);
     pushQuery({
       action: "EnviarCorreo",
       config: {
@@ -197,14 +198,14 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p><i>En representación del Afiliado ${data?.apellidoTitular} ${
-              data?.nombreTitular
-            }, con DNI Nº ${data?.dniPaciente ?? ""}, Afiliado Nº ${
-              data?.cuitTitular ?? ""
-            } ` +
-            `se solicita ${gestionRubroSelect?.selected?.label} conforme lo que se detalla a continuación ${data?.texto}, ` +
-            `adjuntando la documentación respectiva en su caso.<br><br/>Se requiere que se brinde la misma a la mayor brevedad posible o se me indique por este mismo medio los pasos a ` +
-            `seguir al respecto.<br><br/>La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>Muchas gracias.<i/></p>`,
+            `<p>OSPRERA<br></br>DELEGACION<br></br><br></br>`+
+            `En representación del Afiliado <strong>${data?.apellidoTitular} ${data?.nombreTitular}</strong>, con DNI Nº <strong>${data?.dniPaciente ?? ""}</strong>, Afiliado Nº <strong>${data?.cuitTitular ?? ""}</strong> ` +
+            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>`+
+            `${data?.texto}, adjuntando la documentación respectiva en su caso.<br><br/>` +
+            `Tipo de Adjuntos: ${documentacionList.map((a) => a.fileName).join(", ")}<br></br>` +
+            `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
+            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>`+
+            `Muchas gracias.<br></br>MAIL: ${usuarioLogueado.email}<br></br>TELEFONO: ${usuarioLogueado.phoneNumber}</p>`,	
         },
       },
       onOk: async (ok) => {
@@ -1226,9 +1227,9 @@ const FormularioOspreraForm = ({
 
     if (request == "A") {
       if (
-        !titular.existeEnUATRE &&
-        !titular.existeEnOSPRERA &&
-        !titular.existeEnAFIP
+        !titular.existeEnUATRE
+        // !titular.existeEnOSPRERA &&
+        // !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
         if (data.medioGestion == "email") sendEnviarEmailHandler();
@@ -1273,40 +1274,6 @@ const FormularioOspreraForm = ({
   const handleChangeTipoPrestador = (event) => {
     onChange({ tipoPrestador: event.target.value });
   };
-
-  // const handleChange = (event) => {
-  //   console.log("handleChange", event.target.value);
-  //   console.log("handleChange", event.target);
-  //   const valor = event.target.value;
-  //   const pregunta = event.target.name;
-  //   let valorCortito = "";
-  //   if (valor === "Sí") {
-  //     valorCortito = "S";
-  //   } else if (valor === "No") {
-  //     valorCortito = "N";
-  //   }
-  //   if (pregunta === "pregunta1") {
-  //     onChange({ atencionesPrevias: valorCortito });
-  //   } else if (pregunta === "pregunta2") {
-  //     onChange({ conCoberturaOsprera: valorCortito });
-  //   } else if (pregunta === "pregunta3") {
-  //     onChange({ TipoPrestador: valor });
-  //   }
-
-  //   setRespuestas((prev) => ({
-  //     // Mantiene las respuestas previas y actualiza la respuesta actual
-  //     ...prev,
-  //     [pregunta]: valor,
-  //     // Si la respuesta es "No", resetea las siguientes
-  //     ...(pregunta === "pregunta1" && valor === "No"
-  //       ? { pregunta2: null, pregunta3: null }
-  //       : {}),
-  //     ...(pregunta === "pregunta2" && valor === "No"
-  //       ? { pregunta3: null }
-  //       : {}),
-  //   }));
-  //   console.log("respuestas", respuestas);
-  // };
 
   const handleConfirmaRespuestasModal = async () => {
     // console.log("handleConfirmaRespuestasModal", respuestas);
@@ -1459,7 +1426,7 @@ const FormularioOspreraForm = ({
                             {titular.existeEnOSPRERA
                               ? "Titular en Padron OSPRERA"
                               : titular.existeEnAFIP
-                              ? "Titular en AFIP"
+                              ? "Titular en ARCA"
                               : ""}{" "}
                           </h6>
                           <h6 style={{ fontSize: "small" }}>
@@ -2023,7 +1990,7 @@ const FormularioOspreraForm = ({
       {modalPreguntas.visible && (
         <Modal show>
           <Modal.Header className={modalPreguntas.modalCabecera}>
-            <h3>CONFIRMACION</h3>
+            <h3>Información estadística</h3>
           </Modal.Header>
           <Modal.Body>
             <div>
@@ -2129,19 +2096,19 @@ const FormularioOspreraForm = ({
             <h3>DOCUMENTACION</h3>
           </Modal.Header>
           <Modal.Body>
-            <p>No tiene documentación cargada. ¿Desea continuar?</p>
+            <p>No tiene documentación cargada. ¿Desea cargar la documentación ahora?</p>
             {/* Aquí puedes agregar un componente para subir archivos */}
           </Modal.Body>
           <Modal.Footer>
             <Button
               className="botonAzul"
-              onClick={handleContinuarDocumentacionModal}
+              onClick={handleNoContinuarDocumentacionModal}
             >
               SÍ
             </Button>
             <Button
               className="botonAmarillo"
-              onClick={handleNoContinuarDocumentacionModal}
+              onClick={handleContinuarDocumentacionModal}
             >
               NO
             </Button>
