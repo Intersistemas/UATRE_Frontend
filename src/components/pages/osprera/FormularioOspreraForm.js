@@ -1954,10 +1954,7 @@ const FormularioOspreraForm = ({
                 ? () => hanlerEnviaEmail()
                 : () => handlePreguntasConfirma()
             }
-          >
-            {request == "E" || data.medioGestion == "email"
-              ? "CONFIRMA y ENVIA"
-              : "CONFIRMA"}
+          > CONFIRMA
           </Button>
 
           <Button
