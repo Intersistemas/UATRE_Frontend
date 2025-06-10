@@ -67,7 +67,7 @@ const DocumentacionForm = ({
 								...o,
 								refTipoDocumentacionId: false,
 							})),
-							 onChange({ refTipoDocumentacionId: v }))
+							 onChange({ refTipoDocumentacionId: v, refTipoDocumentacionDescripcion: tipoListData.find((r) => r.value === v)?.label }))
 							}
 						requered
 						error={errors?.refTipoDocumentacionId ? "Dato Requerido" : ""}
