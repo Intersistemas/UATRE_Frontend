@@ -199,7 +199,8 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>OSPRERA<br></br>DELEGACION<br></br><br></br>` +
+            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>RESISTENCIA, ${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+            `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
             }</strong>, con DNI Nº <strong>${
@@ -214,7 +215,7 @@ const FormularioOspreraForm = ({
                 ? "Sin archivos adjuntos"
                 : documentacionList
                     .map((a) => a.refTipoDocumentacionDescripcion)
-                    .join("\ ")
+                    .join("/ ")
             }</strong><br></br>` +
             `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
             `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
@@ -1129,9 +1130,9 @@ const FormularioOspreraForm = ({
           sexoId: ok?.sexoId,
           seccionalId: ok?.seccionalId,
           fechaNacimiento: ok?.fechaNacimiento,
-        }));
-        await validaOSPRERA();
-        await validaAFIP();
+        }));        
+        // await validaOSPRERA();
+        // await validaAFIP();
       },
       onError: async (error) => {
         await validaOSPRERA();
@@ -1230,9 +1231,10 @@ const FormularioOspreraForm = ({
         );
         setOpenDialog(true);
       } else {
+        if (data.medioGestion == "email") sendEnviarEmailHandler();
+
         if (!titular.existeEnUATRE) {
-          onDownloadSolicitudAfiliacion(true);
-          if (data.medioGestion == "email") sendEnviarEmailHandler();
+          onDownloadSolicitudAfiliacion(true);          
           setDialogTexto(
             "Se descargó la Solicitud de Afiliación de: " +
               data?.apellidoTitular +
@@ -1288,7 +1290,8 @@ const FormularioOspreraForm = ({
     setSelectedTab(1);
   };
 
-  console.log("documentacionList", documentacionList);
+  // console.log("documentacionList", documentacionList);
+  // console.log("usuario", usuarioLogueado);
   // console.log("data", data);
   return (
     <>
@@ -1430,7 +1433,7 @@ const FormularioOspreraForm = ({
                               ? "Afiliado a UATRE"
                               : !!titular.existeEnOSPRERA &&
                                 !!titular.existeEnAFIP
-                              ? "No se encontraron datos para el CUIL ingresado"
+                              ? "" //"No se encontraron datos para el CUIL ingresado"
                               : "No Afiliado a UATRE"}
                           </h6>
                         </div>
@@ -1503,7 +1506,8 @@ const FormularioOspreraForm = ({
                           (!titular?.existeEnUATRE &&
                             !titular?.existeEnAFIP &&
                             !titular?.existeEnOSPRERA) ||
-                          titular.confirmado
+                          titular.confirmado ||
+                          !data?.apellidoTitular || !data?.nombreTitular
                         }
                       >
                         <h6>
