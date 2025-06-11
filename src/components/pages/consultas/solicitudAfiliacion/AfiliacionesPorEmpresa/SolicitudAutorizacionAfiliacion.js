@@ -1237,9 +1237,8 @@ const SolicitudAutorizacionAfiliacion = ({
                               );
                             }
                           }}
-                          disabled={ registroSeleccionado?.estadoSolicitudId == estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value
-                              ? false
-                              : true}
+                          disabled={true}
+                             //registroSeleccionado?.estadoSolicitudId == estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value ? false : true}
                         >
                           DESCARGAR FORMULARIO DE AFILIACIONES
                         </Button>
