@@ -12,7 +12,7 @@ const DocumentacionTable = ({
 }) => {
 	const data = [];
 	initData.forEach((value, index) => {
-		console.log("value_row*",value)
+		// console.log("value_row*",value)
 		data.push({ index: index, value: value });
 	});
 	initSelection.onSelect ??= selectionOnSelectDef;
