@@ -90,7 +90,7 @@ const AfiliadosEstadosEmpresasSeccionales = ({ onClose = onCloseDef }) => {
 			onOk: (data) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
+				changes.data = data.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados");
 			},
 			onError: (error) => (changes.error = error.toString()),
 			onFinally: () =>

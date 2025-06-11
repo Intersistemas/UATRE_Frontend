@@ -685,7 +685,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			...o,
 			onLoad: ({ ok, error }) => {
 				let data = [];
-				if (Array.isArray(ok)) data = ok;
+				if (Array.isArray(ok)) data = ok.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados");
 				console.log("data estados:", data);
 				setEstadoSelect((o) => {
 					const n = {
