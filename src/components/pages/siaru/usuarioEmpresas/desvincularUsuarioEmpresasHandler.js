@@ -1,18 +1,43 @@
-import { SelectAllRounded } from "@mui/icons-material";
 import { Grid } from "@mui/material";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import UsuarioEmpresas from "./usuarioEmpresas";
 
 function DesvincularUsuarioEmpresasHandler() {
-  const [usuario, setUsuario] = useState();
+  const [usuarios, setUsuarios] = useState();
+  const [selectedUsuario, setSelectedUsuario] = useState({
+    id: "",
+  });
 
-  const empresa = useSelector((state) => state.empresaSeleccionada);
-  console.log("empresa", empresa);
+  const empresa = useSelector((state) => state.empresa);
+  console.log("data", usuarios);
 
   const pushQuery = useQueryQueue((action) => {
     switch (action) {
+      case "GetUsuarios": {
+        return {
+          config: {
+            baseURL: "Seguridad",
+            method: "GET",
+            endpoint: `/UsuarioEmpresas/ByEmpresaId`,
+            params: {
+              empresaId: empresa.id,
+            },
+          },
+          onOk: (data) => {
+            const usuariosMapeados = data.map((usuario) => ({
+              id: usuario.id,
+              nombre: Formato.nombreCompleto(usuario),
+              email: usuario.email,
+              telefono: usuario.telefono,
+            }));
+            setUsuarios(usuariosMapeados);
+          },
+        };
+      }
+
       case "BajaUsuarioEmpresa": {
         return {
           config: {
@@ -20,32 +45,45 @@ function DesvincularUsuarioEmpresasHandler() {
             method: "PATCH",
             endpoint: `/UsuarioEmpresas/DarDeBaja`,
             body: {
-              usuarioId: 0,
+              usuarioId: selectedUsuario.id,
             },
-          }
+          },
         };
       }
-      
+
       default:
         break;
     }
   });
 
+  //#region carga inicial
+
+  useEffect(() => {
+    pushQuery(
+      {
+        action: "GetUsuarios",
+        onOk: (data) => {
+          setUsuarios(data);
+        },
+        onError: (err) => alert(`Error al cargar usuarios:\n${err.toString()}`),
+      },
+    );
+  }, []);
+
+  //#endregion
+
+  const onChange = (value) => {
+    console.log("onChange", value);
+    setSelectedUsuario(value);
+  };
+
   //#region DesvincularUsuario
   const HandlerConfirmarDesvincularEmpresa = () => {
-    if (!empresa.data.id) return;
-    if (
-      !window.confirm(
-        `¿Confirma desvincular la empresa ${Formato.Cuit(
-          empresa.data.cuit
-        )} - ${empresa.data.razonSocial} del usuario ${usuario.cuit}?`
-      )
-    )
-      return;
+    if (!selectedUsuario?.id) return;
 
     pushQuery({
       action: "BajaUsuarioEmpresa",
-      params: { id: empresa.data.id },
+      params: { id: selectedUsuario?.id },
       onOk: async () => {},
       onError: async (err) =>
         alert(`Error al desvincular empresa:\n${err.toString()}`),
@@ -58,11 +96,13 @@ function DesvincularUsuarioEmpresasHandler() {
       <Grid className="titulo" marginBottom={3}>
         <h1>Desvincular usuario de Empresa</h1>
       </Grid>
-
-      <Grid col full>
-        
-      </Grid>
+      <UsuarioEmpresas
+        data={usuarios}
+        onDesvincula={HandlerConfirmarDesvincularEmpresa}
+        onChange={onChange}
+      />
     </Grid>
   );
 }
+
 export default DesvincularUsuarioEmpresasHandler;
