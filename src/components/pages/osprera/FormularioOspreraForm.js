@@ -199,7 +199,7 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>RESISTENCIA, ${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${moment().format("DD/MM/YYYY")}</strong><br></br>` +
             `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
@@ -1291,7 +1291,7 @@ const FormularioOspreraForm = ({
   };
 
   // console.log("documentacionList", documentacionList);
-  // console.log("usuario", usuarioLogueado);
+  //  console.log("usuario", usuarioLogueado);
   // console.log("data", data);
   return (
     <>
