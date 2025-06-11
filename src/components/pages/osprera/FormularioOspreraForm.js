@@ -178,6 +178,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
+  // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
   //#endregion
@@ -186,6 +187,7 @@ const FormularioOspreraForm = ({
   //#region EMAIL
   //Se debe procesar el(envio de email)
   const sendEnviarEmailHandler = async () => {
+    loading = true;
     const adjuntos = (documentacionList || []).map((r) => ({
       fileName: r.nombreArchivo,
       contentType: "application/octet-stream", // o usa el real si lo tienes
@@ -222,7 +224,7 @@ const FormularioOspreraForm = ({
             `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
         },
       },
-      onOk: async (ok) => {
+      onOk: async (ok) => {        
         setDialogTexto("Se ha enviado un email a la dirección ingresada.");
         setOpenDialog(true);
       },
@@ -1218,20 +1220,24 @@ const FormularioOspreraForm = ({
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    if (request == "A") {
+    if (request == "A") {      
       if (
         !titular.existeEnUATRE &&
         !titular.existeEnOSPRERA &&
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion == "email") sendEnviarEmailHandler();
+        if (data.medioGestion == "email") {          
+          sendEnviarEmailHandler();
+        }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion == "email") sendEnviarEmailHandler();
+        if (data.medioGestion == "email") {
+          sendEnviarEmailHandler();
+        }
 
         if (!titular.existeEnUATRE) {
           onDownloadSolicitudAfiliacion(true);          
@@ -1290,7 +1296,7 @@ const FormularioOspreraForm = ({
     setSelectedTab(1);
   };
 
-  // console.log("documentacionList", documentacionList);
+  // console.log("busy", busy);
   //  console.log("usuario", usuarioLogueado);
   // console.log("data", data);
   return (
@@ -2067,13 +2073,14 @@ const FormularioOspreraForm = ({
             <Button
               className="botonAzul"
               onClick={handleConfirmaRespuestasModal}
+              loading={loading}
               disabled={
                 !data.atencionesPrevias ||
                 (data.atencionesPrevias === "S" &&
                   (!data.conCoberturaOsprera || !data.tipoPrestador))
               }
             >
-              CONFIRMA
+              {loading ? "ENVIANDO CORREO..." : "CONFIRMA"}
             </Button>
             <Button
               className="botonAmarillo"
