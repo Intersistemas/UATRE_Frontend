@@ -193,6 +193,7 @@ const FormularioOspreraForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
+    const localidadUsuario = `${usuarioLogueado.ambitoSeccionales == null ? seccionalSelect.selected.record.localidadNombre : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion}, `;
 
     pushQuery({
       action: "EnviarCorreo",
@@ -201,7 +202,7 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format("DD/MM/YYYY")}</strong><br></br>` +
             `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
@@ -1296,9 +1297,6 @@ const FormularioOspreraForm = ({
     setSelectedTab(1);
   };
 
-  // console.log("busy", busy);
-  //  console.log("usuario", usuarioLogueado);
-  // console.log("data", data);
   return (
     <>
       <div>
