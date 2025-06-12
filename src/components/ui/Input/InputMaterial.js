@@ -72,7 +72,6 @@ const InputMaterial = ({
 	type = "text",
 	size = "small",
 	readOnly = false,
-	required = false,
 	width = "100%",
 	onChange = onChangeDef,
 	...x
@@ -94,7 +93,6 @@ const InputMaterial = ({
 		...state,
 		className: styles.input,
 		size,
-		required: required ?? false,
 		...x,
 		style: { width: isNaN(width) ? width : `${width}%`, ...x.style },
 		InputLabelProps: { shrink: true, ...x.InputLabelProps },
@@ -105,7 +103,7 @@ const InputMaterial = ({
 	textFieldProps.FormHelperTextProps.style = {
 		marginTop: "0px",
 		...textFieldProps.FormHelperTextProps.style,
-	};
+	};	
 
 	let subtype = null;
 	({ type, subtype } = getType(type));
@@ -134,7 +132,6 @@ const InputMaterial = ({
 		textFieldProps.autoFocus = true;
 
 	textFieldProps.value ??= ""
-
 	if (mask) {
 		const { onChange, ...mtfProps } = { ...mask, ...textFieldProps };
 		mtfProps.onAccept = (value, mask) => {
@@ -150,7 +147,7 @@ const InputMaterial = ({
 			onChange(value);
 		};
 		mtfProps.value = `${textFieldProps.value}`; // value debe ser string
-		console.log("mtfProps", mtfProps);
+		// console.log("mtfProps", mtfProps);
 		return <MaskTextField {...mtfProps} />;
 	}
 

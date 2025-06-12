@@ -59,6 +59,7 @@ const LiquidacionesNominaForm = ({
 						<Grid width="25%">
 							{hide.cuil ? null : (
 								<InputMaterial
+									required
 									label="CUIL"
 									disabled={disabled.cuil}
 									error={!!errors.cuil}
@@ -86,6 +87,7 @@ const LiquidacionesNominaForm = ({
 					<Grid width="full">
 						{hide.remuneracionImponible ? null : (
 							<InputMaterial
+								required
 								label="Remuneracion Bruta + SAC"
 								value={data.remuneracionImponible}
 								disabled={!!disabled.remuneracionImponible}

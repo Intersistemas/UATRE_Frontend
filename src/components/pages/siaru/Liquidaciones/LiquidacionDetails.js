@@ -87,6 +87,7 @@ const LiquidacionDetails = ({ data = {}, cabecera = {} }) => {
 					label="Establecimiento"
 					value={[
 						data.empresaEstablecimientoId,
+						data.empresaEstablecimientoNroSucursal,
 						data.empresaEstablecimiento_Descripcion,
 					]
 						.filter((r) => r)

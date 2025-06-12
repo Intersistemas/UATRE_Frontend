@@ -607,7 +607,7 @@ const EmpresasForm = ({
 								error={!!errors.razonSocial}
 								helperText={errors.razonSocial ?? ""}
 								value={data.razonSocial}
-								disabled={disabled.razonSocial}
+								disabled={disabled.razonSocial || validacionCUIT.validado === ""}
 								onChange={(razonSocial) => onChange({ razonSocial })}
 							/>
 						</Grid>
@@ -621,7 +621,7 @@ const EmpresasForm = ({
 								error={!!errors.domicilioCalle}
 								helperText={errors.domicilioCalle ?? ""}
 								value={data.domicilioCalle}
-								disabled={disabled.domicilioCalle ?? false}
+								disabled={disabled.domicilioCalle || validacionCUIT.validado === ""}
 								onChange={(domicilioCalle) => onChange({ domicilioCalle })}
 							/>
 						</Grid>
@@ -633,7 +633,7 @@ const EmpresasForm = ({
 								error={!!errors.domicilioNumero}
 								helperText={errors.domicilioNumero ?? ""}
 								value={data.domicilioNumero}
-								disabled={disabled.domicilioNumero ?? false}
+								disabled={disabled.domicilioNumero || validacionCUIT.validado === ""}
 								onChange={(domicilioNumero) => onChange({ domicilioNumero })}
 							/>
 							<InputMaterial
@@ -642,7 +642,7 @@ const EmpresasForm = ({
 								error={!!errors.domicilioPiso}
 								helperText={errors.domicilioPiso ?? ""}
 								value={data.domicilioPiso}
-								disabled={disabled.domicilioPiso ?? false}
+								disabled={disabled.domicilioPiso || validacionCUIT.validado === ""}
 								onChange={(domicilioPiso) => onChange({ domicilioPiso })}
 							/>
 							<InputMaterial
@@ -651,7 +651,7 @@ const EmpresasForm = ({
 								error={!!errors.domicilioDpto}
 								helperText={errors.domicilioDpto ?? ""}
 								value={data.domicilioDpto}
-								disabled={disabled.domicilioDpto ?? false}
+								disabled={disabled.domicilioDpto || validacionCUIT.validado === ""}
 								onChange={(domicilioDpto) => onChange({ domicilioDpto })}
 							/>
 						</Grid>
@@ -667,7 +667,7 @@ const EmpresasForm = ({
 								error={!!errors.domicilioProvinciasId}
 								helperText={errors.domicilioProvinciasId ?? ""}
 								value={provincias.selected}
-								disabled={disabled.domicilioProvinciasId ?? false}
+								disabled={disabled.domicilioProvinciasId || validacionCUIT.validado === ""}
 								onChange={({ value, label }) => {									
 									if (value === data.domicilioProvinciasId) return;
 									setLocalidades((o) => ({
@@ -712,7 +712,7 @@ const EmpresasForm = ({
 									.filter((r) => r)
 									.join("\n")}
 								value={localidades.selected}
-								disabled={disabled.domicilioLocalidadesId ?? false}
+								disabled={disabled.domicilioLocalidadesId || validacionCUIT.validado === ""}
 								onChange={({ value, label }) => {
 									if (value === data.domicilioLocalidadesId) return;
 									console.log("onChange localidad", { value, label });
@@ -737,7 +737,7 @@ const EmpresasForm = ({
 								error={!!errors.telefono}
 								helperText={errors.telefono ?? ""}
 								value={data.telefono}
-								disabled={disabled.telefono ?? false}
+								disabled={disabled.telefono || validacionCUIT.validado === ""}
 								onChange={(telefono) => onChange({ telefono })}
 							/>
 						</Grid>
@@ -752,7 +752,7 @@ const EmpresasForm = ({
 								error={!!errors.email}
 								helperText={errors.email ?? ""}
 								value={data.email}
-								disabled={disabled.email}
+								disabled={disabled.email || validacionCUIT.validado === ""}
 								onChange={(email) => onChange({ email })}
 							/>
 						</Grid>
@@ -764,7 +764,7 @@ const EmpresasForm = ({
 								error={!!errors.email2}
 								helperText={errors.email2 ?? ""}
 								value={data.email2}
-								disabled={disabled.email2}
+								disabled={disabled.email2  || validacionCUIT.validado === ""}
 								onChange={(email2) => onChange({ email2 })}
 							/>
 						</Grid>
@@ -783,7 +783,7 @@ const EmpresasForm = ({
 									""
 								}
 								value={actividadPrincipal.selected}
-								disabled={disabled.actividadPrincipalId ?? false}
+								disabled={disabled.actividadPrincipalId || validacionCUIT.validado === ""}
 								onChange={({ value }) => {
 									const ciiu = ciius.data.find((r) => r.ciiu === value);
 									onChange({
@@ -810,7 +810,7 @@ const EmpresasForm = ({
 									ciius.loading ?? ciius.error?.message ?? errors.ciiU1 ?? ""
 								}
 								value={ciiu1.selected}
-								disabled={disabled.ciiU1 ?? false}
+								disabled={disabled.ciiU1 || validacionCUIT.validado === ""}
 								onChange={({ value }) => {
 									const ciiu = ciius.data.find((r) => r.ciiu === value);
 									onChange({
@@ -835,7 +835,7 @@ const EmpresasForm = ({
 									ciius.loading ?? ciius.error?.message ?? errors.ciiU2 ?? ""
 								}
 								value={ciiu2.selected}
-								disabled={disabled.ciiU2 ?? false}
+								disabled={disabled.ciiU2 || validacionCUIT.validado === ""}
 								onChange={({ value }) => {
 									const ciiu = ciius.data.find((r) => r.ciiu === value);
 									onChange({
@@ -860,7 +860,7 @@ const EmpresasForm = ({
 									ciius.loading ?? ciius.error?.message ?? errors.ciiU3 ?? ""
 								}
 								value={ciiu3.selected}
-								disabled={disabled.ciiU3 ?? false}
+								disabled={disabled.ciiU3 || validacionCUIT.validado === ""}
 								onChange={({ value }) => {
 									const ciiu = ciius.data.find((r) => r.ciiu === value);
 									onChange({
@@ -883,7 +883,7 @@ const EmpresasForm = ({
 									error={!!errors.deletedDate}
 									helperText={errors.deletedDate ?? ""}
 									value={data.deletedDate}
-									disabled={disabled.deletedDate ?? false}
+									disabled={disabled.deletedDate || validacionCUIT.validado === ""}
 									onChange={(deletedDate) => onChange({ deletedDate })}
 								/>
 							</Grid>
@@ -894,7 +894,7 @@ const EmpresasForm = ({
 									error={!!errors.deletedBy}
 									helperText={errors.deletedBy ?? ""}
 									value={data.deletedBy}
-									disabled={disabled.deletedBy ?? false}
+									disabled={disabled.deletedBy || validacionCUIT.validado === ""}
 									onChange={(deletedBy) => onChange({ deletedBy })}
 								/>
 							</Grid>
@@ -905,7 +905,7 @@ const EmpresasForm = ({
 									error={!!errors.deletedObs}
 									helperText={errors.deletedObs ?? ""}
 									value={data.deletedObs}
-									disabled={disabled.deletedObs ?? false}
+									disabled={disabled.deletedObs || validacionCUIT.validado === ""}
 									onChange={(deletedObs) => onChange({ deletedObs })}
 								/>
 							</Grid>

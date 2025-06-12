@@ -585,7 +585,7 @@ const useLiquidacionesNomina = ({
               pagination: { index, size },
               data: o.remote ? [] : o.data,
             })),
-        }}
+        }}        
         selection={{
           mode: list.selection.multi ? "checkbox" : "radio",
           hideSelectColumn: hideSelectColumn,

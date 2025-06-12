@@ -159,7 +159,7 @@ const LiquidacionesProcesarHandler = () => {
 	if (dependencias.data.establecimientos.length == 0) {
 		establecimientosRender = (
 			<Grid width="full" style={{ color: "red" }}>
-				No hay establecimientos cargados para la empresa seleccionada.
+				No se puede procesar la liquidación porque la empresa seleccionada no tiene establecimientos cargados. Por favor, registre al menos uno para continuar.
 			</Grid>
 		);
 	}
