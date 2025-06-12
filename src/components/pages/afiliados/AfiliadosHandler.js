@@ -109,7 +109,9 @@ const AfiliadosHandler = () => {
  
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
-      const estadosSolicitudesTable = estadosSolicitudesObj.map(
+      const estadosSolicitudesTable = estadosSolicitudesObj
+      .filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados")
+      .map(
         (estadoSolicitud) => {
           return {
             value: estadoSolicitud.id,

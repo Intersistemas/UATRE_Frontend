@@ -207,7 +207,7 @@ const useFormularioOsprera = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
-					sort: "FechaDesc",
+					sort: "FechaDesc,IdDesc",
 					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
 				},
 			},

@@ -178,6 +178,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
+  // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
   //#endregion
@@ -186,11 +187,13 @@ const FormularioOspreraForm = ({
   //#region EMAIL
   //Se debe procesar el(envio de email)
   const sendEnviarEmailHandler = async () => {
+    loading = true;
     const adjuntos = (documentacionList || []).map((r) => ({
       fileName: r.nombreArchivo,
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
+    const localidadUsuario = `${usuarioLogueado.ambitoSeccionales == null ? seccionalSelect.selected.record.localidadNombre : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion}, `;
 
     pushQuery({
       action: "EnviarCorreo",
@@ -199,7 +202,8 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>OSPRERA<br></br>DELEGACION<br></br><br></br>` +
+            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+            `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
             }</strong>, con DNI Nº <strong>${
@@ -214,14 +218,14 @@ const FormularioOspreraForm = ({
                 ? "Sin archivos adjuntos"
                 : documentacionList
                     .map((a) => a.refTipoDocumentacionDescripcion)
-                    .join("\ ")
+                    .join("/ ")
             }</strong><br></br>` +
             `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
             `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
             `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
         },
       },
-      onOk: async (ok) => {
+      onOk: async (ok) => {        
         setDialogTexto("Se ha enviado un email a la dirección ingresada.");
         setOpenDialog(true);
       },
@@ -1129,9 +1133,9 @@ const FormularioOspreraForm = ({
           sexoId: ok?.sexoId,
           seccionalId: ok?.seccionalId,
           fechaNacimiento: ok?.fechaNacimiento,
-        }));
-        await validaOSPRERA();
-        await validaAFIP();
+        }));        
+        // await validaOSPRERA();
+        // await validaAFIP();
       },
       onError: async (error) => {
         await validaOSPRERA();
@@ -1217,22 +1221,27 @@ const FormularioOspreraForm = ({
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    if (request == "A") {
+    if (request == "A") {      
       if (
         !titular.existeEnUATRE &&
         !titular.existeEnOSPRERA &&
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion == "email") sendEnviarEmailHandler();
+        if (data.medioGestion == "email") {          
+          sendEnviarEmailHandler();
+        }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
+        if (data.medioGestion == "email") {
+          sendEnviarEmailHandler();
+        }
+
         if (!titular.existeEnUATRE) {
-          onDownloadSolicitudAfiliacion(true);
-          if (data.medioGestion == "email") sendEnviarEmailHandler();
+          onDownloadSolicitudAfiliacion(true);          
           setDialogTexto(
             "Se descargó la Solicitud de Afiliación de: " +
               data?.apellidoTitular +
@@ -1288,8 +1297,6 @@ const FormularioOspreraForm = ({
     setSelectedTab(1);
   };
 
-  console.log("documentacionList", documentacionList);
-  // console.log("data", data);
   return (
     <>
       <div>
@@ -1430,7 +1437,7 @@ const FormularioOspreraForm = ({
                               ? "Afiliado a UATRE"
                               : !!titular.existeEnOSPRERA &&
                                 !!titular.existeEnAFIP
-                              ? "No se encontraron datos para el CUIL ingresado"
+                              ? "" //"No se encontraron datos para el CUIL ingresado"
                               : "No Afiliado a UATRE"}
                           </h6>
                         </div>
@@ -1503,7 +1510,8 @@ const FormularioOspreraForm = ({
                           (!titular?.existeEnUATRE &&
                             !titular?.existeEnAFIP &&
                             !titular?.existeEnOSPRERA) ||
-                          titular.confirmado
+                          titular.confirmado ||
+                          !data?.apellidoTitular || !data?.nombreTitular
                         }
                       >
                         <h6>
@@ -1954,10 +1962,7 @@ const FormularioOspreraForm = ({
                 ? () => hanlerEnviaEmail()
                 : () => handlePreguntasConfirma()
             }
-          >
-            {request == "E" || data.medioGestion == "email"
-              ? "CONFIRMA y ENVIA"
-              : "CONFIRMA"}
+          > CONFIRMA
           </Button>
 
           <Button
@@ -2066,13 +2071,14 @@ const FormularioOspreraForm = ({
             <Button
               className="botonAzul"
               onClick={handleConfirmaRespuestasModal}
+              loading={loading}
               disabled={
                 !data.atencionesPrevias ||
                 (data.atencionesPrevias === "S" &&
                   (!data.conCoberturaOsprera || !data.tipoPrestador))
               }
             >
-              CONFIRMA
+              {loading ? "ENVIANDO CORREO..." : "CONFIRMA"}
             </Button>
             <Button
               className="botonAmarillo"

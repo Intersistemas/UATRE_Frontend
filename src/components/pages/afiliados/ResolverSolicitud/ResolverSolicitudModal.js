@@ -147,6 +147,7 @@ const ResolverSolicitudModal = ({
 					...old,
 					loading: null,
 					data: res
+						.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados")
 						.map((r) => ({ value: r.id, label: r.descripcion }))
 						.filter((r) =>
 							["Pendiente", "Activo", "Rechazado"].includes(r.label)
