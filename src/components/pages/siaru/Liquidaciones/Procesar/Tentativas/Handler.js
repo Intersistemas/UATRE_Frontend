@@ -282,6 +282,7 @@ const LiquidacionNomina = ({
 						const establecimiento = establecimientos.find((r) => r.id === id);
 						onChange({
 							empresaEstablecimientoId: establecimiento.id,
+							empresaEstablecimientoNroSucursal: establecimiento.nroSucursal,
 							empresaEstablecimiento_Nombre: establecimiento.nombre,
 						});
 					}}
