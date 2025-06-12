@@ -301,8 +301,8 @@ const FormaPagoPDF = ({
 									...styles.borderBottom,
 								}}
 							>
-								<Text style={styles.titulo}>NRO DE LIQUIDACION:</Text>
-								<Text>{Formato.Mascara(cabecera.id, "#".repeat(10))}</Text>
+								<Text style={styles.titulo}>ID BOLETA:</Text>
+								<Text>{Formato.Mascara(cabecera.boletaId, "#".repeat(10))}</Text>
 							</Grid>
 							<Grid width="310" justify="center" style={styles.paddingBox}>
 								<Text style={styles.titulo}>

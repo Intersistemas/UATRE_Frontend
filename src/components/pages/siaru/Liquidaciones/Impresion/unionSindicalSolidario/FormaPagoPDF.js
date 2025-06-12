@@ -92,8 +92,8 @@ const FormaPagoPDF = ({
 			barcode = canvas.toDataURL();
 		}
 		const identificador = {
-			nombre: "NRO DE LIQUIDACION",
-			valor: cabecera.id,
+			nombre: "ID BOLETA",
+			valor: cabecera.boletaId,
 		};
 		if (modelo === 1) {
 			identificador.nombre = "Código de pago";

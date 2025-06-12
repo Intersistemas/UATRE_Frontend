@@ -23,6 +23,7 @@ const LiquidacionesHandler = () => {
   const route = useLocation();
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado)
   const usuarioTareas = useTareasUsuario();
+  const verTodasLiquidaciones = usuarioTareas.hasTarea("Accesos_LiquidacionesVerTodas");
   if (redirect.to) navigate(redirect.to, redirect.options);
   useEffect(() => {
     if (!empresa?.id) setRedirect({ to: "Empresas" });

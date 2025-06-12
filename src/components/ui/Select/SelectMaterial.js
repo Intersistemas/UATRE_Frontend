@@ -33,6 +33,7 @@ const SelectMaterial = (props) => {
 		>
 			<InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
 			<Select
+				required={props.required ?? false}
 				className={styles.select}
 				style={{ ...props.style }}
 				labelId={props.label + "-label"}

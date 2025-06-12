@@ -8,7 +8,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 	const columnsDef = [
 		{
 			dataField: "boletaId",
-			text: "Boleta Id",
+			text: "Id Boleta",
 			sort: true,
 			headerStyle: { width: "100px" },
 			style: { textAlign: "center" },

@@ -586,6 +586,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 					esRural: !!nomina.esRural,
 					afiliadoId: nomina.afiliadoId ?? 0,
 					empresaEstablecimientoId: tentativa.empresaEstablecimientoId,
+					empresaEstablecimientoNroSucursal: tentativa.empresaEstablecimientoNroSucursal,
 					empresaEstablecimiento_Nombre:
 						tentativa.empresaEstablecimiento_Nombre,
 				});
@@ -660,6 +661,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			let liquidacion = {
 				id: Number(liquidacionAntes?.id ?? 0),
 				empresaEstablecimientoId: Number(nomina.empresaEstablecimientoId),
+				empresaEstablecimientoNroSucursal: nomina.empresaEstablecimientoNroSucursal,
 				empresaEstablecimiento_Descripcion:
 					nomina.empresaEstablecimiento_Nombre,
 				liquidacionTipoPagoId: tipoPago.id,
@@ -794,7 +796,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	} = useLiquidacionesNomina({
 		remote: false,
 		multi: true,
-		hideSelectColumn: true,
+		hideSelectColumn: false,
 		mostrarBuscar: true,
 		columns: [
 			{ dataField: "cuil" },

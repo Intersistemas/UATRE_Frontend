@@ -215,6 +215,7 @@ const EstablecimientosForm = ({
 								{hide.domicilioCalle ? null : (
 									<Grid width="full">
 										<InputMaterial
+											required
 											id="domicilioCalle"
 											label="Calle"
 											disabled={disabled.domicilioCalle}
@@ -228,6 +229,7 @@ const EstablecimientosForm = ({
 								{hide.domicilioNumero ? null : (
 									<Grid width="25%">
 										<InputMaterial
+											required
 											id="domicilioNumero"
 											label="Número"
 											type="number"
@@ -269,7 +271,7 @@ const EstablecimientosForm = ({
 							<Grid width="full" gap="inherit">
 								<Grid width="50%">
 									{hide.domicilioProvinciasId ? null : (
-										<SelectMaterial
+										<SearchSelectMaterial
 											onKeyDown={(e) => { e.preventDefault(); }}
 											id="domicilioProvinciasId"
 											name="domicilioProvinciasId"
