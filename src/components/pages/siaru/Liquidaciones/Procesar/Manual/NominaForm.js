@@ -140,6 +140,7 @@ const NominaForm = ({
 				<Grid width="full" gap="inherit">
 					<Grid width="25%">
 						<InputMaterial
+							required
 							label="CUIL"
 							error={!!errores.cuil}
 							helperText={errores.cuil ?? ""}
@@ -172,6 +173,7 @@ const NominaForm = ({
 				</Grid>
 				<Grid width="full">
 					<InputMaterial
+						required={true}
 						label="Remuneracion Bruta + SAC"
 						error={!!errores.remuneracion}
 						helperText={errores.remuneracion ?? ""}

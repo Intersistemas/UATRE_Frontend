@@ -174,7 +174,7 @@ const LiquidacionCabecera = ({
 			<Grid width="full" gap="inherit">
 				<InputMaterial
 					mask={PesosMask}
-					label="Aporte"
+					label="Capital"
 					value={data.totalAporte}
 					disabled
 				/>
@@ -794,7 +794,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 	} = useLiquidacionesNomina({
 		remote: false,
 		multi: true,
-		hideSelectColumn: false,
+		hideSelectColumn: true,
 		mostrarBuscar: true,
 		columns: [
 			{ dataField: "cuil" },
@@ -826,6 +826,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 			// },
 			{ dataField: "remuneracionImponible" },
 		],
+		pagination: { size: 10 },
 	});
 	const liqNomEdit = JoinOjects(liqNomSel, {
 		length: liqNomSel?.length ?? 0,
@@ -846,7 +847,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 				{leyendas}
 				<Grid col full="width" gap="inherit">
 					<LiquidacionNomina
-						data={liqNomEdit}
+						data={liqNomEdit}						
 						dependencies={{ establecimientos: establecimientos.data }}
 						onChange={(changes) => {
 							if (!liqNomEdit.length) return;
@@ -885,27 +886,27 @@ const Handler = ({ periodo, tentativas = [] }) => {
 		hideSelectColumn: true,
 		columns: (def, { request }) => [
 			...def,
-			{
-				dataField: "_acciones",
-				text: "Acciones",
-				isDummyField: true,
-				formatter: () => (
-					<Button className="botonAmarillo" style={{ padding: 0 }} tarea="Siaru_EmpresaRuralidadModifica">
-						Modifica
-					</Button>
-				),
-				headerStyle: { width: "110px" },
-				events: {
-					onClick: (e, column, columnIndex, record, rowIndex) => {
-						e.stopPropagation();
-						request("selected", {
-							request: "M",
-							action: "Genera liquidacion",
-							record,
-						});
-					},
-				},
-			},
+			// {
+			// 	// dataField: "_acciones",
+			// 	// text: "Acciones",
+			// 	// isDummyField: true,
+			// 	// formatter: () => (
+			// 	// 	<Button className="botonAmarillo" style={{ padding: 0 }} tarea="Siaru_EmpresaRuralidadModifica">
+			// 	// 		Modifica
+			// 	// 	</Button>
+			// 	// ),
+			// 	headerStyle: { width: "110px" },
+			// 	events: {
+			// 		onClick: (e, column, columnIndex, record, rowIndex) => {
+			// 			e.stopPropagation();
+			// 			request("selected", {
+			// 				request: "M",
+			// 				action: "Genera liquidacion",
+			// 				record,
+			// 			});
+			// 		},
+			// 	},
+			// },
 		],
 		onDataChange: (data) =>
 			setEstado((o) => ({

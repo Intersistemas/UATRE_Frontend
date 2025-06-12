@@ -72,6 +72,7 @@ const InputMaterial = ({
 	type = "text",
 	size = "small",
 	readOnly = false,
+	required = false,
 	width = "100%",
 	onChange = onChangeDef,
 	...x
@@ -88,17 +89,18 @@ const InputMaterial = ({
 		}
 		onChange(value, state.id);
 	}
-
+	
 	const textFieldProps = {
 		...state,
 		className: styles.input,
 		size,
+		required: required ?? false,
 		...x,
 		style: { width: isNaN(width) ? width : `${width}%`, ...x.style },
 		InputLabelProps: { shrink: true, ...x.InputLabelProps },
 		InputProps: { readOnly, ...x.InputProps },
 		onChange: handleOnChange,
-	};
+	};	
 	textFieldProps.FormHelperTextProps ??= {};
 	textFieldProps.FormHelperTextProps.style = {
 		marginTop: "0px",
@@ -148,6 +150,7 @@ const InputMaterial = ({
 			onChange(value);
 		};
 		mtfProps.value = `${textFieldProps.value}`; // value debe ser string
+		console.log("mtfProps", mtfProps);
 		return <MaskTextField {...mtfProps} />;
 	}
 

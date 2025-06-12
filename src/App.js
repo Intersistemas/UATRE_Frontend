@@ -52,6 +52,8 @@ import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 
 import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
 import AnuncioModal from 'components/pages/inicio/AnuncioModal';
+import UsuarioPerfilHandler from './components/pages/administracion/usuarioPerfil/usuarioPerfilHandler';
+import DesvincularUsuarioEmpresasHandler from 'components/pages/siaru/usuarioEmpresas/desvincularUsuarioEmpresasHandler';
 
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";
@@ -126,12 +128,16 @@ const App = () => {
               <Route path="Inicio/Afiliaciones/:id" element={<Afiliado/>} />
               <Route path="Inicio/Empresas" element={<SiaruHandler/>} />
               <Route path="Inicio/Empresas/Establecimientos" element={<EstablecimientosHandler/>} />
+              <Route path="Inicio/Empresas/Establecimientos/Liquidaciones" element={<LiquidacionesHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones" element={<LiquidacionesHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler/>} />
               <Route path="Inicio/Empresas/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler/>} />
+              <Route path="Inicio/Empresas/Liquidaciones/Establecimientos" element={<EstablecimientosHandler/>} />
               <Route path="Inicio/Empresas/ProcesosEntRecaudadoras" element={<ProcesosEntRecaudadorasHandler/>} />
+              <Route path="Inicio/Empresas/DesvincularUsuarioEmpresa" element={<DesvincularUsuarioEmpresasHandler/>} />
+              <Route path="Inicio/UsuarioPerfil" element={<UsuarioPerfilHandler/>} />
 
               <Route path="Inicio/Administracion" element={<AdministracionHandler />}/>
               <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />

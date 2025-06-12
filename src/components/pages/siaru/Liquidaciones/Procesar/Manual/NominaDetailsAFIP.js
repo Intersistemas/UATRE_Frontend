@@ -18,7 +18,7 @@ const NominaDetailsAFIP = ({
 			<Grid full="width">
 				<Grid className={styles.titulo} grow>
 					{[
-						"Consulta AFIP",
+						"Consulta ARCA",
 						loading,
 						error ? ["Error", error.code, error.message].join(" ") : "",
 					]

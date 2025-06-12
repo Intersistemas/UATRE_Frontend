@@ -128,6 +128,7 @@ const SearchSelectMaterial = ({
 	onChange = () => {},
 	onTextChange = () => {},
 	autocompleteProps = {},
+	freeSolo = true,
 	...x
 }) => {
 	const formControlProps = {
@@ -139,14 +140,14 @@ const SearchSelectMaterial = ({
 		},
 	};
 	defaultOption ??= options.length > 0 ? options[0] : value;
-
+	
 	return (
 		<FormControl {...formControlProps}>
 			<Autocomplete
 				listboxprops={{ style: { maxHeight: 50 } }}
 				className={styles.select}
 				disablePortal
-				freeSolo
+				freeSolo={freeSolo}
 				renderOption={(props, option, state) => (
 					<li {...props} key={state.index}>
 						{option.label}

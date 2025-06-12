@@ -50,7 +50,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 		// 	style: { textAlign: "center" },
 		// },
 		{
-			dataField: "empresaEstablecimientoId",
+			dataField: "empresaEstablecimientoNroSucursal",
 			text: "Estab. Nro.",
 			sort: true,
 			headerStyle: { width: "120px" },

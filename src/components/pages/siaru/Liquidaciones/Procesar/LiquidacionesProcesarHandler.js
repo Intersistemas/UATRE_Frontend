@@ -38,6 +38,22 @@ const LiquidacionesProcesarHandler = () => {
 					},
 				};
 			}
+
+			case "GetEmpresaEstablecimientos": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						method: "GET",
+						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+					},
+					params: {
+						empresaId: empresa.id,
+						pageIndex: 1,
+						pageSize: 1,
+					},
+				};
+			}
+
 			default:
 				return null;
 		}
@@ -47,12 +63,14 @@ const LiquidacionesProcesarHandler = () => {
 	//#region declaración y carga de dependencias
 	const [dependencias, setDependencias] = useState({
 		loading: "Cargando...",
-		empresaId: empresa.id,
+		empresaId: empresa.id,		
 		data: {
+			establecimientos: [],
 			periodos: null,
 		},
 		errors: null,
 	});
+
 	useEffect(() => {
 		if (!dependencias.loading) return;
 		const changes = {
@@ -80,6 +98,17 @@ const LiquidacionesProcesarHandler = () => {
 				params: { empresaId, bajas: false },
 				onOk: async (periodos) => setData({ periodos }),
 				onError: async (error) => setData({ periodos: [] }, error),
+				onFinally: async () => applyChanges(),
+			});
+		}
+		if (changes.data.establecimientos.length === 0) {
+			console.log("[debug] GetEmpresaEstablecimientos dependencias", dependencias);
+			const empresaId = dependencias.empresaId;
+			pushQuery({
+				action: "GetEmpresaEstablecimientos",
+				params: { empresaId },
+				onOk: async (establecimientos) => setData({ establecimientos }),
+				onError: async (error) => setData({ establecimientos: [] }),
 				onFinally: async () => applyChanges(),
 			});
 		}
@@ -126,6 +155,15 @@ const LiquidacionesProcesarHandler = () => {
 		);
 	}
 
+	let establecimientosRender
+	if (dependencias.data.establecimientos.length == 0) {
+		establecimientosRender = (
+			<Grid width="full" style={{ color: "red" }}>
+				No hay establecimientos cargados para la empresa seleccionada.
+			</Grid>
+		);
+	}
+
 	useEffect(() => {
 		if (dependencias.loading) return;
 		const changes = {
@@ -165,6 +203,8 @@ const LiquidacionesProcesarHandler = () => {
 		existente?.periodoHacia,
 	]);
 
+	const deshabilitarInicia = dependencias.data.establecimientos.length === 0 ? true : false;
+
 	return (
 		<Grid col height="100vh" gap="10px">
 			<Grid className="titulo" width="full">
@@ -180,6 +220,7 @@ const LiquidacionesProcesarHandler = () => {
 					</Grid>
 					<Grid col gap="5px">
 						{dependenciasRender}
+						{establecimientosRender}
 						{/* Grupo "Liquidar desde archivo" */}
 						<Grid
 							className={`${styles.fondo} ${styles.grupo}`}
@@ -272,6 +313,7 @@ const LiquidacionesProcesarHandler = () => {
 												setRedirect({ to: "Archivo" });
 										}}
 										tarea="Siaru_EmpresaLiquidacionArchivo"
+										disabled={deshabilitarInicia}
 									>
 										Inicia
 									</Button>
@@ -384,6 +426,7 @@ const LiquidacionesProcesarHandler = () => {
 												setRedirect({ to: "Existente" });
 										}}
 										tarea="Siaru_EmpresaLiquidacionCopia"
+										disabled={deshabilitarInicia}
 									>
 										Inicia
 									</Button>
@@ -456,6 +499,7 @@ const LiquidacionesProcesarHandler = () => {
 												setRedirect({ to: "Manual" });
 										}}
 										tarea="Siaru_EmpresaLiquidacionManual"
+										disabled={deshabilitarInicia}
 									>
 										Inicia
 									</Button>

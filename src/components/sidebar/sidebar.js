@@ -184,6 +184,11 @@ const Sidebar = ({children}) => {
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
+    const handleClickUsuario = (event) => {
+        console.log("handleClickUsuario_event", event);
+        navigate("Inicio/UsuarioPerfil");
+    };
+
     return (
         <>     
         {isLoggedIn && (
@@ -203,8 +208,8 @@ const Sidebar = ({children}) => {
                             <FaBars onClick={toggle}/>
                         </div> 
 
-                         <div>
-                            <div className={clases.icon}><FaRegUser/></div>
+                         <div style={{cursor: "pointer"}}>
+                            <div className={clases.icon}><FaRegUser onClick={handleClickUsuario}/></div>
                         </div>
                             {(isOpen && <div style={{width: "100%"}}> <div className={clases.link_text}>{Usuario.cuit}</div> <p>{Usuario.nombre}</p></div>)}
                         <div style={{whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>
