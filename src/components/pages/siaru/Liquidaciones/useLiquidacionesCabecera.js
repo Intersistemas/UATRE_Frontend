@@ -60,7 +60,7 @@ const useLiquidacionesCabecera = ({
 	// console.log("usuarioLogueado", usuarioLogueado);
 	const usuarioTareas = useTareasUsuario();
 	// console.log("usuarioTareas", usuarioTareas);
-	const verTodasLiquidaciones = usuarioTareas.hasTarea("Liquidaciones_VerTodas");
+	const verTodasLiquidaciones = usuarioTareas.hasTarea("Siaru_LiquidacionesVerTodas");
 	// console.log("verTodasLiquidaciones", verTodasLiquidaciones);
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
