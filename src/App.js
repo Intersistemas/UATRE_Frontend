@@ -46,7 +46,7 @@ import InformesHandler from 'components/pages/informes/InformesHandler';
 import ConsultasHandler from 'components/pages/consultas/ConsultasHandler';
 import AfiliadoFormulariosAfiliacionHandler from 'components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler';
 
-import GestionOspreraHandler from 'components/pages/osprera/FormularioOspreraHandler';
+import GestionOspreraHandler from 'components/pages/gestionObraSocial/FormularioOspreraHandler';
 
 import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 
