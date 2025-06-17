@@ -53,7 +53,7 @@ import AuditoriasHandler from 'components/pages/auditorias/AuditoriasHandler';
 import TasasARCAHandler from 'components/pages/administracion/tasasARCA/TasasARCAHandler';
 import AnuncioModal from 'components/pages/inicio/AnuncioModal';
 import UsuarioPerfilHandler from './components/pages/administracion/usuarioPerfil/usuarioPerfilHandler';
-import DesvincularUsuarioEmpresasHandler from 'components/pages/siaru/usuarioEmpresas/desvincularUsuarioEmpresasHandler';
+import DesvincularUsuarioEmpresasHandler from 'components/pages/siaru/usuarioEmpresas/usuarioEmpresasHandler';
 
 /*import "./components/fonts/SantanderLight.ttf";
 import "./components/fonts/SantanderRegular.ttf";

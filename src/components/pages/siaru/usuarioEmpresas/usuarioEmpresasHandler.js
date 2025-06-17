@@ -1,18 +1,22 @@
 import { Grid } from "@mui/material";
-import Formato from "components/helpers/Formato";
-import useQueryQueue from "components/hooks/useQueryQueue";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import UsuarioEmpresas from "./usuarioEmpresas";
+import UsuarioEmpresas from "./usuarioEmpresasForm";
+import { useNavigate } from "react-router-dom";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
-function DesvincularUsuarioEmpresasHandler() {
+function UsuarioEmpresasHandler() {
+  const navigate = useNavigate();
+
   const [usuarios, setUsuarios] = useState();
   const [selectedUsuario, setSelectedUsuario] = useState({
     id: "",
+    usuarioEmpresaId: "",
+    label: "",
+    motivo: "",
   });
 
   const empresa = useSelector((state) => state.empresa);
-  console.log("data", usuarios);
 
   const pushQuery = useQueryQueue((action) => {
     switch (action) {
@@ -22,31 +26,17 @@ function DesvincularUsuarioEmpresasHandler() {
             baseURL: "Seguridad",
             method: "GET",
             endpoint: `/UsuarioEmpresas/ByEmpresaId`,
-            params: {
-              empresaId: empresa.id,
-            },
-          },
-          onOk: (data) => {
-            const usuariosMapeados = data.map((usuario) => ({
-              id: usuario.id,
-              nombre: Formato.nombreCompleto(usuario),
-              email: usuario.email,
-              telefono: usuario.telefono,
-            }));
-            setUsuarios(usuariosMapeados);
           },
         };
       }
 
       case "BajaUsuarioEmpresa": {
+        // console.log("selected", config.body);
         return {
           config: {
             baseURL: "Seguridad",
             method: "PATCH",
             endpoint: `/UsuarioEmpresas/DarDeBaja`,
-            body: {
-              usuarioId: selectedUsuario.id,
-            },
           },
         };
       }
@@ -59,16 +49,23 @@ function DesvincularUsuarioEmpresasHandler() {
   //#region carga inicial
 
   useEffect(() => {
-    pushQuery(
-      {
-        action: "GetUsuarios",
-        onOk: (data) => {
-          setUsuarios(data);
-        },
-        onError: (err) => alert(`Error al cargar usuarios:\n${err.toString()}`),
+    pushQuery({
+      action: "GetUsuarios",
+      params: { empresaId: empresa.id, soloActivos: true },
+      onOk: (data) => {
+        console.log("data", data);
+        const usuariosMapeados = data.map((usuario) => ({
+          id: usuario.usuarioId,
+          label: usuario.usuarioNombre,
+          usuarioEmpresaId: usuario.id,
+          motivo: "",
+        }));
+        // console.log("usuariosMapeados", usuariosMapeados);
+        setUsuarios(usuariosMapeados);
       },
-    );
-  }, []);
+      onError: (err) => alert(`Error al cargar usuarios:\n${err.toString()}`),
+    });
+  }, [empresa.id]);
 
   //#endregion
 
@@ -83,13 +80,30 @@ function DesvincularUsuarioEmpresasHandler() {
 
     pushQuery({
       action: "BajaUsuarioEmpresa",
-      params: { id: selectedUsuario?.id },
-      onOk: async () => {},
+      config: {
+        body: {
+          id: selectedUsuario.usuarioEmpresaId,
+          deletedObs: selectedUsuario.motivo,
+        },
+      },
+      onOk: () => {
+        navigate(-1);
+      },
       onError: async (err) =>
         alert(`Error al desvincular empresa:\n${err.toString()}`),
     });
   };
+
+  const HandlerMotivoChange = (value) => {
+    // console.log("HandlerMotivoChange", value);
+    setSelectedUsuario((prev) => ({
+      ...prev,
+      motivo: value,
+    }));
+  };
   //#endregion
+
+  // console.log("selectedUsuario", selectedUsuario);
 
   return (
     <Grid full col>
@@ -98,11 +112,14 @@ function DesvincularUsuarioEmpresasHandler() {
       </Grid>
       <UsuarioEmpresas
         data={usuarios}
+        selectedUsuario={selectedUsuario}
+        onMotivoChange={HandlerMotivoChange}
         onDesvincula={HandlerConfirmarDesvincularEmpresa}
         onChange={onChange}
+        onCancela={() => navigate(-1)}
       />
     </Grid>
   );
 }
 
-export default DesvincularUsuarioEmpresasHandler;
+export default UsuarioEmpresasHandler;

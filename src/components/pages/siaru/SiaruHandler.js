@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AuthContext from "store/authContext";
 import {
   handleModuloSeleccionar,
@@ -29,6 +29,7 @@ const selectionDef = {
 const SiaruHandler = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const empresaSeleccionada = useSelector((state) => state.empresa);
   const { usuario = {} } = useContext(AuthContext);
 
   //#region consultas API
@@ -203,6 +204,31 @@ const SiaruHandler = () => {
     setEmpresa((o) => ({ ...o, ...empresa }));
   }, [empresas.selected?.cuitEmpresa]);
   //#endregion
+
+  useEffect(() => {
+    if (empresa.loading) return;    
+    if (list.data.length === 0) return;
+    if (empresaSeleccionada !== null || empresa?.data == null) {
+      // console.log("entra?");
+      // console.log("data", list.data);
+      // console.log("index", list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)));
+      // console.log("record", list.data.find((r) => r.empresaId === empresaSeleccionada?.id));
+      setList((o) => ({
+        ...o,
+        selection: {
+          action: "",
+          request: "",
+          index: list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)),
+          record: list.data.find((r) => r.empresaId === empresaSeleccionada?.id),
+        },
+      }));
+      setEmpresa((o) => ({
+        ...o,
+        loading: "cargando",
+        params: { cuit: empresaSeleccionada.cuit },
+      }));
+    }
+  }, [list.data, empresaSeleccionada]);
 
   let form = null;
   if (list.selection.request) {
@@ -528,7 +554,25 @@ const SiaruHandler = () => {
     dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
     setAcciones(acciones);
   }, [empresa.data, dispatch, navigate]);
-  //#endregion  
+  //#endregion
+
+  const handleSelection = (record, isSelect, index, e) => {
+    // console.log("selection", record, index);
+    setList((o) => ({
+      ...o,
+      selection: {
+        action: "",
+        request: "",
+        index,
+        record,
+      },
+    }));
+    setEmpresa((o) => ({
+      ...o,
+      loading: "cargando",
+      params: { cuit: record.cuitEmpresa },
+    }));
+  };
 
   return (
     <Grid col height="100vh" gap="10px">
@@ -555,22 +599,7 @@ const SiaruHandler = () => {
                 pagination={{ index: 1, size: 10 }}
                 selection={{
                   selected: [list.selection.record?.id].filter((r) => r),
-                  onSelect: (record, isSelect, index, e) => {
-                    setList((o) => ({
-                      ...o,
-                      selection: {
-                        action: "",
-                        request: "",
-                        index,
-                        record,
-                      },
-                    }));
-                    setEmpresa((o) => ({
-                      ...o,
-                      loading: "cargando",
-                      params: { cuit: record.cuitEmpresa },
-                    }));
-                  },
+                  onSelect: (record, isSelect, index, e) => {handleSelection(record, isSelect, index, e);},
                 }}
               />
             </Grid>
