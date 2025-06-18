@@ -69,7 +69,7 @@ const AfiliadosHandler = () => {
     let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
     
     let body = {
-          pageIndex: page,
+          pageIndex: page,//estadoSolicitudId != estadoSolicitud ? 1 : page,
           pageSize: sizePerPage,
           soloActivos: false,
 
@@ -273,6 +273,8 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilterChange = (filters) => {
+    console.log("filtro de estado de solicitud", filters);
+    estadoSolicitud != parseInt(filters.estadoSolicitud?.filterVal) && setPage(1); //Si el filtro de estado de solicitud cambia, voy a la primer pagina
     setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 
