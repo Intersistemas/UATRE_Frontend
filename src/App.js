@@ -45,6 +45,7 @@ import InformesHandler from 'components/pages/informes/InformesHandler';
 
 import ConsultasHandler from 'components/pages/consultas/ConsultasHandler';
 import AfiliadoFormulariosAfiliacionHandler from 'components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler';
+import AfiliacionesPorEmpresaHandler from 'components/pages/consultas/afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler';
 
 import GestionOspreraHandler from 'components/pages/gestionObraSocial/FormularioOspreraHandler';
 
@@ -150,6 +151,8 @@ const App = () => {
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
               <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler/>}/>
+              <Route path="Inicio/Consultas/AfiliacionesPorEmpresa" element={<AfiliacionesPorEmpresaHandler/>}/>
+
               <Route path="Inicio/Auditorias" element={<AuditoriasHandler />}/>
 
               <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler/>}/>

@@ -13,7 +13,10 @@ import FormularioOspreraForm from "./AfiliacionesPorEmpresaForm";
 import moment from "moment/moment";
 import AuthContext from "store/authContext"; 
 import useAmbitos from 'components/hooks/useAmbitos';
-	
+import SearchSelectMaterial, {
+  includeSearch,
+  mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 
 
 
@@ -57,7 +60,19 @@ export const onLoadSelectKeepOrFirst = ({ data, multi, record }) => record ?? on
 
 export const onDataChangeDef = (data = []) => {};
 
-const useFormularioOsprera = ({
+//#region estadoSelectOptions
+const estadoSelectTodos = { value: 0, label: "Todos" };
+const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
+  mapOptions({
+	data,
+	map: (r) => ({ value: r.id, label: r.descripcion }),
+	filter: (r) => includeSearch(r, buscar),
+	start: [estadoSelectTodos],
+	...x,
+  });
+//#endregion estadoSelectOptions
+
+const useAfiliacionesPorEmpresa = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
 	loading,
@@ -85,73 +100,69 @@ const useFormularioOsprera = ({
 				return {
 					config: {
 						baseURL: "Afiliaciones",
-						endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
+            			endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
 						method: "POST",
 					},
-					params: otherParams,
+				//-	params: otherParams,
 				};
 			}
 			
-			case "GetAccesoOspreraSpecs": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
-						method: "POST",
-					},
-				};
-			}
-			case "Create": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera`,
-						method: "POST",
-					},
-				};
-			}
-			case "Update": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera`,
-						method: "PUT",
-					},
-				};
-			}
-			case "Delete": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/DarDeBaja`,
-						method: "PATCH",
-					},
-				};
-			}
-			case "Reactiva": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/Reactivar`,
-						method: "PATCH",
-					},
+			case "GetEstados": {
+			return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/EstadoSolicitud`,
+					method: "GET",
+				},
 				};
 			}
 
-			case "GetSeccionalesSpecs": {
+				// Obtener datos de la tabla principal
+			case "PatchEstados": {
 				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
-						method: "GET", 
-					},
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/SolicitudAfiliacionEmpresas/PatchSolicitud/${params.solicitudId}`,    
+					method: "PATCH",
+				},
 				};
 			}
+			
+			 // Obtener datos para el PDF
+			case "dataPFDDesdeApi": {
+				return {
+				config: {
+					baseURL: "DDJJ",
+					endpoint: `/DDJJUatre/GetCUITPeriodosDesdeHasta`,
+					method: "GET",
+				},
+				};
+			}
+			// Obtener datos totales desde la API
+			case "dataTotalesDesdeApi": {
+				return {
+				config: {
+					baseURL: "DDJJ",
+					endpoint: `/DDJJUatre/GetVAfiliacionesPorEmpresaCUITPeriodos`,
+					method: "GET",
+				},
+				};
+			}
+			case "GetDetallesBySolicitudId": {
+				return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/SolicitudAfiliacionEmpresas/GetaDetallesBySolicitudIdPaginationSpecs`,
+					method: "GET",
+				},
+				};
+			}
+
 			default:
 				return null;
-		}
-	});
-	//#endregion
+			}
+		});
+		//#endregion
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -173,6 +184,68 @@ const useFormularioOsprera = ({
 				: onLoadSelectInit,
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
+
+
+	//#region filtro estado
+	  const [estadoSelect, setEstadoSelect] = useState({
+		reload: true,
+		loading: null,
+		params: { soloActivos: true },
+		data: [],
+		error: null,
+		buscar: "",
+		options: [],
+		selected: estadoSelectTodos,
+	  });
+	
+	  // Este useEffect se encarga de cargar las opciones del select de "estado" desde la API.
+	  // Se ejecuta cada vez que cambia 'estadoSelect' o 'pushQuery'.
+	  useEffect(() => {
+		// Si no se requiere recargar (reload es falso), no hace nada.
+		if (!estadoSelect.reload) return;
+	
+		// Prepara un objeto con los cambios iniciales: pone el loading, limpia datos previos, etc.
+		const changes = {
+		  reload: null, // Ya no se necesita recargar
+		  loading: "Cargando...", // Muestra mensaje de carga
+		  data: [], // Limpia datos anteriores
+		  error: null, // Limpia errores anteriores
+		  buscar: "", // Limpia búsqueda previa
+		  options: [], // Limpia opciones previas
+		};
+	
+		// Actualiza el estado para reflejar que está cargando
+		setEstadoSelect((o) => ({ ...o, ...changes }));
+	
+		// Llama a la API para obtener los estados
+		pushQuery({
+		  action: "GetEstados", // Acción a ejecutar (ver configuración en pushQuery)
+		  params: { ...estadoSelect.params }, // Parámetros para la consulta
+		  onOk: (data) => {
+			// Si la respuesta no es un array, muestra error en consola
+			if (!Array.isArray(data))
+			  return console.error("Se esperaba un arreglo", data);
+			console.log("Datos recibidos de la consulta 22:", data); // <-- Agregá esta línea
+			// Si es un array, guarda los datos en 'changes'
+			changes.data = data.filter((d) => d.tipo == "Solicitudes"); // Filtra el estado "Todos" (id 0)
+		  },
+		  onError: (error) => (changes.error = error.toString()), // Guarda el error si ocurre
+		  onFinally: () =>
+			// Al finalizar, actualiza el estado con los cambios y quita el loading
+			setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+		});
+	  }, [estadoSelect, pushQuery]);
+	
+	  // Buscador
+	  useEffect(() => {
+		if (estadoSelect.reload) return;
+		if (estadoSelect.loading) return;
+		setEstadoSelect((o) => ({ ...o, options: estadoSelectOptions(o) }));
+	  }, [estadoSelect.reload, estadoSelect.loading, estadoSelect.buscar]);
+	  //#endregion filtro estado
+	
+					
+
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
@@ -830,4 +903,4 @@ const useFormularioOsprera = ({
 	return { render, request, selected: list.selection.record };
 };
 
-export default useFormularioOsprera;
+export default useAfiliacionesPorEmpresa;

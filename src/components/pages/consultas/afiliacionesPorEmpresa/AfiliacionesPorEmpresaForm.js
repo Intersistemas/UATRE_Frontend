@@ -35,7 +35,7 @@ import SearchSelectMaterial, {
   includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
 import moment from "moment/moment";
-import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
+import useAfiliacionesPorEmpresa from "./useAfiliacionesPorEmpresa";
 import { useSelector } from "react-redux";
 
 const onChangeDef = (changes = {}) => {};
@@ -165,7 +165,7 @@ const FormularioOspreraForm = ({
     sexoId: 0,
   });
   const [documentacionList, setDocumentacionList] = useState([]);
-  const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+  const { request: solicitudAfiliacion } = useAfiliacionesPorEmpresa();
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");

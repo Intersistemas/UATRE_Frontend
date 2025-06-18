@@ -14,7 +14,7 @@ import Button from "components/ui/Button/Button";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useAfiliacionesPorEmpresaDetalle from "./afiliacionesPorEmpresaDetalle/useAfiliacionesPorEmpresaDetalle";
 
-const FormularioOspreraHandler = () => {
+const AfiliacionesPorEmpresaHandler = () => {
 	const dispatch = useDispatch();
 
 	const Usuario = useContext(AuthContext).usuario;
@@ -189,101 +189,6 @@ const FormularioOspreraHandler = () => {
 	}, [formularioOspreraRequest, paramsSend]);
 	//#endregion
 
-	//#region Tab documentaciones
-	const [documentacionesTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
-	const [documentacionesActions, setDocumentacionesActions] = useState([]);
-	useEffect(() => {
-		const actions = [];
-		const form = formularioSelected?.id;
-		if (!form) {
-			setDocumentacionesActions(actions);
-			return;
-		}
-		const deleDesc = `Gestión ${form}`;
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
-				name: action,
-				onExecute: (action) =>
-					documentacionChanger("selected", {
-						request,
-						action,
-						record: { entidadTipo: "E", entidadId: formularioSelected?.id, soloactivos: true },
-					}),
-				combination: "AltKey",
-				...x,
-			});
-		actions.push(
-			createAction({
-				action: `Agrega Documentación ${deleDesc}`,
-				request: "A",
-				tarea: "Osprera_GestionDocumentacionAgrega",
-				keys: "a",
-				underlineindex: 0,
-			})
-		);
-		const docu = documentacionSelected?.id;
-		if (!docu) {
-			setDocumentacionesActions(actions);
-			return;
-		}
-		const docuDesc = `${docu} ${deleDesc}`;
-		actions.push(
-			createAction({
-				action: `Consulta Documentación ${docuDesc}`,
-				request: "C",
-				tarea: "Osprera_GestionDocumentacionConsulta",
-				keys: "o",
-				underlineindex: 1,
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Documentación ${docuDesc}`,
-				request: "M",
-				tarea: "Osprera_GestionDocumentacionModifica",
-				keys: "m",
-				underlineindex: 0,
-				...(documentacionSelected?.deletedDate ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					}
-				)
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Baja Documentación ${docuDesc}`,
-				request: "B",
-				tarea: "Osprera_GestionDocumentacionBaja",
-				keys: "b",
-				underlineindex: 0,
-				...(documentacionSelected?.deletedDate ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					}
-				)
-			})
-		);
-		setDocumentacionesActions(actions);
-	}, [documentacionChanger, documentacionSelected, formularioSelected?.id]);
-	tabs.push({
-		header: () => <Tab label="Documentacion" disabled={!formularioSelected || formularioSelected.deletedDate} />,
-		body: documentacionesTab,
-		actions: documentacionesActions,
-	});
-
-	// Si cambia delegación, refresco lista de documentación
-	useEffect(() => {
-		documentacionChanger("list", {
-			clear: !formularioSelected?.id,
-			params: { entidadTipo: "E", entidadId: formularioSelected?.id, soloactivos: true },
-		});
-	}, [formularioSelected?.id, documentacionChanger]);
-	//#endregion
 
 	//#region Tab DETALLE
 	const [detalleTab, detalleChanger, detalleSelected] = useAfiliacionesPorEmpresaDetalle();
@@ -291,17 +196,17 @@ const FormularioOspreraHandler = () => {
 	
 	tabs.push({
 		header: () => <Tab label="Detalle de Solicitud de Afiliación" disabled={!formularioSelected || formularioSelected.deletedDate} />,
-		body: documentacionesTab,
-		actions: documentacionesActions,
+		body: detalleTab,
+		actions: detalleActions,
 	});
 
 	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
-		documentacionChanger("list", {
+		detalleChanger("list", {
 			clear: !formularioSelected?.id,
 			params: { solicitudAfiliacionEmpresaId: formularioSelected?.id, soloactivos: true },
 		});
-	}, [formularioSelected?.id, documentacionChanger]);
+	}, [formularioSelected?.id, detalleChanger]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -336,4 +241,4 @@ const FormularioOspreraHandler = () => {
 	);
 };
 
-export default FormularioOspreraHandler;
+export default AfiliacionesPorEmpresaHandler;
