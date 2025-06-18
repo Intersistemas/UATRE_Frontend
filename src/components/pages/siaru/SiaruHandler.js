@@ -17,6 +17,7 @@ import EmpresasForm from "../administracion/empresas/EmpresasForm";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
+import UsuarioEmpresasHandler from "./usuarioEmpresas/usuarioEmpresasHandler";
 
 const selectionDef = {
   action: "",
@@ -129,8 +130,9 @@ const SiaruHandler = () => {
   const [empresas, setEmpresas] = useState({ data: [], selected: null });
   //#endregion declaración y carga de empresas
 
-  useEffect(() => {
+  useEffect(() => {    
     if (!list.loading) return;
+    console.log("recarga list")
     pushQuery({
       action: "GetList",
       params: list.params,
@@ -208,11 +210,7 @@ const SiaruHandler = () => {
   useEffect(() => {
     if (empresa.loading) return;    
     if (list.data.length === 0) return;
-    if (empresaSeleccionada !== null || empresa?.data == null) {
-      // console.log("entra?");
-      // console.log("data", list.data);
-      // console.log("index", list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)));
-      // console.log("record", list.data.find((r) => r.empresaId === empresaSeleccionada?.id));
+    if (empresaSeleccionada !== null || empresa?.data == null) {      
       setList((o) => ({
         ...o,
         selection: {
@@ -546,7 +544,7 @@ const SiaruHandler = () => {
 
       addAction(
         `Desvincular usuario de ${desc}`,
-        (_) => navigate("DesvincularUsuarioEmpresa"),
+        (_) => setShowDesvincularUsuario(true),
         "d",
         "Siaru_DesvincularUsuarioEmpresa"
       );
@@ -573,6 +571,21 @@ const SiaruHandler = () => {
       params: { cuit: record.cuitEmpresa },
     }));
   };
+
+  const [showDesvincularUsuario, setShowDesvincularUsuario] = useState(false);
+  const handleOnClose = () => {
+    setShowDesvincularUsuario(false);    
+  }
+
+  let formDesvincularUsuario = null;
+  if (showDesvincularUsuario) {
+    const desc = ((r) =>
+      [Formato.Cuit(r?.cuit), r?.razonSocial].filter((r) => r).join(" - "))(
+      empresa.data
+    );
+    formDesvincularUsuario = (
+      <UsuarioEmpresasHandler show={showDesvincularUsuario} onClose={handleOnClose} title={`Desvincular usuario de ${desc}`}/>
+    )};
 
   return (
     <Grid col height="100vh" gap="10px">
@@ -608,6 +621,7 @@ const SiaruHandler = () => {
           </Grid>
         </Grid>
         {form}
+        {formDesvincularUsuario}
       </Grid>
     </Grid>
   );
