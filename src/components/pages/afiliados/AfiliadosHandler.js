@@ -269,6 +269,8 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilterChange = (filters) => {
+    console.log("filtro de estado de solicitud", filters);
+    estadoSolicitud != parseInt(filters.estadoSolicitud?.filterVal) && setPage(1); //Si el filtro de estado de solicitud cambia, voy a la primer pagina
     setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 
