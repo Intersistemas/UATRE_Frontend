@@ -103,7 +103,7 @@ function UsuarioEmpresasHandler(props) {
       },
       onOk: () => {
         dispatch(handleEmpresaSeleccionar(null));
-        navigate(-1);
+        props.onClose();
       },
       onError: async (err) =>
         alert(`Error al desvincular empresa:\n${err.toString()}`),

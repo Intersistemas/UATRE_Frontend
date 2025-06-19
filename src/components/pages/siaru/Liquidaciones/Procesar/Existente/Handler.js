@@ -16,12 +16,16 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import Tentativas from "../tentativas/Handler";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const Handler = () => {
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
+	const usuarioTareas = useTareasUsuario();
+	const verTodasLiquidaciones = usuarioTareas.hasTarea("Siaru_LiquidacionesVerTodas");
 
 	const empresa = useSelector((state) => state.empresa);
+	const usuario = useSelector((state) => state.usuarioLogueado);
 	const { periodoDesde, periodoHacia } = useSelector(
 		(state) => state.liquidacionProcesar.existente
 	);
@@ -86,11 +90,17 @@ const Handler = () => {
 	const pushQuery = useQueryQueue((action, _params) => {
 		switch (action) {
 			case "GetLiquidaciones":
+				console.log("GetLiquidaciones", _params);
+
 				return {
 					config: {
 						baseURL: "SIARU",
 						method: "GET",
 						endpoint: "/LiquidacionesCabecera",
+					},
+					params: {
+						..._params,
+						...(verTodasLiquidaciones ? {} : { usuario: usuario?.id }),
 					},
 				};
 			case "GetTentativas":
@@ -248,7 +258,7 @@ const Handler = () => {
 		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
-
+	console.log("tentativas", tentativas)
 	let contenido = null;
 	if (tentativas?.data != null) {
 		contenido = (

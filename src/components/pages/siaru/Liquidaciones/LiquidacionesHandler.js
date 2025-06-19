@@ -182,7 +182,7 @@ const LiquidacionesHandler = () => {
         ...x,
       });
     const actions = [];
-    const desc = ((v) => (v ? `liquidacion ${v}` : ""))(liqCabSelected?.id);
+    const desc = ((v) => (v ? `boleta ${v}` : ""))(liqCabSelected?.boletaId);
     if (!desc) {
       setLiqCabActions(actions);
       return;

@@ -322,7 +322,7 @@ const LiquidacionNomina = ({
           onChange={(esRural) => onChange({ esRural })}
         />
       </Grid>
-      <Grid>
+      {/* <Grid>
         <Button
           className="botonAmarillo"
           disabled={data.length === 0}
@@ -339,9 +339,9 @@ const LiquidacionNomina = ({
             });
           }}
         >
-          ACTUALIZA
+          ACTUALIZA ESTABLECIMIENTO/RURALIDAD
         </Button>
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 };
@@ -901,6 +901,13 @@ const Handler = ({ periodo, tentativas = [] }) => {
     liqNomChanger("list", { data: estado.nominas.todas });
   }, [liqNomChanger, estado.nominas.todas]);
 
+  useEffect(() => {
+    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);
+    console.log("liqNomSel", liqNomSel, "isSelect", isSelect);
+  }, [liqNomSel]);
+
+  const [isSelect, setIsSelect] = useState(true);
+
   tabs.push({
     header: () => <Tab label="Nomina" />,
     body: () => (
@@ -909,19 +916,26 @@ const Handler = ({ periodo, tentativas = [] }) => {
           {liqNomRender()}
         </Grid>
         {/* <Grid>
-          <Button
+          <Button width="200px"
             hidden
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
-            onClick={() => liqNomChanger("selectAll", { isSelect: true })}
+            onClick={() => {
+              liqNomChanger("selectAll", { isSelect });
+              // setIsSelect(!isSelect);
+              console.log("selected", liqNomSel);
+            }}
           >
             Selecciona todos
           </Button>
-          <Button
+          <Button width="200px"
             hidden
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
-            // onClick={handleOnSelectPage}
+            onClick={() => { 
+              liqNomChanger("selectPage", { isSelect }); 
+              // setIsSelect(!isSelect) 
+            }}
           >
             Selecciona página
           </Button>
