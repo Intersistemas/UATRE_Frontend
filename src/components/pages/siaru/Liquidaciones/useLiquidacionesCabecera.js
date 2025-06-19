@@ -192,7 +192,7 @@ const useLiquidacionesCabecera = ({
 			params: {
 				...list.params,
 				page: `${list.pagination.index},${list.pagination.size}`,
-				usuario: !verTodasLiquidaciones ? usuarioLogueado.id : null
+				...(verTodasLiquidaciones ? {} : { usuario: usuarioLogueado.id }),
 			},
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))

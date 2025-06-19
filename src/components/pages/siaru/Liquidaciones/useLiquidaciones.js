@@ -499,8 +499,8 @@ const useLiquidaciones = ({
 		);
 	}
 
-	const render = () => (
-		<>
+	const render = () => (		
+		<>			
 			<LiquidacionesTable
 				remote={list.remote}
 				data={list.data}

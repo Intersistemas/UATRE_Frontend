@@ -50,13 +50,14 @@ const useLiquidacionesNomina = ({
   loading,
   error,
   multi: multiInit = false,
-  pagination: paginationInit = { index: 1, size: 5 },
+  pagination: paginationInit = { index: 1, size: 20 },
   onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
   onDataChange: onDataChangeInit = onDataChangeDef,
   columns,
   hideSelectColumn = true,
   mostrarBuscar = false,
-} = {}) => {
+} = {}) => {  
+
   //#region Trato queries a APIs
   const pushQuery = useQueryQueue((action) => {
     switch (action) {
@@ -240,6 +241,8 @@ const useLiquidacionesNomina = ({
   }, [pushQuery, list]);
   //#endregion
 
+  //#region request
+
   const request = useCallback((type, payload = {}) => {
     switch (type) {
       case "selected": {
@@ -337,10 +340,39 @@ const useLiquidacionesNomina = ({
           return { ...o, ...changes };
         });
       }
+      case "selectAll": {
+        console.log("selectAll", payload);
+        return setList((o) => {
+          let index = [];
+          let record = [];
+          if (payload.isSelect) {
+            o.data.forEach((r, i) => {
+              record.push(r);
+              index.push(i);
+            });
+          } else {
+            index = null;
+            record = null;
+          }
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
       default:
         return;
     }
   }, []);
+
+  //#endregion
+
+  //#region edit
 
   let form = null;
   if (list.selection.edit) {
@@ -562,6 +594,8 @@ const useLiquidacionesNomina = ({
     );
   }
 
+  //#endregion
+
   const render = () => (
     <>
       <LiquidacionesNominaTable
@@ -585,7 +619,7 @@ const useLiquidacionesNomina = ({
               pagination: { index, size },
               data: o.remote ? [] : o.data,
             })),
-        }}        
+        }}
         selection={{
           mode: list.selection.multi ? "checkbox" : "radio",
           hideSelectColumn: hideSelectColumn,
