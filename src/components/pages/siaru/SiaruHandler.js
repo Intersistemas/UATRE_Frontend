@@ -132,7 +132,7 @@ const SiaruHandler = () => {
 
   useEffect(() => {    
     if (!list.loading) return;
-    console.log("recarga list")
+
     pushQuery({
       action: "GetList",
       params: list.params,
@@ -575,6 +575,12 @@ const SiaruHandler = () => {
   const [showDesvincularUsuario, setShowDesvincularUsuario] = useState(false);
   const handleOnClose = () => {
     setShowDesvincularUsuario(false);    
+    setList((o) => ({
+      ...o,
+      selection: {},
+      loading: "Cargando...",
+    }));
+    dispatch(handleEmpresaSeleccionar(null));
   }
 
   let formDesvincularUsuario = null;

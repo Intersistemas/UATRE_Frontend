@@ -365,6 +365,35 @@ const useLiquidacionesNomina = ({
           };
         });
       }
+
+      case "selectPage": {
+        console.log("selectPage", payload);
+        console.log("list.selection", list.selection);        
+        return setList((o) => {
+          console.log("list.data", o.data);
+          let index = [];
+          let record = [];
+          if (payload.isSelect) {
+            o.data.forEach((r, i) => {
+              record.push(r);
+              index.push(i);
+            });
+          } else {
+            index = null;
+            record = null;
+          }
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
+
       default:
         return;
     }
