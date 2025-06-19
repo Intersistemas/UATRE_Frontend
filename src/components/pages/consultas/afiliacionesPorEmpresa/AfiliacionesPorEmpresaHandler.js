@@ -9,14 +9,37 @@ import Formato from "components/helpers/Formato";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import useFormularioOsprera, { onLoadSelectKeepOrFirst } from "./useAfiliacionesPorEmpresa";
+import useAfiliacionesPorEmpresa, { onLoadSelectKeepOrFirst } from "./useAfiliacionesPorEmpresa";
 import Button from "components/ui/Button/Button";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import useAfiliacionesPorEmpresaDetalle from "./afiliacionesPorEmpresaDetalle/useAfiliacionesPorEmpresaDetalle";
+import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import useQueryState from "components/hooks/useQueryState";
+
+//#region estadosSelect Options
+const estadosTodos = { label: "Todos" };
+const estadosSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		start: [estadosTodos],
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//#endregion estadosSelect Options
 
 const AfiliacionesPorEmpresaHandler = () => {
 	const dispatch = useDispatch();
-
+	const { setState: setEstadosQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/EstadoSolicitud`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+	
 	const Usuario = useContext(AuthContext).usuario;
 
 	const tabs = [];
@@ -27,12 +50,50 @@ const AfiliacionesPorEmpresaHandler = () => {
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
 
+
+	//#region select estadoSeccional
+	const [estadoSelect, setEstadoSelect] = useState({
+		loading: "Cargando...",
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: estadosTodos,
+		origen: "",
+	});
+	// Buscador
+	useEffect(() => {
+		setEstadoSelect((o) => ({
+			...o,
+			options: estadosSelectOptions(o),
+		}));
+	}, [estadoSelect.buscar, estadoSelect.data]);
+	//#endregion select estadoSeccional
+
+	//#region Carga inicial select estado seccional
+	useEffect(() => {
+		setEstadosQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok.filter((d) => d.tipo == "Solicitudes");
+				setEstadoSelect((o) => ({
+					...o,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+			},
+		}));
+	}, [setEstadosQuery]);
+	//#endregion Carga inicial select estado seccional
+
 	//#region Tab Formularios
 	const {
 		render: formulariosOspreraRender,
 		request: formularioOspreraRequest,
 		selected: formularioSelected,
-	} = useFormularioOsprera({
+	} = useAfiliacionesPorEmpresa({
 		params: { orderBy: "cuitTitular" },
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
@@ -128,25 +189,66 @@ const AfiliacionesPorEmpresaHandler = () => {
 	}, [formularioOspreraRequest, formularioSelected]);
 
 	tabs.push({
-		header: () => <Tab label="Solicitudes de Afiliación por Empresa" />,
+		header: () => <Tab label="Solicitudes de Afiliación" />,
 		body: () => (
 			<Grid width col gap="10px">
 				<Grid />
 				<Grid gap="inherit">
-					<Grid grow>
-						<InputMaterial
-							label="Filtro por Estado"
-							value={paramsEdit.filtro}
-							onChange={(filtro) =>
-								setParamsEdit((o) => {
-									const paramsEdit = { ...o, filtro };
-									if (!filtro) delete paramsEdit.filtro;
-									return paramsEdit;
-								})
-							}
-						/>
-					</Grid>
-					<Grid width="200px">
+					<Grid grid="auto / 200px 1fr 200px 200px 200px" gap="inherit">
+							
+								<InputMaterial
+									label="CUIT"
+									value={paramsEdit.Cuit}
+									onChange={(Cuit) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, Cuit };
+											if (!Cuit) delete paramsEdit.Cuit;
+											return paramsEdit;
+										})
+									}
+								/>
+								<InputMaterial
+									label="Razón Social"
+									value={paramsEdit.RazonSocial}
+									onChange={(RazonSocial) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, RazonSocial };
+											if (!RazonSocial) delete paramsEdit.RazonSocial;
+											return paramsEdit;
+										})
+									}
+								/>
+								<SearchSelectMaterial
+									label="Estado"
+									error={!!estadoSelect.error}
+									helperText={
+										estadoSelect.loading ??
+										estadoSelect.error
+									}
+									value={estadoSelect.selected}
+									onChange={(selected = {}) => {
+										setEstadoSelect((o) => ({
+											...o,
+											selected,
+											origen: "option",
+										}));
+										setParamsEdit((o) => {
+											const seccionalEstadoId = selected.value;
+											const seccionalesParamsEdit = { ...o, seccionalEstadoId };
+											if (selected === estadosTodos) delete seccionalesParamsEdit.seccionalEstadoId;
+											return seccionalesParamsEdit;
+										});
+									}}
+									options={estadoSelect.options}
+									onTextChange={(buscar) =>
+										setEstadoSelect((o) => ({
+											...o,
+											buscar,
+											origen: "text",
+										}))
+									}
+								/>
+
 						<Button
 							className="botonAzul"
 							disabled={
@@ -219,7 +321,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 	return (
 		<Grid full col>
 			<Grid className="titulo">
-				<h1>Gestión Obra Social</h1>
+				<h1>Afiliaciones Por Empresa</h1>
 			</Grid>
 
 			<div className="tabs">

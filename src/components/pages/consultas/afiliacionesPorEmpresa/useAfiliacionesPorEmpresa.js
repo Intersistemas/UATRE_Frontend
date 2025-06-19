@@ -8,12 +8,14 @@ import JoinOjects from "components/helpers/JoinObjects";
 import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import ValidarCUIT from "components/validators/ValidarCUIT";
-import FormulariosOspreraTable from "./AfiliacionesPorEmpresaTable";
+import AfiliacionesPorEmpresaTable from "./AfiliacionesPorEmpresaTable";
 import FormularioOspreraForm from "./AfiliacionesPorEmpresaForm";
 import moment from "moment/moment";
 import AuthContext from "store/authContext"; 
 import useAmbitos from 'components/hooks/useAmbitos';
 import Grid from "components/ui/Grid/Grid";
+import styles from "./AfiliacionesPorEmpresa.module.css";
+import InputMaterial from "components/ui/Input/InputMaterial";
 import SearchSelectMaterial, {
   includeSearch,
   mapOptions,
@@ -789,7 +791,7 @@ const useAfiliacionesPorEmpresa = ({
 
 	const render = () => (
 		<>
-			<FormulariosOspreraTable
+			<AfiliacionesPorEmpresaTable
 				remote={list.remote}
 				data={list.data}
 				loading={!!list.loading || !!list.loadingOverride}
@@ -900,23 +902,14 @@ const useAfiliacionesPorEmpresa = ({
 			<Grid className={`${styles.fondo} ${styles.grupo}`} col>
 				<Grid className={`${styles.contenido} ${styles.titulo}`} gap="1rem">
 					<Grid>Información Detallada de solicitud:</Grid>
-					
 				</Grid>
-	
 				<Grid className={styles.grupo} col full>
 					<Grid className={styles.contenido} col>
-					{/* <Grid className={styles.titulo}>Datos AFIP:</Grid> */}
-					<Grid>
-						{/* <InputMaterial label="CUIL"  value={Formato.Cuit(data.empresaCUIT) ?? "-"} />  */}
-																
-						{/* <InputMaterial label="Razon Social Empresa" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? "-"}`}/> */}
-						{/* <InputMaterial  label="Nombre de Seccional" width="87rem" value={validar(data.empresaRazonSocial)}/> */}
-						<InputMaterial  label="Nombre de Seccional" width="87rem" value={data?.seccionalCodigo ? `${data?.seccionalCodigo}-${data?.seccional}` : "Sin Asignación"}/>
-						<InputMaterial label="Estado Observaciones" value={validar(data.estadoSolicitudDescripcion)}/>		
-						{/* <InputMaterial label="Estado" value={validar(data.estadoSolicitudDescripcion)}/> */}
-						{/* <InputMaterial label="Tipo Clave" value={validar(data.afipTipoClave)} />	 */}
-				
-					
+						<Grid>
+							<InputMaterial  label="Nombre de Seccional" width="87rem" value={list.selection?.record?.seccionalCodigo ? `${list.selection?.record?.seccionalCodigo}-${list.selection?.record?.seccional}` : "Sin Asignación"}/>
+							<InputMaterial label="Estado Observaciones" value={list.selection?.record?.estadoSolicitudDescripcion}/>	
+						</Grid>
+					</Grid>
 				</Grid>
 			</Grid>
 			{form}
