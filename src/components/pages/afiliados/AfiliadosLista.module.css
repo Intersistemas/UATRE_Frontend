@@ -1,0 +1,26 @@
+/*.tab{
+    color: #FFF !important;
+    background-color: #186090;
+    border-radius: 15px 15px 0px 0px !important;
+    border: 2px solid #ccc!important;
+}
+
+.tab:hover{
+    color: #FFF !important;
+    background-color: #88acc5 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    border: 2px solid #ccc!important;
+}
+.tab:active{
+    color: #FFF !important;
+    background-color: #88acc5 !important;
+    border-radius: 15px 15px 0px 0px !important;
+    border: 2px solid #ccc!important;
+}*/
+
+.tabs{
+    position: fixed;
+    width: auto;
+    z-index: 1; /* set higher z-index value */
+    /*position: relative*/
+}

@@ -1,0 +1,83 @@
+
+.boton {
+  color: var(--color1) !important;
+  background: transparent !important; /*Transparente*/
+  font-family: var(--fuente) !important;
+  font-size: 1.1rem !important;
+  font-weight: bold !important;
+  width: var(--width100); 
+  cursor: pointer !important;
+  border: 0px solid var(--color1) !important;
+  border-radius: 5px !important;
+  box-shadow: 0 2px 6px rgb(24 96 144 / 70%) !important;
+}
+
+.w75{
+  width: 75% !important; 
+}
+
+.w50{
+  width: 50% !important; 
+}
+
+.w25{
+  width: 25% !important; 
+}
+
+.w10{
+  width: 10% !important; 
+}
+
+.boton:hover,
+.boton:active,
+.boton:focus {
+    transition: .4s;
+    color: white !important;
+    background: var(--color2) !important;
+}
+
+.boton:disabled,
+.boton:focus:disabled,
+.boton:hover:disabled,
+.boton:active:disabled {
+  background: var(--disableBack)!important;
+  border-color: #ccc!important;
+  color: var(--disableFont)!important;
+  cursor: not-allowed!important;
+}
+ 
+
+.botonAmarillo {
+  color: var(--color1) !important;
+  background: var(--amarillo1) !important;
+  text-shadow: 1px 1px 5px white;
+}
+
+.botonAmarillo:hover,
+.botonAmarillo:active {
+  color: white !important;
+  background: var(--color2) !important;
+  text-shadow: 0px 0px 0px white;
+}
+
+.botonAzul {
+  color: white !important;
+  background: var(--color1) !important;
+}
+
+.botonAzul:hover,
+.botonAzul:active {
+  color: white !important;
+  background: var(--color2) !important;  
+}
+
+
+.botonBorder{
+  border-radius: 10px !important;
+  border: 2px solid #FFF !important;
+  /*border: 2px solid var(--color3-80) !important;*/
+}
+
+.underline{
+  text-decoration: underline !important;
+}

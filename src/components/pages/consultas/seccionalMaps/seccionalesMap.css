@@ -1,0 +1,27 @@
+.gm-style .gm-style-iw-d::-webkit-scrollbar-track, 
+.gm-style .gm-style-iw-d::-webkit-scrollbar-track-piece,
+.gm-style .gm-style-iw-c,
+.gm-style .gm-style-iw-t::after { 
+  background: rgba(233,233,233,0.5);
+}
+
+
+/*.gm-style .gm-style-iw-tc::after { 
+    background: rgba(233,233,233,0.5);
+}*/
+
+.search{
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translate(-50%);
+  width: 100%;
+  max-width: 400px;
+  z-index: 10;
+}
+
+.search input{
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  width: 100%;
+}

@@ -1,0 +1,81 @@
+import React from "react";
+import Table from "../ui/Table/Table";
+import Formato from "components/helpers/Formato";
+
+const selectionOnSelectDef = (_row, _isSelect, _index, _e) => {};
+
+const DocumentacionTable = ({
+	tipoList = [],
+	data: initData = [],
+	selection: initSelection = { onSelect: selectionOnSelectDef },
+	...x
+}) => {
+	const data = [];
+	initData.forEach((value, index) => {
+		console.log("value_row*",value)
+		data.push({ index: index, value: value });
+	});
+	initSelection.onSelect ??= selectionOnSelectDef;
+	const selection = {
+		...initSelection,
+		selected: initSelection.selected
+			?.map((r) => data.find((d) => d.value.id === r)?.index)
+			.filter((r) => r != null),
+		onSelect: (row, isSelect, index, e) =>
+			initSelection.onSelect(row.value, isSelect, index, e),
+	};
+
+	const cs = {
+		overflow: "hidden",
+		textOverflow: "ellipsis",
+		whiteSpace: "nowrap",
+	};
+	const columns = [
+		{
+			dataField: "refTipoDocumentacionId",
+			isDummyField: true,
+			text: "Tipo Documentación",
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
+			formatter: (_cell, row, _rowIndex, _formatExtraDatas) =>
+				tipoList.find((r) => r.id === row.value.refTipoDocumentacionId)
+					?.descripcion ?? "",
+			style: { ...cs },
+		},
+		{
+			dataField: "value",
+			text: "Nombre del Archivo",
+			headerStyle: (_colum, _colIndex) => ({ width: "100px" }),
+			formatter: (v) => v.nombreArchivo ?? "",
+			style: { ...cs },
+		},
+		{
+			dataField: "value",
+			text: "Fecha Baja",
+			formatter: (v) => Formato.Fecha(v.deletedDate) ?? "",
+			//formatter: (v) => Formato.FechaHora(v.nombreArchivo),
+			headerStyle: { width: "50px" },
+			style: (v) => {
+				const r = { textAlign: "center" };
+				if (v.deletedDate) {
+					r.background = "#ff6464cc";
+					r.color = "#FFF";
+				}
+				return r;
+			},
+			//sort: true,
+		},
+	];
+
+	return (
+		<Table
+			keyField="index"
+			data={data}
+			columns={columns}
+			selection={selection}
+			mostrarBuscar={true}
+			{...x}
+		/>
+	);
+};
+
+export default DocumentacionTable;

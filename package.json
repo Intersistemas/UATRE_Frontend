@@ -1,0 +1,86 @@
+{
+  "name": "uatre_frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emailjs/browser": "^3.11.0",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@material-ui/styles": "^4.11.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/lab": "^5.0.0-alpha.127",
+    "@mui/material": "^5.11.8",
+    "@mui/styled-engine-sc": "^5.11.0",
+    "@mui/x-date-pickers": "^5.0.17",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "@react-google-maps/api": "^2.19.3",
+    "@react-pdf/renderer": "^3.1.7",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/bootstrap": "^5.2.7",
+    "@types/react-bootstrap-table-next": "^4.0.18",
+    "bootstrap": "^5.3.2",
+    "dayjs": "^1.11.7",
+    "downloadjs": "^1.4.7",
+    "env-cmd": "^10.1.0",
+    "imask": "^7.3.0",
+    "jsbarcode": "^3.11.5",
+    "moment": "^2.29.4",
+    "mui-tel-input": "^5.0.0",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.7.0",
+    "react-bootstrap-table-next": "^4.0.3",
+    "react-bootstrap-table2-filter": "^1.3.3",
+    "react-bootstrap-table2-overlay": "^2.0.0",
+    "react-bootstrap-table2-paginator": "^2.1.2",
+    "react-bootstrap-table2-toolkit": "^2.1.3",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.7.1",
+    "react-imask": "^7.3.0",
+    "react-input-mask": "^2.0.4",
+    "react-redux": "^8.0.5",
+    "react-router-dom": "^6.8.0",
+    "react-scripts": "5.0.1",
+    "react-select": "^5.7.0",
+    "react-text-mask": "^5.5.0",
+    "redux": "^4.2.1",
+    "styled-components": "^5.3.6",
+    "use-places-autocomplete": "^4.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "env-cmd -e desa react-scripts start",
+    "eject": "react-scripts eject",
+    "builddesa": "env-cmd -e desa react-scripts build",
+    "buildtest": "env-cmd -e test react-scripts build",
+    "buildprod": "env-cmd -e prod react-scripts build",
+    "buildloc": "env-cmd -e loc react-scripts build",
+    "desa": "env-cmd -e desa react-scripts start",
+    "test": "env-cmd -e test react-scripts start",
+    "prod": "env-cmd -e prod react-scripts start",
+    "loc": "env-cmd -e loc react-scripts start"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "ajv": "^7.2.4"
+  }
+}

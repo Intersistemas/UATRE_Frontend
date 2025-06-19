@@ -1,0 +1,28 @@
+.card {
+  background-color: rgb(255 255 255 / 80%);
+  width: 25%;
+}
+ 
+@media screen and (max-width: 1000px){
+  .card{
+    width: 40%;
+  }
+}
+
+@media screen and (max-width: 700px){
+  .card{
+    width: 60%;
+  }
+}
+
+@media screen and (max-width: 500px){
+  .card{
+    width: 70%;
+  }
+}
+
+@media screen and (max-width: 300px){
+  .card{
+    width: 80%;
+  }
+}

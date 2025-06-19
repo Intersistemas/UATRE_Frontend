@@ -1,0 +1,79 @@
+
+.control {
+  margin: 1rem 0;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.control label,
+.control input {
+  display: block;
+}
+
+.control label {
+  font-weight: bold;
+  flex: 1;
+  color: #464646;
+  margin-bottom: 0.5rem;
+}
+
+.control input {
+  flex: 3;
+  font: inherit;
+  padding: 0.35rem 3rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.control input:focus {
+  outline: none;
+  border-color: #186090;/*83bc00;*/
+  box-shadow: 0 0 0 .1rem #186090!important;
+  background: white;
+
+}
+
+.control.invalid input {
+  /*border-color: red;*/
+  background: #fbdada;
+  box-shadow: 0 0 0 .1rem red!important;
+  
+}
+
+.actions {
+  text-align: center;
+  font-weight: bold;
+}
+
+
+@media (min-width: 768px) {
+  .control {
+    align-items: center;
+  }
+
+}
+
+.container{
+  background-image: url(../../media/campo_trigo1.jpg);
+  
+  /*background-image: url(../../media/Background/1.png);*/
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  /*
+  container-type: inline-size;
+  -webkit-font-smoothing: antialiased;
+  width: 100vw;*/
+
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.underline{
+  text-decoration: underline !important;  
+}
