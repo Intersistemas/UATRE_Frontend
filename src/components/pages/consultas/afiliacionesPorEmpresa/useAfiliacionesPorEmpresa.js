@@ -13,6 +13,7 @@ import FormularioOspreraForm from "./AfiliacionesPorEmpresaForm";
 import moment from "moment/moment";
 import AuthContext from "store/authContext"; 
 import useAmbitos from 'components/hooks/useAmbitos';
+import Grid from "components/ui/Grid/Grid";
 import SearchSelectMaterial, {
   includeSearch,
   mapOptions,
@@ -896,6 +897,28 @@ const useAfiliacionesPorEmpresa = ({
 					}
 				}}
 			/>
+			<Grid className={`${styles.fondo} ${styles.grupo}`} col>
+				<Grid className={`${styles.contenido} ${styles.titulo}`} gap="1rem">
+					<Grid>Información Detallada de solicitud:</Grid>
+					
+				</Grid>
+	
+				<Grid className={styles.grupo} col full>
+					<Grid className={styles.contenido} col>
+					{/* <Grid className={styles.titulo}>Datos AFIP:</Grid> */}
+					<Grid>
+						{/* <InputMaterial label="CUIL"  value={Formato.Cuit(data.empresaCUIT) ?? "-"} />  */}
+																
+						{/* <InputMaterial label="Razon Social Empresa" value={`${data.afipTipoDocumento ?? " "} ${Formato.DNI(data.afipNumeroDocumento) ?? "-"}`}/> */}
+						{/* <InputMaterial  label="Nombre de Seccional" width="87rem" value={validar(data.empresaRazonSocial)}/> */}
+						<InputMaterial  label="Nombre de Seccional" width="87rem" value={data?.seccionalCodigo ? `${data?.seccionalCodigo}-${data?.seccional}` : "Sin Asignación"}/>
+						<InputMaterial label="Estado Observaciones" value={validar(data.estadoSolicitudDescripcion)}/>		
+						{/* <InputMaterial label="Estado" value={validar(data.estadoSolicitudDescripcion)}/> */}
+						{/* <InputMaterial label="Tipo Clave" value={validar(data.afipTipoClave)} />	 */}
+				
+					
+				</Grid>
+			</Grid>
 			{form}
 		</>
 	);
