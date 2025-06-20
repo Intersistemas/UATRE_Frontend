@@ -195,8 +195,7 @@ const Sidebar = ({children}) => {
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
-    const handleClickUsuario = (event) => {
-        console.log("handleClickUsuario_event", event);
+    const handleClickUsuario = (event) => {        
         navigate("Inicio/UsuarioPerfil");
     };
 

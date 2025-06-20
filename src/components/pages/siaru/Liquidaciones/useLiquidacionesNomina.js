@@ -56,8 +56,7 @@ const useLiquidacionesNomina = ({
   columns,
   hideSelectColumn = true,
   mostrarBuscar = false,
-} = {}) => {  
-
+} = {}) => {
   //#region Trato queries a APIs
   const pushQuery = useQueryQueue((action) => {
     switch (action) {
@@ -367,21 +366,47 @@ const useLiquidacionesNomina = ({
       }
 
       case "selectPage": {
-        console.log("selectPage", payload);
-        console.log("list.selection", list.selection);        
+        console.log("list", list);
         return setList((o) => {
-          console.log("list.data", o.data);
           let index = [];
           let record = [];
           if (payload.isSelect) {
-            o.data.forEach((r, i) => {
+            const start = (list.pagination.index - 1) * list.pagination.size;
+            const end = start + list.pagination.size;
+            o.data.slice(start, end).forEach((r, i) => {
               record.push(r);
-              index.push(i);
+              index.push(start + i);
             });
           } else {
             index = null;
             record = null;
           }
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
+
+      case "unselectAll": {
+        console.log("unselectAll", payload);
+        return setList((o) => {
+          let index = [];
+          let record = [];
+          // if (payload.isSelect) {
+          //   o.data.forEach((r, i) => {
+          //     record.push(r);
+          //     index.push(i);
+          //   });
+          // } else {
+          index = null;
+          record = null;
+          // }
           return {
             ...o,
             selection: {
