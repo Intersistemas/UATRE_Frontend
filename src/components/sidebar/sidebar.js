@@ -195,10 +195,16 @@ const Sidebar = ({children}) => {
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
+    const [usuarioPerfilFormShow, setUsuarioPerfilFormShow] = useState(false);
     const handleClickUsuario = (event) => {
-        console.log("handleClickUsuario_event", event);
+        // setUsuarioPerfilFormShow(true);
         navigate("Inicio/UsuarioPerfil");
     };
+
+    const handleCloseUsuarioPerfilForm = () => {
+        setUsuarioPerfilFormShow(false);
+        // navigate("Inicio");
+    }
 
     return (
         <>     

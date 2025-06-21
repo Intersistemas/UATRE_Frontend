@@ -90,8 +90,6 @@ const Handler = () => {
 	const pushQuery = useQueryQueue((action, _params) => {
 		switch (action) {
 			case "GetLiquidaciones":
-				console.log("GetLiquidaciones", _params);
-
 				return {
 					config: {
 						baseURL: "SIARU",
@@ -258,7 +256,7 @@ const Handler = () => {
 		dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
-	console.log("tentativas", tentativas)
+	
 	let contenido = null;
 	if (tentativas?.data != null) {
 		contenido = (

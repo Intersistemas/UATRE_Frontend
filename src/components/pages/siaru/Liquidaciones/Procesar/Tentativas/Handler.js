@@ -220,6 +220,7 @@ const LiquidacionCabecera = ({
     </Grid>
   );
 };
+
 const ruralidadDef = [
   { label: "Rural", value: true },
   { label: "No Rural", value: false },
@@ -297,32 +298,32 @@ const LiquidacionNomina = ({
         <SelectMaterial
           name="empresaEstablecimientoId"
           label="Establecimiento"
-          value={data.empresaEstablecimientoId}
-          // value={selectedEstablecimiento}
+          // value={data.empresaEstablecimientoId}
+          value={selectedEstablecimiento}
           options={establecimientosOptions}
           disabled={!!disabled.empresaEstablecimientoId}
-          // onChange={setSelectedEstablecimiento}
-          onChange={(id) => {
-            const establecimiento = establecimientos.find((r) => r.id === id);
-            onChange({
-              empresaEstablecimientoId: establecimiento.id,
-              empresaEstablecimientoNroSucursal: establecimiento.nroSucursal,
-              empresaEstablecimiento_Nombre: establecimiento.nombre,
-            });
-          }}
+          onChange={setSelectedEstablecimiento}
+          // onChange={(id) => {
+          //   const establecimiento = establecimientos.find((r) => r.id === id);
+          //   onChange({
+          //     empresaEstablecimientoId: establecimiento.id,
+          //     empresaEstablecimientoNroSucursal: establecimiento.nroSucursal,
+          //     empresaEstablecimiento_Nombre: establecimiento.nombre,
+          //   });
+          // }}
         />
         <SelectMaterial
           name="esRural"
           label="Ruralidad"
-          value={data.esRural}
-          // value={selectedRuralidad}
+          // value={data.esRural}
+          value={selectedRuralidad}
           options={ruralidad}
           disabled={!!disabled.esRural}
-          // onChange={setSelectedRuralidad}
-          onChange={(esRural) => onChange({ esRural })}
+          onChange={setSelectedRuralidad}
+          // onChange={(esRural) => onChange({ esRural })}
         />
       </Grid>
-      {/* <Grid>
+      <Grid>
         <Button
           className="botonAmarillo"
           disabled={data.length === 0}
@@ -337,11 +338,12 @@ const LiquidacionNomina = ({
               empresaEstablecimiento_Nombre: establecimiento?.nombre ?? "",
               esRural: selectedRuralidad,
             });
+            // liqNomChanger("unselectAll", { isSelect }); 
           }}
         >
           ACTUALIZA ESTABLECIMIENTO/RURALIDAD
         </Button>
-      </Grid> */}
+      </Grid>
     </Grid>
   );
 };
@@ -574,7 +576,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       tipoPagoSindical: { id: 0, porcentaje: 0 },
       tipoPagoSolidario: { id: 0, porcentaje: 0 },
       retocadas: [],
-      agrupadas: [],
+      // agrupadas: [],
     },
     nominas: {
       todas: [],
@@ -647,7 +649,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
   //#region Calculo estado
   useEffect(() => {
-    console.log("preoc", estado.processing);
     if (!estado.processing) return;
 
     //Genero Cabecera
@@ -669,7 +670,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       totalSindical: 0,
       totalSolidario: 0,
       liquidaciones: [],
-      liquidacionesAgrupadas: [],
+      // liquidacionesAgrupadas: [],
     };
 
     // Genero liquidaciones a partir de nominas
@@ -677,7 +678,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       ...estado.liquidaciones,
       todas: [],
       retocadas: [],
-      agrupadas: [],
+      // agrupadas: [],
     };
 
     const retocadas = estado.liquidaciones.retocadas.filter(
@@ -769,7 +770,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
         estado.cabecera.liquidaciones.find((r) => r.id === id)
       )
       .forEach((liquidacion) => {
-        console.log("liquidacion", liquidacion);
         cabecera.cantidadTrabajadores += liquidacion.cantidadTrabajadores;
         cabecera.totalRemuneraciones += liquidacion.totalRemuneraciones;
         cabecera.totalAporte += liquidacion.interesNeto;
@@ -858,7 +858,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
   } = useLiquidacionesNomina({
     remote: false,
     multi: true,
-    hideSelectColumn: false,
+    hideSelectColumn: true,
     mostrarBuscar: true,
     columns: [
       { dataField: "cuil" },
@@ -903,7 +903,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
   useEffect(() => {
     setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);
-    console.log("liqNomSel", liqNomSel, "isSelect", isSelect);
+    // console.log("liqNomSel", liqNomSel, "isSelect", isSelect);
   }, [liqNomSel]);
 
   const [isSelect, setIsSelect] = useState(true);
@@ -915,7 +915,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
         <Grid col width="full">
           {liqNomRender()}
         </Grid>
-        {/* <Grid>
+        <Grid>
           <Button width="200px"
             hidden
             className="botonAmarillo"
@@ -923,7 +923,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
             onClick={() => {
               liqNomChanger("selectAll", { isSelect });
               // setIsSelect(!isSelect);
-              console.log("selected", liqNomSel);
+              // console.log("selected", liqNomSel);
             }}
           >
             Selecciona todos
@@ -939,7 +939,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
           >
             Selecciona página
           </Button>
-        </Grid> */}
+        </Grid>
         {leyendas}
         <Grid col full="width" gap="inherit">
           <LiquidacionNomina
@@ -956,13 +956,15 @@ const Handler = ({ periodo, tentativas = [] }) => {
                     ...nomina,
                     ...changes,
                   });
-                });
+                });     
+
                 return {
                   ...o,
                   processing: "Calculando...",
                   nominas: { ...o.nominas, todas },
                 };
               });
+              liqNomChanger("unselectAll", { isSelect });
             }}
           />
         </Grid>

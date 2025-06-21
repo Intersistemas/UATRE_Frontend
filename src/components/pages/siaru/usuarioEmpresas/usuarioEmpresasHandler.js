@@ -103,12 +103,16 @@ function UsuarioEmpresasHandler(props) {
       },
       onOk: () => {
         dispatch(handleEmpresaSeleccionar(null));
-        props.onClose();
+        props.onClose(true);
       },
       onError: async (err) =>
         alert(`Error al desvincular empresa:\n${err.toString()}`),
     });
   };
+
+  const HandlerCancela = () => {
+    props.onClose(false);
+  }
 
   const HandlerMotivoChange = (value) => {
     // console.log("HandlerMotivoChange", value);
@@ -134,7 +138,7 @@ function UsuarioEmpresasHandler(props) {
         onMotivoChange={HandlerMotivoChange}
         onDesvincula={HandlerConfirmarDesvincularEmpresa}
         onChange={onChange}
-        onCancela={props.onClose}
+        onCancela={HandlerCancela}
       />
     // </Grid>
   );

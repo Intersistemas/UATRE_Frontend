@@ -130,7 +130,7 @@ const SiaruHandler = () => {
   const [empresas, setEmpresas] = useState({ data: [], selected: null });
   //#endregion declaración y carga de empresas
 
-  useEffect(() => {    
+  useEffect(() => {
     if (!list.loading) return;
 
     pushQuery({
@@ -180,6 +180,7 @@ const SiaruHandler = () => {
 
   useEffect(() => {
     if (!empresa.loading) return;
+
     const result = { loading: null, data: null, error: null };
     pushQuery({
       action: "GetEmpresa",
@@ -208,16 +209,20 @@ const SiaruHandler = () => {
   //#endregion
 
   useEffect(() => {
-    if (empresa.loading) return;    
+    if (empresa.loading) return;
     if (list.data.length === 0) return;
-    if (empresaSeleccionada !== null || empresa?.data == null) {      
+    if (empresaSeleccionada !== null || empresa?.data == null) {
       setList((o) => ({
         ...o,
         selection: {
           action: "",
           request: "",
-          index: list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)),
-          record: list.data.find((r) => r.empresaId === empresaSeleccionada?.id),
+          index: list.data.indexOf(
+            list.data.find((r) => r.empresaId === empresaSeleccionada?.id)
+          ),
+          record: list.data.find(
+            (r) => r.empresaId === empresaSeleccionada?.id
+          ),
         },
       }));
       setEmpresa((o) => ({
@@ -573,15 +578,25 @@ const SiaruHandler = () => {
   };
 
   const [showDesvincularUsuario, setShowDesvincularUsuario] = useState(false);
-  const handleOnClose = () => {
-    setShowDesvincularUsuario(false);    
-    setList((o) => ({
-      ...o,
-      selection: {},
-      loading: "Cargando...",
-    }));
-    dispatch(handleEmpresaSeleccionar(null));
-  }
+  const handleOnClose = (usuarioDesvinculado) => {
+    setShowDesvincularUsuario(false);
+    if (usuarioDesvinculado) {
+      dispatch(handleEmpresaSeleccionar(null));
+
+      setList((o) => ({
+        ...o,
+        selection: {},
+        loading: "Cargando...",
+      }));
+      
+      setEmpresa((o) => ({
+        ...o,
+        loading: null,
+        params: {},
+        data: {},
+      }));      
+    }
+  };
 
   let formDesvincularUsuario = null;
   if (showDesvincularUsuario) {
@@ -590,8 +605,13 @@ const SiaruHandler = () => {
       empresa.data
     );
     formDesvincularUsuario = (
-      <UsuarioEmpresasHandler show={showDesvincularUsuario} onClose={handleOnClose} title={`Desvincular usuario de ${desc}`}/>
-    )};
+      <UsuarioEmpresasHandler
+        show={showDesvincularUsuario}
+        onClose={handleOnClose}
+        title={`Desvincular usuario de ${desc}`}
+      />
+    );
+  }
 
   return (
     <Grid col height="100vh" gap="10px">
@@ -618,7 +638,9 @@ const SiaruHandler = () => {
                 pagination={{ index: 1, size: 10 }}
                 selection={{
                   selected: [list.selection.record?.id].filter((r) => r),
-                  onSelect: (record, isSelect, index, e) => {handleSelection(record, isSelect, index, e);},
+                  onSelect: (record, isSelect, index, e) => {
+                    handleSelection(record, isSelect, index, e);
+                  },
                 }}
               />
             </Grid>
