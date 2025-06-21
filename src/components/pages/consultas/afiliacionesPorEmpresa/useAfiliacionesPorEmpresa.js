@@ -95,8 +95,7 @@ const useAfiliacionesPorEmpresa = ({
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		// console.log("useFormularioOsprera, params", params);
-		// console.log("useFormularioOsprera, action", action);
+		console.log("useAfiliacionesPorEmpresa pushQuery", action, params);
 		switch (action) {
 			case "GetList": {
 				const { filtro2, ...otherParams } = params;
@@ -272,7 +271,6 @@ const useAfiliacionesPorEmpresa = ({
 			return;
 		}
 		changes.data = [];
-		// console.log("userFormularioOsprera_list",list)
 		const soloLetras = /^[A-Za-z]+$/;
 		const filtro = list?.params?.filtro
 
@@ -283,7 +281,7 @@ const useAfiliacionesPorEmpresa = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
-					sort: "FechaDesc,IdDesc",
+					sort: "-Id",
 					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
 				},
 			},
@@ -318,6 +316,7 @@ const useAfiliacionesPorEmpresa = ({
 	//#endregion
 
 	const request = useCallback((type, payload = {}) => {
+		console.log("type y payload", type, payload);
 		switch (type) {
 			case "selected": {
 				return setList((o) => {
@@ -397,6 +396,21 @@ const useAfiliacionesPorEmpresa = ({
 					return { ...o, ...changes };
 				});
 			}
+			case "patchEstados": {
+				const query = {
+					action: "PatchEstados",
+					config: payload.config ?? {},
+					params: payload.params,
+					onOk: async (response) => {
+						setList((old) => ({ ...old, loading: "Cargando..." }));
+					},
+					onError: async (err) => alert(err.message),
+				};
+
+				pushQuery(query);
+				return setList((o) => ({ ...o, loading: "Cargando..." }));
+			}
+
 			default:
 				return;
 		}

@@ -90,14 +90,14 @@ const AfiliacionesPorEmpresaHandler = () => {
 
 	//#region Tab Formularios
 	const {
-		render: formulariosOspreraRender,
-		request: formularioOspreraRequest,
-		selected: formularioSelected,
+		render: afiliacionesPorEmpresaRender,
+		request: afiliacionesPorEmpresaRequest,
+		selected: afiliacionPorEmpresaSelected,
 	} = useAfiliacionesPorEmpresa({
-		params: { orderBy: "cuitTitular" },
+		params: { orderBy: "empresaCUIT" },
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
-	const [formularioOspreraActions, setFormularioOspreraActions] = useState([]);
+	const [afiliacionesPorEmpresaActions, setAfiliacionesPorEmpresaActions] = useState([]);
 
 	useEffect(() => {
 		const createAction = ({ action, request, record, ...x }) => {
@@ -105,7 +105,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 			if (record) params.record = record;
 			return new Action({
 				name: action,
-				onExecute: () => formularioOspreraRequest("selected", params),
+				onExecute: () => afiliacionesPorEmpresaRequest("selected", params),
 				combination: "AltKey",
 				...x,
 			});
@@ -113,111 +113,123 @@ const AfiliacionesPorEmpresaHandler = () => {
 		const actions = [
 			createAction({
 				action: `Nueva Solicitud Afiliación`,
-				request: "A",
+				request: "N",
 				tarea: "Consultas_AfiliacionesPorEmpresaNueva",
-				keys: "a",
+				keys: "n",
 				underlineindex: 0,
 			}),
 		];
-		const desc =formularioSelected?.id;
-			//Formato.Cuit(formularioSelected?.cuitTitular) || formularioSelected?.cuitTitular;
-	console.log("formularioSelected",formularioSelected)
+		const desc =afiliacionPorEmpresaSelected?.id;
+		console.log("afiliacionPorEmpresaSelected",afiliacionPorEmpresaSelected)
 		actions.push(
 			createAction({
-				action: `Consulta Solicitud Afiliación ${desc}`,
-				request: "C",
-				tarea: "Osprera_GestionConsulta",
+				action: `Autoriza Solicitud Afiliación ${desc}`,
+				request: "A",
+				tarea: "Consultas_AfiliacionesPorEmpresaAutoriza",
+				onExecute: () => afiliacionesPorEmpresaRequest("patchEstados", {
+					action: "Autoriza",
+					record: afiliacionPorEmpresaSelected,
+					params: { 
+							solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+						}, // Parámetros para la consulta
+					config: {
+						body: {
+							estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+							estadoSolicitudObservaciones: "sin observaciones",
+							estadoSolicitudUsuario: Usuario?.id,
+							estadoFecha: new Date().toISOString()
+						}, // Cuerpo de la solicitud PATCH
+						},
+				}),
 				record: {},
-				...(!formularioSelected?.id
+				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
 					: {
 							disabled: false,
-							keys: "o",
-							underlineindex: 1,
+							keys: "a",
+							underlineindex: 0,
 					  }),
 			})
 		);
 		actions.push(
-			createAction({
-				action: `Modifica Solicitud Afiliación ${desc}`,
-				request: "M",
+			createAction({ 
+				action: `Descarga Formulario de Afiliaciones ${desc}`,
+				request: "D",
 				record: {},
-				tarea: "Osprera_GestionModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
+				tarea: "Consultas_AfiliacionesPorEmpresaDescarga",
+				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Autorizada" || 1==1 //QUITAR EL 1==1 cuando se implemente la descarga
 					? { disabled: true }
 					: {
 							disabled: false,
-							keys: "m",
+							keys: "d",
 							underlineindex: 0,
 					  }),
 			})
 		);
 
-		if (formularioSelected?.deletedDate) {
-			actions.push(
+		actions.push(
 				createAction({
-					action: `Reactiva Solicitud Afiliación ${desc}`,
+					action: `Rechaza Solicitud Afiliación ${desc}`,
 					request: "R",
 					record: {},
-					tarea: "Osprera_GestionReactiva",
-					keys: "r",
-					underlineindex: 0,
+					tarea: "Consultas_AfiliacionesPorEmpresaRechaza",
+					onExecute: () => afiliacionesPorEmpresaRequest("patchEstados", {
+					action: "Rechaza",
+					record: afiliacionPorEmpresaSelected,
+					params: { 
+							solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+						}, // Parámetros para la consulta
+					config: {
+						body: {
+							estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+							estadoSolicitudObservaciones: "sin observaciones",
+							estadoSolicitudUsuario: Usuario?.id,
+							estadoFecha: new Date().toISOString()
+						}, // Cuerpo de la solicitud PATCH
+						},
+				}),
+				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
+					? { disabled: true }
+					: {
+							disabled: false,
+							keys: "r",
+							underlineindex: 0,
+					  }),
 				})
 			);
-		} else {
-			actions.push(
-				createAction({
-					action: `Baja Solicitud Afiliación ${desc}`,
-					request: "B",
-					record: {
-						...formularioSelected,
-						deletedDate: dayjs().format("YYYY-MM-DD"),
-						deletedBy: Usuario.nombre,
-					},
-					tarea: "Osprera_GestionBaja",
-					...(formularioSelected?.deletedDate || !formularioSelected?.id
-						? { disabled: true }
-						: {
-								disabled: false,
-								keys: "b",
-								underlineindex: 0,
-						  }),
-				})
-			);
-		}
-		setFormularioOspreraActions(actions); //cargo todas las acciones / botones
-	}, [formularioOspreraRequest, formularioSelected]);
+		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
+	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
 	tabs.push({
 		header: () => <Tab label="Solicitudes de Afiliación" />,
 		body: () => (
 			<Grid width col gap="10px">
 				<Grid />
-				<Grid gap="inherit">
-					<Grid grid="auto / 200px 1fr 200px 200px 200px" gap="inherit">
-							
+				<Grid gap="inherit" justify="end" >
+					<Grid grid="auto / 200px 200px" gap="inherit" >
+								{/*
 								<InputMaterial
 									label="CUIT"
-									value={paramsEdit.Cuit}
-									onChange={(Cuit) =>
+									value={paramsEdit.empresaCUIT}
+									onChange={(empresaCUIT) =>
 										setParamsEdit((o) => {
-											const paramsEdit = { ...o, Cuit };
-											if (!Cuit) delete paramsEdit.Cuit;
+											const paramsEdit = { ...o, empresaCUIT };
+											if (!empresaCUIT) delete paramsEdit.empresaCUIT;
 											return paramsEdit;
 										})
 									}
 								/>
 								<InputMaterial
 									label="Razón Social"
-									value={paramsEdit.RazonSocial}
-									onChange={(RazonSocial) =>
+									value={paramsEdit.empresaDescripcion}
+									onChange={(empresaDescripcion) =>
 										setParamsEdit((o) => {
-											const paramsEdit = { ...o, RazonSocial };
-											if (!RazonSocial) delete paramsEdit.RazonSocial;
+											const paramsEdit = { ...o, empresaDescripcion };
+											if (!empresaDescripcion) delete paramsEdit.empresaDescripcion;
 											return paramsEdit;
 										})
 									}
-								/>
+								/>*/}
 								<SearchSelectMaterial
 									label="Estado"
 									error={!!estadoSelect.error}
@@ -233,10 +245,10 @@ const AfiliacionesPorEmpresaHandler = () => {
 											origen: "option",
 										}));
 										setParamsEdit((o) => {
-											const seccionalEstadoId = selected.value;
-											const seccionalesParamsEdit = { ...o, seccionalEstadoId };
-											if (selected === estadosTodos) delete seccionalesParamsEdit.seccionalEstadoId;
-											return seccionalesParamsEdit;
+											const estadoSolicitudId = selected.value;
+											const paramsEdit = { ...o, estadoSolicitudId };
+											if (selected === estadosTodos) delete paramsEdit.estadoSolicitudId;
+											return paramsEdit;
 										});
 									}}
 									options={estadoSelect.options}
@@ -275,20 +287,20 @@ const AfiliacionesPorEmpresaHandler = () => {
 						</Button>
 					</Grid>
 				</Grid>
-				{formulariosOspreraRender()}
+				{afiliacionesPorEmpresaRender()}
 			</Grid>
 		),
-		actions: formularioOspreraActions,
+		actions: afiliacionesPorEmpresaActions,
 	});
 
 	//Carga de lista según parametros
 	useEffect(() => {
-		formularioOspreraRequest("list", {
+		afiliacionesPorEmpresaRequest("list", {
 			params: paramsSend,
 			pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst,
 		});
-	}, [formularioOspreraRequest, paramsSend]);
+	}, [afiliacionesPorEmpresaRequest, paramsSend]);
 	//#endregion
 
 
@@ -297,7 +309,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 	const [detalleActions, setDetalleActions] = useState([]);
 	
 	tabs.push({
-		header: () => <Tab label="Detalle de Solicitud de Afiliación" disabled={!formularioSelected || formularioSelected.deletedDate} />,
+		header: () => <Tab label="Detalle de Solicitud de Afiliación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate} />,
 		body: detalleTab,
 		actions: detalleActions,
 	});
@@ -305,10 +317,10 @@ const AfiliacionesPorEmpresaHandler = () => {
 	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
 		detalleChanger("list", {
-			clear: !formularioSelected?.id,
-			params: { solicitudAfiliacionEmpresaId: formularioSelected?.id, soloactivos: true },
+			clear: !afiliacionPorEmpresaSelected?.id,
+			params: { solicitudAfiliacionEmpresaId: afiliacionPorEmpresaSelected?.id, soloactivos: true },
 		});
-	}, [formularioSelected?.id, detalleChanger]);
+	}, [afiliacionPorEmpresaSelected?.id, detalleChanger]);
 	//#endregion
 
 	//#region modulo y acciones
@@ -321,13 +333,13 @@ const AfiliacionesPorEmpresaHandler = () => {
 	return (
 		<Grid full col>
 			<Grid className="titulo">
-				<h1>Afiliaciones Por Empresa</h1>
+				<h1>Solicitudes de Afiliacion Por Empresa</h1>
 			</Grid>
 
 			<div className="tabs">
 				<text>
-					{formularioSelected?.nombre
-						? `(${Formato.Cuit(formularioSelected?.cuil)}  |  ${formularioSelected?.nombre})`
+					{afiliacionPorEmpresaSelected?.nombre
+						? `(${Formato.Cuit(afiliacionPorEmpresaSelected?.empresaCUIT)}  |  ${afiliacionPorEmpresaSelected?.empresaDescripcion})`
 						: " "}
 				</text>
 
