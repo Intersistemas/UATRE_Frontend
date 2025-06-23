@@ -14,7 +14,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
-import Tentativas from "../Tentativas/Handler";
+import Tentativas from "../tentativas/Handler";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 

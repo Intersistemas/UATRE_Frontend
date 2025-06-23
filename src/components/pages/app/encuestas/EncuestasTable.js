@@ -9,26 +9,24 @@ const columnsDef = [
 		text: "Id",
 		hidden: true,
 	},
-{
+	{
 
-  dataField: "estadoCalculado",
-  text: "Estado",
-  headerTitle: () => `Estado`,
-  sort: false,
-  formatter: (_, row) => {
-    const hoy = new Date();
-    const fechaFin = row.fechaFinalizacion ? new Date(row.fechaFinalizacion) : null;
-    const fechaBaja = row.deletedDate;
+	dataField: "estadoCalculado",
+	text: "Estado",
+	headerTitle: () => `Estado`,
+	sort: false,
+	formatter: (_, row) => {
+		const hoy = new Date();
+		const fechaFin = row.fechaFinalizacion ? new Date(row.fechaFinalizacion) : null;
+		const fechaBaja = row.deletedDate;
 
-    if (fechaBaja) return "Inactiva";
-    if (!fechaFin) return "Sin fecha";
-    return fechaFin > hoy ? "Activa" : "Finalizada";
-  },
-  //achicar columna
-  headerStyle: { width: "4rem", textAlign: "center" },
-},
-
-
+		if (fechaBaja) return "Inactiva";
+		if (!fechaFin) return "Sin fecha";
+		return fechaFin > hoy ? "Activa" : "Finalizada";
+	},
+	//achicar columna
+	headerStyle: { width: "4rem", textAlign: "center" },
+	},
 	{
 		dataField: "fecha",
 		text: "Fecha inicio",
@@ -46,13 +44,13 @@ const columnsDef = [
 	// 	headerStyle: { width: "10rem", textAlign: "center" },
 	// },
 	{
-	dataField: "tema",
-	text: "Tema",
-	headerTitle: () => `Tema`,
-	sort: true,
-	headerStyle: { width: "10rem", textAlign: "center" },
-	style: { textAlign: "left" }, 
-},
+		dataField: "tema",
+		text: "Tema",
+		headerTitle: () => `Tema`,
+		sort: true,
+		headerStyle: { width: "10rem", textAlign: "center" },
+		style: { textAlign: "left" }, 
+	},
 	{
 		dataField: "fechaFinalizacion",
 		text: "Fecha finalización",

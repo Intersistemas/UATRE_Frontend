@@ -208,20 +208,6 @@ const usePreguntas = ({
       <PreguntasForm
        
         request={list.selection.request} // Tipo de acción (A, M, B, etc.)
-        // data={(() => {
-         
-        //   const extraData =
-        //      list.selection.request === "B"
-        //       ? {
-        //           deletedDate: dayjs().format("DD-MM-YYYY"),
-        //           deletedBy: Usuario.nombre,
-                  
-                  
-        //         }
-        //       : {};
-
-        //   return { ...list.selection.edit, ...extraData };
-        // })()}
         data={(() => {
         const extraData =
           list.selection.request === "B"
