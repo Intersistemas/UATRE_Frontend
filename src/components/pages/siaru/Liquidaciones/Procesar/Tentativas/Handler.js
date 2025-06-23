@@ -890,7 +890,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       // },
       { dataField: "remuneracionImponible" },
     ],
-    pagination: { size: 20 },
+    pagination: { size: 10 },
   });
   const liqNomEdit = JoinOjects(liqNomSel, {
     length: liqNomSel?.length ?? 0,
@@ -902,11 +902,14 @@ const Handler = ({ periodo, tentativas = [] }) => {
   }, [liqNomChanger, estado.nominas.todas]);
 
   useEffect(() => {
-    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);
+    console.log("isSelect", isSelect, "isSelectAll", isSelectAll, "isSelectPage", isSelectPage);
+    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);    
     // console.log("liqNomSel", liqNomSel, "isSelect", isSelect);
   }, [liqNomSel]);
 
-  const [isSelect, setIsSelect] = useState(true);
+  const [isSelect, setIsSelect] = useState(false);
+  const [isSelectAll, setIsSelectAll] = useState(false);
+  const [isSelectPage, setIsSelectPage] = useState(false);
 
   tabs.push({
     header: () => <Tab label="Nomina" />,
@@ -921,7 +924,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => {
-              liqNomChanger("selectAll", { isSelect });
+              liqNomChanger("selectAll", { isSelectAll: !isSelectAll });
+              setIsSelectAll(!isSelectAll);
               // setIsSelect(!isSelect);
               // console.log("selected", liqNomSel);
             }}
@@ -933,7 +937,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => { 
-              liqNomChanger("selectPage", { isSelect }); 
+              liqNomChanger("selectPage", { isSelectPage: !isSelectPage }); 
+              setIsSelectPage(!isSelectPage);
               // setIsSelect(!isSelect) 
             }}
           >

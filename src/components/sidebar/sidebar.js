@@ -11,7 +11,7 @@ import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
-import { handleModuloEjecutarAccion, handleModuloSeleccionar } from '../../redux/actions';
+import { handleModuloEjecutarAccion, handleModuloSeleccionar, handleUsuarioPerfil } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
 import Action from 'components/helpers/Action';
 import Menu from '@mui/material/Menu';
@@ -92,7 +92,8 @@ const Sidebar = ({children}) => {
     const authContext = useContext(AuthContext)
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
-    const Usuario = authContext.usuario;
+    // const Usuario = authContext.usuario;
+    const Usuario = useSelector(state => state.usuarioLogueado);
     const[botones ,setBotones] = useState([]);
     const[menuItems ,setMenuItems] = useState([]);
 
@@ -198,7 +199,8 @@ const Sidebar = ({children}) => {
     const [usuarioPerfilFormShow, setUsuarioPerfilFormShow] = useState(false);
     const handleClickUsuario = (event) => {
         // setUsuarioPerfilFormShow(true);
-        navigate("Inicio/UsuarioPerfil");
+        // navigate("Inicio/UsuarioPerfil");
+        dispatch(handleUsuarioPerfil({show: true}));
     };
 
     const handleCloseUsuarioPerfilForm = () => {

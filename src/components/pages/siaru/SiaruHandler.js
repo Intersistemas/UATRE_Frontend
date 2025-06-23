@@ -30,8 +30,8 @@ const selectionDef = {
 const SiaruHandler = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const empresaSeleccionada = useSelector((state) => state.empresa);
-  const { usuario = {} } = useContext(AuthContext);
+  const empresaSeleccionada = useSelector((state) => state.empresa);  
+  const { usuario = {} } = useContext(AuthContext);  
 
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
@@ -195,7 +195,7 @@ const SiaruHandler = () => {
   }, [empresa, pushQuery, dispatch]);
   //#endregion declaración y carga de empresa
 
-  // Cargo empresa cuando cambia la selección de empresas
+  //#region  Cargo empresa cuando cambia la selección de empresas
   useEffect(() => {
     const empresa = {
       loading: null,
