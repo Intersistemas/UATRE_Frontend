@@ -7,9 +7,12 @@ import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import { useEffect } from "react";
 import UseKeyPress from '../../helpers/UseKeyPress';
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import { useSelector } from "react-redux";
+import UsuarioPerfilHandler from "../administracion/usuarioPerfil/usuarioPerfilHandler";
 
 const Inicio = () => {
 	const navigate = useNavigate();
+	const showUsuarioPerfilForm = useSelector((state) => state.usuarioPerfil.show);
 
 	const tareas = useTareasUsuario();
 	
@@ -48,6 +51,7 @@ const Inicio = () => {
 			<Grid col gap="20px" style={{ margin: "10px" }}>
 				{botonesAccesos}
 			</Grid>
+			{showUsuarioPerfilForm && <UsuarioPerfilHandler />}
 		</>
 	);
 };

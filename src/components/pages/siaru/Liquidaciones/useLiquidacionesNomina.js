@@ -50,7 +50,7 @@ const useLiquidacionesNomina = ({
   loading,
   error,
   multi: multiInit = false,
-  pagination: paginationInit = { index: 1, size: 20 },
+  pagination: paginationInit = { index: 1, size: 10 },
   onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
   onDataChange: onDataChangeInit = onDataChangeDef,
   columns,
@@ -344,7 +344,7 @@ const useLiquidacionesNomina = ({
         return setList((o) => {
           let index = [];
           let record = [];
-          if (payload.isSelect) {
+          if (payload.isSelectAll) {
             o.data.forEach((r, i) => {
               record.push(r);
               index.push(i);
@@ -366,11 +366,11 @@ const useLiquidacionesNomina = ({
       }
 
       case "selectPage": {
-        console.log("list", list);
+        // console.log("list", list);
         return setList((o) => {
           let index = [];
           let record = [];
-          if (payload.isSelect) {
+          if (payload.isSelectPage) {
             const start = (list.pagination.index - 1) * list.pagination.size;
             const end = start + list.pagination.size;
             o.data.slice(start, end).forEach((r, i) => {

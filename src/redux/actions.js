@@ -7,6 +7,7 @@ import {
 	USUARIO_LOGUEADO,
 	SET_NAV_FUNCTION,
 	TASAS_ARCA,
+	USUARIO_PERFIL,
 } from "./actionTypes";
 
 export const handleModuloSeleccionar = (payload) => ({
@@ -55,5 +56,10 @@ export const handleSetNavFunction = (
 
 export const handleTasasARCA = (payload) => ({
 	type: TASAS_ARCA,
+	payload,
+});
+
+export const handleUsuarioPerfil = (payload) => ({
+	type: USUARIO_PERFIL,
 	payload,
 });

@@ -12,3 +12,4 @@ export const TASAS_ARCA = "TASAS_ARCA";
 export const USUARIO_LOGUEADO = "USUARIO_LOGUEADO"
 
 //Administracion - Menu
+export const USUARIO_PERFIL = "USUARIO_PERFIL";

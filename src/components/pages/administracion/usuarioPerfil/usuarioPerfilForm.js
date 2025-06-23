@@ -1,11 +1,11 @@
-import { Modal } from "bootstrap/dist/js/bootstrap.bundle.min";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import { Grid } from "@mui/material";
+import { Modal } from "react-bootstrap";
 
-const usuarioPerfilForm = (props) => {
-    let resultadoActualizaRender = null;
+const UsuarioPerfilForm = (props) => {
+  let resultadoActualizaRender = null;
   if (props.errorAPI !== null) {
     if (props.errorAPI) {
       resultadoActualizaRender = (
@@ -51,7 +51,10 @@ const usuarioPerfilForm = (props) => {
           </Grid>
           <Grid width="400px" marginBottom={3}>
             <InputMaterial
-              error={props.usuario.phoneNumber == null || props.usuario.phoneNumber === ""}
+              error={
+                props.usuario.phoneNumber == null ||
+                props.usuario.phoneNumber === ""
+              }
               label="Teléfono"
               value={props.usuario.phoneNumber}
               onChange={(phoneNumber) => props.onChange({ phoneNumber })}
@@ -68,18 +71,28 @@ const usuarioPerfilForm = (props) => {
         </Grid>
       </Modal.Body>
       <Modal.Footer className={modalCss.modalPie}>
-        <Button
-          className="botonAmarillo"
-          variant="contained"
-          color="primary"
-          disabled={props.hasErrors}
-          onClick={props.onActualiza}
-        >
-          ACTUALIZA
-        </Button>
+        <Grid full marginBottom={3} gap={2}>
+          <Button
+            className="botonAmarillo"
+            width="150px"
+            disabled={props.hasErrors}
+            onClick={props.onActualiza}
+          >
+            ACTUALIZA
+          </Button>
+
+          <Button
+            className="botonAmarillo"
+            width="150px"
+            disabled={props.hasErrors}
+            onClick={props.onCancela}
+          >
+            CANCELA
+          </Button>
+        </Grid>
       </Modal.Footer>
     </Modal>
   );
-}
+};
 
-export default usuarioPerfilForm;
+export default UsuarioPerfilForm;
