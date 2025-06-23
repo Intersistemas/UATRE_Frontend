@@ -31,6 +31,17 @@ import EmpresasHandler from "./components/pages/administracion/empresas/Empresas
 import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHandler";
 
 
+//---ADMINISTRACION APP---
+import AppHandler from './components/pages/app/AppHandler';
+import EncuestasHandler from "./components/pages/app/encuestas/EncuestasHandler";
+
+//DENUNCIAS
+import DenunciasHandler from './components/pages/app/denuncias/DenunciasHandler';
+
+//METRICA
+import MetricaHandler from './components/pages/app/metricas/MetricaHandler';
+
+
 //---AFILIADOS---
 import AfiliadosHandler from './components/pages/afiliados/AfiliadosHandler';
 import Afiliado from './components/pages/afiliados/Afiliado';
@@ -147,6 +158,17 @@ const App = () => {
               <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
               <Route path="Inicio/Administracion/Tasas" element={<TasasARCAHandler />} />
 
+                <Route path="Inicio/App" element={<AppHandler />}/>
+                <Route path="Inicio/App/Encuestas" element={<EncuestasHandler/>} />
+                <Route path="Inicio/App/EncuestaRespuestas" element={<EncuestasHandler/>} />
+
+                {/* -----------DENUNCIA---------------- */}
+                <Route path="Inicio/App/Denuncias" element={<DenunciasHandler/>} />
+
+                
+                {/* -----------METRICA---------------- */}
+                <Route path="Inicio/App/Metrica" element={<MetricaHandler/>} />
+
               <Route path="Inicio/Informes" element={<InformesHandler />}/>
               <Route path="Inicio/Consultas" element={<ConsultasHandler />}/>
               <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler/>}/>
@@ -167,3 +189,4 @@ const App = () => {
 }
 
 export default App;
+
