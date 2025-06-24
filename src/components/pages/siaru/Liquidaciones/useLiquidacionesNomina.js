@@ -366,21 +366,35 @@ const useLiquidacionesNomina = ({
       }
 
       case "selectPage": {
-        // console.log("list", list);
         return setList((o) => {
-          let index = [];
-          let record = [];
+          // Copia las selecciones previas (si existen)
+          let record = Array.isArray(o.selection?.record)
+            ? [...o.selection.record]
+            : [];
+
+          const start = (payload.pagination.index - 1) * payload.pagination.size;
+          const end = start + payload.pagination.size;
+          const pageRecords = o.data.slice(start, end);
+
           if (payload.isSelectPage) {
-            const start = (list.pagination.index - 1) * list.pagination.size;
-            const end = start + list.pagination.size;
-            o.data.slice(start, end).forEach((r, i) => {
-              record.push(r);
-              index.push(start + i);
+            // Agrega los de la página actual que no estén ya seleccionados (por id)
+            const idsSeleccionados = new Set(record.map((r) => r.id));
+            pageRecords.forEach((r) => {
+              if (!idsSeleccionados.has(r.id)) {
+                record.push(r);
+              }
             });
           } else {
-            index = null;
-            record = null;
+            // Quita solo los de la página actual (por id)
+            const idsPagina = new Set(pageRecords.map((r) => r.id));
+            record = record.filter((r) => !idsPagina.has(r.id));
           }
+
+          // Opcional: si necesitas el array de índices, lo puedes recalcular así:
+          const index = record.map((r) =>
+            o.data.findIndex((d) => d.id === r.id)
+          );
+
           return {
             ...o,
             selection: {
@@ -651,6 +665,7 @@ const useLiquidacionesNomina = ({
   //#endregion
 
   const render = () => (
+    // console.log("list", list),
     <>
       <LiquidacionesNominaTable
         remote={list.remote}
@@ -666,13 +681,15 @@ const useLiquidacionesNomina = ({
         mostrarBuscar={mostrarBuscar}
         pagination={{
           ...list.pagination,
-          onChange: ({ index, size }) =>
+          onChange: ({ index, size }) => {
+            console.log("index, size", index, size);
             setList((o) => ({
               ...o,
               loading: "Cargando...",
               pagination: { index, size },
               data: o.remote ? [] : o.data,
-            })),
+            }));
+          },
         }}
         selection={{
           mode: list.selection.multi ? "checkbox" : "radio",
@@ -761,7 +778,14 @@ const useLiquidacionesNomina = ({
     </>
   );
 
-  return { render, request, selected: list.selection.record };
+  return {
+    render,
+    request,
+    selected: list.selection.record,
+    page: list.pagination,
+    selection: list.selection,
+    data: list.data,
+  };
 };
 
 export default useLiquidacionesNomina;

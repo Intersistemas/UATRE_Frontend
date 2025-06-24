@@ -338,7 +338,7 @@ const LiquidacionNomina = ({
               empresaEstablecimiento_Nombre: establecimiento?.nombre ?? "",
               esRural: selectedRuralidad,
             });
-            // liqNomChanger("unselectAll", { isSelect }); 
+            // liqNomChanger("unselectAll", { isSelect });
           }}
         >
           ACTUALIZA ESTABLECIMIENTO/RURALIDAD
@@ -729,7 +729,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       const liqFind = liquidaciones.todas.find(
         (r) =>
           r.empresaEstablecimientoId === liquidacion.empresaEstablecimientoId
-          // r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
+        // r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
       );
       if (liqFind != null) liquidacion = liqFind;
       if (!liquidacion.id) {
@@ -855,6 +855,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
     render: liqNomRender,
     request: liqNomChanger,
     selected: liqNomSel,
+    page: liqNomPage,
+    selection: liqNomSelection,
+    data: liqNomData,
   } = useLiquidacionesNomina({
     remote: false,
     multi: true,
@@ -902,10 +905,61 @@ const Handler = ({ periodo, tentativas = [] }) => {
   }, [liqNomChanger, estado.nominas.todas]);
 
   useEffect(() => {
-    console.log("isSelect", isSelect, "isSelectAll", isSelectAll, "isSelectPage", isSelectPage);
-    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);    
-    // console.log("liqNomSel", liqNomSel, "isSelect", isSelect);
-  }, [liqNomSel]);
+    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);
+
+    //Actualizo el select page
+    const { index, size } = liqNomPage;
+    const start = (index - 1) * size;
+    const end = start + size;
+    // Índices seleccionados que están en la página actual
+    const selectedIndexesOnPage = Array.isArray(liqNomSelection.index)
+      ? liqNomSelection.index.filter((idx) => idx >= start && idx < end)
+      : [];
+
+    // Los registros seleccionados de la página actual
+    const recordsPaginaSeleccionados = selectedIndexesOnPage.map((idx) => {
+      // Buscar el registro correspondiente en liqNomSel
+      // Suponiendo que liqNomSel y liqNomSelection.index están sincronizados por posición
+      const pos = liqNomSelection.index.indexOf(idx);
+      return liqNomSel[pos];
+    });
+    const data = liqNomData ?? [];
+    const recordsPagina = data.slice(start, end);
+
+    setIsSelectPage(
+      recordsPagina.length === recordsPaginaSeleccionados.length && recordsPaginaSeleccionados.length > 0 
+    );
+
+    //Actualizo isSelectAll
+    setIsSelectAll(
+      liqNomSel?.length === liqNomData.length && liqNomSel.length > 0
+    );
+  }, [liqNomSel, liqNomPage]);
+
+  // useEffect(() => {
+  //   const { index, size } = liqNomPage;
+  //   const start = (index - 1) * size;
+  //   const end = start + size;
+
+  //   // Índices seleccionados que están en la página actual
+  //   const selectedIndexesOnPage = Array.isArray(liqNomSelection.index)
+  //     ? liqNomSelection.index.filter((idx) => idx >= start && idx < end)
+  //     : [];
+
+  //   // Los registros seleccionados de la página actual
+  //   const recordsPaginaSeleccionados = selectedIndexesOnPage.map((idx) => {
+  //     // Buscar el registro correspondiente en liqNomSel
+  //     // Suponiendo que liqNomSel y liqNomSelection.index están sincronizados por posición
+  //     const pos = liqNomSelection.index.indexOf(idx);
+  //     return liqNomSel[pos];
+  //   });
+  //   const data = liqNomData ?? [];
+  //   const recordsPagina = data.slice(start, end);
+
+  //   setIsSelectPage(
+  //     recordsPagina.length === recordsPaginaSeleccionados.length && recordsPaginaSeleccionados.length > 0 
+  //   );
+  // }, [liqNomPage]);
 
   const [isSelect, setIsSelect] = useState(false);
   const [isSelectAll, setIsSelectAll] = useState(false);
@@ -919,8 +973,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
           {liqNomRender()}
         </Grid>
         <Grid>
-          <Button width="200px"
-            hidden
+          <Button
+            width="200px"
+            disabled={!liqNomData?.length}
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => {
@@ -930,19 +985,23 @@ const Handler = ({ periodo, tentativas = [] }) => {
               // console.log("selected", liqNomSel);
             }}
           >
-            Selecciona todos
+            {isSelectAll ? `Deselecciona todos` : `Selecciona todos`}
           </Button>
-          <Button width="200px"
-            hidden
+          <Button
+            width="200px"
+            disabled={!liqNomData?.length}
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
-            onClick={() => { 
-              liqNomChanger("selectPage", { isSelectPage: !isSelectPage }); 
+            onClick={() => {
+              console.log("isselectPage", isSelectPage);
+              liqNomChanger("selectPage", {
+                isSelectPage: !isSelectPage,
+                pagination: liqNomPage,
+              });
               setIsSelectPage(!isSelectPage);
-              // setIsSelect(!isSelect) 
             }}
           >
-            Selecciona página
+            {isSelectPage ? `Deselecciona página` : `Selecciona página`}
           </Button>
         </Grid>
         {leyendas}
@@ -961,7 +1020,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
                     ...nomina,
                     ...changes,
                   });
-                });     
+                });
 
                 return {
                   ...o,
@@ -983,7 +1042,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
     render: liqRender,
     request: liqChanger,
     selected: liqSel,
-  } = useLiquidaciones({    
+  } = useLiquidaciones({
     remote: false,
     multi: true,
     hideSelectColumn: true,
@@ -1164,7 +1223,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
   //#endregion
 
   return (
-    <Grid col full gap="15px">
+    <div style={{overflowY: "scroll"}}>
+    <Grid container col full gap="15px">
       <Grid full="width">
         <h2 className="subtitulo" style={{ margin: 0 }}>
           Liquidar periodo {Formato.Periodo(periodo)} de
@@ -1178,6 +1238,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
       </Grid>
       {tabs[tab].body()}
     </Grid>
+    </div>
   );
 };
 

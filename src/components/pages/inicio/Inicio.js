@@ -11,8 +11,7 @@ import { useSelector } from "react-redux";
 import UsuarioPerfilHandler from "../administracion/usuarioPerfil/usuarioPerfilHandler";
 
 const Inicio = () => {
-	const navigate = useNavigate();
-	const showUsuarioPerfilForm = useSelector((state) => state.usuarioPerfil.show);
+	const navigate = useNavigate();	
 
 	const tareas = useTareasUsuario();
 	
@@ -51,8 +50,7 @@ const Inicio = () => {
 			</div>
 			<Grid col gap="20px" style={{ margin: "10px" }}>
 				{botonesAccesos}
-			</Grid>
-			{showUsuarioPerfilForm && <UsuarioPerfilHandler />}
+			</Grid>			
 		</>
 	);
 };

@@ -25,7 +25,6 @@ const UsuarioPerfilHandler = () => {
             baseURL: "Seguridad",
             endpoint: `/Usuario`,
             method: "PATCH",
-            body: { ...usuario },
           },
         };
       }
@@ -57,6 +56,9 @@ const UsuarioPerfilHandler = () => {
     // console.log("HandlerFinaliza", usuario);
     pushQuery({
       action: "UpdateUsuario",
+      config: {
+        body: { ...usuario },
+      },
       onOk: () => {
         setErrorAPI(false);
         dispatch(handleUsuarioLogueado(usuario));
