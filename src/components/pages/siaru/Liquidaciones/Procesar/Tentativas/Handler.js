@@ -326,17 +326,18 @@ const LiquidacionNomina = ({
       <Grid>
         <Button
           className="botonAmarillo"
-          disabled={data.length === 0}
-          onClick={() => {
+          disabled={data?.length === 0 || (!selectedEstablecimiento && !selectedRuralidad)}
+          onClick={() => {            
             const establecimiento = establecimientos.find(
               (r) => r.id === selectedEstablecimiento
             );
             onChange({
-              empresaEstablecimientoId: establecimiento?.id ?? "",
-              empresaEstablecimientoNroSucursal:
-                establecimiento?.nroSucursal ?? "",
-              empresaEstablecimiento_Nombre: establecimiento?.nombre ?? "",
-              esRural: selectedRuralidad,
+              ...(selectedEstablecimiento && { 
+                empresaEstablecimientoId: establecimiento?.id ?? "",
+                empresaEstablecimientoNroSucursal:establecimiento?.nroSucursal ?? "",
+                empresaEstablecimiento_Nombre: establecimiento?.nombre ?? ""
+              }),
+              ...(selectedRuralidad && { esRural: selectedRuralidad })
             });
             // liqNomChanger("unselectAll", { isSelect });
           }}
