@@ -14,6 +14,7 @@ import Button from "components/ui/Button/Button";
 import useAfiliacionesPorEmpresaDetalle from "./afiliacionesPorEmpresaDetalle/useAfiliacionesPorEmpresaDetalle";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 //#region estadosSelect Options
 const estadosTodos = { label: "Todos" };
@@ -318,7 +319,26 @@ const AfiliacionesPorEmpresaHandler = () => {
 	useEffect(() => {
 		detalleChanger("list", {
 			clear: !afiliacionPorEmpresaSelected?.id,
-			params: { solicitudAfiliacionEmpresaId: afiliacionPorEmpresaSelected?.id, soloactivos: true },
+			params: { SolicitudAfiliacionEmpresasId: afiliacionPorEmpresaSelected?.id},
+		});
+	}, [afiliacionPorEmpresaSelected?.id, detalleChanger]);
+	//#endregion
+
+//#region Tab DETALLE
+	const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
+	const [documentacionActions, setDocumentacionActions] = useState([]);
+	
+	tabs.push({
+		header: () => <Tab label="Documentación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate} />,
+		body: documentacionTab,
+		actions: documentacionActions,
+	});
+
+	// Si cambia delegación, refresco lista de documentación
+	useEffect(() => {
+		detalleChanger("list", {
+			clear: !afiliacionPorEmpresaSelected?.id,
+			params: { SolicitudAfiliacionEmpresasId: afiliacionPorEmpresaSelected?.id},
 		});
 	}, [afiliacionPorEmpresaSelected?.id, detalleChanger]);
 	//#endregion
