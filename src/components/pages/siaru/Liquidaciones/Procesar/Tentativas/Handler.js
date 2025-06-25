@@ -975,7 +975,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
         <Grid>
           <Button
             width="200px"
-            disabled={!liqNomData?.length}
+            // disabled={!liqNomData?.length}
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => {
@@ -989,7 +989,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
           </Button>
           <Button
             width="200px"
-            disabled={!liqNomData?.length}
+            // disabled={!liqNomData?.length}
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => {
