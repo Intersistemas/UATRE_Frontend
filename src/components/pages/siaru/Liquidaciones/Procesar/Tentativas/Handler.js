@@ -255,6 +255,8 @@ const LiquidacionNomina = ({
     setSelectedRuralidad(data.esRural);
   }, [data.esRural, data.empresaEstablecimientoId]);
 
+  console.log("selectedRuralidad", selectedRuralidad);  
+  console.log("data.esRural", data.esRural);  
   return (
     <Grid
       col
@@ -326,8 +328,9 @@ const LiquidacionNomina = ({
       <Grid>
         <Button
           className="botonAmarillo"
-          disabled={data?.length === 0 || (!selectedEstablecimiento && !selectedRuralidad)}
-          onClick={() => {            
+          disabled={data?.length === 0 || (!selectedEstablecimiento && selectedRuralidad === "")}
+          onClick={() => { 
+            console.log("selectedRuralidad", selectedRuralidad);           
             const establecimiento = establecimientos.find(
               (r) => r.id === selectedEstablecimiento
             );
@@ -337,7 +340,7 @@ const LiquidacionNomina = ({
                 empresaEstablecimientoNroSucursal:establecimiento?.nroSucursal ?? "",
                 empresaEstablecimiento_Nombre: establecimiento?.nombre ?? ""
               }),
-              ...(selectedRuralidad && { esRural: selectedRuralidad })
+              ...(selectedRuralidad !== "" && { esRural: selectedRuralidad })
             });
             // liqNomChanger("unselectAll", { isSelect });
           }}
