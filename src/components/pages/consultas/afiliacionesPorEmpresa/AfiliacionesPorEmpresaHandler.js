@@ -329,7 +329,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 	const [documentacionActions, setDocumentacionActions] = useState([]);
 	
 	tabs.push({
-		header: () => <Tab label="Documentación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate} />,
+		header: () => <Tab label="Documentación" disabled={true/*!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate*/} />,
 		body: documentacionTab,
 		actions: documentacionActions,
 	});

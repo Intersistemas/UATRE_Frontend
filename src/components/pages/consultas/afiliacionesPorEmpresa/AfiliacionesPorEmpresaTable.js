@@ -38,6 +38,16 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			sort: false,
 		},
 		{
+			dataField: "periodo",
+			text: "Período",
+			sort: false,
+		},
+		{
+			dataField: "total_Trab_Rurales_NoAfiliados",
+			text: "Trabajadores Rurales No Afiliados",
+			sort: false,
+		},
+		{
 			dataField: "estado",
 			text: "Estado",
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
