@@ -67,7 +67,7 @@ const LiquidacionDetails = ({ data = {}, cabecera = {} }) => {
 					{[
 						"Datos de",
 						[
-							((v) => (v ? `la liquidación ${v}` : ""))(cabecera.id),
+							((v) => (v ? `la boleta ${v}` : ""))(cabecera.boletaId),
 							((v) => (v ? `detalle del establecimiento ${v}` : ""))(data.empresaEstablecimiento_Descripcion),
 						]
 							.filter((r) => r)

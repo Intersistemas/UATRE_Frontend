@@ -7,6 +7,7 @@ import {
 	LIQUIDACION_PROCESAR_SELECCIONAR,
 	SET_NAV_FUNCTION,
 	TASAS_ARCA,
+	USUARIO_PERFIL,
 } from "./actionTypes";
 
 const Item = (k) => `redux_${k}`;
@@ -73,6 +74,7 @@ const initialState = {
 	liquidacionProcesar: leerReducer(LIQUIDACION_PROCESAR_SELECCIONAR),
 	tasasInteresARCA: leerReducer(TASAS_ARCA),
 	nav: {},
+	usuarioPerfil: { show: false },
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -117,6 +119,9 @@ const reducer = (state = initialState, { type, payload }) => {
 					[payload.location]: payload.fn,
 				},
 			};
+		}
+		case USUARIO_PERFIL: {
+			return { ...state, usuarioPerfil: payload };
 		}
 		default: {
 			return state;

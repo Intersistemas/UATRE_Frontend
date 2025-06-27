@@ -249,7 +249,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
-				Imprime liquidación
+				Imprime boleta
 			</Modal.Header>
 			<Modal.Body style={{ height: "70vh" }}>
 				<Grid col full gap="15px">
