@@ -50,7 +50,7 @@ const useLiquidacionesNomina = ({
   loading,
   error,
   multi: multiInit = false,
-  pagination: paginationInit = { index: 1, size: 5 },
+  pagination: paginationInit = { index: 1, size: 10 },
   onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
   onDataChange: onDataChangeInit = onDataChangeDef,
   columns,
@@ -240,6 +240,8 @@ const useLiquidacionesNomina = ({
   }, [pushQuery, list]);
   //#endregion
 
+  //#region request
+
   const request = useCallback((type, payload = {}) => {
     switch (type) {
       case "selected": {
@@ -337,10 +339,108 @@ const useLiquidacionesNomina = ({
           return { ...o, ...changes };
         });
       }
+      case "selectAll": {
+        console.log("selectAll", payload);
+        return setList((o) => {
+          let index = [];
+          let record = [];
+          if (payload.isSelectAll) {
+            o.data.forEach((r, i) => {
+              record.push(r);
+              index.push(i);
+            });
+          } else {
+            index = null;
+            record = null;
+          }
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
+
+      case "selectPage": {
+        return setList((o) => {
+          // Copia las selecciones previas (si existen)
+          let record = Array.isArray(o.selection?.record)
+            ? [...o.selection.record]
+            : [];
+
+          const start = (payload.pagination.index - 1) * payload.pagination.size;
+          const end = start + payload.pagination.size;
+          const pageRecords = o.data.slice(start, end);
+
+          if (payload.isSelectPage) {
+            // Agrega los de la página actual que no estén ya seleccionados (por id)
+            const idsSeleccionados = new Set(record.map((r) => r.id));
+            pageRecords.forEach((r) => {
+              if (!idsSeleccionados.has(r.id)) {
+                record.push(r);
+              }
+            });
+          } else {
+            // Quita solo los de la página actual (por id)
+            const idsPagina = new Set(pageRecords.map((r) => r.id));
+            record = record.filter((r) => !idsPagina.has(r.id));
+          }
+
+          // Opcional: si necesitas el array de índices, lo puedes recalcular así:
+          const index = record.map((r) =>
+            o.data.findIndex((d) => d.id === r.id)
+          );
+
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
+
+      case "unselectAll": {
+        console.log("unselectAll", payload);
+        return setList((o) => {
+          let index = [];
+          let record = [];
+          // if (payload.isSelect) {
+          //   o.data.forEach((r, i) => {
+          //     record.push(r);
+          //     index.push(i);
+          //   });
+          // } else {
+          index = null;
+          record = null;
+          // }
+          return {
+            ...o,
+            selection: {
+              ...o.selection,
+              ...selectionDef,
+              index,
+              record,
+            },
+          };
+        });
+      }
+
       default:
         return;
     }
   }, []);
+
+  //#endregion
+
+  //#region edit
 
   let form = null;
   if (list.selection.edit) {
@@ -562,7 +662,10 @@ const useLiquidacionesNomina = ({
     );
   }
 
+  //#endregion
+
   const render = () => (
+    // console.log("list", list),
     <>
       <LiquidacionesNominaTable
         remote={list.remote}
@@ -578,14 +681,16 @@ const useLiquidacionesNomina = ({
         mostrarBuscar={mostrarBuscar}
         pagination={{
           ...list.pagination,
-          onChange: ({ index, size }) =>
+          onChange: ({ index, size }) => {
+            console.log("index, size", index, size);
             setList((o) => ({
               ...o,
               loading: "Cargando...",
               pagination: { index, size },
               data: o.remote ? [] : o.data,
-            })),
-        }}        
+            }));
+          },
+        }}
         selection={{
           mode: list.selection.multi ? "checkbox" : "radio",
           hideSelectColumn: hideSelectColumn,
@@ -673,7 +778,14 @@ const useLiquidacionesNomina = ({
     </>
   );
 
-  return { render, request, selected: list.selection.record };
+  return {
+    render,
+    request,
+    selected: list.selection.record,
+    page: list.pagination,
+    selection: list.selection,
+    data: list.data,
+  };
 };
 
 export default useLiquidacionesNomina;

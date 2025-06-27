@@ -11,7 +11,7 @@ import logo from '../../media/Logo1_sidebar.png';
 import { useDispatch } from "react-redux";
 import Button from '../ui/Button/Button';
 import clases from "./sidebar.module.css";
-import { handleModuloEjecutarAccion, handleModuloSeleccionar } from '../../redux/actions';
+import { handleModuloEjecutarAccion, handleModuloSeleccionar, handleUsuarioPerfil } from '../../redux/actions';
 import UseKeyPress from '../helpers/UseKeyPress';
 import Action from 'components/helpers/Action';
 import Menu from '@mui/material/Menu';
@@ -92,7 +92,8 @@ const Sidebar = ({children}) => {
     const authContext = useContext(AuthContext)
     const logoutHandler = authContext.logout;
     const isLoggedIn = authContext.isLoggedIn;
-    const Usuario = authContext.usuario;
+    // const Usuario = authContext.usuario;
+    const Usuario = useSelector(state => state.usuarioLogueado);
     const[botones ,setBotones] = useState([]);
     const[menuItems ,setMenuItems] = useState([]);
 
@@ -159,7 +160,18 @@ const Sidebar = ({children}) => {
         return(
             <NavLink {...nav}>
                 <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
-                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>{miga == 'GestionOsprera' ? "Gestión Obra Social" : miga}</div>
+                <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>
+                    {(() => {
+                        switch (miga) {
+                            case 'GestionObraSocial':
+                                return "Gestión Obra Social";
+                            case 'Procesar':
+                                return "Nueva Liquidación";
+                            default:
+                                return miga;
+                        }
+                    })()}
+                </div>
             </NavLink>    
         ) 
 
@@ -184,10 +196,17 @@ const Sidebar = ({children}) => {
         dispatch(handleModuloEjecutarAccion(accion));
     }
 
+    const [usuarioPerfilFormShow, setUsuarioPerfilFormShow] = useState(false);
     const handleClickUsuario = (event) => {
-        console.log("handleClickUsuario_event", event);
-        navigate("Inicio/UsuarioPerfil");
+        // setUsuarioPerfilFormShow(true);
+        // navigate("Inicio/UsuarioPerfil");
+        dispatch(handleUsuarioPerfil({show: true}));
     };
+
+    const handleCloseUsuarioPerfilForm = () => {
+        setUsuarioPerfilFormShow(false);
+        // navigate("Inicio");
+    }
 
     return (
         <>     

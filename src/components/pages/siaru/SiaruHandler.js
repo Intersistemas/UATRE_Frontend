@@ -17,6 +17,7 @@ import EmpresasForm from "../administracion/empresas/EmpresasForm";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
+import UsuarioEmpresasHandler from "./usuarioEmpresas/usuarioEmpresasHandler";
 
 const selectionDef = {
   action: "",
@@ -29,8 +30,8 @@ const selectionDef = {
 const SiaruHandler = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const empresaSeleccionada = useSelector((state) => state.empresa);
-  const { usuario = {} } = useContext(AuthContext);
+  const empresaSeleccionada = useSelector((state) => state.empresa);  
+  const { usuario = {} } = useContext(AuthContext);  
 
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
@@ -131,6 +132,7 @@ const SiaruHandler = () => {
 
   useEffect(() => {
     if (!list.loading) return;
+
     pushQuery({
       action: "GetList",
       params: list.params,
@@ -178,6 +180,7 @@ const SiaruHandler = () => {
 
   useEffect(() => {
     if (!empresa.loading) return;
+
     const result = { loading: null, data: null, error: null };
     pushQuery({
       action: "GetEmpresa",
@@ -192,7 +195,7 @@ const SiaruHandler = () => {
   }, [empresa, pushQuery, dispatch]);
   //#endregion declaración y carga de empresa
 
-  // Cargo empresa cuando cambia la selección de empresas
+  //#region  Cargo empresa cuando cambia la selección de empresas
   useEffect(() => {
     const empresa = {
       loading: null,
@@ -206,20 +209,20 @@ const SiaruHandler = () => {
   //#endregion
 
   useEffect(() => {
-    if (empresa.loading) return;    
+    if (empresa.loading) return;
     if (list.data.length === 0) return;
     if (empresaSeleccionada !== null || empresa?.data == null) {
-      // console.log("entra?");
-      // console.log("data", list.data);
-      // console.log("index", list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)));
-      // console.log("record", list.data.find((r) => r.empresaId === empresaSeleccionada?.id));
       setList((o) => ({
         ...o,
         selection: {
           action: "",
           request: "",
-          index: list.data.indexOf(list.data.find((r) => r.empresaId === empresaSeleccionada?.id)),
-          record: list.data.find((r) => r.empresaId === empresaSeleccionada?.id),
+          index: list.data.indexOf(
+            list.data.find((r) => r.empresaId === empresaSeleccionada?.id)
+          ),
+          record: list.data.find(
+            (r) => r.empresaId === empresaSeleccionada?.id
+          ),
         },
       }));
       setEmpresa((o) => ({
@@ -546,7 +549,7 @@ const SiaruHandler = () => {
 
       addAction(
         `Desvincular usuario de ${desc}`,
-        (_) => navigate("DesvincularUsuarioEmpresa"),
+        (_) => setShowDesvincularUsuario(true),
         "d",
         "Siaru_DesvincularUsuarioEmpresa"
       );
@@ -574,6 +577,42 @@ const SiaruHandler = () => {
     }));
   };
 
+  const [showDesvincularUsuario, setShowDesvincularUsuario] = useState(false);
+  const handleOnClose = (usuarioDesvinculado) => {
+    setShowDesvincularUsuario(false);
+    if (usuarioDesvinculado) {
+      dispatch(handleEmpresaSeleccionar(null));
+
+      setList((o) => ({
+        ...o,
+        selection: {},
+        loading: "Cargando...",
+      }));
+      
+      setEmpresa((o) => ({
+        ...o,
+        loading: null,
+        params: {},
+        data: {},
+      }));      
+    }
+  };
+
+  let formDesvincularUsuario = null;
+  if (showDesvincularUsuario) {
+    const desc = ((r) =>
+      [Formato.Cuit(r?.cuit), r?.razonSocial].filter((r) => r).join(" - "))(
+      empresa.data
+    );
+    formDesvincularUsuario = (
+      <UsuarioEmpresasHandler
+        show={showDesvincularUsuario}
+        onClose={handleOnClose}
+        title={`Desvincular usuario de ${desc}`}
+      />
+    );
+  }
+
   return (
     <Grid col height="100vh" gap="10px">
       <Grid className="titulo" width="full">
@@ -599,7 +638,9 @@ const SiaruHandler = () => {
                 pagination={{ index: 1, size: 10 }}
                 selection={{
                   selected: [list.selection.record?.id].filter((r) => r),
-                  onSelect: (record, isSelect, index, e) => {handleSelection(record, isSelect, index, e);},
+                  onSelect: (record, isSelect, index, e) => {
+                    handleSelection(record, isSelect, index, e);
+                  },
                 }}
               />
             </Grid>
@@ -608,6 +649,7 @@ const SiaruHandler = () => {
           </Grid>
         </Grid>
         {form}
+        {formDesvincularUsuario}
       </Grid>
     </Grid>
   );
