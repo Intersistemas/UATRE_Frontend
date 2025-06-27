@@ -10,7 +10,6 @@ import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
 import SolicitudAutorizacionAfiliacion from "./solicitudAfiliacion/AfiliacionesPorEmpresa/SolicitudAutorizacionAfiliacion";
-import AfiliacionesPorEmpresa from "./afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler";
 import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
@@ -151,22 +150,11 @@ const ConsultasHandler = () => {
 						width="32"
 						//tarea="Informes_Afiliados_AfiliadosEmpresa"
 					>
-						Afiliaciones por Empresa 2
-					</Button>
-				
-				</Grid>
-				<Grid width gap="inherit" justify="evenly">
-					<Button
-						className="botonAmarillo"
-						
-						onClick={() => navigate("AfiliacionesPorEmpresa")}
-						width="32"
-						//tarea="Informes_Afiliados_AfiliadosEmpresa"
-					>
 						Afiliaciones por Empresa
 					</Button>
 				
 				</Grid>
+				
 				
 			</>
 		),
