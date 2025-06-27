@@ -59,7 +59,7 @@ const FormularioOspreraHandler = () => {
 		];
 		const desc =formularioSelected?.id;
 			//Formato.Cuit(formularioSelected?.cuitTitular) || formularioSelected?.cuitTitular;
-	console.log("formularioSelected",formularioSelected)
+
 		actions.push(
 			createAction({
 				action: `Consulta Gestión ${desc}`,

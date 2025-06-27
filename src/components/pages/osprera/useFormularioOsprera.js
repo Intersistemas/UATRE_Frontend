@@ -13,6 +13,7 @@ import FormularioOspreraForm from "./FormularioOspreraForm";
 import moment from "moment/moment";
 import AuthContext from "store/authContext"; 
 import useAmbitos from 'components/hooks/useAmbitos';
+import ValidarEmail from "components/validators/ValidarEmail";
 	
 
 
@@ -328,6 +329,7 @@ const useFormularioOsprera = ({
 
 	let form = null;
 	if (list.selection.request) {
+		// console.log("list", list)
 		form = (
 			<FormularioOspreraForm
 				data={(() => { 
@@ -392,6 +394,10 @@ const useFormularioOsprera = ({
 								gestionEstado: true,
 								gestionSituacion: true,
 								gestionAreaOsprera: true,
+								conCoberturaOsprera: true,
+								tipoPrestador: true,
+								atencionesPrevias: true,
+								observacionesEstado: true,
 							}
 					
 					
@@ -418,7 +424,7 @@ const useFormularioOsprera = ({
 								// r.direccionesEmailDestino= false;
 								// r.gestionRubro= false;
 								// r.gestionSubRubro= false;
-								r.gestionEstado= false;
+								r.gestionEstado= list.selection.record.gestionEstadoId === 3 ? true : false;
 								r.gestionSituacion= false;
 								// r.gestionAreaOsprera= false;
 					}
@@ -497,7 +503,9 @@ const useFormularioOsprera = ({
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
 
 						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
+						if (record.medioGestion == "email" && !ValidarEmail(record.direccionesEmailDestino)) errors.direccionesEmailDestino = "Email inválido";
 						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
+						if (record.medioGestion == "telefono" && (!record.telefono || !matchIsValidTel(record.telefono))) errors.telefono = "Teléfono invalido";
 						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
 
 						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
@@ -505,9 +513,23 @@ const useFormularioOsprera = ({
 						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
 						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
 						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
+
+						if (record.telefonoContacto?.length && !matchIsValidTel(record.telefonoContacto)) errors.telefonoContacto = "Teléfono de contacto inválido";
+						if (record.telefonoContacto2?.length && !matchIsValidTel(record.telefonoContacto2)) errors.telefonoContacto2 = "Teléfono de contacto 2 inválido";
+						if (record.emailContacto?.length && !ValidarEmail(record.emailContacto)) errors.emailContacto = "Email de contacto inválido";
+						if (record.emailContacto2?.length && !ValidarEmail(record.emailContacto2)) errors.emailContacto2 = "Email de contacto 2 inválido";
+
+						if (!record.atencionesPrevias) errors.atencionesPrevias = "Dato requerido";
+						if (record.atencionesPrevias === "S" && !record.tipoPrestador) {
+							errors.tipoPrestador = "Dato requerido";
+						}
+						if (record.atencionesPrevias === "S" && !record.conCoberturaOsprera) {
+							errors.conCoberturaOsprera = "Dato requerido";
+						}
 					}
 
 					if (Object.keys(errors).length) {
+						// console.log("errors", errors);
 						setList((o) => ({
 							...o,
 							selection: {
@@ -553,7 +575,7 @@ const useFormularioOsprera = ({
 					// console.log("record",record);
 					
 					
-					console.log("list",list);
+					// console.log("list",list);
 
 					//Validaciones
 					const errors = {};
@@ -576,7 +598,9 @@ const useFormularioOsprera = ({
 						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
 
 						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
+						if (record.medioGestion == "email" && !ValidarEmail(record.direccionesEmailDestino)) errors.direccionesEmailDestino = "Email inválido";
 						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
+						if (record.medioGestion == "telefono" && (!record.telefono || !matchIsValidTel(record.telefono))) errors.telefono = "Teléfono invalido";
 						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
 
 						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
@@ -584,6 +608,19 @@ const useFormularioOsprera = ({
 						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
 						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
 						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
+
+						if (record.telefonoContacto?.length && !matchIsValidTel(record.telefonoContacto)) errors.telefonoContacto = "Teléfono de contacto inválido";
+						if (record.telefonoContacto2?.length && !matchIsValidTel(record.telefonoContacto2)) errors.telefonoContacto2 = "Teléfono de contacto 2 inválido";
+						if (record.emailContacto?.length && !ValidarEmail(record.emailContacto)) errors.emailContacto = "Email de contacto inválido";
+						if (record.emailContacto2?.length && !ValidarEmail(record.emailContacto2)) errors.emailContacto2 = "Email de contacto 2 inválido";
+
+						if (!record.atencionesPrevias) errors.atencionesPrevias = "Dato requerido";
+						if (record.atencionesPrevias === "S" && !record.tipoPrestador) {
+							errors.tipoPrestador = "Dato requerido";
+						}
+						if (record.atencionesPrevias === "S" && !record.conCoberturaOsprera) {
+							errors.conCoberturaOsprera = "Dato requerido";
+						}
 					}
 
 					if (Object.keys(errors).length) {
@@ -831,3 +868,4 @@ const useFormularioOsprera = ({
 };
 
 export default useFormularioOsprera;
+ 

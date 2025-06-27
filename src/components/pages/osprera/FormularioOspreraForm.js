@@ -169,11 +169,6 @@ const FormularioOspreraForm = ({
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
-  const [modalPreguntas, setModalPreguntas] = useState({
-    visible: false,
-    texto: "",
-    respuesta: "",
-  });
   const [modalDocumentacion, setModalDocumentacion] = useState({
     visible: false,
     documentacionOK: false,
@@ -193,7 +188,11 @@ const FormularioOspreraForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    const localidadUsuario = `${usuarioLogueado.ambitoSeccionales == null ? seccionalSelect.selected.record.localidadNombre : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion}, `;
+    const localidadUsuario = `${
+      usuarioLogueado.ambitoSeccionales == null
+        ? seccionalSelect.selected.record.localidadNombre
+        : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
+    }, `;
 
     pushQuery({
       action: "EnviarCorreo",
@@ -202,7 +201,9 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format(
+              "DD/MM/YYYY"
+            )}</strong><br></br>` +
             `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
@@ -225,7 +226,14 @@ const FormularioOspreraForm = ({
             `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
         },
       },
-      onOk: async (ok) => {        
+      onOk: async (ok) => {
+        const estadoEnviado = gestionEstadoSelect.options.find(
+          (o) => o.label.toString().trim() === "ENVIADO"
+        );
+        if (estadoEnviado) {
+          onChange({ gestionEstadoId: estadoEnviado?.value });
+        }
+
         setDialogTexto("Se ha enviado un email a la dirección ingresada.");
         setOpenDialog(true);
       },
@@ -264,6 +272,7 @@ const FormularioOspreraForm = ({
         changes.emailContacto2 = false;
 
         changes.titularPaciente = false;
+        changes.atencionesPrevias = false;
         changes.medioGestion = false;
         changes.telefono = false;
         changes.resultadoLlamada = false;
@@ -271,7 +280,7 @@ const FormularioOspreraForm = ({
         changes.texto = false;
         changes.gestionRubro = false;
         changes.gestionSubRubro = false;
-        // changes.gestionEstado = false;
+        changes.gestionEstado = false;
         changes.gestionSituacion = false;
         changes.gestionAreaOsprera = false;
       }
@@ -282,9 +291,91 @@ const FormularioOspreraForm = ({
       changes.nombreTitular = true;
     }
 
+    if (data.medioGestion === "telefono") {
+      changes.gestionEstado = false;
+    } else {
+      if (gestionEstadoSelect.loading) return;
+
+      changes.gestionEstado = true;
+
+      setGestionEstadoSelect((o) => ({
+        ...o,
+        selected: gestionEstadoSelect.options[0],
+        origen: "option",
+      }));
+
+      const estadoIniciado = gestionEstadoSelect.options.find(
+        (o) => o.label.toString().trim() === "INICIADO"
+      );
+      if (estadoIniciado) {
+        onChange({ gestionEstadoId: estadoIniciado?.value });
+      }
+    }
+
     setDisabledItems((o) => ({ ...o, ...changes }));
-  }, [titular]);
+  }, [titular, data?.medioGestion]);
   //#endregion
+
+  //#region El Paciente es titular
+  useEffect(() => {
+    const changes = {};
+    if (!data?.elPacienteEsTitular) {
+      changes.tipoDocumentoId = "";
+      changes.dniPaciente = "";
+      changes.apellidoPaciente = "";
+      changes.nombrePaciente = "";
+
+      changes.fechaNacimiento = "";
+      changes.sexo = "";
+
+      changes.telefonoContacto = "";
+      changes.telefonoContacto2 = "";
+      changes.emailContacto = "";
+      changes.emailContacto2 = "";
+
+      changes.titularPaciente = false;
+    }
+    onChange(changes);
+  }, [data.elPacienteEsTitular]);
+
+  //#endregion
+
+  //#region Cambios atenciones previas
+  useEffect(() => {
+    const changes = {};
+    if (data?.atencionesPrevias === "S") {
+      changes.conCoberturaOsprera = false;
+      changes.tipoPrestador = false;
+    } else {
+      changes.conCoberturaOsprera = true;
+      changes.tipoPrestador = true;
+
+      onChange({ conCoberturaOsprera: "", tipoPrestador: "" });
+    }
+    setDisabledItems((o) => ({ ...o, ...changes }));
+  }, [data?.atencionesPrevias]);
+  //#endregion
+
+  //#region Cambios medio gestion
+  useEffect(() => {
+    if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
+
+    const changes = {};
+    if (
+      gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
+      (gestionEstadoSelect?.selected?.label?.toString().trim() ===
+        "FINALIZADO" &&
+        gestionSituacionSelect?.selected?.label?.toString().trim() ===
+          "CON RECLAMO FORMAL")
+    ) {
+      changes.observacionesEstado = false;
+    } else {
+      changes.observacionesEstado = true;
+      onChange({ observacionesEstado: "" });
+    }
+
+    setDisabledItems((o) => ({ ...o, ...changes }));
+  }, [data.gestionEstadoId, data.gestionSituacionId]);
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     // console.log("onDownloadSolicitudAfiliacion", conDatos);
@@ -467,7 +558,7 @@ const FormularioOspreraForm = ({
         return {
           config: {
             baseURL: "Afiliaciones",
-            endpoint: `/Afiliado/GetAfiliadoByCUIL`,
+            endpoint: `/Afiliado/GetAfiliadoByCUILValidado`,
             method: "GET",
           },
         };
@@ -788,7 +879,7 @@ const FormularioOspreraForm = ({
 
   //Carga inicial select GestionSubRubro
   useEffect(() => {
-    if (!gestionRubroSelect.selected?.value) return;   
+    if (!gestionRubroSelect.selected?.value) return;
     pushQuery({
       action: "GestionesSubRubroByRubro",
       params: { GestionRubroId: gestionRubroSelect.selected?.value },
@@ -893,7 +984,7 @@ const FormularioOspreraForm = ({
   //Carga inicial select GestionSituacion
   useEffect(() => {
     if (!gestionEstadoSelect.selected?.value) return;
-    
+
     pushQuery({
       action: "GestionesSituacionByEstado",
       params: { GestionEstadoId: gestionEstadoSelect.selected?.value },
@@ -1079,7 +1170,7 @@ const FormularioOspreraForm = ({
             domicilio: domicilioReal?.direccion ?? "",
             localidad: domicilioReal?.localidad ?? "",
             provincia: domicilioReal?.descripcionProvincia ?? "",
-            actividad: ok.descripcionActividadPrincipal ?? ""
+            actividad: ok.descripcionActividadPrincipal ?? "",
             //tipoDocumento: puedo hacer un find en le tipoDocOptions
           });
 
@@ -1133,7 +1224,7 @@ const FormularioOspreraForm = ({
           sexoId: ok?.sexoId,
           seccionalId: ok?.seccionalId,
           fechaNacimiento: ok?.fechaNacimiento,
-        }));        
+        }));
         // await validaOSPRERA();
         // await validaAFIP();
       },
@@ -1191,7 +1282,7 @@ const FormularioOspreraForm = ({
     setMostrarAlertas(true);
   };
 
-  const handlePreguntasConfirma = async () => {
+  const handleCheckDocumentacion = async () => {
     if (request == "A") {
       const isValid = await onValidate(true);
       if (!isValid) return;
@@ -1214,21 +1305,18 @@ const FormularioOspreraForm = ({
     if (!modalDocumentacion?.documentacionOK) {
       return;
     }
-    // console.log("modalDocumentacion", modalDocumentacion);
-    setModalPreguntas({
-      visible: true,
-    });
+    handleConfirma();
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    if (request == "A") {      
+    if (request == "A") {
       if (
         !titular.existeEnUATRE &&
         !titular.existeEnOSPRERA &&
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion == "email") {          
+        if (data.medioGestion == "email") {
           sendEnviarEmailHandler();
         }
         setDialogTexto(
@@ -1241,7 +1329,7 @@ const FormularioOspreraForm = ({
         }
 
         if (!titular.existeEnUATRE) {
-          onDownloadSolicitudAfiliacion(true);          
+          onDownloadSolicitudAfiliacion(true);
           setDialogTexto(
             "Se descargó la Solicitud de Afiliación de: " +
               data?.apellidoTitular +
@@ -1259,34 +1347,34 @@ const FormularioOspreraForm = ({
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => handleConfirma(), "AltKey");
 
-  // Manejar cambio de respuesta
-  const handleChangeAtencionesPrevias = (event) => {
-    onChange({ atencionesPrevias: event.target.value });
+  // // Manejar cambio de respuesta
+  // const handleChangeAtencionesPrevias = (event) => {
+  //   onChange({ atencionesPrevias: event.target.value });
 
-    if (event.target.value === "No") {
-      // Si la respuesta es "No", resetea las siguientes preguntas
-      onChange({ conCoberturaOsprera: "" });
-      onChange({ tipoPrestador: "" });
-    }
-  };
+  //   if (event.target.value === "No") {
+  //     // Si la respuesta es "No", resetea las siguientes preguntas
+  //     onChange({ conCoberturaOsprera: "" });
+  //     onChange({ tipoPrestador: "" });
+  //   }
+  // };
 
-  const handleChangeCoberturaOsprera = (event) => {
-    onChange({ conCoberturaOsprera: event.target.value });
-  };
+  // const handleChangeCoberturaOsprera = (event) => {
+  //   onChange({ conCoberturaOsprera: event.target.value });
+  // };
 
-  const handleChangeTipoPrestador = (event) => {
-    onChange({ tipoPrestador: event.target.value });
-  };
+  // const handleChangeTipoPrestador = (event) => {
+  //   onChange({ tipoPrestador: event.target.value });
+  // };
 
-  const handleConfirmaRespuestasModal = async () => {
-    // console.log("handleConfirmaRespuestasModal", respuestas);
-    setModalPreguntas({ visible: false });
-    handleConfirma();
-  };
+  // const handleConfirmaRespuestasModal = async () => {
+  //   // console.log("handleConfirmaRespuestasModal", respuestas);
+  //   setModalPreguntas({ visible: false });
+  //   handleConfirma();
+  // };
 
-  const handleCancelarRespuestasModal = () => {
-    setModalPreguntas({ visible: false });
-  };
+  // const handleCancelarRespuestasModal = () => {
+  //   setModalPreguntas({ visible: false });
+  // };
 
   const handleContinuarDocumentacionModal = () => {
     setModalDocumentacion({ visible: false, documentacionOK: true });
@@ -1323,7 +1411,12 @@ const FormularioOspreraForm = ({
           </DialogActions>
         </Dialog>
       </div>
-      <Modal show /*onHide={() => onClose()}*/ size="lg" centered>
+      <Modal
+        show
+        /*onHide={() => onClose()}*/ size="xl"
+        centered
+        className={modalCss.modalSeccionales}
+      >
         <Modal.Header className={modalCss.modalCabecera} closeButton>
           <h3>{title}</h3>
           <Grid
@@ -1373,7 +1466,11 @@ const FormularioOspreraForm = ({
               <Tab label="Datos Personales" />
               <Tab
                 label="Documentacion"
-                disabled={!titular.confirmado || request !== "A"}
+                disabled={
+                  !titular.confirmado ||
+                  request !== "A" ||
+                  data.medioGestion === "telefono"
+                }
               />
             </Tabs>
           </Grid>
@@ -1384,7 +1481,7 @@ const FormularioOspreraForm = ({
                 <Grid width="full" gap="inherit">
                   <Grid>
                     <Grid col>
-                      <Grid width="170px">
+                      <Grid width="180px">
                         <InputMaterial
                           id="cuitTitular"
                           label="CUIL Titular"
@@ -1443,7 +1540,7 @@ const FormularioOspreraForm = ({
                         </div>
                       )}
                     </Grid>
-                    <Grid col width="70px">
+                    <Grid col width="120px">
                       <Button
                         className="botonAzul"
                         disabled={
@@ -1460,7 +1557,7 @@ const FormularioOspreraForm = ({
                     </Grid>
                   </Grid>
                   <Grid>
-                    <Grid width="150px">
+                    <Grid width="230px">
                       <InputMaterial
                         id="apellidoTitular"
                         label="Apellido"
@@ -1480,7 +1577,7 @@ const FormularioOspreraForm = ({
                         }
                       />
                     </Grid>
-                    <Grid width="260px">
+                    <Grid width="380px">
                       <InputMaterial
                         id="nombreTitular"
                         label="Nombre"
@@ -1500,7 +1597,7 @@ const FormularioOspreraForm = ({
                         }
                       />
                     </Grid>
-                    <Grid col width="116px">
+                    <Grid col width="180px">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1511,7 +1608,8 @@ const FormularioOspreraForm = ({
                             !titular?.existeEnAFIP &&
                             !titular?.existeEnOSPRERA) ||
                           titular.confirmado ||
-                          !data?.apellidoTitular || !data?.nombreTitular
+                          !data?.apellidoTitular ||
+                          !data?.nombreTitular
                         }
                       >
                         <h6>
@@ -1695,6 +1793,186 @@ const FormularioOspreraForm = ({
                   </Grid>
                 </Grid>
                 <Grid width="100%" gap="inherit">
+                  <FormControl
+                    disabled={disabledItems.atencionesPrevias}
+                    error={!!errors.atencionesPrevias}
+                    component="fieldset"
+                    variant="standard"
+                  >
+                    <FormLabel id="demo-controlled-radio-buttons-group">
+                      ¿Ha realizado atenciones médicas previas?
+                    </FormLabel>
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      name="controlled-radio-buttons-group"
+                      value={data.atencionesPrevias}
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        onChange({ atencionesPrevias: value });
+                        if (value === "No") {
+                          // Si la respuesta es "No", resetea las siguientes preguntas
+                          onChange({ conCoberturaOsprera: "" });
+                          onChange({ tipoPrestador: "" });
+                        }
+                      }}
+                    >
+                      <FormControlLabel
+                        value="N"
+                        control={<Radio />}
+                        label="No"
+                      />
+                      <FormControlLabel
+                        value="S"
+                        control={<Radio />}
+                        label="Sí"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+
+                  <FormControl
+                    disabled={disabledItems.conCoberturaOsprera}
+                    error={!!errors.conCoberturaOsprera}
+                    component="fieldset"
+                    variant="standard"
+                  >
+                    <FormLabel id="demo-controlled-radio-buttons-group">
+                      ¿Con cobertura de OSPRERA?
+                    </FormLabel>
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      name="controlled-radio-buttons-group"
+                      value={data.conCoberturaOsprera}
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        onChange({ conCoberturaOsprera: value });
+                      }}
+                    >
+                      <FormControlLabel
+                        value="N"
+                        control={<Radio />}
+                        label="No"
+                      />
+                      <FormControlLabel
+                        value="S"
+                        control={<Radio />}
+                        label="Sí"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+
+                  <FormControl
+                    row
+                    disabled={disabledItems.tipoPrestador}
+                    error={!!errors.tipoPrestador}
+                    component="fieldset"
+                    variant="standard"
+                  >
+                    <FormLabel id="demo-controlled-radio-buttons-group">
+                      ¿En qué tipo de prestador?
+                    </FormLabel>
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      name="controlled-radio-buttons-group"
+                      value={data.tipoPrestador}
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        onChange({ tipoPrestador: value });
+                      }}
+                    >
+                      <FormControlLabel
+                        value="Publico"
+                        control={<Radio />}
+                        label="Público"
+                      />
+                      <FormControlLabel
+                        value="Privado"
+                        control={<Radio />}
+                        label="Privado"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Grid>
+
+                <FormControl
+                  disabled={disabledItems.medioGestion}
+                  error={!!errors.medioGestion}
+                  component="fieldset"
+                  variant="standard"
+                >
+                  <FormLabel id="demo-row-radio-buttons-group-label">
+                    Medio de Gestión:
+                  </FormLabel>
+                  <RadioGroup
+                    row
+                    aria-labelledby="demo-row-radio-buttons-group-label"
+                    name="row-radio-buttons-group"
+                    value={data?.medioGestion}
+                    onChange={(medioGestion) =>
+                      onChange({ medioGestion: medioGestion.target.value })
+                    }
+                  >
+                    <FormControlLabel
+                      value="email"
+                      control={<Radio />}
+                      label="Email"
+                    />
+                    <FormControlLabel
+                      value="telefono"
+                      control={<Radio />}
+                      label="Teléfono"
+                    />
+                  </RadioGroup>
+                </FormControl>
+                <Grid width="full">
+                  <Grid width>
+                    {(data.medioGestion === "email" && (
+                      <InputMaterial
+                        id="direccionesEmailDestino"
+                        name="email"
+                        label="Email"
+                        error={!!errors.direccionesEmailDestino}
+                        helperText={errors.direccionesEmailDestino ?? ""}
+                        value={data.direccionesEmailDestino}
+                        disabled={disabledItems.direccionesEmailDestino}
+                        onChange={(direccionesEmailDestino) =>
+                          onChange({ direccionesEmailDestino })
+                        }
+                      />
+                    )) ||
+                      (data.medioGestion === "telefono" && (
+                        <Grid width>
+                          <Grid width="350px">
+                            <InputMaterial
+                              id="telefono"
+                              label="Teléfono"
+                              type="tel"
+                              error={!!errors.telefono}
+                              helperText={errors.telefono ?? ""}
+                              value={data.telefono}
+                              disabled={disabledItems.telefono}
+                              onChange={(telefono) => onChange({ telefono })}
+                            />
+                          </Grid>
+                          <Grid width="full">
+                            <InputMaterial
+                              label="Resultado de la llamada"
+                              error={!!errors.resultadoLlamada}
+                              helperText={errors.resultadoLlamada ?? ""}
+                              value={data.resultadoLlamada}
+                              disabled={disabledItems.resultadoLlamada}
+                              onChange={(resultadoLlamada) =>
+                                onChange({ resultadoLlamada })
+                              }
+                            />
+                          </Grid>
+                        </Grid>
+                      ))}
+                  </Grid>
+                </Grid>
+                <Grid width="100%" gap="inherit">
                   <Grid width="100%" gap="inherit">
                     <SearchSelectMaterial
                       required
@@ -1777,26 +2055,6 @@ const FormularioOspreraForm = ({
 
                     <SearchSelectMaterial
                       required
-                      id="gestionSituacion"
-                      name="gestionSituacion"
-                      label="Situación"
-                      error={!!errors.gestionSituacion}
-                      helperText={errors.gestionSituacion ?? ""}
-                      value={gestionSituacionSelect.selected}
-                      disabled={disabledItems.gestionSituacion}
-                      onChange={(selected = {}) => {
-                        setGestionSituacionSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionSituacionId: selected.value });
-                      }}
-                      options={gestionSituacionSelect.options}
-                    />
-
-                    <SearchSelectMaterial
-                      required
                       id="gestionAreaOsprera"
                       name="gestionAreaOsprera"
                       label="Area OSPRERA"
@@ -1814,84 +2072,49 @@ const FormularioOspreraForm = ({
                       }}
                       options={gestionAreaOspreraSelect.options}
                     />
+
+                    <SearchSelectMaterial
+                      required
+                      id="gestionSituacion"
+                      name="gestionSituacion"
+                      label="Situación"
+                      error={!!errors.gestionSituacion}
+                      helperText={errors.gestionSituacion ?? ""}
+                      value={gestionSituacionSelect.selected}
+                      disabled={disabledItems.gestionSituacion}
+                      onChange={(selected = {}) => {
+                        setGestionSituacionSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionSituacionId: selected.value });
+                      }}
+                      options={gestionSituacionSelect.options}
+                    />
                   </Grid>
                 </Grid>
-                <FormControl
-                  disabled={disabledItems.medioGestion}
-                  error={!!errors.medioGestion}
-                  component="fieldset"
-                  variant="standard"
-                >
-                  <FormLabel id="demo-row-radio-buttons-group-label">
-                    Medio de Gestión:
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    value={data?.medioGestion}
-                    onChange={(medioGestion) =>
-                      onChange({ medioGestion: medioGestion.target.value })
-                    }
-                  >
-                    <FormControlLabel
-                      value="email"
-                      control={<Radio />}
-                      label="Email"
+
+                <Grid width="100%" gap="inherit">
+                  <Grid width="100%" gap="inherit">
+                    <TextField
+                      fullWidth
+                      multiline
+                      maxRows={4}
+                      label="Observaciones"
+                      error={!!errors.observacionesEstado}
+                      helperText={errors.observacionesEstado ?? ""}
+                      value={data.observacionesEstado}
+                      disabled={disabledItems.observacionesEstado}
+                      onChange={(observacionesEstado) => {
+                        onChange({
+                          observacionesEstado: observacionesEstado.target.value,
+                        });
+                      }}
                     />
-                    <FormControlLabel
-                      value="telefono"
-                      control={<Radio />}
-                      label="Teléfono"
-                    />
-                  </RadioGroup>
-                </FormControl>
-                <Grid width="full">
-                  <Grid width>
-                    {(data.medioGestion === "email" && (
-                      <InputMaterial
-                        id="direccionesEmailDestino"
-                        name="email"
-                        label="Email"
-                        error={!!errors.direccionesEmailDestino}
-                        helperText={errors.direccionesEmailDestino ?? ""}
-                        value={data.direccionesEmailDestino}
-                        disabled={disabledItems.direccionesEmailDestino}
-                        onChange={(direccionesEmailDestino) =>
-                          onChange({ direccionesEmailDestino })
-                        }
-                      />
-                    )) ||
-                      (data.medioGestion === "telefono" && (
-                        <Grid width>
-                          <Grid width="350px">
-                            <InputMaterial
-                              id="telefono"
-                              label="Teléfono"
-                              type="tel"
-                              error={!!errors.telefono}
-                              helperText={errors.telefono ?? ""}
-                              value={data.telefono}
-                              disabled={disabledItems.telefono}
-                              onChange={(telefono) => onChange({ telefono })}
-                            />
-                          </Grid>
-                          <Grid width="full">
-                            <InputMaterial
-                              label="Resultado de la llamada"
-                              error={!!errors.resultadoLlamada}
-                              helperText={errors.resultadoLlamada ?? ""}
-                              value={data.resultadoLlamada}
-                              disabled={disabledItems.resultadoLlamada}
-                              onChange={(resultadoLlamada) =>
-                                onChange({ resultadoLlamada })
-                              }
-                            />
-                          </Grid>
-                        </Grid>
-                      ))}
                   </Grid>
                 </Grid>
+
                 {hide.deletedObs ? null : (
                   <Grid width="full" gap="inherit">
                     <Grid width="full">
@@ -1930,24 +2153,35 @@ const FormularioOspreraForm = ({
                   </Grid>
                 )}
               </Grid>,
-              <Documentacion
-                data={documentacionList}
-                onChange={({ index, item }) => {
-                  const newDocList = [...documentacionList];
-                  if (index == null) {
-                    // Create
-                    newDocList.push(item);
-                  } else if (item == null) {
-                    // Delete
-                    newDocList.splice(index, 1);
-                  } else {
-                    // Update
-                    newDocList.splice(index, 1, item);
-                  }
-                  setDocumentacionList(newDocList);
-                  onChange({ documentacion: newDocList });
-                }}
-              />,
+              <>
+                <Documentacion
+                  data={documentacionList}
+                  onChange={({ index, item }) => {
+                    const newDocList = [...documentacionList];
+                    if (index == null) {
+                      // Create
+                      newDocList.push(item);
+                    } else if (item == null) {
+                      // Delete
+                      newDocList.splice(index, 1);
+                    } else {
+                      // Update
+                      newDocList.splice(index, 1, item);
+                    }
+                    setDocumentacionList(newDocList);
+                    onChange({ documentacion: newDocList });
+                  }}
+                />
+                <Button
+                  className="botonAmarillo"
+                  marginTop={3}
+                  width={50}
+                  onClick={() => setSelectedTab(0)}
+                >
+                  CONFIRMA DOCUMENTACIÓN
+                </Button>
+                ,
+              </>,
             ][selectedTab]
           }
         </Modal.Body>
@@ -1956,13 +2190,16 @@ const FormularioOspreraForm = ({
             className="botonAzul"
             loading={loading}
             width={25}
+            hidden={selectedTab === 1}
             disabled={!titular?.confirmado}
             onClick={
               request == "E"
                 ? () => hanlerEnviaEmail()
-                : () => handlePreguntasConfirma()
+                : () => handleCheckDocumentacion()
             }
-          > CONFIRMA
+          >
+            {" "}
+            CONFIRMA
           </Button>
 
           <Button
@@ -1988,107 +2225,6 @@ const FormularioOspreraForm = ({
           )}
         </Modal.Footer>
       </Modal>
-      {modalPreguntas.visible && (
-        <Modal show>
-          <Modal.Header className={modalPreguntas.modalCabecera}>
-            <h3>Información estadística</h3>
-          </Modal.Header>
-          <Modal.Body>
-            <div>
-              <FormControl>
-                <FormLabel id="demo-controlled-radio-buttons-group">
-                  ¿Ha realizado atenciones médicas previas?
-                </FormLabel>
-                <RadioGroup
-                  aria-labelledby="demo-controlled-radio-buttons-group"
-                  name="controlled-radio-buttons-group"
-                  value={data.atencionesPrevias}
-                  onChange={handleChangeAtencionesPrevias}
-                >
-                  <FormControlLabel value="N" control={<Radio />} label="No" />
-                  <FormControlLabel value="S" control={<Radio />} label="Sí" />
-                </RadioGroup>
-              </FormControl>
-            </div>
-
-            {/* Pregunta 2 */}
-            {data.atencionesPrevias === "S" && (
-              <div style={{ marginTop: 16 }}>
-                <FormControl>
-                  <FormLabel id="demo-controlled-radio-buttons-group">
-                    ¿Con cobertura de OSPRERA?
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-controlled-radio-buttons-group"
-                    name="controlled-radio-buttons-group"
-                    value={data.conCoberturaOsprera}
-                    onChange={handleChangeCoberturaOsprera}
-                  >
-                    <FormControlLabel
-                      value="N"
-                      control={<Radio />}
-                      label="No"
-                    />
-                    <FormControlLabel
-                      value="S"
-                      control={<Radio />}
-                      label="Sí"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-            )}
-
-            {/* Pregunta 3 */}
-            {data.atencionesPrevias === "S" && (
-              <Grid col style={{ marginTop: 16 }}>
-                <FormControl>
-                  <FormLabel id="demo-controlled-radio-buttons-group">
-                    ¿En qué tipo de prestador?
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-controlled-radio-buttons-group"
-                    name="controlled-radio-buttons-group"
-                    value={data.tipoPrestador}
-                    onChange={handleChangeTipoPrestador}
-                  >
-                    <FormControlLabel
-                      value="Publico"
-                      control={<Radio />}
-                      label="Público"
-                    />
-                    <FormControlLabel
-                      value="Privado"
-                      control={<Radio />}
-                      label="Privado"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Grid>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              className="botonAzul"
-              onClick={handleConfirmaRespuestasModal}
-              loading={loading}
-              disabled={
-                !data.atencionesPrevias ||
-                (data.atencionesPrevias === "S" &&
-                  (!data.conCoberturaOsprera || !data.tipoPrestador))
-              }
-            >
-              {loading ? "ENVIANDO CORREO..." : "CONFIRMA"}
-            </Button>
-            <Button
-              className="botonAmarillo"
-              onClick={handleCancelarRespuestasModal}
-            >
-              CANCELA
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
       {modalDocumentacion.visible && (
         <Modal show>
           <Modal.Header
