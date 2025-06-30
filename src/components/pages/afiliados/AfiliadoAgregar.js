@@ -3064,7 +3064,7 @@ const AfiliadoAgregar = (props) => {
                   <InputMaterial
                     id="telefonoPais"
                     value={telefonoPaisState.value}
-                    label="Cód. País"
+                    label="País"
                     disabled={InputDisabled()}
                     width={20}
                     onChange={handleInputChange}
@@ -3072,7 +3072,7 @@ const AfiliadoAgregar = (props) => {
                   <InputMaterial
                     id="telefonoArea"
                     value={telefonoAreaState.value}
-                    label="Cód Área"
+                    label="Área"
                     disabled={InputDisabled()}
                     width={25}
                     onChange={handleInputChange}
