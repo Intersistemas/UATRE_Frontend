@@ -21,11 +21,6 @@ import SearchSelectMaterial, {
   mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 
-
-
-
-
-
 const selectionDef = {
 	action: "",
 	request: "",
@@ -402,6 +397,7 @@ const useAfiliacionesPorEmpresa = ({
 					params: payload.params,
 					onOk: async (response) => {
 						setList((old) => ({ ...old, loading: "Cargando..." }));
+						setList((o) => ({ ...o, loading: null }));
 					},
 					onError: async (err) => alert(err.message),
 				};

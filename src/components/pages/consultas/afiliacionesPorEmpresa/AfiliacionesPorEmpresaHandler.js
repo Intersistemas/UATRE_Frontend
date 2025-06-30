@@ -155,6 +155,12 @@ const AfiliacionesPorEmpresaHandler = () => {
 		actions.push(
 			createAction({ 
 				action: `Descarga Formulario de Afiliaciones ${desc}`,
+				onExecute: () => {
+					documentacionChanger("downloadFirstFile", {
+						clear: !afiliacionPorEmpresaSelected?.id,
+						params: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true},
+					});
+				},
 				request: "D",
 				record: {},
 				tarea: "Consultas_AfiliacionesPorEmpresaDescarga",
@@ -175,20 +181,20 @@ const AfiliacionesPorEmpresaHandler = () => {
 					record: {},
 					tarea: "Consultas_AfiliacionesPorEmpresaRechaza",
 					onExecute: () => afiliacionesPorEmpresaRequest("patchEstados", {
-					action: "Rechaza",
-					record: afiliacionPorEmpresaSelected,
-					params: { 
-							solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
-						}, // Parámetros para la consulta
-					config: {
-						body: {
-							estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
-							estadoSolicitudObservaciones: "sin observaciones",
-							estadoSolicitudUsuario: Usuario?.id,
-							estadoFecha: new Date().toISOString()
-						}, // Cuerpo de la solicitud PATCH
-						},
-				}),
+						action: "Rechaza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					}),
 				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
 					: {
@@ -408,7 +414,7 @@ useEffect(() => {
 	}, [documentacionChanger, documentacionSelected, afiliacionPorEmpresaSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Documentación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate} />,
+		header: () => <Tab label="Documentación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate || afiliacionPorEmpresaSelected?.estado !== "Autorizada" } />,
 		body: documentacionTab,
 		actions: documentacionActions,
 	});
