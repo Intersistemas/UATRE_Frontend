@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import DocumentacionTable from "./DocumentacionTable";
 import DocumentacionForm from "./DocumentacionModal";
+import downloadjs from "downloadjs";
 
 const selectionDef = {
   action: "",
@@ -136,7 +137,22 @@ const useDocumentaciones = () => {
   //#endregion
 
   const requestChanges = useCallback((type, payload = {}) => {
+    console.log("useDocumentaciones_requestChanges", type, payload);
     switch (type) {
+      case "downloadFirstFile": {
+          return pushQuery({
+            action: "GetList",
+            params: { ...payload.params },
+            onOk: async (data) =>{
+              console.log("Documentacion downloadFirstFile data", data);
+              if (!data) return;
+                const pdfGenerado = `data:application/pdf;base64,${data[0]?.archivo}`;
+                downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
+             
+            },
+            onError: async (err) =>{}
+          });
+      }
       case "selected": {
         return setList((o) => ({
           ...o,
@@ -166,6 +182,16 @@ const useDocumentaciones = () => {
           params: { ...payload.params },
           data: [],
         }));
+      }
+      case "Create": {
+        return pushQuery({
+          action: "Create",
+          config: {body: payload.params},
+          onOk: async (data) =>{
+            console.log("Documentacion Create data", data);
+          },
+          onError: async (err) =>{}
+        });
       }
       default:
         return;

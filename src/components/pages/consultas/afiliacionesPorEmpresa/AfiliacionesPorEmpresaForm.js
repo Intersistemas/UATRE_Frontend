@@ -12,8 +12,6 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
 import Documentacion from "components/documentacion/Documentacion";
 import downloadjs from "downloadjs";
-
-import download from "downloadjs";
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
   mapOptions,
@@ -34,6 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 import PDF from "./PDF";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -111,6 +110,9 @@ const FormularioOspreraForm = ({
     error: null,
     });
   //#endregion
+
+  const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
+  const [documentacionActions, setDocumentacionActions] = useState([]);
 
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
@@ -194,7 +196,7 @@ const FormularioOspreraForm = ({
     columns: columnsDef,
   });
 
-  const onGrabarSolicitudAfiliacion = (solicitud) => {
+  const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
     
     
     console.log("Soliitud", solicitud);
@@ -206,6 +208,12 @@ const FormularioOspreraForm = ({
       },
       onOk: (data) => {
         console.log("ddjjUatreTrabajadores", data);
+        onDownloadSolicitudAfiliacion(trabajadoresAfipConsulta, data);
+          setTrabajadoresRuralesNoAfiliados({
+            data: trabajadoresAfipConsulta,
+            loading: false,
+            error: null,
+          });
       },
        onError: (error) => {
         setDialog({text: "No se pudo ingresar la Solicitud de Afiliación.", open: true});
@@ -220,9 +228,10 @@ const FormularioOspreraForm = ({
 
     const { request: generarPDF } = PDF();
 
-  const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados) => {
+  const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
 
     console.log("trabajadoresNoAfiliados", trabajadoresNoAfiliados);
+    console.log("onDownloadSolicitudAfiliacion_afiliacionPorEmpresa", afiliacionPorEmpresa);
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
       const splitCuil = (cuil) => {
@@ -344,6 +353,19 @@ const FormularioOspreraForm = ({
     setPdfGenerado(base64Original);
 
     downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
+
+    
+    documentacionChanger("Create", {
+			params: {
+        archivo: base64,
+        entidadId: afiliacionPorEmpresa?.id,
+        entidadTipo: "E",
+        nombreArchivo: "SolicitudesDeAfiliacion.pdf",
+        observaciones: "Solicitudes de Afiliación por Empresa",
+        refTipoDocumentacionId: 6,
+        soloactivos: true
+      },
+		});
 
     onClose(false);
     /*
@@ -576,7 +598,7 @@ const FormularioOspreraForm = ({
         AfiliadoId: 0,
       },
       onOk: (data) => {
-        console.log("ddjjUatreTrabajadores", data);
+        console.log("OK_ddjjUatreTrabajadores", data);
         if (!data || (Array.isArray(data) && data.length === 0)) {
           setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
           setTrabajadoresRuralesNoAfiliados({
@@ -585,13 +607,7 @@ const FormularioOspreraForm = ({
             error: "No existen datos para el CUIT y período seleccionados.",
           });
         } else {
-          onGrabarSolicitudAfiliacion(solicitud);
-          onDownloadSolicitudAfiliacion(data);
-          setTrabajadoresRuralesNoAfiliados({
-            data: data,
-            loading: false,
-            error: null,
-          });
+          onGrabarSolicitudAfiliacion(solicitud, data);
         }
       },
        onError: (error) => {
@@ -603,14 +619,6 @@ const FormularioOspreraForm = ({
         });
       },
     });
-
-
-    /*
-    if (request == "A") {      
-        onDownloadSolicitudAfiliacion(false);
-    } else {
-      onClose(true);
-    }*/
   };
   //#endregion Confirmación
 
