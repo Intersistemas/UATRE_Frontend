@@ -167,6 +167,16 @@ const useDocumentaciones = () => {
           data: [],
         }));
       }
+      case "Create": {
+        return pushQuery({
+          action: "Create",
+          config: {body: payload.params},
+          onOk: async (data) =>{
+            console.log("Documentacion Create data", data);
+          },
+          onError: async (err) =>{}
+        });
+      }
       default:
         return;
     }

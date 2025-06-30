@@ -421,22 +421,10 @@ const useAfiliacionesPorEmpresa = ({
 			<FormularioOspreraForm
 				estadosSolicitudes={estadoSelect.data}
 				data={(() => { 
-					//console.log('list.selection',list.selection)
-					//INIT DE DATOS DEL FORM
 					const data =
-					//seccionalId = list.selection.edit.refSeccionalId,
 					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
 						{
-							/*fecha: moment().format("YYYY-MM-DD"),
-							fechaEnvioMail: null,
-							direccionesEmailDestino: null,
-							respuestaEnvioEmail: null,
-							usuarioId: usuario?.id ?? "",*/
 							seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
-							elPacienteEsTitular: list.selection.edit.elPacienteEsTitular ?? false,
-							atencionesPrevias: list.selection.edit.atencionesPrevias ?? "",
-							conCoberturaOsprera: list.selection.edit.conCoberturaOsprera ?? "",
-							tipoPrestador: list.selection.edit.tipoPrestador ?? "",
 						}
 						:
 						["B"].includes(list.selection.request) ? //INIT PARA BAJA
@@ -467,217 +455,13 @@ const useAfiliacionesPorEmpresa = ({
 						? { deletedObs: true }
 						: {}
 				}
-				onChange={(edit) => {
-					// console.log("edit:",edit)
-					const changes = { edit: { ...edit }, errors: {}, help: {} };
-					if ("cuitTitular" in edit) {
-						
-						if (edit.cuitTitular && `${edit.cuitTitular}`.length === 11) {
-							if (ValidarCUIT(edit.cuitTitular)) {
-								//changes.help.cuitTitular = "Cargando...";
-							} else {
-								changes.errors.cuitTitular = "CUIT inválido";
-							}
-						}
-					}
-					setList((o) => ({
-						...o,
-						selection: {
-							...o.selection,
-							edit: { ...o.selection.edit, ...changes.edit },
-							errors: { ...o.selection.errors, ...changes.errors },
-						},
-					}));
+				onChange={() => {
+					
 				}}
 				
 
-				onClose={(confirm) => {
-					if (!["A", "B", "M", "R"].includes(list.selection.request)) {
-						confirm = false;
-					}
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								...selectionDef,
-								index: o.selection.index,
-								record:
-									!o.selection.multi && o.selection.index > -1
-										? o.data.at(o.selection.index)
-										: o.selection.record,
-							},
-						}));
-						return;
-					}
-
-					const record = {
-						fecha: moment().format("YYYY-MM-DD"),
-						fechaEnvioMail: null,
-						direccionesEmailDestino: null,
-						respuestaEnvioEmail: null,
-						usuarioId: usuario?.id ?? "",
-						seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
-						...list.selection.edit
-					}
-					// console.log("record",record);
-					
-					
-					console.log("list",list);
-
-					//Validaciones
-					const errors = {};
-					if (list.selection.request === "B") {
-						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-					}
-
-					if (["A", "M"].includes(list.selection.request)) {
-						if (!record.cuitTitular) errors.cuitTitular = "Dato requerido"; else if (!ValidarCUIT(record.cuitTitular)) errors.cuitTitular = "CUIT Incorrecto";
-						if (!record.dniPaciente) errors.dniPaciente = "Dato requerido";
-
-						if (!record.apellidoTitular) errors.apellidoTitular = "Dato requerido";
-						if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
-						if (!record.apellidoPaciente) errors.apellidoPaciente = "Dato requerido";
-						if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
-						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
-						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
-						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
-						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
-						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
-
-						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
-						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
-						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
-
-						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
-						if (!record.gestionSubRubroId || record.gestionSubRubroId == 0) errors.gestionSubRubro = "Dato requerido";
-						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
-						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
-						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
-					}
-
-					if (Object.keys(errors).length) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
-							},
-						}));
-						return;
-					}
-
-					if (!list.remote) {
-						const changes = {
-							loading: "Cargando...",
-							data: [...list.data],
-						};
-						switch (list.selection.request) {
-							case "A": {
-								record.id =
-									(Math.max(...changes.data.map((r) => r.id)) ?? 0) + 1;
-								changes.data.push(record);
-								break;
-							}
-							case "M": {
-								changes.selection = { ...list.selection };
-								AsArray(changes.selection.apply).forEach((id) => {
-									const index = changes.data.findIndex((r) => r.id === id);
-									if (index < 0) return;
-									const r = { ...changes.data.at(index), ...record };
-									if (changes.selection.multi) {
-										changes.selection.index ??= [];
-										changes.selection.record ??= [];
-										const i = changes.selection.record.findIndex(
-											(r) => r.id === id
-										);
-										if (i < 0) {
-											changes.selection.index.push(index);
-											changes.selection.record.push(r);
-										} else {
-											changes.selection.index[i] = index;
-											changes.selection.record[i] = r;
-										}
-									} else {
-										changes.selection.index = index;
-										changes.selection.record = r;
-									}
-									changes.data.splice(index, 1, r);
-								});
-								break;
-							}
-							case "B": {
-								changes.selection = { ...list.selection };
-								AsArray(changes.selection.apply).forEach((id) => {
-									const index = changes.data.findIndex((r) => r.id === id);
-									if (index < 0) return;
-									const r = {
-										...changes.data.at(index),
-										deletedDate: dayjs().format("YYYY-MM-DD"),
-										deletedObs: record.deletedObs,
-									};
-									if (changes.selection.multi) {
-										const i = changes.selection.record.findIndex(
-											(r) => r.id === id
-										);
-										if (i < 0) {
-											changes.selection.index.push(index);
-											changes.selection.record.push(r);
-										} else {
-											changes.selection.index[i] = index;
-											changes.selection.record[i] = r;
-										}
-									} else {
-										changes.selection.index = index;
-										changes.selection.record = r;
-									}
-									changes.data.splice(index, 1, r);
-								});
-								break;
-							}
-							default:
-								break;
-						}
-						list.onDataChange(changes.data);
-						setList((o) => ({ ...o, ...changes }));
-						return;
-					}
-
-					const query = {
-						config: {},
-						onOk: async (_res) =>
-							setList((old) => ({ ...old, loading: "Cargando..." })),
-						onError: async (err) => alert(err.message),
-					};
-
-					switch (list.selection.request) {
-						case "A":
-							query.action = "Create";
-							query.config.body = record;
-							break;
-						case "M":
-							query.action = "Update";
-							query.params = { id: record.id };
-							query.config.body = record;
-							break;
-						case "B":
-							query.action = "Delete";
-							query.params = { id: record.id };
-							query.config.body = {
-								id: record.id,
-								deletedObs: record.deletedObs,
-							};
-							break;
-						case "R":
-							query.action = "Reactiva";
-							//query.params = { id: record.id };
-							query.config.body = { id: record.id };
-							break;
-						default:
-							break;
-					}
-					pushQuery(query);
-					//setList((o) => ({ ...o, loading: "Cargando..." }));
+				onClose={() => {
+					setList((old) => ({ ...old, loading: "Cargando..." }))
 				}}
 			/>
 		);
