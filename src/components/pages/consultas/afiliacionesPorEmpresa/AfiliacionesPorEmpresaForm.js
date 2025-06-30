@@ -124,7 +124,7 @@ const FormularioOspreraForm = ({
 
   const [filtros, setFiltros] = useState({
     desde: getFechaTresMesesAtras(),
-    hasta: "",
+    hasta: new Date(),
     cuit: "",
     razonSocial: "",
     estado: 0,

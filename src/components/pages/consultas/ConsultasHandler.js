@@ -160,9 +160,9 @@ const ConsultasHandler = () => {
 					<Button
 						className="botonAmarillo"
 						
-						onClick={() => navigate("AfiliacionesPorEmpresa")}
+						onClick={() => navigate("Afiliaciones")}
 						width="32"
-						//tarea="Informes_Afiliados_AfiliadosEmpresa"
+						tarea="Consultas_AfiliacionesPorEmpresa"
 					>
 						Afiliaciones por Empresa
 					</Button>

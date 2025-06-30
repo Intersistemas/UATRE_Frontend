@@ -140,7 +140,7 @@ const App = () => {
 
             <Route path="Inicio/Consultas" element={<ConsultasHandler />} />
             <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler />} />
-            <Route path="Inicio/Consultas/AfiliacionesPorEmpresa" element={<AfiliacionesPorEmpresaHandler/>}/>
+            <Route path="Inicio/Consultas/Afiliaciones" element={<AfiliacionesPorEmpresaHandler/>}/>
                 
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
               
