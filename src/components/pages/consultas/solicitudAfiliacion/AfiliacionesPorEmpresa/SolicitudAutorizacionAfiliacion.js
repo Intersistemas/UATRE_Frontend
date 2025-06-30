@@ -137,6 +137,15 @@ const SolicitudAutorizacionAfiliacion = ({
           },
         };
       }
+      case "SolicitudAfiliacionEmpresas": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: "/SolicitudAfiliacionEmpresas",
+            method: "POST"  // <-- esto es lo que envías
+          },
+        };
+      }
 
         // Obtener datos de la tabla principal
       case "PatchEstados": {

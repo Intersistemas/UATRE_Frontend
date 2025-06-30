@@ -227,7 +227,6 @@ const useAfiliacionesPorEmpresa = ({
 			// Si la respuesta no es un array, muestra error en consola
 			if (!Array.isArray(data))
 			  return console.error("Se esperaba un arreglo", data);
-			console.log("Datos recibidos de la consulta 22:", data); // <-- Agregá esta línea
 			// Si es un array, guarda los datos en 'changes'
 			changes.data = data.filter((d) => d.tipo == "Solicitudes"); // Filtra el estado "Todos" (id 0)
 		  },
@@ -420,6 +419,7 @@ const useAfiliacionesPorEmpresa = ({
 	if (list.selection.request) {
 		form = (
 			<FormularioOspreraForm
+				estadosSolicitudes={estadoSelect.data}
 				data={(() => { 
 					//console.log('list.selection',list.selection)
 					//INIT DE DATOS DEL FORM
@@ -456,70 +456,8 @@ const useAfiliacionesPorEmpresa = ({
 				loading={!!list.loading}
 				disabled={(() => {
 					const r = { //TODOS LOS CAMPOS DESHABILITADOS POR DEFECTO
-								cuitTitular: true,
-								fecha: true,
-								nombreTitular: true,
-								apellidoTitular: true,
-								telefonoContacto: true,
-								telefonoContacto2: true,
-								emailContacto: true,
-								emailContacto2: true,
-								elPacienteEsTitular: true,
-								dniPaciente: true,
-								nombrePaciente: true,
-								apellidoPaciente: true,
-								fechaNacimiento: true,
-								sexo: true,
-								texto: true,	
-								telefono: true,
-								resultadoLlamada: true,
-								medioGestion: true,
-								tipoDocumentoId: true,
-								direccionesEmailDestino: true,
 								seccionalId: true,
-								gestionRubro: true,
-								gestionSubRubro: true,
-								gestionEstado: true,
-								gestionSituacion: true,
-								gestionAreaOsprera: true,
 							}
-					
-					
-					if (["A"].includes(list.selection.request)) {
-							r.cuitTitular = false
-					}
-						
-					if (["M"].includes(list.selection.request)) {
-						 		// r.telefonoContacto= false;
-								// r.telefonoContacto2= false;
-								// r.emailContacto= false;
-								// r.emailContacto2= false;
-								// r.elPacienteEsTitular= false;
-								// r.dniPaciente= false;
-								// r.nombrePaciente= false;
-								// r.apellidoPaciente= false;
-								// r.fechaNacimiento= false;
-								// r.sexo= false;
-								// r.texto= false;
-								// r.telefono= false;
-								// r.resultadoLlamada= false;
-								// r.medioGestion= false;
-								// r.tipoDocumentoId= false;
-								// r.direccionesEmailDestino= false;
-								// r.gestionRubro= false;
-								// r.gestionSubRubro= false;
-								r.gestionEstado= false;
-								r.gestionSituacion= false;
-								// r.gestionAreaOsprera= false;
-					}
-						
-					
-					if (list.selection.request !== "B") {
-						r.deletedObs = true;
-						r.deletedBy = true;
-						r.deletedDate = true;
-						
-					}
 					
 					r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la secc=onalId
 					return r;
@@ -551,65 +489,7 @@ const useAfiliacionesPorEmpresa = ({
 						},
 					}));
 				}}
-				onValidate={(confirm) => {
-					
-					const record = {
-						fecha: moment().format("YYYY-MM-DD"),
-						fechaEnvioMail: null,
-						direccionesEmailDestino: null,
-						respuestaEnvioEmail: null,
-						usuarioId: usuario?.id ?? "",
-						seccionalId: list.selection.edit.seccionalId ?? usuario?.ambitoSeccionales?.ids[0] ?? 0,
-						atencionesPrevias: "",
-						conCoberturaOsprera: "",
-						tipoPrestador: "",
-						...list.selection.edit
-					}					
-					//Validaciones
-					const errors = {};
-					if (list.selection.request === "B") {
-						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
-					}
-
-					if (["A", "M"].includes(list.selection.request)) {
-						if (!record.cuitTitular) errors.cuitTitular = "Dato requerido"; else if (!ValidarCUIT(record.cuitTitular)) errors.cuitTitular = "CUIT Incorrecto";
-						if (!record.dniPaciente) errors.dniPaciente = "Dato requerido";
-
-						if (!record.apellidoTitular) errors.apellidoTitular = "Dato requerido";
-						if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
-						if (!record.apellidoPaciente) errors.apellidoPaciente = "Dato requerido";
-						if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
-						if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
-						if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
-						if (!record.texto) errors.texto = "Dato requerido";
-						if (!record.medioGestion) errors.medioGestion = "Dato requerido";
-						if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
-						if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
-
-						if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
-						if (record.medioGestion == "telefono" && (!record.telefono || record.telefono.length <= 6)) errors.telefono = "Dato requerido";
-						if (record.medioGestion == "telefono" && !record.resultadoLlamada) errors.resultadoLlamada = "Dato requerido";
-
-						if (!record.gestionRubroId || record.gestionRubroId == 0) errors.gestionRubro = "Dato requerido";
-						if (!record.gestionSubRubroId || record.gestionSubRubroId == 0) errors.gestionSubRubro = "Dato requerido";
-						if (!record.gestionEstadoId || record.gestionEstadoId == 0) errors.gestionEstado = "Dato requerido";
-						if (!record.gestionSituacionId || record.gestionSituacionId == 0) errors.gestionSituacion = "Dato requerido";
-						if (!record.gestionAreaOspreraId || record.gestionAreaOspreraId == 0) errors.gestionAreaOsprera = "Dato requerido";
-					}
-
-					if (Object.keys(errors).length) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
-							},
-						}));
-						return false;
-					}else {
-						return true;
-					}
-				}}
+				
 
 				onClose={(confirm) => {
 					if (!["A", "B", "M", "R"].includes(list.selection.request)) {
