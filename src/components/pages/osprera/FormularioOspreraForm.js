@@ -37,6 +37,8 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
+import FormularioOspreraComprobante from "./FormularioOspreraComprobante";
+import { pdf } from "@react-pdf/renderer";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -378,7 +380,6 @@ const FormularioOspreraForm = ({
   }, [data.gestionEstadoId, data.gestionSituacionId]);
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
-    // console.log("onDownloadSolicitudAfiliacion", conDatos);
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
@@ -497,20 +498,6 @@ const FormularioOspreraForm = ({
     }),
     { query: { config: { errorType: "response" } } }
   );
-
-  //   const { setState: setGestionSubRubroQuery } = useQueryState(
-  //     (params) => {
-  //       console.log("params", params);
-  //       return {
-  //         config: {
-  //           baseURL: "Afiliaciones",
-  //           endpoint: `/GestionesSubRubroByRubro`,
-  //           method: "GET",
-  //         },
-  //       };
-  //     },
-  //     { query: { config: { errorType: "response" } } }
-  //   );
 
   const { setState: setGestionEstadoQuery } = useQueryState(
     () => ({
@@ -1077,9 +1064,9 @@ const FormularioOspreraForm = ({
 
     setTitular((o) => ({
       ...o,
-      existeEnOSPRERA: false,
-      existeEnUATRE: false,
-      existeEnAFIP: false,
+      existeEnOSPRERA: null,
+      existeEnUATRE: null,
+      existeEnAFIP: null,
       cuil: "",
       tipoDocumentoId: 0,
       sexoId: 0,
@@ -1287,7 +1274,7 @@ const FormularioOspreraForm = ({
       const isValid = await onValidate(true);
       if (!isValid) return;
 
-      if (documentacionList.length !== 0) {
+      if (documentacionList.length !== 0 && data.medioGestion == "email") {
         setModalDocumentacion({ documentacionOK: true });
       } else {
         //Modal preguntando documentacion
@@ -1338,6 +1325,8 @@ const FormularioOspreraForm = ({
           );
           setOpenDialog(true);
         }
+
+        onClose(true);
       }
     } else {
       onClose(true);
@@ -1447,7 +1436,10 @@ const FormularioOspreraForm = ({
                   selected,
                   origen: "option",
                 }));
-                onChange({ seccionalId: selected.value });
+                onChange({ 
+                  seccionalId: selected.value,
+                  seccionalDescripcion: selected.label
+                });
               }}
               options={seccionalSelect.options}
               onTextChange={(buscar) =>
@@ -1467,8 +1459,7 @@ const FormularioOspreraForm = ({
               <Tab
                 label="Documentacion"
                 disabled={
-                  !titular.confirmado ||
-                  request !== "A" ||
+                  (!titular.confirmado && request === "A") ||
                   data.medioGestion === "telefono"
                 }
               />
@@ -1530,12 +1521,14 @@ const FormularioOspreraForm = ({
                               : ""}{" "}
                           </h6>
                           <h6 style={{ fontSize: "small" }}>
-                            {titular.existeEnUATRE
+                            {titular.existeEnUATRE === true
                               ? "Afiliado a UATRE"
-                              : !!titular.existeEnOSPRERA &&
-                                !!titular.existeEnAFIP
+                              : titular.existeEnOSPRERA === null &&
+                                titular.existeEnAFIP === null
                               ? "" //"No se encontraron datos para el CUIL ingresado"
-                              : "No Afiliado a UATRE"}
+                              : titular.existeEnUATRE === false
+                              ? "No Afiliado a UATRE"
+                              : ""}
                           </h6>
                         </div>
                       )}
@@ -2156,6 +2149,7 @@ const FormularioOspreraForm = ({
               <>
                 <Documentacion
                   data={documentacionList}
+                  disabled={request === "C"}
                   onChange={({ index, item }) => {
                     const newDocList = [...documentacionList];
                     if (index == null) {
@@ -2174,6 +2168,7 @@ const FormularioOspreraForm = ({
                 />
                 <Button
                   className="botonAmarillo"
+                  hidden={request === "C"}
                   marginTop={3}
                   width={50}
                   onClick={() => setSelectedTab(0)}
@@ -2190,7 +2185,7 @@ const FormularioOspreraForm = ({
             className="botonAzul"
             loading={loading}
             width={25}
-            hidden={selectedTab === 1}
+            hidden={selectedTab === 1 || request === "C"}
             disabled={!titular?.confirmado}
             onClick={
               request == "E"
