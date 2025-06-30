@@ -137,6 +137,15 @@ const SolicitudAutorizacionAfiliacion = ({
           },
         };
       }
+      case "SolicitudAfiliacionEmpresas": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: "/SolicitudAfiliacionEmpresas",
+            method: "POST"  // <-- esto es lo que envías
+          },
+        };
+      }
 
         // Obtener datos de la tabla principal
       case "PatchEstados": {
@@ -352,7 +361,7 @@ const SolicitudAutorizacionAfiliacion = ({
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${year}-${month}-${day}`;
-  };
+  }; 
 
   //-----------------------------------------------
   //#region filtros
