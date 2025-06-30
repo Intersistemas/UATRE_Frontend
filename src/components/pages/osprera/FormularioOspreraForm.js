@@ -1274,7 +1274,7 @@ const FormularioOspreraForm = ({
       const isValid = await onValidate(true);
       if (!isValid) return;
 
-      if (documentacionList.length !== 0 && data.medioGestion == "email") {
+      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
         setModalDocumentacion({ documentacionOK: true });
       } else {
         //Modal preguntando documentacion
