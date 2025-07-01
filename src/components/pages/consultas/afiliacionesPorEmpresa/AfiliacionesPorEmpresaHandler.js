@@ -341,7 +341,7 @@ useEffect(() => {
 			setDocumentacionesActions(actions);
 			return;
 		}
-		const deleDesc = `para Delegación ${dele}`;
+		const deleDesc = `para Solicitud ${dele}`;
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
 				name: action,
@@ -356,7 +356,7 @@ useEffect(() => {
 			});
 		actions.push(
 			createAction({
-				action: `Agrega Documentación ${deleDesc}`,
+				action: `Agrega Formulario ${deleDesc}`,
 				request: "A",
 				tarea: "Consultas_AfiliacionesDocumentacionAgrega",
 				keys: "a",
@@ -371,7 +371,7 @@ useEffect(() => {
 		const docuDesc = `${docu} ${deleDesc}`;
 		actions.push(
 			createAction({
-				action: `Consulta Documentación ${docuDesc}`,
+				action: `Consulta Formulario ${docuDesc}`,
 				request: "C",
 				tarea: "Consultas_AfiliacionesDocumentacionConsulta",
 				keys: "o",
@@ -380,7 +380,7 @@ useEffect(() => {
 		);
 		actions.push(
 			createAction({
-				action: `Modifica Documentación ${docuDesc}`,
+				action: `Modifica Formulario ${docuDesc}`,
 				request: "M",
 				tarea: "Consultas_AfiliacionesDocumentacionModifica",
 				keys: "m",
@@ -396,7 +396,7 @@ useEffect(() => {
 		);
 		actions.push(
 			createAction({
-				action: `Baja Documentación ${docuDesc}`,
+				action: `Baja Formulario ${docuDesc}`,
 				request: "B",
 				tarea: "Consultas_AfiliacionesDocumentacionBaja",
 				keys: "b",
@@ -414,7 +414,7 @@ useEffect(() => {
 	}, [documentacionChanger, documentacionSelected, afiliacionPorEmpresaSelected?.id]);
 
 	tabs.push({
-		header: () => <Tab label="Documentación" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate || afiliacionPorEmpresaSelected?.estado !== "Autorizada" } />,
+		header: () => <Tab label="Formularios" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate || afiliacionPorEmpresaSelected?.estado !== "Autorizada" } />,
 		body: documentacionTab,
 		actions: documentacionActions,
 	});

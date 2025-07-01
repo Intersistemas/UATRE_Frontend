@@ -102,7 +102,7 @@ const FormularioOspreraForm = ({
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [pdfGenerado, setPdfGenerado] = useState(null);
   
-  const [totalesUltimoPeriodo, setTotalesUltimoPeriodo] = useState(null)
+  const [totalesUltimoPeriodoSinAfiliados, setTotalesUltimoPeriodoSinAfiliados] = useState(null)
   
   const [trabajadoresRuralesNoAfiliados, setTrabajadoresRuralesNoAfiliados] = useState({
     loading: false,
@@ -197,8 +197,7 @@ const FormularioOspreraForm = ({
   });
 
   const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
-    
-    
+
     console.log("Soliitud", solicitud);
 
     pushQuery({
@@ -242,9 +241,9 @@ const FormularioOspreraForm = ({
           verificador: str.substring(10, 11),
         };
       };
-      const cuilParts = splitCuil(t.cuil);
-      const cuitParts = splitCuil(totalesTrabajadores?.empresa?.cuit);
-      const fechaPresentacion = t.presentacionFecha
+      const cuilParts = splitCuil(t?.cuil);
+      const cuitParts = splitCuil(t?.cuit);
+      const fechaPresentacion = t?.presentacionFecha
         ? new Date(t.presentacionFecha)
         : new Date();
       const fechaNac = { dia: "--", mes: "--", anio: "----" };
@@ -259,13 +258,13 @@ const FormularioOspreraForm = ({
 
         // Trabajador
         "trabajador.apellidos": t.afiliadoNombre,
-        "trabajador.nombres": "-", // No viene en la API
+        "trabajador.nombres":t.afiliadoApellido, // No viene en la API
         "trabajador.cuil.tipo": cuilParts.tipo,
         "trabajador.cuil.id": cuilParts.id,
         "trabajador.cuil.verificador": cuilParts.verificador,
-        "trabajador.documento": "-", // No viene en la API
+        "trabajador.documento": t.numeroDocumento,
         "trabajador.nacionalidad": "-", // No viene en la API
-        "trabajador.nacimiento.fecha": `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
+        "trabajador.nacimiento.fecha": Formato.Fecha(t.fechaNacimiento) ?? `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
         "trabajador.estado_civil": "-", // No viene en la API
         "trabajador.sexo": "-", // No viene en la API
         "trabajador.domicilio": "-", // No viene en la API
@@ -278,7 +277,7 @@ const FormularioOspreraForm = ({
 
         // Empleador
         "empleador.cuit.tipo": cuitParts.tipo,
-        "empleador.cuit.id": cuitParts.cuit,
+        "empleador.cuit.id": cuitParts.id,
         "empleador.cuit.verificador": cuitParts.verificador,
         "empleador.razon_social": totalesTrabajadores?.empresa?.razonSocial,
         "empleador.domicilio": "-", // No viene en la API
@@ -352,8 +351,7 @@ const FormularioOspreraForm = ({
     setGenerandoPDF(false);
     setPdfGenerado(base64Original);
 
-    downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
-
+    //downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
     
     documentacionChanger("Create", {
 			params: {
@@ -367,7 +365,7 @@ const FormularioOspreraForm = ({
       },
 		});
 
-    onClose(false);
+    onClose(true);
     /*
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const dataFormulario = {
@@ -556,7 +554,7 @@ const FormularioOspreraForm = ({
   const handleConfirma = async () => {
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
-    console.log("totalesUltimoPeriodo",totalesUltimoPeriodo);
+    console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
 
     const solicitud = {
       fecha: new Date().toISOString(),
@@ -566,14 +564,14 @@ const FormularioOspreraForm = ({
       estadoFecha: new Date().toISOString(),
       estadoSolicitudObservaciones: "Sin observaciones",
       estadoSolicitudUsuario: usuarioLogueado?.id || "desconocido",
-      periodo: totalesUltimoPeriodo?.periodo,
-      total_Trabajadores: totalesUltimoPeriodo?.total_Trabajadores,
-      total_Trab_Rurales: totalesUltimoPeriodo?.total_Trab_Rurales,
-      total_Trab_NoRurales: totalesUltimoPeriodo?.total_Trab_NoRurales,
-      total_Trab_Rurales_Afiliados: totalesUltimoPeriodo?.total_Trab_Rurales_Afiliados,
-      total_Trab_Rurales_NoAfiliados: totalesUltimoPeriodo?.total_Trab_Rurales_NoAfiliados,
-      total_Trab_NoRurales_Afiliados: totalesUltimoPeriodo?.total_Trab_NoRurales_Afiliados,
-      total_Trab_NoRurales_NoAfiliados: totalesUltimoPeriodo?.total_Trab_NoRurales_NoAfiliados,
+      periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
+      total_Trabajadores: totalesUltimoPeriodoSinAfiliados?.total_Trabajadores,
+      total_Trab_Rurales: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales,
+      total_Trab_NoRurales: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales,
+      total_Trab_Rurales_Afiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_Afiliados,
+      total_Trab_Rurales_NoAfiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados,
+      total_Trab_NoRurales_Afiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales_Afiliados,
+      total_Trab_NoRurales_NoAfiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales_NoAfiliados,
       solicitudAfiliacionEmpresasDetalle: Array.isArray(totalesTrabajadores.totales)
         ? totalesTrabajadores.totales.map((item) => ({
             periodo: item.periodo,
@@ -592,8 +590,8 @@ const FormularioOspreraForm = ({
      pushQuery({
       action: "GetDDJJUatreTrabajadoresAFIPConsulta",
       params: {
-        CUIT: totalesUltimoPeriodo?.cuit,
-        Periodo: totalesUltimoPeriodo?.periodo,
+        CUIT: totalesUltimoPeriodoSinAfiliados?.cuit,
+        Periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
         EsRural: "S",
         AfiliadoId: 0,
       },
@@ -658,7 +656,7 @@ const handlerBuscarTotales = () => {
     if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
 
     setTotalesTrabajadores({ loading: true, totales: null, error: null, empresa: empresaSelected });
-    setTotalesUltimoPeriodo(null);
+    setTotalesUltimoPeriodoSinAfiliados(null);
     pushQuery({
       action: "ddjjTotalTrabajadores",
       params: {
@@ -679,7 +677,7 @@ const handlerBuscarTotales = () => {
           });
         } else {
           setTotalesTrabajadores({ loading: false, totales: data?.data, empresa:empresaSelected, error: null });
-          setTotalesUltimoPeriodo(data?.data[0])
+          setTotalesUltimoPeriodoSinAfiliados(data.data.find((item) => item.total_Trab_Rurales_NoAfiliados > 0) || null);
         }
       },
       onError: (error) => {
@@ -846,7 +844,7 @@ const handlerBuscarTotales = () => {
                 </Button>
               </Grid>
             </Grid>
-            <Grid width="auto">
+            <Grid width="auto"  style={{ marginTop: "10px" }}>
               <AfiliacionesPorEmpresaDetalleTable
                 /*data={list.data}
                 loading={!!list.loading}
@@ -922,7 +920,7 @@ const handlerBuscarTotales = () => {
             className="botonAzul"
             loading={loading}
             width={25}
-            disabled={ (totalesUltimoPeriodo == null || totalesUltimoPeriodo?.total_Trab_Rurales_NoAfiliados == 0 || trabajadoresRuralesNoAfiliados.loading) ?? false}
+            disabled={ (totalesUltimoPeriodoSinAfiliados == null || totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados == 0 || trabajadoresRuralesNoAfiliados.loading) ?? false}
             onClick={() => handleConfirma()}
           > {generandoPDF ? (
                `Generando PDF ${bloqueActual} de ${totalPaginas}...`
