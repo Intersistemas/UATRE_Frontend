@@ -445,6 +445,7 @@ const useLiquidacionesNomina = ({
   let form = null;
   if (list.selection.edit) {
     form = (
+      console.log("list.selection", list.selection),
       <LiquidacionesNominaForm
         data={list.selection.edit}
         title={list.selection.action}
