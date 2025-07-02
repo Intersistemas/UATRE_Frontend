@@ -622,7 +622,7 @@ const FormularioOspreraForm = ({
         }
       },
        onError: (error) => {
-        setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
+        setDialog({text: "Error consultando trabajadores", open: true});
         setTrabajadoresRuralesNoAfiliados({
           loading: false,
           data: null,
