@@ -243,9 +243,10 @@ const useAfiliacionesPorEmpresa = ({
 					
 
 	useEffect(() => {
+		console.log("list",list)
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
-		if (!list.remote) {
+		/*if (!list.remote) {
 			const data = list.data;
 			const error = list.error;
 			const multi = list.selection.multi;
@@ -263,11 +264,12 @@ const useAfiliacionesPorEmpresa = ({
 				: changes.data.indexOf(changes.selection.record);
 			setList((o) => ({ ...o, ...changes }));
 			return;
-		}
+		}*/
 		changes.data = [];
 		const soloLetras = /^[A-Za-z]+$/;
 		const filtro = list?.params?.filtro
 
+		
 		pushQuery({
 			action: "GetList",
 			config: {
@@ -283,6 +285,7 @@ const useAfiliacionesPorEmpresa = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
+				console.log("data de la solicitud modificada:",data)
 				changes.data = data;
 				const multi = list.selection.multi;
 				const record = list.selection.record;
@@ -397,7 +400,6 @@ const useAfiliacionesPorEmpresa = ({
 					params: payload.params,
 					onOk: async (response) => {
 						setList((old) => ({ ...old, loading: "Cargando..." }));
-						setList((o) => ({ ...o, loading: null }));
 					},
 					onError: async (err) => alert(err.message),
 				};
@@ -488,71 +490,16 @@ const useAfiliacionesPorEmpresa = ({
 						})),
 				}}
 				selection={{
-					mode: list.selection.multi ? "checkbox" : "radio",
-					hideSelectColumn: hideSelectColumn,
-					selected: AsArray(list.selection.record, !list.selection.multi)
-						.filter((r) => r)
-						.map((r) => r.id),
-					onSelect: (record, isSelect, rowIndex, e) => {
-						if (rowIndex == null) return;
-						setList((o) => {
-							let index = o.data.findIndex((r) => r.id === record.id);
-							if (o.selection.multi) {
-								const newIndex = [];
-								const newRecord = [];
-								o.selection.record?.forEach((r, i) => {
-									if (!isSelect && r.id === record.id) return;
-									newIndex.push(o.selection.index[i]);
-									newRecord.push(r);
-								});
-								if (isSelect && !newIndex.includes(index)) {
-									newIndex.push(index);
-									newRecord.push(record);
-								}
-								if (newIndex.length) {
-									index = newIndex;
-									record = newRecord;
-								} else {
-									index = null;
-									record = null;
-								}
-							}
-							return {
-								...o,
-								selection: {
-									...o.selection,
-									...selectionDef,
-									index,
-									record,
-								},
-							};
-						});
-					},
-					onSelectAll: (isSelect, rows, e) => {
-						if (!list.selection.multi) return;
-						setList((o) => {
-							let index = [];
-							let record = [];
-							if (isSelect) {
-								o.data.forEach((r, i) => {
-									record.push(r);
-									index.push(i);
-								});
-							} else {
-								index = null;
-								record = null;
-							}
-							return {
-								...o,
-								selection: {
-									...o.selection,
-									...selectionDef,
-									index,
-									record,
-								},
-							};
-						});
-					},
+					selected: [list.selection.record?.id].filter((r) => r),
+					onSelect: (record, isSelect, index, e) =>
+						setList((o) => ({
+							...o,
+							selection: {
+								...selectionDef,
+								index,
+								record,
+							},
+						})),
 				}}
 				onTableChange={(type, newState) => {
 					switch (type) {
