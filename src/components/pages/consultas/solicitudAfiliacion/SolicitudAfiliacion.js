@@ -19,7 +19,7 @@ export async function createForm(data = null) {
 
 	const newTextField = ({
 		name,
-		formatter = (v) => ((v ?? "") === "" ? "--" : `${v}`),
+		formatter = (v) => ((v ?? "") === "" ? "" : `${v}`),
 		fontSize = 8,
 		height = 11,
 		lines = 1,

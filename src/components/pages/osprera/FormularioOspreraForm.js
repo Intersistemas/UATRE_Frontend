@@ -382,9 +382,9 @@ const FormularioOspreraForm = ({
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
+      "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
       ...Object.fromEntries(
-        `${data?.fecha || ""}`
+        `${moment().format("YYYY-MM-DD") || ""}`
           .split("-")
           .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
       ),
@@ -407,7 +407,7 @@ const FormularioOspreraForm = ({
       "trabajador.localidad": data.localidad,
       "trabajador.provincia": data.provincia,
       "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": "", //data.actividad,
+      "trabajador.actividad": data.actividad,
       "trabajador.telefono": data?.telefonoContacto,
       "trabajador.correo": data?.emailContacto,
       "trabajador.cuil": data?.cuitTitular,
@@ -808,8 +808,8 @@ const FormularioOspreraForm = ({
     setGestionRubroSelect((o) => ({
       ...o,
       selected: {
-        value: data.id,
-        label: gestionRubroSelect.options.find((r) => r.value === data.id)
+        value: data.gestionRubroId,
+        label: gestionRubroSelect.options.find((r) => r.value === data.gestionRubroId)
           ?.label,
       },
     }));
@@ -822,6 +822,7 @@ const FormularioOspreraForm = ({
       onLoad: ({ ok, error }) => {
         let data = [];
         if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+
         setGestionRubroSelect((o) => ({
           ...o,
           loading: null,
@@ -1436,9 +1437,9 @@ const FormularioOspreraForm = ({
                   selected,
                   origen: "option",
                 }));
-                onChange({ 
+                onChange({
                   seccionalId: selected.value,
-                  seccionalDescripcion: selected.label
+                  seccionalDescripcion: selected.label,
                 });
               }}
               options={seccionalSelect.options}
@@ -1889,6 +1890,66 @@ const FormularioOspreraForm = ({
                   </FormControl>
                 </Grid>
 
+                <Grid width="100%" gap="inherit">
+                  <Grid width="100%" gap="inherit">
+                    <SearchSelectMaterial
+                      required
+                      freeSolo={false}
+                      id="gestionRubro"
+                      name="gestionRubro"
+                      label="Tipo gestión"
+                      error={!!errors.gestionRubro}
+                      helperText={errors.gestionRubro ?? ""}
+                      value={gestionRubroSelect.selected}
+                      disabled={disabledItems.gestionRubro}
+                      onChange={(selected = {}) => {
+                        setGestionRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionRubroId: selected.value });
+                      }}
+                      options={gestionRubroSelect.options}
+                    />
+
+                    <SearchSelectMaterial
+                      required
+                      id="gestionSubRubro"
+                      name="gestionSubRubro"
+                      label="Detalle tipo gestión"
+                      error={!!errors.gestionSubRubro}
+                      helperText={errors.gestionSubRubro ?? ""}
+                      value={gestionSubRubroSelect.selected}
+                      disabled={disabledItems.gestionSubRubro}
+                      onChange={(selected = {}) => {
+                        setGestionSubRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionSubRubroId: selected.value });
+                      }}
+                      options={gestionSubRubroSelect.options}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid width="full" gap="inherit">
+                  <TextField
+                    fullWidth
+                    multiline
+                    maxRows={4}
+                    label="Detalle de la Gestión"
+                    error={!!errors.texto}
+                    helperText={errors.texto ?? ""}
+                    value={data.texto}
+                    disabled={disabledItems.texto}
+                    onChange={(texto) =>
+                      onChange({ texto: texto.target.value })
+                    }
+                  />
+                </Grid>
+
                 <FormControl
                   disabled={disabledItems.medioGestion}
                   error={!!errors.medioGestion}
@@ -1965,65 +2026,7 @@ const FormularioOspreraForm = ({
                       ))}
                   </Grid>
                 </Grid>
-                <Grid width="100%" gap="inherit">
-                  <Grid width="100%" gap="inherit">
-                    <SearchSelectMaterial
-                      required
-                      freeSolo={false}
-                      id="gestionRubro"
-                      name="gestionRubro"
-                      label="Tipo gestión"
-                      error={!!errors.gestionRubro}
-                      helperText={errors.gestionRubro ?? ""}
-                      value={gestionRubroSelect.selected}
-                      disabled={disabledItems.gestionRubro}
-                      onChange={(selected = {}) => {
-                        setGestionRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionRubroId: selected.value });
-                      }}
-                      options={gestionRubroSelect.options}
-                    />
 
-                    <SearchSelectMaterial
-                      required
-                      id="gestionSubRubro"
-                      name="gestionSubRubro"
-                      label="Detalle tipo gestión"
-                      error={!!errors.gestionSubRubro}
-                      helperText={errors.gestionSubRubro ?? ""}
-                      value={gestionSubRubroSelect.selected}
-                      disabled={disabledItems.gestionSubRubro}
-                      onChange={(selected = {}) => {
-                        setGestionSubRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionSubRubroId: selected.value });
-                      }}
-                      options={gestionSubRubroSelect.options}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid width="full" gap="inherit">
-                  <TextField
-                    fullWidth
-                    multiline
-                    maxRows={4}
-                    label="Detalle de la Gestión"
-                    error={!!errors.texto}
-                    helperText={errors.texto ?? ""}
-                    value={data.texto}
-                    disabled={disabledItems.texto}
-                    onChange={(texto) =>
-                      onChange({ texto: texto.target.value })
-                    }
-                  />
-                </Grid>
                 <Grid width="100%" gap="inherit">
                   <Grid width="100%" gap="inherit">
                     <SearchSelectMaterial
