@@ -277,7 +277,7 @@ const EstablecimientosForm = ({
 											name="domicilioProvinciasId"
 											label="Provincia"
 											options={provincia.options}
-											value={data.domicilioProvinciasId ?? 0}
+											value={provincia.selected}
 											error={
 												provincias.loading ??
 												provincias.error?.message ??
@@ -285,11 +285,10 @@ const EstablecimientosForm = ({
 												""
 											}
 											disabled={disabled.domicilioProvinciasId ?? false}
-											onChange={(value) =>
+											onChange={(selected) =>
 												setProvincia((o) => ({
 													...o,
-													selected: provincia.options.find(p => p.value === value)
-														?? provincia.default
+													selected,
 												}))
 											}
 											required
