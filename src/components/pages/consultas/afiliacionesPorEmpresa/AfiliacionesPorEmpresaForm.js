@@ -78,8 +78,6 @@ const FormularioOspreraForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
-  console.log("estadosSolicitudes", estadosSolicitudes);
-  
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useAfiliacionesPorEmpresa();
   const [empresa, setEmpresa] = useState({
@@ -207,7 +205,6 @@ const FormularioOspreraForm = ({
 
   const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
 
-    console.log("Soliitud", solicitud);
 
     pushQuery({
       action: "PostSolicitudAfiliacionEmpresas",
@@ -215,7 +212,6 @@ const FormularioOspreraForm = ({
         body: solicitud,
       },
       onOk: (data) => {
-        console.log("ddjjUatreTrabajadores", data);
         onDownloadSolicitudAfiliacion(trabajadoresAfipConsulta, data);
           setTrabajadoresRuralesNoAfiliados({
             data: trabajadoresAfipConsulta,
@@ -238,9 +234,6 @@ const FormularioOspreraForm = ({
 
   const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
 
-    console.log("trabajadoresNoAfiliados", trabajadoresNoAfiliados);
-    console.log("onDownloadSolicitudAfiliacion_afiliacionPorEmpresa", afiliacionPorEmpresa);
-    console.log("seccionalSelect*",seccionalSelect)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
       const splitCuil = (cuil) => {
@@ -457,7 +450,6 @@ const FormularioOspreraForm = ({
 
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
-    console.log("action, params", action, params);
     switch (action) {
        case "ddjjTotalTrabajadores": {
         return {
@@ -545,8 +537,6 @@ const FormularioOspreraForm = ({
       onLoad: ({ ok, error }) => {
         let data = [];
         if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-        console.log("setSeccionalesQuery data",data);
-        console.log("setSeccionalesQuery ambito",ambito)
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
@@ -577,10 +567,12 @@ const FormularioOspreraForm = ({
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
     console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
     console.log("empresa*",empresa);
+    console.log("seccionalSelect",seccionalSelect)
+    console.log("ambito",ambito)
 
     const solicitud = {
       fecha: new Date().toISOString(),
-      seccionalId: ambito.tipo == "Seccionales" ? ambito.id : seccionalSelect.selected.value,
+      seccionalId: seccionalSelect.selected.value,
       empresaId: empresa?.id ?? 0,
       estadoSolicitudId: estadosSolicitudes?.find((o) => o?.descripcion === "Pendiente")?.id,
       estadoFecha: new Date().toISOString(),
@@ -618,7 +610,6 @@ const FormularioOspreraForm = ({
         AfiliadoId: 0,
       },
       onOk: (data) => {
-        console.log("OK_ddjjUatreTrabajadores", data);
         if (!data || (Array.isArray(data) && data.length === 0)) {
           setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
           setTrabajadoresRuralesNoAfiliados({
@@ -681,7 +672,6 @@ const handlerBuscarTotales = () => {
       action: "ConsultaAFIP",
       params: { cuit: empresaSelected?.cuit, VerificarHistorico: false },
       onOk: (data) => {
-        console.log("ConsultaAFIP", data);
         setEmpresa({
             id: empresaSelected?.id,
             cuit: data?.cuit,
@@ -707,7 +697,6 @@ const handlerBuscarTotales = () => {
 
     setTotalesTrabajadores({ loading: true, totales: null, error: null});
 
-    console.log("TotalesTrabajadores",empresa)
     setTotalesUltimoPeriodoSinAfiliados(null);
     pushQuery({
       action: "ddjjTotalTrabajadores",
@@ -885,7 +874,6 @@ const handlerBuscarTotales = () => {
                     !(empresaSelected && filtros.desde && filtros.hasta)
                   }
                   onClick={() => {
-                    console.log("empresaSelected", empresaSelected);
                     handlerBuscarTotales();
                   }}
                 >
