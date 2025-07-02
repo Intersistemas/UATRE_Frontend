@@ -233,7 +233,7 @@ const FormularioOspreraForm = ({
     const { request: generarPDF } = PDF();
 
   const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
-
+console.log("trabajadoresNoAfiliados**",trabajadoresNoAfiliados)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
       const splitCuil = (cuil) => {
@@ -273,8 +273,8 @@ const FormularioOspreraForm = ({
         "trabajador.domicilio": t.domicilio,
         "trabajador.localidad": t.localidad,
         "trabajador.provincia": t.provincia,
-        "trabajador.oficio": t.modalidadDescripcion,
-        "trabajador.actividad": t.actividadDescripcion,
+        "trabajador.oficio": "-", //t.modalidadDescripcion,
+        "trabajador.actividad":  t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
         "trabajador.telefono": "-", // No viene en la API
         "trabajador.correo": "-", // No viene en la API
 
