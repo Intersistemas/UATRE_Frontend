@@ -82,6 +82,16 @@ const FormularioOspreraForm = ({
   
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useAfiliacionesPorEmpresa();
+  const [empresa, setEmpresa] = useState({
+    id: 0,
+    cuit: null,
+    razonsocial: "",
+    domicilio: "",
+    localidad: "",
+    provincia: "",
+    actividad:" "
+  });
+  
   //#region Alert
   const [dialog, setDialog] = useState({
     text: "",
@@ -89,10 +99,9 @@ const FormularioOspreraForm = ({
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   const ambito = useAmbitos().ambitoUser();
   console.log("usuarioLogueado", usuarioLogueado);
-
+  console.log("useAmbitos",ambito)
   const [totalesTrabajadores, setTotalesTrabajadores] = useState({
     loading: false,
-    empresa: null,
     totales: null,
     error: null,
   });
@@ -231,6 +240,7 @@ const FormularioOspreraForm = ({
 
     console.log("trabajadoresNoAfiliados", trabajadoresNoAfiliados);
     console.log("onDownloadSolicitudAfiliacion_afiliacionPorEmpresa", afiliacionPorEmpresa);
+    console.log("seccionalSelect*",seccionalSelect)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
       const splitCuil = (cuil) => {
@@ -242,7 +252,7 @@ const FormularioOspreraForm = ({
         };
       };
       const cuilParts = splitCuil(t?.cuil);
-      const cuitParts = splitCuil(t?.cuit);
+      const cuitParts = splitCuil(empresa?.cuit);
       const fechaPresentacion = t?.presentacionFecha
         ? new Date(t.presentacionFecha)
         : new Date();
@@ -255,10 +265,10 @@ const FormularioOspreraForm = ({
       const datosPDF = {
         // Afiliado
         "afiliado.numero": t.id,
-
+        "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
         // Trabajador
-        "trabajador.apellidos": t.afiliadoNombre,
-        "trabajador.nombres":t.afiliadoApellido, // No viene en la API
+        "trabajador.apellidos": t.afiliadoApellido,
+        "trabajador.nombres":t.afiliadoNombre, // No viene en la API
         "trabajador.cuil.tipo": cuilParts.tipo,
         "trabajador.cuil.id": cuilParts.id,
         "trabajador.cuil.verificador": cuilParts.verificador,
@@ -267,9 +277,9 @@ const FormularioOspreraForm = ({
         "trabajador.nacimiento.fecha": Formato.Fecha(t.fechaNacimiento) ?? `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
         "trabajador.estado_civil": "-", // No viene en la API
         "trabajador.sexo": "-", // No viene en la API
-        "trabajador.domicilio": "-", // No viene en la API
-        "trabajador.localidad": t.zona,
-        "trabajador.provincia": "-", // No viene en la API
+        "trabajador.domicilio": t.domicilio,
+        "trabajador.localidad": t.localidad,
+        "trabajador.provincia": t.provincia,
         "trabajador.oficio": t.modalidadDescripcion,
         "trabajador.actividad": t.actividadDescripcion,
         "trabajador.telefono": "-", // No viene en la API
@@ -279,11 +289,11 @@ const FormularioOspreraForm = ({
         "empleador.cuit.tipo": cuitParts.tipo,
         "empleador.cuit.id": cuitParts.id,
         "empleador.cuit.verificador": cuitParts.verificador,
-        "empleador.razon_social": totalesTrabajadores?.empresa?.razonSocial,
-        "empleador.domicilio": "-", // No viene en la API
-        "empleador.localidad": "-",
-        "empleador.provincia": totalesTrabajadores?.empresa?.zona, // No viene en la API
-        "empleador.actividad": totalesTrabajadores?.empresa?.modalidadDescripcion,
+        "empleador.razon_social": empresa?.razonsocial,
+        "empleador.domicilio": empresa?.domicilio,
+        "empleador.localidad": empresa?.localidad,
+        "empleador.provincia": empresa?.provincia,
+        "empleador.actividad": empresa?.actividad,
         "empleador.telefono": "-", // No viene en la API
         "empleador.correo": "-", // No viene en la API
 
@@ -443,9 +453,7 @@ const FormularioOspreraForm = ({
       },
     }),
     { query: { config: { errorType: "response" } } }
-  );
-
-
+  ); 
 
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
@@ -478,6 +486,15 @@ const FormularioOspreraForm = ({
           },
         };
       }
+      case "ConsultaAFIP":{
+	      return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/AFIPConsulta",
+						method: "GET",
+					},
+				};
+      }
       default:
         return null;
     }
@@ -492,7 +509,6 @@ const FormularioOspreraForm = ({
     error: null,
     options: [],
     selected: {},
-    selectedAditionalData: {},
     origen: "",
   });
   // Buscador
@@ -500,7 +516,9 @@ const FormularioOspreraForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalId },
+      selected:{},
+      //selected:{ value: data.seccionalId, label: data.seccionalId },
+      //selected: ambito.tipo == "Seccionales" ? { value: ambito?.ids[0], label: seccionalSelect?.data.find((s)=> s?.id == ambito?.ids[0])?.descripcion} : {},
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccionales
@@ -509,14 +527,13 @@ const FormularioOspreraForm = ({
   useEffect(() => {
     setSeccionalSelect((o) => ({
       ...o,
-      selected: {
-        value: data.seccionalId,
-        label: seccionalSelect.options.find((r) => r.value === data.seccionalId)
-          ?.label,
-      },
-      selectedAditionalData: seccionalSelect?.options.find(
-        (r) => r.value === data?.seccionalId
-      )?.record,
+       //selected: ambito.tipo == "Seccionales" ? { value: ambito?.ids[0], label: data.find((s)=> s?.id == ambito?.ids[0])?.descripcion} : {},
+      selected:  ambito.tipo == "Seccionales" ? 
+      { value:  ambito?.ids[0],
+        label: seccionalSelect.options.find((r) => r.value === ambito?.ids[0])
+          ?.label, } 
+      : 
+      {}     
     }));
   }, [seccionalSelect.options]);
   //#endregion select seccionales
@@ -528,6 +545,8 @@ const FormularioOspreraForm = ({
       onLoad: ({ ok, error }) => {
         let data = [];
         if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        console.log("setSeccionalesQuery data",data);
+        console.log("setSeccionalesQuery ambito",ambito)
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
@@ -550,16 +569,19 @@ const FormularioOspreraForm = ({
     }, [empresasRequest, paramsSend]);
     //#endregion
 
+
+
   //#region Confirmación
   const handleConfirma = async () => {
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
     console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
+    console.log("empresa*",empresa);
 
     const solicitud = {
       fecha: new Date().toISOString(),
       seccionalId: ambito.tipo == "Seccionales" ? ambito.id : seccionalSelect.selected.value,
-      empresaId: totalesTrabajadores?.empresa.id ?? 0,
+      empresaId: empresa?.id ?? 0,
       estadoSolicitudId: estadosSolicitudes?.find((o) => o?.descripcion === "Pendiente")?.id,
       estadoFecha: new Date().toISOString(),
       estadoSolicitudObservaciones: "Sin observaciones",
@@ -655,7 +677,37 @@ const handlerBuscarTotales = () => {
     
     if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
 
-    setTotalesTrabajadores({ loading: true, totales: null, error: null, empresa: empresaSelected });
+     pushQuery({
+      action: "ConsultaAFIP",
+      params: { cuit: empresaSelected?.cuit, VerificarHistorico: false },
+      onOk: (data) => {
+        console.log("ConsultaAFIP", data);
+        setEmpresa({
+            id: empresaSelected?.id,
+            cuit: data?.cuit,
+            razonsocial: data?.razonSocial,
+            domicilio: data?.domicilios[0]?.direccion,
+            localidad: data?.domicilios[0]?.localidad,
+            provincia: data?.domicilios[0]?.descripcionProvincia,
+            actividad: data?.descripcionActividadPrincipal
+          });
+      },
+       onError: (error) => {
+         setEmpresa({
+            id: empresaSelected?.id,
+            cuit: empresaSelected?.cuit,
+            razonsocial: empresaSelected?.razonSocial,
+            domicilio: `${empresaSelected?.domicilioCalle} ${empresaSelected?.domicilioNumero}`,
+            localidad: "",
+            provincia: "",
+            actividad: empresaSelected?.actividadPrincipalDescripcion
+          });
+      },
+    });
+
+    setTotalesTrabajadores({ loading: true, totales: null, error: null});
+
+    console.log("TotalesTrabajadores",empresa)
     setTotalesUltimoPeriodoSinAfiliados(null);
     pushQuery({
       action: "ddjjTotalTrabajadores",
@@ -672,11 +724,10 @@ const handlerBuscarTotales = () => {
           setTotalesTrabajadores({
             loading: false,
             totales: [],
-            empresa: null,
             error: "No existen datos para el CUIT y período seleccionados.",
           });
         } else {
-          setTotalesTrabajadores({ loading: false, totales: data?.data, empresa:empresaSelected, error: null });
+          setTotalesTrabajadores({ loading: false, totales: data?.data, error: null });
           setTotalesUltimoPeriodoSinAfiliados(data.data.find((item) => item.total_Trab_Rurales_NoAfiliados > 0) || null);
         }
       },
@@ -684,7 +735,6 @@ const handlerBuscarTotales = () => {
         setTotalesTrabajadores({
           loading: false,
           totales: null,
-          empresa: null,
           error: error?.message || "Error al obtener los totales de trabajadores.",
         });
       },
