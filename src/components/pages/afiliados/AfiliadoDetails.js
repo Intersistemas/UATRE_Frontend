@@ -128,7 +128,7 @@ const AfiliadoDetails = (props) => {
 						<Grid className={styles.grupo} col>
 							<Grid className={styles.contenido} col>
 								<Grid className={styles.titulo}>Empresa</Grid>
-								<Grid>
+								<Grid> 
 									<InputMaterial label="CUIT" value={validar(Formato.Cuit(ddjj.cuit))}/>
 									<InputMaterial label="Razón Social" value={validar(ddjj.empresa)}/>
 									<InputMaterial label="Localidad" value={validar(empresa.localidadDescripcion)}/>

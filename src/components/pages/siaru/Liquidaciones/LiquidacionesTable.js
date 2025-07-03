@@ -50,7 +50,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 		// 	style: { textAlign: "center" },
 		// },
 		{
-			dataField: "empresaEstablecimientoId",
+			dataField: "empresaEstablecimientoNroSucursal",
 			text: "Estab. Nro.",
 			sort: true,
 			headerStyle: { width: "120px" },
@@ -79,7 +79,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 		},
 		{
 			dataField: "interesNeto",
-			text: "Total aporte",
+			text: "Capital",
 			formatter: (v) => Formato.Moneda(v),
 			headerStyle: { width: "150px" },
 			style: { textAlign: "right" },

@@ -663,6 +663,7 @@ const AfiliadoFormulariosAfiliacionIncorporacion = ({
 					<Grid width gap="inherit">
 						<Grid col width>
 							<SearchSelectMaterial
+								onKeyDown={(event) => { event.preventDefault(); }}
 								id="domicilioProvinciasId"
 								name="domicilioProvinciasId"
 								label="Provincia"

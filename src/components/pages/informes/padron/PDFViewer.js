@@ -16,8 +16,9 @@ const onCloseDef = () => {};
  * @param {object} props
  * @param {SeccionalAfiliados[]} props.data Datos de seccionales a imprimir su padron de afiliados.
  * @param {onCloseDef} props.onClose Handler al cerrar el modal
+ * @param {ambitoUser{}} props.ambitoUser dato del ambito del usuario
  */
-const PDFViewer = ({ data, onClose = onCloseDef }) => {
+const PDFViewer = ({ data, onClose = onCloseDef, ambitoUser }) => {
 	// const { audit } = useAuditoriaProceso();
 	// audit({
 	// 	proceso: "AfiliadoCarnet",
@@ -25,6 +26,7 @@ const PDFViewer = ({ data, onClose = onCloseDef }) => {
 	// 		pick(r, ["id", "cuil", "nroAfiliado", "nombre"])
 	// 	),
 	// });
+	//console.log("ambitoUser_pdfViewer", ambitoUser);
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
@@ -33,7 +35,7 @@ const PDFViewer = ({ data, onClose = onCloseDef }) => {
 			<Modal.Body style={{ height: "70vh" }}>
 				<Grid col full gap="15px">
 					<ReactPDFViewer style={{ flexGrow: "1" }}>
-						<PDF data={data} />
+						<PDF data={data} ambitoUser={ambitoUser}/>
 					</ReactPDFViewer>
 				</Grid>
 			</Modal.Body>
