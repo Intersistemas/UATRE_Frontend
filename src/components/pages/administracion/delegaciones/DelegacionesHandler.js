@@ -10,7 +10,7 @@ import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
-import LotePDFViewer from "./Carnet/LotePDFViewer";
+import LotePDFViewer from "./carnet/LotePDFViewer";
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();

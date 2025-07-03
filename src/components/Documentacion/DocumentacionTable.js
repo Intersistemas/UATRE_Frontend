@@ -12,7 +12,7 @@ const DocumentacionTable = ({
 }) => {
 	const data = [];
 	initData.forEach((value, index) => {
-		console.log("value_row*",value)
+		// console.log("value_row*",value)
 		data.push({ index: index, value: value });
 	});
 	initSelection.onSelect ??= selectionOnSelectDef;
@@ -48,7 +48,7 @@ const DocumentacionTable = ({
 			formatter: (v) => v.nombreArchivo ?? "",
 			style: { ...cs },
 		},
-		{
+		/*{ se quita esta columna a pedido de Fer https://trello.com/c/GnQ8h9e6/763-uatregestion-osprera30-04-2025incidencia
 			dataField: "value",
 			text: "Fecha Baja",
 			formatter: (v) => Formato.Fecha(v.deletedDate) ?? "",
@@ -63,7 +63,7 @@ const DocumentacionTable = ({
 				return r;
 			},
 			//sort: true,
-		},
+		},*/
 	];
 
 	return (

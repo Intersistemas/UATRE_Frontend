@@ -91,7 +91,7 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 				onOk: (data) => {
 					if (!Array.isArray(data))
 						return console.error("Se esperaba un arreglo", data);
-					changes.data = data;
+					changes.data = data.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados");
 				},
 				onError: (error) => (changes.error = error.toString()),
 				onFinally: () =>
@@ -251,7 +251,11 @@ const AfiliadosEstados = ({ onClose = onCloseDef }) => {
 			<Modal.Footer>
 				<Grid gap="20px" justify="end">
 					<Grid width="250px">
-						<Button className="botonAmarillo" onClick={() => onCSV()}>
+						<Button 
+						className="botonAmarillo"
+						onClick={() => onCSV()}
+						tarea="Informes_Afiliados_EstadoAfilidiados_CSV"
+						>
 							GENERA ARCHIVO CSV
 						</Button>
 					</Grid>

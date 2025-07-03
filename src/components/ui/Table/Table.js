@@ -186,7 +186,7 @@ const Table = ({
 	//if ((pagination.count ?? 0) < 1) pagination.count = data.length;
 	if (!x.remote) pagination.count = data.length;
 
-	// Normalizo selectRow que pasa por props
+	// Normalizo selectRow que pasa por props	
 	if (selection) {
 		selection = { ...selectionDef, ...selection };
 		const style = selection.style;
@@ -238,7 +238,7 @@ const Table = ({
 						{(toolkitprops) => (
 							<div>
 								{!mostrarBuscar ? null : (
-									<div className="position-absolute end-0 w-25" style={{ marginTop: '-3em', zIndex: 1}}>
+									<div className="position-absolute end-0 w-25" style={{ marginTop: '-3em', marginRight: '2em', zIndex: 1}}>
 										<SearchBar
 											{...toolkitprops.searchProps}
 											srText=""

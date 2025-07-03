@@ -7,6 +7,7 @@ const InicioHandler = () => {
   
     const dispatch = useDispatch();
     dispatch(handleModuloSeleccionar(""));
+   
 
     //Obtengo los modulos del usuario logueado  
     const usuarioLogueado = useSelector(
@@ -19,6 +20,7 @@ const InicioHandler = () => {
       if (modulos.includes(mod.nombreModulo)) return;
       modulos.push(mod.nombreModulo);
     });
+
     
     return (
       <div>

@@ -12,7 +12,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ocultarClaveImg from "../../media/OcultarPswIcono.svg";
 import verClaveImg from "../../media/VerPswIcono.svg";
 import { useDispatch } from "react-redux";
-import { handleUsuarioLogueado } from "../../redux/actions";
+import { handleEmpresaSeleccionar, handleUsuarioLogueado } from "../../redux/actions";
 import UseKeyPress from '../helpers/UseKeyPress';
   //#region shorcuts
  
@@ -74,11 +74,15 @@ const Login = () => {
       userObject.token.tokenId,
       userObject.token.validTo.toString(),
       userObject.rol,
-      userObject
+      {
+        ...userObject,
+        verAnuncio: enteredPassword == enteredCUIT && userObject?.roles.includes("Osprera") ? true : false,
+      }
     );
     //pasar al authcontext el usuario
 
     dispatch(handleUsuarioLogueado(userObject));
+    dispatch(handleEmpresaSeleccionar(null));
     navigate("/Inicio");
   };
 

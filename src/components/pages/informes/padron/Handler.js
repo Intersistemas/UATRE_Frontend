@@ -1,3 +1,5 @@
+//Este componente es el -> "informes/afiliados/afiliados por seccional" de mi vista de informes
+
 import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
@@ -13,6 +15,7 @@ import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
 import AsArray from "components/helpers/AsArray";
+import useAmbitosUsuario from "components/hooks/useAmbitos";
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -193,6 +196,10 @@ const seccionalesSelectOptions = ({ data = [], ...x }) =>
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
+
+	const ambitoUser = useAmbitosUsuario().ambitoUser();
+	//console.log("ambitoUser_handler",ambitoUser)
+	
 	//#region APIs
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -474,7 +481,7 @@ const Handler = ({ onClose = () => {} }) => {
 			} else {
 				setFiltros((o) => ({
 					...o,
-					ambitoDelegaciones: { ids: [selected.value] },
+					ambitoDelegaciones: { ids: [selected?.value] },
 				}));
 			}
 			finalizaInit();
@@ -507,7 +514,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoSeccionales: { ids: [selected.value] },
+			ambitoSeccionales: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);
@@ -563,13 +570,19 @@ const Handler = ({ onClose = () => {} }) => {
 		loading: null,
 		filtros: {},
 		/** @type {SeccionalAfiliados[]} */
+
+
+		//Aqui se guarda todos los datos de los afiliados
 		data: [],
 		error: null,
 		seccionales: [],
+
+		//Al momento de que se me carga mi data, se setea a true (padron.despliega = true)
+		//y se despliega el pdf
 		despliega: false,
 	});
 	//#endregion padron
-
+	
 	//#region Carga padron
 	useEffect(() => {
 		if (!padron.reload) return;
@@ -652,6 +665,16 @@ const Handler = ({ onClose = () => {} }) => {
 	}, [setAfiliacionesQuery, padron]);
 	//#endregion Carga padron
 
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+	//Se ejecuta dicha funcion cuando selecciono imprimir
+	//y se encarga de validar si la delegacion fue seleccionada
+	//y si no fue seleccionada, muestra un mensaje de error
+	//si fue seleccionada, se carga el padron
+	//y se despliega el pdf
+	//si no hay error, se carga el padron
+	//y se despliega el pdf
+
 	const onCargaPadron = () => {
 		if (!filtros.ambitoDelegaciones) {
 			setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
@@ -661,6 +684,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setPadron((o) => ({
 			...o,
+			//Me cambia mi estado a "true" para que se cargue el padron
 			reload: true,
 			seccionales: seccionalSelect.data
 				.map((s) => ({
@@ -673,10 +697,20 @@ const Handler = ({ onClose = () => {} }) => {
 		}));
 	};
 
+
+
+	///////////////////////////////////////////////////////////
+	//Cuando (padron.despliega) es true, se despliega el pdf
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+
 	const padronRender = !padron.despliega ? null : (
 		<PDFViewer
 			data={padron.data}
 			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
+			ambitoUser={ambitoUser}
 		/>
 	);
 
@@ -905,6 +939,7 @@ const Handler = ({ onClose = () => {} }) => {
 						className="botonAmarillo"
 						loading={!!padron.loading}
 						onClick={() => onCargaPadron()}
+						tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
 					>
 						IMPRIME
 					</Button>

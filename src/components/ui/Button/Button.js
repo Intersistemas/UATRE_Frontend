@@ -44,6 +44,7 @@ const Button = (props) => {
         style={{ ...props.style, width: props.width != null ? `${props.width}%`:"100%"}}
         onClick={props.onClick}
         disabled={disabled || false}
+        hidden={props.hidden || false}
         overlay="asd"
       >
           {props.loading && <Spinner

@@ -61,13 +61,12 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	//#endregion configuraciones API
 
 	const sinFechaPagoEstimada = liquidacionCabecera.fechaPagoEstimada == null;
-	const vencido = sinFechaPagoEstimada || dayjs(liquidacionCabecera.fechaPagoEstimada) < dayjs();
 
 	//#region dependencias
 
 	//#region formasPago
 	const [formasPago, setFormasPago] = useState({
-		reload: !vencido,
+		reload: true,
 		loading: null,
 		liquidacionCabeceraId: liquidacionCabecera.id,
 		data: [],
@@ -106,12 +105,13 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 
 	//#region select formaPago
 	const [formaPagoSelect, setFormaPagoSelect] = useState({
-		loading: vencido ? null : "Cargando...",
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		options: [],
 		selected: { value: 0, label: "", data: null },
 		error: null,
+		autocomplete: { open: true },
 	});
 	// Inicio
 	useEffect(() => {
@@ -199,32 +199,30 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 				style={{ color: "red" }}
 			>{`No se puede imprimir porque la boleta no tiene fecha de vencimiento`}</text>
 		);
-	} else if (vencido) {
-		contenido = (
-			<text
-				style={{ color: "red" }}
-			>{`No se puede imprimir una boleta vencida (Fecha de pago: ${Formato.Fecha(
-				liquidacionCabecera.fechaPagoEstimada
-			)})`}</text>
-		);
 	} else if (formasPago.loading || formaPago.loading) {
 		contenido = <text>Cargando...</text>;
 	} else if (formaPago.data == null) {
 		contenido = (
 			<Grid width col>
 				<SearchSelectMaterial
+					onKeyDown={(e) => { e.preventDefault(); }}
 					label="Forma de pago"
 					error={!!formaPagoSelect.error}
 					helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
 					value={formaPagoSelect.selected}
-					onChange={(selected) =>
-						setFormaPagoSelect((o) => ({ ...o, selected }))
+					onChange={(selected) => 
+						setFormaPagoSelect((o) => ({ ...o,
+							selected,
+							autocomplete: { open: !selected.value }
+						}))
 					}
 					options={formaPagoSelect.options}
+					defaultOption={{ label: "", value: 0 }}
 					onTextChange={(buscar) =>
 						setFormaPagoSelect((o) => ({ ...o, buscar }))
 					}
 					required
+					autocompleteProps={formaPagoSelect.autocomplete}
 				/>
 				{formaPagoSelect.error == null ? null : (
 					<text style={{ color: "red" }}>{formaPagoSelect.error}</text>
@@ -251,7 +249,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera} closeButton>
-				Imprime liquidación
+				Imprime boleta
 			</Modal.Header>
 			<Modal.Body style={{ height: "70vh" }}>
 				<Grid col full gap="15px">
@@ -265,9 +263,7 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 							{formaPago.data != null ? null : (
 								<Button
 									className="botonAmarillo"
-									disabled={
-										(formaPagoSelect.selected?.value ?? 0) === 0 || vencido
-									}
+									disabled={(formaPagoSelect.selected?.value ?? 0) === 0}
 									loading={formaPago.loading}
 									onClick={() => onImprime()}
 								>

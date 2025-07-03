@@ -13,7 +13,6 @@ import SearchSelectMaterial, {
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import Viewer from "./Viewer";
-import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
@@ -662,6 +661,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 									className="botonAmarillo"
 									disabled={list.selected.length === 0 || !filtros.ambitoDelegaciones || !filtros.fechaIngreso }
 									onClick={() => onImprime()}
+									tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados_Imprime"
 								>
 									IMPRIME
 								</Button>

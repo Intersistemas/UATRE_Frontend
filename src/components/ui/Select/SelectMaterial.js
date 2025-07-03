@@ -33,6 +33,7 @@ const SelectMaterial = (props) => {
 		>
 			<InputLabel id={props.label + "-label"}>{props.label}</InputLabel>
 			<Select
+				required={props.required ?? false}
 				className={styles.select}
 				style={{ ...props.style }}
 				labelId={props.label + "-label"}
@@ -49,8 +50,8 @@ const SelectMaterial = (props) => {
 					style: { minHeight: "inherit", ...props.SelectDisplayProps?.style },
 				}}
 			>
-				{props.options.map((option) => (
-					<MenuItem key={option.value} value={option.value}>
+				{props.options.map((option, index) => (
+					<MenuItem key={index} value={option.value}>
 						{option.label}
 					</MenuItem>
 				))}

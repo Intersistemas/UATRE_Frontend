@@ -17,6 +17,10 @@ const DocumentacionForm = ({
 }) => {
 
 	const archivoRef = useRef(null);
+	const [errors, setErrors] = React.useState({
+		refTipoDocumentacionId: false,
+		archivo: false,
+	});
 
 	const getValue = (v) => record[v] ?? "";
 
@@ -24,6 +28,28 @@ const DocumentacionForm = ({
 		value: r.id,
 		label: r.descripcion,
 	}));
+
+	const confirmaHandle = () => {
+
+		console.log("errors",errors)
+		if (getValue("refTipoDocumentacionId") === "") {
+			setErrors((o) => ({
+				...o,
+				refTipoDocumentacionId: true,
+			}));
+			return;
+		}
+
+		console.log("archivoRef",archivoRef)
+		if (archivoRef.current?.files.length === 0 && request == 1) {
+			setErrors((o) => ({
+				...o,
+				archivo: true,
+			}));
+			return;
+		}
+		onConfirm()
+	}
 
 	return (
 		<Grid col full gap="10px">
@@ -36,7 +62,16 @@ const DocumentacionForm = ({
 						options={tipoListData}
 						value={getValue("refTipoDocumentacionId")}
 						defaultValue={tipoListData[0]}
-						onChange={(v) => onChange({ refTipoDocumentacionId: v })}
+						onChange={(v) =>
+							(setErrors((o) => ({
+								...o,
+								refTipoDocumentacionId: false,
+							})),
+							 onChange({ refTipoDocumentacionId: v, refTipoDocumentacionDescripcion: tipoListData.find((r) => r.value === v)?.label }))
+							}
+						requered
+						error={errors?.refTipoDocumentacionId ? "Dato Requerido" : ""}
+						helperText={errors?.refTipoDocumentacionId ? "Dato Requerido" : ""}
 					/>
 				</Grid>
 				<Grid grow><a download={getValue("nombreArchivo")} href={`data:image/*;base64,${getValue("archivo")}`}>{getValue("nombreArchivo")}</a></Grid>
@@ -47,15 +82,19 @@ const DocumentacionForm = ({
 						hidden
 						disabled={disabled}
 						onChange={(e) => {
+							setErrors((o) => ({
+								...o,
+								archivo: false,
+							}));
 							if (e.target.files.length === 0) return;
 							const archivo = e.target.files[0];
 							const reader = new FileReader();
 							reader.readAsDataURL(archivo);
 							reader.onload = () => {
-								console.log({result: reader.result})
 								onChange({
 									archivo: reader.result?.split("base64,")[1],
 									nombreArchivo: archivo.name,
+									contentType: archivo.type,
 								});
 							};
 						}}
@@ -63,6 +102,7 @@ const DocumentacionForm = ({
 							e.target.value = null;
 						}}
 					/>
+					
 					<Button
 						className="botonAmarillo"
 						onClick={() => archivoRef.current?.click()}
@@ -70,7 +110,9 @@ const DocumentacionForm = ({
 					>
 						Subir archivo
 					</Button>
+					
 				</Grid>
+				<div hidden={!errors?.archivo} style={{ color: "red" }}>Debe subir un archivo</div>
 			</Grid> 
 			<Grid full="width">
 				{/* <InputMaterialMask
@@ -92,7 +134,7 @@ const DocumentacionForm = ({
 			</Grid>
 			<Grid full="width" justify="center" gap="50px">
 				<Grid>
-					<Button className="botonAmarillo" onClick={() => onConfirm()} disabled={disabled}>
+					<Button className="botonAmarillo" onClick={() => confirmaHandle()} disabled={disabled}>
 						{(() => {
 							switch (request) {
 								case 1:

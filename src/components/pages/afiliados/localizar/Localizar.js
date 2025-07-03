@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 // import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
@@ -10,6 +10,8 @@ import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 import styles from "./Localizar.module.css";
 import moment from "moment";
+import useAmbitos from 'components/hooks/useAmbitos';
+import AuthContext from "../../../../store/authContext"; 
 
 const onCloseDef = () => {};
 
@@ -33,6 +35,9 @@ const Localizar = ({ onClose = onCloseDef }) => {
 				return null;
 		}
 	});
+
+	const ambito = useAmbitos().ambitoUser();
+	const Usuario = useContext(AuthContext).usuario;
 
 	const [state, setState] = useState({
 		nroAfiliado: 0,
@@ -62,10 +67,23 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
+
+					/*...(ambito.tipo == "Delegaciones" ? 
+						{
+							estadoSolicitudId: 2,
+							seccionalEstadoId: 1, 
+							ambitoTodos: Usuario.ambitoTodos,
+							ambitoSeccionales: Usuario.ambitoSeccionales,
+							ambitoDelegaciones: Usuario.ambitoDelegaciones,
+							ambitoProvincias: Usuario.ambitoProvincias,
+						
+						} : {}), //SI el ambito es exclusivamente DELEGACIONES, solo traigo los afiliados activos y de seccionales activas de esa delegacion
+					*/
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
 				{
+					console.log("data afiliado selected",data);
 					setAfiliados((o) => ({
 						...o,
 						loading: null,
