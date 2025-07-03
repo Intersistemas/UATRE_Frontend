@@ -138,36 +138,23 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				{/**Nuevo boton agregado 
-				<Grid width gap="inherit" justify="evenly">
-					<Button
-						className="botonAmarillo"
-						
-						onClick={() =>
-							setConsulta(
-								<SolicitudAutorizacionAfiliacion onClose={() => setConsulta(null)} />
-							)
-						}
-						width="32"
-						hide={true}
-						//tarea="Informes_Afiliados_AfiliadosEmpresa"
-					>
-						Afiliaciones por Empresa 2
-					</Button>
-				
-				</Grid>*/}
+				{
+					/*
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
 						
 						onClick={() => navigate("AfiliacionesPorEmpresa")}
 						width="32"
-						//tarea="Informes_Afiliados_AfiliadosEmpresa"
+						tarea="Consultas_AfiliadosEmpresa"
 					>
 						Afiliaciones por Empresa
 					</Button>
 				
 				</Grid>
+					*/
+				}
+				
 				
 			</>
 		),

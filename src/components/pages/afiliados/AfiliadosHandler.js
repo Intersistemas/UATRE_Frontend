@@ -75,6 +75,7 @@ const AfiliadosHandler = () => {
           ambitoSeccionales: Usuario.ambitoSeccionales,
           ambitoDelegaciones: Usuario.ambitoDelegaciones,
           ambitoProvincias: Usuario.ambitoProvincias,
+          ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
           ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
 
