@@ -67,7 +67,7 @@ const AfiliadosHandler = () => {
     let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
     
     let body = {
-          pageIndex: page,
+          pageIndex: page,//estadoSolicitudId != estadoSolicitud ? 1 : page,
           pageSize: sizePerPage,
           soloActivos: false,
 
