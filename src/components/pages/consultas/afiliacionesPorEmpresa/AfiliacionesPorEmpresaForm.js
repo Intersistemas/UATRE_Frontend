@@ -150,6 +150,19 @@ const FormularioOspreraForm = ({
       sort: true,
       style: { textAlign: "left" },
     },
+{
+      dataField: "provinciaDescripcion",
+      text: "Provincia",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+    {
+      dataField: "localidadDescripcion",
+      text: "Localidad",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+
     {
       dataField: "actividadPrincipalDescripcion",
       text: "Actividad Principal",
