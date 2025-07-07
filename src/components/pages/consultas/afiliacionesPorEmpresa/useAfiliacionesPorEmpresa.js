@@ -277,6 +277,10 @@ const useAfiliacionesPorEmpresa = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					ambitoTodos: usuario.ambitoTodos,
+					ambitoSeccionales: usuario.ambitoSeccionales,
+					ambitoDelegaciones: usuario.ambitoDelegaciones,
+					ambitoProvincias: usuario.ambitoProvincias,
 					sort: "-Id",
 					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
 				},
@@ -318,18 +322,9 @@ const useAfiliacionesPorEmpresa = ({
 			case "selected": {
 				return setList((o) => {
 					const apply = [];
-					if (payload.request !== "A") {
-						apply.push(
-							...AsArray(
-								"record" in payload ? payload.record : o.selection.record,
-								true
-							)
-								.map(({ id }) => id)
-								.filter((r) => r)
-						);
-					}
+					
 					const edit = {
-						...(payload.request === "A"
+						...(payload.request === "N"
 							? {}
 							: JoinOjects(o.selection.record)),
 						...JoinOjects(payload.record),

@@ -67,7 +67,7 @@ const AfiliadosHandler = () => {
     let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
     
     let body = {
-          pageIndex: page,
+          pageIndex: page,//estadoSolicitudId != estadoSolicitud ? 1 : page,
           pageSize: sizePerPage,
           soloActivos: false,
 
@@ -75,6 +75,7 @@ const AfiliadosHandler = () => {
           ambitoSeccionales: Usuario.ambitoSeccionales,
           ambitoDelegaciones: Usuario.ambitoDelegaciones,
           ambitoProvincias: Usuario.ambitoProvincias,
+          ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
           ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
 
