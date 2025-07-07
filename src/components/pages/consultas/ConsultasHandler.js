@@ -138,23 +138,17 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				{
-					/*
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
 						
-						onClick={() => navigate("AfiliacionesPorEmpresa")}
+						onClick={() => navigate("Afiliaciones")}
 						width="32"
-						tarea="Consultas_AfiliadosEmpresa"
+						tarea="Consultas_AfiliacionesPorEmpresa"
 					>
 						Afiliaciones por Empresa
 					</Button>
-				
 				</Grid>
-					*/
-				}
-				
 				
 			</>
 		),

@@ -37,6 +37,8 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
+import FormularioOspreraComprobante from "./FormularioOspreraComprobante";
+import { pdf } from "@react-pdf/renderer";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -378,12 +380,11 @@ const FormularioOspreraForm = ({
   }, [data.gestionEstadoId, data.gestionSituacionId]);
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
-    // console.log("onDownloadSolicitudAfiliacion", conDatos);
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
+      "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
       ...Object.fromEntries(
-        `${data?.fecha || ""}`
+        `${moment().format("YYYY-MM-DD") || ""}`
           .split("-")
           .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
       ),
@@ -406,7 +407,7 @@ const FormularioOspreraForm = ({
       "trabajador.localidad": data.localidad,
       "trabajador.provincia": data.provincia,
       "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": "", //data.actividad,
+      "trabajador.actividad": data.actividad,
       "trabajador.telefono": data?.telefonoContacto,
       "trabajador.correo": data?.emailContacto,
       "trabajador.cuil": data?.cuitTitular,
@@ -497,20 +498,6 @@ const FormularioOspreraForm = ({
     }),
     { query: { config: { errorType: "response" } } }
   );
-
-  //   const { setState: setGestionSubRubroQuery } = useQueryState(
-  //     (params) => {
-  //       console.log("params", params);
-  //       return {
-  //         config: {
-  //           baseURL: "Afiliaciones",
-  //           endpoint: `/GestionesSubRubroByRubro`,
-  //           method: "GET",
-  //         },
-  //       };
-  //     },
-  //     { query: { config: { errorType: "response" } } }
-  //   );
 
   const { setState: setGestionEstadoQuery } = useQueryState(
     () => ({
@@ -821,8 +808,8 @@ const FormularioOspreraForm = ({
     setGestionRubroSelect((o) => ({
       ...o,
       selected: {
-        value: data.id,
-        label: gestionRubroSelect.options.find((r) => r.value === data.id)
+        value: data.gestionRubroId,
+        label: gestionRubroSelect.options.find((r) => r.value === data.gestionRubroId)
           ?.label,
       },
     }));
@@ -835,6 +822,7 @@ const FormularioOspreraForm = ({
       onLoad: ({ ok, error }) => {
         let data = [];
         if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+
         setGestionRubroSelect((o) => ({
           ...o,
           loading: null,
@@ -1077,9 +1065,9 @@ const FormularioOspreraForm = ({
 
     setTitular((o) => ({
       ...o,
-      existeEnOSPRERA: false,
-      existeEnUATRE: false,
-      existeEnAFIP: false,
+      existeEnOSPRERA: null,
+      existeEnUATRE: null,
+      existeEnAFIP: null,
       cuil: "",
       tipoDocumentoId: 0,
       sexoId: 0,
@@ -1287,7 +1275,7 @@ const FormularioOspreraForm = ({
       const isValid = await onValidate(true);
       if (!isValid) return;
 
-      if (documentacionList.length !== 0) {
+      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
         setModalDocumentacion({ documentacionOK: true });
       } else {
         //Modal preguntando documentacion
@@ -1338,6 +1326,8 @@ const FormularioOspreraForm = ({
           );
           setOpenDialog(true);
         }
+
+        onClose(true);
       }
     } else {
       onClose(true);
@@ -1447,7 +1437,10 @@ const FormularioOspreraForm = ({
                   selected,
                   origen: "option",
                 }));
-                onChange({ seccionalId: selected.value });
+                onChange({
+                  seccionalId: selected.value,
+                  seccionalDescripcion: selected.label,
+                });
               }}
               options={seccionalSelect.options}
               onTextChange={(buscar) =>
@@ -1467,8 +1460,7 @@ const FormularioOspreraForm = ({
               <Tab
                 label="Documentacion"
                 disabled={
-                  !titular.confirmado ||
-                  request !== "A" ||
+                  (!titular.confirmado && request === "A") ||
                   data.medioGestion === "telefono"
                 }
               />
@@ -1530,12 +1522,14 @@ const FormularioOspreraForm = ({
                               : ""}{" "}
                           </h6>
                           <h6 style={{ fontSize: "small" }}>
-                            {titular.existeEnUATRE
+                            {titular.existeEnUATRE === true
                               ? "Afiliado a UATRE"
-                              : !!titular.existeEnOSPRERA &&
-                                !!titular.existeEnAFIP
+                              : titular.existeEnOSPRERA === null &&
+                                titular.existeEnAFIP === null
                               ? "" //"No se encontraron datos para el CUIL ingresado"
-                              : "No Afiliado a UATRE"}
+                              : titular.existeEnUATRE === false
+                              ? "No Afiliado a UATRE"
+                              : ""}
                           </h6>
                         </div>
                       )}
@@ -1896,6 +1890,66 @@ const FormularioOspreraForm = ({
                   </FormControl>
                 </Grid>
 
+                <Grid width="100%" gap="inherit">
+                  <Grid width="100%" gap="inherit">
+                    <SearchSelectMaterial
+                      required
+                      freeSolo={false}
+                      id="gestionRubro"
+                      name="gestionRubro"
+                      label="Tipo gestión"
+                      error={!!errors.gestionRubro}
+                      helperText={errors.gestionRubro ?? ""}
+                      value={gestionRubroSelect.selected}
+                      disabled={disabledItems.gestionRubro}
+                      onChange={(selected = {}) => {
+                        setGestionRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionRubroId: selected.value });
+                      }}
+                      options={gestionRubroSelect.options}
+                    />
+
+                    <SearchSelectMaterial
+                      required
+                      id="gestionSubRubro"
+                      name="gestionSubRubro"
+                      label="Detalle tipo gestión"
+                      error={!!errors.gestionSubRubro}
+                      helperText={errors.gestionSubRubro ?? ""}
+                      value={gestionSubRubroSelect.selected}
+                      disabled={disabledItems.gestionSubRubro}
+                      onChange={(selected = {}) => {
+                        setGestionSubRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionSubRubroId: selected.value });
+                      }}
+                      options={gestionSubRubroSelect.options}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid width="full" gap="inherit">
+                  <TextField
+                    fullWidth
+                    multiline
+                    maxRows={4}
+                    label="Detalle de la Gestión"
+                    error={!!errors.texto}
+                    helperText={errors.texto ?? ""}
+                    value={data.texto}
+                    disabled={disabledItems.texto}
+                    onChange={(texto) =>
+                      onChange({ texto: texto.target.value })
+                    }
+                  />
+                </Grid>
+
                 <FormControl
                   disabled={disabledItems.medioGestion}
                   error={!!errors.medioGestion}
@@ -1972,65 +2026,7 @@ const FormularioOspreraForm = ({
                       ))}
                   </Grid>
                 </Grid>
-                <Grid width="100%" gap="inherit">
-                  <Grid width="100%" gap="inherit">
-                    <SearchSelectMaterial
-                      required
-                      freeSolo={false}
-                      id="gestionRubro"
-                      name="gestionRubro"
-                      label="Tipo gestión"
-                      error={!!errors.gestionRubro}
-                      helperText={errors.gestionRubro ?? ""}
-                      value={gestionRubroSelect.selected}
-                      disabled={disabledItems.gestionRubro}
-                      onChange={(selected = {}) => {
-                        setGestionRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionRubroId: selected.value });
-                      }}
-                      options={gestionRubroSelect.options}
-                    />
 
-                    <SearchSelectMaterial
-                      required
-                      id="gestionSubRubro"
-                      name="gestionSubRubro"
-                      label="Detalle tipo gestión"
-                      error={!!errors.gestionSubRubro}
-                      helperText={errors.gestionSubRubro ?? ""}
-                      value={gestionSubRubroSelect.selected}
-                      disabled={disabledItems.gestionSubRubro}
-                      onChange={(selected = {}) => {
-                        setGestionSubRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionSubRubroId: selected.value });
-                      }}
-                      options={gestionSubRubroSelect.options}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid width="full" gap="inherit">
-                  <TextField
-                    fullWidth
-                    multiline
-                    maxRows={4}
-                    label="Detalle de la Gestión"
-                    error={!!errors.texto}
-                    helperText={errors.texto ?? ""}
-                    value={data.texto}
-                    disabled={disabledItems.texto}
-                    onChange={(texto) =>
-                      onChange({ texto: texto.target.value })
-                    }
-                  />
-                </Grid>
                 <Grid width="100%" gap="inherit">
                   <Grid width="100%" gap="inherit">
                     <SearchSelectMaterial
@@ -2156,6 +2152,7 @@ const FormularioOspreraForm = ({
               <>
                 <Documentacion
                   data={documentacionList}
+                  disabled={request === "C"}
                   onChange={({ index, item }) => {
                     const newDocList = [...documentacionList];
                     if (index == null) {
@@ -2174,6 +2171,7 @@ const FormularioOspreraForm = ({
                 />
                 <Button
                   className="botonAmarillo"
+                  hidden={request === "C"}
                   marginTop={3}
                   width={50}
                   onClick={() => setSelectedTab(0)}
@@ -2190,7 +2188,7 @@ const FormularioOspreraForm = ({
             className="botonAzul"
             loading={loading}
             width={25}
-            hidden={selectedTab === 1}
+            hidden={selectedTab === 1 || request === "C"}
             disabled={!titular?.confirmado}
             onClick={
               request == "E"
