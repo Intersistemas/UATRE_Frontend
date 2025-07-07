@@ -305,22 +305,13 @@ const FormularioOspreraForm = ({
         "empleador.correo": "-", // No viene en la API
 
         // Carnet (fecha)
-        "carnet.fecha.dia": String(procesoFechax.getDate()).padStart(
-          2,
-          "0"
-        ),
-        "carnet.fecha.mes": String(procesoFechax.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
-        "carnet.fecha.anio": String(procesoFechax.getFullYear()),
+        "carnet.fecha.dia": " ", //String(procesoFechax.getDate()).padStart(2,"0"),
+        "carnet.fecha.mes": " ", //String(procesoFechax.getMonth() + 1).padStart(2,"0"),
+        "carnet.fecha.anio": " ", //String(procesoFechax.getFullYear()),
 
         // Fecha de presentación
         "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
-        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
+        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2,"0"),
         "fecha.anio": String(fechaPresentacion.getFullYear()),
       };
 
