@@ -67,18 +67,10 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
-
-					/*...(ambito.tipo == "Delegaciones" ? 
-						{
-							estadoSolicitudId: 2,
-							seccionalEstadoId: 1, 
-							ambitoTodos: Usuario.ambitoTodos,
-							ambitoSeccionales: Usuario.ambitoSeccionales,
-							ambitoDelegaciones: Usuario.ambitoDelegaciones,
-							ambitoProvincias: Usuario.ambitoProvincias,
-						
-						} : {}), //SI el ambito es exclusivamente DELEGACIONES, solo traigo los afiliados activos y de seccionales activas de esa delegacion
-					*/
+					ambitoTodos: Usuario.ambitoTodos,
+					ambitoSeccionales: Usuario.ambitoSeccionales,
+					ambitoDelegaciones: Usuario.ambitoDelegaciones,
+					ambitoProvincias: Usuario.ambitoProvincias,
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
