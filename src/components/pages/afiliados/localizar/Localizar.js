@@ -67,10 +67,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
-					ambitoTodos: Usuario.ambitoTodos,
-					ambitoSeccionales: Usuario.ambitoSeccionales,
-					ambitoDelegaciones: Usuario.ambitoDelegaciones,
-					ambitoProvincias: Usuario.ambitoProvincias,
+					ambitoTodos: {ids: [0]}
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
