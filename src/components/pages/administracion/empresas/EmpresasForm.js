@@ -34,7 +34,7 @@ const getCIIUOption = (ciiu) =>
 		  };
 
 const getProvinciaOption = (provincia) =>
-	provincia
+	provincia 
 		? {
 				value: provincia.id,
 				label: provincia.nombre,
@@ -133,7 +133,7 @@ const EmpresasForm = ({
 		buscar: "",
 		error: null,
 		selected: getProvinciaOption({
-			id: data.domicilioProvinciasId ?? 0,
+			id: data.domicilioProvinciasId != 0 ? data.domicilioProvinciasId : 100025, // 100025 es el id de "Sin Asignar"
 			nombre: data.provinciaDescripcion,
 		}),
 		onLoaded: onLoadedDef,
@@ -154,8 +154,9 @@ const EmpresasForm = ({
 					return console.error("Se esperaba un arreglo", {
 						GetProvincias: data,
 					});
-				changes.data = data;
-				changes.options = data.map((r) => getProvinciaOption(r)); //le doy formato al OPTION que voy a mostrar
+				changes.data = data.filter((r) =>r.id != 0);
+				changes.options = data.filter((r) =>r.id != 0)
+										.map((r) => getProvinciaOption(r)); //le doy formato al OPTION que voy a mostrar
 			},
 			onError: async (error) => (changes.error = error),
 			onFinally: async () => {
@@ -167,13 +168,13 @@ const EmpresasForm = ({
 	// Cambia data, refresca select
 	useEffect(() => {
 		if (provincias.loading) return;
-		if ((data.domicilioProvinciasId ?? 0) === (provincias.selected.value ?? 0))
+		if ((data.domicilioProvinciasId ?? 100025) === (provincias.selected.value ?? 100025))
 			return;
 		setProvincias((o) => ({
 			...o,
 			selected: getProvinciaOption(
 				o.data.find((r) => r.id === data.domicilioProvinciasId) ?? {
-					id: data.domicilioProvinciasId ?? 0,
+					id: data.domicilioProvinciasId != 0 ? data.domicilioProvinciasId : 100025,
 					nombre: data.provinciaDescripcion ?? "",
 				}
 			),
@@ -529,7 +530,7 @@ const EmpresasForm = ({
 					domicilioPiso: ok.domicilioPiso ?? "",
 					domicilioDpto: ok.domicilioDpto ?? "",
 
-					domicilioProvinciasId: ok.domicilioProvinciasId ?? 0,
+					domicilioProvinciasId: ok.domicilioProvinciasId ?? provincias.data.find((p) => "Sin Asignar".includes(p.nombre))?.id ?? 100025, // 100025 es el id de "Sin Asignar"
 					provinciaDescripcion: ok.provinciaDescripcion ?? "",
 
 					domicilioLocalidadesId: ok.domicilioLocalidadesId ?? 0,
