@@ -34,7 +34,7 @@ const getCIIUOption = (ciiu) =>
 		  };
 
 const getProvinciaOption = (provincia) =>
-	provincia
+	(provincia && provincia.id != 0)
 		? {
 				value: provincia.id,
 				label: provincia.nombre,
@@ -133,7 +133,7 @@ const EmpresasForm = ({
 		buscar: "",
 		error: null,
 		selected: getProvinciaOption({
-			id: data.domicilioProvinciasId ?? 0,
+			id: data.domicilioProvinciasId ?? 100025, // 100025 es el id de "Sin Asignar"
 			nombre: data.provinciaDescripcion,
 		}),
 		onLoaded: onLoadedDef,
@@ -167,13 +167,13 @@ const EmpresasForm = ({
 	// Cambia data, refresca select
 	useEffect(() => {
 		if (provincias.loading) return;
-		if ((data.domicilioProvinciasId ?? 0) === (provincias.selected.value ?? 0))
+		if ((data.domicilioProvinciasId ?? 100025) === (provincias.selected.value ?? 100025))
 			return;
 		setProvincias((o) => ({
 			...o,
 			selected: getProvinciaOption(
 				o.data.find((r) => r.id === data.domicilioProvinciasId) ?? {
-					id: data.domicilioProvinciasId ?? 0,
+					id: data.domicilioProvinciasId ?? 100025,
 					nombre: data.provinciaDescripcion ?? "",
 				}
 			),
@@ -529,7 +529,7 @@ const EmpresasForm = ({
 					domicilioPiso: ok.domicilioPiso ?? "",
 					domicilioDpto: ok.domicilioDpto ?? "",
 
-					domicilioProvinciasId: ok.domicilioProvinciasId ?? 0,
+					domicilioProvinciasId: ok.domicilioProvinciasId ?? provincias.data.find((p) => "Sin Asignar".includes(p.nombre))?.id ?? 100025, // 100025 es el id de "Sin Asignar"
 					provinciaDescripcion: ok.provinciaDescripcion ?? "",
 
 					domicilioLocalidadesId: ok.domicilioLocalidadesId ?? 0,
