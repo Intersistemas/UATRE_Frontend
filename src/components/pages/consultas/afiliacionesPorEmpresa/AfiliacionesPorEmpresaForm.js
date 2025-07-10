@@ -11,6 +11,7 @@ import InputMaterial, {
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
 import Documentacion from "components/documentacion/Documentacion";
+<<<<<<< Updated upstream
 
 import download from "downloadjs";
 import {
@@ -21,6 +22,9 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
+=======
+import downloadjs from "downloadjs";
+>>>>>>> Stashed changes
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
   mapOptions,
@@ -33,6 +37,18 @@ import useEmpresas, {
   onLoadSelectKeepOrFirst,
 } from "components/pages/administracion/empresas/useEmpresas";
 import AfiliacionesPorEmpresaDetalleTable from "./afiliacionesPorEmpresaDetalle/AfiliacionesPorEmpresaDetalleTable";
+<<<<<<< Updated upstream
+=======
+import useAmbitos from "components/hooks/useAmbitos";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Typography,
+} from "@mui/material";
+import PDF from "./PDF";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
+>>>>>>> Stashed changes
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -113,6 +129,9 @@ const FormularioOspreraForm = ({
   });
   
   //#endregion
+
+  const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
+  const [documentacionActions, setDocumentacionActions] = useState([]);
 
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
@@ -196,6 +215,7 @@ const FormularioOspreraForm = ({
     columns: columnsDef,
   });
 
+<<<<<<< Updated upstream
   //#region DISABLED 0303
   useEffect(() => {
     const changes = {};
@@ -212,12 +232,44 @@ const FormularioOspreraForm = ({
 
         changes.fechaNacimiento = false;
         changes.sexo = false;
+=======
+  const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
+    
+    
+    console.log("Soliitud", solicitud);
+
+    pushQuery({
+      action: "PostSolicitudAfiliacionEmpresas",
+      config:{
+        body: solicitud,
+      },
+      onOk: (data) => {
+        console.log("ddjjUatreTrabajadores", data);
+        onDownloadSolicitudAfiliacion(trabajadoresAfipConsulta, data);
+          setTrabajadoresRuralesNoAfiliados({
+            data: trabajadoresAfipConsulta,
+            loading: false,
+            error: null,
+          });
+      },
+       onError: (error) => {
+        setDialog({text: "No se pudo ingresar la Solicitud de Afiliación.", open: true});
+        setTrabajadoresRuralesNoAfiliados({
+          loading: false,
+          data: null,
+          error: error?.message || "Error al insertar Solicitud de Afiliación.",
+        });
+      },
+    });
+  };
+>>>>>>> Stashed changes
 
         changes.telefonoContacto = false;
         changes.telefonoContacto2 = false;
         changes.emailContacto = false;
         changes.emailContacto2 = false;
 
+<<<<<<< Updated upstream
         changes.titularPaciente = false;
         changes.medioGestion = false;
         changes.telefono = false;
@@ -230,6 +282,109 @@ const FormularioOspreraForm = ({
         changes.gestionSituacion = false;
         changes.gestionAreaOsprera = false;
       }
+=======
+  const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
+
+    console.log("trabajadoresNoAfiliados", trabajadoresNoAfiliados);
+    console.log("onDownloadSolicitudAfiliacion_afiliacionPorEmpresa", afiliacionPorEmpresa);
+     // Mapeo para el PDF (uno por cada registro)
+      const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
+      const splitCuil = (cuil) => {
+        const str = String(cuil).padStart(11, "0");
+        return {
+          tipo: str.substring(0, 2),
+          id: str.substring(2, 10),
+          verificador: str.substring(10, 11),
+        };
+      };
+      const cuilParts = splitCuil(t.cuil);
+      const cuitParts = splitCuil(totalesTrabajadores?.empresa?.cuit);
+      const fechaPresentacion = t.presentacionFecha
+        ? new Date(t.presentacionFecha)
+        : new Date();
+      const fechaNac = { dia: "--", mes: "--", anio: "----" };
+      const procesoFechax = t.procesoFecha
+        ? new Date(t.procesoFecha)
+        : new Date();
+
+      // Mapeo para el PDF
+      const datosPDF = {
+        // Afiliado
+        "afiliado.numero": t.id,
+
+        // Trabajador
+        "trabajador.apellidos": t.afiliadoNombre,
+        "trabajador.nombres": "-", // No viene en la API
+        "trabajador.cuil.tipo": cuilParts.tipo,
+        "trabajador.cuil.id": cuilParts.id,
+        "trabajador.cuil.verificador": cuilParts.verificador,
+        "trabajador.documento": "-", // No viene en la API
+        "trabajador.nacionalidad": "-", // No viene en la API
+        "trabajador.nacimiento.fecha": `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
+        "trabajador.estado_civil": "-", // No viene en la API
+        "trabajador.sexo": "-", // No viene en la API
+        "trabajador.domicilio": "-", // No viene en la API
+        "trabajador.localidad": t.zona,
+        "trabajador.provincia": "-", // No viene en la API
+        "trabajador.oficio": t.modalidadDescripcion,
+        "trabajador.actividad": t.actividadDescripcion,
+        "trabajador.telefono": "-", // No viene en la API
+        "trabajador.correo": "-", // No viene en la API
+
+        // Empleador
+        "empleador.cuit.tipo": cuitParts.tipo,
+        "empleador.cuit.id": cuitParts.cuit,
+        "empleador.cuit.verificador": cuitParts.verificador,
+        "empleador.razon_social": totalesTrabajadores?.empresa?.razonSocial,
+        "empleador.domicilio": "-", // No viene en la API
+        "empleador.localidad": "-",
+        "empleador.provincia": totalesTrabajadores?.empresa?.zona, // No viene en la API
+        "empleador.actividad": totalesTrabajadores?.empresa?.modalidadDescripcion,
+        "empleador.telefono": "-", // No viene en la API
+        "empleador.correo": "-", // No viene en la API
+
+        // Carnet (fecha)
+        "carnet.fecha.dia": String(procesoFechax.getDate()).padStart(
+          2,
+          "0"
+        ),
+        "carnet.fecha.mes": String(procesoFechax.getMonth() + 1).padStart(
+          2,
+          "0"
+        ),
+        "carnet.fecha.anio": String(procesoFechax.getFullYear()),
+
+        // Fecha de presentación
+        "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
+        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(
+          2,
+          "0"
+        ),
+        "fecha.anio": String(fechaPresentacion.getFullYear()),
+      };
+
+      // Convertir todos los valores a string
+      return Object.fromEntries(
+        Object.entries(datosPDF).map(([k, v]) => [
+          k,
+          v == null ? "" : String(v),
+        ])
+      );
+    });
+
+    // Generar el PDF con todas las páginas
+    let base64Original = null;
+    await generarPDF({
+      data: datosPDFArray, // <-- Pasar el array
+      onLoad: (b64) => {
+        base64Original = b64;
+      },
+    });
+
+    let base64 = base64Original;
+    if (base64 && base64.startsWith("data:application/pdf;base64,")) {
+      base64 = base64.replace("data:application/pdf;base64,", "");
+>>>>>>> Stashed changes
     }
 
     if (titular.existeEnUATRE) {
@@ -237,12 +392,30 @@ const FormularioOspreraForm = ({
       changes.nombreTitular = true;
     }
 
+<<<<<<< Updated upstream
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [titular]);
   //#endregion
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     // console.log("onDownloadSolicitudAfiliacion", conDatos);
+=======
+    
+    documentacionChanger("Create", {
+			params: {
+        archivo: base64,
+        entidadId: afiliacionPorEmpresa?.id,
+        entidadTipo: "E",
+        nombreArchivo: "SolicitudesDeAfiliacion.pdf",
+        observaciones: "Solicitudes de Afiliación por Empresa",
+        refTipoDocumentacionId: 6,
+        soloactivos: true
+      },
+		});
+
+    onClose(false);
+    /*
+>>>>>>> Stashed changes
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
@@ -483,11 +656,79 @@ const FormularioOspreraForm = ({
     //#endregion
 
   const handleConfirma = async () => {
+<<<<<<< Updated upstream
     if (request == "A") {      
         onDownloadSolicitudAfiliacion(false);
     } else {
       onClose(true);
     }
+=======
+
+    setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
+    console.log("totalesUltimoPeriodo",totalesUltimoPeriodo);
+
+    const solicitud = {
+      fecha: new Date().toISOString(),
+      seccionalId: ambito.tipo == "Seccionales" ? ambito.id : seccionalSelect.selected.value,
+      empresaId: totalesTrabajadores?.empresa.id ?? 0,
+      estadoSolicitudId: estadosSolicitudes?.find((o) => o?.descripcion === "Pendiente")?.id,
+      estadoFecha: new Date().toISOString(),
+      estadoSolicitudObservaciones: "Sin observaciones",
+      estadoSolicitudUsuario: usuarioLogueado?.id || "desconocido",
+      periodo: totalesUltimoPeriodo?.periodo,
+      total_Trabajadores: totalesUltimoPeriodo?.total_Trabajadores,
+      total_Trab_Rurales: totalesUltimoPeriodo?.total_Trab_Rurales,
+      total_Trab_NoRurales: totalesUltimoPeriodo?.total_Trab_NoRurales,
+      total_Trab_Rurales_Afiliados: totalesUltimoPeriodo?.total_Trab_Rurales_Afiliados,
+      total_Trab_Rurales_NoAfiliados: totalesUltimoPeriodo?.total_Trab_Rurales_NoAfiliados,
+      total_Trab_NoRurales_Afiliados: totalesUltimoPeriodo?.total_Trab_NoRurales_Afiliados,
+      total_Trab_NoRurales_NoAfiliados: totalesUltimoPeriodo?.total_Trab_NoRurales_NoAfiliados,
+      solicitudAfiliacionEmpresasDetalle: Array.isArray(totalesTrabajadores.totales)
+        ? totalesTrabajadores.totales.map((item) => ({
+            periodo: item.periodo,
+            total_Trabajadores: item.total_Trabajadores,
+            total_Trab_Rurales: item.total_Trab_Rurales,
+            total_Trab_NoRurales: item.total_Trab_NoRurales,
+            total_Trab_Rurales_Afiliados: item.total_Trab_Rurales_Afiliados,
+            total_Trab_Rurales_NoAfiliados: item.total_Trab_Rurales_NoAfiliados,
+            total_Trab_NoRurales_Afiliados: item.total_Trab_NoRurales_Afiliados,
+            total_Trab_NoRurales_NoAfiliados: item.total_Trab_NoRurales_NoAfiliados,
+          }))
+        : [],
+    };
+
+     //Trabajadores Rurales NO AFILIADOS para generar Solicitud Afiliacion PDF
+     pushQuery({
+      action: "GetDDJJUatreTrabajadoresAFIPConsulta",
+      params: {
+        CUIT: totalesUltimoPeriodo?.cuit,
+        Periodo: totalesUltimoPeriodo?.periodo,
+        EsRural: "S",
+        AfiliadoId: 0,
+      },
+      onOk: (data) => {
+        console.log("OK_ddjjUatreTrabajadores", data);
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
+          setTrabajadoresRuralesNoAfiliados({
+            loading: false,
+            data: [],
+            error: "No existen datos para el CUIT y período seleccionados.",
+          });
+        } else {
+          onGrabarSolicitudAfiliacion(solicitud, data);
+        }
+      },
+       onError: (error) => {
+        setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
+        setTrabajadoresRuralesNoAfiliados({
+          loading: false,
+          data: null,
+          error: error?.message || "Error al obtener los totales de trabajadores.",
+        });
+      },
+    });
+>>>>>>> Stashed changes
   };
 
   UseKeyPress(["Escape"], () => onClose());
