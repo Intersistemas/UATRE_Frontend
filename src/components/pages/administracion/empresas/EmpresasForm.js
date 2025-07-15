@@ -603,6 +603,10 @@ const EmpresasForm = ({
       return;
     }
 
+    const domicilio = data?.datosArca?.domicilios.find(
+      (d) => d.tipoDomicilio === "FISCAL"
+    );
+
     const ciiu1 = {
       ciiu: datosArca.ciiU1,
       descripcion: datosArca.ciiU1Descripcion,
@@ -625,9 +629,19 @@ const EmpresasForm = ({
 
     pushQuery({
       action: "EmpresasActualizarDatos",
-	  config: {
-		body: { id: data.id, actividadPrincipalId: actividadPrincipal.ciiu, ciiU1: ciiu1.ciiu, ciiU2: ciiu2.ciiu, ciiU3: ciiu3.ciiu },
-	  },
+      config: {
+        body: {
+          id: data.id,
+          actividadPrincipalId: actividadPrincipal.ciiu,
+          ciiU1: ciiu1.ciiu,
+          ciiU2: ciiu2.ciiu,
+          ciiU3: ciiu3.ciiu,
+          domicilioCalle: domicilio.domicilioCalle ?? data.domicilioCalle,
+          domicilioNumero: domicilio.domicilioNumero ?? data.domicilioNumero,
+          domicilioPiso: domicilio.domicilioPiso ?? data.domicilioPiso,
+          domicilioDpto: domicilio.domicilioDpto ?? data.domicilioDpto,
+        },
+      },
       onOk: async () => {
         onChange({
           ciiU1: ciiu1.ciiu,
@@ -638,26 +652,21 @@ const EmpresasForm = ({
           ciiU3Descripcion: ciiu3.descripcion,
           actividadPrincipal: actividadPrincipal.ciiu,
           actividadPrincipalDescripcion: actividadPrincipal.descripcion,
+          domicilioCalle: domicilio.domicilioCalle ?? data.domicilioCalle,
+          domicilioNumero: domicilio.domicilioNumero ?? data.domicilioNumero,
+          domicilioPiso: domicilio.domicilioPiso ?? data.domicilioPiso ?? "",
+          domicilioDpto: domicilio.domicilioDpto ?? data.domicilioDpto ?? "",
         });
       },
-      onError: async (error) => alert("Error al actualizar los datos de la empresa: " + error),      
-    });
-
-    onChange({
-      ciiU1: ciiu1.ciiu,
-      ciiU1Descripcion: ciiu1.descripcion,
-      ciiU2: ciiu2.ciiu,
-      ciiU2Descripcion: ciiu2.descripcion,
-      ciiU3: ciiu3.ciiu,
-      ciiU3Descripcion: ciiu3.descripcion,
-      actividadPrincipal: actividadPrincipal.ciiu,
-      actividadPrincipalDescripcion: actividadPrincipal.descripcion,
+      onError: async (error) =>
+        alert("Error al actualizar los datos de la empresa: " + error),
     });
   };
 
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+  console.log("arca", data?.datosArca);
   return (
     <Modal show /*onHide={() => onClose()}*/ size="lg" centered>
       <Modal.Header className={modalCss.modalCabecera} closeButton>
@@ -688,7 +697,7 @@ const EmpresasForm = ({
               <Grid col width="30%">
                 <Button
                   className="botonAzul"
-                  disabled={`${data.cuit ?? ""}`.length !== 11 || errors.cuit}
+                  disabled={`${data.cuit ?? ""}`.length !== 11 || errors.cuit || data?.datosArca !== undefined }
                   onClick={validarEmpresaCUITHandler}
                   loading={validacionCUIT.loading}
                 >

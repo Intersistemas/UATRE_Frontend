@@ -3,8 +3,9 @@ import classes from "./DatosArcaEmpresa.module.css";
 import InputMaterial from "components/ui/Input/InputMaterial";
 
 const DatosArcaEmpresa = (props) => {
-  // console.log("DatosArcaEmpresa props:", props.data);
-    // const { actividad, Ciiu1, Ciiu2, Ciiu3 } = props.data;
+  console.log("DatosArcaEmpresa props:", props.data);
+    const domicilio = props.data?.domicilios.find((d) => d.tipoDomicilio === "FISCAL");
+    console.log("Domicilio fiscal:", domicilio);
     const actividad = props.data?.idActividadPrincipal
       ? `${props.data?.idActividadPrincipal} - ${props.data?.descripcionActividadPrincipal}`
       : "";
@@ -16,6 +17,43 @@ const DatosArcaEmpresa = (props) => {
     <div flex={1} className={classes.div}>
       <div className={classes.renglon}>
         <h4>Datos ARCA</h4>
+      </div>
+      <div className={classes.renglon}>
+        <div className={classes.input50}>
+          <InputMaterial
+            id="direccionCalle"
+            value={domicilio?.calle || ""}
+            label="Dirección - Calle"
+            readOnly={true}
+          />
+        </div>
+
+        <div className={classes.input13}>
+          <InputMaterial
+            id="direccionNumero"
+            value={domicilio?.numero || ""}
+            label="Dir - Nro"
+            readOnly={true}
+          />
+        </div>
+
+        <div className={classes.input13}>
+          <InputMaterial
+            id="direccionPiso"
+            value={domicilio?.piso || ""}
+            label="Dir - Piso"
+            readOnly={true}
+          />
+        </div>
+
+        <div className={classes.input13}>
+          <InputMaterial
+            id="direccionDepto"
+            value={domicilio?.depto || ""}
+            label="Dir - Depto"
+            readOnly={true}
+          />
+        </div>
       </div>
       <div className={classes.renglon}>
         <div className={classes.input100}>
