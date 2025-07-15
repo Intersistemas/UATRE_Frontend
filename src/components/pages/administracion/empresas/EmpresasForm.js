@@ -462,28 +462,29 @@ const EmpresasForm = ({
     setValidacionCUIT((o) => ({ ...o, ...changes }));
 
     errors.cuit = "";
-    onChange({
-      existe: false,
-      razonSocial: null,
-      actividadPrincipalId: null,
-      domicilioCalle: null,
-      domicilioNumero: null,
-      domicilioPiso: null,
-      domicilioDpto: null,
-      telefono: null,
-      email: null,
-      email2: null,
-      ciiU1: null,
-      ciiU2: null,
-      ciiU3: null,
-    });
+    // onChange({
+    //   existe: false,
+    //   razonSocial: null,
+    //   actividadPrincipalId: null,
+    //   domicilioCalle: null,
+    //   domicilioNumero: null,
+    //   domicilioPiso: null,
+    //   domicilioDpto: null,
+    //   telefono: null,
+    //   email: null,
+    //   email2: null,
+    //   ciiU1: null,
+    //   ciiU2: null,
+    //   ciiU3: null,
+    // });
 
     const validaAFIP = () => {
       pushQuery({
         action: "ConsultaAFIP",
         params: { cuit: data.cuit, VerificarHistorico: false },
         onOk: async (ok) => {
-          if (!!data.existe) {
+          console.log("ConsultaAFIP ok:", ok);
+          if (!data.id) {
             changes.validado = "Se creará la Empresa";
 
             const provincia = provincias.data.find(
@@ -493,7 +494,7 @@ const EmpresasForm = ({
             onChange({
               existe: true,
               cuit: ok.cuit,
-              razonSocial: ok.razonSocial ?? "",
+              razonSocial: ok.razonSocial ?? `${ok?.nombre} ${ok?.apellido}` ?? "" ,
 
               actividadPrincipalId: ok.idActividadPrincipal,
               actividadPrincipalDescripcion: ok.descripcionActividadPrincipal,
@@ -555,40 +556,40 @@ const EmpresasForm = ({
 
         onChange({
           existe: true,
-          cuit: ok.cuit,
-          razonSocial: ok.razonSocial ?? "",
-          actividadPrincipalId: ok.actividadPrincipalId,
-          domicilioCalle: ok.domicilioCalle ?? "",
-          domicilioNumero: ok.domicilioNro ?? "",
-          domicilioPiso: ok.domicilioPiso ?? "",
-          domicilioDpto: ok.domicilioDpto ?? "",
+          // cuit: ok.cuit,
+          // razonSocial: ok.razonSocial ?? "",
+          // actividadPrincipalId: ok.actividadPrincipalId,
+          // domicilioCalle: ok.domicilioCalle ?? "",
+          // domicilioNumero: ok.domicilioNro ?? "",
+          // domicilioPiso: ok.domicilioPiso ?? "",
+          // domicilioDpto: ok.domicilioDpto ?? "",
 
-          domicilioProvinciasId:
-            ok.domicilioProvinciasId ??
-            provincias.data.find((p) => "Sin Asignar".includes(p.nombre))?.id ??
-            100025, // 100025 es el id de "Sin Asignar"
-          provinciaDescripcion: ok.provinciaDescripcion ?? "",
+          // domicilioProvinciasId:
+          //   ok.domicilioProvinciasId ??
+          //   provincias.data.find((p) => "Sin Asignar".includes(p.nombre))?.id ??
+          //   100025, // 100025 es el id de "Sin Asignar"
+          // provinciaDescripcion: ok.provinciaDescripcion ?? "",
 
-          domicilioLocalidadesId: ok.domicilioLocalidadesId ?? 0,
-          localidadDescripcion: ok.localidadDescripcion ?? "",
+          // domicilioLocalidadesId: ok.domicilioLocalidadesId ?? 0,
+          // localidadDescripcion: ok.localidadDescripcion ?? "",
 
-          telefono: ok.telefono ?? "",
-          email: ok.email ?? "",
-          email2: ok.email2 ?? "",
+          // telefono: ok.telefono ?? "",
+          // email: ok.email ?? "",
+          // email2: ok.email2 ?? "",
 
-          ciiU1: ok.ciiU1,
-          ciiU1Descripcion: ok.ciiU1Descripcion,
+          // ciiU1: ok.ciiU1,
+          // ciiU1Descripcion: ok.ciiU1Descripcion,
 
-          ciiU2: ok.ciiU2,
-          ciiU2Descripcion: ok.ciiU2Descripcion,
+          // ciiU2: ok.ciiU2,
+          // ciiU2Descripcion: ok.ciiU2Descripcion,
 
-          ciiU3: ok.ciiU3,
-          ciiU3Descripcion: ok.ciiU3Descripcion,
+          // ciiU3: ok.ciiU3,
+          // ciiU3Descripcion: ok.ciiU3Descripcion,
         });
 
         validaAFIP();
       },
-      // onError: async (error) => validaAFIP(),
+      onError: async (error) => validaAFIP(),
       onFinally: async () => {
         changes.loading = false;
         setValidacionCUIT((o) => ({ ...o, ...changes }));
@@ -1050,7 +1051,7 @@ const EmpresasForm = ({
           <Grid fullWidth>
             <Button
               className="botonAzul"
-			  disabled={!data.existe}
+			        disabled={!data.id || !data.datosArca}
               width={40}
               onClick={() => handleActualizaDatosEmpresa(data.datosArca)}
             >
