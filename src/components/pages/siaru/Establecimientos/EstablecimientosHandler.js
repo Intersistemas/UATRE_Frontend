@@ -195,7 +195,7 @@ const EstablecimientosHandler = () => {
       ...query,
       params: { ...query.params, bajas: true },
       onOk: async ({ count }) =>
-        setStats((o) => ({ ...o, loading: null, bajas: count })),
+        setStats((o) => ({ ...o, loading: null, bajas: count ?? 0 })),
       onError: async (_) =>
         setStats((o) => ({ ...o, loading: null, bajas: 0 })),
     });
@@ -245,7 +245,7 @@ const EstablecimientosHandler = () => {
 									].join(", ")} */}
                   {stats.total
                     ? `Cantidad de establecimiento Activos: ${
-                        stats.total - stats.bajas
+                        stats.total - stats.bajas ?? 0
                       }`
                     : null}
                 </h5>

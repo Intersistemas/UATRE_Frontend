@@ -612,7 +612,7 @@ const SiaruHandler = () => {
       />
     );
   }
-
+  
   return (
     <Grid col height="100vh" gap="10px">
       <Grid className="titulo" width="full">
