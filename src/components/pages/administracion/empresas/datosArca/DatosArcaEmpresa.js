@@ -3,9 +3,8 @@ import classes from "./DatosArcaEmpresa.module.css";
 import InputMaterial from "components/ui/Input/InputMaterial";
 
 const DatosArcaEmpresa = (props) => {
-  console.log("DatosArcaEmpresa props:", props.data);
     const domicilio = props.data?.domicilios.find((d) => d.tipoDomicilio === "FISCAL");
-    console.log("Domicilio fiscal:", domicilio);
+    
     const actividad = props.data?.idActividadPrincipal
       ? `${props.data?.idActividadPrincipal} - ${props.data?.descripcionActividadPrincipal}`
       : "";

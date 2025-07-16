@@ -604,7 +604,7 @@ const EmpresasForm = ({
       return;
     }
 
-    const domicilio = data?.datosArca?.domicilios.find(
+    const domicilioFiscal = data?.datosArca?.domicilios.find(
       (d) => d.tipoDomicilio === "FISCAL"
     );
 
@@ -637,10 +637,10 @@ const EmpresasForm = ({
           ciiU1: ciiu1.ciiu,
           ciiU2: ciiu2.ciiu,
           ciiU3: ciiu3.ciiu,
-          domicilioCalle: domicilio.domicilioCalle ?? data.domicilioCalle,
-          domicilioNumero: domicilio.domicilioNumero ?? data.domicilioNumero,
-          domicilioPiso: domicilio.domicilioPiso ?? data.domicilioPiso,
-          domicilioDpto: domicilio.domicilioDpto ?? data.domicilioDpto,
+          domicilioCalle: domicilioFiscal.calle ?? data.domicilioCalle,
+          domicilioNumero: domicilioFiscal.numero ?? data.domicilioNumero,
+          domicilioPiso: domicilioFiscal.piso ?? data.domicilioPiso,
+          domicilioDpto: domicilioFiscal.oficinaDptoLocal ?? data.domicilioDpto,
         },
       },
       onOk: async () => {
@@ -653,10 +653,13 @@ const EmpresasForm = ({
           ciiU3Descripcion: ciiu3.descripcion,
           actividadPrincipal: actividadPrincipal.ciiu,
           actividadPrincipalDescripcion: actividadPrincipal.descripcion,
-          domicilioCalle: domicilio.domicilioCalle ?? data.domicilioCalle,
-          domicilioNumero: domicilio.domicilioNumero ?? data.domicilioNumero,
-          domicilioPiso: domicilio.domicilioPiso ?? data.domicilioPiso ?? "",
-          domicilioDpto: domicilio.domicilioDpto ?? data.domicilioDpto ?? "",
+          domicilioCalle: domicilioFiscal.calle ?? data.domicilioCalle,
+          domicilioNumero:
+            domicilioFiscal.numero ?? data.domicilioNumero,
+          domicilioPiso:
+            domicilioFiscal.piso ?? data.domicilioPiso ?? "",
+          domicilioDpto:
+            domicilioFiscal.oficinaDptoLocal ?? data.domicilioDpto ?? "",
         });
       },
       onError: async (error) =>
@@ -667,7 +670,7 @@ const EmpresasForm = ({
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
-  console.log("arca", data?.datosArca);
+  // console.log("arca", data?.datosArca);
   return (
     <Modal show /*onHide={() => onClose()}*/ size="lg" centered>
       <Modal.Header className={modalCss.modalCabecera} closeButton>
