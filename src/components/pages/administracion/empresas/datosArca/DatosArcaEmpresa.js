@@ -49,7 +49,7 @@ const DatosArcaEmpresa = (props) => {
         <div className={classes.input13}>
           <InputMaterial
             id="direccionDepto"
-            value={domicilio?.depto || ""}
+            value={domicilio?.oficinaDptoLocal || ""}
             label="Dir - Depto"
             readOnly={true}
           />
