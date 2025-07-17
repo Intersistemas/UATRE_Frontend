@@ -51,6 +51,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
 
+	const [actualizaBotones, setActualizaBotones] = useState("Pendiente");
 
 	//#region select estadoSeccional
 	const [estadoSelect, setEstadoSelect] = useState({
@@ -100,7 +101,10 @@ const AfiliacionesPorEmpresaHandler = () => {
 	});
 	const [afiliacionesPorEmpresaActions, setAfiliacionesPorEmpresaActions] = useState([]);
 
-	useEffect(() => {
+
+
+
+	const accionesRechazar = () => {
 		const createAction = ({ action, request, record, ...x }) => {
 			const params = { action, request };
 			if (record) params.record = record;
@@ -120,28 +124,231 @@ const AfiliacionesPorEmpresaHandler = () => {
 				underlineindex: 0,
 			}),
 		];
-		const desc =afiliacionPorEmpresaSelected?.id;
-		console.log("afiliacionPorEmpresaSelected",afiliacionPorEmpresaSelected)
+		const desc =afiliacionPorEmpresaSelected?.id;		
+
 		actions.push(
 			createAction({
 				action: `Autoriza Solicitud Afiliación ${desc}`,
 				request: "A",
 				tarea: "Consultas_AfiliacionesPorEmpresaAutoriza",
-				onExecute: () => afiliacionesPorEmpresaRequest("patchEstados", {
-					action: "Autoriza",
-					record: afiliacionPorEmpresaSelected,
-					params: { 
-							solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
-						}, // Parámetros para la consulta
-					config: {
-						body: {
-							estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
-							estadoSolicitudObservaciones: "sin observaciones",
-							estadoSolicitudUsuario: Usuario?.id,
-							estadoFecha: new Date().toISOString()
-						}, // Cuerpo de la solicitud PATCH
-						},
-				}),
+				onExecute: async () => {
+					await afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Autoriza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					setAfiliacionesPorEmpresaActions(actions); 
+				},
+			
+				record: {},
+				... { disabled: true }
+			})
+		);
+		actions.push(
+			createAction({ 
+				action: `Descarga Formulario de Afiliaciones ${desc}`,
+				onExecute: () => {
+					documentacionChanger("downloadFirstFile", {
+						clear: !afiliacionPorEmpresaSelected?.id,
+						params: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true},
+					});
+				},
+				request: "D",
+				record: {},
+				tarea: "Consultas_AfiliacionesPorEmpresaDescarga",
+				... { disabled: true }
+			})
+		);
+
+		actions.push(
+				createAction({
+					action: `Rechaza Solicitud Afiliación ${desc}`,
+					request: "R",
+					record: {},
+					tarea: "Consultas_AfiliacionesPorEmpresaRechaza",
+					onExecute: () => 
+					{
+					afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Rechaza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					setAfiliacionesPorEmpresaActions(actions); 
+					},
+				... { disabled: true }
+				
+				})
+			);
+			setAfiliacionesPorEmpresaActions(actions);
+	}
+
+	const accionesAceptar = () => {
+		const createAction = ({ action, request, record, ...x }) => {
+			const params = { action, request };
+			if (record) params.record = record;
+			return new Action({
+				name: action,
+				onExecute: () => afiliacionesPorEmpresaRequest("selected", params),
+				combination: "AltKey",
+				...x,
+			});
+		};
+		const actions = [
+			createAction({
+				action: `Nueva Solicitud Afiliación`,
+				request: "N",
+				tarea: "Consultas_AfiliacionesPorEmpresaNueva",
+				keys: "n",
+				underlineindex: 0,
+			}),
+		];
+		const desc =afiliacionPorEmpresaSelected?.id;		
+
+		actions.push(
+			createAction({
+				action: `Autoriza Solicitud Afiliación ${desc}`,
+				request: "A",
+				tarea: "Consultas_AfiliacionesPorEmpresaAutoriza",
+				onExecute: async () => {
+					await afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Autoriza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					setAfiliacionesPorEmpresaActions(actions); 
+				},
+			
+				record: {},
+				... { disabled: true }
+			})
+		);
+		actions.push(
+			createAction({ 
+				action: `Descarga Formulario de Afiliaciones ${desc}`,
+				onExecute: () => {
+					documentacionChanger("downloadFirstFile", {
+						clear: !afiliacionPorEmpresaSelected?.id,
+						params: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true},
+					});
+				},
+				request: "D",
+				record: {},
+				tarea: "Consultas_AfiliacionesPorEmpresaDescarga",
+				... { disabled: false }
+			})
+		);
+
+		actions.push(
+				createAction({
+					action: `Rechaza Solicitud Afiliación ${desc}`,
+					request: "R",
+					record: {},
+					tarea: "Consultas_AfiliacionesPorEmpresaRechaza",
+					onExecute: () => 
+					{
+					afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Rechaza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					setAfiliacionesPorEmpresaActions(actions); 
+					},
+				... { disabled: true }
+				
+				})
+			);
+			setAfiliacionesPorEmpresaActions(actions);
+	}
+
+	useEffect(() => {
+		console.log("afiliacionPorEmpresaSelected**",afiliacionPorEmpresaSelected);
+		console.log("afiliacionesPorEmpresaRequest**",afiliacionesPorEmpresaRequest);
+
+		const createAction = ({ action, request, record, ...x }) => {
+			const params = { action, request };
+			if (record) params.record = record;
+			return new Action({
+				name: action,
+				onExecute: () => afiliacionesPorEmpresaRequest("selected", params),
+				combination: "AltKey",
+				...x,
+			});
+		};
+		const actions = [
+			createAction({
+				action: `Nueva Solicitud Afiliación`,
+				request: "N",
+				tarea: "Consultas_AfiliacionesPorEmpresaNueva",
+				keys: "n",
+				underlineindex: 0,
+			}),
+		];
+		const desc =afiliacionPorEmpresaSelected?.id;		
+
+		actions.push(
+			createAction({
+				action: `Autoriza Solicitud Afiliación ${desc}`,
+				request: "A",
+				tarea: "Consultas_AfiliacionesPorEmpresaAutoriza",
+				onExecute: async () => {
+					await afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Autoriza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					accionesAceptar();
+				},
+			
 				record: {},
 				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
@@ -155,10 +362,16 @@ const AfiliacionesPorEmpresaHandler = () => {
 		actions.push(
 			createAction({ 
 				action: `Descarga Formulario de Afiliaciones ${desc}`,
+				onExecute: () => {
+					documentacionChanger("downloadFirstFile", {
+						clear: !afiliacionPorEmpresaSelected?.id,
+						params: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true},
+					});
+				},
 				request: "D",
 				record: {},
 				tarea: "Consultas_AfiliacionesPorEmpresaDescarga",
-				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Autorizada" || 1==1 //QUITAR EL 1==1 cuando se implemente la descarga
+				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Autorizada"
 					? { disabled: true }
 					: {
 							disabled: false,
@@ -174,21 +387,25 @@ const AfiliacionesPorEmpresaHandler = () => {
 					request: "R",
 					record: {},
 					tarea: "Consultas_AfiliacionesPorEmpresaRechaza",
-					onExecute: () => afiliacionesPorEmpresaRequest("patchEstados", {
-					action: "Rechaza",
-					record: afiliacionPorEmpresaSelected,
-					params: { 
-							solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
-						}, // Parámetros para la consulta
-					config: {
-						body: {
-							estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
-							estadoSolicitudObservaciones: "sin observaciones",
-							estadoSolicitudUsuario: Usuario?.id,
-							estadoFecha: new Date().toISOString()
-						}, // Cuerpo de la solicitud PATCH
-						},
-				}),
+					onExecute: () => 
+					{
+					afiliacionesPorEmpresaRequest("patchEstados", {
+						action: "Rechaza",
+						record: afiliacionPorEmpresaSelected,
+						params: { 
+								solicitudId: afiliacionPorEmpresaSelected?.id, // ID de la solicitud a actualizar
+							}, // Parámetros para la consulta
+						config: {
+							body: {
+								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudObservaciones: "sin observaciones",
+								estadoSolicitudUsuario: Usuario?.id,
+								estadoFecha: new Date().toISOString()
+							}, // Cuerpo de la solicitud PATCH
+							},
+					});
+					accionesRechazar();
+					},
 				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
 					: {
@@ -200,6 +417,11 @@ const AfiliacionesPorEmpresaHandler = () => {
 			);
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
+	
+	
+
+
+
 
 	tabs.push({
 		header: () => <Tab label="Solicitudes de Afiliación" />,
@@ -208,59 +430,36 @@ const AfiliacionesPorEmpresaHandler = () => {
 				<Grid />
 				<Grid gap="inherit" justify="end" >
 					<Grid grid="auto / 200px 200px" gap="inherit" >
-								{/*
-								<InputMaterial
-									label="CUIT"
-									value={paramsEdit.empresaCUIT}
-									onChange={(empresaCUIT) =>
-										setParamsEdit((o) => {
-											const paramsEdit = { ...o, empresaCUIT };
-											if (!empresaCUIT) delete paramsEdit.empresaCUIT;
-											return paramsEdit;
-										})
-									}
-								/>
-								<InputMaterial
-									label="Razón Social"
-									value={paramsEdit.empresaDescripcion}
-									onChange={(empresaDescripcion) =>
-										setParamsEdit((o) => {
-											const paramsEdit = { ...o, empresaDescripcion };
-											if (!empresaDescripcion) delete paramsEdit.empresaDescripcion;
-											return paramsEdit;
-										})
-									}
-								/>*/}
-								<SearchSelectMaterial
-									label="Estado"
-									error={!!estadoSelect.error}
-									helperText={
-										estadoSelect.loading ??
-										estadoSelect.error
-									}
-									value={estadoSelect.selected}
-									onChange={(selected = {}) => {
-										setEstadoSelect((o) => ({
-											...o,
-											selected,
-											origen: "option",
-										}));
-										setParamsEdit((o) => {
-											const estadoSolicitudId = selected.value;
-											const paramsEdit = { ...o, estadoSolicitudId };
-											if (selected === estadosTodos) delete paramsEdit.estadoSolicitudId;
-											return paramsEdit;
-										});
-									}}
-									options={estadoSelect.options}
-									onTextChange={(buscar) =>
-										setEstadoSelect((o) => ({
-											...o,
-											buscar,
-											origen: "text",
-										}))
-									}
-								/>
+						<SearchSelectMaterial
+							label="Estado"
+							error={!!estadoSelect.error}
+							helperText={
+								estadoSelect.loading ??
+								estadoSelect.error
+							}
+							value={estadoSelect.selected}
+							onChange={(selected = {}) => {
+								setEstadoSelect((o) => ({
+									...o,
+									selected,
+									origen: "option",
+								}));
+								setParamsEdit((o) => {
+									const estadoSolicitudId = selected.value;
+									const paramsEdit = { ...o, estadoSolicitudId };
+									if (selected === estadosTodos) delete paramsEdit.estadoSolicitudId;
+									return paramsEdit;
+								});
+							}}
+							options={estadoSelect.options}
+							onTextChange={(buscar) =>
+								setEstadoSelect((o) => ({
+									...o,
+									buscar,
+									origen: "text",
+								}))
+							}
+						/>
 
 						<Button
 							className="botonAzul"
@@ -324,23 +523,102 @@ const AfiliacionesPorEmpresaHandler = () => {
 	}, [afiliacionPorEmpresaSelected?.id, detalleChanger]);
 	//#endregion
 
-//#region Tab DETALLE
+//#region Tab Documentacion
 	const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
-	const [documentacionActions, setDocumentacionActions] = useState([]);
+	const [documentacionActions, setDocumentacionesActions] = useState([]);
 	
+useEffect(() => {
+		const actions = [];
+		const dele = afiliacionPorEmpresaSelected?.id;
+		if (!dele) {
+			setDocumentacionesActions(actions);
+			return;
+		}
+		const deleDesc = `para Solicitud ${dele}`;
+		const createAction = ({ action, request, ...x }) =>
+			new Action({
+				name: action,
+				onExecute: (action) =>
+					documentacionChanger("selected", {
+						request,
+						action,
+						record: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true },
+					}),
+				combination: "AltKey",
+				...x,
+			});
+		actions.push(
+			createAction({
+				action: `Agrega Formulario ${deleDesc}`,
+				request: "A",
+				tarea: "Consultas_AfiliacionesDocumentacionAgrega",
+				keys: "a",
+				underlineindex: 0,
+			})
+		);
+		const docu = documentacionSelected?.id;
+		if (!docu) {
+			setDocumentacionesActions(actions);
+			return;
+		}
+		const docuDesc = `${docu} ${deleDesc}`;
+		actions.push(
+			createAction({
+				action: `Consulta Formulario ${docuDesc}`,
+				request: "C",
+				tarea: "Consultas_AfiliacionesDocumentacionConsulta",
+				keys: "o",
+				underlineindex: 1,
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Modifica Formulario ${docuDesc}`,
+				request: "M",
+				tarea: "Consultas_AfiliacionesDocumentacionModifica",
+				keys: "m",
+				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
+			})
+		);
+		actions.push(
+			createAction({
+				action: `Baja Formulario ${docuDesc}`,
+				request: "B",
+				tarea: "Consultas_AfiliacionesDocumentacionBaja",
+				keys: "b",
+				underlineindex: 0,
+				...(documentacionSelected?.deletedDate ? 
+					{disabled:  true}
+					:
+					{
+					 disabled:  false,
+					}
+				)
+			})
+		);
+		setDocumentacionesActions(actions);
+	}, [documentacionChanger, documentacionSelected, afiliacionPorEmpresaSelected?.id]);
+
 	tabs.push({
-		header: () => <Tab label="Documentación" disabled={true/*!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate*/} />,
+		header: () => <Tab label="Formularios" disabled={!afiliacionPorEmpresaSelected || afiliacionPorEmpresaSelected.deletedDate || afiliacionPorEmpresaSelected?.estado !== "Autorizada" } />,
 		body: documentacionTab,
 		actions: documentacionActions,
 	});
 
 	// Si cambia delegación, refresco lista de documentación
 	useEffect(() => {
-		detalleChanger("list", {
+		documentacionChanger("list", {
 			clear: !afiliacionPorEmpresaSelected?.id,
-			params: { SolicitudAfiliacionEmpresasId: afiliacionPorEmpresaSelected?.id},
+			params: { entidadTipo: "E", entidadId: afiliacionPorEmpresaSelected?.id, soloactivos: true},
 		});
-	}, [afiliacionPorEmpresaSelected?.id, detalleChanger]);
+	}, [afiliacionPorEmpresaSelected?.id, documentacionChanger]);
 	//#endregion
 
 	//#region modulo y acciones
