@@ -11,16 +11,7 @@ import InputMaterial, {
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
 import Documentacion from "components/documentacion/Documentacion";
-
-import download from "downloadjs";
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
+import downloadjs from "downloadjs";
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
   mapOptions,
@@ -33,6 +24,15 @@ import useEmpresas, {
   onLoadSelectKeepOrFirst,
 } from "components/pages/administracion/empresas/useEmpresas";
 import AfiliacionesPorEmpresaDetalleTable from "./afiliacionesPorEmpresaDetalle/AfiliacionesPorEmpresaDetalleTable";
+import useAmbitos from "components/hooks/useAmbitos";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Typography,
+} from "@mui/material";
+import PDF from "./PDF";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -65,9 +65,11 @@ const FormularioOspreraForm = ({
   onClose = onCloseDef,
   onValidate = onValidateDef,
   loading = {},
+  estadosSolicitudes = [],
   request = "",
 }) => {
   data ??= {};
+  estadosSolicitudes ??= [];
   request ??= {};
 
   hide ??= {};
@@ -76,43 +78,48 @@ const FormularioOspreraForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [disabledItems, setDisabledItems] = useState(disabled);
-  const [titular, setTitular] = useState({
-    existeEnUATRE: null,
-    existeEnOSPRERA: null,
-    existeEnAFIP: null,
-    confirmado: request == "A" ? false : true,
-    DDJJEmpresa: null,
-    cuil: "",
-    tipoDocumentoId: 0,
-    fechaNacimiento: "",
-    sexoId: 0,
-  });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useAfiliacionesPorEmpresa();
-  //#region Alert
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogTexto, setDialogTexto] = useState("");
-  const [modalPreguntas, setModalPreguntas] = useState({
-    visible: false,
-    texto: "",
-    respuesta: "",
-  });
-  const [modalDocumentacion, setModalDocumentacion] = useState({
-    visible: false,
-    documentacionOK: false,
-  });
-  // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-
-  const [totalesEmpresa, setTotalesEmpresa] = useState({
-    loading: false,
-    data: null,
-    error: null,
+  const [empresa, setEmpresa] = useState({
+    id: 0,
+    cuit: null,
+    razonsocial: "",
+    domicilio: "",
+    localidad: "",
+    provincia: "",
+    actividad:" "
   });
   
+  //#region Alert
+  const [dialog, setDialog] = useState({
+    text: "",
+    open: false,});
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  const ambito = useAmbitos().ambitoUser();
+  console.log("usuarioLogueado", usuarioLogueado);
+  console.log("useAmbitos",ambito)
+  const [totalesTrabajadores, setTotalesTrabajadores] = useState({
+    loading: false,
+    totales: null,
+    error: null,
+  });
+  const [generandoPDF, setGenerandoPDF] = useState(false);
+  const [cargandoBloques, setCargandoBloques] = useState(false);
+  const [bloqueActual, setBloqueActual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [pdfGenerado, setPdfGenerado] = useState(null);
+  
+  const [totalesUltimoPeriodoSinAfiliados, setTotalesUltimoPeriodoSinAfiliados] = useState(null)
+  
+  const [trabajadoresRuralesNoAfiliados, setTrabajadoresRuralesNoAfiliados] = useState({
+    loading: false,
+    data: [],
+    error: null,
+    });
   //#endregion
+
+  const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
+  const [documentacionActions, setDocumentacionActions] = useState([]);
 
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
@@ -126,7 +133,7 @@ const FormularioOspreraForm = ({
 
   const [filtros, setFiltros] = useState({
     desde: getFechaTresMesesAtras(),
-    hasta: "",
+    hasta: new Date(),
     cuit: "",
     razonSocial: "",
     estado: 0,
@@ -150,6 +157,19 @@ const FormularioOspreraForm = ({
       sort: true,
       style: { textAlign: "left" },
     },
+{
+      dataField: "provinciaDescripcion",
+      text: "Provincia",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+    {
+      dataField: "localidadDescripcion",
+      text: "Localidad",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+
     {
       dataField: "actividadPrincipalDescripcion",
       text: "Actividad Principal",
@@ -196,93 +216,165 @@ const FormularioOspreraForm = ({
     columns: columnsDef,
   });
 
-  //#region DISABLED 0303
-  useEffect(() => {
-    const changes = {};
-    if (titular?.confirmado) {
-      changes.cuitTitular = true;
-      changes.apellidoTitular = true;
-      changes.nombreTitular = true;
-      if (request == "A") {
-        changes.elPacienteEsTitular = false;
-        changes.tipoDocumentoId = false;
-        changes.dniPaciente = false;
-        changes.apellidoPaciente = false;
-        changes.nombrePaciente = false;
+  const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
 
-        changes.fechaNacimiento = false;
-        changes.sexo = false;
 
-        changes.telefonoContacto = false;
-        changes.telefonoContacto2 = false;
-        changes.emailContacto = false;
-        changes.emailContacto2 = false;
-
-        changes.titularPaciente = false;
-        changes.medioGestion = false;
-        changes.telefono = false;
-        changes.resultadoLlamada = false;
-        changes.direccionesEmailDestino = false;
-        changes.texto = false;
-        changes.gestionRubro = false;
-        changes.gestionSubRubro = false;
-        // changes.gestionEstado = false;
-        changes.gestionSituacion = false;
-        changes.gestionAreaOsprera = false;
-      }
-    }
-
-    if (titular.existeEnUATRE) {
-      changes.apellidoTitular = true;
-      changes.nombreTitular = true;
-    }
-
-    setDisabledItems((o) => ({ ...o, ...changes }));
-  }, [titular]);
-  //#endregion
-
-  const onDownloadSolicitudAfiliacion = (conDatos) => {
-    // console.log("onDownloadSolicitudAfiliacion", conDatos);
-    const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
-    const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
-      ...Object.fromEntries(
-        `${data?.fecha || ""}`
-          .split("-")
-          .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
-      ),
-      ...Object.fromEntries(
-        `${Formato.Cuit(data?.cuitTitular)}`
-          .split("-")
-          .map((v, i) => [
-            `trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "trabajador.documento": ["DNI", match[2]].join(" "),
-      "trabajador.nacionalidad": "",
-      "trabajador.apellidos": data?.apellidoTitular,
-      "trabajador.nombres": data?.nombreTitular,
-      "trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
-      "trabajador.estado_civil": "", //estadoCivilSelect?.selected?.label,
-      "trabajador.domicilio": data.domicilio,
-      "trabajador.localidad": data.localidad,
-      "trabajador.provincia": data.provincia,
-      "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": "", //data.actividad,
-      "trabajador.telefono": data?.telefonoContacto,
-      "trabajador.correo": data?.emailContacto,
-      "trabajador.cuil": data?.cuitTitular,
-    };
-    //if (request !== "A") return;
-    conDatos
-      ? solicitudAfiliacion({
-          data: dataFormulario,
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        })
-      : solicitudAfiliacion({
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+    pushQuery({
+      action: "PostSolicitudAfiliacionEmpresas",
+      config:{
+        body: solicitud,
+      },
+      onOk: (data) => {
+        onDownloadSolicitudAfiliacion(trabajadoresAfipConsulta, data);
+          setTrabajadoresRuralesNoAfiliados({
+            data: trabajadoresAfipConsulta,
+            loading: false,
+            error: null,
+          });
+      },
+       onError: (error) => {
+        setDialog({text: "No se pudo ingresar la Solicitud de Afiliación.", open: true});
+        setTrabajadoresRuralesNoAfiliados({
+          loading: false,
+          data: null,
+          error: error?.message || "Error al insertar Solicitud de Afiliación.",
         });
+      },
+    });
+  };
+
+    const { request: generarPDF } = PDF();
+
+  const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
+  console.log("trabajadoresNoAfiliados**",trabajadoresNoAfiliados)
+  console.log("seccionalSelect***",seccionalSelect)
+     // Mapeo para el PDF (uno por cada registro)
+      const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
+      const splitCuil = (cuil) => {
+        const str = String(cuil).padStart(11, "0");
+        return {
+          tipo: str.substring(0, 2),
+          id: str.substring(2, 10),
+          verificador: str.substring(10, 11),
+        };
+      };
+      const cuilParts = splitCuil(t?.cuil);
+      const cuitParts = splitCuil(empresa?.cuit);
+      const fechaPresentacion = t?.presentacionFecha
+        ? new Date(t.presentacionFecha)
+        : new Date();
+      const fechaNac = { dia: "--", mes: "--", anio: "----" };
+      const procesoFechax = t.procesoFecha
+        ? new Date(t.procesoFecha)
+        : new Date();
+
+      // Mapeo para el PDF
+      const datosPDF = {
+        // Afiliado
+        "afiliado.numero": t.id,
+        "seccional.codigo": seccionalSelect?.selectedRecord?.codigo,
+        // Trabajador
+        "trabajador.apellidos": t.afiliadoApellido,
+        "trabajador.nombres":t.afiliadoNombre, // No viene en la API
+        "trabajador.cuil.tipo": cuilParts.tipo,
+        "trabajador.cuil.id": cuilParts.id,
+        "trabajador.cuil.verificador": cuilParts.verificador,
+        "trabajador.documento": t.numeroDocumento,
+        "trabajador.nacionalidad": "-", // No viene en la API
+        "trabajador.nacimiento.fecha": Formato.Fecha(t.fechaNacimiento) ?? `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
+        "trabajador.estado_civil": "-", // No viene en la API
+        "trabajador.sexo": "-", // No viene en la API
+        "trabajador.domicilio": t.domicilio,
+        "trabajador.localidad": t.localidad,
+        "trabajador.provincia": t.provincia,
+        "trabajador.oficio": "-", //t.modalidadDescripcion,
+        "trabajador.actividad":  t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
+        "trabajador.telefono": "-", // No viene en la API
+        "trabajador.correo": "-", // No viene en la API
+
+        // Empleador
+        "empleador.cuit.tipo": cuitParts.tipo,
+        "empleador.cuit.id": cuitParts.id,
+        "empleador.cuit.verificador": cuitParts.verificador,
+        "empleador.razon_social": empresa?.razonsocial,
+        "empleador.domicilio": empresa?.domicilio,
+        "empleador.localidad": empresa?.localidad,
+        "empleador.provincia": empresa?.provincia,
+        "empleador.actividad": empresa?.actividad,
+        "empleador.telefono": "-", // No viene en la API
+        "empleador.correo": "-", // No viene en la API
+
+        // Carnet (fecha)
+        "carnet.fecha.dia": " ", //String(procesoFechax.getDate()).padStart(2,"0"),
+        "carnet.fecha.mes": " ", //String(procesoFechax.getMonth() + 1).padStart(2,"0"),
+        "carnet.fecha.anio": " ", //String(procesoFechax.getFullYear()),
+
+        // Fecha de presentación
+        "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
+        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2,"0"),
+        "fecha.anio": String(fechaPresentacion.getFullYear()),
+      };
+
+      // Convertir todos los valores a string
+      return Object.fromEntries(
+        Object.entries(datosPDF).map(([k, v]) => [
+          k,
+          v == null ? "" : String(v),
+        ])
+      );
+    });
+
+    // Generar el PDF con todas las páginas
+    let base64Original = null;
+    await generarPDF({
+      data: datosPDFArray, // <-- Pasar el array
+      onLoad: (b64) => {
+        base64Original = b64;
+      },
+    });
+
+    let base64 = base64Original;
+    if (base64 && base64.startsWith("data:application/pdf;base64,")) {
+      base64 = base64.replace("data:application/pdf;base64,", "");
+    }
+    if (!base64) {
+      alert("El PDF no se generó correctamente.");
+      setGenerandoPDF(false);
+      setCargandoBloques(false);
+      return;
+    }
+    const { PDFDocument } = await import("pdf-lib");
+    const pdfBytes = Uint8Array.from(atob(base64), (c) =>
+      c.charCodeAt(0)
+    );
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const paginas = pdfDoc.getPageCount();
+    setTotalPaginas(paginas);
+    setCargandoBloques(true);
+    for (let i = 1; i <= paginas; i++) {
+      setBloqueActual(i);
+      await new Promise((res) => setTimeout(res, 300));
+    }
+    setCargandoBloques(false);
+    setGenerandoPDF(false);
+    setPdfGenerado(base64Original);
+
+    //downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
+    
+    documentacionChanger("Create", {
+			params: {
+        archivo: base64,
+        entidadId: afiliacionPorEmpresa?.id,
+        entidadTipo: "E",
+        nombreArchivo: "SolicitudesDeAfiliacion.pdf",
+        observaciones: "Solicitudes de Afiliación por Empresa",
+        refTipoDocumentacionId: 6,
+        soloactivos: true
+      },
+		});
+
+    onClose(true);
+ 
   };
 
   const { setState: setDocumentosQuery } = useQueryState(
@@ -319,7 +411,7 @@ const FormularioOspreraForm = ({
       },
     }),
     { query: { config: { errorType: "response" } } }
-  );
+  ); 
 
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
@@ -333,83 +425,33 @@ const FormularioOspreraForm = ({
           },
         };
       }
-      case "GetAfiliado": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/Afiliado/GetAfiliadoByCUIL`,
-            method: "GET",
-          },
-        };
-      }
-      
-      case "GetDDJJ": {
+      case "GetDDJJUatreTrabajadoresAFIPConsulta": {
         return {
           config: {
             baseURL: "DDJJ",
-            endpoint: `/DDJJUatre/GetCUILUltimoAnio`,
+            endpoint: `/DDJJUatre/GetDDJJUatreTrabajadoresAFIPConsulta`,
             method: "GET",
           },
         };
       }
-
-      case "ConsultaAFIP": {
-        return {
-          config: {
-            baseURL: "Comunes",
-            endpoint: "/AFIPConsulta",
-            method: "GET",
-          },
-        };
-      }
-
-      case "ConsultaOsprera": {
-        return {
-          config: {
-            baseURL: "Comunes",
-            endpoint: "/PadronOsprera/GetPadronOspreraSpecs",
-            method: "GET",
-          },
-        };
-      }
-
-      case "EnviarCorreo": {
-        return {
-          config: {
-            endpoint: `/Usuario/enviarCorreoConAdjuntoBase64`,
-            baseURL: "Seguridad",
-            method: "POST",
-            headers: {
-              Accept: "*/*",
-            },
-            /*body: JSON.stringify({
-							to: to,
-							attachments: attachments,
-						}),*/
-          },
-        };
-      }
-
-      case "GestionesSubRubroByRubro": {
-        return {
+      case "PostSolicitudAfiliacionEmpresas": {
+       return {
           config: {
             baseURL: "Afiliaciones",
-            endpoint: `/GestionesSubRubro`,
-            method: "GET",
+            endpoint: "/SolicitudAfiliacionEmpresas",
+            method: "POST" 
           },
         };
       }
-
-      case "GestionesSituacionByEstado": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionesSituacion`,
-            method: "GET",
-          },
-        };
+      case "ConsultaAFIP":{
+	      return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: "/AFIPConsulta",
+						method: "GET",
+					},
+				};
       }
-
       default:
         return null;
     }
@@ -424,7 +466,7 @@ const FormularioOspreraForm = ({
     error: null,
     options: [],
     selected: {},
-    selectedAditionalData: {},
+    selectedRecord: {},
     origen: "",
   });
   // Buscador
@@ -432,23 +474,34 @@ const FormularioOspreraForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalId },
+      selected:{},
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
+  //#endregion select seccionales
+
+// Buscador
+  useEffect(() => {
+    console.log("seccionalSelect!!",seccionalSelect)
+    setSeccionalSelect((o) => ({
+      ...o,
+     selectedRecord: seccionalSelect.data.find((s)=> s?.id == seccionalSelect?.selected?.value)
+    }));
+  }, [seccionalSelect.selected]);
   //#endregion select seccionales
 
   // Buscador
   useEffect(() => {
     setSeccionalSelect((o) => ({
       ...o,
-      selected: {
-        value: data.seccionalId,
-        label: seccionalSelect.options.find((r) => r.value === data.seccionalId)
+       //selected: ambito.tipo == "Seccionales" ? { value: ambito?.ids[0], label: data.find((s)=> s?.id == ambito?.ids[0])?.descripcion} : {},
+      selected:  ambito.tipo == "Seccionales" ? 
+      { value:  ambito?.ids[0],
+        label: seccionalSelect.options.find((r) => r.value === ambito?.ids[0])
           ?.label,
-      },
-      selectedAditionalData: seccionalSelect?.options.find(
-        (r) => r.value === data?.seccionalId
-      )?.record,
+      }
+      : 
+      {},
+     selectedRecord: ambito.tipo == "Seccionales" ? seccionalSelect.data.find((s) => s.id === ambito?.ids[0])  : {} 
     }));
   }, [seccionalSelect.options]);
   //#endregion select seccionales
@@ -482,13 +535,79 @@ const FormularioOspreraForm = ({
     }, [empresasRequest, paramsSend]);
     //#endregion
 
+
+
+  //#region Confirmación
   const handleConfirma = async () => {
-    if (request == "A") {      
-        onDownloadSolicitudAfiliacion(false);
-    } else {
-      onClose(true);
-    }
+
+    setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
+    console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
+    console.log("empresa*",empresa);
+    console.log("seccionalSelect",seccionalSelect)
+    console.log("ambito",ambito)
+
+    const solicitud = {
+      fecha: new Date().toISOString(),
+      seccionalId: seccionalSelect.selected.value,
+      empresaId: empresa?.id ?? 0,
+      estadoSolicitudId: estadosSolicitudes?.find((o) => o?.descripcion === "Pendiente")?.id,
+      estadoFecha: new Date().toISOString(),
+      estadoSolicitudObservaciones: "Sin observaciones",
+      estadoSolicitudUsuario: usuarioLogueado?.id || "desconocido",
+      periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
+      total_Trabajadores: totalesUltimoPeriodoSinAfiliados?.total_Trabajadores,
+      total_Trab_Rurales: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales,
+      total_Trab_NoRurales: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales,
+      total_Trab_Rurales_Afiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_Afiliados,
+      total_Trab_Rurales_NoAfiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados,
+      total_Trab_NoRurales_Afiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales_Afiliados,
+      total_Trab_NoRurales_NoAfiliados: totalesUltimoPeriodoSinAfiliados?.total_Trab_NoRurales_NoAfiliados,
+      solicitudAfiliacionEmpresasDetalle: Array.isArray(totalesTrabajadores.totales)
+        ? totalesTrabajadores.totales.map((item) => ({
+            periodo: item.periodo,
+            total_Trabajadores: item.total_Trabajadores,
+            total_Trab_Rurales: item.total_Trab_Rurales,
+            total_Trab_NoRurales: item.total_Trab_NoRurales,
+            total_Trab_Rurales_Afiliados: item.total_Trab_Rurales_Afiliados,
+            total_Trab_Rurales_NoAfiliados: item.total_Trab_Rurales_NoAfiliados,
+            total_Trab_NoRurales_Afiliados: item.total_Trab_NoRurales_Afiliados,
+            total_Trab_NoRurales_NoAfiliados: item.total_Trab_NoRurales_NoAfiliados,
+          }))
+        : [],
+    };
+
+     //Trabajadores Rurales NO AFILIADOS para generar Solicitud Afiliacion PDF
+     pushQuery({
+      action: "GetDDJJUatreTrabajadoresAFIPConsulta",
+      params: {
+        CUIT: totalesUltimoPeriodoSinAfiliados?.cuit,
+        Periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
+        EsRural: "S",
+        AfiliadoId: 0,
+      },
+      onOk: (data) => {
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          setDialog({text: "No se encontraron Trabajadores Rurales No Afiliados para generar la Solicitud de Afiliación.", open: true});
+          setTrabajadoresRuralesNoAfiliados({
+            loading: false,
+            data: [],
+            error: "No existen datos para el CUIT y período seleccionados.",
+          });
+        } else {
+          onGrabarSolicitudAfiliacion(solicitud, data);
+        }
+      },
+       onError: (error) => {
+        setDialog({text: "Error consultando trabajadores", open: true});
+        setTrabajadoresRuralesNoAfiliados({
+          loading: false,
+          data: null,
+          error: error?.message || "Error al obtener los totales de trabajadores.",
+        });
+      },
+    });
   };
+  //#endregion Confirmación
 
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => handleConfirma(), "AltKey");
@@ -523,11 +642,38 @@ const handlerBuscarTotales = () => {
     const PeriodoDesde = fechaToPeriodo(filtros.desde);
     const PeriodoHasta = fechaToPeriodo(filtros.hasta);
     
-    console.log("handlerBuscarTotales", cuit, PeriodoDesde, PeriodoHasta);
     if (!cuit || !PeriodoDesde || !PeriodoHasta) return;
 
-    setTotalesEmpresa({ loading: true, data: null, error: null });
+     pushQuery({
+      action: "ConsultaAFIP",
+      params: { cuit: empresaSelected?.cuit, VerificarHistorico: false },
+      onOk: (data) => {
+        setEmpresa({
+            id: empresaSelected?.id,
+            cuit: data?.cuit,
+            razonsocial: data?.razonSocial,
+            domicilio: data?.domicilios[0]?.direccion,
+            localidad: data?.domicilios[0]?.localidad,
+            provincia: data?.domicilios[0]?.descripcionProvincia,
+            actividad: data?.descripcionActividadPrincipal
+          });
+      },
+       onError: (error) => {
+         setEmpresa({
+            id: empresaSelected?.id,
+            cuit: empresaSelected?.cuit,
+            razonsocial: empresaSelected?.razonSocial,
+            domicilio: `${empresaSelected?.domicilioCalle} ${empresaSelected?.domicilioNumero}`,
+            localidad: "",
+            provincia: "",
+            actividad: empresaSelected?.actividadPrincipalDescripcion
+          });
+      },
+    });
 
+    setTotalesTrabajadores({ loading: true, totales: null, error: null});
+
+    setTotalesUltimoPeriodoSinAfiliados(null);
     pushQuery({
       action: "ddjjTotalTrabajadores",
       params: {
@@ -536,20 +682,26 @@ const handlerBuscarTotales = () => {
         PeriodoHasta,
         Sort:"-Periodo",
         PageIndex: 1,
-        PageSize: 8, // Ajusta el tamaño según sea necesario      
+        PageSize: 6, // Ajusta el tamaño según sea necesario      
       },
       onOk: (data) => {
-        console.log("ddjjTotalTrabajadores", data);
-        if (!data || (Array.isArray(data) && data.length === 0)) {
-          setTotalesEmpresa({
+        if (!data.data || (Array.isArray(data.data) && data.data.length === 0)) {
+          setTotalesTrabajadores({
             loading: false,
-            data: [],
-            error: "No hay datos para el CUIT y período seleccionados.",
+            totales: [],
+            error: "No existen datos para el CUIT y período seleccionados.",
           });
         } else {
-          console.log("setea totalesEmpresa", data);
-          setTotalesEmpresa({ loading: false, data, error: null });
+          setTotalesTrabajadores({ loading: false, totales: data?.data, error: null });
+          setTotalesUltimoPeriodoSinAfiliados(data.data.find((item) => item.total_Trab_Rurales_NoAfiliados > 0) || null);
         }
+      },
+      onError: (error) => {
+        setTotalesTrabajadores({
+          loading: false,
+          totales: null,
+          error: error?.message || "Error al obtener los totales de trabajadores.",
+        });
       },
     });
   };
@@ -581,7 +733,7 @@ const handlerBuscarTotales = () => {
                 errors.seccionalId
               }
               value={seccionalSelect.selected}
-              disabled={disabled.seccionalId}
+              disabled={disabled.seccionalId || ambito.tipo == "Seccionales"}
               onChange={(selected = {}) => {
                 setSeccionalSelect((o) => ({
                   ...o,
@@ -656,23 +808,6 @@ const handlerBuscarTotales = () => {
                 {empresasRender()}
               </div>
             </Grid>
-            <Grid col width="full" gap="15px">
-              <Grid width gap="inherit">
-                <InputMaterial
-                  id="fechaNacimiento"
-                  type="date"
-                  label="Fecha de nacimiento"
-                  required
-                  value={data.fechaNacimiento}
-                  maxDate={moment().format("YYYY-MM-DD")}
-                  error={errors.fechaNacimiento}
-                  disabled={disabledItems.fechaNacimiento}
-                  onChange={(fechaNacimiento) =>
-                    onChange({ fechaNacimiento })
-                  }
-                />
-              </Grid>
-            </Grid>
             <Grid width gap="inherit">
               {/* Reemplazo el filtro de estado por los de fecha */}
               <Grid width="auto">
@@ -683,9 +818,9 @@ const handlerBuscarTotales = () => {
                   onChange={(e) => {
                     let value = e?.target?.value || e;
                     setFiltros((o) => ({ ...o, desde: value }));
-                    setTotalesEmpresa({
+                    setTotalesTrabajadores({
                       loading: false,
-                      data: null,
+                      totales: null,
                       error: null,
                     });
                   }}
@@ -699,9 +834,9 @@ const handlerBuscarTotales = () => {
                   onChange={(e) => {
                     let value = e?.target?.value || e;
                     setFiltros((o) => ({ ...o, hasta: value }));
-                    setTotalesEmpresa({
+                    setTotalesTrabajadores({
                       loading: false,
-                      data: null,
+                      totales: null,
                       error: null,
                     });
                   }}
@@ -715,7 +850,6 @@ const handlerBuscarTotales = () => {
                     !(empresaSelected && filtros.desde && filtros.hasta)
                   }
                   onClick={() => {
-                    console.log("empresaSelected", empresaSelected);
                     handlerBuscarTotales();
                   }}
                 >
@@ -724,7 +858,7 @@ const handlerBuscarTotales = () => {
                 </Button>
               </Grid>
             </Grid>
-            <Grid width="auto">
+            <Grid width="auto"  style={{ marginTop: "10px" }}>
               <AfiliacionesPorEmpresaDetalleTable
                 /*data={list.data}
                 loading={!!list.loading}
@@ -753,21 +887,21 @@ const handlerBuscarTotales = () => {
                       },
                     })),
                 }}*/
-               mostrarBuscar={false}
+                mostrarBuscar={false}
                 remote
                 keyField="empresaCUIT"
                 data={
-                  Array.isArray(totalesEmpresa?.data?.data) &&
-                  totalesEmpresa?.data?.data?.length > 0
-                    ? totalesEmpresa?.data?.data
+                  Array.isArray(totalesTrabajadores?.totales) &&
+                  totalesTrabajadores?.totales?.length > 0
+                    ? totalesTrabajadores?.totales
                     : []
                 }
                 noDataIndication={
-                  totalesEmpresa.loading
+                  totalesTrabajadores?.loading
                     ? "Cargando..."
-                    : totalesEmpresa.error
-                    ? totalesEmpresa.error
-                    : "No hay datos para el CUIT y período seleccionados."
+                    : totalesTrabajadores?.error
+                    ? totalesTrabajadores?.error
+                    : "No existen datos para el CUIT y período seleccionados."
                 }
                 onTableChange={(type, { sortOrder, sortField }) => {
                   switch (type) {
@@ -800,9 +934,13 @@ const handlerBuscarTotales = () => {
             className="botonAzul"
             loading={loading}
             width={25}
-            disabled={!titular?.confirmado}
+            disabled={ (totalesUltimoPeriodoSinAfiliados == null || totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados == 0 || trabajadoresRuralesNoAfiliados.loading) ?? false}
             onClick={() => handleConfirma()}
-          > CONFIRMA
+          > {generandoPDF ? (
+               `Generando PDF ${bloqueActual} de ${totalPaginas}...`
+            ) : (
+              trabajadoresRuralesNoAfiliados.loading ? "Cargando..." : "CONFIRMA"
+            )}
           </Button>
 
           <Button
@@ -813,6 +951,30 @@ const handlerBuscarTotales = () => {
             CIERRA
           </Button>
         </Modal.Footer>
+        <div>
+            <Dialog
+              onClose={() => (
+                setDialog({text: "", open:false})
+              )}
+              open={dialog.open}
+            >
+              <DialogContent dividers>
+                <Typography gutterBottom style={{ whiteSpace: "pre-line" }}>
+                  {dialog.text}
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  className="botonAmarillo"
+                  onClick={() => (
+                     setDialog({text: "", open:false})
+                  )}
+                >
+                  Cierra
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </div>
       </Modal>
     </>
   );
