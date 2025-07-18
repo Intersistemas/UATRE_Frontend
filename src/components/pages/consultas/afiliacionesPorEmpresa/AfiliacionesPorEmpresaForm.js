@@ -157,6 +157,19 @@ const FormularioOspreraForm = ({
       sort: true,
       style: { textAlign: "left" },
     },
+{
+      dataField: "provinciaDescripcion",
+      text: "Provincia",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+    {
+      dataField: "localidadDescripcion",
+      text: "Localidad",
+      sort: false,
+      style: { textAlign: "left" },
+    },
+
     {
       dataField: "actividadPrincipalDescripcion",
       text: "Actividad Principal",
@@ -233,7 +246,8 @@ const FormularioOspreraForm = ({
     const { request: generarPDF } = PDF();
 
   const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
-
+  console.log("trabajadoresNoAfiliados**",trabajadoresNoAfiliados)
+  console.log("seccionalSelect***",seccionalSelect)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
       const splitCuil = (cuil) => {
@@ -258,7 +272,7 @@ const FormularioOspreraForm = ({
       const datosPDF = {
         // Afiliado
         "afiliado.numero": t.id,
-        "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
+        "seccional.codigo": seccionalSelect?.selectedRecord?.codigo,
         // Trabajador
         "trabajador.apellidos": t.afiliadoApellido,
         "trabajador.nombres":t.afiliadoNombre, // No viene en la API
@@ -273,8 +287,8 @@ const FormularioOspreraForm = ({
         "trabajador.domicilio": t.domicilio,
         "trabajador.localidad": t.localidad,
         "trabajador.provincia": t.provincia,
-        "trabajador.oficio": t.modalidadDescripcion,
-        "trabajador.actividad": t.actividadDescripcion,
+        "trabajador.oficio": "-", //t.modalidadDescripcion,
+        "trabajador.actividad":  t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
         "trabajador.telefono": "-", // No viene en la API
         "trabajador.correo": "-", // No viene en la API
 
@@ -291,22 +305,13 @@ const FormularioOspreraForm = ({
         "empleador.correo": "-", // No viene en la API
 
         // Carnet (fecha)
-        "carnet.fecha.dia": String(procesoFechax.getDate()).padStart(
-          2,
-          "0"
-        ),
-        "carnet.fecha.mes": String(procesoFechax.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
-        "carnet.fecha.anio": String(procesoFechax.getFullYear()),
+        "carnet.fecha.dia": " ", //String(procesoFechax.getDate()).padStart(2,"0"),
+        "carnet.fecha.mes": " ", //String(procesoFechax.getMonth() + 1).padStart(2,"0"),
+        "carnet.fecha.anio": " ", //String(procesoFechax.getFullYear()),
 
         // Fecha de presentación
         "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
-        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
+        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2,"0"),
         "fecha.anio": String(fechaPresentacion.getFullYear()),
       };
 
@@ -369,47 +374,7 @@ const FormularioOspreraForm = ({
 		});
 
     onClose(true);
-    /*
-    const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
-    const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
-      ...Object.fromEntries(
-        `${data?.fecha || ""}`
-          .split("-")
-          .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
-      ),
-      ...Object.fromEntries(
-        `${Formato.Cuit(data?.cuitTitular)}`
-          .split("-")
-          .map((v, i) => [
-            `trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "trabajador.documento": ["DNI", match[2]].join(" "),
-      "trabajador.nacionalidad": "",
-      "trabajador.apellidos": data?.apellidoTitular,
-      "trabajador.nombres": data?.nombreTitular,
-      "trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
-      "trabajador.estado_civil": "", //estadoCivilSelect?.selected?.label,
-      "trabajador.domicilio": data.domicilio,
-      "trabajador.localidad": data.localidad,
-      "trabajador.provincia": data.provincia,
-      "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": "", //data.actividad,
-      "trabajador.telefono": data?.telefonoContacto,
-      "trabajador.correo": data?.emailContacto,
-      "trabajador.cuil": data?.cuitTitular,
-    };
-    //if (request !== "A") return;
-    conDatos
-      ? solicitudAfiliacion({
-          data: dataFormulario,
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        })
-      : solicitudAfiliacion({
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        });*/
+ 
   };
 
   const { setState: setDocumentosQuery } = useQueryState(
@@ -501,6 +466,7 @@ const FormularioOspreraForm = ({
     error: null,
     options: [],
     selected: {},
+    selectedRecord: {},
     origen: "",
   });
   // Buscador
@@ -509,10 +475,18 @@ const FormularioOspreraForm = ({
       ...o,
       options: seccionalSelectOptions(o),
       selected:{},
-      //selected:{ value: data.seccionalId, label: data.seccionalId },
-      //selected: ambito.tipo == "Seccionales" ? { value: ambito?.ids[0], label: seccionalSelect?.data.find((s)=> s?.id == ambito?.ids[0])?.descripcion} : {},
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
+  //#endregion select seccionales
+
+// Buscador
+  useEffect(() => {
+    console.log("seccionalSelect!!",seccionalSelect)
+    setSeccionalSelect((o) => ({
+      ...o,
+     selectedRecord: seccionalSelect.data.find((s)=> s?.id == seccionalSelect?.selected?.value)
+    }));
+  }, [seccionalSelect.selected]);
   //#endregion select seccionales
 
   // Buscador
@@ -523,9 +497,11 @@ const FormularioOspreraForm = ({
       selected:  ambito.tipo == "Seccionales" ? 
       { value:  ambito?.ids[0],
         label: seccionalSelect.options.find((r) => r.value === ambito?.ids[0])
-          ?.label, } 
+          ?.label,
+      }
       : 
-      {}     
+      {},
+     selectedRecord: ambito.tipo == "Seccionales" ? seccionalSelect.data.find((s) => s.id === ambito?.ids[0])  : {} 
     }));
   }, [seccionalSelect.options]);
   //#endregion select seccionales

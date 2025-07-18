@@ -39,7 +39,6 @@ const columns = [
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
 		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
-		//formatter: (v) => Formato.Cuit(v),
 		style: { textAlign: "center" },
 	},
 	{
@@ -197,7 +196,6 @@ const seccionalesSelectOptions = ({ data = [], ...x }) =>
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
-
 	const ambitoUser = useAmbitosUsuario().ambitoUser();
 	//console.log("ambitoUser_handler",ambitoUser)
 	
@@ -257,7 +255,10 @@ const Handler = ({ onClose = () => {} }) => {
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
-		filtros: {},
+		filtros: {
+			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+            ambitoProvincias: usuario.ambitoProvincias, //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+		}, 
 		wait: { delegaciones: true, seccionales: true },
 		usuario,
 	});

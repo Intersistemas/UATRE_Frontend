@@ -1,4 +1,3 @@
-import { Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import UsuarioEmpresas from "./usuarioEmpresasForm";
@@ -123,13 +122,7 @@ function UsuarioEmpresasHandler(props) {
   };
   //#endregion
 
-  // console.log("selectedUsuario", selectedUsuario);
-
   return (
-    // <Grid full col>
-    //   <Grid className="titulo" marginBottom={3}>
-    //     <h1>Desvincular usuario de Empresa</h1>
-    //   </Grid>
       <UsuarioEmpresas
         show={props.show}
         title={props.title}
