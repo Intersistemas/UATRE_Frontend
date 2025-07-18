@@ -56,7 +56,6 @@ const ConsultasHandler = () => {
 		link.href = "/Consultas/NotificacionEmpresa.pdf";
 		link.click();
 	  };
-	  
 
 	// Afiliados
 	tabs.push({
@@ -138,21 +137,19 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				{
-					/*
-				<Grid width gap="inherit" justify="evenly">
-					<Button
-						className="botonAmarillo"
-						
-						onClick={() => navigate("AfiliacionesPorEmpresa")}
-						width="32"
-						tarea="Consultas_AfiliadosEmpresa"
-					>
-						Afiliaciones por Empresa
-					</Button>
-				
-				</Grid>
-					*/
+				{ process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" && // Solo lo muestro en test y desa
+					<Grid width gap="inherit" justify="evenly">
+						<Button
+							className="botonAmarillo"
+							
+							onClick={() => navigate("AfiliacionesPorEmpresa")}
+							width="32"
+							tarea="Consultas_AfiliadosEmpresa"
+						>
+							Afiliaciones por Empresa
+						</Button>
+					
+					</Grid>
 				}
 				
 				

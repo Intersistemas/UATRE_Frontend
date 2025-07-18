@@ -124,7 +124,7 @@ const FormularioOspreraForm = ({
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
     const date = new Date();
-    date.setMonth(date.getMonth() - 3);
+    date.setMonth(date.getMonth() - 9);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
@@ -813,6 +813,7 @@ const handlerBuscarTotales = () => {
               <Grid width="auto">
                 <InputMaterial
                   label="Desde"
+                  disabled={true}
                   type="date"
                   value={filtros.desde || ""}
                   onChange={(e) => {
@@ -829,6 +830,7 @@ const handlerBuscarTotales = () => {
               <Grid width="auto">
                 <InputMaterial
                   label="Hasta"
+                  disabled={true}
                   type="date"
                   value={filtros.hasta || ""}
                   onChange={(e) => {
