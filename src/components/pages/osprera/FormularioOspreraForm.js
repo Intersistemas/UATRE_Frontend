@@ -160,11 +160,12 @@ const FormularioOspreraForm = ({
     existeEnOSPRERA: null,
     existeEnAFIP: null,
     confirmado: request == "A" ? false : true,
-    DDJJEmpresa: null,
+    DDJJEmpresa: {},
     cuil: "",
     tipoDocumentoId: 0,
     fechaNacimiento: "",
     sexoId: 0,
+    empleador: {},
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
@@ -175,6 +176,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
@@ -381,6 +383,8 @@ const FormularioOspreraForm = ({
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
+    const { empleador } = titular || {};
+
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
       ...Object.fromEntries(
@@ -411,6 +415,23 @@ const FormularioOspreraForm = ({
       "trabajador.telefono": data?.telefonoContacto,
       "trabajador.correo": data?.emailContacto,
       "trabajador.cuil": data?.cuitTitular,
+
+      //Empleador
+      "empleador.razon_social": empleador?.razonSocial,
+      ...Object.fromEntries(
+        `${Formato.Cuit(empleador?.cuit)}`
+          .split("-")
+          .map((v, i) => [
+            `empleador.cuit.${["tipo", "id", "verificador"][i]}`,
+            v,
+          ])
+      ),
+      "empleador.actividad": empleador?.actividadPrincipalDescripcion,
+      "empleador.domicilio": `${empleador?.domicilioCalle} ${empleador?.domicilioNumero}`,
+      "empleador.localidad": empleador?.localidadDescripcion,
+      "empleador.provincia": empleador?.provinciaDescripcion,
+      "empleador.telefono": "",//empleador?.telefonoEmpleador,
+      "empleador.correo": "", //empleador?.emailEmpleador,
     };
     //if (request !== "A") return;
     conDatos
@@ -626,6 +647,16 @@ const FormularioOspreraForm = ({
         };
       }
 
+      case "GetEmpresa": {
+        return {
+          config: {
+            baseURL: "Comunes",
+            endpoint: "/Empresas/GetEmpresaSpecs",
+            method: "GET",
+          },
+        };
+      }
+
       default:
         return null;
     }
@@ -809,8 +840,9 @@ const FormularioOspreraForm = ({
       ...o,
       selected: {
         value: data.gestionRubroId,
-        label: gestionRubroSelect.options.find((r) => r.value === data.gestionRubroId)
-          ?.label,
+        label: gestionRubroSelect.options.find(
+          (r) => r.value === data.gestionRubroId
+        )?.label,
       },
     }));
   }, [gestionRubroSelect.options]);
@@ -1232,7 +1264,23 @@ const FormularioOspreraForm = ({
 
       onOk: async (ok) => {
         if (ok.length > 0) {
-          console.log("Encontró DDJJ");
+          const ddjjRecord = ok[0];
+
+          setTitular((o) => ({
+            ...o,
+            DDJJEmpresa: ddjjRecord,
+          }));
+
+          pushQuery({
+            action: "GetEmpresa",
+            params: { cuit: ddjjRecord.cuit, soloActivos: true },
+            onOk: async (empresa) => {
+              setTitular((o) => ({
+                ...o,
+                empleador: empresa,
+              }));
+            },
+          });
         }
       },
       onError: async (error) => {
@@ -1242,6 +1290,8 @@ const FormularioOspreraForm = ({
         loading = false;
       },
     });
+
+    pushQuery({});
   };
   //#endregion
 
@@ -1297,14 +1347,14 @@ const FormularioOspreraForm = ({
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    if (request == "A") {
+    if (request === "A") {
       if (
         !titular.existeEnUATRE &&
         !titular.existeEnOSPRERA &&
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion == "email") {
+        if (data.medioGestion === "email") {
           sendEnviarEmailHandler();
         }
         setDialogTexto(
@@ -1312,7 +1362,7 @@ const FormularioOspreraForm = ({
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion == "email") {
+        if (data.medioGestion === "email") {
           sendEnviarEmailHandler();
         }
 
