@@ -19,7 +19,7 @@ const AdministracionHandler = () => {
 		tareas.hasTarea("Datos_Delegacion") && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Delegaciones")}>Delegaciones</Button>)
 		tareas.hasTarea("Datos_Localidad")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
 		tareas.hasTarea("Datos_Permisos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)
-		//tareas.hasTarea("Datos_TasasARCA")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Tasas")}>Tasas ARCA</Button>)
+		tareas.hasTarea("Datos_TasasARCA")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Tasas")}>Tasas ARCA</Button>)
 
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 
