@@ -76,9 +76,11 @@ const useFormularioOsprera = ({
 	const { usuario } = useContext(AuthContext);
 	const ambito = useAmbitos().ambitoUser();
 
+	
+
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		// console.log("useFormularioOsprera, params", params);
+		 console.log("useFormularioOsprera, params", params);
 		// console.log("useFormularioOsprera, action", action);
 		switch (action) {
 			case "GetList": {
@@ -159,7 +161,13 @@ const useFormularioOsprera = ({
 		loading: null,
 		remote: remoteInit,
 		loadingOverride: loading,
-		params: { ...paramsInit },
+		params: { ...paramsInit, 
+			...{ambitoTodos: usuario.ambitoTodos,
+				ambitoProvincias: usuario.ambitoProvincias,
+				ambitoDelegaciones: usuario.ambitoDelegaciones,
+				ambitoSeccionales: usuario.ambitoSeccionales
+			}
+		},
 		pagination: { index: 1, size: 5, ...paginationInit },
 		data: [...AsArray(dataInit, true)],
 		seccionales: [],
@@ -174,6 +182,9 @@ const useFormularioOsprera = ({
 				: onLoadSelectInit,
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
+
+
+
 	useEffect(() => {
 		if (!list.loading) return;
 		const changes = { loading: null, error: null };
@@ -208,6 +219,10 @@ const useFormularioOsprera = ({
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
+					ambitoTodos: usuario.ambitoTodos,
+					ambitoProvincias: usuario.ambitoProvincias,
+					ambitoDelegaciones: usuario.ambitoDelegaciones,
+					ambitoSeccionales: usuario.ambitoSeccionales,
 					sort: "FechaDesc,IdDesc",
 					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
 				},
