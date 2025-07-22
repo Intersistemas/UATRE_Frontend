@@ -1430,7 +1430,7 @@ const FormularioOspreraForm = ({
       <div>
         <Dialog
           onClose={() => (
-            setDialogTexto(""), setOpenDialog(false), onClose(true)
+            setDialogTexto(""), setOpenDialog(false), onClose()
           )}
           open={openDialog}
         >
@@ -1443,7 +1443,7 @@ const FormularioOspreraForm = ({
             <Button
               className="botonAmarillo"
               onClick={() => (
-                setDialogTexto(""), setOpenDialog(false), onClose(true)
+                setDialogTexto(""), setOpenDialog(false), onClose()
               )}
             >
               Cierra
