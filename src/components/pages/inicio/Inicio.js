@@ -25,6 +25,7 @@ const Inicio = () => {
 	tareas.hasTarea("Consultas_Tabla", "Administrador Consultas") && 	  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Consultas")}     ><>Co<text className="underline">n</text>sultas</></Button>);
 	tareas.hasTarea("GestionOsprera_Tabla", "Administrador Consultas") && 	process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&  accesos.push(<Button className="botonAmarillo" onClick={() => navigate("GestionOsprera")}     ><>Gestión de <text className="underline">O</text>bra Social</></Button>);
 	tareas.hasTarea("App_Tabla", "Administrador App") && 	process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("App")}     ><>Administración A<text className="underline">p</text>p</></Button>);
+
 	console.log("accesos",accesos)
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
 

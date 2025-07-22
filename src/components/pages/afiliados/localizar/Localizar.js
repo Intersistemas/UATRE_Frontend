@@ -67,7 +67,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
-					ambitoTodos: {ids: [0]}
+					ambitoTodos: {ids: [0]}  //NO TOCAR, LOCALIZA debe consultar los afiliados de TODOS los ambitos sin importar el usaurio logeado
 				},
 			},
 			onOk: ({ index, size, count, data }) =>

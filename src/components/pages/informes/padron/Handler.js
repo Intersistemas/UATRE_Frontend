@@ -196,7 +196,6 @@ const seccionalesSelectOptions = ({ data = [], ...x }) =>
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
-
 	const ambitoUser = useAmbitosUsuario().ambitoUser();
 	//console.log("ambitoUser_handler",ambitoUser)
 	
@@ -259,7 +258,7 @@ const Handler = ({ onClose = () => {} }) => {
 		filtros: {
 			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
             ambitoProvincias: usuario.ambitoProvincias, //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
-		},
+		}, 
 		wait: { delegaciones: true, seccionales: true },
 		usuario,
 	});
