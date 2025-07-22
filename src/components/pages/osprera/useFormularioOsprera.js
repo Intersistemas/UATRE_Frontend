@@ -90,279 +90,289 @@ const useFormularioOsprera = ({
   columns,
   hideSelectColumn = true,
   mostrarBuscar = false,
-} = {}) => {
-  const { usuario } = useContext(AuthContext);
-  const ambito = useAmbitos().ambitoUser();
+} = {}) => {	
+	const { usuario } = useContext(AuthContext);
+	const ambito = useAmbitos().ambitoUser();
 
-  //#region Trato queries a APIs
-  const pushQuery = useQueryQueue((action, params) => {
-    // console.log("useFormularioOsprera, params", params);
-    // console.log("useFormularioOsprera, action", action);
-    switch (action) {
-      case "GetList": {
-        const { filtro2, ...otherParams } = params;
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
-            method: "POST",
-          },
-          params: otherParams,
-        };
-      }
+	
 
-      case "GetAccesoOspreraSpecs": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
-            method: "POST",
-          },
-        };
-      }
-      case "Create": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera`,
-            method: "POST",
-          },
-        };
-      }
-      case "Update": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera`,
-            method: "PUT",
-          },
-        };
-      }
-      case "Delete": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera/DarDeBaja`,
-            method: "PATCH",
-          },
-        };
-      }
-      case "Reactiva": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera/Reactivar`,
-            method: "PATCH",
-          },
-        };
-      }
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action, params) => {
+		 console.log("useFormularioOsprera, params", params);
+		// console.log("useFormularioOsprera, action", action);
+		switch (action) {
+			case "GetList": {
+				const { filtro2, ...otherParams } = params;
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
+						method: "POST",
+					},
+					params: otherParams,
+				};
+			}
+			
+			case "GetAccesoOspreraSpecs": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+						method: "POST",
+					},
+				};
+			}
+			case "Create": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/GestionOsprera`,
+						method: "POST",
+					},
+				};
+			}
+			case "Update": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/GestionOsprera`,
+						method: "PUT",
+					},
+				};
+			}
+			case "Delete": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/GestionOsprera/DarDeBaja`,
+						method: "PATCH",
+					},
+				};
+			}
+			case "Reactiva": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/GestionOsprera/Reactivar`,
+						method: "PATCH",
+					},
+				};
+			}
 
-      case "GetSeccionalesSpecs": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
-            method: "GET",
-          },
-        };
-      }
-      default:
-        return null;
-    }
-  });
-  //#endregion
+			case "GetSeccionalesSpecs": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
+						method: "GET", 
+					},
+				};
+			}
+			default:
+				return null;
+		}
+	});
+	//#endregion
 
-  //#region declaracion y carga list y selected
-  const [list, setList] = useState({
-    loading: null,
-    remote: remoteInit,
-    loadingOverride: loading,
-    params: { ...paramsInit },
-    pagination: { index: 1, size: 5, ...paginationInit },
-    data: [...AsArray(dataInit, true)],
-    seccionales: [],
-    error,
-    selection: {
-      ...selectionDef,
-      multi: multiInit,
-    },
-    onLoadSelect:
-      onLoadSelectInit === onLoadSelectFirst && multiInit
-        ? onLoadSelectSame
-        : onLoadSelectInit,
-    onDataChange: onDataChangeInit ?? onDataChangeDef,
-  });
-  useEffect(() => {
-    if (!list.loading) return;
-    const changes = { loading: null, error: null };
-    if (!list.remote) {
-      const data = list.data;
-      const error = list.error;
-      const multi = list.selection.multi;
-      const record = list.selection.record;
-      changes.data = data;
-      changes.error = error;
-      changes.selection = {
-        ...list.selection,
-        ...selectionDef,
-        record: list.onLoadSelect({ data, multi, record }),
-      };
+	//#region declaracion y carga list y selected
+	const [list, setList] = useState({
+		loading: null,
+		remote: remoteInit,
+		loadingOverride: loading,
+		params: { ...paramsInit, 
+			...{ambitoTodos: usuario.ambitoTodos,
+				ambitoProvincias: usuario.ambitoProvincias,
+				ambitoDelegaciones: usuario.ambitoDelegaciones,
+				ambitoSeccionales: usuario.ambitoSeccionales
+			}
+		},
+		pagination: { index: 1, size: 5, ...paginationInit },
+		data: [...AsArray(dataInit, true)],
+		seccionales: [],
+		error,
+		selection: {
+			...selectionDef,
+			multi: multiInit,
+		},
+		onLoadSelect:
+			onLoadSelectInit === onLoadSelectFirst && multiInit
+				? onLoadSelectSame
+				: onLoadSelectInit,
+		onDataChange: onDataChangeInit ?? onDataChangeDef,
+	});
 
-      changes.selection.index = multi
-        ? changes.selection.record?.map((r) => changes.data.indexOf(r))
-        : changes.data.indexOf(changes.selection.record);
-      setList((o) => ({ ...o, ...changes }));
-      return;
-    }
-    changes.data = [];
-    // console.log("userFormularioOsprera_list",list)
-    const soloLetras = /^[A-Za-z]+$/;
-    const filtro = list?.params?.filtro;
 
-    pushQuery({
-      action: "GetList",
-      config: {
-        body: {
-          ...list.params,
-          pageIndex: list.pagination.index,
-          pageSize: list.pagination.size,
-          sort: "FechaDesc,IdDesc",
-          ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
-            ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
-            : { apellidoTitular: filtro }),
-        },
-      },
 
-      onOk: async ({ index, size, count, data }) => {
-        if (!Array.isArray(data))
-          return console.error("Se esperaba un arreglo", data);
-        changes.data = data;
-        const multi = list.selection.multi;
-        const record = list.selection.record;
-        changes.pagination = { index, size, count };
-        changes.selection = {
-          ...list.selection,
-          ...selectionDef,
-          record: list.onLoadSelect({ data, multi, record }),
-        };
+	useEffect(() => {
+		if (!list.loading) return;
+		const changes = { loading: null, error: null };
+		if (!list.remote) {
+			const data = list.data;
+			const error = list.error;
+			const multi = list.selection.multi;
+			const record = list.selection.record;
+			changes.data = data;
+			changes.error = error;
+			changes.selection = {
+				...list.selection,
+				...selectionDef,
+				record: list.onLoadSelect({ data, multi, record }),
+			};
 
-        changes.selection.index = multi
-          ? changes.selection.record?.map((r) => changes.data.indexOf(r))
-          : changes.data.indexOf(changes.selection.record);
+			changes.selection.index = multi
+				? changes.selection.record?.map((r) => changes.data.indexOf(r))
+				: changes.data.indexOf(changes.selection.record);
+			setList((o) => ({ ...o, ...changes }));
+			return;
+		}
+		changes.data = [];
+		// console.log("userFormularioOsprera_list",list)
+		const soloLetras = /^[A-Za-z]+$/;
+		const filtro = list?.params?.filtro
 
-        list.onDataChange(changes.data);
-      },
-      onError: async (error) => {
-        if (error.code === 404) return;
-        changes.error = error;
-        changes.selection = { ...list.selection, ...selectionDef };
-      },
-      onFinally: async () => setList((o) => ({ ...o, ...changes })),
-    });
-  }, [pushQuery, list]);
-  //#endregion
+		pushQuery({
+			action: "GetList",
+			config: {
+				body: {
+					...list.params,
+					pageIndex: list.pagination.index,
+					pageSize: list.pagination.size,
+					ambitoTodos: usuario.ambitoTodos,
+					ambitoProvincias: usuario.ambitoProvincias,
+					ambitoDelegaciones: usuario.ambitoDelegaciones,
+					ambitoSeccionales: usuario.ambitoSeccionales,
+					sort: "FechaDesc,IdDesc",
+					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
+				},
+			},
+			
+			onOk: async ({ index, size, count, data }) => {
+				if (!Array.isArray(data))
+					return console.error("Se esperaba un arreglo", data);
+				changes.data = data;
+				const multi = list.selection.multi;
+				const record = list.selection.record;
+				changes.pagination = { index, size, count };
+				changes.selection = {
+					...list.selection,
+					...selectionDef,
+					record: list.onLoadSelect({ data, multi, record }),
+				};
 
-  const request = useCallback(
-    (type, payload = {}) => {
-      switch (type) {
-        case "selected": {
-          return setList((o) => {
-            const apply = [];
-            if (payload.request !== "A") {
-              apply.push(
-                ...AsArray(
-                  "record" in payload ? payload.record : o.selection.record,
-                  true
-                )
-                  .map(({ id }) => id)
-                  .filter((r) => r)
-              );
-            }
-            const edit = {
-              ...(payload.request === "A"
-                ? {}
-                : JoinOjects(o.selection.record)),
-              ...JoinOjects(payload.record),
-            };
-            return {
-              ...o,
-              selection: {
-                ...o.selection,
-                request: payload.request,
-                action: payload.action,
-                edit,
-                apply,
-              },
-            };
-          });
-        }
-        case "list": {
-          return setList((o) => {
-            const changes = {
-              loading: null,
-              data:
-                "data" in payload && Array.isArray(payload.data)
-                  ? [...payload.data]
-                  : payload.clear
-                  ? []
-                  : o.data,
-              loadingOverride: payload.loading,
-              error: payload.error,
-              onLoadSelect:
-                "onLoadSelect" in payload
-                  ? payload.onLoadSelect
-                  : o.onLoadSelect,
-              selection: {
-                ...o.selection,
-                multi: "multi" in payload ? !!payload.multi : o.selection.multi,
-              },
-            };
-            if (payload.params) {
-              changes.params = {
-                ...pick(o.params, paramsInit),
-                ...payload.params,
-              };
-            }
-            if (payload.pagination)
-              changes.pagination = { ...o.pagination, ...payload.pagination };
-            if (payload.clear) {
-              const data = changes.data;
-              const multi = changes.selection.multi;
-              const record = o.selection.record;
-              changes.selection = {
-                ...changes.selection,
-                ...selectionDef,
-                record: changes.onLoadSelect({ data, multi, record }),
-              };
-              changes.selection.index = multi
-                ? changes.selection.record?.map((r) => changes.data.indexOf(r))
-                : changes.data.indexOf(changes.selection.record);
-            } else {
-              changes.loading = "Cargando...";
-            }
-            return { ...o, ...changes };
-          });
-        }
-        default:
-          return;
-      }
-    },
-    [pushQuery]
-  );
+				changes.selection.index = multi
+					? changes.selection.record?.map((r) => changes.data.indexOf(r))
+					: changes.data.indexOf(changes.selection.record);
 
-  let form = null;
-  if (list.selection.request) {
-    // console.log("list", list)
-    form = (
-      <FormularioOspreraForm
-        data={(() => {
-          //console.log('list.selection',list.selection)
-          //INIT DE DATOS DEL FORM
-          const data =
-            //seccionalId = list.selection.edit.refSeccionalId,
-            ["A"].includes(list.selection.request) //INIT PARA ALTA
-              ? {
-                  /*fecha: moment().format("YYYY-MM-DD"),
+				list.onDataChange(changes.data);
+			},
+			onError: async (error) => {
+				if (error.code === 404) return;
+				changes.error = error;
+				changes.selection = { ...list.selection, ...selectionDef };
+			},
+			onFinally: async () => setList((o) => ({ ...o, ...changes })),
+		});
+	}, [pushQuery, list]);
+	//#endregion
+
+	const request = useCallback((type, payload = {}) => {
+		switch (type) {
+			case "selected": {
+				return setList((o) => {
+					const apply = [];
+					if (payload.request !== "A") {
+						apply.push(
+							...AsArray(
+								"record" in payload ? payload.record : o.selection.record,
+								true
+							)
+								.map(({ id }) => id)
+								.filter((r) => r)
+						);
+					}
+					const edit = {
+						...(payload.request === "A"
+							? {}
+							: JoinOjects(o.selection.record)),
+						...JoinOjects(payload.record),
+					};
+					return {
+						...o,
+						selection: {
+							...o.selection,
+							request: payload.request,
+							action: payload.action,
+							edit,
+							apply,
+						},
+					};
+				});
+			}
+			case "list": {
+				return setList((o) => {
+					const changes = {
+						loading: null,
+						data:
+							"data" in payload && Array.isArray(payload.data)
+								? [...payload.data]
+								: payload.clear
+								? []
+								: o.data,
+						loadingOverride: payload.loading,
+						error: payload.error,
+						onLoadSelect:
+							"onLoadSelect" in payload
+								? payload.onLoadSelect
+								: o.onLoadSelect,
+						selection: {
+							...o.selection,
+							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
+						},
+					};
+					if (payload.params) {
+						changes.params = {
+							...pick(o.params, paramsInit),
+							...payload.params
+						};
+					}
+					if (payload.pagination)
+						changes.pagination = { ...o.pagination, ...payload.pagination };
+					if (payload.clear) {
+						const data = changes.data;
+						const multi = changes.selection.multi;
+						const record = o.selection.record;
+						changes.selection = {
+							...changes.selection,
+							...selectionDef,
+							record: changes.onLoadSelect({ data, multi, record }),
+						};
+						changes.selection.index = multi
+							? changes.selection.record?.map((r) => changes.data.indexOf(r))
+							: changes.data.indexOf(changes.selection.record);
+					} else {
+						changes.loading = "Cargando...";
+					}
+					return { ...o, ...changes };
+				});
+			}
+			default:
+				return;
+		}
+	}, [pushQuery]);
+
+	let form = null;
+	if (list.selection.request) {
+		// console.log("list", list)
+		form = (
+			<FormularioOspreraForm
+				data={(() => { 
+					//console.log('list.selection',list.selection)
+					//INIT DE DATOS DEL FORM
+					const data =
+					//seccionalId = list.selection.edit.refSeccionalId,
+					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
+						{
+							/*fecha: moment().format("YYYY-MM-DD"),
 							fechaEnvioMail: null,
 							direccionesEmailDestino: null,
 							respuestaEnvioEmail: null,
