@@ -9,9 +9,6 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
-import SolicitudAutorizacionAfiliacion from "./solicitudAfiliacion/AfiliacionesPorEmpresa/SolicitudAutorizacionAfiliacion";
-import AfiliacionesPorEmpresa from "./afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler";
-import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
 	const navigate = useNavigate();
@@ -138,23 +135,17 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				{
-					/*
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
 						
-						onClick={() => navigate("AfiliacionesPorEmpresa")}
+						onClick={() => navigate("Afiliaciones")}
 						width="32"
-						tarea="Consultas_AfiliadosEmpresa"
+						tarea="Consultas_AfiliacionesPorEmpresa"
 					>
 						Afiliaciones por Empresa
 					</Button>
-				
 				</Grid>
-					*/
-				}
-				
 				
 			</>
 		),

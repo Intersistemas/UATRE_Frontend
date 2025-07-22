@@ -75,13 +75,14 @@ const FormularioOspreraHandler = () => {
 					  }),
 			})
 		);
-		actions.push(
+
+		actions.push(			
 			createAction({
 				action: `Modifica Gestión ${desc}`,
 				request: "M",
 				record: {},
 				tarea: "Osprera_GestionModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
+				...(formularioSelected?.deletedDate || !formularioSelected?.id || formularioSelected?.gestionEstadoDescripcion === "FINALIZADO"
 					? { disabled: true }
 					: {
 							disabled: false,

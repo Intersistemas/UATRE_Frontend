@@ -7,6 +7,8 @@ import Grid from "components/ui/Grid/Grid";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
+import { useDispatch } from "react-redux";
+import { handleModuloSeleccionar } from "redux/actions";
 
 const onCloseDef = () => {};
 /**
@@ -25,6 +27,13 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
   //   });
   const [modal, setModal] = useState();
   const [isBusy, setIsBusy] = useState(false);
+
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    const actions = [];
+    dispatch(handleModuloSeleccionar("SIARU", actions));
+  }, [dispatch]);
 
   //#region configuraciones API
   const pushQuery = useQueryQueue((action, params) => {
@@ -233,9 +242,8 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
               {archivoSeleccionado.nombreArchivo == null ? null : (
                 <Button
                   className="botonAmarillo"
-                  disabled={(formaPagoSelect.selected?.value ?? 0) === 0}
+                  disabled={(formaPagoSelect.selected?.value ?? 0) === 0 || isBusy}
                   loading={formaPago.loading}
-                  disabled={isBusy}
                   onClick={() => {
                     setIsBusy(!isBusy);
                     pushQuery({
