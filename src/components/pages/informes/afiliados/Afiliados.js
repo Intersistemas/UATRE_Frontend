@@ -204,13 +204,17 @@ const delegacionSelectOptions = ({ data = [], ...x }) =>
 
 //#region seccionalSelectOptions
 const seccionalSelectTodos = { value: 0, label: "Todas" };
-const seccionalSelectOptions = ({ data = [], ...x }) =>
+const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
+	
 	mapOptions({
 		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
+		//map: (r) => ({ value: r.id, label: r.descripcion }),
+		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+		map: (r) => ( ambitoUsuario.tipo != "Todos" ? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ? { value: r.id, label: r.descripcion } : null : { value: r.id, label: r.descripcion } ),
 		start: data.length === 1 ? [] : [seccionalSelectTodos],
-		...x,
-	});
+		...x,	
+	})
+ 
 //#endregion seccionalSelectOptions
 
 //#region motivosBajaSelectOptions
@@ -249,7 +253,7 @@ const provinciaSelectOptions = ({ data = [], ...x }) =>
 const Afiliados = ({ onClose = onCloseDef }) => {
 
 	const tareas = useTareasUsuario();
-	const ambito = useAmbitos().ambitoUser();
+	const ambitoUsuario = useAmbitos().ambitoUser();
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -350,6 +354,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		pending: true,
 		filtros: {
 			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+			ambitoDelegaciones: usuario.ambitoDelegaciones,
+			ambitoSeccionales: usuario.ambitoSeccionales,
+			ambitoProvincias: usuario.ambitoProvincias
 		},
 		wait: { delegaciones: true, seccionales: true, provincias: true },
 		usuario,
@@ -401,6 +408,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	});
 	// Buscador
 	useEffect(() => {
+		console.log("seccionalSelect",seccionalSelect)
 		setSeccionalSelect((o) => ({
 			...o,
 			options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
@@ -557,6 +565,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			selected: seccionalSelectTodos,
 			selectedDef: seccionalSelectTodos,
 			buscar: "",
+			ambitoUsuario: ambitoUsuario,
 		};
 		const data = [];
 		if (seccionalSelect.refDelegacionId) {
@@ -603,7 +612,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				changes.data = ambito
 					? data.filter((r) => ambito.includes(r.id))
 					: data;
-				changes.optionsSrc = seccionalSelectOptions(changes);
+				changes.optionsSrc = seccionalSelectOptions(changes, ambitoUsuario);
 				changes.selectedDef =
 					changes.optionsSrc.length === 1
 						? changes.optionsSrc[0]
