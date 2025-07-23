@@ -926,7 +926,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				if (ok) {
 					if (!Array.isArray(ok.data))
 						console.error("Se esperaba un arreglo", data);
-					else ({ data, ...pagination } = ok);
+					else ({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : []); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
 				}
 				setList((o) => ({
 					...o,
@@ -1252,7 +1252,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								})),
 						}}
 						noDataIndication={
-							list.loading || list.error || "No existen datos para mostrar "
+							list.loading || list.error || "No existen datos para mostrar"
 						}
 						columns={columns}
 						onTableChange={(type, { sortOrder, sortField }) => {
