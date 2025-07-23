@@ -182,21 +182,30 @@ const delegacionesSelectOptions = ({ data = [], ...x }) =>
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = { label: "Todas" };
-const seccionalesSelectOptions = ({ data = [], ...x }) =>
+const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 	mapOptions({
 		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codigo, r.descripcion].join(" - "),
-			record: r,
-		}),
+		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+		map: (r) => (ambitoUsuario.ambitoUsuario.tipo == "Todos" ? 
+			{
+				value: r.id,
+				label: [r.codigo, r.descripcion].join(" - "),
+				record: r,
+			} :
+			["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ?
+			 	{
+					value: r.id,
+					label: [r.codigo, r.descripcion].join(" - "),
+					record: r,
+				} : null 
+		),
 		start: data.length === 1 ? [] : [seccionalSelectDef],
 		...x,
 	});
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
-	const ambitoUser = useAmbitosUsuario().ambitoUser();
+	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
 	//console.log("ambitoUser_handler",ambitoUser)
 	
 	//#region APIs
@@ -382,6 +391,7 @@ const Handler = ({ onClose = () => {} }) => {
 			selected: seccionalSelectDef,
 			selectedDef: seccionalSelectDef,
 			buscar: "",
+			ambitoUsuario: {ambitoUsuario},
 		};
 		const data = [];
 		if (seccionalSelect.refDelegacionId) {
@@ -428,7 +438,8 @@ const Handler = ({ onClose = () => {} }) => {
 				changes.data = ambito
 					? data.filter((r) => ambito.includes(r.id))
 					: data;
-				changes.optionsSrc = seccionalesSelectOptions(changes);
+					console.log("ambitoUsuario")
+				changes.optionsSrc = seccionalesSelectOptions(changes, ambitoUsuario);
 				changes.selectedDef = changes.optionsSrc.length === 1
 					? changes.optionsSrc[0]
 					: seccionalSelectDef;
@@ -712,7 +723,7 @@ const Handler = ({ onClose = () => {} }) => {
 		<PDFViewer
 			data={padron.data}
 			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
-			ambitoUser={ambitoUser}
+			ambitoUser={ambitoUsuario}
 		/>
 	);
 
