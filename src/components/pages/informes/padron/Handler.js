@@ -16,6 +16,7 @@ import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
 import AsArray from "components/helpers/AsArray";
 import useAmbitosUsuario from "components/hooks/useAmbitos";
+import { useSelector } from "react-redux";
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -207,7 +208,9 @@ const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 const Handler = ({ onClose = () => {} }) => {
 	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
 	//console.log("ambitoUser_handler",ambitoUser)
-
+	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
+	
 	//#region APIs
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -562,9 +565,10 @@ const Handler = ({ onClose = () => {} }) => {
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
 					//({ data, ...pagination } = ok);
-					
-					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : {data:[], ...ok}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
-				} else {
+					console.log("usuarioConSeccionalInactiva", usuarioConSeccionalInactiva);
+					 //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+						({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
 				setList((o) => ({
@@ -955,6 +959,7 @@ const Handler = ({ onClose = () => {} }) => {
 						loading={!!padron.loading}
 						onClick={() => onCargaPadron()}
 						tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
+						disabled={list.data.length === 0}
 					>
 						IMPRIME
 					</Button>
