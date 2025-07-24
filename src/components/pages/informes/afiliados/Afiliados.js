@@ -203,7 +203,7 @@ const delegacionSelectOptions = ({ data = [], ...x }) =>
 //#endregion delegacionSelectOptions
 
 //#region seccionalSelectOptions
-const seccionalSelectTodos = { value: 0, label: "Todas" };
+const seccionalSelectTodos = { label: "Todas" };
 const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 	
 	mapOptions({
@@ -393,7 +393,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#region filtro seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
 		reload: false,
-		loading: null,
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
@@ -408,10 +408,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	});
 	// Buscador
 	useEffect(() => {
-		console.log("seccionalSelect",seccionalSelect)
 		setSeccionalSelect((o) => ({
 			...o,
-			options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+			options: o.optionsSrc.filter((r) => includeSearch(r, seccionalSelect.buscar)),
 		}));
 	}, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
 	//#endregion filtro seccional
@@ -490,7 +489,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#region list
 	const [list, setList] = useState({
 		reload: false,
-		loading: "Cargando...",
+		loading: null,
 		pagination: { index: 1, size: 10 },
 		sort: "nroAfiliadoDesc",
 		params: {},
@@ -911,7 +910,6 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			query: {
 				...o.query,
 				config: {
-					...o.query.config,
 					body: {
 						...list.params,
 						sort: list.sort,
@@ -920,14 +918,23 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					},
 				},
 			},
+			onPreLoad: () =>
+				setList((o) => ({
+					...o,
+					reload: false,
+					loading: "Cargando...",
+					data: [],
+				})),
 			onLoad: ({ ok, error }) => {
+
 				let data = [];
-				let pagination = {};
-				if (ok) {
-					if (!Array.isArray(ok.data))
-						console.error("Se esperaba un arreglo", data);
-					else ({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : []); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+				let pagination = { ...list.pagination, count: data.length };
+				if (Array.isArray(ok?.data)) {
+					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : []); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+				} else {
+					console.error("Se esperaba un arreglo", ok?.data);
 				}
+
 				setList((o) => ({
 					...o,
 					loading: null,
@@ -967,11 +974,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					setAfiliadosQuery((o) => ({
 						...o,
 						query: {
-							...query,
+							...o.query,
 							config: {
-								...query.config,
+								...o.query.config,
 								body: {
-									...query.config.body,
+									...o.query.config.body,
 									pageIndex: index + 1,
 									pageSize: size,
 								},
@@ -1048,6 +1055,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
 			provincias: [...AsArray(init.usuario.ambitoProvincias?.ids)],
 		};
+		console.log("ambito*",ambito)
 		const finalizaCarga = () => {
 			setInit((o) => {
 				const init = { ...o };
