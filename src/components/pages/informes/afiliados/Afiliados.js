@@ -1301,6 +1301,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								loading={!!csv.loading}
 								onClick={() => onCSV()}
 								tarea="Informes_Afiliados_Afiliados_CSV"
+								disabled={list.data.length === 0}
 							>
 								GENERA ARCHIVO CSV
 							</Button>
