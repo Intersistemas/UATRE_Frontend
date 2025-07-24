@@ -17,6 +17,7 @@ import useQueryState from "components/hooks/useQueryState";
 import AuthContext from "store/authContext";
 import useTareasUsuario from 'components/hooks/useTareasUsuario';
 import useAmbitos from 'components/hooks/useAmbitos';
+import { useSelector } from "react-redux";
 
 
 /** Imports
@@ -254,6 +255,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 
 	const tareas = useTareasUsuario();
 	const ambitoUsuario = useAmbitos().ambitoUser();
+	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
+		
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -930,7 +934,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				let data = [];
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
-					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : {data:[], ...ok}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
 				} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
