@@ -781,6 +781,7 @@ const Handler = ({ onClose = () => {} }) => {
 			delegaciones: [...AsArray(init.usuario.ambitoDelegaciones?.ids)],
 			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
 		};
+		console.log("ambito*",ambito)
 		const finalizaCarga = () => {
 			setInit((o) => {
 				const init = { ...o };
