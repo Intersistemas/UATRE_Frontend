@@ -930,7 +930,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				let data = [];
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
-					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : []); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : {data:[], ...ok}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
 				} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}

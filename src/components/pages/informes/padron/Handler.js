@@ -207,7 +207,7 @@ const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 const Handler = ({ onClose = () => {} }) => {
 	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
 	//console.log("ambitoUser_handler",ambitoUser)
-	
+
 	//#region APIs
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -562,7 +562,8 @@ const Handler = ({ onClose = () => {} }) => {
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
 					//({ data, ...pagination } = ok);
-					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : []); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					
+					({ data, ...pagination } = seccionalSelect?.options?.length ?  ok : {data:[], ...ok}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
 				} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
@@ -596,7 +597,7 @@ const Handler = ({ onClose = () => {} }) => {
 		despliega: false,
 	});
 	//#endregion padron
-	
+
 	//#region Carga padron
 	useEffect(() => {
 		if (!padron.reload) return;
@@ -781,7 +782,6 @@ const Handler = ({ onClose = () => {} }) => {
 			delegaciones: [...AsArray(init.usuario.ambitoDelegaciones?.ids)],
 			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
 		};
-		console.log("ambito*",ambito)
 		const finalizaCarga = () => {
 			setInit((o) => {
 				const init = { ...o };
