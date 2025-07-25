@@ -1322,7 +1322,7 @@ const FormularioOspreraForm = ({
   };
 
   const handleCheckDocumentacion = async () => {
-    if (request == "A") {
+    if (request == "A" || request == "M") {
       const isValid = await onValidate(true);
       if (!isValid) return;
 
@@ -1996,7 +1996,7 @@ const FormularioOspreraForm = ({
                     value={data.texto}
                     disabled={disabledItems.texto}
                     onChange={(texto) =>
-                      onChange({ texto: texto.target.value })
+                      onChange({ texto: texto.target.value.toUpperCase()})
                     }
                   />
                 </Grid>
@@ -2095,7 +2095,7 @@ const FormularioOspreraForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionEstadoId: selected.value });
+                        onChange({ gestionEstadoId: selected.value, gestionEstadoDescripcion: selected.label});
                       }}
                       options={gestionEstadoSelect.options}
                     />
@@ -2135,7 +2135,7 @@ const FormularioOspreraForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSituacionId: selected.value });
+                        onChange({ gestionSituacionId: selected.value, gestionSituacionDescripcion: selected.label});
                       }}
                       options={gestionSituacionSelect.options}
                     />
