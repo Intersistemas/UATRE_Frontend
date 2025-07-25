@@ -70,7 +70,7 @@ const cuilReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
     return {
       value: action.value,
-      isValid: ["30", "33", "34"].includes(action.value.toString().slice(0, 2))
+      isValid: ["30", "33", "34"].includes(action?.value?.toString()?.slice(0, 2))
         ? false
         : ValidarCUIT(action.value),
     };
@@ -78,7 +78,7 @@ const cuilReducer = (state, action) => {
   if (action.type === "USER_BLUR") {
     return {
       value: state.value,
-      isValid: ["30", "33", "34"].includes(state.value.toString().slice(0, 2))
+      isValid: ["30", "33", "34"].includes(state?.value?.toString()?.slice(0, 2))
         ? false
         : ValidarCUIT(state.value),
     };
@@ -2124,11 +2124,6 @@ const AfiliadoAgregar = (props) => {
 
   //#region handles Inputs
   const handleInputChange = (value, id) => {
-    console.log("handleInputChange_id", id);
-    console.log("handleInputChange_value", value);
-    console.log("handleInputChange_value SLICE", value.slice(0, 2));
-
-    console.log("contains:", ["30", "33", "34"].includes(value.slice(0, 2)));
 
     switch (id) {
       case "fechaIngreso":
@@ -2139,7 +2134,7 @@ const AfiliadoAgregar = (props) => {
           dispatchCUIL({
             type: "USER_INPUT",
             value: value.replace(/[^\d]/gim, ""),
-            isValid: ["30", "33", "34"].includes(value.toString().slice(0, 2))
+            isValid: ["30", "33", "34"].includes(value?.toString()?.slice(0, 2))
               ? false
               : ValidarCUIT(value.replace(/[^\d]/gim, "")),
           });
@@ -2155,7 +2150,7 @@ const AfiliadoAgregar = (props) => {
           dispatchCUIL({
             type: "USER_INPUT",
             value: value.replace(/[^\d]/gim, ""),
-            isValid: ["30", "33", "34"].includes(value.toString().slice(0, 2))
+            isValid: ["30", "33", "34"].includes(value?.toString()?.slice(0, 2))
               ? false
               : ValidarCUIT(value.replace(/[^\d]/gim, "")),
           });
