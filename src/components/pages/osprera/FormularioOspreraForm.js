@@ -2203,6 +2203,17 @@ const FormularioOspreraForm = ({
               <>
                 <Documentacion
                   data={documentacionList}
+                  tipoDocumentacion={[
+                    "Credencial", 
+                    "Documento de Identidad",
+                    "Receta/Pedido Médico",
+                    "Ticket/Factura",
+                    "Informe/Historia Clínica",
+                    "CODEM",
+                    "Dictamen Médico Auditor",
+                    "F83M Solicitud de Afiliación",
+                    "Otros"
+                  ]}
                   disabled={request === "C"}
                   onChange={({ index, item }) => {
                     const newDocList = [...documentacionList];
