@@ -524,6 +524,14 @@ const useFormularioOsprera = ({
           }
 
           if (["A", "M"].includes(list.selection.request)) {
+
+            console.log("record*",record);
+            console.log("list.selection.edit*",list.selection);
+              
+            if (record.gestionEstadoDescripcion == "RECLAMADO" || (record.gestionEstadoDescripcion == "FINALIZADO" && record.gestionSituacionDescripcion == "CON RECLAMO FORMAL" )){
+              errors.observacionesEstado = "Dato requerido"; // solicitado por amuricio el 21/7/25
+            }
+
             if (!record.cuitTitular) errors.cuitTitular = "Dato requerido";
             else if (!ValidarCUIT(record.cuitTitular))
               errors.cuitTitular = "CUIT Incorrecto";
@@ -534,23 +542,14 @@ const useFormularioOsprera = ({
             if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
             if (!record.apellidoPaciente)
               errors.apellidoPaciente = "Dato requerido";
-            if (!record.nombrePaciente)
-              errors.nombrePaciente = "Dato requerido";
-            if (!record.fechaNacimiento)
-              errors.fechaNacimiento = "Dato requerido";
+            if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
+            if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
             if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
             if (!record.texto) errors.texto = "Dato requerido";
             if (!record.medioGestion) errors.medioGestion = "Dato requerido";
-            if (!record.tipoDocumentoId)
-              errors.tipoDocumentoId = "Dato requerido";
-            if (!record.seccionalId || record.seccionalId == 0)
-              errors.seccionalId = "Dato requerido";
-
-            if (
-              record.medioGestion == "email" &&
-              !record.direccionesEmailDestino
-            )
-              errors.direccionesEmailDestino = "Dato requerido";
+            if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
+            if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
+            if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
             if (
               record.medioGestion == "email" &&
               !ValidarEmail(record.direccionesEmailDestino)
@@ -618,7 +617,7 @@ const useFormularioOsprera = ({
           }
 
           if (Object.keys(errors).length) {
-            // console.log("errors", errors);
+            console.log("errors", errors);
             setList((o) => ({
               ...o,
               selection: {

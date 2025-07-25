@@ -49,10 +49,10 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},
 		{
-			dataField: "fechaNacimiento",
-			text: "Fecha Nacimiento",
-			formatter: (v) => Formato.Fecha(v),
-			headerStyle: { width: "120px", textAlign: "center" },
+			dataField: "medioGestion",
+			text: "Medio de Gestión",
+			style: { textAlign: "left" },
+			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},
 		{
 			dataField: "gestionEstadoDescripcion",
