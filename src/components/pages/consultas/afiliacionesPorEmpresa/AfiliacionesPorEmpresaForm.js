@@ -10,7 +10,7 @@ import InputMaterial, {
 } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 import downloadjs from "downloadjs";
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
@@ -32,7 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 import PDF from "./PDF";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import DocumentacionTable from "./DocumentacionTable";
-import DocumentacionForm from "./DocumentacionModal";
+import DocumentacionTable from "../Documentacion/DocumentacionTable";
+import DocumentacionForm from "../Documentacion/DocumentacionModal";
 import downloadjs from "downloadjs";
 
 const selectionDef = {

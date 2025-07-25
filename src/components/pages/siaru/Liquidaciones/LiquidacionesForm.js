@@ -12,7 +12,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import InputMaterial, { EnteroMask, InteresesMask, PesosMask, PorcentajeMask } from "components/ui/Input/InputMaterial";
-import useLiquidacionesNomina from "./useLiquidacionesNomina";
+import useLiquidacionesNomina from "../Liquidaciones/useLiquidacionesNomina";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};

@@ -3,8 +3,8 @@ import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import LiquidacionesTable from "./LiquidacionesTable";
-import LiquidacionesForm from "./LiquidacionesForm";
+import LiquidacionesTable from "../Liquidaciones/LiquidacionesTable";
+import LiquidacionesForm from "../Liquidaciones/LiquidacionesForm";
 
 const selectionDef = {
 	action: "",
