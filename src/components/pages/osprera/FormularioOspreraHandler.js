@@ -124,6 +124,7 @@ const FormularioOspreraHandler = () => {
 				})
 			);
 		}
+		/*
 		actions.push(
 			createAction({
 				action: `Envía Email ${desc}`,
@@ -138,7 +139,7 @@ const FormularioOspreraHandler = () => {
 							underlineindex: 0,
 					  }),
 			})
-		);
+		);*/
 		setFormularioOspreraActions(actions); //cargo todas las acciones / botones
 	}, [formularioOspreraRequest, formularioSelected]);
 
@@ -151,6 +152,19 @@ const FormularioOspreraHandler = () => {
 					<Grid grow>
 						<InputMaterial
 							label="Filtro por CUIL / Apellido Titular"
+							value={paramsEdit.filtro}
+							onChange={(filtro) =>
+								setParamsEdit((o) => {
+									const paramsEdit = { ...o, filtro };
+									if (!filtro) delete paramsEdit.filtro;
+									return paramsEdit;
+								})
+							}
+						/>
+					</Grid>
+					<Grid grow>
+						<InputMaterial
+							label="Filtro por DNI / Nombre Paciente"
 							value={paramsEdit.filtro}
 							onChange={(filtro) =>
 								setParamsEdit((o) => {
