@@ -205,7 +205,7 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format(
+            `<p><strong>${localidadUsuario}${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
             `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
