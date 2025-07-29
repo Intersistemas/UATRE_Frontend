@@ -50,7 +50,7 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 		},
 		{
 			dataField: "medioGestion",
-			text: "Medio de Gestión",
+			text: "Gestión",
 			style: { textAlign: "left" },
 			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
 		},

@@ -15,6 +15,10 @@ import useAmbitos from "components/hooks/useAmbitos";
 import ValidarEmail from "components/validators/ValidarEmail";
 import FormularioOspreraComprobante from "./FormularioOspreraComprobante";
 import { pdf } from "@react-pdf/renderer";
+import filterFactory, {
+  selectFilter,
+  Comparator,
+} from "react-bootstrap-table2-filter";
 
 const selectionDef = {
   action: "",
@@ -228,7 +232,9 @@ const useFormularioOsprera = ({
 		changes.data = [];
 		// console.log("userFormularioOsprera_list",list)
 		const soloLetras = /^[A-Za-z]+$/;
-		const filtro = list?.params?.filtro
+		const filtro = list?.params?.filtro;
+    const filtroPaciente = list?.params?.filtroPaciente;
+    const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
 
 		pushQuery({
 			action: "GetList",
@@ -242,7 +248,9 @@ const useFormularioOsprera = ({
 					ambitoDelegaciones: usuario.ambitoDelegaciones,
 					ambitoSeccionales: usuario.ambitoSeccionales,
 					sort: "FechaDesc,IdDesc",
-					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
+					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro }),
+          ...(!soloLetras.test(filtroPaciente) ?  {dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, '')} : { apellidoPaciente: filtroPaciente }),
+          ...(filtroTipoGestion && filtroTipoGestion != "Todos" ?  {medioGestion: filtroTipoGestion} : null),
 				},
 			},
 			
@@ -915,6 +923,7 @@ const useFormularioOsprera = ({
         }
         columns={columns}
         mostrarBuscar={mostrarBuscar}
+        filter={filterFactory()}
         pagination={{
           ...list.pagination,
           onChange: ({ index, size }) =>
