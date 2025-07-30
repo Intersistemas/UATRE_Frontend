@@ -385,6 +385,7 @@ const FormularioOspreraForm = ({
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const { empleador } = titular || {};
+    const domicilioFiscal = empleador.domicilios.find((r) => r.tipoDomicilio === "FISCAL");
 
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
@@ -427,11 +428,11 @@ const FormularioOspreraForm = ({
             v,
           ])
       ),
-      "empleador.actividad": empleador?.actividadPrincipalDescripcion,
-      "empleador.domicilio": `${empleador?.domicilioCalle} ${empleador?.domicilioNumero}`,
-      "empleador.localidad": empleador?.localidadDescripcion,
-      "empleador.provincia": empleador?.provinciaDescripcion,
-      "empleador.telefono": "",//empleador?.telefonoEmpleador,
+      "empleador.actividad": empleador?.descripcionActividadPrincipal,
+      "empleador.domicilio": `${domicilioFiscal?.calle} ${domicilioFiscal?.numero}`,
+      "empleador.localidad": domicilioFiscal?.localidad,
+      "empleador.provincia": domicilioFiscal?.descripcionProvincia,
+      "empleador.telefono": "", //empleador?.telefonoEmpleador,
       "empleador.correo": "", //empleador?.emailEmpleador,
     };
     //if (request !== "A") return;
@@ -1177,7 +1178,6 @@ const FormularioOspreraForm = ({
         params: { cuit: data.cuitTitular, VerificarHistorico: false },
 
         onOk: async (ok) => {
-          // console.log("ConsultaAFIP", ok);
           changes.validado = "Titular datos en AFIP";
           changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
           const domicilioReal = ok.domicilios.find(
@@ -1250,6 +1250,7 @@ const FormularioOspreraForm = ({
         // await validaAFIP();
       },
       onError: async (error) => {
+        console.log("NO Encontró Afiliado", error);
         await validaOSPRERA();
         await validaAFIP();
       },
@@ -1265,6 +1266,7 @@ const FormularioOspreraForm = ({
 
       onOk: async (ok) => {
         if (ok.length > 0) {
+          console.log("DDJJ encontrada", ok);
           const ddjjRecord = ok[0];
 
           setTitular((o) => ({
@@ -1273,8 +1275,8 @@ const FormularioOspreraForm = ({
           }));
 
           pushQuery({
-            action: "GetEmpresa",
-            params: { cuit: ddjjRecord.cuit, soloActivos: true },
+            action: "ConsultaAFIP",
+            params: { cuit: ddjjRecord.cuit, verificarHistorico: false },
             onOk: async (empresa) => {
               setTitular((o) => ({
                 ...o,
