@@ -235,6 +235,10 @@ const useFormularioOsprera = ({
 		const filtro = list?.params?.filtro;
     const filtroPaciente = list?.params?.filtroPaciente;
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
+    const filtroTipoEstado = list?.params?.filtroTipoEstado?.value;
+    const filtroTipoSituacion = list?.params?.filtroTipoSituacion?.value;
+
+    console.log("filtroTipoSituacion",filtroTipoSituacion);
 
 		pushQuery({
 			action: "GetList",
@@ -251,6 +255,8 @@ const useFormularioOsprera = ({
 					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro }),
           ...(!soloLetras.test(filtroPaciente) ?  {dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, '')} : { apellidoPaciente: filtroPaciente }),
           ...(filtroTipoGestion && filtroTipoGestion != "Todos" ?  {medioGestion: filtroTipoGestion} : null),
+          ...(filtroTipoEstado && filtroTipoEstado != "Todos" ?  {gestionEstadoId: filtroTipoEstado} : null),
+          ...(filtroTipoSituacion && filtroTipoSituacion != "Todos" ?  {gestionSituacionId: filtroTipoSituacion} : null),
 				},
 			},
 			
@@ -411,6 +417,7 @@ const useFormularioOsprera = ({
         // help={list.selection.help}
         loading={!!list.loading}
         disabled={(() => {
+          console.log("list",list);
           const r = {
             //TODOS LOS CAMPOS DESHABILITADOS POR DEFECTO
             cuitTitular: true,
@@ -442,7 +449,12 @@ const useFormularioOsprera = ({
             conCoberturaOsprera: true,
             tipoPrestador: true,
             atencionesPrevias: true,
-            observacionesEstado: true,
+
+            //observacionesEstado  = gestionEstadoDescripcion "RECLAMADO" || gestionEstadoDescripcion == "FINALIZADO" &&  gestionSituacionDescripcion == "CON RECLAMO FORMAL" ? false ; true
+
+            
+            observacionesEstado: list?.selection?.edit?.gestionEstadoDescripcion === "RECLAMADO" || (list?.selection?.edit?.gestionEstadoDescripcion == "FINALIZADO" &&  list?.selection?.edit?.gestionSituacionDescripcion == "CON RECLAMO FORMAL") ? false : true,
+           // observacionesEstado: true,
           };
 
           if (["A"].includes(list.selection.request)) {
@@ -536,7 +548,7 @@ const useFormularioOsprera = ({
             console.log("record*",record);
             console.log("list.selection.edit*",list.selection);
               
-            if (record.gestionEstadoDescripcion == "RECLAMADO" || (record.gestionEstadoDescripcion == "FINALIZADO" && record.gestionSituacionDescripcion == "CON RECLAMO FORMAL" )){
+            if ((record.gestionEstadoDescripcion == "RECLAMADO" || (record.gestionEstadoDescripcion == "FINALIZADO" && record.gestionSituacionDescripcion == "CON RECLAMO FORMAL" )) && !record.observacionesEstado) {
               errors.observacionesEstado = "Dato requerido"; // solicitado por amuricio el 21/7/25
             }
 

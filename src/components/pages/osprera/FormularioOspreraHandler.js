@@ -63,8 +63,8 @@ const FormularioOspreraHandler = () => {
 			loading: null,
 			data: [],
 			error: null,
-			options: [],
-			selected: { value: 0, label: "Todos" },
+			options: [{ value: 0, label: "TODOS" }],
+			selected: { value: 0, label: "TODOS" },
 		});
 
 	//#region select situacion
@@ -79,8 +79,8 @@ const FormularioOspreraHandler = () => {
 
 	//#region select medio
 		const [medioSelect, setMedioSelect] = useState({
-			options: [{ value: "Todos", label: "Todos" }, {value: "email", label:"Email"}, {value: "telefono", label: "Teléfono"}],
-			selected: { value: "Todos", label: "Todos" },
+			options: [{ value: "Todos", label: "TODOS" }, {value: "email", label:"EMAIL"}, {value: "telefono", label: "TELEFONO"}],
+			selected: { value: "Todos", label: "TODOS" },
 		});
 
 	// Cargo todos los Tipos
@@ -99,7 +99,15 @@ const FormularioOspreraHandler = () => {
 				onOk: (data) => {
 					if (!Array.isArray(data))
 						return console.error("Se esperaba un arreglo", data);
-					changes.data = data;
+					changes.data = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options.unshift({ value: 0, label: "TODOS" });
 				},
 				onError: (error) => (changes.error = error.toString()),
 				onFinally: () =>
@@ -129,7 +137,15 @@ const FormularioOspreraHandler = () => {
 				onOk: (data) => {
 					if (!Array.isArray(data))
 						return console.error("Se esperaba un arreglo", data);
-					changes.data = data;
+					changes.data = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options.unshift({ value: 0, label: "TODOS" });
 				},
 				onError: (error) => (changes.error = error.toString()),
 				onFinally: () =>
@@ -318,6 +334,7 @@ const FormularioOspreraHandler = () => {
 										setParamsEdit((o) => {
 											const paramsEdit = { ...o, filtroTipoEstado };
 											if (!filtroTipoEstado) delete paramsEdit.filtroTipoEstado;
+											delete paramsEdit.filtroTipoSituacion;
 											return paramsEdit;
 										})
 									}
@@ -327,11 +344,11 @@ const FormularioOspreraHandler = () => {
 							<Grid grow>
 								<SearchSelectMaterial
 									label="Tipo Situación"
-									value={paramsEdit.filtroTipoSituación}
-									onChange={(filtroTipoSituación) =>
+									value={paramsEdit.filtroTipoSituacion}
+									onChange={(filtroTipoSituacion) =>
 										setParamsEdit((o) => {
-											const paramsEdit = { ...o, filtroTipoSituación };
-											if (!filtroTipoSituación) delete paramsEdit.filtroTipoSituación;
+											const paramsEdit = { ...o, filtroTipoSituacion };
+											if (!filtroTipoSituacion) delete paramsEdit.filtroTipoSituacion;
 											return paramsEdit;
 										})
 									}
