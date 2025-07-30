@@ -152,6 +152,8 @@ const FormularioOspreraForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
+
+  console.log("data*", data); 
   const [selectedTab, setSelectedTab] = useState(0);
   const [mostrarAlertas, setMostrarAlertas] = useState(false);
   const [disabledItems, setDisabledItems] = useState(disabled);
@@ -324,7 +326,8 @@ const FormularioOspreraForm = ({
   //#region El Paciente es titular
   useEffect(() => {
     const changes = {};
-    if (!data?.elPacienteEsTitular) {
+
+    if (!data?.elPacienteEsTitular && request == "A") {
       changes.tipoDocumentoId = "";
       changes.dniPaciente = "";
       changes.apellidoPaciente = "";
@@ -340,6 +343,7 @@ const FormularioOspreraForm = ({
 
       changes.titularPaciente = false;
     }
+
     onChange(changes);
   }, [data.elPacienteEsTitular]);
 
@@ -363,22 +367,27 @@ const FormularioOspreraForm = ({
 
   //#region Cambios medio gestion
   useEffect(() => {
+    console.log("data",data)
+    console.log("gestionEstadoSelect",gestionEstadoSelect);
+    console.log("gestionSituacionSelect",gestionSituacionSelect);
+
     if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
 
     const changes = {};
     if (
-      gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
-      (gestionEstadoSelect?.selected?.label?.toString().trim() ===
-        "FINALIZADO" &&
-        gestionSituacionSelect?.selected?.label?.toString().trim() ===
-          "CON RECLAMO FORMAL")
+      //gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
+      //(gestionEstadoSelect?.selected?.label?.toString().trim() === "FINALIZADO" &&
+      //  gestionSituacionSelect?.selected?.label?.toString().trim() === "CON RECLAMO FORMAL")
+      data?.gestionEstadoDescripcion?.toString().trim() === "RECLAMADO" ||
+      (data?.gestionEstadoDescripcion?.toString().trim() === "FINALIZADO" &&
+      data?.gestionSituacionDescripcion?.toString().trim() === "CON RECLAMO FORMAL")
     ) {
       changes.observacionesEstado = false;
     } else {
       changes.observacionesEstado = true;
       onChange({ observacionesEstado: "" });
     }
-
+    console.log("changes",changes);
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [data.gestionEstadoId, data.gestionSituacionId]);
 
@@ -2152,7 +2161,7 @@ const FormularioOspreraForm = ({
                       error={!!errors.observacionesEstado}
                       helperText={errors.observacionesEstado ?? ""}
                       value={data.observacionesEstado}
-                      disabled={disabledItems.observacionesEstado}
+                      disabled={disabledItems?.observacionesEstado}
                       onChange={(observacionesEstado) => {
                         onChange({
                           observacionesEstado: observacionesEstado.target.value,
