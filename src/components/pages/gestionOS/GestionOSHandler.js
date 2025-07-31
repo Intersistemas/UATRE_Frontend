@@ -9,14 +9,14 @@ import Formato from "components/helpers/Formato";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import useFormularioOsprera, { onLoadSelectKeepOrFirst } from "./useFormularioOsprera";
+import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
 import Button from "components/ui/Button/Button";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
 
 
-const FormularioOspreraHandler = () => {
+const GestionOSHandler = () => {
 	const dispatch = useDispatch();
 
 	const Usuario = useContext(AuthContext).usuario;
@@ -164,7 +164,7 @@ const FormularioOspreraHandler = () => {
 		render: formulariosOspreraRender,
 		request: formularioOspreraRequest,
 		selected: formularioSelected,
-	} = useFormularioOsprera({
+	} = useGestionOS({
 		params: { orderBy: "cuitTitular" },
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
@@ -503,7 +503,7 @@ const FormularioOspreraHandler = () => {
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "Osprera", acciones }));
+		dispatch(handleModuloSeleccionar({ nombre: "GestionOS", nombreMiga: "Gestion O.S", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
 
@@ -532,4 +532,4 @@ const FormularioOspreraHandler = () => {
 	);
 };
 
-export default FormularioOspreraHandler;
+export default GestionOSHandler;

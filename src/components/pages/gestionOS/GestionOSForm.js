@@ -37,8 +37,6 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
-import FormularioOspreraComprobante from "./FormularioOspreraComprobante";
-import { pdf } from "@react-pdf/renderer";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -131,7 +129,7 @@ const gestionAreaOspreraSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
 //#endregion gestionAreaOsprera Options
 
-const FormularioOspreraForm = ({
+const GestionOSForm = ({
   data = {},
   title = "",
   disabled = {},
@@ -2329,4 +2327,4 @@ const FormularioOspreraForm = ({
   );
 };
 
-export default FormularioOspreraForm;
+export default GestionOSForm;

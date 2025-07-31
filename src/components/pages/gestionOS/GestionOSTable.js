@@ -3,7 +3,7 @@ import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import Table from "components/ui/Table/Table";
 
-const EmpresasTable = ({ columns, ...x } = {}) => {
+const GestionOSTable = ({ columns, ...x } = {}) => {
 	//#region declaracion de columnas
 	const columnsDef = [
 
@@ -108,4 +108,4 @@ const EmpresasTable = ({ columns, ...x } = {}) => {
 	);
 };
 
-export default EmpresasTable;
+export default GestionOSTable;

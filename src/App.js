@@ -52,7 +52,7 @@ import InformesHandler from "components/pages/informes/InformesHandler";
 
 import ConsultasHandler from "components/pages/consultas/ConsultasHandler";
 import AfiliacionesPorEmpresaHandler from 'components/pages/consultas/afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler';
-import GestionOspreraHandler from "components/pages/osprera/FormularioOspreraHandler";
+import GestionOSHandler from "components/pages/gestionOS/GestionOSHandler";
 
 import AuditoriasHandler from "components/pages/auditorias/AuditoriasHandler";
 
@@ -203,8 +203,8 @@ const App = () => {
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
 
             <Route
-              path="Inicio/GestionOsprera"
-              element={<GestionOspreraHandler />}
+              path="Inicio/GestionOS"
+              element={<GestionOSHandler />}
             />
 
             <Route path="Inicio/App" element={<AppHandler />} />
