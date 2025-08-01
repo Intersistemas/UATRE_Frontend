@@ -190,7 +190,7 @@ const LiquidacionesProcesarHandler = () => {
         "Siaru_EmpresaEstablecimiento"
       );
     }
-    dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+    dispatch(handleModuloSeleccionar({ nombre: "Procesar", nombreMiga: "Nueva Liquidación", acciones }));
     setAcciones(acciones);
   }, [empresa, dispatch, navigate]);
   //#endregion

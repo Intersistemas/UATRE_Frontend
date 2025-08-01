@@ -7,13 +7,13 @@ import JoinOjects from "components/helpers/JoinObjects";
 import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import ValidarCUIT from "components/validators/ValidarCUIT";
-import FormulariosOspreraTable from "./FormulariosOspreraTable";
-import FormularioOspreraForm from "./FormularioOspreraForm";
+import GestionOSTable from "./GestionOSTable";
+import GestionOSForm from "./GestionOSForm";
 import moment from "moment/moment";
 import AuthContext from "store/authContext";
 import useAmbitos from "components/hooks/useAmbitos";
 import ValidarEmail from "components/validators/ValidarEmail";
-import FormularioOspreraComprobante from "./FormularioOspreraComprobante";
+import GestionOSComprobante from "./GestionOSComprobante";
 import { pdf } from "@react-pdf/renderer";
 import filterFactory, {
   selectFilter,
@@ -60,7 +60,7 @@ export const onDataChangeDef = (data = []) => {};
 
 const onDownloadComprobanteGestion = (data = {}) => {
   const doc = (
-    <FormularioOspreraComprobante
+    <GestionOSComprobante
       nombre={data.nombre}
       fecha={data.fecha}
       seccional={data.seccional}
@@ -81,7 +81,7 @@ const onDownloadComprobanteGestion = (data = {}) => {
     });
 };
 
-const useFormularioOsprera = ({
+const useGestionOS = ({
   remote: remoteInit = true,
   data: dataInit = [],
   loading,
@@ -378,7 +378,7 @@ const useFormularioOsprera = ({
 	if (list.selection.request) {
 		// console.log("list", list)
 		form = (
-			<FormularioOspreraForm
+			<GestionOSForm
 				data={(() => { 
 					//console.log('list.selection',list.selection)
 					//INIT DE DATOS DEL FORM
@@ -923,7 +923,7 @@ const useFormularioOsprera = ({
 
   const render = () => (
     <>
-      <FormulariosOspreraTable
+      <GestionOSTable
         remote={list.remote}
         data={list.data}
         loading={!!list.loading || !!list.loadingOverride}
@@ -1039,4 +1039,4 @@ const useFormularioOsprera = ({
   return { render, request, selected: list.selection.record };
 };
 
-export default useFormularioOsprera;
+export default useGestionOS;
