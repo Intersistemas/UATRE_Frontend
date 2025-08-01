@@ -229,8 +229,10 @@ const EmpresasForm = ({
           return console.error("Se esperaba un arreglo", {
             GetLocalidades: data,
           });
-        changes.data = data;
-        changes.options = data.map((r) => getLocalidadOption(r)); //le doy formato al OPTION que voy a mostrar
+
+        const localidades = data.filter((r) => r.codPostal !== 99999);
+        changes.data = localidades;
+        changes.options = localidades.map((r) => getLocalidadOption(r)); //le doy formato al OPTION que voy a mostrar
       },
       onError: async (error) => (changes.error = error),
       onFinally: async () => {
@@ -482,8 +484,7 @@ const EmpresasForm = ({
       pushQuery({
         action: "ConsultaAFIP",
         params: { cuit: data.cuit, VerificarHistorico: false },
-        onOk: async (ok) => {
-          console.log("ConsultaAFIP ok:", ok);
+        onOk: async (ok) => {          
           if (!data.id) {
             changes.validado = "Se creará la Empresa";
 
@@ -494,7 +495,8 @@ const EmpresasForm = ({
             onChange({
               existe: true,
               cuit: ok.cuit,
-              razonSocial: ok.razonSocial ?? `${ok?.nombre} ${ok?.apellido}` ?? "" ,
+              razonSocial:
+                ok.razonSocial ?? `${ok?.nombre} ${ok?.apellido}` ?? "",
 
               actividadPrincipalId: ok.idActividadPrincipal,
               actividadPrincipalDescripcion: ok.descripcionActividadPrincipal,
@@ -503,7 +505,7 @@ const EmpresasForm = ({
               domicilioNumero: ok.domicilios[0].numero ?? "",
               domicilioPiso: ok.domicilios[0].piso ?? "",
               domicilioDpto: ok.domicilios[0].oficinaDptoLocal ?? "",
-              telefono: ok.telefono ?? "",
+              telefono: ok.telefono ?? "+54 9",
               email: ok.email ?? "",
               email2: ok.email2 ?? "",
 
@@ -654,10 +656,8 @@ const EmpresasForm = ({
           actividadPrincipal: actividadPrincipal.ciiu,
           actividadPrincipalDescripcion: actividadPrincipal.descripcion,
           domicilioCalle: domicilioFiscal.calle ?? data.domicilioCalle,
-          domicilioNumero:
-            domicilioFiscal.numero ?? data.domicilioNumero,
-          domicilioPiso:
-            domicilioFiscal.piso ?? data.domicilioPiso ?? "",
+          domicilioNumero: domicilioFiscal.numero ?? data.domicilioNumero,
+          domicilioPiso: domicilioFiscal.piso ?? data.domicilioPiso ?? "",
           domicilioDpto:
             domicilioFiscal.oficinaDptoLocal ?? data.domicilioDpto ?? "",
         });
@@ -701,7 +701,11 @@ const EmpresasForm = ({
               <Grid col width="30%">
                 <Button
                   className="botonAzul"
-                  disabled={`${data.cuit ?? ""}`.length !== 11 || errors.cuit || data?.datosArca !== undefined }
+                  disabled={
+                    `${data.cuit ?? ""}`.length !== 11 ||
+                    errors.cuit ||
+                    data?.datosArca !== undefined
+                  }
                   onClick={validarEmpresaCUITHandler}
                   loading={validacionCUIT.loading}
                 >
@@ -843,7 +847,7 @@ const EmpresasForm = ({
                 }
                 onChange={({ value, label }) => {
                   if (value === data.domicilioLocalidadesId) return;
-                  console.log("onChange localidad", { value, label });
+                  // console.log("onChange localidad", { value, label });
                   onChange({
                     domicilioLocalidadesId: value,
                     localidadNombre: label,
@@ -1054,7 +1058,7 @@ const EmpresasForm = ({
           <Grid fullWidth>
             <Button
               className="botonAzul"
-			        disabled={!data.id || !data.datosArca}
+              disabled={!data.id || !data.datosArca}
               width={40}
               onClick={() => handleActualizaDatosEmpresa(data.datosArca)}
             >

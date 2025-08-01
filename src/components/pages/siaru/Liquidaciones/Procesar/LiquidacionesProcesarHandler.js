@@ -128,10 +128,10 @@ const LiquidacionesProcesarHandler = () => {
       });
     }
     if (changes.data.establecimientos.length === 0) {
-      console.log(
-        "[debug] GetEmpresaEstablecimientos dependencias",
-        dependencias
-      );
+      // console.log(
+      //   "[debug] GetEmpresaEstablecimientos dependencias",
+      //   dependencias
+      // );
       const empresaId = dependencias.empresaId;
       pushQuery({
         action: "GetEmpresaEstablecimientos",
@@ -141,6 +141,22 @@ const LiquidacionesProcesarHandler = () => {
         onFinally: async () => applyChanges(),
       });
     }
+
+    dispatch(
+      handleLiquidacionProcesarSeleccionar({
+        existente: {
+          periodoDesde: null,
+          periodoHacia: null,
+        },
+        desdeArchivo: {
+          periodo: null,
+          archivo: null,
+        },
+        manual: {
+          periodo: null,
+        },
+      })
+    );
   }, [dependencias, pushQuery]);
   //#endregion
 
@@ -230,7 +246,7 @@ const LiquidacionesProcesarHandler = () => {
       </Grid>
     );
   }
-
+  
   useEffect(() => {
     if (dependencias.loading) return;
     const changes = {
@@ -243,8 +259,8 @@ const LiquidacionesProcesarHandler = () => {
         Se realizará baja de la liquidación existente con período{" "}
         {Formato.Periodo(periodo)}
       </Grid>
-    );
-    if (
+    );    
+    if (      
       desdeArchivo?.periodo &&
       dependencias.data.periodos.includes(desdeArchivo.periodo)
     ) {
