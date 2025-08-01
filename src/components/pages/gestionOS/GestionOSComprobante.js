@@ -4,7 +4,7 @@ import logo1 from "media/Logo1_sidebar.png";
 import styles from "./PDF.styles.js";
 import Grid from "components/ui/Grid/Grid";
 
-const FormularioOspreraComprobante = (props) => {
+const GestionOSComprobante = (props) => {
   const { nombre, fecha, seccional } = props;
 
   const pagina = () => {
@@ -46,4 +46,4 @@ const FormularioOspreraComprobante = (props) => {
   );
 };
 
-export default FormularioOspreraComprobante;
+export default GestionOSComprobante;
