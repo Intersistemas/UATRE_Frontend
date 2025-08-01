@@ -40,6 +40,9 @@ const GestionOSComprobante = (props) => {
             <Text style={{ fontSize: "10pt" }}>Fecha de gestión: {fecha}</Text>
             <Text style={{ fontSize: "10pt" }}>Seccional: {seccional}</Text>
           </Grid>
+           <Grid col grow gap="10px" style={{ marginTop: "30px" }}>
+            <Text style={{ fontSize: "8pt" }}>Dejo constancia que voluntariamente acepto que UATRE realice esta Gestión en mi nombre y me represente para realizar todo tipo de tramitación o reclamo ante quien corresponda, a los exclusivos fines de conseguir que la OSPRERA me otorgue la cobertura que me corresponde</Text>
+           </Grid>
         </Grid>
       </Page>
     </Document>
