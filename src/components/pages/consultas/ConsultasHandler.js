@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import download from "downloadjs";
 import { Tabs, Tab } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -9,10 +9,12 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
+import PDF_SolicitudAfiliacionHandler from "../afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacionHandler";
 
 const ConsultasHandler = () => {
 	const navigate = useNavigate();
 	const [consulta, setConsulta] = useState();
+	const pdfRef = useRef();
 
 	const tabs = [];
 	const [tab, setTab] = useState(0);
@@ -21,17 +23,18 @@ const ConsultasHandler = () => {
 	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
 	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
+	const handleClick = () => {
+		pdfRef.current?.generarPDF();
+	};
+
 	console.log("disableTabSeccionales",disableTabSeccionales)
 	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 
-	///////////////////////////////////0//////////////////////////////////////
 	const onDownloadSolicitudAfiliacion = () => {
 		solicitudAfiliacion({
 			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
 		});
 	};
-
-	////////////////////////////////0///////////////////////////////////////
 
 	const onDownloadSolicitudCambioSeccional = () => {
 		const link = document.createElement("a");
@@ -75,7 +78,7 @@ const ConsultasHandler = () => {
 					{/* //////////////////////////////0///////////////////////////////////// */}
 					<Button
 						className="botonAmarillo"
-						onClick={() => onDownloadSolicitudAfiliacion()}
+						onClick={handleClick}
 						width="32"
 						tarea="Consultas_SolicitudAfiliacion"
 					>
@@ -147,6 +150,7 @@ const ConsultasHandler = () => {
 						</Button>
 					
 					</Grid>
+          <PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 				}
 			</>
 		),
