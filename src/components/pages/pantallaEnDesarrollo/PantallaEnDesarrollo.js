@@ -15,12 +15,12 @@ const PantallaEnDesarrollo = (props) => {
   const handleCerrarModal = () => {
 
     authContext?.isLoggedIn ? navigate("/Inicio") : navigate("");
-    props.onClose();
+    props?.onClose();
    
   };
 
   return (
-    <ModalEnDesarrollo onClose={props.onClose}>
+    <ModalEnDesarrollo onClose={props?.onClose}>
       <div className={classes.div}>
         <h1 className={classes.titulo}>Pantalla En Desarrollo</h1>
         <div className={classes.imagen}>
