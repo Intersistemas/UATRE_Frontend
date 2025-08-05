@@ -150,8 +150,8 @@ const ConsultasHandler = () => {
 						</Button>
 					
 					</Grid>
-          <PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 				}
+				<PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 			</>
 		),
 		// actions,
