@@ -51,9 +51,8 @@ import LocalidadesHandler from "components/pages/administracion/localidades/Loca
 import InformesHandler from "components/pages/informes/InformesHandler";
 
 import ConsultasHandler from "components/pages/consultas/ConsultasHandler";
-import AfiliadoFormulariosAfiliacionHandler from "components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 import AfiliacionesPorEmpresaHandler from 'components/pages/consultas/afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler';
-import GestionOspreraHandler from "components/pages/osprera/FormularioOspreraHandler";
+import GestionOSHandler from "components/pages/gestionOS/GestionOSHandler";
 
 import AuditoriasHandler from "components/pages/auditorias/AuditoriasHandler";
 
@@ -93,7 +92,6 @@ const App = () => {
 
   return (
     <div className="App">
-
       <Routes>
         {!isLoggedIn && <Route path="/ingreso" element={<Login />} />}
         {!isLoggedIn && <Route path="/" element={<Login />} />}
@@ -116,42 +114,108 @@ const App = () => {
             <Route path="Inicio/Afiliaciones" element={<AfiliadosHandler />} />
             <Route path="Inicio/Afiliaciones/:id" element={<Afiliado />} />
             <Route path="Inicio/Empresas" element={<SiaruHandler />} />
-            <Route path="Inicio/Empresas/Establecimientos" element={<EstablecimientosHandler />}/>
-            <Route path="Inicio/Empresas/Establecimientos/Liquidaciones" element={<LiquidacionesHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones" element={<LiquidacionesHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones/Procesar" element={<LiquidacionesProcesarHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones/Procesar/Existente" element={<LiquidacionesProcesarExistenteHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones/Procesar/Archivo" element={<LiquidacionesProcesarArchivoHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones/Procesar/Manual" element={<LiquidacionesProcesarManualHandler />} />
-            <Route path="Inicio/Empresas/Liquidaciones/Establecimientos" element={<EstablecimientosHandler />} />
-            <Route path="Inicio/Empresas/ProcesosEntRecaudadoras" element={<ProcesosEntRecaudadorasHandler />} />
-            <Route path="Inicio/Empresas/DesvincularUsuarioEmpresa" element={<DesvincularUsuarioEmpresasHandler />} />
-            <Route path="Inicio/UsuarioPerfil" element={<UsuarioPerfilHandler />} />
+            <Route
+              path="Inicio/Empresas/Establecimientos"
+              element={<EstablecimientosHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Establecimientos/Liquidaciones"
+              element={<LiquidacionesHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones"
+              element={<LiquidacionesHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Procesar"
+              element={<LiquidacionesProcesarHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Procesar/Existente"
+              element={<LiquidacionesProcesarExistenteHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Procesar/Archivo"
+              element={<LiquidacionesProcesarArchivoHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Procesar/Manual"
+              element={<LiquidacionesProcesarManualHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Establecimientos"
+              element={<EstablecimientosHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/Liquidaciones/Procesar/Establecimientos"
+              element={<EstablecimientosHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/ProcesosEntRecaudadoras"
+              element={<ProcesosEntRecaudadorasHandler />}
+            />
+            <Route
+              path="Inicio/Empresas/DesvincularUsuarioEmpresa"
+              element={<DesvincularUsuarioEmpresasHandler />}
+            />
+            <Route
+              path="Inicio/UsuarioPerfil"
+              element={<UsuarioPerfilHandler />}
+            />
 
-            <Route path="Inicio/Administracion" element={<AdministracionHandler />} />
-            <Route path="Inicio/Administracion/Seccionales" element={<SeccionalesHandler />} />
-            <Route path="Inicio/Administracion/Empresas" element={<EmpresasHandler />} />
-            <Route path="Inicio/Administracion/Delegaciones" element={<DelegacionesHandler />} />
-            <Route path="Inicio/Administracion/Accesos" element={<AccesosHandler />} />
-            <Route path="Inicio/Administracion/Localidades" element={<LocalidadesHandler />} />
-            <Route path="Inicio/Administracion/Tasas" element={<TasasARCAHandler />} />
+            <Route
+              path="Inicio/Administracion"
+              element={<AdministracionHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Seccionales"
+              element={<SeccionalesHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Empresas"
+              element={<EmpresasHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Delegaciones"
+              element={<DelegacionesHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Accesos"
+              element={<AccesosHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Localidades"
+              element={<LocalidadesHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/Tasas"
+              element={<TasasARCAHandler />}
+            />
 
             <Route path="Inicio/Informes" element={<InformesHandler />} />
 
             <Route path="Inicio/Consultas" element={<ConsultasHandler />} />
-            <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler />} />
-            <Route path="Inicio/Consultas/AfiliacionesPorEmpresa" element={<AfiliacionesPorEmpresaHandler/>}/>
-                
+            <Route
+              path="Inicio/Consultas/Afiliaciones"
+              element={<AfiliacionesPorEmpresaHandler />}
+            />
+
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
-              
-            <Route path="Inicio/GestionOsprera" element={<GestionOspreraHandler />} />
-              
+
+            <Route
+              path="Inicio/GestionOS"
+              element={<GestionOSHandler />}
+            />
+
             <Route path="Inicio/App" element={<AppHandler />} />
             <Route path="Inicio/App/Encuestas" element={<EncuestasHandler />} />
-            <Route path="Inicio/App/EncuestaRespuestas" element={<EncuestasHandler />} />
+            <Route
+              path="Inicio/App/EncuestaRespuestas"
+              element={<EncuestasHandler />}
+            />
             <Route path="Inicio/App/Denuncias" element={<DenunciasHandler />} />
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
-              
+
             <Route path="/*" element={<PantallaEnDesarrollo />} />
           </Routes>
         </SideBar>

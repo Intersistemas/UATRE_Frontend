@@ -255,8 +255,6 @@ const LiquidacionNomina = ({
     setSelectedRuralidad(data.esRural);
   }, [data.esRural, data.empresaEstablecimientoId]);
 
-  console.log("selectedRuralidad", selectedRuralidad);  
-  console.log("data.esRural", data.esRural);  
   return (
     <Grid
       col
@@ -283,15 +281,16 @@ const LiquidacionNomina = ({
       </Grid>
       <Grid width="full" gap="inherit">
         <Grid width="25%">
-          <InputMaterial mask={CUITMask} label="CUIL" value={data.cuil} />
+          <InputMaterial mask={CUITMask} label="CUIL" value={data.cuil} readOnly={true} />
         </Grid>
         <Grid width="50%">
-          <InputMaterial label="Nombre" value={data.nombre} />
+          <InputMaterial label="Nombre" value={data.nombre} readOnly={true} />
         </Grid>
         <Grid width="25%">
           <InputMaterial
             mask={PesosMask}
             label="Remuneración imponible"
+            readOnly={true}
             value={data.remuneracionImponible}
           />
         </Grid>
@@ -542,7 +541,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
     };
     query.onFinally = async () => {
       if (changes.loading) return;
-      changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
+      // changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
       setEstablecimientos((o) => ({ ...o, ...changes }));
     };
     pushQuery(query);
@@ -1195,7 +1194,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
             disabled={{
               genera:
                 !estado.cabecera.liquidaciones?.length ||
-                !!estado.nominas.ruralesSinEstablecimiento,
+                !!estado.nominas.ruralesSinEstablecimiento ||
+                !!liqCab.loading,
             }}
             onChange={(changes) =>
               setEstado((o) => ({

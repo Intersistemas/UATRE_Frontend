@@ -78,7 +78,7 @@ const StyledMenu = styled((props) => (
       },
     },
   }));
-
+ 
 const Sidebar = ({children}) => {
 
     const navigate = useNavigate();
@@ -161,22 +161,27 @@ const Sidebar = ({children}) => {
             <NavLink {...nav}>
                 <div className={clases.icon}> {miga == "Inicio" ? <FaTh/> : <FaAngleUp/>}</div>
                 <div style={{display: isOpen ? "block" : "none"}} className={clases.link_text}>
-                    {(() => {
+                    
+                    {moduloActual.nombre == miga && moduloActual?.nombreMiga ? moduloActual?.nombreMiga : miga}
+                    
+                    {/*(() => {
                         switch (miga) {
-                            case 'GestionObraSocial':
-                                return "Gestión Obra Social";
+                            case 'GestionOS':
+                                return "Gestión Obra S.";
                             case 'Procesar':
                                 return "Nueva Liquidación";
                             default:
                                 return miga;
                         }
-                    })()}
+                    })()*/}
+                    
                 </div>
             </NavLink>    
         ) 
 
     })
 
+    console.log('miga',migas)
 
     const logout = () =>{
          logoutHandler();

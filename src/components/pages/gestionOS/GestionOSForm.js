@@ -129,7 +129,7 @@ const gestionAreaOspreraSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
 //#endregion gestionAreaOsprera Options
 
-const FormularioOspreraForm = ({
+const GestionOSForm = ({
   data = {},
   title = "",
   disabled = {},
@@ -150,6 +150,8 @@ const FormularioOspreraForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
+
+  console.log("data*", data); 
   const [selectedTab, setSelectedTab] = useState(0);
   const [mostrarAlertas, setMostrarAlertas] = useState(false);
   const [disabledItems, setDisabledItems] = useState(disabled);
@@ -158,11 +160,12 @@ const FormularioOspreraForm = ({
     existeEnOSPRERA: null,
     existeEnAFIP: null,
     confirmado: request == "A" ? false : true,
-    DDJJEmpresa: null,
+    DDJJEmpresa: {},
     cuil: "",
     tipoDocumentoId: 0,
     fechaNacimiento: "",
     sexoId: 0,
+    empleador: {},
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
@@ -173,6 +176,7 @@ const FormularioOspreraForm = ({
     visible: false,
     documentacionOK: false,
   });
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
@@ -201,7 +205,7 @@ const FormularioOspreraForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           attachments: adjuntos,
           cuerpo:
-            `<p>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<strong>${localidadUsuario}${moment().format(
+            `<p><strong>${localidadUsuario}${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
             `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
@@ -223,6 +227,7 @@ const FormularioOspreraForm = ({
             }</strong><br></br>` +
             `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
             `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
+            `En caso de negativa de respuesta al presente, el afiliado realizará la respectiva denuncia ante la Superintendencia de Servicios de Salud, por la falta de atención de parte de esa Obra Social.<br><br/>` +
             `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
         },
       },
@@ -319,7 +324,8 @@ const FormularioOspreraForm = ({
   //#region El Paciente es titular
   useEffect(() => {
     const changes = {};
-    if (!data?.elPacienteEsTitular) {
+
+    if (!data?.elPacienteEsTitular && request == "A") {
       changes.tipoDocumentoId = "";
       changes.dniPaciente = "";
       changes.apellidoPaciente = "";
@@ -335,6 +341,7 @@ const FormularioOspreraForm = ({
 
       changes.titularPaciente = false;
     }
+
     onChange(changes);
   }, [data.elPacienteEsTitular]);
 
@@ -358,32 +365,39 @@ const FormularioOspreraForm = ({
 
   //#region Cambios medio gestion
   useEffect(() => {
+    console.log("data",data)
+    console.log("gestionEstadoSelect",gestionEstadoSelect);
+    console.log("gestionSituacionSelect",gestionSituacionSelect);
+
     if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
 
     const changes = {};
     if (
-      gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
-      (gestionEstadoSelect?.selected?.label?.toString().trim() ===
-        "FINALIZADO" &&
-        gestionSituacionSelect?.selected?.label?.toString().trim() ===
-          "CON RECLAMO FORMAL")
+      //gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
+      //(gestionEstadoSelect?.selected?.label?.toString().trim() === "FINALIZADO" &&
+      //  gestionSituacionSelect?.selected?.label?.toString().trim() === "CON RECLAMO FORMAL")
+      data?.gestionEstadoDescripcion?.toString().trim() === "RECLAMADO" ||
+      (data?.gestionEstadoDescripcion?.toString().trim() === "FINALIZADO" &&
+      data?.gestionSituacionDescripcion?.toString().trim() === "CON RECLAMO FORMAL")
     ) {
       changes.observacionesEstado = false;
     } else {
       changes.observacionesEstado = true;
       onChange({ observacionesEstado: "" });
     }
-
+    console.log("changes",changes);
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [data.gestionEstadoId, data.gestionSituacionId]);
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
-    // console.log("onDownloadSolicitudAfiliacion", conDatos);
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
+    const { empleador } = titular || {};
+    const domicilioFiscal = empleador.domicilios.find((r) => r.tipoDomicilio === "FISCAL");
+
     const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selectedAditionalData?.codigo,
+      "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
       ...Object.fromEntries(
-        `${data?.fecha || ""}`
+        `${moment().format("YYYY-MM-DD") || ""}`
           .split("-")
           .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
       ),
@@ -406,10 +420,27 @@ const FormularioOspreraForm = ({
       "trabajador.localidad": data.localidad,
       "trabajador.provincia": data.provincia,
       "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": "", //data.actividad,
+      "trabajador.actividad": data.actividad,
       "trabajador.telefono": data?.telefonoContacto,
       "trabajador.correo": data?.emailContacto,
       "trabajador.cuil": data?.cuitTitular,
+
+      //Empleador
+      "empleador.razon_social": empleador?.razonSocial,
+      ...Object.fromEntries(
+        `${Formato.Cuit(empleador?.cuit)}`
+          .split("-")
+          .map((v, i) => [
+            `empleador.cuit.${["tipo", "id", "verificador"][i]}`,
+            v,
+          ])
+      ),
+      "empleador.actividad": empleador?.descripcionActividadPrincipal,
+      "empleador.domicilio": `${domicilioFiscal?.calle} ${domicilioFiscal?.numero}`,
+      "empleador.localidad": domicilioFiscal?.localidad,
+      "empleador.provincia": domicilioFiscal?.descripcionProvincia,
+      "empleador.telefono": "", //empleador?.telefonoEmpleador,
+      "empleador.correo": "", //empleador?.emailEmpleador,
     };
     //if (request !== "A") return;
     conDatos
@@ -497,20 +528,6 @@ const FormularioOspreraForm = ({
     }),
     { query: { config: { errorType: "response" } } }
   );
-
-  //   const { setState: setGestionSubRubroQuery } = useQueryState(
-  //     (params) => {
-  //       console.log("params", params);
-  //       return {
-  //         config: {
-  //           baseURL: "Afiliaciones",
-  //           endpoint: `/GestionesSubRubroByRubro`,
-  //           method: "GET",
-  //         },
-  //       };
-  //     },
-  //     { query: { config: { errorType: "response" } } }
-  //   );
 
   const { setState: setGestionEstadoQuery } = useQueryState(
     () => ({
@@ -634,6 +651,16 @@ const FormularioOspreraForm = ({
           config: {
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSituacion`,
+            method: "GET",
+          },
+        };
+      }
+
+      case "GetEmpresa": {
+        return {
+          config: {
+            baseURL: "Comunes",
+            endpoint: "/Empresas/GetEmpresaSpecs",
             method: "GET",
           },
         };
@@ -821,9 +848,10 @@ const FormularioOspreraForm = ({
     setGestionRubroSelect((o) => ({
       ...o,
       selected: {
-        value: data.id,
-        label: gestionRubroSelect.options.find((r) => r.value === data.id)
-          ?.label,
+        value: data.gestionRubroId,
+        label: gestionRubroSelect.options.find(
+          (r) => r.value === data.gestionRubroId
+        )?.label,
       },
     }));
   }, [gestionRubroSelect.options]);
@@ -835,6 +863,7 @@ const FormularioOspreraForm = ({
       onLoad: ({ ok, error }) => {
         let data = [];
         if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+
         setGestionRubroSelect((o) => ({
           ...o,
           loading: null,
@@ -1077,9 +1106,9 @@ const FormularioOspreraForm = ({
 
     setTitular((o) => ({
       ...o,
-      existeEnOSPRERA: false,
-      existeEnUATRE: false,
-      existeEnAFIP: false,
+      existeEnOSPRERA: null,
+      existeEnUATRE: null,
+      existeEnAFIP: null,
       cuil: "",
       tipoDocumentoId: 0,
       sexoId: 0,
@@ -1156,7 +1185,6 @@ const FormularioOspreraForm = ({
         params: { cuit: data.cuitTitular, VerificarHistorico: false },
 
         onOk: async (ok) => {
-          // console.log("ConsultaAFIP", ok);
           changes.validado = "Titular datos en AFIP";
           changes.datoAFIP = `Dato AFIP:  ${ok.domicilios[0]?.codigoPostal} ${ok.domicilios[0]?.localidad}`;
           const domicilioReal = ok.domicilios.find(
@@ -1229,6 +1257,7 @@ const FormularioOspreraForm = ({
         // await validaAFIP();
       },
       onError: async (error) => {
+        console.log("NO Encontró Afiliado", error);
         await validaOSPRERA();
         await validaAFIP();
       },
@@ -1244,7 +1273,24 @@ const FormularioOspreraForm = ({
 
       onOk: async (ok) => {
         if (ok.length > 0) {
-          console.log("Encontró DDJJ");
+          console.log("DDJJ encontrada", ok);
+          const ddjjRecord = ok[0];
+
+          setTitular((o) => ({
+            ...o,
+            DDJJEmpresa: ddjjRecord,
+          }));
+
+          pushQuery({
+            action: "ConsultaAFIP",
+            params: { cuit: ddjjRecord.cuit, verificarHistorico: false },
+            onOk: async (empresa) => {
+              setTitular((o) => ({
+                ...o,
+                empleador: empresa,
+              }));
+            },
+          });
         }
       },
       onError: async (error) => {
@@ -1254,6 +1300,8 @@ const FormularioOspreraForm = ({
         loading = false;
       },
     });
+
+    pushQuery({});
   };
   //#endregion
 
@@ -1283,11 +1331,11 @@ const FormularioOspreraForm = ({
   };
 
   const handleCheckDocumentacion = async () => {
-    if (request == "A") {
+    if (request == "A" || request == "M") {
       const isValid = await onValidate(true);
       if (!isValid) return;
 
-      if (documentacionList.length !== 0) {
+      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
         setModalDocumentacion({ documentacionOK: true });
       } else {
         //Modal preguntando documentacion
@@ -1309,14 +1357,14 @@ const FormularioOspreraForm = ({
   }, [modalDocumentacion]);
 
   const handleConfirma = async () => {
-    if (request == "A") {
+    if (request === "A") {
       if (
         !titular.existeEnUATRE &&
         !titular.existeEnOSPRERA &&
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion == "email") {
+        if (data.medioGestion === "email") {
           sendEnviarEmailHandler();
         }
         setDialogTexto(
@@ -1324,7 +1372,7 @@ const FormularioOspreraForm = ({
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion == "email") {
+        if (data.medioGestion === "email") {
           sendEnviarEmailHandler();
         }
 
@@ -1338,6 +1386,8 @@ const FormularioOspreraForm = ({
           );
           setOpenDialog(true);
         }
+
+        onClose(true);
       }
     } else {
       onClose(true);
@@ -1390,7 +1440,7 @@ const FormularioOspreraForm = ({
       <div>
         <Dialog
           onClose={() => (
-            setDialogTexto(""), setOpenDialog(false), onClose(true)
+            setDialogTexto(""), setOpenDialog(false), onClose()
           )}
           open={openDialog}
         >
@@ -1403,7 +1453,7 @@ const FormularioOspreraForm = ({
             <Button
               className="botonAmarillo"
               onClick={() => (
-                setDialogTexto(""), setOpenDialog(false), onClose(true)
+                setDialogTexto(""), setOpenDialog(false), onClose()
               )}
             >
               Cierra
@@ -1447,7 +1497,10 @@ const FormularioOspreraForm = ({
                   selected,
                   origen: "option",
                 }));
-                onChange({ seccionalId: selected.value });
+                onChange({
+                  seccionalId: selected.value,
+                  seccionalDescripcion: selected.label,
+                });
               }}
               options={seccionalSelect.options}
               onTextChange={(buscar) =>
@@ -1467,8 +1520,7 @@ const FormularioOspreraForm = ({
               <Tab
                 label="Documentacion"
                 disabled={
-                  !titular.confirmado ||
-                  request !== "A" ||
+                  (!titular.confirmado && request === "A") ||
                   data.medioGestion === "telefono"
                 }
               />
@@ -1530,12 +1582,14 @@ const FormularioOspreraForm = ({
                               : ""}{" "}
                           </h6>
                           <h6 style={{ fontSize: "small" }}>
-                            {titular.existeEnUATRE
+                            {titular.existeEnUATRE === true
                               ? "Afiliado a UATRE"
-                              : !!titular.existeEnOSPRERA &&
-                                !!titular.existeEnAFIP
+                              : titular.existeEnOSPRERA === null &&
+                                titular.existeEnAFIP === null
                               ? "" //"No se encontraron datos para el CUIL ingresado"
-                              : "No Afiliado a UATRE"}
+                              : titular.existeEnUATRE === false
+                              ? "No Afiliado a UATRE"
+                              : ""}
                           </h6>
                         </div>
                       )}
@@ -1896,6 +1950,66 @@ const FormularioOspreraForm = ({
                   </FormControl>
                 </Grid>
 
+                <Grid width="100%" gap="inherit">
+                  <Grid width="100%" gap="inherit">
+                    <SearchSelectMaterial
+                      required
+                      freeSolo={false}
+                      id="gestionRubro"
+                      name="gestionRubro"
+                      label="Tipo gestión"
+                      error={!!errors.gestionRubro}
+                      helperText={errors.gestionRubro ?? ""}
+                      value={gestionRubroSelect.selected}
+                      disabled={disabledItems.gestionRubro}
+                      onChange={(selected = {}) => {
+                        setGestionRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionRubroId: selected.value });
+                      }}
+                      options={gestionRubroSelect.options}
+                    />
+
+                    <SearchSelectMaterial
+                      required
+                      id="gestionSubRubro"
+                      name="gestionSubRubro"
+                      label="Detalle tipo gestión"
+                      error={!!errors.gestionSubRubro}
+                      helperText={errors.gestionSubRubro ?? ""}
+                      value={gestionSubRubroSelect.selected}
+                      disabled={disabledItems.gestionSubRubro}
+                      onChange={(selected = {}) => {
+                        setGestionSubRubroSelect((o) => ({
+                          ...o,
+                          selected,
+                          origen: "option",
+                        }));
+                        onChange({ gestionSubRubroId: selected.value });
+                      }}
+                      options={gestionSubRubroSelect.options}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid width="full" gap="inherit">
+                  <TextField
+                    fullWidth
+                    multiline
+                    maxRows={4}
+                    label="Detalle de la Gestión"
+                    error={!!errors.texto}
+                    helperText={errors.texto ?? ""}
+                    value={data.texto}
+                    disabled={disabledItems.texto}
+                    onChange={(texto) =>
+                      onChange({ texto: texto.target.value.toUpperCase()})
+                    }
+                  />
+                </Grid>
+
                 <FormControl
                   disabled={disabledItems.medioGestion}
                   error={!!errors.medioGestion}
@@ -1972,65 +2086,7 @@ const FormularioOspreraForm = ({
                       ))}
                   </Grid>
                 </Grid>
-                <Grid width="100%" gap="inherit">
-                  <Grid width="100%" gap="inherit">
-                    <SearchSelectMaterial
-                      required
-                      freeSolo={false}
-                      id="gestionRubro"
-                      name="gestionRubro"
-                      label="Tipo gestión"
-                      error={!!errors.gestionRubro}
-                      helperText={errors.gestionRubro ?? ""}
-                      value={gestionRubroSelect.selected}
-                      disabled={disabledItems.gestionRubro}
-                      onChange={(selected = {}) => {
-                        setGestionRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionRubroId: selected.value });
-                      }}
-                      options={gestionRubroSelect.options}
-                    />
 
-                    <SearchSelectMaterial
-                      required
-                      id="gestionSubRubro"
-                      name="gestionSubRubro"
-                      label="Detalle tipo gestión"
-                      error={!!errors.gestionSubRubro}
-                      helperText={errors.gestionSubRubro ?? ""}
-                      value={gestionSubRubroSelect.selected}
-                      disabled={disabledItems.gestionSubRubro}
-                      onChange={(selected = {}) => {
-                        setGestionSubRubroSelect((o) => ({
-                          ...o,
-                          selected,
-                          origen: "option",
-                        }));
-                        onChange({ gestionSubRubroId: selected.value });
-                      }}
-                      options={gestionSubRubroSelect.options}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid width="full" gap="inherit">
-                  <TextField
-                    fullWidth
-                    multiline
-                    maxRows={4}
-                    label="Detalle de la Gestión"
-                    error={!!errors.texto}
-                    helperText={errors.texto ?? ""}
-                    value={data.texto}
-                    disabled={disabledItems.texto}
-                    onChange={(texto) =>
-                      onChange({ texto: texto.target.value })
-                    }
-                  />
-                </Grid>
                 <Grid width="100%" gap="inherit">
                   <Grid width="100%" gap="inherit">
                     <SearchSelectMaterial
@@ -2048,7 +2104,7 @@ const FormularioOspreraForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionEstadoId: selected.value });
+                        onChange({ gestionEstadoId: selected.value, gestionEstadoDescripcion: selected.label});
                       }}
                       options={gestionEstadoSelect.options}
                     />
@@ -2088,7 +2144,7 @@ const FormularioOspreraForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSituacionId: selected.value });
+                        onChange({ gestionSituacionId: selected.value, gestionSituacionDescripcion: selected.label});
                       }}
                       options={gestionSituacionSelect.options}
                     />
@@ -2105,7 +2161,7 @@ const FormularioOspreraForm = ({
                       error={!!errors.observacionesEstado}
                       helperText={errors.observacionesEstado ?? ""}
                       value={data.observacionesEstado}
-                      disabled={disabledItems.observacionesEstado}
+                      disabled={disabledItems?.observacionesEstado}
                       onChange={(observacionesEstado) => {
                         onChange({
                           observacionesEstado: observacionesEstado.target.value,
@@ -2156,6 +2212,18 @@ const FormularioOspreraForm = ({
               <>
                 <Documentacion
                   data={documentacionList}
+                  tipoDocumentacion={[
+                    "Credencial", 
+                    "Documento de Identidad",
+                    "Receta/Pedido Médico",
+                    "Ticket/Factura",
+                    "Informe/Historia Clínica",
+                    "CODEM",
+                    "Dictamen Médico Auditor",
+                    "F83M Solicitud de Afiliación",
+                    "Otros"
+                  ]}
+                  disabled={request === "C"}
                   onChange={({ index, item }) => {
                     const newDocList = [...documentacionList];
                     if (index == null) {
@@ -2174,6 +2242,7 @@ const FormularioOspreraForm = ({
                 />
                 <Button
                   className="botonAmarillo"
+                  hidden={request === "C"}
                   marginTop={3}
                   width={50}
                   onClick={() => setSelectedTab(0)}
@@ -2190,7 +2259,7 @@ const FormularioOspreraForm = ({
             className="botonAzul"
             loading={loading}
             width={25}
-            hidden={selectedTab === 1}
+            hidden={selectedTab === 1 || request === "C"}
             disabled={!titular?.confirmado}
             onClick={
               request == "E"
@@ -2260,4 +2329,4 @@ const FormularioOspreraForm = ({
   );
 };
 
-export default FormularioOspreraForm;
+export default GestionOSForm;

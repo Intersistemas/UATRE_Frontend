@@ -9,11 +9,14 @@ import Formato from "components/helpers/Formato";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import useFormularioOsprera, { onLoadSelectKeepOrFirst } from "./useFormularioOsprera";
+import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
 import Button from "components/ui/Button/Button";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import useQueryQueue from "components/hooks/useQueryQueue";
 
-const FormularioOspreraHandler = () => {
+
+const GestionOSHandler = () => {
 	const dispatch = useDispatch();
 
 	const Usuario = useContext(AuthContext).usuario;
@@ -26,12 +29,142 @@ const FormularioOspreraHandler = () => {
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
 
+	//#region Trato queries a APIs
+	const pushQuery = useQueryQueue((action) => {
+		switch (action) {
+			case "GetEstados": {
+				return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/GestionesEstado`,
+					method: "GET",
+				},
+				};
+			}
+			case "GetSituaciones": {
+				return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/GestionesSituacion`,
+					method: "GET",
+				},
+				};
+			}
+			default:
+				return null;
+		}
+	});
+	//#endregion
+
+
+	//#region select estado
+		const [estadoSelect, setEstadoSelect] = useState({
+			reload: true,
+			loading: null,
+			data: [],
+			error: null,
+			options: [{ value: 0, label: "TODOS" }],
+			selected: { value: 0, label: "TODOS" },
+		});
+
+	//#region select situacion
+		const [situacionSelect, setSituacionSelect] = useState({
+			reload: true,
+			loading: null,
+			data: [],
+			error: null,
+			options: [],
+			selected: { value: 0, label: "Todos" },
+		});
+
+	//#region select medio
+		const [medioSelect, setMedioSelect] = useState({
+			options: [{ value: "Todos", label: "TODOS" }, {value: "email", label:"EMAIL"}, {value: "telefono", label: "TELEFONO"}],
+			selected: { value: "Todos", label: "TODOS" },
+		});
+
+	// Cargo todos los Tipos
+	useEffect(() => {
+		//if (!estadoSelect.reload) return;
+		const changes = {
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+		}
+		
+		setParamsEdit((o) => {
+			pushQuery({
+				action: "GetEstados",
+				onOk: (data) => {
+					if (!Array.isArray(data))
+						return console.error("Se esperaba un arreglo", data);
+					changes.data = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options.unshift({ value: 0, label: "TODOS" });
+				},
+				onError: (error) => (changes.error = error.toString()),
+				onFinally: () =>
+					setEstadoSelect((o) => ({ ...o, ...changes, loading: null })),
+			});
+			return { ...o, ...changes };
+		});
+		
+	}, []);
+	//#endregion Cargo todos los Tipos
+
+
+	// Cargo las Situcaiones segun el ESTADO que haya seleccionado
+	useEffect(() => {
+		
+		const changes = {
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			error: null,
+		}
+		
+		setParamsEdit((o) => {
+			pushQuery({
+				action: "GetSituaciones",
+				params: { gestionEstadoId: paramsEdit?.filtroTipoEstado?.value },
+				onOk: (data) => {
+					if (!Array.isArray(data))
+						return console.error("Se esperaba un arreglo", data);
+					changes.data = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options = data.map((r) => ({
+						value: r.id,
+						label: r.descripcion,
+					}));
+					changes.options.unshift({ value: 0, label: "TODOS" });
+				},
+				onError: (error) => (changes.error = error.toString()),
+				onFinally: () =>
+					setSituacionSelect((o) => ({ ...o, ...changes, loading: null })),
+			});
+			return { ...o, ...changes };
+		});
+		
+	}, [paramsEdit?.filtroTipoEstado]);
+	//#endregion Cargo todos los Tipos
+
+		
+
 	//#region Tab Formularios
 	const {
 		render: formulariosOspreraRender,
 		request: formularioOspreraRequest,
 		selected: formularioSelected,
-	} = useFormularioOsprera({
+	} = useGestionOS({
 		params: { orderBy: "cuitTitular" },
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
@@ -75,13 +208,14 @@ const FormularioOspreraHandler = () => {
 					  }),
 			})
 		);
-		actions.push(
+
+		actions.push(			
 			createAction({
 				action: `Modifica Gestión ${desc}`,
 				request: "M",
 				record: {},
 				tarea: "Osprera_GestionModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
+				...(formularioSelected?.deletedDate || !formularioSelected?.id || formularioSelected?.gestionEstadoDescripcion === "FINALIZADO"
 					? { disabled: true }
 					: {
 							disabled: false,
@@ -123,6 +257,7 @@ const FormularioOspreraHandler = () => {
 				})
 			);
 		}
+		/*
 		actions.push(
 			createAction({
 				action: `Envía Email ${desc}`,
@@ -137,7 +272,7 @@ const FormularioOspreraHandler = () => {
 							underlineindex: 0,
 					  }),
 			})
-		);
+		);*/
 		setFormularioOspreraActions(actions); //cargo todas las acciones / botones
 	}, [formularioOspreraRequest, formularioSelected]);
 
@@ -145,46 +280,112 @@ const FormularioOspreraHandler = () => {
 		header: () => <Tab label="Gestiones de Obra Social" />,
 		body: () => (
 			<Grid width col gap="10px">
-				<Grid />
-				<Grid gap="inherit">
-					<Grid grow>
-						<InputMaterial
-							label="Filtro por CUIL / Apellido Titular"
-							value={paramsEdit.filtro}
-							onChange={(filtro) =>
-								setParamsEdit((o) => {
-									const paramsEdit = { ...o, filtro };
-									if (!filtro) delete paramsEdit.filtro;
-									return paramsEdit;
-								})
-							}
-						/>
+				<Grid  row gap="10px">
+					<Grid width col gap="inherit">
+						<Grid  gap="inherit">
+							<Grid grow>
+								<InputMaterial
+									label="Filtro por CUIL / Apellido Titular"
+									value={paramsEdit.filtro}
+									onChange={(filtro) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, filtro };
+											if (!filtro) delete paramsEdit.filtro;
+											return paramsEdit;
+										})
+									}
+								/>
+							</Grid>
+							<Grid grow>
+								<InputMaterial
+									label="Filtro por DNI / Apellido Paciente"
+									value={paramsEdit.filtroPaciente}
+									onChange={(filtroPaciente) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, filtroPaciente };
+											if (!filtroPaciente) delete paramsEdit.filtroPaciente;
+											return paramsEdit;
+										})
+									}
+								/>
+							</Grid>
+						</Grid>
+					
+						<Grid gap="inherit">
+							<Grid grow>
+								<SearchSelectMaterial
+									label="Tipo Gestión"
+									value={paramsEdit.filtroTipoGestion}
+									onChange={(filtroTipoGestion) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, filtroTipoGestion };
+											if (!filtroTipoGestion) delete paramsEdit.filtroTipoGestion;
+											return paramsEdit;
+										})
+									}
+									options={medioSelect?.options}
+								/>
+							</Grid>
+							<Grid grow>
+								<SearchSelectMaterial
+									label="Tipo Estado"
+									value={paramsEdit.filtroTipoEstado}
+									onChange={(filtroTipoEstado) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, filtroTipoEstado };
+											if (!filtroTipoEstado) delete paramsEdit.filtroTipoEstado;
+											delete paramsEdit.filtroTipoSituacion;
+											return paramsEdit;
+										})
+									}
+									options={estadoSelect?.options}
+								/>
+							</Grid>
+							<Grid grow>
+								<SearchSelectMaterial
+									label="Tipo Situación"
+									value={paramsEdit.filtroTipoSituacion}
+									onChange={(filtroTipoSituacion) =>
+										setParamsEdit((o) => {
+											const paramsEdit = { ...o, filtroTipoSituacion };
+											if (!filtroTipoSituacion) delete paramsEdit.filtroTipoSituacion;
+											return paramsEdit;
+										})
+									}
+									options={situacionSelect?.options}
+								/>
+							</Grid>
+						</Grid>
 					</Grid>
-					<Grid width="200px">
-						<Button
-							className="botonAzul"
-							disabled={
-								JSON.stringify(paramsEdit) === JSON.stringify(paramsSend)
-							}
-							onClick={() => setParamsSend(paramsEdit)}
-						>
-							Aplica filtro
-						</Button>
-					</Grid>
-					<Grid width="200px">
-						<Button
-							className="botonAzul"
-							disabled={Object.entries(paramsEdit).length === 0}
-							onClick={() => {
-								const paramsEdit = {};
-								setParamsEdit(paramsEdit);
-								if (JSON.stringify(paramsEdit) === JSON.stringify(paramsSend))
-									return;
-								setParamsSend({ ...paramsEdit });
-							}}
-						>
-							Limpia filtro
-						</Button>
+					<Grid gap="inherit">
+						<Grid gap="inherit">
+							<Grid width="200px">
+								<Button
+									className="botonAzul"
+									disabled={
+										JSON.stringify(paramsEdit) === JSON.stringify(paramsSend)
+									}
+									onClick={() => setParamsSend(paramsEdit)}
+								>
+									Aplica filtro
+								</Button>
+							</Grid>
+							<Grid width="200px">
+								<Button
+									className="botonAzul"
+									disabled={Object.entries(paramsEdit).length === 0}
+									onClick={() => {
+										const paramsEdit = {};
+										setParamsEdit(paramsEdit);
+										if (JSON.stringify(paramsEdit) === JSON.stringify(paramsSend))
+											return;
+										setParamsSend({ ...paramsEdit });
+									}}
+								>
+									Limpia filtro
+								</Button>
+							</Grid>
+						</Grid>
 					</Grid>
 				</Grid>
 				{formulariosOspreraRender()}
@@ -302,7 +503,7 @@ const FormularioOspreraHandler = () => {
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
 	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "Osprera", acciones }));
+		dispatch(handleModuloSeleccionar({ nombre: "GestionOS", nombreMiga: "Gestion O.S", acciones }));
 	}, [dispatch, acciones]);
 	//#endregion
 
@@ -331,4 +532,4 @@ const FormularioOspreraHandler = () => {
 	);
 };
 
-export default FormularioOspreraHandler;
+export default GestionOSHandler;

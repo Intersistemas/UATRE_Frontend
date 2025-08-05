@@ -8,17 +8,18 @@ import DocumentacionTable from "./DocumentacionTable";
 const initEditing = {
 	data: {},
 	history: {},
+	tipoDocumentacion: [],
 };
 
 const Documentacion = ({
 	data = [],
 	disabled = false,
 	onChange = ({ index, item }) => {},
+	tipoDocumentacion= [],
 }) => {
 	const { sendRequest } = useHttp();
 
 	const [editing, setEditing] = useState(initEditing);
-
 	//#region declaración y carga tipos de documentación
 	const [tipoList, setTipoList] = useState({ loading: true });
 	useEffect(() => {
@@ -28,7 +29,10 @@ const Documentacion = ({
 				endpoint: `/RefTipoDocumentacion/GetAll`,
 				method: "GET",
 			},
-			async (res) => setTipoList({ data: res }),
+			async (res) => {
+					console.log("Tipos de documentación res", res);
+					setTipoList({ data: tipoDocumentacion.length ?  res.filter((t) => tipoDocumentacion.includes(t.descripcion)) : res });
+				},
 			async (err) => setTipoList({ error: err, data: [] })
 		);
 	}, [sendRequest]);

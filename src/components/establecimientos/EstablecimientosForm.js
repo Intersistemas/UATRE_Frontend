@@ -9,242 +9,254 @@ import SelectMaterial from "components/ui/Select/SelectMaterial";
 import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 
 const dependeciesDef = {
-	motivosBaja: {
-		loading: "",
-		data: [{ label: "", value: 0 }],
-		error: null,
-	},
-	provincias: {
-		loading: "",
-		data: [{ label: "", value: 0 }],
-		error: null,
-	},
-	localidades: {
-		loading: "",
-		data: [{ label: "", value: 0 }],
-		error: null,
-	},
+  motivosBaja: {
+    loading: "",
+    data: [{ label: "", value: 0 }],
+    error: null,
+  },
+  provincias: {
+    loading: "",
+    data: [{ label: "", value: 0 }],
+    error: null,
+  },
+  localidades: {
+    loading: "",
+    data: [{ label: "", value: 0 }],
+    error: null,
+  },
 };
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
 const EstablecimientosForm = ({
-	data = {},
-	title = "",
-	disabled = {},
-	hide = {},
-	errors = {},
-	dependecies = dependeciesDef,
-	onChange = onChangeDef,
-	onClose = onCloseDef,
+  data = {},
+  title = "",
+  disabled = {},
+  hide = {},
+  errors = {},
+  dependecies = dependeciesDef,
+  onChange = onChangeDef,
+  onClose = onCloseDef,
 }) => {
-	data ??= {};
+  data ??= {};
 
-	disabled ??= {};
-	hide ??= {};
-	errors ??= {};
+  disabled ??= {};
+  hide ??= {};
+  errors ??= {};
 
-	dependecies ??= {};
-	dependecies = dependecies === dependeciesDef ? {} : { ...dependecies };
+  dependecies ??= {};
+  dependecies = dependecies === dependeciesDef ? {} : { ...dependecies };
 
-	dependecies.motivosBaja ??= { data: [] };
-	const motivosBaja = dependecies.motivosBaja;
+  dependecies.motivosBaja ??= { data: [] };
+  const motivosBaja = dependecies.motivosBaja;
 
-	dependecies.provincias ??= { data: [] };
-	const provincias = dependecies.provincias;
+  dependecies.provincias ??= { data: [] };
+  const provincias = dependecies.provincias;
 
-	dependecies.localidades ??= { data: [] };
-	const localidades = dependecies.localidades;
+  dependecies.localidades ??= { data: [] };
+  const localidades = dependecies.localidades;
 
-	onChange ??= onChangeDef;
-	onClose ??= onCloseDef;
+  onChange ??= onChangeDef;
+  onClose ??= onCloseDef;
 
-	const getValue = (v) => data[v] ?? "";
+  const getValue = (v) => data[v] ?? "";
 
-	//#region select Localidad
-	const [localidad, setLocalidad] = useState({
-		buscar: "",
-		options: [],
-		selected: { value: 0, label: "" },
-		inicio: true,
-	});
-	// Inicio
-	useEffect(() => {
-		if (localidades.loading) return;
-		if (!localidad.inicio) return;
-		const changes = {
-			options: localidades.data,
-			selected: localidades.data.find(
-				({ value }) => value === data.domicilioLocalidadesId
-			) ?? { value: 0, label: "" },
-			inicio: false,
-		};
-		setLocalidad((o) => ({ ...o, ...changes }));
-	}, [localidades, localidad, data.domicilioLocalidadesId]);
-	// Buscador
-	useEffect(() => {
-		if (localidades.loading) return;
-		if (localidad.inicio) return;
-		const options = localidades.data.filter((r) =>
-			localidad.buscar !== ""
-				? r.label
-						.toLocaleLowerCase()
-						.includes(localidad.buscar.toLocaleLowerCase())
-				: true
-		);
-		setLocalidad((o) => ({ ...o, options }));
-	}, [localidades, localidad.buscar]);
-	// Change
-	useEffect(() => {
-		if (localidades.loading) return;
-		if (localidad.inicio) return;
-		if ((localidad.selected?.value ?? 0) === (data.domicilioLocalidadesId ?? 0))
-			return;
-		onChange({ domicilioLocalidadesId: localidad.selected?.value ?? 0 });
-	}, [localidades, localidad, data.domicilioLocalidadesId, onChange]);
-	//#endregion
+  useEffect(() => {
+      const changes = {};
+      if (data.telefono == null) changes.telefono = "+54 9";
+      if (Object.entries(changes).length === 0) return;
+      onChange(changes);
+    }, [onChange, data]);
 
-	//#region select Provincia
-	const [provincia, setProvincia] = useState({
-		inicio: true,
-		...(((v) => ({
-				default: v,
-				options: [v],
-				selected: v,
-			}))
-			({
-				value: data.domicilioProvinciasId ?? 0,
-				label: ""
-			})
-		),
-	});
-	// Inicio
-	useEffect(() => {
-		if (provincias.loading) return;
-		if (!provincia.inicio) return;
-		const changes = {
-			options: provincias.data,
-			selected: provincias.data.find(
-				({ value }) => value === data.domicilioProvinciasId
-			) ?? provincia.default,
-			inicio: false,
-		};
-		setProvincia((o) => ({ ...o, ...changes }));
-	}, [provincias, provincia, data.domicilioProvinciasId]);
-	// Change
-	useEffect(() => {
-		if (provincias.loading) return;
-		if (provincia.inicio) return;
-		if ((provincia.selected?.value ?? 0) === (data.domicilioProvinciasId ?? 0))
-			return;
-		onChange({ domicilioProvinciasId: provincia.selected?.value ?? 0 });
-		setLocalidad((o) => ({ ...o, selected: { value: 0, label: "" } }));
-	}, [provincias, provincia, data.domicilioProvinciasId, onChange]);
-	//#endregion
+  //#region select Localidad
+  const [localidad, setLocalidad] = useState({
+    buscar: "",
+    options: [],
+    selected: { value: 0, label: "" },
+    inicio: true,
+  });
+  // Inicio
+  useEffect(() => {
+    if (localidades.loading) return;
+    if (!localidad.inicio) return;
+    const changes = {
+      options: localidades.data.filter((r) => r.codPostal !== 99999),
+      selected: localidades.data.find(
+        ({ value }) => value === data.domicilioLocalidadesId
+      ) ?? { value: 0, label: "" },
+      inicio: false,
+    };
+    setLocalidad((o) => ({ ...o, ...changes }));
+  }, [localidades, localidad, data.domicilioLocalidadesId]);
 
-	UseKeyPress(["Escape"], () => onClose());
-	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
+  // Buscador
+  useEffect(() => {
+    if (localidades.loading) return;
+    if (localidad.inicio) return;
+    const options = localidades.data.filter((r) =>
+      localidad.buscar !== ""
+        ? r.label
+            .toLocaleLowerCase()
+            .includes(localidad.buscar.toLocaleLowerCase())
+        : true
+    );
+    setLocalidad((o) => ({ ...o, options }));
+  }, [localidades, localidad.buscar]);
 
-	return (
-		<Modal size="lg" centered show /*onHide={() => onClose()}*/>
-			<Modal.Header className={modalCss.modalCabecera} closeButton>
-				{title}
-			</Modal.Header>
-			<Modal.Body>
-				<Grid col full gap="15px">
-					<Grid width="full" gap="inherit">
-						<Grid width>
-							{hide.nombre ? null : (
-								<InputMaterial
-									id="nombre"
-									label="Nombre"
-									disabled={disabled.nombre}
-									error={!!errors.nombre}
-									helperText={errors.nombre ?? ""}
-									value={getValue("nombre")}
-									onChange={(nombre) => onChange({ nombre })}
-								/>
-							)}
-						</Grid>
-					</Grid>
-					<Grid width="full" gap="inherit">
-						{hide.telefono ? null : (
-							<Grid width>
-								<InputMaterial
-									id="telefono"
-									label="Teléfono"
-									type="tel"
-									error={!!errors.telefono}
-									helperText={errors.telefono ?? ""}
-									value={data.telefono}
-									disabled={disabled.telefono ?? false}
-									onChange={(telefono) => onChange({ telefono })}
-								/>
-							</Grid>
-						)}
-						{hide.email ? null : (
-							<Grid width>
-								<InputMaterial
-									id="email"
-									name="email"
-									label="Email"
-									error={!!errors.email}
-									helperText={errors.email ?? ""}
-									value={data.email}
-									disabled={disabled.email}
-									onChange={(email) => onChange({ email })}
-								/>
-							</Grid>
-						)}
-					</Grid>
-					{hide.domicilio ? null : (
-						<Grid
-							col
-							width="full"
-							style={{
-								border: "solid 1px #cccccc",
-								borderRadius: `15px`,
-								padding: `15px`,
-							}}
-							gap="inherit"
-						>
-							<Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
-								<h4>Domicilio</h4>
-							</Grid>
-							<Grid width="full" gap="inherit">
-								{hide.domicilioCalle ? null : (
-									<Grid width="full">
-										<InputMaterial
-											required
-											id="domicilioCalle"
-											label="Calle"
-											disabled={disabled.domicilioCalle}
-											error={!!errors.domicilioCalle}
-											helperText={errors.domicilioCalle ?? ""}
-											value={getValue("domicilioCalle")}
-											onChange={(domicilioCalle) => onChange({ domicilioCalle })}
-										/>
-									</Grid>
-								)}
-								{hide.domicilioNumero ? null : (
-									<Grid width="25%">
-										<InputMaterial
-											required
-											id="domicilioNumero"
-											label="Número"
-											type="number"
-											disabled={disabled.domicilioNumero}
-											error={!!errors.domicilioNumero}
-											helperText={errors.domicilioNumero ?? ""}
-											value={getValue("domicilioNumero")}
-											onChange={(domicilioNumero) =>
-												onChange({ domicilioNumero })
-											}
-										/>
-									</Grid>
-								)}
-							</Grid>
-							{/* <Grid width="full" gap="inherit">
+  // Change
+  useEffect(() => {
+    if (localidades.loading) return;
+    if (localidad.inicio) return;
+    if ((localidad.selected?.value ?? 0) === (data.domicilioLocalidadesId ?? 0))
+      return;
+    onChange({ domicilioLocalidadesId: localidad.selected?.value ?? 0 });
+  }, [localidades, localidad, data.domicilioLocalidadesId, onChange]);
+  //#endregion
+
+  //#region select Provincia
+  const [provincia, setProvincia] = useState({
+    inicio: true,
+    ...((v) => ({
+      default: v,
+      options: [v],
+      selected: v,
+    }))({
+      value: data.domicilioProvinciasId ?? 0,
+      label: "",
+    }),
+  });
+
+  // Inicio
+  useEffect(() => {
+    if (provincias.loading) return;
+    if (!provincia.inicio) return;
+    const changes = {
+      options: provincias.data.filter(({ value }) => value !== 0),
+      selected:
+        provincias.data.find(
+          ({ value }) => value === data.domicilioProvinciasId
+        ) ?? provincia.default,
+      inicio: false,
+    };
+    setProvincia((o) => ({ ...o, ...changes }));
+  }, [provincias, provincia, data.domicilioProvinciasId]);
+
+  // Change
+  useEffect(() => {
+    if (provincias.loading) return;
+    if (provincia.inicio) return;
+    if ((provincia.selected?.value ?? 0) === (data.domicilioProvinciasId ?? 0))
+      return;
+    onChange({ domicilioProvinciasId: provincia.selected?.value ?? 0 });
+    setLocalidad((o) => ({ ...o, selected: { value: 0, label: "" } }));
+  }, [provincias, provincia, data.domicilioProvinciasId, onChange]);
+  //#endregion
+
+  UseKeyPress(["Escape"], () => onClose());
+  UseKeyPress(["Enter"], () => onClose(true), "AltKey");
+
+  return (
+    <Modal size="lg" centered show /*onHide={() => onClose()}*/>
+      <Modal.Header className={modalCss.modalCabecera} closeButton>
+        {title}
+      </Modal.Header>
+      <Modal.Body>
+        <Grid col full gap="15px">
+          <Grid width="full" gap="inherit">
+            <Grid width>
+              {hide.nombre ? null : (
+                <InputMaterial
+                  id="nombre"
+                  label="Nombre"
+                  disabled={disabled.nombre}
+                  error={!!errors.nombre}
+                  helperText={errors.nombre ?? ""}
+                  value={getValue("nombre")}
+                  onChange={(nombre) => onChange({ nombre })}
+                />
+              )}
+            </Grid>
+          </Grid>
+          <Grid width="full" gap="inherit">
+            {hide.telefono ? null : (
+              <Grid width>
+                <InputMaterial
+                  id="telefono"
+                  label="Teléfono"
+                  type="tel"
+                  error={!!errors.telefono}
+                  helperText={errors.telefono ?? ""}
+                  value={data.telefono}
+                  disabled={disabled.telefono ?? false}
+                  onChange={(telefono) => onChange({ telefono })}
+                />
+              </Grid>
+            )}
+            {hide.email ? null : (
+              <Grid width>
+                <InputMaterial
+                  id="email"
+                  name="email"
+                  label="Email"
+                  error={!!errors.email}
+                  helperText={errors.email ?? ""}
+                  value={data.email}
+                  disabled={disabled.email}
+                  onChange={(email) => onChange({ email })}
+                />
+              </Grid>
+            )}
+          </Grid>
+          {hide.domicilio ? null : (
+            <Grid
+              col
+              width="full"
+              style={{
+                border: "solid 1px #cccccc",
+                borderRadius: `15px`,
+                padding: `15px`,
+              }}
+              gap="inherit"
+            >
+              <Grid grow style={{ borderBottom: "dashed 1px #cccccc" }}>
+                <h4>Domicilio</h4>
+              </Grid>
+              <Grid width="full" gap="inherit">
+                {hide.domicilioCalle ? null : (
+                  <Grid width="full">
+                    <InputMaterial
+                      required
+                      id="domicilioCalle"
+                      label="Calle"
+                      disabled={disabled.domicilioCalle}
+                      error={!!errors.domicilioCalle}
+                      helperText={errors.domicilioCalle ?? ""}
+                      value={getValue("domicilioCalle")}
+                      onChange={(domicilioCalle) =>
+                        onChange({ domicilioCalle })
+                      }
+                    />
+                  </Grid>
+                )}
+                {hide.domicilioNumero ? null : (
+                  <Grid width="25%">
+                    <InputMaterial
+                      required
+                      id="domicilioNumero"
+                      label="Número"
+                      type="number"
+                      disabled={disabled.domicilioNumero}
+                      error={!!errors.domicilioNumero}
+                      helperText={errors.domicilioNumero ?? ""}
+                      value={getValue("domicilioNumero")}
+                      onChange={(domicilioNumero) =>
+                        onChange({ domicilioNumero })
+                      }
+                    />
+                  </Grid>
+                )}
+              </Grid>
+              {/* <Grid width="full" gap="inherit">
 								{hide.domicilioPiso ? null : (
 									<InputMaterial
 										id="domicilioPiso"
@@ -268,120 +280,121 @@ const EstablecimientosForm = ({
 									/>
 								)}
 							</Grid> */}
-							<Grid width="full" gap="inherit">
-								<Grid width="50%">
-									{hide.domicilioProvinciasId ? null : (
-										<SearchSelectMaterial
-											onKeyDown={(e) => { e.preventDefault(); }}
-											id="domicilioProvinciasId"
-											name="domicilioProvinciasId"
-											label="Provincia"
-											options={provincia.options}
-											value={data.domicilioProvinciasId ?? 0}
-											error={
-												provincias.loading ??
-												provincias.error?.message ??
-												errors.domicilioProvinciasId ??
-												""
-											}
-											disabled={disabled.domicilioProvinciasId ?? false}
-											onChange={(value) =>
-												setProvincia((o) => ({
-													...o,
-													selected: provincia.options.find(p => p.value === value)
-														?? provincia.default
-												}))
-											}
-											required
-										/>
-									)}
-								</Grid>
-								<Grid width="50%">
-									{hide.domicilioLocalidadesId ? null : (
-										<SearchSelectMaterial
-											freeSolo={false}
-											id="domicilioLocalidadesId"
-											name="domicilioLocalidadesId"
-											label="Localidad"
-											error={!!errors.domicilioLocalidadesId}
-											helperText={
-												localidades.loading ??
-												localidades.error?.message ??
-												errors.domicilioLocalidadesId ??
-												""
-											}
-											value={localidad.selected}
-											disabled={disabled.domicilioLocalidadesId ?? false}
-											onChange={(selected) =>
-												setLocalidad((o) => ({ ...o, selected }))
-											}
-											options={localidad.options}
-											onTextChange={( buscar ) =>
-												setLocalidad((o) => ({ ...o, buscar }))
-											}
-											required
-										/>
-									)}
-								</Grid>
-							</Grid>
-						</Grid>
-					)}
-					{hide.refMotivosBajaId ? null : (
-						<SelectMaterial
-							name="refMotivosBajaId"
-							label="Motivo de baja"
-							options={motivosBaja.data}
-							value={data.refMotivosBajaId ?? 0}
-							error={
-								motivosBaja.loading ??
-								motivosBaja.error?.message ??
-								errors.refMotivosBajaId ??
-								""
-							}
-							disabled={disabled.refMotivosBajaId}
-							onChange={(refMotivosBajaId) => onChange({ refMotivosBajaId })}
-						/>
-					)}
-					{hide.deletedObs ? null : (
-						<InputMaterial
-							id="deletedObs"
-							label="Observaciones de baja"
-							disabled={disabled.deletedObs}
-							error={!!errors.deletedObs}
-							helperText={errors.deletedObs ?? ""}
-							value={getValue("deletedObs")}
-							onChange={(deletedObs) => onChange({ deletedObs })}
-						/>
-					)}
-					{hide.obs ? null : (
-						<InputMaterial
-							id="obs"
-							label="Observaciones de reactivación"
-							disabled={disabled.obs}
-							error={!!errors.obs}
-							helperText={errors.obs ?? ""}
-							value={getValue("obs")}
-							onChange={(obs) => onChange({ obs })}
-						/>
-					)}
-				</Grid>
-			</Modal.Body>
-			<Modal.Footer>
-				<Grid gap="20px">
-					<Grid width="150px">
-						<Button className="botonAzul" onClick={() => onClose(true)}>
-							CONFIRMA
-						</Button>
-					</Grid>
-					<Grid width="150px">
-						<Button className="botonAmarillo" onClick={() => onClose()}>
-							CANCELA
-						</Button>
-					</Grid>
-				</Grid>
-			</Modal.Footer>
-		</Modal>
-	);
+              <Grid width="full" gap="inherit">
+                <Grid width="50%">
+                  {hide.domicilioProvinciasId ? null : (
+                    <SearchSelectMaterial
+                      onKeyDown={(e) => {
+                        e.preventDefault();
+                      }}
+                      id="domicilioProvinciasId"
+                      name="domicilioProvinciasId"
+                      label="Provincia"
+                      options={provincia.options}
+                      value={provincia.selected}
+                      error={
+                        provincias.loading ??
+                        provincias.error?.message ??
+                        errors.domicilioProvinciasId ??
+                        ""
+                      }
+                      disabled={disabled.domicilioProvinciasId ?? false}
+                      onChange={(selected) =>
+                        setProvincia((o) => ({
+                          ...o,
+                          selected,
+                        }))
+                      }
+                      required
+                    />
+                  )}
+                </Grid>
+                <Grid width="50%">
+                  {hide.domicilioLocalidadesId ? null : (
+                    <SearchSelectMaterial
+                      freeSolo={false}
+                      id="domicilioLocalidadesId"
+                      name="domicilioLocalidadesId"
+                      label="Localidad"
+                      error={!!errors.domicilioLocalidadesId}
+                      helperText={
+                        localidades.loading ??
+                        localidades.error?.message ??
+                        errors.domicilioLocalidadesId ??
+                        ""
+                      }
+                      value={localidad.selected}
+                      disabled={disabled.domicilioLocalidadesId ?? false}
+                      onChange={(selected) =>
+                        setLocalidad((o) => ({ ...o, selected }))
+                      }
+                      options={localidad.options}
+                      onTextChange={(buscar) =>
+                        setLocalidad((o) => ({ ...o, buscar }))
+                      }
+                      required
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            </Grid>
+          )}
+          {hide.refMotivosBajaId ? null : (
+            <SelectMaterial
+              name="refMotivosBajaId"
+              label="Motivo de baja"
+              options={motivosBaja.data}
+              value={data.refMotivosBajaId ?? 0}
+              error={
+                motivosBaja.loading ??
+                motivosBaja.error?.message ??
+                errors.refMotivosBajaId ??
+                ""
+              }
+              disabled={disabled.refMotivosBajaId}
+              onChange={(refMotivosBajaId) => onChange({ refMotivosBajaId })}
+            />
+          )}
+          {hide.deletedObs ? null : (
+            <InputMaterial
+              id="deletedObs"
+              label="Observaciones de baja"
+              disabled={disabled.deletedObs}
+              error={!!errors.deletedObs}
+              helperText={errors.deletedObs ?? ""}
+              value={getValue("deletedObs")}
+              onChange={(deletedObs) => onChange({ deletedObs })}
+            />
+          )}
+          {hide.obs ? null : (
+            <InputMaterial
+              id="obs"
+              label="Observaciones de reactivación"
+              disabled={disabled.obs}
+              error={!!errors.obs}
+              helperText={errors.obs ?? ""}
+              value={getValue("obs")}
+              onChange={(obs) => onChange({ obs })}
+            />
+          )}
+        </Grid>
+      </Modal.Body>
+      <Modal.Footer>
+        <Grid gap="20px">
+          <Grid width="150px">
+            <Button className="botonAzul" onClick={() => onClose(true)}>
+              CONFIRMA
+            </Button>
+          </Grid>
+          <Grid width="150px">
+            <Button className="botonAmarillo" onClick={() => onClose()}>
+              CANCELA
+            </Button>
+          </Grid>
+        </Grid>
+      </Modal.Footer>
+    </Modal>
+  );
 };
 
 export default EstablecimientosForm;

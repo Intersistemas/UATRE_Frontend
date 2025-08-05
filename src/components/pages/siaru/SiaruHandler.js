@@ -233,6 +233,7 @@ const SiaruHandler = () => {
     }
   }, [list.data, empresaSeleccionada]);
 
+  // console.log("list", list.selection);
   let form = null;
   if (list.selection.request) {
     form = (
@@ -519,7 +520,7 @@ const SiaruHandler = () => {
         })),
       "r",
       "Siaru_EmpresaRelaciona"
-    );
+    );    
 
     addAction(
       `Importar archivo recaudaciones`,
@@ -534,6 +535,21 @@ const SiaruHandler = () => {
     );
 
     if (desc) {
+      addAction(
+        `Modifica Empresa ${desc}`,
+        (_) =>
+          setList((o) => ({
+            ...o,
+            selection: {
+              ...o.selection,
+              request: "M",
+              record: empresa.data,
+            },
+          })),
+        "m",
+        "Datos_EmpresaModifica"
+      );
+
       addAction(
         `Establecimientos de ${desc}`,
         (_) => navigate("Establecimientos"),
@@ -612,7 +628,7 @@ const SiaruHandler = () => {
       />
     );
   }
-
+  
   return (
     <Grid col height="100vh" gap="10px">
       <Grid className="titulo" width="full">

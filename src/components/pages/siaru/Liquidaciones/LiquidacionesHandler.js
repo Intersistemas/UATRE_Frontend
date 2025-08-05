@@ -328,7 +328,7 @@ const LiquidacionesHandler = () => {
     [liqCabActions, liqActions]
   );
   useEffect(() => {
-    dispatch(handleModuloSeleccionar({ nombre: "SIARU", acciones }));
+    dispatch(handleModuloSeleccionar({ nombre: "Empresas", acciones }));
   }, [dispatch, acciones]);
   //#endregion
 
