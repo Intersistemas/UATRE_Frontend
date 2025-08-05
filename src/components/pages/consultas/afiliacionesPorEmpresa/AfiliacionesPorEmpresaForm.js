@@ -124,7 +124,7 @@ const FormularioOspreraForm = ({
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
     const date = new Date();
-    date.setMonth(date.getMonth() - 12);
+    date.setMonth(date.getMonth() - 2);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
@@ -248,7 +248,6 @@ const FormularioOspreraForm = ({
   console.log("seccionalSelect***",seccionalSelect)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
-      console.log("t",t);
       const datos = {
         afiliado_nro: t?.id,
         seccional_nro: seccionalSelect?.selectedRecord?.codigo,
@@ -256,18 +255,18 @@ const FormularioOspreraForm = ({
         trabajador: {
           cuil: t?.cuil,
           tipo_doc: t?.tipoDocumento,
-          nro_doc: t.numeroDocumento,
+          nro_doc: t?.numeroDocumento,
           nacionalidad: " ",
           apellido: t?.afiliadoApellido,
-          nombres: t.afiliadoNombre, // No viene en la API
-          fecha_nacimiento: Formato.Fecha(t.fechaNacimiento),
+          nombres: t?.afiliadoNombre, // No viene en la API
+          fecha_nacimiento: Formato.Fecha(t?.fechaNacimiento),
           estado_civil: " ",
           sexo: " ",
-          domicilio_real: t.domicilio,
-          localidad: t.localidad,
-          provincia: t.provincia,
+          domicilio_real: t?.domicilio,
+          localidad: t?.localidad,
+          provincia: t?.provincia,
           oficio_categoria: " ",
-          actividad: t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
+          actividad: t?.actividadDescripcion.includes("inexistente") ? "-" :  t?.actividadDescripcion,
           telefono: " ",
           email: " ",
         },
