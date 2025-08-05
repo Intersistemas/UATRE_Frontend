@@ -61,6 +61,13 @@ const EstablecimientosForm = ({
 
   const getValue = (v) => data[v] ?? "";
 
+  useEffect(() => {
+      const changes = {};
+      if (data.telefono == null) changes.telefono = "+54 9";
+      if (Object.entries(changes).length === 0) return;
+      onChange(changes);
+    }, [onChange, data]);
+
   //#region select Localidad
   const [localidad, setLocalidad] = useState({
     buscar: "",
@@ -73,7 +80,7 @@ const EstablecimientosForm = ({
     if (localidades.loading) return;
     if (!localidad.inicio) return;
     const changes = {
-      options: localidades.data,
+      options: localidades.data.filter((r) => r.codPostal !== 99999),
       selected: localidades.data.find(
         ({ value }) => value === data.domicilioLocalidadesId
       ) ?? { value: 0, label: "" },
@@ -81,6 +88,7 @@ const EstablecimientosForm = ({
     };
     setLocalidad((o) => ({ ...o, ...changes }));
   }, [localidades, localidad, data.domicilioLocalidadesId]);
+
   // Buscador
   useEffect(() => {
     if (localidades.loading) return;
