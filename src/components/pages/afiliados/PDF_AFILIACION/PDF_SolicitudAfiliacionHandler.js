@@ -83,54 +83,60 @@ const datosInit = {
 };
 
 const PDF_SolicitudAfiliacionHandler = forwardRef(({ datos }, ref) => {
-  const pdfRef = useRef();
+  const refs = useRef([]);
 
- // ✅ Fusión con spread operator a nivel manual
-  const datosCompletos = {
+  // Normalizamos siempre a un array
+  const listaDatos = Array.isArray(datos) ? datos : [datos];
+
+  // Aplicamos valores por defecto
+  const datosNormalizados = listaDatos.map((item) => ({
     ...datosInit,
-    ...datos,
+    ...item,
     trabajador: {
       ...datosInit.trabajador,
-      ...(datos?.trabajador || {}),
+      ...(item?.trabajador || {}),
     },
     empleador: {
       ...datosInit.empleador,
-      ...(datos?.empleador || {}),
+      ...(item?.empleador || {}),
     },
-  };
+  }));
 
   useImperativeHandle(ref, () => ({
-    generarPDF() {
-      const input = pdfRef.current;
+    async generarPDF() {
+      const pdf = new jsPDF("p", "mm", "a4");
 
-      html2canvas(input, {
-        scale: 2,
-        useCORS: true,
-      }).then((canvas) => {
+      for (let i = 0; i < refs.current.length; i++) {
+        const element = refs.current[i];
+        if (!element) continue;
+
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
         const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = 210;
-        const pdfHeight = 297;
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("SolicitudAfiliacion.pdf");
-      });
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+      }
+
+      pdf.save("SolicitudAfiliacion.pdf");
     },
   }));
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: "-9999px",
-        width: "794px",
-        height: "1123px",
-        backgroundColor: "white",
-      }}
-    >
-      <div ref={pdfRef}>
-        <PDF_SolicitudAfiliacion datos={datosCompletos} />
-      </div>
+    <div style={{ position: "absolute", left: "-9999px" }}>
+      {datosNormalizados.map((dato, index) => (
+        <div
+          key={index}
+          ref={(el) => (refs.current[index] = el)}
+          style={{
+            width: "794px",
+            height: "1123px",
+            backgroundColor: "white",
+            marginBottom: "20px",
+          }}
+        >
+          <PDF_SolicitudAfiliacion datos={dato} />
+        </div>
+      ))}
     </div>
   );
 });

@@ -541,10 +541,6 @@ const FormularioOspreraForm = ({
   const handleConfirma = async () => {
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
-    console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
-    console.log("empresa*",empresa);
-    console.log("seccionalSelect",seccionalSelect)
-    console.log("ambito",ambito)
 
     const solicitud = {
       fecha: new Date().toISOString(),
