@@ -47,7 +47,7 @@ const SolicitudAfiliacion = ({ datos }) => {
           <span className={styles.negrita}>SECCIONAL Nº-</span>
           <span className={styles.containerCuad}>{datos.seccional_nro}</span>
         </div>
-        <div>FECHA: {datos.fecha}</div>
+        <div>FECHA: {datos.fecha_emision}</div>
       </div>
 
       <div className={styles.campo3}>
