@@ -541,7 +541,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
     };
     query.onFinally = async () => {
       if (changes.loading) return;
-      changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
+      // changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
       setEstablecimientos((o) => ({ ...o, ...changes }));
     };
     pushQuery(query);
@@ -1194,7 +1194,8 @@ const Handler = ({ periodo, tentativas = [] }) => {
             disabled={{
               genera:
                 !estado.cabecera.liquidaciones?.length ||
-                !!estado.nominas.ruralesSinEstablecimiento,
+                !!estado.nominas.ruralesSinEstablecimiento ||
+                !!liqCab.loading,
             }}
             onChange={(changes) =>
               setEstado((o) => ({
