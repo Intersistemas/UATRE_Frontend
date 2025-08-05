@@ -5,6 +5,8 @@ import PDF_SolicitudAfiliacion from "./PDF_SolicitudAfiliacion";
 
 /**
  * @param {object} props.datos Se espera recibir un objeto con los datos necesarios para generar el PDF de Solicitud de Afiliación.
+ * @param {boolean} [props.descargar=true] Indica si se debe descargar el PDF generado.
+ * @param {function} [props.onBase64=() => {}] Callback que recibe el PDF en formato Base64.
  * @param {object} props.datos.trabajador Información del trabajador.
  * @param {object} props.datos.empleador Información del empleador.
  **/
@@ -82,64 +84,76 @@ const datosInit = {
   fecha_emision: " ",
 };
 
-const PDF_SolicitudAfiliacionHandler = forwardRef(({ datos }, ref) => {
-  const refs = useRef([]);
+const PDF_SolicitudAfiliacionHandler = forwardRef(
+  ({ datos, descargar = true, onBase64 = () => {} }, ref) => {
+    const refs = useRef([]);
 
-  // Normalizamos siempre a un array
-  const listaDatos = Array.isArray(datos) ? datos : [datos];
+    const listaDatos = Array.isArray(datos) ? datos : [datos];
 
-  // Aplicamos valores por defecto
-  const datosNormalizados = listaDatos.map((item) => ({
-    ...datosInit,
-    ...item,
-    trabajador: {
-      ...datosInit.trabajador,
-      ...(item?.trabajador || {}),
-    },
-    empleador: {
-      ...datosInit.empleador,
-      ...(item?.empleador || {}),
-    },
-  }));
+    const datosNormalizados = listaDatos.map((item) => ({
+      ...datosInit,
+      ...item,
+      trabajador: {
+        ...datosInit.trabajador,
+        ...(item?.trabajador || {}),
+      },
+      empleador: {
+        ...datosInit.empleador,
+        ...(item?.empleador || {}),
+      },
+    }));
 
-  useImperativeHandle(ref, () => ({
-    async generarPDF() {
-      const pdf = new jsPDF("p", "mm", "a4");
+    useImperativeHandle(ref, () => ({
+      async generarPDF(nombreArchivo = "SolicitudAfiliacion.pdf") {
+        const pdf = new jsPDF("p", "mm", "a4");
 
-      for (let i = 0; i < refs.current.length; i++) {
-        const element = refs.current[i];
-        if (!element) continue;
+        for (let i = 0; i < refs.current.length; i++) {
+          const element = refs.current[i];
+          if (!element) continue;
 
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL("image/png");
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+          });
+          const imgData = canvas.toDataURL("image/png");
 
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
-      }
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+        }
 
-      pdf.save("SolicitudAfiliacion.pdf");
-    },
-  }));
+        // ✅ BASE64 output (without data URI prefix)
+        const pdfOutput = pdf.output("datauristring");
+        const base64 = pdfOutput.split(",")[1]; // Remove "data:application/pdf;base64,"
 
-  return (
-    <div style={{ position: "absolute", left: "-9999px" }}>
-      {datosNormalizados.map((dato, index) => (
-        <div
-          key={index}
-          ref={(el) => (refs.current[index] = el)}
-          style={{
-            width: "794px",
-            height: "1123px",
-            backgroundColor: "white",
-            marginBottom: "20px",
-          }}
-        >
-          <PDF_SolicitudAfiliacion datos={dato} />
-        </div>
-      ))}
-    </div>
-  );
-});
+        onBase64(base64);
+
+        // ✅ Download (if true)
+        if (descargar) {
+          pdf.save(nombreArchivo);
+        }
+      },
+    }));
+
+    return (
+      <div style={{ position: "absolute", left: "-9999px" }}>
+        {datosNormalizados.map((dato, index) => (
+          <div
+            key={index}
+            ref={(el) => (refs.current[index] = el)}
+            style={{
+              width: "794px",
+              height: "1123px",
+              backgroundColor: "white",
+              marginBottom: "20px",
+            }}
+          >
+            <PDF_SolicitudAfiliacion datos={dato} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+);
 
 export default PDF_SolicitudAfiliacionHandler;
 
