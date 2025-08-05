@@ -144,7 +144,7 @@ const ConsultasHandler = () => {
 							
 							onClick={() => navigate("Afiliaciones")}
 							width="32"
-							tarea="Consultas_AfiliadosEmpresa"
+							tarea="Consultas_AfiliacionesPorEmpresa"
 						>
 							Afiliaciones por Empresa
 						</Button>
