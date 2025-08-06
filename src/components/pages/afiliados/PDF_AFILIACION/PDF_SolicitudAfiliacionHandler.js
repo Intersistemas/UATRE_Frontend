@@ -112,7 +112,7 @@ const PDF_SolicitudAfiliacionHandler = forwardRef(
           if (!element) continue;
 
           const canvas = await html2canvas(element, {
-            scale: 1,
+            scale: 1.5,
             useCORS: true,
           });
           const imgData = canvas.toDataURL("image/png");
