@@ -52,7 +52,7 @@ const datosSolicitudAfiliacion = {
 const datosInit = {
   afiliado_nro: " ",
   seccional_nro: " ",
-  fecha: " ",
+  fecha: " ... / ... / ...... ",
   trabajador: {
     cuil: " ",
     tipo_doc: " ",
