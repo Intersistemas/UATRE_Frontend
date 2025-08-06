@@ -2287,11 +2287,11 @@ const AfiliadoAgregar = (props) => {
     console.log("dialogTexto", dialogTexto);
     console.log("props.accion", props.accion);
 
-    if (dialogTexto === "") props.onClose(false, "Cancela");
+    if (dialogTexto === "") props?.onClose(false, "Cancela");
     else {
       props.accion == "Modifica"
-        ? props.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
-        : props.onClose(nuevoAfiliadoResponse, props.accion); //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
+        ? props?.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
+        : props?.onClose(nuevoAfiliadoResponse, props.accion); //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
     }
   };
   //#endregion

@@ -31,8 +31,8 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material";
-import PDF from "./PDF";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import { PDF_SolicitudAfiliacion_Base64 } from "components/pages/afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacion_Base64";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -243,96 +243,54 @@ const FormularioOspreraForm = ({
     });
   };
 
-    const { request: generarPDF } = PDF();
-
   const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
   console.log("trabajadoresNoAfiliados**",trabajadoresNoAfiliados)
   console.log("seccionalSelect***",seccionalSelect)
      // Mapeo para el PDF (uno por cada registro)
       const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
-      const splitCuil = (cuil) => {
-        const str = String(cuil).padStart(11, "0");
-        return {
-          tipo: str.substring(0, 2),
-          id: str.substring(2, 10),
-          verificador: str.substring(10, 11),
-        };
-      };
-      const cuilParts = splitCuil(t?.cuil);
-      const cuitParts = splitCuil(empresa?.cuit);
-      const fechaPresentacion = t?.presentacionFecha
-        ? new Date(t.presentacionFecha)
-        : new Date();
-      const fechaNac = { dia: "--", mes: "--", anio: "----" };
-      const procesoFechax = t.procesoFecha
-        ? new Date(t.procesoFecha)
-        : new Date();
-
-      // Mapeo para el PDF
-      const datosPDF = {
-        // Afiliado
-        "afiliado.numero": t.id,
-        "seccional.codigo": seccionalSelect?.selectedRecord?.codigo,
-        // Trabajador
-        "trabajador.apellidos": t.afiliadoApellido,
-        "trabajador.nombres":t.afiliadoNombre, // No viene en la API
-        "trabajador.cuil.tipo": cuilParts.tipo,
-        "trabajador.cuil.id": cuilParts.id,
-        "trabajador.cuil.verificador": cuilParts.verificador,
-        "trabajador.documento": t.numeroDocumento,
-        "trabajador.nacionalidad": "-", // No viene en la API
-        "trabajador.nacimiento.fecha": Formato.Fecha(t.fechaNacimiento) ?? `${fechaNac.dia}/${fechaNac.mes}/${fechaNac.anio}`,
-        "trabajador.estado_civil": "-", // No viene en la API
-        "trabajador.sexo": "-", // No viene en la API
-        "trabajador.domicilio": t.domicilio,
-        "trabajador.localidad": t.localidad,
-        "trabajador.provincia": t.provincia,
-        "trabajador.oficio": "-", //t.modalidadDescripcion,
-        "trabajador.actividad":  t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
-        "trabajador.telefono": "-", // No viene en la API
-        "trabajador.correo": "-", // No viene en la API
-
-        // Empleador
-        "empleador.cuit.tipo": cuitParts.tipo,
-        "empleador.cuit.id": cuitParts.id,
-        "empleador.cuit.verificador": cuitParts.verificador,
-        "empleador.razon_social": empresa?.razonsocial,
-        "empleador.domicilio": empresa?.domicilio,
-        "empleador.localidad": empresa?.localidad,
-        "empleador.provincia": empresa?.provincia,
-        "empleador.actividad": empresa?.actividad,
-        "empleador.telefono": "-", // No viene en la API
-        "empleador.correo": "-", // No viene en la API
-
-        // Carnet (fecha)
-        "carnet.fecha.dia": " ", //String(procesoFechax.getDate()).padStart(2,"0"),
-        "carnet.fecha.mes": " ", //String(procesoFechax.getMonth() + 1).padStart(2,"0"),
-        "carnet.fecha.anio": " ", //String(procesoFechax.getFullYear()),
-
-        // Fecha de presentación
-        "fecha.dia": String(fechaPresentacion.getDate()).padStart(2, "0"),
-        "fecha.mes": String(fechaPresentacion.getMonth() + 1).padStart(2,"0"),
-        "fecha.anio": String(fechaPresentacion.getFullYear()),
+      console.log("t",t);
+      const datos = {
+        afiliado_nro: t?.id,
+        seccional_nro: seccionalSelect?.selectedRecord?.codigo,
+        fecha: Formato.Fecha(new Date()),
+        trabajador: {
+          cuil: t?.cuil,
+          tipo_doc: t?.tipoDocumento,
+          nro_doc: t.numeroDocumento,
+          nacionalidad: " ",
+          apellido: t?.afiliadoApellido,
+          nombres: t.afiliadoNombre, // No viene en la API
+          fecha_nacimiento: Formato.Fecha(t.fechaNacimiento),
+          estado_civil: " ",
+          sexo: " ",
+          domicilio_real: t.domicilio,
+          localidad: t.localidad,
+          provincia: t.provincia,
+          oficio_categoria: " ",
+          actividad: t.actividadDescripcion.includes("inexistente") ? "-" :  t.actividadDescripcion,
+          telefono: " ",
+          email: " ",
+        },
+        empleador: {
+          cuit: empresa?.cuit,
+          nombre_o_razon_social: empresa?.razonsocial,
+          domicilio: empresa?.domicilio,
+          localidad: empresa?.localidad,
+          provincia: empresa?.provincia,
+          actividad: empresa?.actividad,
+          telefono: " ",
+          email: " ",
+        },
+        fecha_emision: " ",
       };
 
-      // Convertir todos los valores a string
-      return Object.fromEntries(
-        Object.entries(datosPDF).map(([k, v]) => [
-          k,
-          v == null ? "" : String(v),
-        ])
-      );
+      return datos
     });
 
     // Generar el PDF con todas las páginas
-    let base64Original = null;
-    await generarPDF({
-      data: datosPDFArray, // <-- Pasar el array
-      onLoad: (b64) => {
-        base64Original = b64;
-      },
-    });
-
+    let base64Original = await PDF_SolicitudAfiliacion_Base64({ datos: datosPDFArray });
+    console.log("datosPDFArray", datosPDFArray);
+    console.log("base64Original", base64Original);
     let base64 = base64Original;
     if (base64 && base64.startsWith("data:application/pdf;base64,")) {
       base64 = base64.replace("data:application/pdf;base64,", "");
@@ -358,8 +316,6 @@ const FormularioOspreraForm = ({
     setCargandoBloques(false);
     setGenerandoPDF(false);
     setPdfGenerado(base64Original);
-
-    //downloadjs(pdfGenerado,"SolicitudAfiliacion.pdf");
     
     documentacionChanger("Create", {
 			params: {
@@ -541,10 +497,6 @@ const FormularioOspreraForm = ({
   const handleConfirma = async () => {
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
-    console.log("totalesUltimoPeriodo",totalesUltimoPeriodoSinAfiliados);
-    console.log("empresa*",empresa);
-    console.log("seccionalSelect",seccionalSelect)
-    console.log("ambito",ambito)
 
     const solicitud = {
       fecha: new Date().toISOString(),

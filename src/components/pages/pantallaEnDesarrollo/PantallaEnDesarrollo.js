@@ -15,7 +15,6 @@ const PantallaEnDesarrollo = (props) => {
   const handleCerrarModal = () => {
 
     authContext?.isLoggedIn ? navigate("/Inicio") : navigate("");
-    props?.onClose();
    
   };
 
@@ -32,6 +31,7 @@ const PantallaEnDesarrollo = (props) => {
             className="botonAmarillo"
             width={100}
             onClick={()=>handleCerrarModal()}
+            onClose={()=>navigate("/")}
             //onClick={()=>navigate("/")}
           >
             Cierra
