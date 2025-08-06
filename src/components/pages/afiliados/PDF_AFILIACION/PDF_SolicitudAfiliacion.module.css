@@ -183,7 +183,7 @@
 }
 
 .campo4 {
-  margin-top: 20px;
+  margin-top: 10px;
   font-weight: bold;
   text-align: center;
   font-size: 12pt;
@@ -196,7 +196,7 @@
 .subtitulo3 {
   font-weight: bold;
   font-size: 10pt;
-  margin-top: 10px;
+  margin-top: 1px;
   text-align: center;
   
   
@@ -217,6 +217,45 @@
   margin-top: 15px;
 }
 
+.fila {
+  display: flex;
+  flex-wrap: nowrap;          /* ❗ No permite que pase a otra línea */
+  overflow: hidden;           /* 🔒 Recorta lo que excede el ancho */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  padding-left: 30px;
+  padding-right: 30px;
+  margin-top: 10px;
+
+}
+
+.label {
+  margin-right: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Campo corto como CUIT */
+.inputCorto {
+  flex: 0 0 20%;
+  border-bottom: 1px dotted #000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Campo largo como RAZÓN SOCIAL */
+.inputLargo {
+  flex: 1 1 75%; /* 🔥 clave para que ocupe el 75% */
+  border-bottom: 1px dotted #000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .campo {
   flex: 1;
   padding-left: 30px;
@@ -227,6 +266,7 @@
   align-items: center;
   align-self: center;
 }
+
 .autoPunto {
   border-bottom: 1px dotted black;
   display: inline-block;
@@ -300,4 +340,9 @@
   font-weight: bold;
   font-size: 10pt;
   margin-right: 1px;
+}
+
+.spacer {
+  width: 20px;  /* O el valor que necesites */
+  flex-shrink: 0;
 }

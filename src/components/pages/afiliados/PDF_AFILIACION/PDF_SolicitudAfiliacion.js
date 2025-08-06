@@ -126,15 +126,15 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
         </div>
       </div>
 
-      <div className={styles.centerInput}>
-        <div className={styles.campo}>
-          <span className={styles.inputTextoIngresado}>OFICIO / CATEGORÍA:</span>
-          <span className={styles.autoPunto}>{trabajador.oficio_categoria}</span>
-        </div>
-        <div className={styles.campo}>
-          <span className={styles.inputTextoIngresado}>ACTIVIDAD QUE DESARROLLA:</span>
-          <span className={styles.autoPunto}>{trabajador.actividad}</span>
-        </div>
+      <div className={styles.fila}>
+          <span className={styles.label}>OFICIO / CATEGORÍA:</span>
+          <span className={styles.inputCorto}>{trabajador.oficio_categoria}</span>
+
+          <span className={styles.spacer}></span>
+
+          <span className={styles.label}>ACTIVIDAD QUE DESARROLLA:</span>
+          <span className={styles.inputLargo}>{trabajador.actividad}</span>
+
       </div>
 
       <div className={styles.centerInput}>
@@ -150,22 +150,21 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
 
       <div className={styles.firma}>
         <span className={styles.autoPuntoFirma}></span>
-        <div className={styles.firma}>FIRMA DEL TRABAJADOR</div>
+        <div>FIRMA DEL TRABAJADOR</div>
       </div>
 
       <div className={styles.campo4}>
         <span className={styles.subtitulo3}>DATOS DEL EMPLEADOR</span>
       </div>
 
-      <div className={styles.centerInput}>
-        <div className={styles.campo}>
-          <span className={styles.inputTextoIngresado}>CUIT:</span>
-          <span className={styles.autoPunto}>{empleador.cuit}</span>
-        </div>
-        <div className={styles.campo}>
-          <span className={styles.inputTextoIngresado}>NOMBRE O RAZÓN SOCIAL:</span>
-          <span className={styles.autoPunto}>{empleador.nombre_o_razon_social}</span>
-        </div>
+      <div className={styles.fila}>
+          <span className={styles.label}>CUIT:</span>
+          <span className={styles.inputCorto}>{empleador.cuit}</span>
+          
+          <span className={styles.spacer}></span>
+
+          <span className={styles.label}>NOMBRE O RAZÓN SOCIAL:</span>
+          <span className={styles.inputLargo}>{empleador.nombre_o_razon_social}</span>
       </div>
 
       <div className={styles.centerInput}>
@@ -210,7 +209,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
       <div className={styles.campo3}>
         <p>
           En mi rol de secretario general manifiesto en carácter de declaración jurada que los datos del trabajador
-          son verdaderos y la solicitud fue efectuada por el mismo y en forma voluntaria. Expido la presente solicitud
+          son verdaderos y la solicitud fue efectuada por él mismo y en forma voluntaria. Expido la presente solicitud
           dando mi consentimiento al pedido requerido por el trabajador.
         </p>
       </div>
