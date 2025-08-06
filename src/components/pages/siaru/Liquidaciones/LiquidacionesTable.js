@@ -3,8 +3,12 @@ import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const LiquidacionesTable = ({ columns, ...x } = {}) => {
+	const tarea = useTareasUsuario();	
+	const disableColTipoPago = !tarea.hasTarea("Siaru_DetalleTipoPago");
+
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -42,49 +46,57 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
 	//#endregion
 
 	const columnsDef = [
-		// {
-		// 	dataField: "id",
-		// 	text: "Número",
-		// 	sort: true,
-		// 	headerStyle: { width: "100px" },
-		// 	style: { textAlign: "center" },
-		// },
-		{
-			dataField: "empresaEstablecimientoNroSucursal",
-			text: "Estab. Nro.",
-			sort: true,
-			headerStyle: { width: "120px" },
-			style: { textAlign: "center" },
-		},
-		{
-			dataField: "empresaEstablecimiento_Descripcion",
-			text: "Estab. nombre",
-			sort: true,
-			style: { textAlign: "left" },
-		},
-		{
-			dataField: "cantidadTrabajadores",
-			text: "Cant. Trab.",
-			sort: true,
-			headerStyle: { width: "120px" },
-			style: { textAlign: "center" },
-		},
-		{
-			dataField: "totalRemuneraciones",
-			text: "Total remuneraciones",
-			sort: true,
-			formatter: (v) => Formato.Moneda(v),
-			headerStyle: { width: "220px" },
-			style: { textAlign: "right" },
-		},
-		{
-			dataField: "interesNeto",
-			text: "Capital",
-			formatter: (v) => Formato.Moneda(v),
-			headerStyle: { width: "150px" },
-			style: { textAlign: "right" },
-		},
-	];
+    // {
+    // 	dataField: "id",
+    // 	text: "Número",
+    // 	sort: true,
+    // 	headerStyle: { width: "100px" },
+    // 	style: { textAlign: "center" },
+    // },
+    {
+      dataField: "empresaEstablecimientoNroSucursal",
+      text: "Estab. Nro.",
+      sort: true,
+      headerStyle: { width: "120px" },
+      style: { textAlign: "center" },
+    },
+    {
+      dataField: "empresaEstablecimiento_Descripcion",
+      text: "Estab. nombre",
+      sort: true,
+      style: { textAlign: "left" },
+    },
+    {
+      dataField: "cantidadTrabajadores",
+      text: "Cant. Trab.",
+      sort: true,
+      headerStyle: { width: "120px" },
+      style: { textAlign: "center" },
+    },
+    {
+      dataField: "liquidacionTipoPago_Descripcion",
+      text: "Tipo de Pago",
+      sort: false,
+      hidden: !!disableColTipoPago,
+      headerStyle: { width: "120px" },
+      style: { textAlign: "center" },
+    },
+    {
+      dataField: "totalRemuneraciones",
+      text: "Total remuneraciones",
+      sort: true,
+      formatter: (v) => Formato.Moneda(v),
+      headerStyle: { width: "220px" },
+      style: { textAlign: "right" },
+    },
+    {
+      dataField: "interesNeto",
+      text: "Capital",
+      formatter: (v) => Formato.Moneda(v),
+      headerStyle: { width: "150px" },
+      style: { textAlign: "right" },
+    },
+  ];
 
 	const columnsArr =
 		typeof columns === "function"

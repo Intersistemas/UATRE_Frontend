@@ -237,7 +237,7 @@ const LiquidacionesProcesarHandler = () => {
   }
 
   let establecimientosRender;
-  if (dependencias.data.establecimientos.length == 0) {
+  if (dependencias.data.establecimientos.length === 0 && !dependencias.loading) {
     establecimientosRender = (
       <Grid width="full" style={{ color: "red" }}>
         No se puede procesar la liquidación porque la empresa seleccionada no
