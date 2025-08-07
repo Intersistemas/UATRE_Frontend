@@ -137,20 +137,20 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				{ process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" && // Solo lo muestro en test y desa
-					<Grid width gap="inherit" justify="evenly">
-						<Button
-							className="botonAmarillo"
-							
-							onClick={() => navigate("Afiliaciones")}
-							width="32"
-							tarea="Consultas_AfiliacionesPorEmpresa"
-						>
-							Afiliaciones por Empresa
-						</Button>
-					
-					</Grid>
-				}
+				
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						
+						onClick={() => navigate("Afiliaciones")}
+						width="32"
+						tarea="Consultas_AfiliacionesPorEmpresa"
+					>
+						Afiliaciones por Empresa
+					</Button>
+				
+				</Grid>
+				
 				<PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 			</>
 		),
