@@ -64,6 +64,7 @@ const onDownloadComprobanteGestion = (data = {}) => {
       nombre={data.nombre}
       fecha={data.fecha}
       seccional={data.seccional}
+      obraSocial={data.obraSocial}
     />
   );
 
