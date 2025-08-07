@@ -392,7 +392,7 @@ const GestionOSForm = ({
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const { empleador } = titular || {};
-    const domicilioFiscal = empleador.domicilios.find((r) => r.tipoDomicilio === "FISCAL");
+    const domicilioFiscal = empleador?.domicilios?.find((r) => r.tipoDomicilio === "FISCAL");
 
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
