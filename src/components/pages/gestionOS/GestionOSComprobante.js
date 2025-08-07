@@ -32,7 +32,7 @@ const GestionOSComprobante = (props) => {
 
           <Grid col grow justify="end" style={{ marginTop: "12px" }}>
             <Text style={{ ...styles.titulo, fontSize: "10pt" }}>
-              Constancia de gestión ante OSPRERA
+              Constancia de gestión ante {obraSocial}
             </Text>
           </Grid>
           <Grid col grow gap="10px" style={{ marginTop: "10px" }}>

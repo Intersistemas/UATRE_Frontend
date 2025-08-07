@@ -887,7 +887,8 @@ const useGestionOS = ({
 					nroGestion: _res, 
 					nombre: record.apellidoPaciente + " " + record.nombrePaciente,
 					fecha: moment(record.fecha).format("DD/MM/YYYY"),
-					seccional: record.seccionalDescripcion
+					seccional: record.seccionalDescripcion,
+          obraSocial: record.obraSocial
 				});
               }
             },
