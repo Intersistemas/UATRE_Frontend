@@ -417,7 +417,7 @@ const useGestionOS = ({
         // help={list.selection.help}
         loading={!!list.loading}
         disabled={(() => {
-          console.log("list",list);
+          // console.log("list",list);
           const r = {
             //TODOS LOS CAMPOS DESHABILITADOS POR DEFECTO
             cuitTitular: true,
@@ -449,6 +449,7 @@ const useGestionOS = ({
             conCoberturaOsprera: true,
             tipoPrestador: true,
             atencionesPrevias: true,
+            obraSocial: true,
 
             //observacionesEstado  = gestionEstadoDescripcion "RECLAMADO" || gestionEstadoDescripcion == "FINALIZADO" &&  gestionSituacionDescripcion == "CON RECLAMO FORMAL" ? false ; true
 
@@ -545,8 +546,8 @@ const useGestionOS = ({
 
           if (["A", "M"].includes(list.selection.request)) {
 
-            console.log("record*",record);
-            console.log("list.selection.edit*",list.selection);
+            // console.log("record*",record);
+            // console.log("list.selection.edit*",list.selection);
               
             if ((record.gestionEstadoDescripcion == "RECLAMADO" || (record.gestionEstadoDescripcion == "FINALIZADO" && record.gestionSituacionDescripcion == "CON RECLAMO FORMAL" )) && !record.observacionesEstado) {
               errors.observacionesEstado = "Dato requerido"; // solicitado por amuricio el 21/7/25
@@ -634,6 +635,8 @@ const useGestionOS = ({
             ) {
               errors.conCoberturaOsprera = "Dato requerido";
             }
+
+            if (!record.obraSocial) errors.obraSocial = "Dato requerido";
           }
 
           if (Object.keys(errors).length) {
@@ -783,6 +786,8 @@ const useGestionOS = ({
             ) {
               errors.conCoberturaOsprera = "Dato requerido";
             }
+
+            if (!record.obraSocial) errors.obraSocial = "Dato requerido";
           }
 
           if (Object.keys(errors).length) {

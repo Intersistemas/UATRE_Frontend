@@ -208,7 +208,7 @@ const GestionOSForm = ({
             `<p><strong>${localidadUsuario}${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
-            `OSPRERA<br></br>DELEGACION<br></br><br></br>` +
+            `${data.obraSocial}<br></br>DELEGACION<br></br><br></br>` +
             `En representación del Afiliado <strong>${data?.apellidoTitular} ${
               data?.nombreTitular
             }</strong>, con DNI Nº <strong>${
@@ -288,6 +288,7 @@ const GestionOSForm = ({
         changes.gestionEstado = false;
         changes.gestionSituacion = false;
         changes.gestionAreaOsprera = false;
+        changes.obraSocial = false;
       }
     }
 
@@ -365,10 +366,6 @@ const GestionOSForm = ({
 
   //#region Cambios medio gestion
   useEffect(() => {
-    console.log("data",data)
-    console.log("gestionEstadoSelect",gestionEstadoSelect);
-    console.log("gestionSituacionSelect",gestionSituacionSelect);
-
     if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
 
     const changes = {};
@@ -1439,9 +1436,7 @@ const GestionOSForm = ({
     <>
       <div>
         <Dialog
-          onClose={() => (
-            setDialogTexto(""), setOpenDialog(false), onClose()
-          )}
+          onClose={() => (setDialogTexto(""), setOpenDialog(false), onClose())}
           open={openDialog}
         >
           <DialogContent dividers>
@@ -2005,9 +2000,28 @@ const GestionOSForm = ({
                     value={data.texto}
                     disabled={disabledItems.texto}
                     onChange={(texto) =>
-                      onChange({ texto: texto.target.value.toUpperCase()})
+                      onChange({ texto: texto.target.value.toUpperCase() })
                     }
                   />
+                </Grid>
+
+                <Grid width="100%" gap="inherit">
+                  <Grid width="100%" gap="inherit">
+                    <TextField
+                      fullWidth
+                      multiline
+                      label="Obra Social"
+                      error={!!errors.obraSocial}
+                      helperText={errors.obraSocial ?? ""}
+                      value={data.obraSocial}
+                      disabled={disabledItems?.obraSocial}
+                      onChange={(obraSocial) => {
+                        onChange({
+                          obraSocial: obraSocial.target.value.toUpperCase(),
+                        });
+                      }}
+                    />
+                  </Grid>
                 </Grid>
 
                 <FormControl
@@ -2104,7 +2118,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionEstadoId: selected.value, gestionEstadoDescripcion: selected.label});
+                        onChange({
+                          gestionEstadoId: selected.value,
+                          gestionEstadoDescripcion: selected.label,
+                        });
                       }}
                       options={gestionEstadoSelect.options}
                     />
@@ -2113,7 +2130,7 @@ const GestionOSForm = ({
                       required
                       id="gestionAreaOsprera"
                       name="gestionAreaOsprera"
-                      label="Area OSPRERA"
+                      label="Dependencia OOSS"
                       error={!!errors.gestionAreaOsprera}
                       helperText={errors.gestionAreaOsprera ?? ""}
                       value={gestionAreaOspreraSelect.selected}
@@ -2144,7 +2161,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSituacionId: selected.value, gestionSituacionDescripcion: selected.label});
+                        onChange({
+                          gestionSituacionId: selected.value,
+                          gestionSituacionDescripcion: selected.label,
+                        });
                       }}
                       options={gestionSituacionSelect.options}
                     />
@@ -2213,7 +2233,7 @@ const GestionOSForm = ({
                 <Documentacion
                   data={documentacionList}
                   tipoDocumentacion={[
-                    "Credencial", 
+                    "Credencial",
                     "Documento de Identidad",
                     "Receta/Pedido Médico",
                     "Ticket/Factura",
@@ -2221,7 +2241,7 @@ const GestionOSForm = ({
                     "CODEM",
                     "Dictamen Médico Auditor",
                     "F83M Solicitud de Afiliación",
-                    "Otros"
+                    "Otros",
                   ]}
                   disabled={request === "C"}
                   onChange={({ index, item }) => {
