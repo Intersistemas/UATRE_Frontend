@@ -18,6 +18,7 @@ import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
 import UsuarioEmpresasHandler from "./usuarioEmpresas/usuarioEmpresasHandler";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const selectionDef = {
   action: "",
@@ -33,6 +34,11 @@ const SiaruHandler = () => {
   const empresaSeleccionada = useSelector((state) => state.empresa);  
   const { usuario = {} } = useContext(AuthContext);  
 
+  //Tareas
+  const tarea = useTareasUsuario();
+    
+  const verTodasLasEmpresas = tarea.hasTarea("Siaru_VerTodasLasEmpresas");
+
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
@@ -45,6 +51,15 @@ const SiaruHandler = () => {
             endpoint: `/UsuarioEmpresas/${usuarioId}`,
           },
           params: otherParams,
+        };
+      }
+      case "GetListAll": {
+        return {
+          config: {
+            baseURL: "Seguridad",
+            method: "GET",
+            endpoint: `/UsuarioEmpresas`,
+          }
         };
       }
       case "GetEmpresa": {
@@ -134,8 +149,8 @@ const SiaruHandler = () => {
     if (!list.loading) return;
 
     pushQuery({
-      action: "GetList",
-      params: list.params,
+      action: !!verTodasLasEmpresas ? "GetListAll" : "GetList",
+      params: !!verTodasLasEmpresas ? null : list.params,
       onOk: async (data) =>
         setList((o) => {
           const selection = {
@@ -233,7 +248,6 @@ const SiaruHandler = () => {
     }
   }, [list.data, empresaSeleccionada]);
 
-  // console.log("list", list.selection);
   let form = null;
   if (list.selection.request) {
     form = (
@@ -327,6 +341,8 @@ const SiaruHandler = () => {
                       changes.request = "R";
                     } else {
                       changes.request = "M";
+                      changes.record.email = "";
+                      changes.record.telefono = "+54 9"
                     }
                   },
                   onError: async () => {
