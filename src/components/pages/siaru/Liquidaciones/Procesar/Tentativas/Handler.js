@@ -727,6 +727,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
         interesPorcentaje: Number(tipoPago.porcentaje),
         interesNeto: 0,
         tipoLiquidacion: 0,
+        liquidacionTipoPago_Descripcion: tipoPago.descripcion,
         nominas: [],
       };
       const liqFind = liquidaciones.todas.find(
