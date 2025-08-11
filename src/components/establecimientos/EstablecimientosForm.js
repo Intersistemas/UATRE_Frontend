@@ -55,6 +55,7 @@ const EstablecimientosForm = ({
 
   dependecies.localidades ??= { data: [] };
   const localidades = dependecies.localidades;
+  console.log("localidades", localidades);
 
   onChange ??= onChangeDef;
   onClose ??= onCloseDef;
@@ -62,11 +63,11 @@ const EstablecimientosForm = ({
   const getValue = (v) => data[v] ?? "";
 
   useEffect(() => {
-      const changes = {};
-      if (data.telefono == null) changes.telefono = "+54 9";
-      if (Object.entries(changes).length === 0) return;
-      onChange(changes);
-    }, [onChange, data]);
+    const changes = {};
+    if (data.telefono == null) changes.telefono = "+54 9";
+    if (Object.entries(changes).length === 0) return;
+    onChange(changes);
+  }, [onChange, data]);
 
   //#region select Localidad
   const [localidad, setLocalidad] = useState({
@@ -80,7 +81,7 @@ const EstablecimientosForm = ({
     if (localidades.loading) return;
     if (!localidad.inicio) return;
     const changes = {
-      options: localidades.data.filter((r) => r.codPostal !== 99999),
+      options: localidades.data.filter((r) => !r.label.includes("99999 -")),
       selected: localidades.data.find(
         ({ value }) => value === data.domicilioLocalidadesId
       ) ?? { value: 0, label: "" },
@@ -95,7 +96,8 @@ const EstablecimientosForm = ({
     if (localidad.inicio) return;
     const options = localidades.data.filter((r) =>
       localidad.buscar !== ""
-        ? r.label
+        ? !r.label.includes("99999 -") &&
+          r.label
             .toLocaleLowerCase()
             .includes(localidad.buscar.toLocaleLowerCase())
         : true
