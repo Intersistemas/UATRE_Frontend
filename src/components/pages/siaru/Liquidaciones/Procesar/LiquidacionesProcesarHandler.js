@@ -91,7 +91,10 @@ const LiquidacionesProcesarHandler = () => {
     loading: "Cargando...",
     empresaId: empresa.id,
     data: {
-      establecimientos: [],
+      establecimientos: {
+        count: null,
+        data: [],
+      },
       periodos: null,
     },
     errors: null,
@@ -127,7 +130,7 @@ const LiquidacionesProcesarHandler = () => {
         onFinally: async () => applyChanges(),
       });
     }
-    if (changes.data.establecimientos.length === 0) {
+    if (changes.data.establecimientos.data.length === 0) {
       // console.log(
       //   "[debug] GetEmpresaEstablecimientos dependencias",
       //   dependencias
@@ -137,7 +140,7 @@ const LiquidacionesProcesarHandler = () => {
         action: "GetEmpresaEstablecimientos",
         params: { empresaId },
         onOk: async (establecimientos) => setData({ establecimientos }),
-        onError: async (error) => setData({ establecimientos: [] }),
+        onError: async (error) => setData({ establecimientos: { count: 0, data: []} }),
         onFinally: async () => applyChanges(),
       });
     }
@@ -237,15 +240,20 @@ const LiquidacionesProcesarHandler = () => {
   }
 
   let establecimientosRender;
-  if (dependencias.data.establecimientos.length === 0 && !dependencias.loading) {
-    establecimientosRender = (
-      <Grid width="full" style={{ color: "red" }}>
-        No se puede procesar la liquidación porque la empresa seleccionada no
-        tiene establecimientos cargados. Por favor, registre al menos uno para
-        continuar.
-      </Grid>
-    );
-  }
+  if (!dependencias.loading)
+  {    
+    console.log("dependencias", dependencias);
+    if (dependencias?.data?.establecimientos?.count == 0) {
+      console.log("lenght 0");
+      establecimientosRender = (
+        <Grid width="full" style={{ color: "red" }}>
+          No se puede procesar la liquidación porque la empresa seleccionada no
+          tiene establecimientos cargados. Por favor, registre al menos uno para
+          continuar.
+        </Grid>
+      );
+    }
+  }  
   
   useEffect(() => {
     if (dependencias.loading) return;

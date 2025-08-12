@@ -15,13 +15,16 @@ import FormaPagoPrint from "./impresion/FormaPagoPrint";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const LiquidacionesHandler = () => {
+  const tarea = useTareasUsuario();
+  const verColTipoPago = tarea.hasTarea("Siaru_DetalleTipoPago");
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const empresa = useSelector((state) => state.empresa);
   const [redirect, setRedirect] = useState({ to: "", options: null });
   const route = useLocation();
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado)
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 
   if (redirect.to) navigate(redirect.to, redirect.options);
   useEffect(() => {
@@ -56,7 +59,7 @@ const LiquidacionesHandler = () => {
             method: "GET",
             endpoint: `/LiquidacionesUsuario`,
           },
-          params: {userId: usuarioLogueado.id }
+          params: { userId: usuarioLogueado.id },
         };
       }
       case "CreateLiquidacion": {
@@ -157,7 +160,7 @@ const LiquidacionesHandler = () => {
   const [liqCabParams, setLiqCabParams] = useState({
     cuit: empresa.cuit,
     sort: "-id",
-    agrupaEstablecimientos: true,
+    agrupaEstablecimientos: !verColTipoPago ? true : false,
   });
 
   //#region ImprimePDF
