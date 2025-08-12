@@ -9,7 +9,7 @@ const InputMaterialMask = (props) => {
       '-': '',
       '.': '',
     };
-    const cuil = event.target.value.replace(/[-.]/g, m => chars[m]);
+    const cuil = event.target?.value?.replace(/[-.]/g, m => chars[m]);
     //console.log("cuil",cuil)
     if (cuil === props.value) {
       return

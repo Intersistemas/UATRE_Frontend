@@ -102,9 +102,9 @@ const Sidebar = ({children}) => {
     
     const handleClickBtn = (event, menuItems) => {
 
-        console.log("handleClickBtn_event",event)
-        console.log("handleClickBtn_event2",event.currentTarget)
-        console.log("handleClickBtn_menuItems",menuItems)
+        // console.log("handleClickBtn_event",event)
+        // console.log("handleClickBtn_event2",event.currentTarget)
+        // console.log("handleClickBtn_menuItems",menuItems)
 
 
         setAnchorEl(event.currentTarget);
@@ -181,7 +181,7 @@ const Sidebar = ({children}) => {
 
     })
 
-    console.log('miga',migas)
+    // console.log('miga',migas)
 
     const logout = () =>{
          logoutHandler();

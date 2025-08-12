@@ -86,7 +86,7 @@ const InputMaterial = ({
 			default:
 				break;
 		}
-		onChange(value, state.id);
+		onChange(value, state?.id);
 	}
 	
 	const textFieldProps = {

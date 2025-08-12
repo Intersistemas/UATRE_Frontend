@@ -2130,13 +2130,14 @@ const AfiliadoAgregar = (props) => {
         dispatchFechaIngreso({ type: "USER_INPUT", value: value });
         break;
       case "cuil":
+        const cuilLimpio = value?.replace(/[^\d]/gim, "")
         if (props.accion === "Modifica") {
           dispatchCUIL({
             type: "USER_INPUT",
-            value: value.replace(/[^\d]/gim, ""),
+            value: cuilLimpio,
             isValid: ["30", "33", "34"].includes(value?.toString()?.slice(0, 2))
               ? false
-              : ValidarCUIT(value.replace(/[^\d]/gim, "")),
+              : ValidarCUIT(cuilLimpio),
           });
           setCuilValidado(false);
         } else {
@@ -2149,10 +2150,10 @@ const AfiliadoAgregar = (props) => {
           setCUITEmpresa("");
           dispatchCUIL({
             type: "USER_INPUT",
-            value: value.replace(/[^\d]/gim, ""),
+            value: cuilLimpio,
             isValid: ["30", "33", "34"].includes(value?.toString()?.slice(0, 2))
               ? false
-              : ValidarCUIT(value.replace(/[^\d]/gim, "")),
+              : ValidarCUIT(cuilLimpio),
           });
           dispatchNombre({ type: "USER_INPUT", value: "" });
           dispatchNacionalidad({ type: "USER_INPUT", value: "" });
@@ -2204,9 +2205,10 @@ const AfiliadoAgregar = (props) => {
         break;
 
       case "numeroDocumento":
+        //const nroDocLimpio = value?.replace(/[^\d]/gim, "")
         dispatchNumeroDocumento({
           type: "USER_INPUT",
-          value: value.replace(/[^\d]/gim, ""),
+          value: value,
         });
         break;
 

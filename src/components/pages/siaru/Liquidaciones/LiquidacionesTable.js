@@ -67,6 +67,13 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
       style: { textAlign: "left" },
     },
     {
+      dataField: "seccionalDescripcion",
+      text: "Seccional",
+      sort: true,
+	  hidden: x.data[0]?.seccionalId > 0 ? false : true,
+      style: { textAlign: "left" },
+    },
+    {
       dataField: "cantidadTrabajadores",
       text: "Cant. Trab.",
       sort: true,

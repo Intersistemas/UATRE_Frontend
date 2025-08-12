@@ -137,7 +137,6 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
@@ -150,7 +149,6 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				
 				<PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 			</>
 		),
