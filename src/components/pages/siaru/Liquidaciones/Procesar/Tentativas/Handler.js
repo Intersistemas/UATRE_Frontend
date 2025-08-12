@@ -329,7 +329,6 @@ const LiquidacionNomina = ({
           className="botonAmarillo"
           disabled={data?.length === 0 || (!selectedEstablecimiento && selectedRuralidad === "")}
           onClick={() => { 
-            console.log("selectedRuralidad", selectedRuralidad);           
             const establecimiento = establecimientos.find(
               (r) => r.id === selectedEstablecimiento
             );
@@ -579,7 +578,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
       tipoPagoSindical: { id: 0, porcentaje: 0 },
       tipoPagoSolidario: { id: 0, porcentaje: 0 },
       retocadas: [],
-      // agrupadas: [],
     },
     nominas: {
       todas: [],
@@ -673,7 +671,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
       totalSindical: 0,
       totalSolidario: 0,
       liquidaciones: [],
-      // liquidacionesAgrupadas: [],
     };
 
     // Genero liquidaciones a partir de nominas
@@ -681,7 +678,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
       ...estado.liquidaciones,
       todas: [],
       retocadas: [],
-      // agrupadas: [],
     };
 
     const retocadas = estado.liquidaciones.retocadas.filter(
@@ -940,31 +936,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
     );
   }, [liqNomSel, liqNomPage]);
 
-  // useEffect(() => {
-  //   const { index, size } = liqNomPage;
-  //   const start = (index - 1) * size;
-  //   const end = start + size;
-
-  //   // Índices seleccionados que están en la página actual
-  //   const selectedIndexesOnPage = Array.isArray(liqNomSelection.index)
-  //     ? liqNomSelection.index.filter((idx) => idx >= start && idx < end)
-  //     : [];
-
-  //   // Los registros seleccionados de la página actual
-  //   const recordsPaginaSeleccionados = selectedIndexesOnPage.map((idx) => {
-  //     // Buscar el registro correspondiente en liqNomSel
-  //     // Suponiendo que liqNomSel y liqNomSelection.index están sincronizados por posición
-  //     const pos = liqNomSelection.index.indexOf(idx);
-  //     return liqNomSel[pos];
-  //   });
-  //   const data = liqNomData ?? [];
-  //   const recordsPagina = data.slice(start, end);
-
-  //   setIsSelectPage(
-  //     recordsPagina.length === recordsPaginaSeleccionados.length && recordsPaginaSeleccionados.length > 0 
-  //   );
-  // }, [liqNomPage]);
-
   const [isSelect, setIsSelect] = useState(false);
   const [isSelectAll, setIsSelectAll] = useState(false);
   const [isSelectPage, setIsSelectPage] = useState(false);
@@ -986,7 +957,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
               liqNomChanger("selectAll", { isSelectAll: !isSelectAll });
               setIsSelectAll(!isSelectAll);
               // setIsSelect(!isSelect);
-              // console.log("selected", liqNomSel);
             }}
           >
             {isSelectAll ? `Deselecciona todos` : `Selecciona todos`}

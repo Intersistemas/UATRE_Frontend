@@ -6,8 +6,8 @@ import Table from "components/ui/Table/Table";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const LiquidacionesTable = ({ columns, ...x } = {}) => {
-	// const tarea = useTareasUsuario();	
-	const disableColTipoPago = true; //!tarea.hasTarea("Siaru_DetalleTipoPago");
+	const tarea = useTareasUsuario();	
+	const disableColTipoPago = !tarea.hasTarea("Siaru_DetalleTipoPago");
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
@@ -64,6 +64,13 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
       dataField: "empresaEstablecimiento_Descripcion",
       text: "Estab. nombre",
       sort: true,
+      style: { textAlign: "left" },
+    },
+    {
+      dataField: "seccionalDescripcion",
+      text: "Seccional",
+      sort: true,
+	  hidden: x.data[0]?.seccionalId > 0 ? false : true,
       style: { textAlign: "left" },
     },
     {
