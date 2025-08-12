@@ -590,7 +590,7 @@ const AfiliadoFormulariosAfiliacionIncorporacion = ({
 									value={data.cuit}
 									disabled={disabled.cuit}
 									onChange={(value, _id) =>
-										onChange({ cuit: value.replace(/[^0-9]+/g, "") })
+										onChange({ cuit: value?.replace(/[^0-9]+/g, "") })
 									} 
 								/>
 							</Grid>

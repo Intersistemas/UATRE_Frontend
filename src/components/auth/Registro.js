@@ -281,7 +281,7 @@ const Registro = () => {
                 placeholder="Cuit"
                 mask={CUITMask}
                 value={enteredCUIT}
-                onChange={(value)=>setEnteredCUIT(value.replace(/[^0-9]+/g, ""))}
+                onChange={(value)=>setEnteredCUIT(value?.replace(/[^0-9]+/g, ""))}
                 disabled={isLoading}
                 required
               />
