@@ -9,7 +9,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import useDenuncias, { onLoadSelectKeepOrFirst } from "./useDenuncias";
+import useDenuncias, { onLoadSelectKeepOrFirst } from "../Denuncias/useDenuncias";
 import AuthContext from "store/authContext";
 
 const DenunciasHandler = () => {

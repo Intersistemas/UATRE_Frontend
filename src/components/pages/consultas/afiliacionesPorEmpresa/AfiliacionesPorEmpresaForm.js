@@ -10,7 +10,7 @@ import InputMaterial, {
 } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 import downloadjs from "downloadjs";
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
@@ -31,7 +31,7 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import { PDF_SolicitudAfiliacion_Base64 } from "components/pages/afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacion_Base64";
 
 const onChangeDef = (changes = {}) => {};

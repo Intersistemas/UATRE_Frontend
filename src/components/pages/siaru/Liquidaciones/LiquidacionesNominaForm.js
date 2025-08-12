@@ -5,7 +5,7 @@ import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, { CUITMask, PesosMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import NominaDetailsAFIP from "./procesar/manual/NominaDetailsAFIP";
+import NominaDetailsAFIP from "./Procesar/Manual/NominaDetailsAFIP";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};

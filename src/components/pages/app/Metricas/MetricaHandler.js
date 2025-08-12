@@ -7,7 +7,7 @@ import Formato from "components/helpers/Formato";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
-import useMetrica from "./useMetrica";
+import useMetrica from "../Metricas/useMetrica";
 import AuthContext from "store/authContext";
 
 const MetricaHandler = () => {
