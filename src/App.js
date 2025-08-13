@@ -43,6 +43,14 @@ import AfiliadosHandler from "./components/pages/afiliados/AfiliadosHandler";
 import Afiliado from "./components/pages/afiliados/Afiliado";
 import EstablecimientosHandler from "./components/pages/siaru/establecimientos/EstablecimientosHandler";
 
+
+//--RELEVAMIENTO DE TRABAJADORES
+import RelevamientoHandler from "./components/pages/relevamiento/RelevamientoHandler";
+
+
+
+
+
 import PantallaEnDesarrollo from "./components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo";
 
 import fondo from "./media/Background/color3.png";
@@ -217,6 +225,13 @@ const App = () => {
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
 
             <Route path="/*" element={<PantallaEnDesarrollo />} />
+              {/* ----------------------------------------------------------- */}
+            {/* RELEVAMIENTO DE TRABAJADORES */}
+            <Route
+              path="Inicio/Relevamiento"
+              element={<RelevamientoHandler />}
+            />
+            {/* ----------------------------------------------------------- */}
           </Routes>
         </SideBar>
       )}
