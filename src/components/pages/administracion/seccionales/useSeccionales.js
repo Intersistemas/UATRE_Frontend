@@ -505,16 +505,33 @@ const useSeccionales = ({
 							query.params = { id: record.id };
 							query.config.body = record.seccionalEstadoId;
 							break;
+						// case "X":
+						// 	query.action = "Absorbe";
+						// 	//query.params = { id: record.id };
+						// 	query.config.body = {
+						// 		seccionalIdAbsorbida: record.id,
+						// 		seccionalIdAbsorbente: record.seccionalIdAbsorbente,
+						// 		userId: Usuario.id
+						// 		// id: record.id, debo enviar la seccional absorvente y la absorvida
+						// 	};
+						// 	break;	
+
 						case "X":
 							query.action = "Absorbe";
 							//query.params = { id: record.id };
+							
+							// Buscar la seccional absorbente en el array de datos para obtener su código
+							const seccionalAbsorbente = list.data.find(s => s.id === record.seccionalIdAbsorbente);
 							query.config.body = {
 								seccionalIdAbsorbida: record.id,
 								seccionalIdAbsorbente: record.seccionalIdAbsorbente,
+								seccionalAbsorbenteCodigo: seccionalAbsorbente ? seccionalAbsorbente.codigo : null,
 								userId: Usuario.id
 								// id: record.id, debo enviar la seccional absorvente y la absorvida
 							};
-							break;	
+
+
+							break;
 						default:
 							break;
 					}
