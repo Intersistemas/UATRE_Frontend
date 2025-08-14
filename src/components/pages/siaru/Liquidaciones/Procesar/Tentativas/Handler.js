@@ -23,6 +23,7 @@ import FormaPagoPrint from "../../impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
 import useLiquidacionesNomina from "../../useLiquidacionesNomina";
 import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 /**
  * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")
@@ -365,6 +366,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
   const [tab, setTab] = useState(0);
   const tabs = [];
+
+  const tareas = useTareasUsuario();
+  const verPorTipoPago = tareas.hasTarea("Siaru_DetalleTipoPago");
 
   //#region Trato queries a APIs
   const pushQuery = useQueryQueue((action, params) => {
@@ -727,9 +731,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
         nominas: [],
       };
       const liqFind = liquidaciones.todas.find(
-        (r) =>
-          r.empresaEstablecimientoId === liquidacion.empresaEstablecimientoId
-        // r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
+        (r) => verPorTipoPago 
+        ? r.empresaEstablecimientoId === liquidacion.empresaEstablecimientoId && r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId 
+        : r.empresaEstablecimientoId === liquidacion.empresaEstablecimientoId
       );
       if (liqFind != null) liquidacion = liqFind;
       if (!liquidacion.id) {
@@ -967,7 +971,6 @@ const Handler = ({ periodo, tentativas = [] }) => {
             className="botonAmarillo"
             tarea="Siaru_EmpresaLiquidacionNominaEdita"
             onClick={() => {
-              console.log("isselectPage", isSelectPage);
               liqNomChanger("selectPage", {
                 isSelectPage: !isSelectPage,
                 pagination: liqNomPage,
