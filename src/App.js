@@ -70,10 +70,6 @@ import UsuarioPerfilHandler from "./components/pages/administracion/usuarioPerfi
 import DesvincularUsuarioEmpresasHandler from "components/pages/siaru/usuarioEmpresas/usuarioEmpresasHandler";
 import { useSelector } from "react-redux";
 
-/*import "./components/fonts/SantanderLight.ttf";
-import "./components/fonts/SantanderRegular.ttf";
-import "./components/fonts/SantanderLogoRegular.ttf";*/
-
 const App = () => {
   const authContext = useContext(AuthContext);
   const isLoggedIn = authContext.isLoggedIn;

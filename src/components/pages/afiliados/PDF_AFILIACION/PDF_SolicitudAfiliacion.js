@@ -1,7 +1,6 @@
 import React from "react";
 import styles from "./PDF_SolicitudAfiliacion.module.css";
-import logo1 from "media/Logo1_sidebar.png";
-import logo2 from "media/CGT_RA.png";
+import { Logo1_sidebar, CGT_RA } from "media/mediaEnBase64";
 
 const PDF_SolicitudAfiliacion = ({ datos }) => {
   const { trabajador, empleador } = datos;
@@ -11,7 +10,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
       <div className={styles["pdf-header"]}>
         <div className={styles["header-left"]}>
           <div className={styles["logo-section"]}>
-            <img src={logo1} alt="UATRE Logo" className={styles["logo-uatre"]} />
+            <img src={Logo1_sidebar} alt="UATRE Logo" className={styles["logo-uatre"]} />
             <div className={styles["uatre-text"]}>
               <h1 className={styles["uatre-title"]}>UATRE</h1>
               <div className={styles["uatre-subtitle"]}>
@@ -20,7 +19,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
                 <p>y Estibadores</p>
               </div>
             </div>
-            <img src={logo2} alt="CGT Logo" className={styles["logo-cgt"]} />
+            <img src={CGT_RA} alt="CGT Logo" className={styles["logo-cgt"]} />
           </div>
           <p className={styles["legal-text"]}>
             Personería Gremial Nº 155 - Adherida a la C.G.T - Reconquista 630 Cap. Fed.
@@ -95,7 +94,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
           <span className={styles.autoPunto}>{trabajador.nombres}</span>
         </div>
       </div>
-
+ 
       <div className={styles.centerInput}>
         <div className={styles.campo}>
           <span className={styles.inputTextoIngresado}>FECHA DE NACIMIENTO:</span>
