@@ -56,7 +56,7 @@ const PDF_SolicitudAfiliacionHandler = forwardRef(
 
           const totalChunks = Math.ceil(datosNormalizados.length / chunkSize);
           if (setTotalPaginas) setTotalPaginas(totalChunks);
-          if (setBloqueActual) setBloqueActual(0);
+          if (setBloqueActual) setBloqueActual(1);
 
           for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
             const chunk = datosNormalizados.slice(

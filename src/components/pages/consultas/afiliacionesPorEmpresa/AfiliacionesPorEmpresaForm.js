@@ -98,8 +98,7 @@ const AfiliacionesPorEmpresaForm = ({
     error: null,
   });
   const [generandoPDF, setGenerandoPDF] = React.useState(false);
-  const [cargandoBloques, setCargandoBloques] = useState(false);
-  const [bloqueActual, setBloqueActual] = useState(0);
+  const [bloqueActual, setBloqueActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [pdfGenerado, setPdfGenerado] = useState(null);
   
@@ -294,12 +293,10 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
 
   try {
     setGenerandoPDF(true);
-    setCargandoBloques(true);
 
     if (!Array.isArray(trabajadoresNoAfiliados) || trabajadoresNoAfiliados.length === 0) {
       setDialog({ text: "No hay trabajadores para generar el PDF.", open: true });
       setGenerandoPDF(false);
-      setCargandoBloques(false);
       return;
     }
     
@@ -309,13 +306,8 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
     if (!base64Original || !base64Original.includes("base64,")) {
       alert("No se generó correctamente el PDF.");
       setGenerandoPDF(false);
-      setCargandoBloques(false);
       return;
     }
-
-    setGenerandoPDF(false);
-    setBloqueActual(0);
-    setTotalPaginas(1);
 
     // Quitamos el prefijo hasta "base64," para almacenar solo el contenido en Base64
     const base64 = base64Original.split("base64,")[1];
@@ -335,15 +327,13 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
     });
 
     setPdfGenerado(base64Original);
-    setGenerandoPDF(false);
-    setCargandoBloques(false);
+    //setGenerandoPDF(false);
     onClose(true);
 
   } catch (error) {
     console.error("Error generando PDF:", error);
     setDialog({ text: "Error al generar el PDF.", open: true });
     setGenerandoPDF(false);
-    setCargandoBloques(false);
   }
 };
 
@@ -508,14 +498,13 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
 
 
   const handleConfirma = async () => {
+  setGenerandoPDF(true);
   try {
     if (!totalesUltimoPeriodoSinAfiliados) {
       setDialog({ text: "No hay trabajadores para generar la Solicitud de Afiliación.", open: true });
+      setGenerandoPDF(false);
       return;
     }
-    setGenerandoPDF(true);
-    setBloqueActual(0);
-    setTotalPaginas(1);
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
 
@@ -556,6 +545,7 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
         CUIT: totalesUltimoPeriodoSinAfiliados?.cuit,
         Periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
         EsRural: "S",
+        //SoloActivos: 1,  esta propiedad deberia reemplazar al afiliadoId en caso de que se quiera filtrar por trabajadores activos
         AfiliadoId: 0,
       },
       onOk: (data) => {
@@ -571,6 +561,7 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
         }
       },
        onError: (error) => {
+        setGenerandoPDF(false);
         setDialog({text: "Error consultando trabajadores", open: true});
         setTrabajadoresRuralesNoAfiliados({
           loading: false,
@@ -582,6 +573,7 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
   } catch (error) {
     console.error(error);
     setDialog({ text: "Error al procesar la solicitud.", open: true });
+    setGenerandoPDF(false);
     setTrabajadoresRuralesNoAfiliados({ loading: false, data: null, error: error.message });
   }
 };
@@ -662,6 +654,7 @@ const handlerBuscarTotales = () => {
         PageSize: 6, // Ajusta el tamaño según sea necesario      
       },
       onOk: (data) => {
+        
         if (!data.data || (Array.isArray(data.data) && data.data.length === 0)) {
           setTotalesTrabajadores({
             loading: false,
@@ -669,6 +662,8 @@ const handlerBuscarTotales = () => {
             error: "No existen datos para el CUIT y período seleccionados.",
           });
         } else {
+          
+          //setTotalPaginas(Math.ceil(data?.total_Trab_Rurales_NoAfiliados / 20));
           setTotalesTrabajadores({ loading: false, totales: data?.data, error: null });
           setTotalesUltimoPeriodoSinAfiliados(data.data.find((item) => item.total_Trab_Rurales_NoAfiliados > 0) || null);
         }
@@ -889,10 +884,10 @@ const handlerBuscarTotales = () => {
             }
             onClick={() => handleConfirma()}
           >
-            {generandoPDF
-              ? `Generando PDF ${bloqueActual} de ${totalPaginas}...`
+            {generandoPDF && bloqueActual < totalPaginas
+              ? `Generando PDF - Paso ${bloqueActual} de ${totalPaginas}...`
               : trabajadoresRuralesNoAfiliados.loading
-              ? "Cargando..."
+              ? "Generando archivo PDF - Preparando datos"
               : "CONFIRMA"}
           </Button>
 
@@ -901,7 +896,7 @@ const handlerBuscarTotales = () => {
             width={25}
             onClick={() => onClose()}
              disabled={
-              ( generandoPDF) ?? false
+              (generandoPDF) ?? false
             }
           >
             CIERRA
