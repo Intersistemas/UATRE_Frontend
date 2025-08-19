@@ -346,3 +346,7 @@
   width: 20px;  /* O el valor que necesites */
   flex-shrink: 0;
 }
+
+.page {
+  page-break-after: always;
+}

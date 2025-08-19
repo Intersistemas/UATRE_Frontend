@@ -1,23 +1,15 @@
 import ReactDOM from "react-dom/client";
-import React, { createRef } from "react";
+import React, { createRef, useState } from "react";
 import PDF_SolicitudAfiliacionHandler from "./PDF_SolicitudAfiliacionHandler";
 
-/**
- * Genera un PDF y devuelve el Base64, con opción de descargarlo.
- * 
- * @param {object} options
- * @param {object|array} options.datos - Objeto o array con los datos del PDF
- * @param {boolean} [options.descargar=false] - Si debe descargar el PDF automáticamente
- * @param {string} [options.nombreArchivo="SolicitudAfiliacion.pdf"] - Nombre del archivo si se descarga
- * 
- * @returns {Promise<string>} - Base64 del PDF generado
- */
 export const PDF_SolicitudAfiliacion_Base64 = async ({
   datos,
   descargar = false,
   nombreArchivo = "SolicitudAfiliacion.pdf",
+  setBloqueActual = null, // nuevo
+  setTotalPaginas = null, // nuevo
 }) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -27,7 +19,6 @@ export const PDF_SolicitudAfiliacion_Base64 = async ({
     const handleBase64 = (base64) => {
       resolve(base64);
 
-      // Desmontar el componente del DOM
       setTimeout(() => {
         root.unmount();
         container.remove();
@@ -40,12 +31,21 @@ export const PDF_SolicitudAfiliacion_Base64 = async ({
         datos={datos}
         descargar={descargar}
         onBase64={handleBase64}
+        setBloqueActual={setBloqueActual} // prop de progreso
+        setTotalPaginas={setTotalPaginas} // prop de progreso
       />
     );
 
-    // Esperamos al siguiente ciclo del render para generar el PDF
-    setTimeout(() => {
-      ref.current?.generarPDF(nombreArchivo);
-    }, 0);
+    const tryGenerate = () => {
+      if (ref.current && typeof ref.current.generarPDF === "function") {
+        ref.current
+          .generarPDF(nombreArchivo)
+          .catch((err) => reject(err));
+      } else {
+        setTimeout(tryGenerate, 50);
+      }
+    };
+
+    tryGenerate();
   });
 };
