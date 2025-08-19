@@ -6,8 +6,8 @@ export const PDF_SolicitudAfiliacion_Base64 = async ({
   datos,
   descargar = false,
   nombreArchivo = "SolicitudAfiliacion.pdf",
-  setBloqueActual = null, // nuevo
-  setTotalPaginas = null, // nuevo
+  setBloqueActual = 1, // nuevo
+  setTotalPaginas = 1, // nuevo
 }) => {
   return new Promise((resolve, reject) => {
     const container = document.createElement("div");

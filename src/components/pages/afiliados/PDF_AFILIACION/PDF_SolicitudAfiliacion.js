@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./PDF_SolicitudAfiliacion.module.css";
-import { Logo1_sidebar, CGT_RA } from "media/mediaEnBase64";
+import { Logo1_sidebar, LogoCGT } from "media/mediaEnBase64";
 
 const PDF_SolicitudAfiliacion = ({ datos }) => {
   const { trabajador, empleador } = datos;
@@ -19,7 +19,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
                 <p>y Estibadores</p>
               </div>
             </div>
-            <img src={CGT_RA} alt="CGT Logo" className={styles["logo-cgt"]} />
+            <img src={LogoCGT} alt="CGT Logo" className={styles["logo-cgt"]} />
           </div>
           <p className={styles["legal-text"]}>
             Personería Gremial Nº 155 - Adherida a la C.G.T - Reconquista 630 Cap. Fed.
@@ -112,7 +112,7 @@ const PDF_SolicitudAfiliacion = ({ datos }) => {
 
       <div className={styles.centerInput}>
         <div className={styles.campo}>
-          <span className={styles.inputTextoIngresado}>DOMICILIO REAL:</span>
+          <span className={styles.inputTextoIngresado}>DOMICILIO:</span>
           <span className={styles.autoPunto}>{trabajador.domicilio_real}</span>
         </div>
         <div className={styles.campo}>
