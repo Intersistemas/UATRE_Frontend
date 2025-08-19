@@ -239,7 +239,7 @@ const GestionOSHandler = () => {
 		} else {
 			actions.push(
 				createAction({
-					action: `Baja Gestión ${desc}`,
+					action: `Anula Gestión ${desc}`,
 					request: "B",
 					record: {
 						...formularioSelected,
