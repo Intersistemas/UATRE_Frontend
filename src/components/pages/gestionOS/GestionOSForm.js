@@ -200,18 +200,19 @@ const GestionOSForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    const localidadUsuario = `${
-      usuarioLogueado.ambitoSeccionales == null
-        ? seccionalSelect.selected.record.localidad
-        : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
-    }, `;
+    // const localidadUsuario = `${
+    //   usuarioLogueado.ambitoSeccionales == null
+    //     ? seccionalSelect.selected.record.localidad
+    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
+    // }, `;
+    const localidadUsuario = `${seccionalSelect.selected.record.localidad}, `;
 
     pushQuery({
       action: "EnviarCorreo",
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
-          cco: [usuarioLogueado.email],
+          cco: [usuarioLogueado.email, data?.emailContacto],
           attachments: adjuntos,
           cuerpo:
             `<p><strong>${localidadUsuario}${moment().format(
@@ -1160,7 +1161,6 @@ const GestionOSForm = ({
       ...o,
       onLoad: ({ ok, error }) => {
         let data = [];
-        console.log("GestionObraSocial data:", data);
         if (Array.isArray(ok)) data = ok;
 
         setGestionObraSocialSelect((o) => ({
@@ -1529,7 +1529,6 @@ const GestionOSForm = ({
     setSelectedTab(1);
   };
 
-  console.log("data", data)
   return (
     <>
       <div>
