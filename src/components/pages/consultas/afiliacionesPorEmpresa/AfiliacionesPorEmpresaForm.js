@@ -26,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import { PDF_SolicitudAfiliacion_Base64 } from "components/pages/afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacion_Base64";
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -247,12 +247,25 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
-  console.log("onDownloadSolicitudAfiliacion trabajadoresNoAfiliados", trabajadoresNoAfiliados);
-  console.log("onDownloadSolicitudAfiliacion afiliacionPorEmpresa", afiliacionPorEmpresa);
+  if (!trabajadoresNoAfiliados || trabajadoresNoAfiliados.length === 0) {
+    setDialog({ text: "No hay trabajadores para generar el PDF.", open: true });
+    return;
+  }
 
-  // Mapeo para el PDF (uno por cada registro)
-      const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
-      const datos = {
+  setGenerandoPDF(true);
+
+  try {
+    const chunkSize = 20;
+    const totalChunks = Math.ceil(trabajadoresNoAfiliados.length / chunkSize);
+
+    const datosCompletosPDF = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      setBloqueActual(i + 1);
+
+      const chunk = trabajadoresNoAfiliados.slice(i * chunkSize, (i + 1) * chunkSize);
+
+      const datosChunk = chunk.map((t) => ({
         afiliado_nro: t?.id,
         seccional_nro: seccionalSelect?.selectedRecord?.codigo,
         fecha: Formato.Fecha(new Date()),
@@ -260,19 +273,13 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
           cuil: t?.cuil,
           tipo_doc: t?.tipoDocumento,
           nro_doc: t?.numeroDocumento,
-          nacionalidad: " ",
           apellido: t?.afiliadoApellido,
-          nombres: t?.afiliadoNombre, // No viene en la API
+          nombres: t?.afiliadoNombre,
           fecha_nacimiento: Formato.Fecha(t?.fechaNacimiento),
-          estado_civil: " ",
-          sexo: " ",
           domicilio_real: t?.domicilio,
           localidad: t?.localidad,
           provincia: t?.provincia,
-          oficio_categoria: " ",
-          actividad: t?.actividadDescripcion.includes("inexistente") ? "-" :  t?.actividadDescripcion,
-          telefono: " ",
-          email: " ",
+          actividad: t?.actividadDescripcion.includes("inexistente") ? "-" : t?.actividadDescripcion,
         },
         empleador: {
           cuit: empresa?.cuit,
@@ -281,42 +288,25 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
           localidad: empresa?.localidad,
           provincia: empresa?.provincia,
           actividad: empresa?.actividad,
-          telefono: " ",
-          email: " ",
         },
-        fecha_emision: " ",
-      };
+      }));
 
-      return datos
+      datosCompletosPDF.push(...datosChunk);
+    }
+
+    // Generamos un solo PDF con todos los trabajadores
+    const base64PDF = await generarPDFLibSolicitudAfiliacion({
+      datos: datosCompletosPDF,
+      setBloqueActual,
+      setTotalPaginas,
+      descargar: false,
+      nombreArchivo: "SolicitudesDeAfiliacion.pdf",
     });
 
-
-  try {
-    setGenerandoPDF(true);
-
-    if (!Array.isArray(trabajadoresNoAfiliados) || trabajadoresNoAfiliados.length === 0) {
-      setDialog({ text: "No hay trabajadores para generar el PDF.", open: true });
-      setGenerandoPDF(false);
-      return;
-    }
-    
-    // Generamos un solo PDF multipágina usando tu función base
-    const base64Original = await PDF_SolicitudAfiliacion_Base64({ datos: datosPDFArray, descargar: false, nombreArchivo: "SolicitudAfiliacion.pdf", setBloqueActual, setTotalPaginas});
-    // ✅ Validamos que contenga "base64," en lugar de un prefijo exacto
-    if (!base64Original || !base64Original.includes("base64,")) {
-      alert("No se generó correctamente el PDF.");
-      setGenerandoPDF(false);
-      return;
-    }
-
-    // Quitamos el prefijo hasta "base64," para almacenar solo el contenido en Base64
-    const base64 = base64Original.split("base64,")[1];
-    console.log("base64", base64);
-
-    // Subimos directamente el PDF a documentaciones
+    // Enviar a documentacionChanger
     documentacionChanger("Create", {
       params: {
-        archivo: base64,
+        archivo: base64PDF.includes("base64,") ? base64PDF.split("base64,")[1] : base64PDF,
         entidadId: afiliacionPorEmpresa?.id,
         entidadTipo: "E",
         nombreArchivo: "SolicitudesDeAfiliacion.pdf",
@@ -326,13 +316,11 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
       },
     });
 
-    setPdfGenerado(base64Original);
-    //setGenerandoPDF(false);
     onClose(true);
-
   } catch (error) {
     console.error("Error generando PDF:", error);
     setDialog({ text: "Error al generar el PDF.", open: true });
+  } finally {
     setGenerandoPDF(false);
   }
 };
