@@ -187,7 +187,6 @@ const GestionOSForm = ({
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-
   //#endregion
 
   // console.log("data,",data);
@@ -205,14 +204,14 @@ const GestionOSForm = ({
     //     ? seccionalSelect.selected.record.localidad
     //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
     // }, `;
-    const localidadUsuario = `${seccionalSelect.selected.record.localidad}, `;
+    const localidadUsuario = `${seccionalSelect.selectedAditionalData.localidadNombre}, `;
 
     pushQuery({
       action: "EnviarCorreo",
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
-          cco: [usuarioLogueado.email, data?.emailContacto],
+          cco: [usuarioLogueado.email, ...(data?.emailContacto ?? [])],
           attachments: adjuntos,
           cuerpo:
             `<p><strong>${localidadUsuario}${moment().format(
@@ -830,7 +829,7 @@ const GestionOSForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalId },
+      selected: { value: data.seccionalId, label: data.seccionalDescripcion },
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccionales

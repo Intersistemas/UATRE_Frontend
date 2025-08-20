@@ -392,7 +392,6 @@ const useGestionOS = ({
     form = (
       <GestionOSForm
         data={(() => {
-          //console.log('list.selection',list.selection)
           //INIT DE DATOS DEL FORM
           const data =
             //seccionalId = list.selection.edit.refSeccionalId,
@@ -407,8 +406,10 @@ const useGestionOS = ({
                     list.selection.edit.seccionalId ??
                     usuario?.ambitoSeccionales?.ids[0] ??
                     0,
-                  titularPaciente:
-                    list.selection.edit.titularPaciente ?? false,
+                  seccionalDescripcion:
+                    usuario?.ambitosDescripciones[0]?.seccionalDescripcion ??
+                    "",
+                  titularPaciente: list.selection.edit.titularPaciente ?? false,
                   atencionesPrevias:
                     list.selection.edit.atencionesPrevias ?? "",
                   conCoberturaOsprera:
@@ -704,11 +705,10 @@ const useGestionOS = ({
               list.selection.edit.seccionalId ??
               usuario?.ambitoSeccionales?.ids[0] ??
               0,
+            seccionalDescripcion:
+              usuario?.ambitosDescripciones[0]?.seccionalDescripcion ?? "",
             ...list.selection.edit,
           };
-          // console.log("record",record);
-
-          // console.log("list",list);
 
           //Validaciones
           const errors = {};
