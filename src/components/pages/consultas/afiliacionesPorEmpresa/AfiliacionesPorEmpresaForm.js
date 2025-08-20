@@ -4,20 +4,14 @@ import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial, {
-  CUITMask,
-  DNIMask,
-} from "components/ui/Input/InputMaterial";
+import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/documentacion/Documentacion";
-import downloadjs from "downloadjs";
 import Formato from "components/helpers/Formato";
 import SearchSelectMaterial, {
   mapOptions,
   includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
-import moment from "moment/moment";
 import useAfiliacionesPorEmpresa from "./useAfiliacionesPorEmpresa";
 import { useSelector } from "react-redux";
 import useEmpresas, {
@@ -32,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
-import { PDF_SolicitudAfiliacion_Base64 } from "components/pages/afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacion_Base64";
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -55,7 +49,7 @@ const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
 //#endregion seccionalSelect Options
 
-const FormularioOspreraForm = ({
+const AfiliacionesPorEmpresaForm = ({
   data = {},
   title = "",
   disabled = {},
@@ -103,10 +97,9 @@ const FormularioOspreraForm = ({
     totales: null,
     error: null,
   });
-  const [generandoPDF, setGenerandoPDF] = useState(false);
-  const [cargandoBloques, setCargandoBloques] = useState(false);
-  const [bloqueActual, setBloqueActual] = useState(0);
-  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [generandoPDF, setGenerandoPDF] = React.useState(false);
+  const [bloqueActual, setBloqueActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
   const [pdfGenerado, setPdfGenerado] = useState(null);
   
   const [totalesUltimoPeriodoSinAfiliados, setTotalesUltimoPeriodoSinAfiliados] = useState(null)
@@ -119,7 +112,6 @@ const FormularioOspreraForm = ({
   //#endregion
 
   const [documentacionTab, documentacionChanger, documentacionSelected] = useDocumentaciones();
-  const [documentacionActions, setDocumentacionActions] = useState([]);
 
    // Calcula la fecha de 3 meses atrás
   const getFechaTresMesesAtras = () => {
@@ -218,7 +210,6 @@ const FormularioOspreraForm = ({
 
   const onGrabarSolicitudAfiliacion = (solicitud, trabajadoresAfipConsulta) => {
 
-
     pushQuery({
       action: "PostSolicitudAfiliacionEmpresas",
       config:{
@@ -243,12 +234,38 @@ const FormularioOspreraForm = ({
     });
   };
 
-  const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
-  console.log("trabajadoresNoAfiliados**",trabajadoresNoAfiliados)
-  console.log("seccionalSelect***",seccionalSelect)
-     // Mapeo para el PDF (uno por cada registro)
-      const datosPDFArray = trabajadoresNoAfiliados.map((t) => {
-      const datos = {
+  // CSS para las páginas
+const style = document.createElement("style");
+style.innerHTML = `
+  .page {
+    page-break-after: always;
+    width: 210mm;   /* ancho A4 */
+    min-height: 297mm; /* alto A4 */
+    box-sizing: border-box;
+  }
+`;
+document.head.appendChild(style);
+
+const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacionPorEmpresa) => {
+  if (!trabajadoresNoAfiliados || trabajadoresNoAfiliados.length === 0) {
+    setDialog({ text: "No hay trabajadores para generar el PDF.", open: true });
+    return;
+  }
+
+  setGenerandoPDF(true);
+
+  try {
+    const chunkSize = 20;
+    const totalChunks = Math.ceil(trabajadoresNoAfiliados.length / chunkSize);
+
+    const datosCompletosPDF = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      setBloqueActual(i + 1);
+
+      const chunk = trabajadoresNoAfiliados.slice(i * chunkSize, (i + 1) * chunkSize);
+
+      const datosChunk = chunk.map((t) => ({
         afiliado_nro: t?.id,
         seccional_nro: seccionalSelect?.selectedRecord?.codigo,
         fecha: Formato.Fecha(new Date()),
@@ -256,19 +273,13 @@ const FormularioOspreraForm = ({
           cuil: t?.cuil,
           tipo_doc: t?.tipoDocumento,
           nro_doc: t?.numeroDocumento,
-          nacionalidad: " ",
           apellido: t?.afiliadoApellido,
-          nombres: t?.afiliadoNombre, // No viene en la API
+          nombres: t?.afiliadoNombre,
           fecha_nacimiento: Formato.Fecha(t?.fechaNacimiento),
-          estado_civil: " ",
-          sexo: " ",
           domicilio_real: t?.domicilio,
           localidad: t?.localidad,
           provincia: t?.provincia,
-          oficio_categoria: " ",
-          actividad: t?.actividadDescripcion.includes("inexistente") ? "-" :  t?.actividadDescripcion,
-          telefono: " ",
-          email: " ",
+          actividad: t?.actividadDescripcion.includes("inexistente") ? "-" : t?.actividadDescripcion,
         },
         empleador: {
           cuit: empresa?.cuit,
@@ -277,60 +288,43 @@ const FormularioOspreraForm = ({
           localidad: empresa?.localidad,
           provincia: empresa?.provincia,
           actividad: empresa?.actividad,
-          telefono: " ",
-          email: " ",
         },
-        fecha_emision: " ",
-      };
+      }));
 
-      return datos
+      datosCompletosPDF.push(...datosChunk);
+    }
+
+    // Generamos un solo PDF con todos los trabajadores
+    const base64PDF = await generarPDFLibSolicitudAfiliacion({
+      datos: datosCompletosPDF,
+      setBloqueActual,
+      setTotalPaginas,
+      descargar: false,
+      nombreArchivo: "SolicitudesDeAfiliacion.pdf",
     });
 
-    // Generar el PDF con todas las páginas
-    let base64Original = await PDF_SolicitudAfiliacion_Base64({ datos: datosPDFArray });
-    console.log("datosPDFArray", datosPDFArray);
-    console.log("base64Original", base64Original);
-    let base64 = base64Original;
-    if (base64 && base64.startsWith("data:application/pdf;base64,")) {
-      base64 = base64.replace("data:application/pdf;base64,", "");
-    }
-    if (!base64) {
-      alert("El PDF no se generó correctamente.");
-      setGenerandoPDF(false);
-      setCargandoBloques(false);
-      return;
-    }
-    const { PDFDocument } = await import("pdf-lib");
-    const pdfBytes = Uint8Array.from(atob(base64), (c) =>
-      c.charCodeAt(0)
-    );
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const paginas = pdfDoc.getPageCount();
-    setTotalPaginas(paginas);
-    setCargandoBloques(true);
-    for (let i = 1; i <= paginas; i++) {
-      setBloqueActual(i);
-      await new Promise((res) => setTimeout(res, 300));
-    }
-    setCargandoBloques(false);
-    setGenerandoPDF(false);
-    setPdfGenerado(base64Original);
-    
+    // Enviar a documentacionChanger
     documentacionChanger("Create", {
-			params: {
-        archivo: base64,
+      params: {
+        archivo: base64PDF.includes("base64,") ? base64PDF.split("base64,")[1] : base64PDF,
         entidadId: afiliacionPorEmpresa?.id,
         entidadTipo: "E",
         nombreArchivo: "SolicitudesDeAfiliacion.pdf",
         observaciones: "Solicitudes de Afiliación por Empresa",
         refTipoDocumentacionId: 6,
-        soloactivos: true
+        soloactivos: true,
       },
-		});
+    });
 
     onClose(true);
- 
-  };
+  } catch (error) {
+    console.error("Error generando PDF:", error);
+    setDialog({ text: "Error al generar el PDF.", open: true });
+  } finally {
+    setGenerandoPDF(false);
+  }
+};
+
 
   const { setState: setDocumentosQuery } = useQueryState(
     () => ({
@@ -491,9 +485,14 @@ const FormularioOspreraForm = ({
     //#endregion
 
 
-
-  //#region Confirmación
   const handleConfirma = async () => {
+  setGenerandoPDF(true);
+  try {
+    if (!totalesUltimoPeriodoSinAfiliados) {
+      setDialog({ text: "No hay trabajadores para generar la Solicitud de Afiliación.", open: true });
+      setGenerandoPDF(false);
+      return;
+    }
 
     setTrabajadoresRuralesNoAfiliados({ loading: true, data: [], error: null });
 
@@ -527,13 +526,14 @@ const FormularioOspreraForm = ({
         : [],
     };
 
-     //Trabajadores Rurales NO AFILIADOS para generar Solicitud Afiliacion PDF
-     pushQuery({
+    // Consultamos trabajadores rurales no afiliados
+    pushQuery({
       action: "GetDDJJUatreTrabajadoresAFIPConsulta",
       params: {
         CUIT: totalesUltimoPeriodoSinAfiliados?.cuit,
         Periodo: totalesUltimoPeriodoSinAfiliados?.periodo,
         EsRural: "S",
+        //SoloActivos: 1,  esta propiedad deberia reemplazar al afiliadoId en caso de que se quiera filtrar por trabajadores activos
         AfiliadoId: 0,
       },
       onOk: (data) => {
@@ -549,6 +549,7 @@ const FormularioOspreraForm = ({
         }
       },
        onError: (error) => {
+        setGenerandoPDF(false);
         setDialog({text: "Error consultando trabajadores", open: true});
         setTrabajadoresRuralesNoAfiliados({
           loading: false,
@@ -557,8 +558,13 @@ const FormularioOspreraForm = ({
         });
       },
     });
-  };
-  //#endregion Confirmación
+  } catch (error) {
+    console.error(error);
+    setDialog({ text: "Error al procesar la solicitud.", open: true });
+    setGenerandoPDF(false);
+    setTrabajadoresRuralesNoAfiliados({ loading: false, data: null, error: error.message });
+  }
+};
 
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => handleConfirma(), "AltKey");
@@ -597,7 +603,7 @@ const handlerBuscarTotales = () => {
 
      pushQuery({
       action: "ConsultaAFIP",
-      params: { cuit: empresaSelected?.cuit, VerificarHistorico: false },
+      params: { cuit: empresaSelected?.cuit, VerificarHistorico: true },
       onOk: (data) => {
         setEmpresa({
             id: empresaSelected?.id,
@@ -636,6 +642,7 @@ const handlerBuscarTotales = () => {
         PageSize: 6, // Ajusta el tamaño según sea necesario      
       },
       onOk: (data) => {
+        
         if (!data.data || (Array.isArray(data.data) && data.data.length === 0)) {
           setTotalesTrabajadores({
             loading: false,
@@ -643,6 +650,8 @@ const handlerBuscarTotales = () => {
             error: "No existen datos para el CUIT y período seleccionados.",
           });
         } else {
+          
+          //setTotalPaginas(Math.ceil(data?.total_Trab_Rurales_NoAfiliados / 20));
           setTotalesTrabajadores({ loading: false, totales: data?.data, error: null });
           setTotalesUltimoPeriodoSinAfiliados(data.data.find((item) => item.total_Trab_Rurales_NoAfiliados > 0) || null);
         }
@@ -813,33 +822,6 @@ const handlerBuscarTotales = () => {
             </Grid>
             <Grid width="auto"  style={{ marginTop: "10px" }}>
               <AfiliacionesPorEmpresaDetalleTable
-                /*data={list.data}
-                loading={!!list.loading}
-                noDataIndication={
-                  list.loading ?? list.error?.message ?? "No existen datos para mostrar"
-                }
-                pagination={{
-                  ...list.pagination,
-                  onChange: ({ index, size }) =>
-                    setList((o) => ({
-                      ...o,
-                      loading: "Cargando...",
-                      pagination: { index, size },
-                      data: [],
-                    })),
-                }}
-                selection={{
-                  selected: [list.selection.record?.id].filter((r) => r),
-                  onSelect: (record, isSelect, index, e) =>
-                    setList((o) => ({
-                      ...o,
-                      selection: {
-                        ...selectionDef,
-                        index,
-                        record,
-                      },
-                    })),
-                }}*/
                 mostrarBuscar={false}
                 remote
                 keyField="empresaCUIT"
@@ -867,11 +849,6 @@ const handlerBuscarTotales = () => {
                       const sortBy = `${
                         sortOrder === "desc" ? "-" : "+"
                       }${sortField}`;
-                      
-                      /*setCSV((o) => ({
-                        ...o,
-                        params: { ...o.params, sortBy },
-                      }));*/
                       return;
                     }
                     default:
@@ -883,23 +860,32 @@ const handlerBuscarTotales = () => {
             </Grid>
         </Modal.Body>
         <Modal.Footer>
-          <Button
+         <Button
             className="botonAzul"
             loading={loading}
             width={25}
-            disabled={ (totalesUltimoPeriodoSinAfiliados == null || totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados == 0 || trabajadoresRuralesNoAfiliados.loading) ?? false}
+            disabled={
+              (totalesUltimoPeriodoSinAfiliados == null ||
+                totalesUltimoPeriodoSinAfiliados?.total_Trab_Rurales_NoAfiliados === 0 ||
+                trabajadoresRuralesNoAfiliados.loading ||
+                generandoPDF) ?? false
+            }
             onClick={() => handleConfirma()}
-          > {generandoPDF ? (
-               `Generando PDF ${bloqueActual} de ${totalPaginas}...`
-            ) : (
-              trabajadoresRuralesNoAfiliados.loading ? "Cargando..." : "CONFIRMA"
-            )}
+          >
+            {generandoPDF && bloqueActual < totalPaginas
+              ? `Generando PDF - Paso ${bloqueActual} de ${totalPaginas}...`
+              : trabajadoresRuralesNoAfiliados.loading
+              ? "Generando archivo PDF - Preparando datos"
+              : "CONFIRMA"}
           </Button>
 
           <Button
             className="botonAmarillo"
             width={25}
             onClick={() => onClose()}
+             disabled={
+              (generandoPDF) ?? false
+            }
           >
             CIERRA
           </Button>
@@ -933,4 +919,4 @@ const handlerBuscarTotales = () => {
   );
 };
 
-export default FormularioOspreraForm;
+export default AfiliacionesPorEmpresaForm;

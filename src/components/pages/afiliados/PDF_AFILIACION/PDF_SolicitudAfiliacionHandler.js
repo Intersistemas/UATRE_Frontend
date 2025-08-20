@@ -3,52 +3,6 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PDF_SolicitudAfiliacion from "./PDF_SolicitudAfiliacion";
 
-/**
- * @param {object} props.datos Se espera recibir un objeto con los datos necesarios para generar el PDF de Solicitud de Afiliación.
- * @param {boolean} [props.descargar=true] Indica si se debe descargar el PDF generado.
- * @param {function} [props.onBase64=() => {}] Callback que recibe el PDF en formato Base64.
- * @param {object} props.datos.trabajador Información del trabajador.
- * @param {object} props.datos.empleador Información del empleador.
- **/
-
-// OBJ de EJEMPLO Para generar el PDF de Solicitud de Afiliación
-const datosSolicitudAfiliacion = {
-  afiliado_nro: "1234",
-  seccional_nro: "S0113",
-  fecha: "2025-07-01",
-  trabajador: {
-    cuil: "20-39609744-4",
-    tipo_doc: "39609744",
-    nro_doc: "39609744",
-    nacionalidad: "Argentino",
-    apellido: "Altamirano",
-    nombres: "Gaston German Estanislado",
-    fecha_nacimiento: "1996-12-23",
-    estado_civil: "",
-    sexo: "Masculino",
-    domicilio_real: "Dorrego juan jose numero: 158 Dpto:1",
-    localidad: "Dorrego 158 Dpto:1",
-    provincia: "Cordoba",
-    oficio_categoria: "Contrato Modalidad Promovida. Reducc.",
-    actividad: "Ref: Actividad inexistente",
-    telefono: "",
-    email: "GastonGermanEstanislado99@gmail.com",
-  },
-  empleador: {
-    cuit: "30-50859713-0",
-    nombre_o_razon_social: "Empresa de limpieza y orden para instalaciones S.A.",
-    domicilio: "12 de Octubre 18",
-    localidad: "Hernando",
-    provincia: "Cordoba",
-    actividad: "Cultivo de Soja",
-    telefono: "4364563456437",
-    email: "limpiezadeinstalacionessa@gmail.com",
-  },
-  fecha_emision: "2025-07-01",
-};
-
-
-// OBJ de EJEMPLO Para generar el PDF de Solicitud de Afiliación
 const datosInit = {
   afiliado_nro: " ",
   seccional_nro: " ",
@@ -81,55 +35,67 @@ const datosInit = {
     telefono: " ",
     email: " ",
   },
-  fecha_emision: " ",
 };
 
 const PDF_SolicitudAfiliacionHandler = forwardRef(
-  ({ datos, descargar = true, onBase64 = () => {} }, ref) => {
+  ({ datos, descargar = true, onBase64 = () => {}, setBloqueActual, setTotalPaginas }, ref) => {
     const refs = useRef([]);
-
     const listaDatos = Array.isArray(datos) ? datos : [datos];
-
+    const chunkSize = 20; // tamaño de cada chunk para optimizar
     const datosNormalizados = listaDatos.map((item) => ({
       ...datosInit,
       ...item,
-      trabajador: {
-        ...datosInit.trabajador,
-        ...(item?.trabajador || {}),
-      },
-      empleador: {
-        ...datosInit.empleador,
-        ...(item?.empleador || {}),
-      },
+      trabajador: { ...datosInit.trabajador, ...(item?.trabajador || {}) },
+      empleador: { ...datosInit.empleador, ...(item?.empleador || {}) },
     }));
 
     useImperativeHandle(ref, () => ({
       async generarPDF(nombreArchivo = "SolicitudAfiliacion.pdf") {
-        const pdf = new jsPDF("p", "mm", "a4");
+        try {
+          const pdf = new jsPDF("p", "mm", "a4");
 
-        for (let i = 0; i < refs.current.length; i++) {
-          const element = refs.current[i];
-          if (!element) continue;
+          const totalChunks = Math.ceil(datosNormalizados.length / chunkSize);
+          if (setTotalPaginas) setTotalPaginas(totalChunks);
+          if (setBloqueActual) setBloqueActual(1);
 
-          const canvas = await html2canvas(element, {
-            scale: 1.5,
-            useCORS: true,
-          });
-          const imgData = canvas.toDataURL("image/png");
+          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const chunk = datosNormalizados.slice(
+              chunkIndex * chunkSize,
+              (chunkIndex + 1) * chunkSize
+            );
 
-          if (i > 0) pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, 'FAST');
-        }
+            for (let i = 0; i < chunk.length; i++) {
+              const index = chunkIndex * chunkSize + i;
+              const element = refs.current[index];
+              if (!element) continue;
 
-        // ✅ BASE64 output (without data URI prefix)
-        const pdfOutput = pdf.output("datauristring");
-        const base64 = pdfOutput.split(",")[1]; // Remove "data:application/pdf;base64,"
+              const canvas = await html2canvas(element, {
+                scale: 1,
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+              });
 
-        onBase64(base64);
+              const imgData = canvas.toDataURL("image/png");
 
-        // ✅ Download (if true)
-        if (descargar) {
-          pdf.save(nombreArchivo);
+              if (chunkIndex > 0 || i > 0) pdf.addPage();
+              pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+            }
+
+            // Actualizamos progreso
+            if (setBloqueActual) setBloqueActual(chunkIndex + 1);
+
+            // Pequeña pausa para que React refresque el estado y actualice el botón
+            await new Promise((r) => setTimeout(r, 50));
+          }
+
+          const pdfOutput = pdf.output("datauristring");
+          onBase64(pdfOutput);
+
+          if (descargar) pdf.save(nombreArchivo);
+        } catch (err) {
+          console.error("Error generando PDF:", err);
+          alert("No se generó correctamente el PDF.");
         }
       },
     }));
@@ -156,4 +122,3 @@ const PDF_SolicitudAfiliacionHandler = forwardRef(
 );
 
 export default PDF_SolicitudAfiliacionHandler;
-
