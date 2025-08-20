@@ -200,11 +200,12 @@ const GestionOSForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    const localidadUsuario = `${
-      usuarioLogueado.ambitoSeccionales == null
-        ? seccionalSelect.selected.record.localidad
-        : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
-    }, `;
+    // const localidadUsuario = `${
+    //   usuarioLogueado.ambitoSeccionales == null
+    //     ? seccionalSelect.selected.record.localidad
+    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
+    // }, `;
+    const localidadUsuario = `${seccionalSelect.selected.record.localidad}, `;
 
     pushQuery({
       action: "EnviarCorreo",
