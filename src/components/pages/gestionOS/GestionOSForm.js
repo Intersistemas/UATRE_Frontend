@@ -211,7 +211,7 @@ const GestionOSForm = ({
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
-          cco: [usuarioLogueado.email],
+          cco: [usuarioLogueado.email, data?.emailContacto],
           attachments: adjuntos,
           cuerpo:
             `<p><strong>${localidadUsuario}${moment().format(
@@ -1160,7 +1160,6 @@ const GestionOSForm = ({
       ...o,
       onLoad: ({ ok, error }) => {
         let data = [];
-        console.log("GestionObraSocial data:", data);
         if (Array.isArray(ok)) data = ok;
 
         setGestionObraSocialSelect((o) => ({
@@ -1529,7 +1528,6 @@ const GestionOSForm = ({
     setSelectedTab(1);
   };
 
-  console.log("data", data)
   return (
     <>
       <div>
