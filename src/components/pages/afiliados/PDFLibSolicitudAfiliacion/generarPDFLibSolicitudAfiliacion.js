@@ -407,7 +407,7 @@ export async function generarPDFLibSolicitudAfiliacion({
     });
 
     // ===================== PÁGINA N =====================
-    drawText(page, `Página ${idx + 1} de ${totalPaginas}`, 500, 20, 8, true);
+    //drawText(page, `Página ${idx + 1} de ${totalPaginas}`, 500, 20, 8, true);
   }
 
   // Guardado
