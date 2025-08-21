@@ -189,7 +189,6 @@ const GestionOSForm = ({
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
 
-  // console.log("data,",data);
   //#region EMAIL
   //Se debe procesar el(envio de email)
   const sendEnviarEmailHandler = async () => {
@@ -679,13 +678,15 @@ const GestionOSForm = ({
         };
       }
 
-      case "GestionesSubRubroByRubro": {
+      case "GestionesSubRubroByRubro": {      
+        const { GestionRubroId } = params;          
         return {
           config: {
             baseURL: "Afiliaciones",
-            endpoint: `/GestionesSubRubro`,
+            endpoint: `/GestionesSubRubro/Rubro/${GestionRubroId}`,
             method: "GET",
           },
+          params: {}
         };
       }
 
