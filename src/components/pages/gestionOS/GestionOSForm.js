@@ -203,12 +203,14 @@ const GestionOSForm = ({
     //     ? seccionalSelect.selected.record.localidad
     //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
     // }, `;
+
     //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
     const localidadUsuario = `${seccionalSelect?.selected?.record?.localidadNombre}, `;
 
     const emails = [usuarioLogueado.email, (data?.emailContacto ?? []), (data?.emailContacto2 ?? [])]
     //console.log("seccionalSelect1", seccionalSelect);
    //console.log("localidadUsuario",localidadUsuario)
+
 
     pushQuery({
       action: "EnviarCorreo",
