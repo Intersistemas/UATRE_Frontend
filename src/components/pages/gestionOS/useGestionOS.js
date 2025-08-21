@@ -233,11 +233,23 @@ const useGestionOS = ({
     const soloLetras = /^[A-Za-z]+$/;
     const filtro = list?.params?.filtro;
     const filtroPaciente = list?.params?.filtroPaciente;
-    const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
+    const filtroMedioGestion = list?.params?.filtroMedioGestion?.value;
     const filtroTipoEstado = list?.params?.filtroTipoEstado?.value;
     const filtroTipoSituacion = list?.params?.filtroTipoSituacion?.value;
+    const filtroSeccional = list?.params?.filtroSeccional?.value;
+    const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
+    const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
     // console.log("filtroTipoSituacion", filtroTipoSituacion);
+    var usuarioAdulterado = {};
+    if (filtroSeccional !== undefined && filtroSeccional !== 0) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [filtroSeccional],
+        },
+        ambitoTodos: null,
+      };
+    }
 
     pushQuery({
       action: "GetList",
@@ -246,10 +258,16 @@ const useGestionOS = ({
           ...list.params,
           pageIndex: list.pagination.index,
           pageSize: list.pagination.size,
-          ambitoTodos: usuario.ambitoTodos,
+          ambitoTodos:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoTodos
+              : usuario.ambitoTodos,
           ambitoProvincias: usuario.ambitoProvincias,
           ambitoDelegaciones: usuario.ambitoDelegaciones,
-          ambitoSeccionales: usuario.ambitoSeccionales,
+          ambitoSeccionales:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoSeccionales
+              : usuarioAdulterado.ambitoSeccionales,
           sort: "FechaDesc,IdDesc",
           ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
             ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
@@ -257,14 +275,20 @@ const useGestionOS = ({
           ...(!soloLetras.test(filtroPaciente)
             ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
             : { apellidoPaciente: filtroPaciente }),
-          ...(filtroTipoGestion && filtroTipoGestion != "Todos"
-            ? { medioGestion: filtroTipoGestion }
+          ...(filtroMedioGestion && filtroMedioGestion !== 0
+            ? { medioGestion: filtroMedioGestion }
             : null),
-          ...(filtroTipoEstado && filtroTipoEstado != "Todos"
+          ...(filtroTipoEstado && filtroTipoEstado !== 0
             ? { gestionEstadoId: filtroTipoEstado }
             : null),
-          ...(filtroTipoSituacion && filtroTipoSituacion != "Todos"
+          ...(filtroTipoSituacion && filtroTipoSituacion !== 0
             ? { gestionSituacionId: filtroTipoSituacion }
+            : null),
+          ...(filtroTipoGestion && filtroTipoGestion !== 0
+            ? { gestionRubroId: filtroTipoGestion }
+            : null),
+          ...(filtroDetalleTipoGestion && filtroDetalleTipoGestion !== 0
+            ? { gestionSubRubroId: filtroDetalleTipoGestion }
             : null),
         },
       },
@@ -520,8 +544,7 @@ const useGestionOS = ({
               } else {
                 changes.errors.cuitTitular = "CUIT inválido";
               }
-            }
-            else {
+            } else {
               changes.errors.cuitTitular = "";
             }
           }
@@ -557,7 +580,7 @@ const useGestionOS = ({
             if (!record.deletedObs) errors.deletedObs = "Dato requerido";
           }
 
-          if (["A", "M"].includes(list.selection.request)) {            
+          if (["A", "M"].includes(list.selection.request)) {
             if (!record.cuitTitular) errors.cuitTitular = "Dato requerido";
             else if (!ValidarCUIT(record.cuitTitular))
               errors.cuitTitular = "CUIT Incorrecto";
@@ -649,7 +672,8 @@ const useGestionOS = ({
               errors.conCoberturaOsprera = "Dato requerido";
             }
 
-            if (!record.gestionObraSocialId) errors.gestionObraSocial = "Dato requerido";
+            if (!record.gestionObraSocialId)
+              errors.gestionObraSocial = "Dato requerido";
 
             //ObservacionesEstado
             if (
@@ -808,7 +832,8 @@ const useGestionOS = ({
               errors.conCoberturaOsprera = "Dato requerido";
             }
 
-            if (!record.gestionObraSocialId) errors.gestionObraSocial = "Dato requerido";
+            if (!record.gestionObraSocialId)
+              errors.gestionObraSocial = "Dato requerido";
 
             //ObservacionesEstado
             if (
