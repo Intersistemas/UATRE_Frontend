@@ -6,6 +6,7 @@ import Table from "components/ui/Table/Table";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const LiquidacionesTable = ({ columns, ...x } = {}) => {
+	console.log("data", x)
 	const tarea = useTareasUsuario();	
 	const disableColTipoPago = !tarea.hasTarea("Siaru_DetalleTipoPago");
 
@@ -70,7 +71,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
       dataField: "seccionalDescripcion",
       text: "Seccional",
       sort: true,
-	  hidden: x.data[0]?.seccionalId > 0 ? false : true,
+	  hidden: x.data[0]?.id === 1 ? true : false,
       style: { textAlign: "left" },
     },
     {
