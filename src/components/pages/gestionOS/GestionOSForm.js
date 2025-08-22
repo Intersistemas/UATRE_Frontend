@@ -225,7 +225,7 @@ const GestionOSForm = ({
           cco: emails.filter((email) => email),
           attachments: adjuntos,
           cuerpo:
-            `<p><strong>${localidadUsuario ?? " "}${moment().format(
+            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
             `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
