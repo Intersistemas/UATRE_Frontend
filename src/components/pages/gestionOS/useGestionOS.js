@@ -677,9 +677,10 @@ const useGestionOS = ({
 
             //ObservacionesEstado
             if (
-              record.gestionEstadoDescripcion === "RECLAMADO" ||
-              (record.gestionEstadoDescripcion === "FINALIZADO" &&
-                record.gestionSituacionDescripcion === "CON RECLAMO FORMAL")
+              !record.observacionesEstado &&
+              (record.gestionEstadoDescripcion === "RECLAMADO" ||
+                (record.gestionEstadoDescripcion === "FINALIZADO" &&
+                  record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
             ) {
               errors.observacionesEstado = "Dato requerido";
             }
@@ -836,10 +837,10 @@ const useGestionOS = ({
               errors.gestionObraSocial = "Dato requerido";
 
             //ObservacionesEstado
-            if (
-              record.gestionEstadoDescripcion === "RECLAMADO" ||
+            if (!record.observacionesEstado &&
+              (record.gestionEstadoDescripcion === "RECLAMADO" ||
               (record.gestionEstadoDescripcion === "FINALIZADO" &&
-                record.gestionSituacionDescripcion === "CON RECLAMO FORMAL")
+                record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
             ) {
               errors.observacionesEstado = "Dato requerido";
             }
