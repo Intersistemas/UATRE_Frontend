@@ -409,7 +409,6 @@ const useGestionOS = ({
     },
     [pushQuery]
   );
-
   let form = null;
   if (list.selection.request) {
     // console.log("list", list)
