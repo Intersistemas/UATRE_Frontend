@@ -205,7 +205,6 @@ const GestionOSForm = ({
     // }, `;
 
     //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
-
     const localidadUsuario = seccionalSelect?.options.find(
       (o) => o.value === seccionalSelect.selected.value
     )?.record?.localidadNombre;
@@ -239,7 +238,6 @@ const GestionOSForm = ({
                 ? data?.nombreTitular
                 : data?.nombrePaciente
             }</strong>, con DNI Nº <strong>${
-
               data?.dniPaciente ?? ""
             }</strong>, Afiliado Nº <strong>${
               data?.cuitTitular ?? ""
@@ -325,7 +323,6 @@ const GestionOSForm = ({
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
     }
-
 
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [titular]);
@@ -2100,7 +2097,7 @@ const GestionOSForm = ({
                           ...o,
                           selected,
                           origen: "option",
-                        }));                        
+                        }));
                         onChange({ gestionSubRubroId: selected.value });
                       }}
                       options={gestionSubRubroSelect.options}
