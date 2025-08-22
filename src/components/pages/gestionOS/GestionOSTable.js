@@ -19,21 +19,7 @@ const GestionOSTable = ({ columns, ...x } = {}) => {
 			sort: true,
 			formatter: (v) => Formato.Fecha(v),
 			headerStyle: { width: "120px", textAlign: "center" },
-		},
-		{
-			dataField: "cuitTitular",
-			text: "CUIL Titular",
-			sort: true,
-			formatter: Formato.Cuit,
-			headerStyle: (_colum, _colIndex) => ({ width: "150px" }),
-		},
-		{
-			dataField: "apellidoTitular",
-			text: "Titular",
-			sort: false,
-			formatter : (value, row) => `${row.apellidoTitular} ${row.nombreTitular}`,
-			style: { textAlign: "left" },
-		},
+		},		
 		{
 			dataField: "apellidoPaciente",
 			text: "Paciente",

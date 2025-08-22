@@ -129,6 +129,16 @@ const gestionAreaOspreraSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
 //#endregion gestionAreaOsprera Options
 
+//#region gestionObraSocial Options
+const gestionObraSocialSelectOptions = ({ data = [], buscar = "", ...x }) =>
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.nombre, record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
+//#endregion gestionObraSocial Options
+
 const GestionOSForm = ({
   data = {},
   title = "",
@@ -150,8 +160,6 @@ const GestionOSForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
-
-  console.log("data*", data); 
   const [selectedTab, setSelectedTab] = useState(0);
   const [mostrarAlertas, setMostrarAlertas] = useState(false);
   const [disabledItems, setDisabledItems] = useState(disabled);
@@ -179,10 +187,8 @@ const GestionOSForm = ({
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-
   //#endregion
 
-  // console.log("data,",data);
   //#region EMAIL
   //Se debe procesar el(envio de email)
   const sendEnviarEmailHandler = async () => {
@@ -192,25 +198,45 @@ const GestionOSForm = ({
       contentType: "application/octet-stream", // o usa el real si lo tienes
       base64Data: r.archivo,
     }));
-    const localidadUsuario = `${
-      usuarioLogueado.ambitoSeccionales == null
-        ? seccionalSelect.selected.record.localidadNombre
-        : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
-    }, `;
+    // const localidadUsuario = `${
+    //   usuarioLogueado.ambitoSeccionales == null
+    //     ? seccionalSelect.selected.record.localidad
+    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
+    // }, `;
+
+    //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
+    const localidadUsuario = seccionalSelect?.options.find(
+      (o) => o.value === seccionalSelect.selected.value
+    )?.record?.localidadNombre;
+
+    const emails = [
+      usuarioLogueado.email,
+      data?.emailContacto ?? [],
+      data?.emailContacto2 ?? [],
+    ];
+    //console.log("seccionalSelect1", seccionalSelect);
+    //console.log("localidadUsuario",localidadUsuario)
 
     pushQuery({
       action: "EnviarCorreo",
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
+          cco: emails.filter((email) => email),
           attachments: adjuntos,
           cuerpo:
-            `<p><strong>${localidadUsuario}${moment().format(
+            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
-            `${data.obraSocial}<br></br>DELEGACION<br></br><br></br>` +
-            `En representación del Afiliado <strong>${data?.apellidoTitular} ${
-              data?.nombreTitular
+            `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
+            `En representación del Afiliado <strong>${
+              !!data.titularPaciente
+                ? data?.apellidoTitular
+                : data?.apellidoPaciente
+            } ${
+              !!data.titularPaciente
+                ? data?.nombreTitular
+                : data?.nombrePaciente
             }</strong>, con DNI Nº <strong>${
               data?.dniPaciente ?? ""
             }</strong>, Afiliado Nº <strong>${
@@ -262,7 +288,7 @@ const GestionOSForm = ({
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
       if (request == "A") {
-        changes.elPacienteEsTitular = false;
+        // changes.elPacienteEsTitular = false;
         changes.tipoDocumentoId = false;
         changes.dniPaciente = false;
         changes.apellidoPaciente = false;
@@ -288,7 +314,8 @@ const GestionOSForm = ({
         changes.gestionEstado = false;
         changes.gestionSituacion = false;
         changes.gestionAreaOsprera = false;
-        changes.obraSocial = false;
+        changes.gestionObraSocial = false;
+        changes.observacionesEstado = false;
       }
     }
 
@@ -297,6 +324,92 @@ const GestionOSForm = ({
       changes.nombreTitular = true;
     }
 
+    setDisabledItems((o) => ({ ...o, ...changes }));
+  }, [titular]);
+  //#endregion
+
+  //#region El Paciente es titular
+  useEffect(() => {
+    const changes = {};
+
+    if (!!!data?.titularPaciente && request == "A") {
+      changes.tipoDocumentoId = "";
+      changes.dniPaciente = "";
+      changes.apellidoPaciente = "";
+      changes.nombrePaciente = "";
+
+      changes.fechaNacimiento = "";
+      changes.sexo = "";
+
+      changes.telefonoContacto = "";
+      changes.telefonoContacto2 = "";
+      changes.emailContacto = "";
+      changes.emailContacto2 = "";
+
+      changes.titularPaciente = false;
+    }
+
+    onChange(changes);
+  }, [data.titularPaciente]);
+
+  //#endregion
+
+  //#region Cambios atenciones previas
+  useEffect(() => {
+    const changes = {};
+    if (data?.atencionesPrevias === "S") {
+      changes.conCoberturaOsprera = false;
+      changes.tipoPrestador = false;
+    } else {
+      changes.conCoberturaOsprera = true;
+      changes.tipoPrestador = true;
+
+      onChange({ conCoberturaOsprera: "", tipoPrestador: "" });
+    }
+    setDisabledItems((o) => ({ ...o, ...changes }));
+  }, [data?.atencionesPrevias]);
+  //#endregion
+
+  // //#region Cambios medio gestion
+  // useEffect(() => {
+  //   if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
+
+  //   const changes = {};
+  //   if (
+  //     //gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
+  //     //(gestionEstadoSelect?.selected?.label?.toString().trim() === "FINALIZADO" &&
+  //     //  gestionSituacionSelect?.selected?.label?.toString().trim() === "CON RECLAMO FORMAL")
+  //     data?.gestionEstadoDescripcion?.toString().trim() === "RECLAMADO" ||
+  //     (data?.gestionEstadoDescripcion?.toString().trim() === "FINALIZADO" &&
+  //       data?.gestionSituacionDescripcion?.toString().trim() ===
+  //         "CON RECLAMO FORMAL")
+  //   ) {
+  //     changes.observacionesEstado = false;
+  //   } else {
+  //     changes.observacionesEstado = true;
+  //     onChange({ observacionesEstado: "" });
+  //   }
+
+  //   setDisabledItems((o) => ({ ...o, ...changes }));
+  // }, [data.gestionEstadoId, data.gestionSituacionId]);
+
+  //Tipo Gestion logica al cambiar valor
+  useEffect(() => {
+    if (
+      data?.gestionRubroDescripcion?.toString().toLowerCase() ===
+        "uso app/wapp" ||
+      data?.gestionRubroDescripcion?.toString().toLowerCase() ===
+        "registro de reclamos"
+    ) {
+      onChange({ medioGestion: "telefono" });
+      setDisabledItems((o) => ({ ...o, medioGestion: true }));
+    } else {
+      setDisabledItems((o) => ({ ...o, medioGestion: false }));
+    }
+  }, [data?.gestionRubroDescripcion]);
+
+  useEffect(() => {
+    const changes = {};
     if (data.medioGestion === "telefono") {
       changes.gestionEstado = false;
     } else {
@@ -319,77 +432,14 @@ const GestionOSForm = ({
     }
 
     setDisabledItems((o) => ({ ...o, ...changes }));
-  }, [titular, data?.medioGestion]);
-  //#endregion
-
-  //#region El Paciente es titular
-  useEffect(() => {
-    const changes = {};
-
-    if (!data?.elPacienteEsTitular && request == "A") {
-      changes.tipoDocumentoId = "";
-      changes.dniPaciente = "";
-      changes.apellidoPaciente = "";
-      changes.nombrePaciente = "";
-
-      changes.fechaNacimiento = "";
-      changes.sexo = "";
-
-      changes.telefonoContacto = "";
-      changes.telefonoContacto2 = "";
-      changes.emailContacto = "";
-      changes.emailContacto2 = "";
-
-      changes.titularPaciente = false;
-    }
-
-    onChange(changes);
-  }, [data.elPacienteEsTitular]);
-
-  //#endregion
-
-  //#region Cambios atenciones previas
-  useEffect(() => {
-    const changes = {};
-    if (data?.atencionesPrevias === "S") {
-      changes.conCoberturaOsprera = false;
-      changes.tipoPrestador = false;
-    } else {
-      changes.conCoberturaOsprera = true;
-      changes.tipoPrestador = true;
-
-      onChange({ conCoberturaOsprera: "", tipoPrestador: "" });
-    }
-    setDisabledItems((o) => ({ ...o, ...changes }));
-  }, [data?.atencionesPrevias]);
-  //#endregion
-
-  //#region Cambios medio gestion
-  useEffect(() => {
-    if (gestionEstadoSelect.loading || gestionSituacionSelect.loading) return;
-
-    const changes = {};
-    if (
-      //gestionEstadoSelect?.selected?.label?.toString().trim() === "RECLAMADO" ||
-      //(gestionEstadoSelect?.selected?.label?.toString().trim() === "FINALIZADO" &&
-      //  gestionSituacionSelect?.selected?.label?.toString().trim() === "CON RECLAMO FORMAL")
-      data?.gestionEstadoDescripcion?.toString().trim() === "RECLAMADO" ||
-      (data?.gestionEstadoDescripcion?.toString().trim() === "FINALIZADO" &&
-      data?.gestionSituacionDescripcion?.toString().trim() === "CON RECLAMO FORMAL")
-    ) {
-      changes.observacionesEstado = false;
-    } else {
-      changes.observacionesEstado = true;
-      onChange({ observacionesEstado: "" });
-    }
-    console.log("changes",changes);
-    setDisabledItems((o) => ({ ...o, ...changes }));
-  }, [data.gestionEstadoId, data.gestionSituacionId]);
+  }, [data?.medioGestion]);
 
   const onDownloadSolicitudAfiliacion = (conDatos) => {
     const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
     const { empleador } = titular || {};
-    const domicilioFiscal = empleador?.domicilios?.find((r) => r.tipoDomicilio === "FISCAL");
+    const domicilioFiscal = empleador?.domicilios?.find(
+      (r) => r.tipoDomicilio === "FISCAL"
+    );
 
     const dataFormulario = {
       "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
@@ -463,10 +513,10 @@ const GestionOSForm = ({
 
   //#region Controlo cada vez que se modifican los datos del titular
   useEffect(() => {
-    if (data?.elPacienteEsTitular) {
+    if (data?.titularPaciente) {
       handleDatosPaciente(true, titular);
     }
-  }, [titular, data?.elPacienteEsTitular]);
+  }, [titular, data?.titularPaciente]);
   //#endregion
 
   //#region Carga inicial Documentacion
@@ -559,6 +609,17 @@ const GestionOSForm = ({
     { query: { config: { errorType: "response" } } }
   );
 
+  const { setState: setGestionObraSocialQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/GestionesObraSocial`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+
   //#region Handle tab change
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);
@@ -634,12 +695,14 @@ const GestionOSForm = ({
       }
 
       case "GestionesSubRubroByRubro": {
+        const { GestionRubroId } = params;
         return {
           config: {
             baseURL: "Afiliaciones",
-            endpoint: `/GestionesSubRubro`,
+            endpoint: `/GestionesSubRubro/Rubro/${GestionRubroId}`,
             method: "GET",
           },
+          params: {},
         };
       }
 
@@ -783,7 +846,7 @@ const GestionOSForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalId },
+      selected: { value: data.seccionalId, label: data.seccionalDescripcion },
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccionales
@@ -1077,6 +1140,56 @@ const GestionOSForm = ({
   }, [setGestionAreaOspreraQuery]);
   //#endregion select GestionesAreaOsprera
 
+  //#region select GestionesObraSocial
+  const [gestionObraSocialSelect, setGestionObraSocialSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setGestionObraSocialSelect((o) => ({
+      ...o,
+      options: gestionObraSocialSelectOptions(o),
+    }));
+  }, [gestionObraSocialSelect.buscar, gestionObraSocialSelect.data]);
+
+  // Buscador
+  useEffect(() => {
+    setGestionObraSocialSelect((o) => ({
+      ...o,
+      selected: {
+        value: data.gestionObraSocialId,
+        label: gestionObraSocialSelect.options.find(
+          (r) => r.value === data.gestionObraSocialId
+        )?.label,
+      },
+    }));
+  }, [gestionObraSocialSelect.options]);
+
+  //Carga inicial select GestionObraSocial
+  useEffect(() => {
+    setGestionObraSocialQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok;
+
+        setGestionObraSocialSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setGestionObraSocialQuery]);
+  //#endregion select GestionesObraSocial
+
   useEffect(() => {
     const changes = {};
     if (data.telefono == null) changes.telefono = "+54 9";
@@ -1304,7 +1417,7 @@ const GestionOSForm = ({
 
   const handleDatosPaciente = (event) => {
     //setTitularPaciente(event)
-    onChange({ elPacienteEsTitular: event });
+    onChange({ titularPaciente: event });
 
     if (event) {
       const match = titular?.cuil
@@ -1675,9 +1788,9 @@ const GestionOSForm = ({
                     id="titularPaciente"
                     label="El Paciente es El Titular"
                     required
-                    value={data?.elPacienteEsTitular}
+                    value={data?.titularPaciente}
                     onChange={(v) => handleDatosPaciente(v)}
-                    disabled={disabledItems.elPacienteEsTitular}
+                    disabled={disabledItems.titularPaciente}
                   />
                 </Grid>
                 <Grid width="full" gap="inherit">
@@ -1963,7 +2076,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionRubroId: selected.value });
+                        onChange({
+                          gestionRubroId: selected.value,
+                          gestionRubroDescripcion: selected.label,
+                        });
                       }}
                       options={gestionRubroSelect.options}
                     />
@@ -2005,23 +2121,29 @@ const GestionOSForm = ({
                   />
                 </Grid>
 
-                <Grid width="100%" gap="inherit">
-                  <Grid width="100%" gap="inherit">
-                    <TextField
-                      fullWidth
-                      multiline
-                      label="Obra Social"
-                      error={!!errors.obraSocial}
-                      helperText={errors.obraSocial ?? ""}
-                      value={data.obraSocial}
-                      disabled={disabledItems?.obraSocial}
-                      onChange={(obraSocial) => {
-                        onChange({
-                          obraSocial: obraSocial.target.value.toUpperCase(),
-                        });
-                      }}
-                    />
-                  </Grid>
+                <Grid width="50%" gap="inherit">
+                  <SearchSelectMaterial
+                    required
+                    id="gestionObraSocial"
+                    name="gestionObraSocial"
+                    label="Obra Social"
+                    error={!!errors.gestionObraSocial}
+                    helperText={errors.gestionObraSocial ?? ""}
+                    value={gestionObraSocialSelect.selected}
+                    disabled={disabledItems.gestionObraSocial}
+                    onChange={(selected = {}) => {
+                      setGestionObraSocialSelect((o) => ({
+                        ...o,
+                        selected,
+                        origen: "option",
+                      }));
+                      onChange({
+                        gestionObraSocialId: selected.value,
+                        gestionObraSocialDescripcion: selected.label,
+                      });
+                    }}
+                    options={gestionObraSocialSelect.options}
+                  />
                 </Grid>
 
                 <FormControl
@@ -2043,11 +2165,13 @@ const GestionOSForm = ({
                     }
                   >
                     <FormControlLabel
+                      checked={data?.medioGestion === "email"}
                       value="email"
                       control={<Radio />}
                       label="Email"
                     />
                     <FormControlLabel
+                      checked={data?.medioGestion === "telefono"}
                       value="telefono"
                       control={<Radio />}
                       label="Teléfono"
@@ -2056,7 +2180,7 @@ const GestionOSForm = ({
                 </FormControl>
                 <Grid width="full">
                   <Grid width>
-                    {(data.medioGestion === "email" && (
+                    {(data?.medioGestion === "email" && (
                       <InputMaterial
                         id="direccionesEmailDestino"
                         name="email"
@@ -2070,7 +2194,7 @@ const GestionOSForm = ({
                         }
                       />
                     )) ||
-                      (data.medioGestion === "telefono" && (
+                      (data?.medioGestion === "telefono" && (
                         <Grid width>
                           <Grid width="350px">
                             <InputMaterial
@@ -2141,7 +2265,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionAreaOspreraId: selected.value });
+                        onChange({
+                          gestionAreaOspreraId: selected.value,
+                          gestionAreaOspreraDescripcion: selected.label,
+                        });
                       }}
                       options={gestionAreaOspreraSelect.options}
                     />
