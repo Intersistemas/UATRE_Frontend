@@ -33,7 +33,6 @@ const GestionOSHandler = () => {
     loading: "Cargando...",
     data: [],
     error: null,
-    filtroSeccional: {},
   });
   // const [paramsEditSeccional, setParamsEdit] = useState({
   //   reload: false,

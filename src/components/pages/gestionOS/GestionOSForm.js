@@ -693,7 +693,6 @@ const GestionOSForm = ({
           },
         };
       }
-
       case "GestionesSubRubroByRubro": {
         const { GestionRubroId } = params;
         return {
