@@ -495,7 +495,7 @@ const GestionOSHandler = () => {
         <Grid row gap="10px">
           <Grid width col gap="inherit">
             <Grid gap="inherit">
-              {/*<Grid grow>
+              <Grid grow>
                 <SearchSelectMaterial
                   disabled={Usuario.ambitoTodos === null}
                   label="Seccional"
@@ -511,7 +511,7 @@ const GestionOSHandler = () => {
                   }
                   options={seccionalSelect?.options}
                 />
-              </Grid>*/ }
+              </Grid>
               <Grid grow>
                 <InputMaterial
                   label="Filtro por CUIL / Apellido Titular"
