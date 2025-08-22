@@ -253,7 +253,7 @@ const useGestionOS = ({
     } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
       usuarioAdulterado = {
         ambitoSeccionales: {
-          ids: [ambito?.ids[0]],
+          ids: [filtroSeccional],
         },
         ambitoTodos: null,
       };
