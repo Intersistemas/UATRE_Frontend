@@ -205,27 +205,21 @@ const GestionOSForm = ({
     // }, `;
 
     //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
-    const localidadUsuario = seccionalSelect?.options.find(
-      (o) => o.value === seccionalSelect.selected.value
-    )?.record?.localidadNombre;
 
-    const emails = [
-      usuarioLogueado.email,
-      data?.emailContacto ?? [],
-      data?.emailContacto2 ?? [],
-    ];
-    //console.log("seccionalSelect1", seccionalSelect);
-    //console.log("localidadUsuario",localidadUsuario)
+    const localidadUsuario = `${seccionalSelect?.selected?.record?.localidadNombre}, `;
+
+    const emails = [usuarioLogueado.email, (data?.emailContacto ?? []), (data?.emailContacto2 ?? [])]
+
 
     pushQuery({
       action: "EnviarCorreo",
       config: {
         body: {
           to: [data?.direccionesEmailDestino] ?? [],
-          cco: emails.filter((email) => email),
+          cco: emails.filter(email => email),
           attachments: adjuntos,
           cuerpo:
-            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
+            `<p><strong>${localidadUsuario ?? " "}${moment().format(
               "DD/MM/YYYY"
             )}</strong><br></br>` +
             `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
