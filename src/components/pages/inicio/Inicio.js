@@ -30,6 +30,7 @@ const Inicio = () => {
 	tareas.hasTarea("App_Tabla", "Administrador App") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("App")}     ><>Administración A<text className="underline">p</text>p</></Button>);
 	////////////////////////////////////////////////
 	tareas.hasTarea("Relevamiento_Tabla", "Administrador Relevamiento") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Relevamiento")}     ><>Relevamiento de <text className="underline">T</text>rabajadores</></Button>);
+	tareas.hasTarea("Relevamiento_Tabla", "Administrador Relevamiento") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Relevamiento")}     ><><text className="underline">R</text>elevamiento de Trabajadores</></Button>);
 
 	console.log("accesos",accesos)
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
@@ -41,7 +42,7 @@ const Inicio = () => {
 	UseKeyPress(['n'], ()=>navigate("Consultas"), 'AltKey');
 	UseKeyPress(['o'], ()=>navigate("GestionOS"), 'AltKey');
 	UseKeyPress(['p'], ()=>navigate("App"), 'AltKey');
-	UseKeyPress(['t'], ()=>navigate("Relevamiento"), 'AltKey');
+	UseKeyPress(['r'], ()=>navigate("Relevamiento"), 'AltKey');
 		
 	
 	useEffect(() => {
