@@ -30,7 +30,6 @@ const Inicio = () => {
 	tareas.hasTarea("App_Tabla", "Administrador App") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("App")}     ><>Administración A<text className="underline">p</text>p</></Button>);
 	////////////////////////////////////////////////
 	tareas.hasTarea("Relevamiento_Tabla", "Administrador Relevamiento") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Relevamiento")}     ><>Relevamiento de <text className="underline">T</text>rabajadores</></Button>);
-	tareas.hasTarea("Relevamiento_Tabla", "Administrador Relevamiento") && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" &&   accesos.push(<Button className="botonAmarillo" onClick={() => navigate("Relevamiento")}     ><><text className="underline">R</text>elevamiento de Trabajadores</></Button>);
 
 	console.log("accesos",accesos)
 	const [botonesAccesos, setBotonesAccesos] = useState(accesos)
