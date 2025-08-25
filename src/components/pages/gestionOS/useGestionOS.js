@@ -240,16 +240,22 @@ const useGestionOS = ({
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
-    console.log("ambito", ambito);
     var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales") {
+    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
         },
         ambitoTodos: null,
       };
-    }    
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [filtroSeccional],
+        },
+        ambitoTodos: null,
+      };
+    }
 
     pushQuery({
       action: "GetList",
@@ -267,7 +273,7 @@ const useGestionOS = ({
           ambitoSeccionales:
             filtroSeccional !== undefined && filtroSeccional !== 0
               ? usuarioAdulterado.ambitoSeccionales
-              : usuarioAdulterado.ambitoSeccionales,
+              : usuario.ambitoSeccionales,
           sort: "FechaDesc,IdDesc",
           ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
             ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
