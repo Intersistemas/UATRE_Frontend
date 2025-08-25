@@ -29,7 +29,7 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
   const [isBusy, setIsBusy] = useState(false);
 
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     const actions = [];
     dispatch(handleModuloSeleccionar("SIARU", actions));
@@ -138,7 +138,6 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
       selected: { value: 0, label: "" },
       error: formasPago.error,
     };
-    console.log("cambio select", changes);
     setFormaPagoSelect((o) => ({ ...o, ...changes }));
   }, [formasPago, formaPagoSelect]);
 
@@ -176,7 +175,9 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
     contenido = (
       <Grid width col>
         <SearchSelectMaterial
-          onKeyDown={(e) => {e.preventDefault();}}
+          onKeyDown={(e) => {
+            e.preventDefault();
+          }}
           label="Forma de pago"
           error={!!formaPagoSelect.error}
           helperText={formaPagoSelect.loading ?? formaPagoSelect.error ?? ""}
@@ -203,6 +204,55 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
       </Grid>
     );
   }
+
+  const procesar = () => {
+    setIsBusy(!isBusy);
+    pushQuery({
+      action: "PostProcesoEntidadesRecaudadoras",
+      params: {
+        formaPagoId: formaPago,
+        archivo: archivoSeleccionado,
+      },
+      onOk: async (data) => {
+        const blob = data;
+        const urlBlob = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = urlBlob;
+        a.download = archivoSeleccionado.nombreArchivo;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(urlBlob);
+      },
+      onError: async (error) => {
+        setModal(
+          <Modal size="lg" centered show>
+            <Modal.Header className={modalCss.modalCabecera} closeButton />
+            <Modal.Body>
+              <Grid width="full" justify="center">
+                <Grid className="titulo" width="full">
+                  <h4>Error en el procesamiento: {error.code === 404 ? 'Boleta no encontrada' : error.message}</h4>
+                </Grid>
+              </Grid>
+            </Modal.Body>
+            <Modal.Footer>
+              <Grid gap="20px">
+                <Grid width="150px">
+                  <Button
+                    className="botonAmarillo"
+                    onClick={() => setModal(null)}
+                  >
+                    ACEPTA
+                  </Button>
+                </Grid>
+              </Grid>
+            </Modal.Footer>
+          </Modal>
+        );
+      },
+      onFinally: async () => setIsBusy(false),
+    });
+  };
 
   return (
     <Grid col height="100vh" gap="10px">
@@ -242,57 +292,11 @@ const ProcesosEntRecaudadorasHandler = (onClose, onCloseDef) => {
               {archivoSeleccionado.nombreArchivo == null ? null : (
                 <Button
                   className="botonAmarillo"
-                  disabled={(formaPagoSelect.selected?.value ?? 0) === 0 || isBusy}
+                  disabled={
+                    (formaPagoSelect.selected?.value ?? 0) === 0 || isBusy
+                  }
                   loading={formaPago.loading}
-                  onClick={() => {
-                    setIsBusy(!isBusy);
-                    pushQuery({
-                      action: "PostProcesoEntidadesRecaudadoras",
-                      params: {
-                        formaPagoId: formaPago,
-                        archivo: archivoSeleccionado,
-                      },
-                      onOk: async (data) => {
-                        const blob = data;
-                        const urlBlob = window.URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = urlBlob;
-                        a.download = archivoSeleccionado.nombreArchivo;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(urlBlob);
-                      },
-                      onError: async (error) => {
-                        setModal(
-                          <Modal size="lg" centered show>
-                            <Modal.Header
-                              className={modalCss.modalCabecera}
-                              closeButton
-                            />
-                            <Modal.Body>
-                              <Grid width="full" justify="center">
-                                <h4>{error}</h4>
-                              </Grid>
-                            </Modal.Body>
-                            <Modal.Footer>
-                              <Grid gap="20px">
-                                <Grid width="150px">
-                                  <Button
-                                    className="botonAmarillo"
-                                    onClick={() => setModal(null)}
-                                  >
-                                    ACEPTA
-                                  </Button>
-                                </Grid>
-                              </Grid>
-                            </Modal.Footer>
-                          </Modal>
-                        );
-                      },
-                      onFinally: async () => setIsBusy(false),
-                    });
-                  }}
+                  onClick={() => procesar()}
                 >
                   PROCESA
                 </Button>

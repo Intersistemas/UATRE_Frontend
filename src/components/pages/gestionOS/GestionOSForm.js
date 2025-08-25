@@ -205,11 +205,10 @@ const GestionOSForm = ({
     // }, `;
 
     //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
+
     const localidadUsuario = `${seccionalSelect?.selected?.record?.localidadNombre}, `;
 
     const emails = [usuarioLogueado.email, (data?.emailContacto ?? []), (data?.emailContacto2 ?? [])]
-    //console.log("seccionalSelect1", seccionalSelect);
-   //console.log("localidadUsuario",localidadUsuario)
 
 
     pushQuery({
@@ -228,7 +227,11 @@ const GestionOSForm = ({
               !!data.titularPaciente
                 ? data?.apellidoTitular
                 : data?.apellidoPaciente
-            } ${!!data.titularPaciente ? data?.nombreTitular : data?.nombrePaciente}</strong>, con DNI Nº <strong>${
+            } ${
+              !!data.titularPaciente
+                ? data?.nombreTitular
+                : data?.nombrePaciente
+            }</strong>, con DNI Nº <strong>${
               data?.dniPaciente ?? ""
             }</strong>, Afiliado Nº <strong>${
               data?.cuitTitular ?? ""
@@ -313,7 +316,7 @@ const GestionOSForm = ({
     if (titular.existeEnUATRE) {
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
-    }    
+    }
 
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [titular]);
@@ -399,7 +402,7 @@ const GestionOSForm = ({
     }
   }, [data?.gestionRubroDescripcion]);
 
-  useEffect(() =>{ 
+  useEffect(() => {
     const changes = {};
     if (data.medioGestion === "telefono") {
       changes.gestionEstado = false;
@@ -684,16 +687,15 @@ const GestionOSForm = ({
           },
         };
       }
-
-      case "GestionesSubRubroByRubro": {      
-        const { GestionRubroId } = params;          
+      case "GestionesSubRubroByRubro": {
+        const { GestionRubroId } = params;
         return {
           config: {
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSubRubro/Rubro/${GestionRubroId}`,
             method: "GET",
           },
-          params: {}
+          params: {},
         };
       }
 
@@ -2066,8 +2068,11 @@ const GestionOSForm = ({
                           ...o,
                           selected,
                           origen: "option",
-                        }));                        
-                        onChange({ gestionRubroId: selected.value, gestionRubroDescripcion: selected.label });
+                        }));
+                        onChange({
+                          gestionRubroId: selected.value,
+                          gestionRubroDescripcion: selected.label,
+                        });
                       }}
                       options={gestionRubroSelect.options}
                     />
@@ -2086,7 +2091,7 @@ const GestionOSForm = ({
                           ...o,
                           selected,
                           origen: "option",
-                        }));                        
+                        }));
                         onChange({ gestionSubRubroId: selected.value });
                       }}
                       options={gestionSubRubroSelect.options}
@@ -2125,7 +2130,10 @@ const GestionOSForm = ({
                         selected,
                         origen: "option",
                       }));
-                      onChange({ gestionObraSocialId: selected.value, gestionObraSocialDescripcion: selected.label });
+                      onChange({
+                        gestionObraSocialId: selected.value,
+                        gestionObraSocialDescripcion: selected.label,
+                      });
                     }}
                     options={gestionObraSocialSelect.options}
                   />
@@ -2250,7 +2258,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionAreaOspreraId: selected.value, gestionAreaOspreraDescripcion: selected.label });
+                        onChange({
+                          gestionAreaOspreraId: selected.value,
+                          gestionAreaOspreraDescripcion: selected.label,
+                        });
                       }}
                       options={gestionAreaOspreraSelect.options}
                     />
