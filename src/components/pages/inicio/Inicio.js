@@ -41,7 +41,7 @@ const Inicio = () => {
 	UseKeyPress(['n'], ()=>navigate("Consultas"), 'AltKey');
 	UseKeyPress(['o'], ()=>navigate("GestionOS"), 'AltKey');
 	UseKeyPress(['p'], ()=>navigate("App"), 'AltKey');
-	UseKeyPress(['t'], ()=>navigate("Relevamiento"), 'AltKey');
+	UseKeyPress(['r'], ()=>navigate("Relevamiento"), 'AltKey');
 		
 	
 	useEffect(() => {

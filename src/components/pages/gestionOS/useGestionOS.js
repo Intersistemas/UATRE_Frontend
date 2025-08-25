@@ -239,7 +239,7 @@ const useGestionOS = ({
     const filtroSeccional = list?.params?.filtroSeccional?.value;
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
-
+    
     var usuarioAdulterado = {};
     if (ambito.tipo === "Seccionales" && !filtroSeccional) {
       usuarioAdulterado = {
@@ -256,6 +256,7 @@ const useGestionOS = ({
         ambitoTodos: null,
       };
     }
+
 
     pushQuery({
       action: "GetList",
