@@ -239,9 +239,8 @@ const useGestionOS = ({
     const filtroSeccional = list?.params?.filtroSeccional?.value;
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
-
     var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
+    if (ambito.tipo === "Seccionales") {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
@@ -256,7 +255,6 @@ const useGestionOS = ({
         ambitoTodos: null,
       };
     }
-
     pushQuery({
       action: "GetList",
       config: {
@@ -273,7 +271,7 @@ const useGestionOS = ({
           ambitoSeccionales:
             filtroSeccional !== undefined && filtroSeccional !== 0
               ? usuarioAdulterado.ambitoSeccionales
-              : usuario.ambitoSeccionales,
+              : usuarioAdulterado.ambitoSeccionales,
           sort: "FechaDesc,IdDesc",
           ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
             ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
