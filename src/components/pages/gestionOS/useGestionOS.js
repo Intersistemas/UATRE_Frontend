@@ -239,8 +239,6 @@ const useGestionOS = ({
     const filtroSeccional = list?.params?.filtroSeccional?.value;
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
-
-    console.log("ambito", ambito);
     var usuarioAdulterado = {};
     if (ambito.tipo === "Seccionales") {
       usuarioAdulterado = {
@@ -249,7 +247,14 @@ const useGestionOS = ({
         },
         ambitoTodos: null,
       };
-    }    
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [filtroSeccional],
+        },
+        ambitoTodos: null,
+      };
+    }
     pushQuery({
       action: "GetList",
       config: {
