@@ -216,7 +216,6 @@ const GestionOSForm = ({
     ];
     //console.log("seccionalSelect1", seccionalSelect);
     //console.log("localidadUsuario",localidadUsuario)
-
     pushQuery({
       action: "EnviarCorreo",
       config: {
@@ -430,7 +429,6 @@ const GestionOSForm = ({
         onChange({ gestionEstadoId: estadoIniciado?.value });
       }
     }
-
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [data?.medioGestion]);
 
