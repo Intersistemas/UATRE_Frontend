@@ -250,7 +250,6 @@ const useGestionOS = ({
         ambitoTodos: null,
       };
     }    
-
     pushQuery({
       action: "GetList",
       config: {
