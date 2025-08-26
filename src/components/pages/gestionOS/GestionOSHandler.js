@@ -17,7 +17,7 @@ import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
 
 import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
-import useDocumentaciones from "components/Documentacion/useDocumentaciones";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 /* === Nuevo agregado: Modal del informe === */
 import ExcelDatos from "./ExcelDatos";
