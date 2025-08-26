@@ -10,10 +10,13 @@ import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
 import PDF_SolicitudAfiliacionHandler from "../afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacionHandler";
+import { generarPDFLibSolicitudAfiliacion } from "../afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const ConsultasHandler = () => {
 	const navigate = useNavigate();
 	const [consulta, setConsulta] = useState();
+	const [paginaActual, setPaginaActual] = useState();
+	const [totalPaginas, setTotalPaginas] = useState();
 	const pdfRef = useRef();
 
 	const tabs = [];
@@ -23,8 +26,15 @@ const ConsultasHandler = () => {
 	const disableTabSeccionales = !tarea.hasTarea("Consultas_Seccionales");
 	const disableTabAfiliados = !tarea.hasTarea("Consultas_Afiliados");
 
-	const handleClick = () => {
-		pdfRef.current?.generarPDF();
+	const handleClick = async () => {
+		// Generamos un solo PDF con todos los trabajadores
+			const base64PDF = await generarPDFLibSolicitudAfiliacion({
+			  datos: {},
+			  setPaginaActual,
+			  setTotalPaginas,
+			  descargar: true,
+			  nombreArchivo: "SolicitudesDeAfiliacion.pdf",
+			});
 	};
 
 	console.log("disableTabSeccionales",disableTabSeccionales)
@@ -149,7 +159,6 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				<PDF_SolicitudAfiliacionHandler ref={pdfRef} datos={{}} />
 			</>
 		),
 		// actions,
