@@ -95,299 +95,336 @@ const useGestionOS = ({
   columns,
   hideSelectColumn = true,
   mostrarBuscar = false,
-} = {}) => {	
-	const { usuario } = useContext(AuthContext);
-	const ambito = useAmbitos().ambitoUser();
+} = {}) => {
+  const { usuario } = useContext(AuthContext);
+  const ambito = useAmbitos().ambitoUser();
 
-	
+  //#region Trato queries a APIs
+  const pushQuery = useQueryQueue((action, params) => {
+    // console.log("useFormularioOsprera, params", params);
+    // console.log("useFormularioOsprera, action", action);
+    switch (action) {
+      case "GetList": {
+        const { filtro2, ...otherParams } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
+            method: "POST",
+          },
+          params: otherParams,
+        };
+      }
 
-	//#region Trato queries a APIs
-	const pushQuery = useQueryQueue((action, params) => {
-		 console.log("useFormularioOsprera, params", params);
-		// console.log("useFormularioOsprera, action", action);
-		switch (action) {
-			case "GetList": {
-				const { filtro2, ...otherParams } = params;
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: "/GestionOsprera/GetGestionOSpreraSpec",
-						method: "POST",
-					},
-					params: otherParams,
-				};
-			}
-			
-			case "GetAccesoOspreraSpecs": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
-						method: "POST",
-					},
-				};
-			}
-			case "Create": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera`,
-						method: "POST",
-					},
-				};
-			}
-			case "Update": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera`,
-						method: "PUT",
-					},
-				};
-			}
-			case "Delete": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/DarDeBaja`,
-						method: "PATCH",
-					},
-				};
-			}
-			case "Reactiva": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/GestionOsprera/Reactivar`,
-						method: "PATCH",
-					},
-				};
-			}
+      case "GetAccesoOspreraSpecs": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+          },
+        };
+      }
+      case "Create": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera`,
+            method: "POST",
+          },
+        };
+      }
+      case "Update": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera`,
+            method: "PUT",
+          },
+        };
+      }
+      case "Delete": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/DarDeBaja`,
+            method: "PATCH",
+          },
+        };
+      }
+      case "Reactiva": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/Reactivar`,
+            method: "PATCH",
+          },
+        };
+      }
 
-			case "GetSeccionalesSpecs": {
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-						endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
-						method: "GET", 
-					},
-				};
-			}
-			default:
-				return null;
-		}
-	});
-	//#endregion
+      case "GetSeccionalesSpecs": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
+            method: "GET",
+          },
+        };
+      }
+      default:
+        return null;
+    }
+  });
+  //#endregion
 
-	//#region declaracion y carga list y selected
-	const [list, setList] = useState({
-		loading: null,
-		remote: remoteInit,
-		loadingOverride: loading,
-		params: { ...paramsInit, 
-			...{ambitoTodos: usuario.ambitoTodos,
-				ambitoProvincias: usuario.ambitoProvincias,
-				ambitoDelegaciones: usuario.ambitoDelegaciones,
-				ambitoSeccionales: usuario.ambitoSeccionales
-			}
-		},
-		pagination: { index: 1, size: 5, ...paginationInit },
-		data: [...AsArray(dataInit, true)],
-		seccionales: [],
-		error,
-		selection: {
-			...selectionDef,
-			multi: multiInit,
-		},
-		onLoadSelect:
-			onLoadSelectInit === onLoadSelectFirst && multiInit
-				? onLoadSelectSame
-				: onLoadSelectInit,
-		onDataChange: onDataChangeInit ?? onDataChangeDef,
-	});
+  //#region declaracion y carga list y selected
+  const [list, setList] = useState({
+    loading: null,
+    remote: remoteInit,
+    loadingOverride: loading,
+    params: {
+      ...paramsInit,
+      ...{
+        ambitoTodos: usuario.ambitoTodos,
+        ambitoProvincias: usuario.ambitoProvincias,
+        ambitoDelegaciones: usuario.ambitoDelegaciones,
+        ambitoSeccionales: usuario.ambitoSeccionales,
+      },
+    },
+    pagination: { index: 1, size: 5, ...paginationInit },
+    data: [...AsArray(dataInit, true)],
+    seccionales: [],
+    error,
+    selection: {
+      ...selectionDef,
+      multi: multiInit,
+    },
+    onLoadSelect:
+      onLoadSelectInit === onLoadSelectFirst && multiInit
+        ? onLoadSelectSame
+        : onLoadSelectInit,
+    onDataChange: onDataChangeInit ?? onDataChangeDef,
+  });
 
+  useEffect(() => {
+    if (!list.loading) return;
+    const changes = { loading: null, error: null };
+    if (!list.remote) {
+      const data = list.data;
+      const error = list.error;
+      const multi = list.selection.multi;
+      const record = list.selection.record;
+      changes.data = data;
+      changes.error = error;
+      changes.selection = {
+        ...list.selection,
+        ...selectionDef,
+        record: list.onLoadSelect({ data, multi, record }),
+      };
 
-
-	useEffect(() => {
-		if (!list.loading) return;
-		const changes = { loading: null, error: null };
-		if (!list.remote) {
-			const data = list.data;
-			const error = list.error;
-			const multi = list.selection.multi;
-			const record = list.selection.record;
-			changes.data = data;
-			changes.error = error;
-			changes.selection = {
-				...list.selection,
-				...selectionDef,
-				record: list.onLoadSelect({ data, multi, record }),
-			};
-
-			changes.selection.index = multi
-				? changes.selection.record?.map((r) => changes.data.indexOf(r))
-				: changes.data.indexOf(changes.selection.record);
-			setList((o) => ({ ...o, ...changes }));
-			return;
-		}
-		changes.data = [];
-		// console.log("userFormularioOsprera_list",list)
-		const soloLetras = /^[A-Za-z]+$/;
-		const filtro = list?.params?.filtro;
+      changes.selection.index = multi
+        ? changes.selection.record?.map((r) => changes.data.indexOf(r))
+        : changes.data.indexOf(changes.selection.record);
+      setList((o) => ({ ...o, ...changes }));
+      return;
+    }
+    changes.data = [];
+    // console.log("userFormularioOsprera_list",list)
+    const soloLetras = /^[A-Za-z]+$/;
+    const filtro = list?.params?.filtro;
     const filtroPaciente = list?.params?.filtroPaciente;
-    const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
+    const filtroMedioGestion = list?.params?.filtroMedioGestion?.value;
     const filtroTipoEstado = list?.params?.filtroTipoEstado?.value;
     const filtroTipoSituacion = list?.params?.filtroTipoSituacion?.value;
+    const filtroSeccional = list?.params?.filtroSeccional?.value;
+    const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
+    const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
+    var usuarioAdulterado = {};
+    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [ambito?.ids[0]],
+        },
+        ambitoTodos: null,
+      };
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [filtroSeccional],
+        },
+        ambitoTodos: null,
+      };
+    }
+    pushQuery({
+      action: "GetList",
+      config: {
+        body: {
+          ...list.params,
+          pageIndex: list.pagination.index,
+          pageSize: list.pagination.size,
+          ambitoTodos:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoTodos
+              : usuario.ambitoTodos,
+          ambitoProvincias: usuario.ambitoProvincias,
+          ambitoDelegaciones: usuario.ambitoDelegaciones,
+          ambitoSeccionales:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoSeccionales
+              : usuario.ambitoSeccionales,
+          sort: "FechaDesc,IdDesc",
+          ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
+            ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
+            : { apellidoTitular: filtro }),
+          ...(!soloLetras.test(filtroPaciente)
+            ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
+            : { apellidoPaciente: filtroPaciente }),
+          ...(filtroMedioGestion && filtroMedioGestion !== 0
+            ? { medioGestion: filtroMedioGestion }
+            : null),
+          ...(filtroTipoEstado && filtroTipoEstado !== 0
+            ? { gestionEstadoId: filtroTipoEstado }
+            : null),
+          ...(filtroTipoSituacion && filtroTipoSituacion !== 0
+            ? { gestionSituacionId: filtroTipoSituacion }
+            : null),
+          ...(filtroTipoGestion && filtroTipoGestion !== 0
+            ? { gestionRubroId: filtroTipoGestion }
+            : null),
+          ...(filtroDetalleTipoGestion && filtroDetalleTipoGestion !== 0
+            ? { gestionSubRubroId: filtroDetalleTipoGestion }
+            : null),
+        },
+      },
 
-    console.log("filtroTipoSituacion",filtroTipoSituacion);
+      onOk: async ({ index, size, count, data }) => {
+        if (!Array.isArray(data))
+          return console.error("Se esperaba un arreglo", data);
+        changes.data = data;
+        const multi = list.selection.multi;
+        const record = list.selection.record;
+        changes.pagination = { index, size, count };
+        changes.selection = {
+          ...list.selection,
+          ...selectionDef,
+          record: list.onLoadSelect({ data, multi, record }),
+        };
 
-		pushQuery({
-			action: "GetList",
-			config: {
-				body: {
-					...list.params,
-					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size,
-					ambitoTodos: usuario.ambitoTodos,
-					ambitoProvincias: usuario.ambitoProvincias,
-					ambitoDelegaciones: usuario.ambitoDelegaciones,
-					ambitoSeccionales: usuario.ambitoSeccionales,
-					sort: "FechaDesc,IdDesc",
-					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro }),
-          ...(!soloLetras.test(filtroPaciente) ?  {dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, '')} : { apellidoPaciente: filtroPaciente }),
-          ...(filtroTipoGestion && filtroTipoGestion != "Todos" ?  {medioGestion: filtroTipoGestion} : null),
-          ...(filtroTipoEstado && filtroTipoEstado != "Todos" ?  {gestionEstadoId: filtroTipoEstado} : null),
-          ...(filtroTipoSituacion && filtroTipoSituacion != "Todos" ?  {gestionSituacionId: filtroTipoSituacion} : null),
-				},
-			},
-			
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { index, size, count };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
+        changes.selection.index = multi
+          ? changes.selection.record?.map((r) => changes.data.indexOf(r))
+          : changes.data.indexOf(changes.selection.record);
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
+        list.onDataChange(changes.data);
+      },
+      onError: async (error) => {
+        if (error.code === 404) return;
+        changes.error = error;
+        changes.selection = { ...list.selection, ...selectionDef };
+      },
+      onFinally: async () => setList((o) => ({ ...o, ...changes })),
+    });
+  }, [pushQuery, list]);
+  //#endregion
 
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
-	}, [pushQuery, list]);
-	//#endregion
-
-	const request = useCallback((type, payload = {}) => {
-		switch (type) {
-			case "selected": {
-				return setList((o) => {
-					const apply = [];
-					if (payload.request !== "A") {
-						apply.push(
-							...AsArray(
-								"record" in payload ? payload.record : o.selection.record,
-								true
-							)
-								.map(({ id }) => id)
-								.filter((r) => r)
-						);
-					}
-					const edit = {
-						...(payload.request === "A"
-							? {}
-							: JoinOjects(o.selection.record)),
-						...JoinOjects(payload.record),
-					};
-					return {
-						...o,
-						selection: {
-							...o.selection,
-							request: payload.request,
-							action: payload.action,
-							edit,
-							apply,
-						},
-					};
-				});
-			}
-			case "list": {
-				return setList((o) => {
-					const changes = {
-						loading: null,
-						data:
-							"data" in payload && Array.isArray(payload.data)
-								? [...payload.data]
-								: payload.clear
-								? []
-								: o.data,
-						loadingOverride: payload.loading,
-						error: payload.error,
-						onLoadSelect:
-							"onLoadSelect" in payload
-								? payload.onLoadSelect
-								: o.onLoadSelect,
-						selection: {
-							...o.selection,
-							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
-						},
-					};
-					if (payload.params) {
-						changes.params = {
-							...pick(o.params, paramsInit),
-							...payload.params
-						};
-					}
-					if (payload.pagination)
-						changes.pagination = { ...o.pagination, ...payload.pagination };
-					if (payload.clear) {
-						const data = changes.data;
-						const multi = changes.selection.multi;
-						const record = o.selection.record;
-						changes.selection = {
-							...changes.selection,
-							...selectionDef,
-							record: changes.onLoadSelect({ data, multi, record }),
-						};
-						changes.selection.index = multi
-							? changes.selection.record?.map((r) => changes.data.indexOf(r))
-							: changes.data.indexOf(changes.selection.record);
-					} else {
-						changes.loading = "Cargando...";
-					}
-					return { ...o, ...changes };
-				});
-			}
-			default:
-				return;
-		}
-	}, [pushQuery]);
-
-	let form = null;
-	if (list.selection.request) {
-		// console.log("list", list)
-		form = (
-			<GestionOSForm
-				data={(() => { 
-					//console.log('list.selection',list.selection)
-					//INIT DE DATOS DEL FORM
-					const data =
-					//seccionalId = list.selection.edit.refSeccionalId,
-					["A"].includes(list.selection.request) ?  //INIT PARA ALTA
-						{
-							/*fecha: moment().format("YYYY-MM-DD"),
+  const request = useCallback(
+    (type, payload = {}) => {
+      switch (type) {
+        case "selected": {
+          return setList((o) => {
+            const apply = [];
+            if (payload.request !== "A") {
+              apply.push(
+                ...AsArray(
+                  "record" in payload ? payload.record : o.selection.record,
+                  true
+                )
+                  .map(({ id }) => id)
+                  .filter((r) => r)
+              );
+            }
+            const edit = {
+              ...(payload.request === "A"
+                ? {}
+                : JoinOjects(o.selection.record)),
+              ...JoinOjects(payload.record),
+            };
+            return {
+              ...o,
+              selection: {
+                ...o.selection,
+                request: payload.request,
+                action: payload.action,
+                edit,
+                apply,
+              },
+            };
+          });
+        }
+        case "list": {
+          return setList((o) => {
+            const changes = {
+              loading: null,
+              data:
+                "data" in payload && Array.isArray(payload.data)
+                  ? [...payload.data]
+                  : payload.clear
+                  ? []
+                  : o.data,
+              loadingOverride: payload.loading,
+              error: payload.error,
+              onLoadSelect:
+                "onLoadSelect" in payload
+                  ? payload.onLoadSelect
+                  : o.onLoadSelect,
+              selection: {
+                ...o.selection,
+                multi: "multi" in payload ? !!payload.multi : o.selection.multi,
+              },
+            };
+            if (payload.params) {
+              changes.params = {
+                ...pick(o.params, paramsInit),
+                ...payload.params,
+              };
+            }
+            if (payload.pagination)
+              changes.pagination = { ...o.pagination, ...payload.pagination };
+            if (payload.clear) {
+              const data = changes.data;
+              const multi = changes.selection.multi;
+              const record = o.selection.record;
+              changes.selection = {
+                ...changes.selection,
+                ...selectionDef,
+                record: changes.onLoadSelect({ data, multi, record }),
+              };
+              changes.selection.index = multi
+                ? changes.selection.record?.map((r) => changes.data.indexOf(r))
+                : changes.data.indexOf(changes.selection.record);
+            } else {
+              changes.loading = "Cargando...";
+            }
+            return { ...o, ...changes };
+          });
+        }
+        default:
+          return;
+      }
+    },
+    [pushQuery]
+  );
+  let form = null;
+  if (list.selection.request) {
+    // console.log("list", list)
+    form = (
+      <GestionOSForm
+        data={(() => {
+          //INIT DE DATOS DEL FORM
+          const data =
+            //seccionalId = list.selection.edit.refSeccionalId,
+            ["A"].includes(list.selection.request) //INIT PARA ALTA
+              ? {
+                  /*fecha: moment().format("YYYY-MM-DD"),
 							fechaEnvioMail: null,
 							direccionesEmailDestino: null,
 							respuestaEnvioEmail: null,
@@ -396,8 +433,10 @@ const useGestionOS = ({
                     list.selection.edit.seccionalId ??
                     usuario?.ambitoSeccionales?.ids[0] ??
                     0,
-                  elPacienteEsTitular:
-                    list.selection.edit.elPacienteEsTitular ?? false,
+                  seccionalDescripcion:
+                    usuario?.ambitosDescripciones[0]?.seccionalDescripcion ??
+                    "",
+                  titularPaciente: list.selection.edit.titularPaciente ?? false,
                   atencionesPrevias:
                     list.selection.edit.atencionesPrevias ?? "",
                   conCoberturaOsprera:
@@ -429,7 +468,7 @@ const useGestionOS = ({
             telefonoContacto2: true,
             emailContacto: true,
             emailContacto2: true,
-            elPacienteEsTitular: true,
+            titularPaciente: true,
             dniPaciente: true,
             nombrePaciente: true,
             apellidoPaciente: true,
@@ -450,13 +489,9 @@ const useGestionOS = ({
             conCoberturaOsprera: true,
             tipoPrestador: true,
             atencionesPrevias: true,
-            obraSocial: true,
-
-            //observacionesEstado  = gestionEstadoDescripcion "RECLAMADO" || gestionEstadoDescripcion == "FINALIZADO" &&  gestionSituacionDescripcion == "CON RECLAMO FORMAL" ? false ; true
-
-            
-            observacionesEstado: list?.selection?.edit?.gestionEstadoDescripcion === "RECLAMADO" || (list?.selection?.edit?.gestionEstadoDescripcion == "FINALIZADO" &&  list?.selection?.edit?.gestionSituacionDescripcion == "CON RECLAMO FORMAL") ? false : true,
-           // observacionesEstado: true,
+            // obraSocial: true,
+            observacionesEstado: true,
+            gestionObraSocial: true,
           };
 
           if (["A"].includes(list.selection.request)) {
@@ -503,7 +538,7 @@ const useGestionOS = ({
             : {}
         }
         onChange={(edit) => {
-        //   console.log("edit:",edit)
+          // console.log("edit:",edit)
           const changes = { edit: { ...edit }, errors: {}, help: {} };
           if ("cuitTitular" in edit) {
             if (edit.cuitTitular && `${edit.cuitTitular}`.length === 11) {
@@ -512,6 +547,8 @@ const useGestionOS = ({
               } else {
                 changes.errors.cuitTitular = "CUIT inválido";
               }
+            } else {
+              changes.errors.cuitTitular = "";
             }
           }
           setList((o) => ({
@@ -537,6 +574,7 @@ const useGestionOS = ({
             atencionesPrevias: "",
             conCoberturaOsprera: "",
             tipoPrestador: "",
+            titularPaciente: false,
             ...list.selection.edit,
           };
           //Validaciones
@@ -546,14 +584,6 @@ const useGestionOS = ({
           }
 
           if (["A", "M"].includes(list.selection.request)) {
-
-            // console.log("record*",record);
-            // console.log("list.selection.edit*",list.selection);
-              
-            if ((record.gestionEstadoDescripcion == "RECLAMADO" || (record.gestionEstadoDescripcion == "FINALIZADO" && record.gestionSituacionDescripcion == "CON RECLAMO FORMAL" )) && !record.observacionesEstado) {
-              errors.observacionesEstado = "Dato requerido"; // solicitado por amuricio el 21/7/25
-            }
-
             if (!record.cuitTitular) errors.cuitTitular = "Dato requerido";
             else if (!ValidarCUIT(record.cuitTitular))
               errors.cuitTitular = "CUIT Incorrecto";
@@ -564,14 +594,22 @@ const useGestionOS = ({
             if (!record.nombreTitular) errors.nombreTitular = "Dato requerido";
             if (!record.apellidoPaciente)
               errors.apellidoPaciente = "Dato requerido";
-            if (!record.nombrePaciente) errors.nombrePaciente = "Dato requerido";
-            if (!record.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
+            if (!record.nombrePaciente)
+              errors.nombrePaciente = "Dato requerido";
+            if (!record.fechaNacimiento)
+              errors.fechaNacimiento = "Dato requerido";
             if ((record.sexoId ?? 0) === 0) errors.sexoId = "Dato requerido";
             if (!record.texto) errors.texto = "Dato requerido";
             if (!record.medioGestion) errors.medioGestion = "Dato requerido";
-            if (!record.tipoDocumentoId) errors.tipoDocumentoId = "Dato requerido";
-            if (!record.seccionalId || record.seccionalId == 0) errors.seccionalId = "Dato requerido";
-            if (record.medioGestion == "email" && !record.direccionesEmailDestino) errors.direccionesEmailDestino = "Dato requerido";
+            if (!record.tipoDocumentoId)
+              errors.tipoDocumentoId = "Dato requerido";
+            if (!record.seccionalId || record.seccionalId == 0)
+              errors.seccionalId = "Dato requerido";
+            if (
+              record.medioGestion == "email" &&
+              !record.direccionesEmailDestino
+            )
+              errors.direccionesEmailDestino = "Dato requerido";
             if (
               record.medioGestion == "email" &&
               !ValidarEmail(record.direccionesEmailDestino)
@@ -637,7 +675,18 @@ const useGestionOS = ({
               errors.conCoberturaOsprera = "Dato requerido";
             }
 
-            if (!record.obraSocial) errors.obraSocial = "Dato requerido";
+            if (!record.gestionObraSocialId)
+              errors.gestionObraSocial = "Dato requerido";
+
+            //ObservacionesEstado
+            if (
+              !record.observacionesEstado &&
+              (record.gestionEstadoDescripcion === "RECLAMADO" ||
+                (record.gestionEstadoDescripcion === "FINALIZADO" &&
+                  record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
+            ) {
+              errors.observacionesEstado = "Dato requerido";
+            }
           }
 
           if (Object.keys(errors).length) {
@@ -684,11 +733,10 @@ const useGestionOS = ({
               list.selection.edit.seccionalId ??
               usuario?.ambitoSeccionales?.ids[0] ??
               0,
+            seccionalDescripcion:
+              usuario?.ambitosDescripciones[0]?.seccionalDescripcion ?? "",
             ...list.selection.edit,
           };
-          // console.log("record",record);
-
-          // console.log("list",list);
 
           //Validaciones
           const errors = {};
@@ -788,7 +836,17 @@ const useGestionOS = ({
               errors.conCoberturaOsprera = "Dato requerido";
             }
 
-            if (!record.obraSocial) errors.obraSocial = "Dato requerido";
+            if (!record.gestionObraSocialId)
+              errors.gestionObraSocial = "Dato requerido";
+
+            //ObservacionesEstado
+            if (!record.observacionesEstado &&
+              (record.gestionEstadoDescripcion === "RECLAMADO" ||
+              (record.gestionEstadoDescripcion === "FINALIZADO" &&
+                record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
+            ) {
+              errors.observacionesEstado = "Dato requerido";
+            }
           }
 
           if (Object.keys(errors).length) {
@@ -883,13 +941,13 @@ const useGestionOS = ({
             onOk: async (_res) => {
               setList((old) => ({ ...old, loading: "Cargando..." }));
               if (list.selection.request === "A") {
-                onDownloadComprobanteGestion({ 
-					nroGestion: _res, 
-					nombre: record.apellidoPaciente + " " + record.nombrePaciente,
-					fecha: moment(record.fecha).format("DD/MM/YYYY"),
-					seccional: record.seccionalDescripcion,
-          obraSocial: record.obraSocial
-				});
+                onDownloadComprobanteGestion({
+                  nroGestion: _res,
+                  nombre: record.apellidoPaciente + " " + record.nombrePaciente,
+                  fecha: moment(record.fecha).format("DD/MM/YYYY"),
+                  seccional: record.seccionalDescripcion,
+                  obraSocial: record.gestionObraSocialDescripcion,
+                });
               }
             },
             onError: async (err) => alert(err.message),
