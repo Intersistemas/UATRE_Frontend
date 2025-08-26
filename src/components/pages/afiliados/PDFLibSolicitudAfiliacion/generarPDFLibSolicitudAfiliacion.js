@@ -19,9 +19,10 @@ export async function generarPDFLibSolicitudAfiliacion({
   setPaginaActual = () => {},
   setTotalPaginas = () => {},
 }) {
-  if (!datos || !datos.length) {
-    throw new Error("No hay datos para generar el PDF.");
-  }
+  // === MODIFICACIÓN CLAVE ===
+  // Si no hay datos o el array está vacío, se crea un array con un objeto vacío
+  // para generar una sola página con campos en blanco.
+  const dataToProcess = datos && datos.length > 0 ? datos : [{}];
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -29,7 +30,7 @@ export async function generarPDFLibSolicitudAfiliacion({
   const logoUatre = await pdfDoc.embedPng(Logo1_sidebar);
   const logoCgt = await pdfDoc.embedPng(LogoCGT);
 
-  const totalPaginas = datos.length;
+  const totalPaginas = dataToProcess.length;
   setTotalPaginas(totalPaginas);
 
   // ====================== FUNCIONES AUXILIARES ======================
@@ -136,9 +137,9 @@ export async function generarPDFLibSolicitudAfiliacion({
 
   // ====================== CICLO POR PÁGINA ======================
 
-  for (let idx = 0; idx < datos.length; idx++) {
+  for (let idx = 0; idx < dataToProcess.length; idx++) {
     setPaginaActual(idx + 1);
-    const d = datos[idx];
+    const d = dataToProcess[idx];
     const page = pdfDoc.addPage([595, 842]); // A4 portrait
 
     const {
@@ -416,7 +417,7 @@ export async function generarPDFLibSolicitudAfiliacion({
   onBase64(base64);
   if (descargar) {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    saveAs(blob, "solicitud_afiliacion_fiel.pdf");
+    saveAs(blob, "Solicitud_Afiliacion.pdf");
   }
   return base64;
 }
