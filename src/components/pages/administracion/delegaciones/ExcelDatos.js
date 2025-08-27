@@ -195,7 +195,7 @@ const ExcelDatos = ({ delegacion = {}, onClose = () => {} }) => {
   return (
     <Modal size="xl" centered show>
       <Modal.Header className={modalCss.modalCabecera} closeButton>
-        Informe de Seccionales — {tituloDeleg || "Delegación seleccionada"}
+        Informe de Seccionales — Seccional: {tituloDeleg || "Delegación seleccionada"}
       </Modal.Header>
 
       <Modal.Body>
