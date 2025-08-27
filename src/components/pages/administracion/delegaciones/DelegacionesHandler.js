@@ -134,7 +134,7 @@ const DelegacionesHandler = () => {
 				name: "Informe",
 				onExecute: () => setShowInforme(true),
 				combination: "AltKey",
-				tarea: "DelegacionInforme",
+				tarea: "Datos_DelegacionInforme",
 				keys: "n",
 				underlineindex: 0,
 				disabled: !delegacionesSelected?.id,
