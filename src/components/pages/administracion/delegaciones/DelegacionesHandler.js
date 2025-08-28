@@ -136,7 +136,7 @@ const DelegacionesHandler = () => {
 				combination: "AltKey",
 				tarea: "Datos_DelegacionInforme",
 				keys: "n",
-				underlineindex: 0,
+				underlineindex: 1,
 				disabled: !delegacionesSelected?.id,
 			})
 		);
