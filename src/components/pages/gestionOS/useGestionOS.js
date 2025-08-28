@@ -241,15 +241,24 @@ const useGestionOS = ({
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
     console.log("ambito", ambito);
-    var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales") {
-      usuarioAdulterado = {
-        ambitoSeccionales: {
-          ids: [ambito?.ids[0]],
-        },
-        ambitoTodos: null,
-      };
-    }    
+    
+    //Arreglo de filtro
+    let usuarioAdulterado = {
+      ambitoTodos: usuario.ambitoTodos,
+      ambitoProvincias: usuario.ambitoProvincias,
+      ambitoDelegaciones: usuario.ambitoDelegaciones,
+      ambitoSeccionales: usuario.ambitoSeccionales,
+    };
+
+    if (filtroSeccional && filtroSeccional !== 0) {
+      
+      usuarioAdulterado.ambitoTodos = null;
+      usuarioAdulterado.ambitoSeccionales = { ids: [filtroSeccional] };
+    } else if (ambito.tipo === "Seccionales") {
+      
+      usuarioAdulterado.ambitoTodos = null;
+      usuarioAdulterado.ambitoSeccionales = { ids: [ambito?.ids[0]] };
+    }
 
     pushQuery({
       action: "GetList",
@@ -258,16 +267,22 @@ const useGestionOS = ({
           ...list.params,
           pageIndex: list.pagination.index,
           pageSize: list.pagination.size,
-          ambitoTodos:
-            filtroSeccional !== undefined && filtroSeccional !== 0
-              ? usuarioAdulterado.ambitoTodos
-              : usuario.ambitoTodos,
-          ambitoProvincias: usuario.ambitoProvincias,
-          ambitoDelegaciones: usuario.ambitoDelegaciones,
-          ambitoSeccionales:
-            filtroSeccional !== undefined && filtroSeccional !== 0
-              ? usuarioAdulterado.ambitoSeccionales
-              : usuarioAdulterado.ambitoSeccionales,
+
+          // ambitoTodos:
+          //   filtroSeccional !== undefined && filtroSeccional !== 0
+          //     ? usuarioAdulterado.ambitoTodos
+          //     : usuario.ambitoTodos,
+          // ambitoProvincias: usuario.ambitoProvincias,
+          // ambitoDelegaciones: usuario.ambitoDelegaciones,
+          // ambitoSeccionales:
+          //   filtroSeccional !== undefined && filtroSeccional !== 0
+          //     ? usuarioAdulterado.ambitoSeccionales
+          //     : usuarioAdulterado.ambitoSeccionales,
+          ambitoTodos: usuarioAdulterado.ambitoTodos,
+          ambitoProvincias: usuarioAdulterado.ambitoProvincias,
+          ambitoDelegaciones: usuarioAdulterado.ambitoDelegaciones,
+          ambitoSeccionales: usuarioAdulterado.ambitoSeccionales,
+
           sort: "FechaDesc,IdDesc",
           ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
             ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
