@@ -248,7 +248,7 @@ const useGestionOS = ({
         },
         ambitoTodos: null,
       };
-    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [filtroSeccional],
@@ -281,7 +281,7 @@ const useGestionOS = ({
           ...(!soloLetras.test(filtroPaciente)
             ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
             : { apellidoPaciente: filtroPaciente }),
-          ...(filtroMedioGestion && filtroMedioGestion !== 0
+          ...(filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS"
             ? { medioGestion: filtroMedioGestion }
             : null),
           ...(filtroTipoEstado && filtroTipoEstado !== 0
