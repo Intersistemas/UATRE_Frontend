@@ -240,11 +240,8 @@ const useGestionOS = ({
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
-
-    console.log("filtroMedioGestion", filtroMedioGestion);
-
     var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales") {
+    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
@@ -259,9 +256,6 @@ const useGestionOS = ({
         ambitoTodos: null,
       };
     }
-
-
-    console.log("filtroMedioGestion", filtroMedioGestion);
 
     pushQuery({
       action: "GetList",
