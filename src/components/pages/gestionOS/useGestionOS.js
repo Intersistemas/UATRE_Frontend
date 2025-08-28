@@ -240,15 +240,18 @@ const useGestionOS = ({
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
+
+    console.log("filtroMedioGestion", filtroMedioGestion);
+
     var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
+    if (ambito.tipo === "Seccionales") {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
         },
         ambitoTodos: null,
       };
-    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0) {
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [filtroSeccional],
@@ -256,6 +259,9 @@ const useGestionOS = ({
         ambitoTodos: null,
       };
     }
+
+
+    console.log("filtroMedioGestion", filtroMedioGestion);
 
     pushQuery({
       action: "GetList",
@@ -281,7 +287,7 @@ const useGestionOS = ({
           ...(!soloLetras.test(filtroPaciente)
             ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
             : { apellidoPaciente: filtroPaciente }),
-          ...(filtroMedioGestion && filtroMedioGestion !== 0
+          ...(filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS"
             ? { medioGestion: filtroMedioGestion }
             : null),
           ...(filtroTipoEstado && filtroTipoEstado !== 0
