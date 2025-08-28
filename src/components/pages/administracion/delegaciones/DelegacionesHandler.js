@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 
-import useDocumentaciones from "../../../Documentacion/useDocumentaciones";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 
 
 import useDelegaciones from "./useDelegaciones";
@@ -130,7 +130,7 @@ const DelegacionesHandler = () => {
 
 		//Boton informe Excel
 		actions.push(
-			new Action({
+			createAction({
 				name: "Informe",
 				onExecute: () => setShowInforme(true),
 				combination: "AltKey",
