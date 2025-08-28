@@ -1,7 +1,5 @@
-
 import { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import AsArray from "components/helpers/AsArray";
 import MetricaTable from "./MetricaTable";
 
 const selectionDef = {
@@ -28,7 +26,7 @@ const useMetrica = () => {
   const [list, setList] = useState({
     loading: null,
     remote: true,
-    pagination: { index: 1, size: 10 },
+    pagination: { index: 1, size: 10, total: 0 }, // 10 fijo
     data: [],
     error: null,
     selection: { ...selectionDef },
@@ -42,26 +40,27 @@ const useMetrica = () => {
     pushQuery({
       action: "GetList",
       params: {
+        // Si tu API es 0-based cambiar a: (list.pagination.index - 1)
         pageIndex: list.pagination.index,
-        pageSize: list.pagination.size,
+        pageSize: list.pagination.size, // siempre 10
       },
-      onOk: async ({ data, count, ...pagination }) => {
+      onOk: async ({ data, count, ..._rest }) => {
         if (!Array.isArray(data)) {
           console.error("Se esperaba un arreglo", data);
           return;
         }
-
         changes.data = data;
-        changes.pagination = { ...pagination, total: count };
+        changes.pagination = {
+          ...list.pagination,
+          total: Number(count ?? 0),
+        };
       },
       onError: async (error) => {
-        if (error.code !== 404) {
-          changes.error = error;
-        }
+        if (error.code !== 404) changes.error = error;
       },
       onFinally: async () => setList((o) => ({ ...o, ...changes })),
     });
-  }, [list.loading]);
+  }, [list.loading, list.pagination.index, list.pagination.size, pushQuery]);
 
   const request = useCallback((type, payload = {}) => {
     if (type === "list") {
@@ -70,7 +69,8 @@ const useMetrica = () => {
         loading: "Cargando...",
         pagination: {
           ...o.pagination,
-          ...payload.pagination,
+          index: payload.pagination?.index ?? o.pagination.index,
+          size: 20, // forzamos 10 por página
         },
         data: [],
       }));
@@ -82,18 +82,17 @@ const useMetrica = () => {
       data={list.data}
       loading={!!list.loading}
       noDataIndication={
-        list.loading ??
-        list.error?.message ??
-        "No existen datos para mostrar"
+        list.loading ?? list.error?.message ?? "No existen datos para mostrar"
       }
-				pagination={{
-					...list.pagination,
-					onChange: ({ index, size }) =>
-						request("list", {
-							pagination: { index, size },
-							data: list.remote ? [] : list.data,
-						}),
-				}}
+      pagination={{
+        ...list.pagination,
+        onChange: ({ index /*, size */ }) =>
+          request("list", {
+            // ignoramos size para mantener 10 fijo
+            pagination: { index, size: 10 },
+            data: list.remote ? [] : list.data,
+          }),
+      }}
     />
   );
 
