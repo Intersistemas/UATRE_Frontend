@@ -17,6 +17,7 @@ import SearchSelectMaterial, {
   mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import ExcelDatos from "./ExcelDatos";
 
 const GestionOSHandler = () => {
   const dispatch = useDispatch();
@@ -26,6 +27,7 @@ const GestionOSHandler = () => {
 
   const tabs = [];
   const [tab, setTab] = useState(0);
+  const [showInforme, setShowInforme] = useState(false);
 
   //#region Formularios Params
   const [paramsEdit, setParamsEdit] = useState({
@@ -468,22 +470,19 @@ const GestionOSHandler = () => {
         })
       );
     }
-    /*
+    
 		actions.push(
 			createAction({
-				action: `Envía Email ${desc}`,
-				request: "E",
+				action: `Informe`,
+        onExecute: () => setShowInforme(true),
+				request: "i",
 				record: {},
-				tarea: "Osprera_GestionEnvioEmail",
-				...(formularioSelected?.medioGestion == 'telefono' || !formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "e",
-							underlineindex: 0,
-					  }),
+				tarea: "Osprera_GestionInforme",
+				disabled: !formularioSelected?.id,
+        keys: "i",
+        underlineindex: 0,
 			})
-		);*/
+		);
     setFormularioOspreraActions(actions); //cargo todas las acciones / botones
   }, [formularioOspreraRequest, formularioSelected]);
 
@@ -812,6 +811,9 @@ const GestionOSHandler = () => {
       </div>
       <div className="contenido">{tabs[tab].body()}</div>
       <KeyPress items={acciones} />
+      {/* === Nuevo agregado: Modal del Informe === */}
+      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} />}
+      {/* === Fin nuevo agregado === */}
     </Grid>
   );
 };
