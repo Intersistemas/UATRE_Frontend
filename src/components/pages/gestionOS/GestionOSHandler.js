@@ -356,7 +356,6 @@ const GestionOSHandler = () => {
           label: r.descripcion,
         }));
         changes.options.unshift({ value: 0, label: "TODOS" });
-        changes.options.unshift({ value: 0, label: "TODOS" });
         changes.filtroDetalleTipoGestion = {
           value: 0,
           label: "TODOS",
