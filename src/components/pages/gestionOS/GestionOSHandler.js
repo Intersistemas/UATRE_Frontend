@@ -25,6 +25,16 @@ const GestionOSHandler = () => {
   //   const Usuario = useContext(AuthContext).usuario;
   const Usuario = useSelector((state) => state.usuarioLogueado);
 
+  const defaultFiltroSeccional =
+  Usuario.ambitoTodos !== null
+    ? { value: 0, label: "TODAS" }
+    : {
+        value: Usuario.ambitoSeccionales?.ids[0],
+        label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
+      };
+
+  const defaultParams = { filtroSeccional: defaultFiltroSeccional };
+
   const tabs = [];
   const [tab, setTab] = useState(0);
   const [showInforme, setShowInforme] = useState(false);
@@ -35,6 +45,7 @@ const GestionOSHandler = () => {
     loading: "Cargando...",
     data: [],
     error: null,
+    ...defaultParams,
   });
   // const [paramsEditSeccional, setParamsEdit] = useState({
   //   reload: false,
@@ -637,7 +648,7 @@ const GestionOSHandler = () => {
                   className="botonAzul"
                   disabled={Object.entries(paramsEdit).length === 0}
                   onClick={() => {
-                    const paramsEdit = {};
+                    const paramsEdit = { ...defaultParams };
                     setParamsEdit(paramsEdit);
                     if (
                       JSON.stringify(paramsEdit) === JSON.stringify(paramsSend)

@@ -241,7 +241,7 @@ const useGestionOS = ({
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
     var usuarioAdulterado = {};
-    if (ambito.tipo === "Seccionales" && !filtroSeccional) {
+    if (ambito.tipo === "Seccionales") {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
