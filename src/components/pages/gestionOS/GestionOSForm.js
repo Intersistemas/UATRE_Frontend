@@ -37,6 +37,7 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
+import "./GestionOSForm.responsive.css";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -1717,7 +1718,7 @@ const GestionOSForm = ({
                       </Button>
                     </Grid>
                   </Grid>
-                  <Grid>
+                  <Grid className="gestionos-row">
                     <Grid width="230px">
                       <InputMaterial
                         id="apellidoTitular"
@@ -1733,11 +1734,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         }
-                        onChange={(apellidoTitular) =>
-                          onChange({ apellidoTitular })
-                        }
+                        onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
+
                     <Grid width="380px">
                       <InputMaterial
                         id="nombreTitular"
@@ -1753,12 +1753,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         } //disabled.nombreTitular
-                        onChange={(nombreTitular) =>
-                          onChange({ nombreTitular })
-                        }
+                        onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px">
+                    <Grid col width="180px" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1773,11 +1771,7 @@ const GestionOSForm = ({
                           !data?.nombreTitular
                         }
                       >
-                        <h6>
-                          {titular?.confirmado
-                            ? `Confirmado`
-                            : `Confirma Titular`}
-                        </h6>
+                        <h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
                       </Button>
                     </Grid>
                   </Grid>
