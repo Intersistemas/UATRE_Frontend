@@ -558,7 +558,7 @@ const useGestionOS = ({
         }}
         onValidate={(confirm) => {
           const record = {
-            fecha: moment().format("YYYY-MM-DD"),
+            fecha: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
             fechaEnvioMail: null,
             direccionesEmailDestino: null,
             respuestaEnvioEmail: null,
@@ -720,7 +720,7 @@ const useGestionOS = ({
           }
 
           const record = {
-            fecha: moment().format("YYYY-MM-DD"),
+            fecha: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
             fechaEnvioMail: null,
             direccionesEmailDestino: null,
             respuestaEnvioEmail: null,
@@ -902,7 +902,7 @@ const useGestionOS = ({
                   if (index < 0) return;
                   const r = {
                     ...changes.data.at(index),
-                    deletedDate: dayjs().format("YYYY-MM-DD"),
+                    deletedDate: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
                     deletedObs: record.deletedObs,
                   };
                   if (changes.selection.multi) {
