@@ -545,7 +545,7 @@ const ExcelDatos = ({ onClose = () => { } }) => {
                 className="botonAmarillo"
                 disabled={exportLoading || (list.pagination.count ?? 0) === 0}
                 onClick={onExportExcel}
-                tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados_Imprime"
+                tarea="Osprera_GestionInforme_DescargarExcel"
               >
                 {exportLoading ? "Generando..." : "DESCARGAR EXCEL"}
               </Button>
