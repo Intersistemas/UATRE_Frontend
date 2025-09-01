@@ -409,6 +409,15 @@ export async function generarPDFLibSolicitudAfiliacion({
 
     // ===================== PÁGINA N =====================
     //drawText(page, `Página ${idx + 1} de ${totalPaginas}`, 500, 20, 8, true);
+    //Bordes Externos
+    page.drawRectangle({
+      x: 20,
+      y: 75,
+      width: 595 - 40,   // 595 = ancho A4 en pt → 595 - (2*18.5)
+      height: 842 - 10,  // 842 = alto A4 en pt → 842 - (2*18.5)
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
+    });
   }
 
   // Guardado
