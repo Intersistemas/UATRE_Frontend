@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -37,6 +37,7 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
+import "./GestionOSForm.responsive.css";
 
 const onChangeDef = (changes = {}) => { };
 const onCloseDef = (confirm = false) => { };
@@ -185,6 +186,19 @@ const GestionOSForm = ({
     documentacionOK: false,
   });
 
+  const toSafeString = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    // si viene como evento o con { value }
+    if (typeof v === "object") {
+      if ("target" in v) return String(v.target?.value ?? "");
+      if ("value" in v) return String(v.value ?? "");
+    }
+    return "";
+  };
+
+  const ultimoDniBuscadoRef = useRef("");
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
@@ -274,6 +288,49 @@ const GestionOSForm = ({
     });
   };
   //#endregion
+
+  useEffect(() => {
+    const raw = toSafeString(data?.dniPaciente);
+    const dni = raw.replace(/\D/g, "");
+    if (!dni) {
+      // si se borró, reseteo el anti-rebote para permitir la misma búsqueda después
+      ultimoDniBuscadoRef.current = "";
+      return;
+    }
+
+    // (Opcional) sólo disparo con largos razonables
+    if (dni.length < 7) return;
+
+    if (ultimoDniBuscadoRef.current === dni) return;
+    ultimoDniBuscadoRef.current = dni;
+
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: { dniPaciente: dni },
+      onOk: async (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const ultima = arr[0];
+        if (!ultima) return;
+
+        const telAnterior =
+          ultima.telefonoContacto ||
+          ultima.telefono || "";
+        const mailAnterior =
+          ultima.emailContacto ||
+          ultima.direccionesEmailDestino || "";
+
+        const cambios = {};
+        if (!data.telefonoContacto && telAnterior) cambios.telefonoContacto = telAnterior;
+        if (!data.telefono && telAnterior && data.medioGestion === "telefono") cambios.telefono = telAnterior;
+        if (!data.emailContacto && mailAnterior) cambios.emailContacto = mailAnterior;
+        if (!data.direccionesEmailDestino && mailAnterior && data.medioGestion === "email")
+          cambios.direccionesEmailDestino = mailAnterior;
+
+        if (Object.keys(cambios).length) onChange(cambios);
+      },
+    });
+  }, [data?.dniPaciente, data?.medioGestion]);
+
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -705,6 +762,24 @@ const GestionOSForm = ({
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSituacion`,
             method: "GET",
+          },
+        };
+      }
+
+      case "GetUltimaGestionPaciente": {
+        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
+        const { dniPaciente } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+            body: {
+              pageIndex: 1,
+              pageSize: 1,
+              sort: "FechaDesc,IdDesc",
+              ...(dniPaciente ? { dniPaciente } : {}),
+            },
           },
         };
       }
@@ -1718,7 +1793,7 @@ const GestionOSForm = ({
                       </Button>
                     </Grid>
                   </Grid>
-                  <Grid>
+                  <Grid className="gestionos-row">
                     <Grid width="230px">
                       <InputMaterial
                         id="apellidoTitular"
@@ -1734,11 +1809,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         }
-                        onChange={(apellidoTitular) =>
-                          onChange({ apellidoTitular })
-                        }
+                        onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
+
                     <Grid width="380px">
                       <InputMaterial
                         id="nombreTitular"
@@ -1754,12 +1828,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         } //disabled.nombreTitular
-                        onChange={(nombreTitular) =>
-                          onChange({ nombreTitular })
-                        }
+                        onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px">
+                    <Grid col width="180px" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1774,11 +1846,7 @@ const GestionOSForm = ({
                           !data?.nombreTitular
                         }
                       >
-                        <h6>
-                          {titular?.confirmado
-                            ? `Confirmado`
-                            : `Confirma Titular`}
-                        </h6>
+                        <h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
                       </Button>
                     </Grid>
                   </Grid>

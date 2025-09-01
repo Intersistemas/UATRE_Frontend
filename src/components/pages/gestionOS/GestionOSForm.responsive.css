@@ -1,0 +1,28 @@
+
+.gestionos-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;           
+  flex-wrap: nowrap;   
+}
+
+
+.gestionos-btn-col {
+  width: 180px;
+  flex: 0 0 180px;     
+}
+
+
+@media (max-width: 1200px) {
+  .gestionos-row {
+    flex-direction: column;   
+    align-items: stretch;     
+  }
+
+
+  .gestionos-btn-col {
+    width: 180px;
+    flex: 0 0 auto;
+    align-self: flex-start;   
+  }
+}
