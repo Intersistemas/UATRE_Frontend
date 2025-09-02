@@ -729,7 +729,7 @@ const ExcelDatos = ({ onClose = () => {} }) => {
                 disabled={exportLoading || (list.pagination.count ?? 0) === 0}
                 onClick={onExportExcel}
               >
-                {exportLoading ? "Generando..." : "DESCARGAR EXCEL"}
+                {exportLoading ? "Generando..." : "DESCARGA EXCEL"}
               </Button>
             </Grid>
             <Grid width="150px">
