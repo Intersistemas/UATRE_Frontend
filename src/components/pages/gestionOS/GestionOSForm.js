@@ -177,6 +177,8 @@ const GestionOSForm = ({
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+  //ModificacionMauro
+  const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -217,6 +219,9 @@ const GestionOSForm = ({
     //console.log("seccionalSelect1", seccionalSelect);
     //console.log("localidadUsuario",localidadUsuario)
 
+    //Modificacion Mauro
+    const asuntoFinal = `UATRE - Nueva Gestión de Obra Social${ultimoIdGestion ? ` [Nro de Gestión: ${ultimoIdGestion + 1}]` : ""}`;
+
     pushQuery({
       action: "EnviarCorreo",
       config: {
@@ -224,6 +229,8 @@ const GestionOSForm = ({
           to: [data?.direccionesEmailDestino] ?? [],
           cco: emails.filter((email) => email),
           attachments: adjuntos,
+          //ModificaCION Mauro
+          asunto: asuntoFinal,
           cuerpo:
             `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
               "DD/MM/YYYY"
@@ -353,6 +360,18 @@ const GestionOSForm = ({
   }, [data.titularPaciente]);
 
   //#endregion
+
+  //Modificacion Mauro
+  useEffect(() => {
+  pushQuery({
+    action: "GetUltimaGestionPaciente",
+    params: {}, 
+    onOk: (res) => {
+      const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      setUltimoIdGestion(arr?.[0]?.id ?? null);
+    },
+  });
+}, []);
 
   //#region Cambios atenciones previas
   useEffect(() => {
