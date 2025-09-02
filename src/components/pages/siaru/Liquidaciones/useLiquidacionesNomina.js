@@ -666,7 +666,7 @@ const useLiquidacionesNomina = ({
   //#endregion
 
   const render = () => (
-    console.log("list", list),
+    // console.log("list", list)
     <>
       <LiquidacionesNominaTable
         remote={list.remote}
