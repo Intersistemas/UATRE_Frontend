@@ -654,7 +654,7 @@ const GestionOSForm = ({
             body: {
               pageIndex: 1,
               pageSize: 1,
-              sort: "FechaDesc,IdDesc",
+              sort: "IdDesc",
               ...(dniPaciente ? { dniPaciente } : {}),
             },
           },
