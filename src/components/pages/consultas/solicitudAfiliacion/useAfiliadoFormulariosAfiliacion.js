@@ -94,9 +94,6 @@ const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
 	);
 };
 
-
-
-
 const useAfiliadoFormulariosAfiliacion = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
@@ -356,21 +353,21 @@ const useAfiliadoFormulariosAfiliacion = ({
 		// y que aún no procesamos en este ciclo de vida.
 		const pendientes = list.data.filter(
 			(r) =>
-				!r?.deletedDate && // no rechazadas
-				!r?.afiliadoIdAsignado && // no aceptadas
-				!syncedIdsRef.current.has(r.id) // no procesadas
+				!r?.deletedDate && 
+				!r?.afiliadoIdAsignado && 
+				!syncedIdsRef.current.has(r.id) 
 		);
 		if (pendientes.length === 0) return;
 
 		setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
 
-		// Procesamos secuencialmente para evitar condiciones de carrera
+
 		const run = async () => {
 			for (const row of pendientes) {
 				syncedIdsRef.current.add(row.id);
 				const cuilDigits = String(row?.cuil ?? "").replace(/\D/g, "");
 
-				// Envolvemos cada pushQuery en una promesa para serializar
+
 				await new Promise((resolve) => {
 					pushQuery({
 						action: "GetAfiliadoByCUIL",
@@ -390,7 +387,6 @@ const useAfiliadoFormulariosAfiliacion = ({
 				});
 			}
 
-			// Tras terminar, pedimos refrescar la grilla (mantiene filtros/paginación)
 			setList((o) => ({
 				...o,
 				loadingOverride: null,
@@ -404,13 +400,13 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 
 
-	//Modificaciones Mauro
+
 	let form = null;
 
 	if (list.selection.request) {
 		const row = list.selection.edit ?? list.selection.record ?? {};
 
-		// cierre común del modal: restablece la selección anterior
+
 		const handleClose = () => {
 			setList((o) => ({
 				...o,
