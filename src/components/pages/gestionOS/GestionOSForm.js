@@ -38,9 +38,9 @@ import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
 
-const onChangeDef = (changes = {}) => {};
-const onCloseDef = (confirm = false) => {};
-const onValidateDef = (confirm = false) => {};
+const onChangeDef = (changes = {}) => { };
+const onCloseDef = (confirm = false) => { };
+const onValidateDef = (confirm = false) => { };
 
 /**
  * Proceso a ejecutar posterior carga
@@ -236,27 +236,22 @@ const GestionOSForm = ({
               "DD/MM/YYYY"
             )}</strong><br></br>` +
             `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
-            `En representación del Afiliado <strong>${
-              !!data.titularPaciente
-                ? data?.apellidoTitular
-                : data?.apellidoPaciente
-            } ${
-              !!data.titularPaciente
-                ? data?.nombreTitular
-                : data?.nombrePaciente
-            }</strong>, con DNI Nº <strong>${
-              data?.dniPaciente ?? ""
-            }</strong>, Afiliado Nº <strong>${
-              data?.cuitTitular ?? ""
+            `En representación del Afiliado <strong>${!!data.titularPaciente
+              ? data?.apellidoTitular
+              : data?.apellidoPaciente
+            } ${!!data.titularPaciente
+              ? data?.nombreTitular
+              : data?.nombrePaciente
+            }</strong>, con DNI Nº <strong>${data?.dniPaciente ?? ""
+            }</strong>, Afiliado Nº <strong>${data?.cuitTitular ?? ""
             }</strong> ` +
             `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>` +
             `<strong>${data?.texto}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
-            `Tipo de Adjuntos: <strong>${
-              documentacionList.length === 0
-                ? "Sin archivos adjuntos"
-                : documentacionList
-                    .map((a) => a.refTipoDocumentacionDescripcion)
-                    .join("/ ")
+            `Tipo de Adjuntos: <strong>${documentacionList.length === 0
+              ? "Sin archivos adjuntos"
+              : documentacionList
+                .map((a) => a.refTipoDocumentacionDescripcion)
+                .join("/ ")
             }</strong><br></br>` +
             `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
             `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
@@ -363,15 +358,15 @@ const GestionOSForm = ({
 
   //Modificacion Mauro
   useEffect(() => {
-  pushQuery({
-    action: "GetUltimaGestionPaciente",
-    params: {}, 
-    onOk: (res) => {
-      const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-      setUltimoIdGestion(arr?.[0]?.id ?? null);
-    },
-  });
-}, []);
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: {},
+      onOk: (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setUltimoIdGestion(arr?.[0]?.id ?? null);
+      },
+    });
+  }, []);
 
   //#region Cambios atenciones previas
   useEffect(() => {
@@ -416,9 +411,9 @@ const GestionOSForm = ({
   useEffect(() => {
     if (
       data?.gestionRubroDescripcion?.toString().toLowerCase() ===
-        "uso app/wapp" ||
+      "uso app/wapp" ||
       data?.gestionRubroDescripcion?.toString().toLowerCase() ===
-        "registro de reclamos"
+      "registro de reclamos"
     ) {
       onChange({ medioGestion: "telefono" });
       setDisabledItems((o) => ({ ...o, medioGestion: true }));
@@ -511,12 +506,12 @@ const GestionOSForm = ({
     //if (request !== "A") return;
     conDatos
       ? solicitudAfiliacion({
-          data: dataFormulario,
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        })
+        data: dataFormulario,
+        onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+      })
       : solicitudAfiliacion({
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        });
+        onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
+      });
   };
 
   const { setState: setDocumentosQuery } = useQueryState(
@@ -648,6 +643,25 @@ const GestionOSForm = ({
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
+      case "GetUltimaGestionPaciente": {
+        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
+        const { dniPaciente } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+            body: {
+              pageIndex: 1,
+              pageSize: 1,
+              sort: "FechaDesc,IdDesc",
+              ...(dniPaciente ? { dniPaciente } : {}),
+            },
+          },
+        };
+      }
+
+
       case "GetAfiliado": {
         return {
           config: {
@@ -706,9 +720,9 @@ const GestionOSForm = ({
               Accept: "*/*",
             },
             /*body: JSON.stringify({
-							to: to,
-							attachments: attachments,
-						}),*/
+              to: to,
+              attachments: attachments,
+            }),*/
           },
         };
       }
@@ -1508,9 +1522,9 @@ const GestionOSForm = ({
           onDownloadSolicitudAfiliacion(true);
           setDialogTexto(
             "Se descargó la Solicitud de Afiliación de: " +
-              data?.apellidoTitular +
-              " " +
-              data?.nombreTitular
+            data?.apellidoTitular +
+            " " +
+            data?.nombreTitular
           );
           setOpenDialog(true);
         }
@@ -1668,13 +1682,13 @@ const GestionOSForm = ({
                           required
                           error={!!errors.cuitTitular}
                           /*helperText={
-											errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
-										}
-										FormHelperTextProps={{
-											sx: {
-											margin: 0, // elimina el margen superior
-											},
-										}}*/
+                      errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
+                    }
+                    FormHelperTextProps={{
+                      sx: {
+                      margin: 0, // elimina el margen superior
+                      },
+                    }}*/
                           value={data.cuitTitular}
                           disabled={disabledItems?.cuitTitular}
                           onChange={(value) =>
@@ -1687,38 +1701,38 @@ const GestionOSForm = ({
                       {(titular?.existeEnUATRE ||
                         titular?.existeEnOSPRERA ||
                         titular?.existeEnAFIP) && (
-                        <div>
-                          <h6
-                            style={{
-                              fontSize: "small",
-                              displa:
-                                titular?.existeEnUATRE ||
-                                (!!titular?.existeEnUATRE &&
-                                  titular.existeEnOSPRERA &&
-                                  !!titular.existeEnAFIP)
-                                  ? "none"
-                                  : "flex",
-                            }}
-                          >
-                            {" "}
-                            {titular.existeEnOSPRERA
-                              ? "Titular en Padron OSPRERA"
-                              : titular.existeEnAFIP
-                              ? "Titular en ARCA"
-                              : ""}{" "}
-                          </h6>
-                          <h6 style={{ fontSize: "small" }}>
-                            {titular.existeEnUATRE === true
-                              ? "Afiliado a UATRE"
-                              : titular.existeEnOSPRERA === null &&
-                                titular.existeEnAFIP === null
-                              ? "" //"No se encontraron datos para el CUIL ingresado"
-                              : titular.existeEnUATRE === false
-                              ? "No Afiliado a UATRE"
-                              : ""}
-                          </h6>
-                        </div>
-                      )}
+                          <div>
+                            <h6
+                              style={{
+                                fontSize: "small",
+                                displa:
+                                  titular?.existeEnUATRE ||
+                                    (!!titular?.existeEnUATRE &&
+                                      titular.existeEnOSPRERA &&
+                                      !!titular.existeEnAFIP)
+                                    ? "none"
+                                    : "flex",
+                              }}
+                            >
+                              {" "}
+                              {titular.existeEnOSPRERA
+                                ? "Titular en Padron OSPRERA"
+                                : titular.existeEnAFIP
+                                  ? "Titular en ARCA"
+                                  : ""}{" "}
+                            </h6>
+                            <h6 style={{ fontSize: "small" }}>
+                              {titular.existeEnUATRE === true
+                                ? "Afiliado a UATRE"
+                                : titular.existeEnOSPRERA === null &&
+                                  titular.existeEnAFIP === null
+                                  ? "" //"No se encontraron datos para el CUIL ingresado"
+                                  : titular.existeEnUATRE === false
+                                    ? "No Afiliado a UATRE"
+                                    : ""}
+                            </h6>
+                          </div>
+                        )}
                     </Grid>
                     <Grid col width="120px">
                       <Button
