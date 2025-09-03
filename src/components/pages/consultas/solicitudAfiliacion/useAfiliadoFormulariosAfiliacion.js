@@ -11,6 +11,7 @@ import ValidarEmail from "components/validators/ValidarEmail";
 import AfiliadoFormulariosAfiliacionTable from "./AfiliadoFormulariosAfiliacionTable";
 import AfiliadoFormulariosAfiliacionIncorporacion from "./AfiliadoFormulariosAfiliacionIncorporacion";
 import SolicitudAfiliacionForm from "./SolicitudAfiliacionForm";
+import AfiliadosAgregar from "components/pages/afiliados/AfiliadoAgregar";
 
 const selectionDef = {
 	action: "",
@@ -48,6 +49,18 @@ export const onLoadSelectKeep = ({ record }) => record;
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) => record ?? onLoadSelectFirst({ data, multi, record });
 
 export const onDataChangeDef = (data = []) => {};
+
+ const parseTelefonoAR = (raw = "") => {
+   const digits = String(raw || "").replace(/\D+/g, "");
+   let pais = "+54";
+   let rest = digits;
+   if (rest.startsWith("549")) rest = rest.slice(3);
+   else if (rest.startsWith("54")) rest = rest.slice(2);
+   if (rest.startsWith("9")) rest = rest.slice(1); 
+   const numero = rest.slice(-7);
+   const area = rest.slice(0, Math.max(0, rest.length - 7)) || "";
+   return { telefonoPais: pais, telefonoArea: area, telefonoNumero: numero };
+ };
 
 const useAfiliadoFormulariosAfiliacion = ({
 	remote: remoteInit = true,
@@ -276,29 +289,77 @@ const useAfiliadoFormulariosAfiliacion = ({
 		}
 	}, [pushQuery]);
 
+
+
+
+//Modificaciones Mauro
 	let form = null;
-	if (list.selection.request) {
-		form = (
-			<SolicitudAfiliacionForm 
-				onClose={(confirm) => {
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								...selectionDef,
-								index: o.selection.index,
-								record:
-									!o.selection.multi && o.selection.index > -1
-										? o.data.at(o.selection.index)
-										: o.selection.record,
-							},
-						}));
-						return;
-					}}}
-			/>
-		);
-	}
+
+if (list.selection.request) {
+  const row = list.selection.edit ?? list.selection.record ?? {};
+
+  // cierre común del modal: restablece la selección anterior
+  const handleClose = () => {
+    setList((o) => ({
+      ...o,
+      selection: {
+        ...o.selection,
+        ...selectionDef,
+        index: o.selection.index,
+        record:
+          !o.selection.multi && o.selection.index > -1
+            ? o.data.at(o.selection.index)
+            : o.selection.record,
+      },
+    }));
+  };
+
+  switch (list.selection.request) {
+    // Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
+    case "I": {
+      const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
+      const email = row.email ?? row.correo ?? "";
+      const telRaw = row.celular ?? row.telefono ?? "";
+      const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+
+      // forzamos remount para que el form tome estos valores iniciales
+      const prefillKey = `alta-${cuilDigits}-${telefonoPais}-${telefonoArea}-${telefonoNumero}-${email}`;
+
+      form = (
+        <AfiliadosAgregar
+          key={prefillKey}
+          title="Agrega Afiliado"
+		  //ESTO ENVIAR A ALEX
+		  accion="Agrega"
+          data={{
+            cuil: cuilDigits,
+            telefonoPais,
+            telefonoArea,
+            telefonoNumero,
+            email,
+          }}
+          disabled={{ cuil: true }}
+          onClose={handleClose}
+        />
+      );
+      break;
+    }
+
+    default: {
+      form = (
+        <SolicitudAfiliacionForm
+          onClose={(confirm) => {
+            if (!confirm) handleClose();
+          }}
+        />
+      );
+    }
+  }
+}
+
+
+
+
 
 	const render = () => (
 		<>

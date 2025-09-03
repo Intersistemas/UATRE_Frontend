@@ -158,7 +158,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
+const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 	//#region APIs
 	const { setState: setSeccionalesQuery } = useQueryState(
 		() => ({
@@ -579,7 +579,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	//#endregion selects
 
 	//#region inicializaciones
-	
+
 	//#region Carga inicial select seccional
 	useEffect(() => {
 		setSeccionalesQuery((o) => ({
@@ -1532,44 +1532,53 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 																) ?? ok.domicilios[0];
 															changes.form.domicilioEmpresa =
 																domicilio.direccion;
-															const pcia = emplPciaSelect.options.find(
-																(r) =>
-																	r.record.idProvinciaAFIP ===
-																	domicilio.idProvincia
-															);
-															setEmplPciaSelect((o) => ({
-																...o,
-																selected: pcia,
-																origen: "option",
-															}));
+																
+															//Cambios Mauro
+															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
+															const pcia =
+																(emplPciaSelect.options || []).find(
+																	(r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
+																) || null;
 
-															setLocalidadesQuery((o) => ({
-																...o,
-																query: {
-																	...o.query,
-																	params: {
-																		...o.query.params,
-																		provinciaId: pcia.value,
+															if (pcia) {
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: pcia,
+																	origen: "option",
+																}));
+
+																setLocalidadesQuery((o) => ({
+																	...o,
+																	query: {
+																		...o.query,
+																		params: { ...o.query.params, provinciaId: pcia.value },
 																	},
-																},
-																onPreLoad: () =>
-																	setEmplLocaSelect((o) => ({
-																		...o,
-																		loading: "Cargando...",
-																	})),
-																onLoad: ({ ok, error }) =>
-																	setEmplLocaSelect((o) => ({
-																		...o,
-																		data: Array.isArray(ok) ? ok : [],
-																		loading: null,
-																		error: error?.toString(),
-																		buscar: domicilio.localidad,
-																		selected: {
-																			record: { nombre: domicilio.localidad },
-																		},
-																		origen: "text",
-																	})),
-															}));
+																	onPreLoad: () =>
+																		setEmplLocaSelect((o) => ({ ...o, loading: "Cargando..." })),
+																	onLoad: ({ ok, error }) =>
+																		setEmplLocaSelect((o) => ({
+																			...o,
+																			data: Array.isArray(ok) ? ok : [],
+																			loading: null,
+																			error: error?.toString(),
+																			buscar: domicilio?.localidad ?? "",
+																			selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																			origen: "text",
+																		})),
+																}));
+															} else {
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: { record: { id: 0, nombre: domicilio?.provincia ?? "" } },
+																	origen: "text",
+																}));
+																setEmplLocaSelect((o) => ({
+																	...o,
+																	data: o.data ?? [],
+																	selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																	origen: "text",
+																}));
+															}
 														}
 														if (ok.idActividadPrincipal) {
 															const actividad = ciiuSelect.options.find(
