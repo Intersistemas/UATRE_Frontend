@@ -1707,7 +1707,7 @@ const GestionOSForm = ({
           {
             [
               <Grid col width="full" gap="15px">
-                <Grid width="full" gap="inherit">
+                <Grid width="full" gap="inherit" className="gestionos-top">
                   <Grid>
                     <Grid col>
                       <Grid width="180px">
@@ -1735,41 +1735,42 @@ const GestionOSForm = ({
                           }
                         />
                       </Grid>
-                      {(titular?.existeEnUATRE ||
-                        titular?.existeEnOSPRERA ||
-                        titular?.existeEnAFIP) && (
-                          <div>
-                            <h6
-                              style={{
-                                fontSize: "small",
-                                displa:
-                                  titular?.existeEnUATRE ||
-                                    (!!titular?.existeEnUATRE &&
-                                      titular.existeEnOSPRERA &&
-                                      !!titular.existeEnAFIP)
-                                    ? "none"
-                                    : "flex",
-                              }}
-                            >
-                              {" "}
-                              {titular.existeEnOSPRERA
-                                ? "Titular en Padron OSPRERA"
-                                : titular.existeEnAFIP
-                                  ? "Titular en ARCA"
-                                  : ""}{" "}
-                            </h6>
-                            <h6 style={{ fontSize: "small" }}>
-                              {titular.existeEnUATRE === true
-                                ? "Afiliado a UATRE"
-                                : titular.existeEnOSPRERA === null &&
-                                  titular.existeEnAFIP === null
-                                  ? "" //"No se encontraron datos para el CUIL ingresado"
-                                  : titular.existeEnUATRE === false
-                                    ? "No Afiliado a UATRE"
+                      <div className="afiliado-status">
+                        {(titular?.existeEnUATRE ||
+                          titular?.existeEnOSPRERA ||
+                          titular?.existeEnAFIP) && (
+                            <>
+                              <h6
+                                style={{
+                                  fontSize: "small",
+                                  display:
+                                    titular?.existeEnUATRE ||
+                                      (!!titular?.existeEnUATRE &&
+                                        titular.existeEnOSPRERA &&
+                                        !!titular.existeEnAFIP)
+                                      ? "none"
+                                      : "flex",
+                                }}
+                              >
+                                {titular.existeEnOSPRERA
+                                  ? "Titular en Padron OSPRERA"
+                                  : titular.existeEnAFIP
+                                    ? "Titular en ARCA"
                                     : ""}
-                            </h6>
-                          </div>
-                        )}
+                              </h6>
+                              <h6 style={{ fontSize: "small" }}>
+                                {titular.existeEnUATRE === true
+                                  ? "Afiliado a UATRE"
+                                  : titular.existeEnOSPRERA === null &&
+                                    titular.existeEnAFIP === null
+                                    ? ""
+                                    : titular.existeEnUATRE === false
+                                      ? "No Afiliado a UATRE"
+                                      : ""}
+                              </h6>
+                            </>
+                          )}
+                      </div>
                     </Grid>
                     <Grid col width="120px">
                       <Button
@@ -1788,7 +1789,7 @@ const GestionOSForm = ({
                     </Grid>
                   </Grid>
                   <Grid className="gestionos-row">
-                    <Grid width="230px">
+                    <Grid width="300px" className="apellido-col">
                       <InputMaterial
                         id="apellidoTitular"
                         label="Apellido"
@@ -1807,7 +1808,7 @@ const GestionOSForm = ({
                       />
                     </Grid>
 
-                    <Grid width="380px">
+                    <Grid width="370px" className="nombre-col">
                       <InputMaterial
                         id="nombreTitular"
                         label="Nombre"
@@ -1825,7 +1826,7 @@ const GestionOSForm = ({
                         onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px" className="gestionos-btn-col">
+                    <Grid width="auto" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1847,12 +1848,12 @@ const GestionOSForm = ({
                 </Grid>
                 <Grid>
                   <CheckboxMaterial
-                    id="titularPaciente"
+                    id="elPacienteEsTitular"
                     label="El Paciente es El Titular"
                     required
-                    value={data?.titularPaciente}
+                    value={data?.elPacienteEsTitular}
                     onChange={(v) => handleDatosPaciente(v)}
-                    disabled={disabledItems.titularPaciente}
+                    disabled={disabledItems.elPacienteEsTitular}
                   />
                 </Grid>
                 <Grid width="full" gap="inherit">
@@ -2183,7 +2184,7 @@ const GestionOSForm = ({
                   />
                 </Grid>
 
-                <Grid width="50%" gap="inherit">
+                <Grid width="full" gap="inherit">
                   <SearchSelectMaterial
                     required
                     id="gestionObraSocial"
