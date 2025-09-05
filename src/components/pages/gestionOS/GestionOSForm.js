@@ -191,97 +191,6 @@ const GestionOSForm = ({
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
 
-  //#region EMAIL
-  //Se debe procesar el(envio de email)
-  const sendEnviarEmailHandler = async () => {
-    loading = true;
-    const adjuntos = (documentacionList || []).map((r) => ({
-      fileName: r.nombreArchivo,
-      contentType: "application/octet-stream", // o usa el real si lo tienes
-      base64Data: r.archivo,
-    }));
-    // const localidadUsuario = `${
-    //   usuarioLogueado.ambitoSeccionales == null
-    //     ? seccionalSelect.selected.record.localidad
-    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
-    // }, `;
-
-    //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
-    const localidadUsuario = seccionalSelect?.options.find(
-      (o) => o.value === seccionalSelect.selected.value
-    )?.record?.localidadNombre;
-
-    const emails = [
-      usuarioLogueado.email,
-      data?.emailContacto ?? [],
-      data?.emailContacto2 ?? [],
-    ];
-    //console.log("seccionalSelect1", seccionalSelect);
-    //console.log("localidadUsuario",localidadUsuario)
-
-    //Modificacion Mauro
-    const asuntoFinal = `UATRE - Nueva Gestión de Obra Social${ultimoIdGestion ? ` [Nro de Gestión: ${ultimoIdGestion + 1}]` : ""}`;
-
-    pushQuery({
-      action: "EnviarCorreo",
-      config: {
-        body: {
-          to: [data?.direccionesEmailDestino] ?? [],
-          cco: emails.filter((email) => email),
-          attachments: adjuntos,
-          //ModificaCION Mauro
-          asunto: asuntoFinal,
-          cuerpo:
-            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
-              "DD/MM/YYYY"
-            )}</strong><br></br>` +
-            `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
-            `En representación del Afiliado <strong>${!!data.titularPaciente
-              ? data?.apellidoTitular
-              : data?.apellidoPaciente
-            } ${!!data.titularPaciente
-              ? data?.nombreTitular
-              : data?.nombrePaciente
-            }</strong>, con DNI Nº <strong>${data?.dniPaciente ?? ""
-            }</strong>, Afiliado Nº <strong>${data?.cuitTitular ?? ""
-            }</strong> ` +
-            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>` +
-            `<strong>${data?.texto}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
-            `Tipo de Adjuntos: <strong>${documentacionList.length === 0
-              ? "Sin archivos adjuntos"
-              : documentacionList
-                .map((a) => a.refTipoDocumentacionDescripcion)
-                .join("/ ")
-            }</strong><br></br>` +
-            `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
-            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
-            `En caso de negativa de respuesta al presente, el afiliado realizará la respectiva denuncia ante la Superintendencia de Servicios de Salud, por la falta de atención de parte de esa Obra Social.<br><br/>` +
-            `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
-        },
-      },
-      onOk: async (ok) => {
-        const estadoEnviado = gestionEstadoSelect.options.find(
-          (o) => o.label.toString().trim() === "ENVIADO"
-        );
-        if (estadoEnviado) {
-          onChange({ gestionEstadoId: estadoEnviado?.value });
-        }
-
-        setDialogTexto("Se ha enviado un email a la dirección ingresada.");
-        setOpenDialog(true);
-      },
-      onError: async (error) => {
-        setDialogTexto(error?.message || "Error al enviar el email.");
-        setOpenDialog(true);
-      },
-      onFinally: async () => {
-        loading = false;
-        //onClose(true)
-      },
-    });
-  };
-  //#endregion
-
   //#region DISABLED 0303
   useEffect(() => {
     const changes = {};
@@ -643,24 +552,6 @@ const GestionOSForm = ({
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
-      case "GetUltimaGestionPaciente": {
-        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
-        const { dniPaciente } = params;
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
-            method: "POST",
-            body: {
-              pageIndex: 1,
-              pageSize: 1,
-              sort: "IdDesc",
-              ...(dniPaciente ? { dniPaciente } : {}),
-            },
-          },
-        };
-      }
-
 
       case "GetAfiliado": {
         return {
@@ -1506,17 +1397,17 @@ const GestionOSForm = ({
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
 
         if (!titular.existeEnUATRE) {
           onDownloadSolicitudAfiliacion(true);
