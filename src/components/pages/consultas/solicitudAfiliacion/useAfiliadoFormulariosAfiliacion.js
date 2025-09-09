@@ -345,6 +345,21 @@ if (list.selection.request) {
       break;
     }
 
+	
+  // Consulta ver formulario prefillado, solo lectura
+  case "C": {
+    const row = list.selection.edit ?? list.selection.record ?? {};
+    form = (
+      <SolicitudAfiliacionForm
+        title={`Consulta Solicitud ${row.cuil ?? ""}`}
+        data={row}
+        readOnly
+        onClose={handleClose}
+      />
+    );
+    break;
+  }
+
     default: {
       form = (
         <SolicitudAfiliacionForm

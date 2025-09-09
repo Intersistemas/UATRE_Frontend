@@ -62,35 +62,35 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			Formato.Cuit(formularioSelected?.cuil) || formularioSelected?.nombre;
 
 		actions.push(
-			createAction({
-				action: `Consulta Solicitud ${desc}`,
-				request: "C",
-				//tarea: "Datos_EmpresaConsulta",
-				record: {},
-				...(formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "o",
-							underlineindex: 1,
-					  }),
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Solicitud ${desc}`,
-				request: "M",
-				record: {},
-				//tarea: "Datos_EmpresaModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "m",
-							underlineindex: 0,
-					  }),
-			})
-		);
+  createAction({
+    action: `Consulta Solicitud ${desc}`,
+    request: "C",
+	//tarea: "Datos_EmpresaConsulta",
+    record: {},
+ ...(formularioSelected?.id
+   ? {disabled: false,
+       keys: "o",
+       underlineindex: 1,
+     }
+   : { disabled: true }),
+  })
+);
+
+		// actions.push(
+		// 	createAction({
+		// 		action: `Modifica Solicitud ${desc}`,
+		// 		request: "M",
+		// 		record: {},
+		// 		//tarea: "Datos_EmpresaModifica",
+		// 		...(formularioSelected?.deletedDate || !formularioSelected?.id
+		// 			? { disabled: true }
+		// 			: {
+		// 					disabled: false,
+		// 					keys: "m",
+		// 					underlineindex: 0,
+		// 			  }),
+		// 	})
+		// );
 
 		if (!formularioSelected?.deletedDate && !formularioSelected?.afiliadoIdAsignado) {
 			actions.push(
