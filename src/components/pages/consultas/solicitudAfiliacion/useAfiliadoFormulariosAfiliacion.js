@@ -12,6 +12,9 @@ import AfiliadoFormulariosAfiliacionTable from "./AfiliadoFormulariosAfiliacionT
 import AfiliadoFormulariosAfiliacionIncorporacion from "./AfiliadoFormulariosAfiliacionIncorporacion";
 import SolicitudAfiliacionForm from "./SolicitudAfiliacionForm";
 import AfiliadosAgregar from "components/pages/afiliados/AfiliadoAgregar";
+import { Modal } from "react-bootstrap";
+import Button from "components/ui/Button/Button";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
 const selectionDef = {
 	action: "",
@@ -62,6 +65,38 @@ export const onDataChangeDef = (data = []) => {};
    return { telefonoPais: pais, telefonoArea: area, telefonoNumero: numero };
  };
 
+ // Modal de confirmación para rechazo
+const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
+  const [obs, setObs] = useState(row?.deletedObs ?? "");
+  return (
+    <Modal centered show onHide={() => onClose()}>
+      <Modal.Header closeButton>Rechazar solicitud</Modal.Header>
+      <Modal.Body>
+        <div style={{ marginBottom: 10 }}>
+          ¿Confirmás rechazar la solicitud del CUIL <b>{Formato.Cuit(row?.cuil)}</b>?
+        </div>
+        <InputMaterial
+          id="rechazoObs"
+          label="Motivo / Observaciones (opcional)"
+          value={obs}
+          onChange={(v) => setObs(v)}
+        />
+      </Modal.Body>
+      <Modal.Footer>
+        <Button className="botonAzul" loading={!!loading} onClick={() => onConfirm(obs)}>
+          CONFIRMAR RECHAZO
+        </Button>
+        <Button className="botonAmarillo" onClick={() => onClose()}>
+          CANCELAR
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+
+
+
 const useAfiliadoFormulariosAfiliacion = ({
 	remote: remoteInit = true,
 	data: dataInit = [],
@@ -90,15 +125,15 @@ const useAfiliadoFormulariosAfiliacion = ({
 					},
 				};
 			}
-			/*case "Update": {
-				return {
-					config: {
-						baseURL: "Comunes",
-						endpoint: `/Empresas`,
-						method: "PUT",
-					},
-				};
-			}
+      case "Resuelve": {
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/AfiliadoFormulariosAfiliacion/ResuelveFormularioAfiliacion`,
+            method: "PATCH",
+          },
+        };
+      }
 			case "Delete": {
 				return {
 					config: {
@@ -116,7 +151,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 						method: "PATCH",
 					},
 				};
-			}*/
+			}
 			default:
 				return null;
 		}
@@ -346,7 +381,7 @@ if (list.selection.request) {
     }
 
 	
-  // Consulta ver formulario prefillado, solo lectura
+  // Consulta → ver formulario prefillado, solo lectura
   case "C": {
     const row = list.selection.edit ?? list.selection.record ?? {};
     form = (
@@ -359,6 +394,38 @@ if (list.selection.request) {
     );
     break;
   }
+   case "B": {
+     form = (
+       <RechazoModal
+         row={row}
+         onClose={handleClose}
+         loading={list.loadingOverride}
+         onConfirm={(obs) => {
+           const body = {
+             id: row?.id,
+             afiliadoIdAsignado: 0,
+             deletedObs: obs || "",
+           };
+           pushQuery({
+             action: "Resuelve",
+             config: { body },
+             onOk: async () => {
+               // dispara recarga de lista manteniendo filtros/paginación
+               setList((o) => ({ ...o, loading: "Cargando...", data: o.remote ? [] : o.data }));
+               handleClose();
+             },
+             onError: async (error) => {
+               console.error("Error al rechazar:", error);
+             },
+           });
+         }}
+       />
+     );
+     break;
+   }
+
+
+
 
     default: {
       form = (

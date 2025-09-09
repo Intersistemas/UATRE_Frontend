@@ -62,19 +62,19 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			Formato.Cuit(formularioSelected?.cuil) || formularioSelected?.nombre;
 
 		actions.push(
-  createAction({
-    action: `Consulta Solicitud ${desc}`,
-    request: "C",
-	//tarea: "Datos_EmpresaConsulta",
-    record: {},
- ...(formularioSelected?.id
-   ? {disabled: false,
-       keys: "o",
-       underlineindex: 1,
-     }
-   : { disabled: true }),
-  })
-);
+			createAction({
+				action: `Consulta Solicitud ${desc}`,
+				request: "C",
+				record: {},
+				...(formularioSelected?.id
+					? {
+						disabled: false,
+						keys: "o",
+						underlineindex: 1,
+					}
+					: { disabled: true }),
+			})
+		);
 
 		// actions.push(
 		// 	createAction({
@@ -92,18 +92,17 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		// 	})
 		// );
 
-		if (!formularioSelected?.deletedDate && !formularioSelected?.afiliadoIdAsignado) {
+		// Disponible cuando NO está aceptada ni rechazada
+		if (!formularioSelected?.afiliadoIdAsignado && !formularioSelected?.deletedDate) {
 			actions.push(
 				createAction({
 					action: `Acepta Solicitud ${desc}`,
 					request: "I",
 					record: {},
-					//tarea: "Datos_EmpresaReactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
 			);
-		} else {
 			actions.push(
 				createAction({
 					action: `Rechaza Solicitud ${desc}`,
@@ -112,15 +111,10 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 						...formularioSelected,
 						deletedDate: dayjs().format("YYYY-MM-DD"),
 						deletedBy: Usuario.nombre,
+						deletedObs: "",
 					},
-					//tarea: "Datos_EmpresaBaja",
-					...(formularioSelected?.deletedDate || !formularioSelected?.id
-						? { disabled: true }
-						: {
-								disabled: false,
-								keys: "b",
-								underlineindex: 0,
-						  }),
+					keys: "b",
+					underlineindex: 0,
 				})
 			);
 		}
@@ -252,7 +246,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-			<div className="contenido">	
+			<div className="contenido">
 				{tabs[tab].body()}
 			</div>
 			<KeyPress items={acciones} />
