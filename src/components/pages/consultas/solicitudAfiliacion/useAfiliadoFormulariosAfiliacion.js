@@ -361,12 +361,10 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 		setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
 
-
 		const run = async () => {
 			for (const row of pendientes) {
 				syncedIdsRef.current.add(row.id);
 				const cuilDigits = String(row?.cuil ?? "").replace(/\D/g, "");
-
 
 				await new Promise((resolve) => {
 					pushQuery({
