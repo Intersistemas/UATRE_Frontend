@@ -9,13 +9,13 @@ import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, {
-  CUITMask,
-  DNIMask,
+	CUITMask,
+	DNIMask,
 } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial, {
-  mapOptions,
-  includeSearch,
+	mapOptions,
+	includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
@@ -23,18 +23,18 @@ import useSolicitudAfiliacion from "./SolicitudAfiliacion";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const styles = {
-  group: {
-    padding: "5px",
-    color: "#186090",
-    textAlign: "left",
-    border: "solid 1px",
-    borderRadius: "20px",
-  },
-  titulo: {
-    fontWeight: "bold",
-    textAlign: "left",
-    borderBottom: "dashed 1px",
-  },
+	group: {
+		padding: "5px",
+		color: "#186090",
+		textAlign: "left",
+		border: "solid 1px",
+		borderRadius: "20px",
+	},
+	titulo: {
+		fontWeight: "bold",
+		textAlign: "left",
+		borderBottom: "dashed 1px",
+	},
 };
 
 //#region options
@@ -52,119 +52,119 @@ const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
 const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    start: [seccionalSelectDef],
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		start: [seccionalSelectDef],
+		...x,
+	});
 //#endregion seccionalesSelect Options
 
 //#region tipoDocumentoSelect Options
 const tipoDocumentoSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion tipoDocumentoSelect Options
 
 //#region nacionalidadSelect Options
 const nacionalidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion nacionalidadSelect Options
 
 //#region estadoCivilSelect Options
 const estadoCivilSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion estadoCivilSelect Options
 
 //#region sexoSelect Options
 const sexoSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion sexoSelect Options
 
 //#region provinciaSelect Options
 const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion provinciaSelect Options
 
 //#region localidadSelect Options
 const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({
-      value: r.id,
-      label: [r.codPostal, r.nombre].join(" - "),
-      record: r,
-    }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: [r.codPostal, r.nombre].join(" - "),
+			record: r,
+		}),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion localidadSelect Options
 
 //#region ciiuSelect Options
 const ciiuSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({
-      value: r.id,
-      label: [r.ciiu, r.descripcion].join(" - "),
-      record: r,
-    }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: [r.ciiu, r.descripcion].join(" - "),
+			record: r,
+		}),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion ciiuSelect Options
 
 //#region oficioSelect Options
 const oficioSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({
-      value: r.id,
-      label: r.descripcion,
-      record: r,
-    }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: r.descripcion,
+			record: r,
+		}),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion oficioSelect Options
 
 //#region actividadSelect Options
 const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({
-      value: r.id,
-      label: r.descripcion,
-      record: r,
-    }),
-    filter: (r) => includeSearch(r, buscar),
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: r.descripcion,
+			record: r,
+		}),
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
 //#endregion actividadSelect Options
 
 //#endregion options
