@@ -20,6 +20,8 @@ import SearchSelectMaterial, {
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import useSolicitudAfiliacion from "./SolicitudAfiliacion";
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
+
 
 const styles = {
 	group: {
@@ -2041,37 +2043,95 @@ const SolicitudAfiliacionForm = ({
 			return;
 		}
 
-		const despliega = () => {
-			const dataPrint = {
-				"seccional.codigo": body.seccionalCodigo,
-				...Object.fromEntries(`${body.fecha || ""}`.split("-").map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])),
-				...Object.fromEntries(`${Formato.Cuit(body.cuil)}`.split("-").map((v, i) => [`trabajador.cuil.${["tipo", "id", "verificador"][i]}`, v])),
-				"trabajador.documento": [body.tipoDocumentoDescripcion, body.documento].join(" "),
-				"trabajador.nacionalidad": body.nacionalidad,
-				"trabajador.apellidos": body.apellido,
-				"trabajador.nombres": body.nombre,
-				"trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
-				"trabajador.estado_civil": body.estadoCivil,
-				"trabajador.sexo": body.sexoDescripcion,
-				"trabajador.domicilio": body.domicilio,
-				"trabajador.localidad": body.nombreLocalidadAfiliado,
-				"trabajador.provincia": body.provinciaNombre,
-				"trabajador.oficio": body.oficio,
-				"trabajador.actividad": body.actividadAfiliado,
-				"trabajador.telefono": [body.telefono, body.celular].filter((r) => r).join(", "),
-				"trabajador.correo": body.email,
+		// const despliega = () => {
+		// 	const dataPrint = {
+		// 		"seccional.codigo": body.seccionalCodigo,
+		// 		...Object.fromEntries(`${body.fecha || ""}`.split("-").map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])),
+		// 		...Object.fromEntries(`${Formato.Cuit(body.cuil)}`.split("-").map((v, i) => [`trabajador.cuil.${["tipo", "id", "verificador"][i]}`, v])),
+		// 		"trabajador.documento": [body.tipoDocumentoDescripcion, body.documento].join(" "),
+		// 		"trabajador.nacionalidad": body.nacionalidad,
+		// 		"trabajador.apellidos": body.apellido,
+		// 		"trabajador.nombres": body.nombre,
+		// 		"trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
+		// 		"trabajador.estado_civil": body.estadoCivil,
+		// 		"trabajador.sexo": body.sexoDescripcion,
+		// 		"trabajador.domicilio": body.domicilio,
+		// 		"trabajador.localidad": body.nombreLocalidadAfiliado,
+		// 		"trabajador.provincia": body.provinciaNombre,
+		// 		"trabajador.oficio": body.oficio,
+		// 		"trabajador.actividad": body.actividadAfiliado,
+		// 		"trabajador.telefono": [body.telefono, body.celular].filter((r) => r).join(", "),
+		// 		"trabajador.correo": body.email,
 
-				...Object.fromEntries(`${Formato.Cuit(body.cuitEmpresa)}`.split("-").map((v, i) => [`empleador.cuit.${["tipo", "id", "verificador"][i]}`, v])),
-				"empleador.razon_social": body.razonSocial,
-				"empleador.domicilio": body.domicilioEmpresa,
-				"empleador.localidad": body.nombreLocalidadEmpresa,
-				"empleador.provincia": body.provinciaNombreEmpresa,
-				"empleador.actividad": body.actividadEmpresa,
-				"empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa].filter((r) => r).join(", "),
-				"empleador.correo": body.emailEmpresa,
-			};
-			audit({ modulo: "Consultas", proceso: "SolicitudPreviaAfiliacion", parametros: dataPrint, observaciones: `Emite PDF` });
-			solicitudAfiliacion({ data: dataPrint, onLoad: (base64) => setState((o) => ({ ...o, base64 })) });
+		// 		...Object.fromEntries(`${Formato.Cuit(body.cuitEmpresa)}`.split("-").map((v, i) => [`empleador.cuit.${["tipo", "id", "verificador"][i]}`, v])),
+		// 		"empleador.razon_social": body.razonSocial,
+		// 		"empleador.domicilio": body.domicilioEmpresa,
+		// 		"empleador.localidad": body.nombreLocalidadEmpresa,
+		// 		"empleador.provincia": body.provinciaNombreEmpresa,
+		// 		"empleador.actividad": body.actividadEmpresa,
+		// 		"empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa].filter((r) => r).join(", "),
+		// 		"empleador.correo": body.emailEmpresa,
+		// 	};
+		// 	audit({ modulo: "Consultas", proceso: "SolicitudPreviaAfiliacion", parametros: dataPrint, observaciones: `Emite PDF` });
+		// 	solicitudAfiliacion({ data: dataPrint, onLoad: (base64) => setState((o) => ({ ...o, base64 })) });
+		// };
+
+		const despliega = async () => {
+			//  Mapeo al contrato del generador nuevo
+			const datos = [{
+				fecha: Formato.Fecha(body.fecha),
+				seccional_nro: body.seccionalCodigo || "",
+				afiliado_nro: "",
+				trabajador: {
+					cuil: Formato.Cuit(body.cuil),
+					tipo_doc: body.tipoDocumentoDescripcion,
+					nro_doc: body.documento,
+					nacionalidad: body.nacionalidad,
+					apellidos: body.apellido,
+					nombres: body.nombre,
+					fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
+					estado_civil: body.estadoCivil,
+					sexo: body.sexoDescripcion,
+					domicilio: body.domicilio,
+					localidad: body.nombreLocalidadAfiliado,
+					provincia: body.provinciaNombre,
+					oficio: body.oficio,
+					actividad: body.actividadAfiliado,
+					telefono: body.celular,
+					email: body.email,
+				},
+				empleador: {
+					cuit: Formato.Cuit(body.cuitEmpresa),
+					razon_social: body.razonSocial,
+					domicilio: body.domicilioEmpresa,
+					localidad: body.nombreLocalidadEmpresa,
+					provincia: body.provinciaNombreEmpresa,
+					actividad: body.actividadEmpresa,
+					telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
+					email: body.emailEmpresa,
+				},
+			}];
+
+			audit({
+				modulo: "Consultas",
+				proceso: "SolicitudPreviaAfiliacion",
+				parametros: datos[0],
+				observaciones: "Emite PDF con generador PDF-LIB",
+			});
+
+			//  Genera y SOLO previsualiza (no descarga automática)
+			const base64 = await generarPDFLibSolicitudAfiliacion({
+				datos,
+				descargar: false,          
+				onBase64: () => { },
+				setPaginaActual: () => { },
+				setTotalPaginas: () => { },
+			});
+
+			setState((o) => ({
+				...o,
+				base64: `data:application/pdf;base64,${base64}`,
+			}));
 		};
 
 		//#region Validaciones AFIP
