@@ -162,6 +162,7 @@ const SolicitudAfiliacionForm = ({
 	title = "Solicitud previa de afiliación",
 	data = {},
 	readOnly = false,
+	hidePrint = false,
 	onClose = () => { },
 }) => {
 
@@ -846,6 +847,7 @@ const SolicitudAfiliacionForm = ({
 					<Grid width>
 						<SearchSelectMaterial
 							id="seccionalId"
+							readOnly={isRO}
 							autoFocus
 							label="Seccional"
 							error={
@@ -907,6 +909,8 @@ const SolicitudAfiliacionForm = ({
 						<InputMaterial
 							id="fecha"
 							type="date"
+							disabled={isRO}
+							readOnly={isRO}
 							label="Fecha"
 							value={state.form.fecha}
 							error={state.errors.fecha}
@@ -936,6 +940,8 @@ const SolicitudAfiliacionForm = ({
 							<Grid width="200px">
 								<InputMaterial
 									id="cuil"
+									disabled={isRO}
+									readOnly={isRO}
 									autoFocus={false}
 									mask={CUITMask}
 									label="CUIL"
@@ -956,6 +962,7 @@ const SolicitudAfiliacionForm = ({
 							<Grid col width="100px">
 								<Button
 									className="botonAzul"
+									disabled={isRO}
 									onClick={() => {
 										const changes = {
 											form: {},
@@ -1079,6 +1086,7 @@ const SolicitudAfiliacionForm = ({
 								<SearchSelectMaterial
 									id="tipoDocumentoId"
 									label="Tipo Doc."
+									readOnly={isRO}
 									error={
 										!!(
 											tipoDocumentoSelect.error || state.errors.tipoDocumentoId
@@ -1121,6 +1129,7 @@ const SolicitudAfiliacionForm = ({
 									id="documento"
 									mask={DNIMask}
 									label="Número Doc."
+									readOnly={isRO}
 									value={state.form.documento}
 									error={!!state.errors.documento}
 									helperText={state.errors.documento}
@@ -1140,6 +1149,8 @@ const SolicitudAfiliacionForm = ({
 								<SearchSelectMaterial
 									id="nacionalidadSelect"
 									label="Nacionalidad"
+
+									readOnly={isRO}
 									error={
 										!!(nacionalidadSelect.error || state.errors.nacionalidadId)
 									}
@@ -1180,6 +1191,7 @@ const SolicitudAfiliacionForm = ({
 							<InputMaterial
 								id="apellido"
 								label="Apellidos"
+								readOnly={isRO}
 								value={state.form.apellido}
 								error={!!state.errors.apellido}
 								helperText={state.errors.apellido}
@@ -1197,6 +1209,7 @@ const SolicitudAfiliacionForm = ({
 							<InputMaterial
 								id="nombre"
 								label="Nombres"
+								readOnly={isRO}
 								value={state.form.nombre}
 								error={!!state.errors.nombre}
 								helperText={state.errors.nombre}
@@ -1217,6 +1230,7 @@ const SolicitudAfiliacionForm = ({
 								id="fechaNacimiento"
 								type="date"
 								label="Fecha de nacimiento"
+								readOnly={isRO}
 								value={state.form.fechaNacimiento}
 								error={state.errors.fechaNacimiento}
 								disabled={!state.validado.trabajador}
@@ -1233,6 +1247,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="estadoCivilSelect"
 								label="Estado civil"
+								readOnly={isRO}
 								error={
 									!!(estadoCivilSelect.error || state.errors.estadoCivilId)
 								}
@@ -1270,6 +1285,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="sexoSelect"
 								label="Sexo"
+								readOnly={isRO}
 								error={!!(sexoSelect.error || state.errors.sexoId)}
 								helperText={
 									sexoSelect.loading ?? sexoSelect.error ?? state.errors.sexoId
@@ -1297,6 +1313,7 @@ const SolicitudAfiliacionForm = ({
 							<InputMaterial
 								id="domicilio"
 								label="Domicilio real"
+								readOnly={isRO}
 								value={state.form.domicilio}
 								error={!!state.errors.domicilio}
 								helperText={state.errors.domicilio}
@@ -1374,6 +1391,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="trabLocaSelect"
 								label="Localidad"
+								readOnly={isRO}
 								error={
 									!!(
 										trabLocaSelect.error || state.errors.refLocalidadIdAfiliado
@@ -1476,6 +1494,7 @@ const SolicitudAfiliacionForm = ({
 						<Grid width gap="inherit">
 							<InputMaterial
 								id="telefono"
+								readOnly={isRO}
 								type="tel"
 								label="Teléfono"
 								value={state.form.telefono}
@@ -1494,6 +1513,7 @@ const SolicitudAfiliacionForm = ({
 							/>
 							<InputMaterial
 								id="celular"
+								readOnly={isRO}
 								type="tel"
 								label="Celular"
 								value={state.form.celular}
@@ -1686,6 +1706,7 @@ const SolicitudAfiliacionForm = ({
 							<InputMaterial
 								id="domicilioEmpresa"
 								label="Domicilio real"
+								readOnly={isRO}
 								value={state.form.domicilioEmpresa}
 								error={!!state.errors.domicilioEmpresa}
 								helperText={state.errors.domicilioEmpresa}
@@ -1754,6 +1775,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="emplLocaSelect"
 								label="Localidad"
+								readOnly={isRO}
 								error={!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)}
 								helperText={
 									emplLocaSelect.loading ??
@@ -2123,6 +2145,9 @@ const SolicitudAfiliacionForm = ({
 		//#endregion Validaciones AFIP
 	};
 
+	// props para bloquear edición cuando es solo lectura
+	const ro = readOnly ? { disabled: true, readOnly: true } : {};
+
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
@@ -2133,27 +2158,26 @@ const SolicitudAfiliacionForm = ({
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
 					<Grid width style={{ color: "red" }}>
 						{state.errors.create}
-					</Grid>
+						</Grid>
 					{state.base64 ? (
 						<div />
 					) : (
-						<Button
-							className="botonAmarillo"
-							onClick={onImprimie}
-							loading={!!state.loading}
-							disabled={
-								!and(
-									...Object.values(
-										readOnly
-											? { seccionalId: true, fecha: true, trabajador: true, empleador: true }
-											: state.validado
+						!readOnly && (
+							<Button
+								className="botonAmarillo"
+								onClick={onImprimie}
+								loading={!!state.loading}
+								disabled={
+									!and(
+										...Object.values(state.validado)
 									)
-								)
-							}
-						>
-							IMPRIME
-						</Button>
+								}
+							>
+								IMPRIME
+							</Button>
+						)
 					)}
+
 					<Button className="botonAmarillo" onClick={() => onClose()}>
 						FINALIZA
 					</Button>

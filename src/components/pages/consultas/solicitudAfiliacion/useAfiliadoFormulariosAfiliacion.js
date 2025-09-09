@@ -224,7 +224,20 @@ const useAfiliadoFormulariosAfiliacion = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
+				// changes.data = data;
+				// Orden
+				const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+				const noHayOrdenDelUsuario = !list?.params?.orderBy; // si no clicaron ordenar
+				const ordenado = noHayOrdenDelUsuario
+					? [...data].sort((a, b) =>
+						rank(a) - rank(b) ||
+						// dentro de cada estado, más recientes primero
+						dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
+					)
+					: data;
+				changes.data = ordenado;
+
+
 				const multi = list.selection.multi;
 				const record = list.selection.record;
 				changes.pagination = { index, size, count };
@@ -453,6 +466,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 						title={`Consulta Solicitud ${row.cuil ?? ""}`}
 						data={row}
 						readOnly
+						hidePrint
 						onClose={handleClose}
 					/>
 				);
