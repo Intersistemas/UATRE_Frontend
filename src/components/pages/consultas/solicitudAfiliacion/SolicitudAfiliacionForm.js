@@ -158,12 +158,12 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
- const SolicitudAfiliacionForm = ({
-   title = "Solicitud previa de afiliación",
-   data = {},
-   readOnly = false,
-   onClose = () => {},
- }) => {
+const SolicitudAfiliacionForm = ({
+	title = "Solicitud previa de afiliación",
+	data = {},
+	readOnly = false,
+	onClose = () => { },
+}) => {
 
 	//#region APIs
 	const { setState: setSeccionalesQuery } = useQueryState(
@@ -582,79 +582,79 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 	//#endregion selects empleador
 
- // PREFILL (data  readOnly)
- useEffect(() => {
-   if (!data || Object.keys(data).length === 0) return;
-   setState((o) => ({
-     ...o,
-     form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0,10) : o.form.fecha },
-     validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
-   }));
- }, [data, readOnly]);
+	// PREFILL (data  readOnly)
+	useEffect(() => {
+		if (!data || Object.keys(data).length === 0) return;
+		setState((o) => ({
+			...o,
+			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+		}));
+	}, [data, readOnly]);
 
- const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
-   if (!id) return;
-   setter((o) => {
-     const hit = (o.options || optionsState.options || []).find(match) || {};
-     return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
-   });
- };
+	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+		if (!id) return;
+		setter((o) => {
+			const hit = (o.options || optionsState.options || []).find(match) || {};
+			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+		});
+	};
 
- // Prefill selects
- useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
- useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
- useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
- useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
- useEffect(() => {
-   if (!trabPciaSelect.options?.length) return;
-   setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
- }, [trabPciaSelect.options, data?.provinciaId]);
- useEffect(() => {
-   if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
-   setLocalidadesQuery((o) => ({
-     ...o,
-     query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
-     onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-     onLoad: ({ ok, error }) =>
-       setTrabLocaSelect((s) => ({
-         ...s,
-         data: Array.isArray(ok) ? ok : [],
-         loading: null,
-         error: error?.toString(),
-         selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
-         origen: "option",
-       })),
-   }));
- }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
- useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
- useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
- useEffect(() => {
-   if (!emplPciaSelect.options?.length) return;
-   setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
- }, [emplPciaSelect.options, data?.provinciaidEmpresa]);
- useEffect(() => {
-   if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
-   setLocalidadesQuery((o) => ({
-     ...o,
-     query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
-     onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-     onLoad: ({ ok, error }) =>
-       setEmplLocaSelect((s) => ({
-         ...s,
-         data: Array.isArray(ok) ? ok : [],
-         loading: null,
-         error: error?.toString(),
-         selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
-         origen: "option",
-       })),
-   }));
- }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
- useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+	// Prefill selects
+	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => {
+		if (!trabPciaSelect.options?.length) return;
+		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+	}, [trabPciaSelect.options, data?.provinciaId]);
+	useEffect(() => {
+		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setTrabLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+	useEffect(() => {
+		if (!emplPciaSelect.options?.length) return;
+		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+	useEffect(() => {
+		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setEmplLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
 
- // READONLY flags
- const isRO = !!readOnly;
- const disTrab = isRO || !state.validado.trabajador;
- const disEmpl = isRO || !state.validado.empleador;
+	// READONLY flags
+	const isRO = !!readOnly;
+	const disTrab = isRO || !state.validado.trabajador;
+	const disEmpl = isRO || !state.validado.empleador;
 
 
 
@@ -1538,148 +1538,148 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 						<Grid gap="inherit">
 							<Grid width="200px">
 								<InputMaterial
-  id="cuitEmpresa"
-  mask={CUITMask}
-  label="CUIT"
-  value={state.form.cuitEmpresa}
-  error={!!state.errors.cuitEmpresa}
-  helperText={state.errors.cuitEmpresa}
-  disabled={isRO}
-  onChange={(v) =>
-    setState((o) => ({
-      ...o,
-      form: { ...o.form, cuitEmpresa: v.replace(/[^0-9]+/g, "") },
-    }))
-  }
-/>
+									id="cuitEmpresa"
+									mask={CUITMask}
+									label="CUIT"
+									value={state.form.cuitEmpresa}
+									error={!!state.errors.cuitEmpresa}
+									helperText={state.errors.cuitEmpresa}
+									disabled={isRO}
+									onChange={(v) =>
+										setState((o) => ({
+											...o,
+											form: { ...o.form, cuitEmpresa: v.replace(/[^0-9]+/g, "") },
+										}))
+									}
+								/>
 							</Grid>
 							<Grid col width="100px">
 
-<Button
-  className="botonAzul"
-  disabled={isRO}
-  onClick={() => {
-    const changes = { form: {}, errors: { cuitEmpresa: "" } };
-    const cuit = state.form.cuitEmpresa;
-    const apply = () =>
-      setState((o) => {
-        const s = {
-          ...o,
-          form: { ...o.form, ...changes.form },
-          errors: { ...o.errors, ...changes.errors },
-        };
-        s.validado = { ...o.validado, empleador: true };
-        return s;
-      });
-    if (cuit) {
-      setPadronAFIPQuery((o) => ({
-        ...o,
-        loading: "Empleador",
-        query: { ...o.query, params: { ...o.query.params, cuit } },
-        onLoad: ({ query, ok, error }) => {
-          if (error) {
-            changes.errors.cuitEmpresa =
-              error.code === 404 ? "No existe en ARCA" : error.toString();
-          } else {
-            changes.form.razonSocial = ok.razonSocial || ok.nombre;
-            if (ok.domicilios?.length) {
-              const domicilio =
-                ok.domicilios.find((r) => r.tipoDomicilio === "LEGAL/REAL") ??
-                ok.domicilios[0];
-              changes.form.domicilioEmpresa = domicilio.direccion;
+								<Button
+									className="botonAzul"
+									disabled={isRO}
+									onClick={() => {
+										const changes = { form: {}, errors: { cuitEmpresa: "" } };
+										const cuit = state.form.cuitEmpresa;
+										const apply = () =>
+											setState((o) => {
+												const s = {
+													...o,
+													form: { ...o.form, ...changes.form },
+													errors: { ...o.errors, ...changes.errors },
+												};
+												s.validado = { ...o.validado, empleador: true };
+												return s;
+											});
+										if (cuit) {
+											setPadronAFIPQuery((o) => ({
+												...o,
+												loading: "Empleador",
+												query: { ...o.query, params: { ...o.query.params, cuit } },
+												onLoad: ({ query, ok, error }) => {
+													if (error) {
+														changes.errors.cuitEmpresa =
+															error.code === 404 ? "No existe en ARCA" : error.toString();
+													} else {
+														changes.form.razonSocial = ok.razonSocial || ok.nombre;
+														if (ok.domicilios?.length) {
+															const domicilio =
+																ok.domicilios.find((r) => r.tipoDomicilio === "LEGAL/REAL") ??
+																ok.domicilios[0];
+															changes.form.domicilioEmpresa = domicilio.direccion;
 
-              const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
-              const pcia =
-                (emplPciaSelect.options || []).find(
-                  (r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
-                ) || null;
+															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
+															const pcia =
+																(emplPciaSelect.options || []).find(
+																	(r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
+																) || null;
 
-              if (pcia) {
-                setEmplPciaSelect((o) => ({
-                  ...o,
-                  selected: pcia,
-                  origen: "option",
-                }));
+															if (pcia) {
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: pcia,
+																	origen: "option",
+																}));
 
-                setLocalidadesQuery((o) => ({
-                  ...o,
-                  query: {
-                    ...o.query,
-                    params: {
-                      ...o.query.params,
-                      provinciaId: pcia?.value,
-                    },
-                  },
-                  onPreLoad: () =>
-                    setEmplLocaSelect((s) => ({
-                      ...s,
-                      loading: "Cargando...",
-                    })),
-                  onLoad: ({ ok, error }) =>
-                    setEmplLocaSelect((s) => ({
-                      ...s,
-                      data: Array.isArray(ok) ? ok : [],
-                      loading: null,
-                      error: error?.toString(),
-                      buscar: domicilio?.localidad ?? "",
-                      selected: {
-                        record: { nombre: domicilio?.localidad ?? "" },
-                      },
-                      origen: "text",
-                    })),
-                }));
-              } else {
-                setEmplPciaSelect((o) => ({
-                  ...o,
-                  selected: {
-                    record: { id: 0, nombre: domicilio?.provincia ?? "" },
-                  },
-                  origen: "text",
-                }));
-                setEmplLocaSelect((o) => ({
-                  ...o,
-                  data: o.data ?? [],
-                  selected: {
-                    record: { nombre: domicilio?.localidad ?? "" },
-                  },
-                  origen: "text",
-                }));
-              }
-            }
+																setLocalidadesQuery((o) => ({
+																	...o,
+																	query: {
+																		...o.query,
+																		params: {
+																			...o.query.params,
+																			provinciaId: pcia?.value,
+																		},
+																	},
+																	onPreLoad: () =>
+																		setEmplLocaSelect((s) => ({
+																			...s,
+																			loading: "Cargando...",
+																		})),
+																	onLoad: ({ ok, error }) =>
+																		setEmplLocaSelect((s) => ({
+																			...s,
+																			data: Array.isArray(ok) ? ok : [],
+																			loading: null,
+																			error: error?.toString(),
+																			buscar: domicilio?.localidad ?? "",
+																			selected: {
+																				record: { nombre: domicilio?.localidad ?? "" },
+																			},
+																			origen: "text",
+																		})),
+																}));
+															} else {
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: {
+																		record: { id: 0, nombre: domicilio?.provincia ?? "" },
+																	},
+																	origen: "text",
+																}));
+																setEmplLocaSelect((o) => ({
+																	...o,
+																	data: o.data ?? [],
+																	selected: {
+																		record: { nombre: domicilio?.localidad ?? "" },
+																	},
+																	origen: "text",
+																}));
+															}
+														}
 
-            if (ok.idActividadPrincipal) {
-              const actividad = ciiuSelect.options.find(
-                (r) => r.record.ciiu === ok.idActividadPrincipal
-              );
-              setCiiuSelect((o) => ({ ...o, selected: actividad }));
-            }
-          }
-          apply();
-          setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-        },
-      }));
-    } else {
-      changes.errors.cuitEmpresa = "Dato requerido";
-      apply();
-    }
-  }}
-  loading={padronAFIPQuery.loading === "Empleador"}
->
-  Valida
-</Button>
+														if (ok.idActividadPrincipal) {
+															const actividad = ciiuSelect.options.find(
+																(r) => r.record.ciiu === ok.idActividadPrincipal
+															);
+															setCiiuSelect((o) => ({ ...o, selected: actividad }));
+														}
+													}
+													apply();
+													setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+												},
+											}));
+										} else {
+											changes.errors.cuitEmpresa = "Dato requerido";
+											apply();
+										}
+									}}
+									loading={padronAFIPQuery.loading === "Empleador"}
+								>
+									Valida
+								</Button>
 							</Grid>
 							<Grid grow>
-<InputMaterial
-  id="razonSocial"
-  label="Razon Social"
-  value={state.form.razonSocial}
-  error={!!state.errors.razonSocial}
-  helperText={state.errors.razonSocial}
-  disabled={disEmpl}
-  onChange={(razonSocial) =>
-    setState((o) => ({ ...o, form: { ...o.form, razonSocial } }))
-  }
-/>
+								<InputMaterial
+									id="razonSocial"
+									label="Razon Social"
+									value={state.form.razonSocial}
+									error={!!state.errors.razonSocial}
+									helperText={state.errors.razonSocial}
+									disabled={disEmpl}
+									onChange={(razonSocial) =>
+										setState((o) => ({ ...o, form: { ...o.form, razonSocial } }))
+									}
+								/>
 							</Grid>
 						</Grid>
 						<Grid width gap="inherit">
@@ -1700,148 +1700,148 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 									}))
 								}
 							/>
-<SearchSelectMaterial
-  id="emplPciaSelect"
-  label="Provincia"
-  error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
-  helperText={
-    emplPciaSelect.loading ??
-    emplPciaSelect.error ??
-    state.errors.provinciaidEmpresa
-  }
-  value={emplPciaSelect.selected}
-  disabled={disEmpl}
-  onChange={(selected = {}) => {
-    setEmplPciaSelect((o) => ({ ...o, selected, origen: "option" }));
-    setLocalidadesQuery((o) => ({
-      ...o,
-      query: {
-        ...o.query,
-        params: { ...o.query.params, provinciaId: selected.value },
-      },
-      onPreLoad: () =>
-        setEmplLocaSelect((s) => ({
-          ...s,
-          selected: {},
-          loading: "Cargando...",
-        })),
-      onLoad: ({ ok, error }) =>
-        setEmplLocaSelect((s) => ({
-          ...s,
-          data: Array.isArray(ok) ? ok : [],
-          loading: null,
-          error: error?.toString(),
-          selected: { record: { codPostal: 99999 } },
-          origen: "option",
-        })),
-    }));
-    setState((o) => ({
-      ...o,
-      form: {
-        ...o.form,
-        provinciaidEmpresa: selected.value,
-        provinciaNombreEmpresa: selected.label,
-        refLocalidadIdEmpresa: 0,
-        nombreLocalidadEmpresa: "",
-      },
-    }));
-  }}
-  options={emplPciaSelect.options}
-  onTextChange={(buscar) =>
-    setEmplPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
-  }
-/>
-<SearchSelectMaterial
-  id="emplLocaSelect"
-  label="Localidad"
-  error={!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)}
-  helperText={
-    emplLocaSelect.loading ??
-    emplLocaSelect.error ??
-    state.errors.refLocalidadIdEmpresa
-  }
-  value={emplLocaSelect.selected}
-  disabled={disEmpl}
-  onChange={(selected = {}) => {
-    setEmplLocaSelect((o) => ({ ...o, selected, origen: "option" }));
-    setState((o) => ({
-      ...o,
-      form: {
-        ...o.form,
-        refLocalidadIdEmpresa: selected.record?.id,
-        nombreLocalidadEmpresa: selected.record?.nombre,
-      },
-    }));
-  }}
-  options={emplLocaSelect.options}
-  onTextChange={(buscar) =>
-    setEmplLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
-  }
-/>
+							<SearchSelectMaterial
+								id="emplPciaSelect"
+								label="Provincia"
+								error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
+								helperText={
+									emplPciaSelect.loading ??
+									emplPciaSelect.error ??
+									state.errors.provinciaidEmpresa
+								}
+								value={emplPciaSelect.selected}
+								disabled={disEmpl}
+								onChange={(selected = {}) => {
+									setEmplPciaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setLocalidadesQuery((o) => ({
+										...o,
+										query: {
+											...o.query,
+											params: { ...o.query.params, provinciaId: selected.value },
+										},
+										onPreLoad: () =>
+											setEmplLocaSelect((s) => ({
+												...s,
+												selected: {},
+												loading: "Cargando...",
+											})),
+										onLoad: ({ ok, error }) =>
+											setEmplLocaSelect((s) => ({
+												...s,
+												data: Array.isArray(ok) ? ok : [],
+												loading: null,
+												error: error?.toString(),
+												selected: { record: { codPostal: 99999 } },
+												origen: "option",
+											})),
+									}));
+									setState((o) => ({
+										...o,
+										form: {
+											...o.form,
+											provinciaidEmpresa: selected.value,
+											provinciaNombreEmpresa: selected.label,
+											refLocalidadIdEmpresa: 0,
+											nombreLocalidadEmpresa: "",
+										},
+									}));
+								}}
+								options={emplPciaSelect.options}
+								onTextChange={(buscar) =>
+									setEmplPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
+								}
+							/>
+							<SearchSelectMaterial
+								id="emplLocaSelect"
+								label="Localidad"
+								error={!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)}
+								helperText={
+									emplLocaSelect.loading ??
+									emplLocaSelect.error ??
+									state.errors.refLocalidadIdEmpresa
+								}
+								value={emplLocaSelect.selected}
+								disabled={disEmpl}
+								onChange={(selected = {}) => {
+									setEmplLocaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setState((o) => ({
+										...o,
+										form: {
+											...o.form,
+											refLocalidadIdEmpresa: selected.record?.id,
+											nombreLocalidadEmpresa: selected.record?.nombre,
+										},
+									}));
+								}}
+								options={emplLocaSelect.options}
+								onTextChange={(buscar) =>
+									setEmplLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
+								}
+							/>
 						</Grid>
 						<Grid width gap="inherit">
-<SearchSelectMaterial
-  id="ciiuSelect"
-  label="Actividad"
-  error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
-  helperText={
-    ciiuSelect.loading ?? ciiuSelect.error ?? state.errors.actividadIdEmpresa
-  }
-  value={ciiuSelect.selected}
-  disabled={disEmpl}
-  onChange={(selected = {}) => {
-    setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
-    setState((o) => ({
-      ...o,
-      form: {
-        ...o.form,
-        actividadIdEmpresa: selected.value,
-        actividadEmpresa: selected.label,
-      },
-    }));
-  }}
-  options={ciiuSelect.options}
-  onTextChange={(buscar) =>
-    setCiiuSelect((o) => ({ ...o, buscar, origen: "text" }))
-  }
-/>
+							<SearchSelectMaterial
+								id="ciiuSelect"
+								label="Actividad"
+								error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
+								helperText={
+									ciiuSelect.loading ?? ciiuSelect.error ?? state.errors.actividadIdEmpresa
+								}
+								value={ciiuSelect.selected}
+								disabled={disEmpl}
+								onChange={(selected = {}) => {
+									setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
+									setState((o) => ({
+										...o,
+										form: {
+											...o.form,
+											actividadIdEmpresa: selected.value,
+											actividadEmpresa: selected.label,
+										},
+									}));
+								}}
+								options={ciiuSelect.options}
+								onTextChange={(buscar) =>
+									setCiiuSelect((o) => ({ ...o, buscar, origen: "text" }))
+								}
+							/>
 						</Grid>
 						<Grid width gap="inherit">
-<InputMaterial
-  id="telefonoEmpresa"
-  type="tel"
-  label="Teléfono"
-  value={state.form.telefonoEmpresa}
-  error={!!state.errors.telefonoEmpresa}
-  helperText={state.errors.telefonoEmpresa}
-  disabled={disEmpl}
-  onChange={(telefonoEmpresa) =>
-    setState((o) => ({ ...o, form: { ...o.form, telefonoEmpresa } }))
-  }
-/>
-<InputMaterial
-  id="celularEmpresa"
-  type="tel"
-  label="Celular"
-  value={state.form.celularEmpresa}
-  error={!!state.errors.celularEmpresa}
-  helperText={state.errors.celularEmpresa}
-  disabled={disEmpl}
-  onChange={(celularEmpresa) =>
-    setState((o) => ({ ...o, form: { ...o.form, celularEmpresa } }))
-  }
-/>
-<InputMaterial
-  id="emailEmpresa"
-  label="Correo"
-  value={state.form.emailEmpresa}
-  error={!!state.errors.emailEmpresa}
-  helperText={state.errors.emailEmpresa}
-  disabled={disEmpl}
-  onChange={(emailEmpresa) =>
-    setState((o) => ({ ...o, form: { ...o.form, emailEmpresa } }))
-  }
-/>
+							<InputMaterial
+								id="telefonoEmpresa"
+								type="tel"
+								label="Teléfono"
+								value={state.form.telefonoEmpresa}
+								error={!!state.errors.telefonoEmpresa}
+								helperText={state.errors.telefonoEmpresa}
+								disabled={disEmpl}
+								onChange={(telefonoEmpresa) =>
+									setState((o) => ({ ...o, form: { ...o.form, telefonoEmpresa } }))
+								}
+							/>
+							<InputMaterial
+								id="celularEmpresa"
+								type="tel"
+								label="Celular"
+								value={state.form.celularEmpresa}
+								error={!!state.errors.celularEmpresa}
+								helperText={state.errors.celularEmpresa}
+								disabled={disEmpl}
+								onChange={(celularEmpresa) =>
+									setState((o) => ({ ...o, form: { ...o.form, celularEmpresa } }))
+								}
+							/>
+							<InputMaterial
+								id="emailEmpresa"
+								label="Correo"
+								value={state.form.emailEmpresa}
+								error={!!state.errors.emailEmpresa}
+								helperText={state.errors.emailEmpresa}
+								disabled={disEmpl}
+								onChange={(emailEmpresa) =>
+									setState((o) => ({ ...o, form: { ...o.form, emailEmpresa } }))
+								}
+							/>
 						</Grid>
 					</Grid>
 				</Grid>
@@ -2019,38 +2019,38 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 			return;
 		}
 
-    const despliega = () => {
-      const dataPrint = {
-        "seccional.codigo": body.seccionalCodigo,
-        ...Object.fromEntries(`${body.fecha || ""}`.split("-").map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])),
-        ...Object.fromEntries(`${Formato.Cuit(body.cuil)}`.split("-").map((v, i) => [`trabajador.cuil.${["tipo", "id", "verificador"][i]}`, v])),
-        "trabajador.documento": [body.tipoDocumentoDescripcion, body.documento].join(" "),
-        "trabajador.nacionalidad": body.nacionalidad,
-        "trabajador.apellidos": body.apellido,
-        "trabajador.nombres": body.nombre,
-        "trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
-        "trabajador.estado_civil": body.estadoCivil,
-        "trabajador.sexo": body.sexoDescripcion,
-        "trabajador.domicilio": body.domicilio,
-        "trabajador.localidad": body.nombreLocalidadAfiliado,
-        "trabajador.provincia": body.provinciaNombre,
-        "trabajador.oficio": body.oficio,
-        "trabajador.actividad": body.actividadAfiliado,
-        "trabajador.telefono": [body.telefono, body.celular].filter((r) => r).join(", "),
-        "trabajador.correo": body.email,
+		const despliega = () => {
+			const dataPrint = {
+				"seccional.codigo": body.seccionalCodigo,
+				...Object.fromEntries(`${body.fecha || ""}`.split("-").map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])),
+				...Object.fromEntries(`${Formato.Cuit(body.cuil)}`.split("-").map((v, i) => [`trabajador.cuil.${["tipo", "id", "verificador"][i]}`, v])),
+				"trabajador.documento": [body.tipoDocumentoDescripcion, body.documento].join(" "),
+				"trabajador.nacionalidad": body.nacionalidad,
+				"trabajador.apellidos": body.apellido,
+				"trabajador.nombres": body.nombre,
+				"trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
+				"trabajador.estado_civil": body.estadoCivil,
+				"trabajador.sexo": body.sexoDescripcion,
+				"trabajador.domicilio": body.domicilio,
+				"trabajador.localidad": body.nombreLocalidadAfiliado,
+				"trabajador.provincia": body.provinciaNombre,
+				"trabajador.oficio": body.oficio,
+				"trabajador.actividad": body.actividadAfiliado,
+				"trabajador.telefono": [body.telefono, body.celular].filter((r) => r).join(", "),
+				"trabajador.correo": body.email,
 
-        ...Object.fromEntries(`${Formato.Cuit(body.cuitEmpresa)}`.split("-").map((v, i) => [`empleador.cuit.${["tipo", "id", "verificador"][i]}`, v])),
-        "empleador.razon_social": body.razonSocial,
-        "empleador.domicilio": body.domicilioEmpresa,
-        "empleador.localidad": body.nombreLocalidadEmpresa,
-        "empleador.provincia": body.provinciaNombreEmpresa,
-        "empleador.actividad": body.actividadEmpresa,
-        "empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa].filter((r) => r).join(", "),
-        "empleador.correo": body.emailEmpresa,
-      };
-      audit({ modulo: "Consultas", proceso: "SolicitudPreviaAfiliacion", parametros: dataPrint, observaciones: `Emite PDF` });
-      solicitudAfiliacion({ data: dataPrint, onLoad: (base64) => setState((o) => ({ ...o, base64 })) });
-    };
+				...Object.fromEntries(`${Formato.Cuit(body.cuitEmpresa)}`.split("-").map((v, i) => [`empleador.cuit.${["tipo", "id", "verificador"][i]}`, v])),
+				"empleador.razon_social": body.razonSocial,
+				"empleador.domicilio": body.domicilioEmpresa,
+				"empleador.localidad": body.nombreLocalidadEmpresa,
+				"empleador.provincia": body.provinciaNombreEmpresa,
+				"empleador.actividad": body.actividadEmpresa,
+				"empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa].filter((r) => r).join(", "),
+				"empleador.correo": body.emailEmpresa,
+			};
+			audit({ modulo: "Consultas", proceso: "SolicitudPreviaAfiliacion", parametros: dataPrint, observaciones: `Emite PDF` });
+			solicitudAfiliacion({ data: dataPrint, onLoad: (base64) => setState((o) => ({ ...o, base64 })) });
+		};
 
 		//#region Validaciones AFIP
 		setPadronAFIPQuery((o) => ({
@@ -2137,22 +2137,22 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 					{state.base64 ? (
 						<div />
 					) : (
-             <Button
-  className="botonAmarillo"
-  onClick={onImprimie}
-  loading={!!state.loading}
-  disabled={
-    !and(
-      ...Object.values(
-        readOnly
-          ? { seccionalId: true, fecha: true, trabajador: true, empleador: true }
-          : state.validado
-      )
-    )
-  }
->
-  IMPRIME
-</Button>
+						<Button
+							className="botonAmarillo"
+							onClick={onImprimie}
+							loading={!!state.loading}
+							disabled={
+								!and(
+									...Object.values(
+										readOnly
+											? { seccionalId: true, fecha: true, trabajador: true, empleador: true }
+											: state.validado
+									)
+								)
+							}
+						>
+							IMPRIME
+						</Button>
 					)}
 					<Button className="botonAmarillo" onClick={() => onClose()}>
 						FINALIZA

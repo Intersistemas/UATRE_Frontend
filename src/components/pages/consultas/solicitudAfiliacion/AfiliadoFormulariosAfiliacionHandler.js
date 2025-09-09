@@ -76,6 +76,18 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			})
 		);
 
+		//    // Verifica CUIL en Afiliados y, si existe, acepta automáticamente
+		//    actions.push(
+		//      createAction({
+		//        action: `Sincroniza estado ${desc}`,
+		//        request: "V",
+		//        record: {},
+		//        ...(formularioSelected?.id
+		//          ? { disabled: false, keys: "v", underlineindex: 0 }
+		//          : { disabled: true }),
+		//      })
+		//    );
+
 		// actions.push(
 		// 	createAction({
 		// 		action: `Modifica Solicitud ${desc}`,
