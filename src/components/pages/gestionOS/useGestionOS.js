@@ -56,7 +56,7 @@ export const onLoadSelectKeep = ({ record }) => record;
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
   record ?? onLoadSelectFirst({ data, multi, record });
 
-export const onDataChangeDef = (data = []) => {};
+export const onDataChangeDef = (data = []) => { };
 
 const onDownloadComprobanteGestion = (data = {}) => {
   const doc = (
@@ -370,8 +370,8 @@ const useGestionOS = ({
                 "data" in payload && Array.isArray(payload.data)
                   ? [...payload.data]
                   : payload.clear
-                  ? []
-                  : o.data,
+                    ? []
+                    : o.data,
               loadingOverride: payload.loading,
               error: payload.error,
               onLoadSelect:
@@ -426,31 +426,31 @@ const useGestionOS = ({
             //seccionalId = list.selection.edit.refSeccionalId,
             ["A"].includes(list.selection.request) //INIT PARA ALTA
               ? {
-                  /*fecha: moment().format("YYYY-MM-DD"),
-							fechaEnvioMail: null,
-							direccionesEmailDestino: null,
-							respuestaEnvioEmail: null,
-							usuarioId: usuario?.id ?? "",*/
-                  seccionalId:
-                    list.selection.edit.seccionalId ??
-                    usuario?.ambitoSeccionales?.ids[0] ??
-                    0,
-                  seccionalDescripcion:
-                    usuario?.ambitosDescripciones[0]?.seccionalDescripcion ??
-                    "",
-                  titularPaciente: list.selection.edit.titularPaciente ?? false,
-                  atencionesPrevias:
-                    list.selection.edit.atencionesPrevias ?? "",
-                  conCoberturaOsprera:
-                    list.selection.edit.conCoberturaOsprera ?? "",
-                  tipoPrestador: list.selection.edit.tipoPrestador ?? "",
-                }
+                /*fecha: moment().format("YYYY-MM-DD"),
+            fechaEnvioMail: null,
+            direccionesEmailDestino: null,
+            respuestaEnvioEmail: null,
+            usuarioId: usuario?.id ?? "",*/
+                seccionalId:
+                  list.selection.edit.seccionalId ??
+                  usuario?.ambitoSeccionales?.ids[0] ??
+                  0,
+                seccionalDescripcion:
+                  usuario?.ambitosDescripciones[0]?.seccionalDescripcion ??
+                  "",
+                titularPaciente: list.selection.edit.titularPaciente ?? false,
+                atencionesPrevias:
+                  list.selection.edit.atencionesPrevias ?? "",
+                conCoberturaOsprera:
+                  list.selection.edit.conCoberturaOsprera ?? "",
+                tipoPrestador: list.selection.edit.tipoPrestador ?? "",
+              }
               : ["B"].includes(list.selection.request) //INIT PARA BAJA
-              ? {
+                ? {
                   deletedDate: moment().format("YYYY-MM-DD"),
                   deletedBy: usuario.nombre,
                 }
-              : {};
+                : {};
           return { ...list.selection.edit, ...data }; //le paso el registro entero  y modifico los campos necesarios segun el request que se está haciendo
         })()}
         title={list.selection.action}
@@ -844,8 +844,8 @@ const useGestionOS = ({
             //ObservacionesEstado
             if (!record.observacionesEstado &&
               (record.gestionEstadoDescripcion === "RECLAMADO" ||
-              (record.gestionEstadoDescripcion === "FINALIZADO" &&
-                record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
+                (record.gestionEstadoDescripcion === "FINALIZADO" &&
+                  record.gestionSituacionDescripcion === "CON RECLAMO FORMAL"))
             ) {
               errors.observacionesEstado = "Dato requerido";
             }
@@ -951,6 +951,64 @@ const useGestionOS = ({
                   obraSocial: record.gestionObraSocialDescripcion,
                 });
               }
+
+              //NUEVO mauro
+              // === ENVÍO DE EMAIL ===
+              if (list.selection.request === "A" && record.medioGestion === "email") {
+                try {
+                  const adjuntos = AsArray(record.documentacion).map((r) => ({
+                    fileName: r.nombreArchivo,
+                    contentType: "application/octet-stream", // o usa el real si lo tienes
+                    base64Data: r.archivo,
+                  }));
+
+                  const localidadUsuario = record.seccionalDescripcion ?? " ";
+
+                  const emails = [
+                    usuario?.email,
+                    record?.emailContacto ?? [],
+                    record?.emailContacto2 ?? [],
+                  ];
+
+                  const asuntoFinal = `UATRE - Nueva Gestión de Obra Social [Nro de Gestión: ${_res}]`;
+
+                  pushQuery({
+                    action: "EnviarCorreo",
+                    config: {
+                      body: {
+                        to: [record?.direccionesEmailDestino] ?? [],
+                        cco: emails.filter((email) => email),
+                        attachments: adjuntos,
+                        asunto: asuntoFinal,
+                        cuerpo:
+                          `<p><strong>${localidadUsuario}, ${moment().format("DD/MM/YYYY")}</strong><br></br>` +
+                          `${record.gestionObraSocialDescripcion ?? ""}<br></br>${record.gestionAreaOspreraDescripcion ?? ""}<br></br><br></br>` +
+                          `En representación del Afiliado <strong>${!!record.titularPaciente ? record?.apellidoTitular : record?.apellidoPaciente
+                          } ${!!record.titularPaciente ? record?.nombreTitular : record?.nombrePaciente
+                          }</strong>, con DNI Nº <strong>${record?.dniPaciente ?? ""}</strong>, Afiliado Nº <strong>${record?.cuitTitular ?? ""}</strong> ` +
+                          `se solicita <strong>${record?.gestionRubroDescripcion ?? ""}</strong> sobre <strong>${record?.gestionSubRubroDescripcion ?? ""}</strong> conforme lo que se detalla a continuación;<br></br>` +
+                          `<strong>${record?.texto ?? ""}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
+                          `Tipo de Adjuntos: <strong>${!Array.isArray(record.documentacion) || record.documentacion.length === 0
+                            ? "Sin archivos adjuntos"
+                            : record.documentacion.map((a) => a.refTipoDocumentacionDescripcion).join("/ ")
+                          }</strong><br></br>` +
+                          `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
+                          `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
+                          `En caso de negativa de respuesta al presente, el afiliado realizará la respectiva denuncia ante la Superintendencia de Servicios de Salud, por la falta de atención de parte de esa Obra Social.<br><br/>` +
+                          `Muchas gracias.<br></br>MAIL: <strong>${usuario?.email ?? ""}</strong><br></br>TELEFONO: <strong>${usuario?.phoneNumber ?? ""}</strong></p>`,
+                      },
+                    },
+                    onOk: () => { },
+                    onError: (error) => {
+                      alert(error?.message || "Error al enviar el email.");
+                    },
+                  });
+                } catch (e) {
+                  console.error("Fallo al preparar/enviar email:", e);
+                }
+              }
+
+
             },
             onError: async (err) => alert(err.message),
           };
