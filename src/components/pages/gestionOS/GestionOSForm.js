@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -38,7 +38,7 @@ import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
-
+import "./GestionOSForm.responsive.css";
 const onChangeDef = (changes = {}) => { };
 const onCloseDef = (confirm = false) => { };
 const onValidateDef = (confirm = false) => { };
@@ -178,6 +178,8 @@ const GestionOSForm = ({
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+  //ModificacionMauro
+  const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -185,6 +187,19 @@ const GestionOSForm = ({
     visible: false,
     documentacionOK: false,
   });
+
+  const toSafeString = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    // si viene como evento o con { value }
+    if (typeof v === "object") {
+      if ("target" in v) return String(v.target?.value ?? "");
+      if ("value" in v) return String(v.value ?? "");
+    }
+    return "";
+  };
+
+  const ultimoDniBuscadoRef = useRef("");
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
@@ -260,21 +275,53 @@ const GestionOSForm = ({
         if (estadoEnviado) {
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
+        
+  // const [busy, setBusy] = useState({ busy: false, text: "" });
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  //#endregion
 
-        setDialogTexto("Se ha enviado un email a la dirección ingresada.");
-        setOpenDialog(true);
-      },
-      onError: async (error) => {
-        setDialogTexto(error?.message || "Error al enviar el email.");
-        setOpenDialog(true);
-      },
-      onFinally: async () => {
-        loading = false;
-        //onClose(true)
+  useEffect(() => {
+    const raw = toSafeString(data?.dniPaciente);
+    const dni = raw.replace(/\D/g, "");
+    if (!dni) {
+      // si se borró, reseteo el anti-rebote para permitir la misma búsqueda después
+      ultimoDniBuscadoRef.current = "";
+      return;
+    }
+
+    // (Opcional) sólo disparo con largos razonables
+    if (dni.length < 7) return;
+
+    if (ultimoDniBuscadoRef.current === dni) return;
+    ultimoDniBuscadoRef.current = dni;
+
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: { dniPaciente: dni },
+      onOk: async (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const ultima = arr[0];
+        if (!ultima) return;
+
+        const telAnterior =
+          ultima.telefonoContacto ||
+          ultima.telefono || "";
+        const mailAnterior =
+          ultima.emailContacto ||
+          ultima.direccionesEmailDestino || "";
+
+        const cambios = {};
+        if (!data.telefonoContacto && telAnterior) cambios.telefonoContacto = telAnterior;
+        if (!data.telefono && telAnterior && data.medioGestion === "telefono") cambios.telefono = telAnterior;
+        if (!data.emailContacto && mailAnterior) cambios.emailContacto = mailAnterior;
+        if (!data.direccionesEmailDestino && mailAnterior && data.medioGestion === "email")
+          cambios.direccionesEmailDestino = mailAnterior;
+
+        if (Object.keys(cambios).length) onChange(cambios);
       },
     });
-  };
-  //#endregion
+  }, [data?.dniPaciente, data?.medioGestion]);
+
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -284,7 +331,7 @@ const GestionOSForm = ({
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
       if (request == "A") {
-        // changes.elPacienteEsTitular = false;
+        changes.elPacienteEsTitular = false;
         changes.tipoDocumentoId = false;
         changes.dniPaciente = false;
         changes.apellidoPaciente = false;
@@ -298,7 +345,6 @@ const GestionOSForm = ({
         changes.emailContacto = false;
         changes.emailContacto2 = false;
 
-        changes.titularPaciente = false;
         changes.atencionesPrevias = false;
         changes.medioGestion = false;
         changes.telefono = false;
@@ -328,7 +374,7 @@ const GestionOSForm = ({
   useEffect(() => {
     const changes = {};
 
-    if (!!!data?.titularPaciente && request == "A") {
+    if (!!!data?.elPacienteEsTitular && request == "A") {
       changes.tipoDocumentoId = "";
       changes.dniPaciente = "";
       changes.apellidoPaciente = "";
@@ -342,13 +388,25 @@ const GestionOSForm = ({
       changes.emailContacto = "";
       changes.emailContacto2 = "";
 
-      changes.titularPaciente = false;
+      changes.elPacienteEsTitular = false;
     }
 
     onChange(changes);
-  }, [data.titularPaciente]);
+  }, [data.elPacienteEsTitular]);
 
   //#endregion
+
+  //Modificacion Mauro
+  useEffect(() => {
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: {},
+      onOk: (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setUltimoIdGestion(arr?.[0]?.id ?? null);
+      },
+    });
+  }, []);
 
   //#region Cambios atenciones previas
   useEffect(() => {
@@ -493,10 +551,10 @@ const GestionOSForm = ({
 
   //#region Controlo cada vez que se modifican los datos del titular
   useEffect(() => {
-    if (data?.titularPaciente) {
+    if (data?.elPacienteEsTitular) {
       handleDatosPaciente(true, titular);
     }
-  }, [titular, data?.titularPaciente]);
+  }, [titular, data?.elPacienteEsTitular]);
   //#endregion
 
   //#region Carga inicial Documentacion
@@ -609,6 +667,7 @@ const GestionOSForm = ({
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
+
       case "GetAfiliado": {
         return {
           config: {
@@ -691,6 +750,24 @@ const GestionOSForm = ({
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSituacion`,
             method: "GET",
+          },
+        };
+      }
+
+      case "GetUltimaGestionPaciente": {
+        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
+        const { dniPaciente } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+            body: {
+              pageIndex: 1,
+              pageSize: 1,
+              sort: "FechaDesc,IdDesc",
+              ...(dniPaciente ? { dniPaciente } : {}),
+            },
           },
         };
       }
@@ -1169,6 +1246,13 @@ const GestionOSForm = ({
   }, [setGestionObraSocialQuery]);
   //#endregion select GestionesObraSocial
 
+  // Habilitar Observaciones cuando se está en Modificar
+  useEffect(() => {
+    if (request === "M") {
+      setDisabledItems((prev) => ({ ...prev, observacionesEstado: false }));
+    }
+  }, [request]);
+
   useEffect(() => {
     const changes = {};
     if (data.telefono == null) changes.telefono = "+54 9";
@@ -1396,7 +1480,7 @@ const GestionOSForm = ({
 
   const handleDatosPaciente = (event) => {
     //setTitularPaciente(event)
-    onChange({ titularPaciente: event });
+    onChange({ elPacienteEsTitular: event });
 
     if (event) {
       const match = titular?.cuil
@@ -1453,17 +1537,17 @@ const GestionOSForm = ({
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
 
         if (!titular.existeEnUATRE) {
           onDownloadSolicitudAfiliacion(true);
@@ -1617,7 +1701,7 @@ const GestionOSForm = ({
           {
             [
               <Grid col width="full" gap="15px">
-                <Grid width="full" gap="inherit">
+                <Grid width="full" gap="inherit" className="gestionos-top">
                   <Grid>
                     <Grid col>
                       <Grid width="180px">
@@ -1697,8 +1781,8 @@ const GestionOSForm = ({
                       </Button>
                     </Grid>
                   </Grid>
-                  <Grid>
-                    <Grid width="230px">
+                  <Grid className="gestionos-row">
+                    <Grid width="300px" className="apellido-col">
                       <InputMaterial
                         id="apellidoTitular"
                         label="Apellido"
@@ -1713,12 +1797,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         }
-                        onChange={(apellidoTitular) =>
-                          onChange({ apellidoTitular })
-                        }
+                        onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
-                    <Grid width="380px">
+                    <Grid width="370px" className="nombre-col">
                       <InputMaterial
                         id="nombreTitular"
                         label="Nombre"
@@ -1733,12 +1815,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         } //disabled.nombreTitular
-                        onChange={(nombreTitular) =>
-                          onChange({ nombreTitular })
-                        }
+                        onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px">
+                    <Grid width="auto" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1753,23 +1833,19 @@ const GestionOSForm = ({
                           !data?.nombreTitular
                         }
                       >
-                        <h6>
-                          {titular?.confirmado
-                            ? `Confirmado`
-                            : `Confirma Titular`}
-                        </h6>
+                        <h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
                       </Button>
                     </Grid>
                   </Grid>
                 </Grid>
                 <Grid>
                   <CheckboxMaterial
-                    id="titularPaciente"
+                    id="elPacienteEsTitular"
                     label="El Paciente es El Titular"
                     required
-                    value={data?.titularPaciente}
+                    value={data?.elPacienteEsTitular}
                     onChange={(v) => handleDatosPaciente(v)}
-                    disabled={disabledItems.titularPaciente}
+                    disabled={disabledItems.elPacienteEsTitular}
                   />
                 </Grid>
                 <Grid width="full" gap="inherit">
@@ -2100,7 +2176,7 @@ const GestionOSForm = ({
                   />
                 </Grid>
 
-                <Grid width="50%" gap="inherit">
+                <Grid width="full" gap="inherit">
                   <SearchSelectMaterial
                     required
                     id="gestionObraSocial"
