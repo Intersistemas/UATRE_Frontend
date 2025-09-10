@@ -206,7 +206,7 @@
 // //#region seccionalSelectOptions
 // const seccionalSelectTodos = { label: "Todas" };
 // const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
-	
+
 // 	mapOptions({
 // 		data,
 // 		//map: (r) => ({ value: r.id, label: r.descripcion }),
@@ -215,7 +215,7 @@
 // 		start: data.length === 1 ? [] : [seccionalSelectTodos],
 // 		...x,	
 // 	})
- 
+
 // //#endregion seccionalSelectOptions
 
 // //#region motivosBajaSelectOptions
@@ -257,7 +257,7 @@
 // 	const ambitoUsuario = useAmbitos().ambitoUser();
 // 	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 // 	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
-		
+
 // 	//#region Trato queries a APIs
 // 	const { setState: setAfiliadosQuery } = useQueryState(
 // 		() => ({
@@ -1345,13 +1345,14 @@ import AuthContext from "store/authContext";
 import useTareasUsuario from 'components/hooks/useTareasUsuario';
 import useAmbitos from 'components/hooks/useAmbitos';
 import { useSelector } from "react-redux";
+import useGeneracionExcel from "components/hooks/useGeneracionExcel";
 
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
  **/
 
-const onCloseDef = () => {};
+const onCloseDef = () => { };
 
 const columns = [
 	{
@@ -1369,7 +1370,7 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		formatter: (v, row) => row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v),
 		//formatter: (v) => Formato.Cuit(v),
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
@@ -1533,16 +1534,23 @@ const delegacionSelectOptions = ({ data = [], ...x }) =>
 //#region seccionalSelectOptions
 const seccionalSelectTodos = { label: "Todas" };
 const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
-	
+
 	mapOptions({
 		data,
 		//map: (r) => ({ value: r.id, label: r.descripcion }),
 		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
-		map: (r) => ( ambitoUsuario.tipo != "Todos" ? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ? { value: r.id, label: r.descripcion } : null : { value: r.id, label: r.descripcion } ),
+		map: (r) =>
+			ambitoUsuario.tipo != "Todos"
+				? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(
+					r.seccionalEstadoDescripcion
+				)
+					? { value: r.id, label: r.descripcion }
+					: null
+				: { value: r.id, label: r.descripcion },
 		start: data.length === 1 ? [] : [seccionalSelectTodos],
-		...x,	
+		...x,
 	})
- 
+
 //#endregion seccionalSelectOptions
 
 //#region motivosBajaSelectOptions
@@ -1584,7 +1592,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const ambitoUsuario = useAmbitos().ambitoUser();
 	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
-		
+
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -1594,9 +1602,9 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				method: "POST",
 			},
 		}),
-		{ 
-			query: { 
-				config: { errorType: "response" } 
+		{
+			query: {
+				config: { errorType: "response" }
 			}
 		}
 	);
@@ -1678,9 +1686,27 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
+
+
+	const { setState: setSeccionalesAllQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/Seccional`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
 	//#endregion
 
 	const { usuario } = useContext(AuthContext);
+
+	const ambitoMemo = React.useMemo(() => ({
+		delegaciones: AsArray(usuario?.ambitoDelegaciones?.ids),
+		seccionales: AsArray(usuario?.ambitoSeccionales?.ids),
+		provincias: AsArray(usuario?.ambitoProvincias?.ids),
+	}), [usuario]);
 	const [init, setInit] = useState({
 		pending: true,
 		filtros: {
@@ -1815,8 +1841,44 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	}, [provinciaSelect.buscar, provinciaSelect.optionsSrc]);
 	//#endregion filtro provincia
 
+	// todas las seccionales
+	const [seccionalesAll, setSeccionalesAll] = useState([]);
+
+	// mapa delegacionId provinciaId
+	const [mapDelegProv, setMapDelegProv] = useState(new Map());
 	//#endregion filtros
 
+	const fixedDelegId = ambitoMemo.delegaciones.length === 1
+		? Number(ambitoMemo.delegaciones[0])
+		: null;
+
+	const fixedSeccId = ambitoMemo.seccionales.length === 1
+		? Number(ambitoMemo.seccionales[0])
+		: null;
+
+	const lockSeccional = fixedSeccId !== null;
+
+	// Si tengo seccional fija, derivo delegación cuando ya conozco las seccionales
+	const effectiveDelegId = React.useMemo(() => {
+		if (fixedDelegId != null) return fixedDelegId;
+		if (fixedSeccId != null && seccionalesAll.length) {
+			const sec = seccionalesAll.find(s => Number(s.id) === fixedSeccId);
+			return sec?.refDelegacionId != null ? Number(sec.refDelegacionId) : null;
+		}
+		return null;
+	}, [fixedDelegId, fixedSeccId, seccionalesAll]);
+
+	const lockDelegacion = effectiveDelegId != null;
+	const lockProvincia = lockDelegacion || lockSeccional;
+	const lockSeccionalPorJerarquia = lockSeccional;
+
+
+	const [seccionalesAllReady, setSeccionalesAllReady] = useState(false);
+	useEffect(() => {
+		setSeccionalesAllReady(mapDelegProv.size > 0 && seccionalesAll.length > 0);
+	}, [mapDelegProv.size, seccionalesAll.length]);
+
+	const prevProvSelRef = React.useRef(null);
 	//#region list
 	const [list, setList] = useState({
 		reload: false,
@@ -1845,6 +1907,33 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#endregion
 
 	//#region Carga inicial
+
+	// ===== EXCEL =====
+	const { exportToExcel } = useGeneracionExcel();
+	const [xls, setXls] = useState({
+		reload: false,
+		loading: null,
+		sort: list.sort,
+		params: list.params,
+		data: [],
+		error: null,
+	});
+	const valueForExport = (col, row) => {
+		const v = row[col.dataField];
+
+
+		if (typeof col.excelFormat === "function") return col.excelFormat(v, row);
+
+
+		if (typeof col.formatter === "function") return col.formatter(v, row);
+
+
+		if (typeof col.csvFormat === "function") return col.csvFormat(v, row);
+
+
+		return v;
+	};
+	// ===== FIN EXCEL =====
 
 	//#region Carga inicial select delegacion
 	useEffect(() => {
@@ -1875,13 +1964,116 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					n.optionsSrc = delegacionSelectOptions(n);
 					n.selectedDef =
 						n.optionsSrc.length === 1 ? n.optionsSrc[0] : delegacionSelectTodos;
-					n.selected = n.selectedDef;
+					//n.selected = n.selectedDef;
+					// si el ámbito del usuario fija una delegación
+					n.selected = lockDelegacion
+						? (n.optionsSrc.find(opt => opt?.value === effectiveDelegId) ?? n.selectedDef)
+						: n.selectedDef;
 					return n;
 				});
 			},
 		}));
 	}, [delegacionSelect, setDelegacionesQuery]);
 	//#endregion Carga inicial select delegacion
+	// === Cargar /Seccional (GET)
+	useEffect(() => {
+		// Evita recargar si ya tenemos datos
+		if (mapDelegProv.size > 0 && seccionalesAll.length > 0) return;
+
+		setSeccionalesAllQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				if (!Array.isArray(ok)) return;
+
+				const m = new Map();
+				for (const s of ok) {
+					const delegId = s?.refDelegacionId;
+					const provId = s?.provinciaId;
+					if (delegId && provId && !m.has(delegId)) m.set(delegId, provId);
+				}
+
+				setMapDelegProv(m);
+				setSeccionalesAll(ok);
+
+				if (error) console.warn("Seccional GET error:", error);
+			},
+		}));
+	}, [setSeccionalesAllQuery, mapDelegProv.size, seccionalesAll.length]);
+
+
+	useEffect(() => {
+		if (provinciaSelect.loading) return;
+
+		const provIdRaw = provinciaSelect?.selected?.value ?? null;
+		const provIdSel = provIdRaw == null ? null : Number(provIdRaw);
+
+		if (prevProvSelRef.current === provIdSel) return;
+		prevProvSelRef.current = provIdSel;
+
+		if (!Array.isArray(delegacionSelect.data) || delegacionSelect.data.length === 0) return;
+		if (mapDelegProv.size === 0) return;
+
+		setDelegacionSelect((prev) => {
+			const base = prev.ambito ? prev.data.filter((d) => prev.ambito.includes(d.id)) : prev.data;
+			const filtradas =
+				provIdSel == null
+					? base
+					: base.filter((d) => Number(mapDelegProv.get(d?.id)) === provIdSel);
+			const nextOptionsSrc = delegacionSelectOptions({ data: filtradas });
+			const stillValid = nextOptionsSrc.find(opt => opt?.value === prev.selected?.value);
+			let nextSelected = prev.selected;
+			if (!stillValid) {
+				nextSelected = lockDelegacion
+					? (nextOptionsSrc.find(opt => opt?.value === effectiveDelegId) ?? prev.selectedDef)
+					: (nextOptionsSrc.length === 1 ? nextOptionsSrc[0] : prev.selectedDef);
+			}
+			return {
+				...prev,
+				optionsSrc: nextOptionsSrc,
+				options: nextOptionsSrc.filter((r) => includeSearch(r, prev.buscar)),
+				selectedDef: nextOptionsSrc.length === 1 ? nextOptionsSrc[0] : { ...prev.selectedDef },
+				selected: nextSelected,
+			};
+		});
+
+		setFiltros((f) => {
+			const n = { ...f };
+			if (!lockDelegacion) delete n.ambitoDelegaciones;
+			if (!lockSeccional) delete n.ambitoSeccionales;
+			if (provIdSel == null) {
+				if (!lockDelegacion && !lockSeccional) delete n.ambitoProvincias;
+			} else {
+				n.ambitoProvincias = { ids: [provIdSel] };
+				if (!lockDelegacion && !lockSeccional) delete n.ambitoTodos;
+			}
+			if (lockSeccional) {
+				n.ambitoSeccionales = { ids: [fixedSeccId] };
+			} else if (lockDelegacion) {
+				n.ambitoDelegaciones = { ids: [effectiveDelegId] };
+			}
+			return n;
+		});
+
+		setSeccionalSelect((prev) => ({
+			...prev,
+			selected: seccionalSelectTodos,
+			optionsSrc: [],
+			options: [],
+			refDelegacionId: 0,
+			reload: false,
+			error: null,
+		}));
+	}, [
+		provinciaSelect.loading,
+		provinciaSelect.selected,
+		delegacionSelect.data,
+		mapDelegProv,
+		lockDelegacion,
+		lockSeccional,
+		fixedDelegId,
+		fixedSeccId,
+	]);
+
 
 	//#region Carga inicial select seccional
 	useEffect(() => {
@@ -1947,7 +2139,10 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					changes.optionsSrc.length === 1
 						? changes.optionsSrc[0]
 						: seccionalSelectTodos;
-				changes.selected = changes.selectedDef;
+				//changes.selected = changes.selectedDef;
+				changes.selected = lockSeccional
+					? (changes.optionsSrc.find(opt => opt?.value === fixedSeccId) ?? changes.selectedDef)
+					: changes.selectedDef;
 			}
 			setSeccionalSelect((o) => ({ ...o, ...changes }));
 		};
@@ -2078,6 +2273,12 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					n.selected = n.selectedDef;
 					return n;
 				});
+				setInit((prev) => {
+					if (!prev.wait || !("provincias" in prev.wait)) return prev;
+					const next = { ...prev, wait: { ...prev.wait } };
+					delete next.wait.provincias;
+					return next;
+				});
 			},
 		}));
 	}, [provinciaSelect, setProvinciasQuery]);
@@ -2098,6 +2299,21 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				return init;
 			});
 		const selected = delegacionSelect.selected;
+		if (lockDelegacion) {
+			setSeccionalSelect((o) => ({
+				...o,
+				reload: true,
+				refDelegacionId: effectiveDelegId,
+				selected: lockSeccional ? o.selected : o.selectedDef,
+			}));
+			setFiltros((o) => ({
+				...o,
+				ambitoDelegaciones: { ids: [effectiveDelegId] },
+				...(lockSeccional ? { ambitoSeccionales: { ids: [fixedSeccId] } } : {}),
+			}));
+			finalizaInit();
+			return;
+		}
 		setSeccionalSelect((o) => {
 			const n = {
 				...o,
@@ -2193,36 +2409,72 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	}, [estadoSelect.loading, estadoSelect.selected]);
 	//#endregion Cambia select estado
 
-	//#region Cambia select provincia
-	useEffect(() => {
-		if (provinciaSelect.loading) return;
-		const finalizaInit = () => {
-			setInit((o) => {
-				if (!o.wait || !("provincias" in o.wait)) return o;
-				const init = { ...o };
-				const wait = { ...init.wait };
-				delete wait.provincias;
-				init.wait = wait;
-				return init;
-			});
-		};
-		const selected = provinciaSelect.selected;
-		if (selected === provinciaSelectTodos) {
-			setFiltros((o) => {
-				const filtros = { ...o };
-				delete filtros.ambitoProvincias;
-				return filtros;
-			});
-			finalizaInit();
-			return;
-		}
-		setFiltros((o) => ({
-			...o,
-			ambitoProvincias: { ids: [selected?.value] },
-		}));
-		finalizaInit();
-	}, [provinciaSelect.loading, provinciaSelect.selected]);
-	//#endregion Cambia select provincia
+	//   //#region Cambia select provincia
+	//   useEffect(() => {
+	//     if (provinciaSelect.loading) return;
+	//     const finalizaInit = () => {
+	//       setInit((o) => {
+	//         if (!o.wait || !("provincias" in o.wait)) return o;
+	//         const init = { ...o };
+	//         const wait = { ...init.wait };
+	//         delete wait.provincias;
+	//         init.wait = wait;
+	//         return init;
+	//       });
+	//     };
+	//     const selected = provinciaSelect.selected;
+	//     const provIdRaw = selected?.value ?? null;
+	//     const provIdSel = provIdRaw == null ? null : Number(provIdRaw);
+
+	//     setFiltros((f) => {
+	//       const n = { ...f };
+	//       delete n.ambitoDelegaciones;
+	//       delete n.ambitoSeccionales;
+
+	//       if (provIdSel == null) {
+	//         delete n.ambitoProvincias;
+
+	//       } else {
+	//         n.ambitoProvincias = { ids: [provIdSel] }; 
+	//         delete n.ambitoTodos;                      
+	//       }
+	//       return n;
+	//     });
+
+	//     if (Array.isArray(delegacionSelect.data) && delegacionSelect.data.length && mapDelegProv.size) {
+	//       setDelegacionSelect((prev) => {
+	//         const base = prev.ambito ? prev.data.filter((d) => prev.ambito.includes(d.id)) : prev.data;
+
+	//         const filtradas =
+	//           provIdSel == null
+	//             ? base
+	//             : base.filter((d) => Number(mapDelegProv.get(d?.id)) === provIdSel);
+
+	//         const nextOptionsSrc = delegacionSelectOptions({ data: filtradas });
+
+	//         return {
+	//           ...prev,
+	//           optionsSrc: nextOptionsSrc,
+	//           options: nextOptionsSrc.filter((r) => includeSearch(r, prev.buscar)),
+	//           selectedDef: nextOptionsSrc.length === 1 ? nextOptionsSrc[0] : { ...prev.selectedDef },
+	//           selected: delegacionSelectTodos, // resetea selección
+	//         };
+	//       });
+
+	//  setSeccionalSelect((prev) => ({
+	//    ...prev,
+	//    selected: lockSeccional ? prev.selected : seccionalSelectTodos,
+	//    optionsSrc: lockSeccional ? prev.optionsSrc : [],
+	//    options:    lockSeccional ? prev.options    : [],
+	//    refDelegacionId: lockSeccional ? prev.refDelegacionId : 0,
+	//    reload: lockSeccional ? prev.reload : false,
+	//    error: null,
+	//  }));
+	//     }
+
+	//     finalizaInit();
+	//   }, [provinciaSelect.loading, provinciaSelect.selected, delegacionSelect.data, mapDelegProv]);
+	//   //#endregion Cambia select provincia
 
 	//#region Recarga
 
@@ -2249,19 +2501,27 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					},
 				},
 			},
-			onPreLoad: () =>
+			onPreLoad: () => {
+				console.log("[BODY]/GetAfiliadosWithSpec =>", {
+					...list.params,
+					sort: list.sort,
+					pageIndex: list.pagination.index,
+					pageSize: list.pagination.size,
+				});
 				setList((o) => ({
 					...o,
 					reload: false,
 					loading: "Cargando...",
 					data: [],
-				})),
+				}));
+			},
 			onLoad: ({ ok, error }) => {
-
 				let data = [];
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
-					({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					({ data, ...pagination } = !usuarioConSeccionalInactiva
+						? ok
+						: { data: [], pagination: {} });
 				} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
@@ -2343,39 +2603,242 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#endregion Recarga csv
 
 	//#endregion Recarga
+	// ===== EXCEL =====
+	useEffect(() => {
+		if (!xls.reload) return;
+
+		const changes = {
+			reload: null,
+			loading: "Cargando bloque 1...",
+			data: [],
+			error: null,
+		};
+
+		/** @type {onLoad} */
+		const onLoad = ({ query, ok, error }) => {
+			if (ok) {
+				let { data, index, pages, size } = ok;
+				if (Array.isArray(data)) {
+					changes.data.push(
+						...data.map((row) => {
+							const obj = {};
+							for (const col of columns) obj[col.text] = valueForExport(col, row);
+							return obj;
+						})
+					);
+				} else console.error("Se esperaba un arreglo", data);
+
+				if (index < pages) {
+					changes.loading = `Cargando bloque ${index + 1} de ${pages}...`;
+					setAfiliadosQuery((o) => ({
+						...o,
+						query: {
+							...o.query,
+							config: {
+								...o.query.config,
+								body: {
+									...o.query.config.body,
+									pageIndex: index + 1,
+									pageSize: size,
+								},
+							},
+						},
+						onLoad,
+					}));
+				} else {
+					changes.loading = null;
+				}
+			} else if (error) {
+				changes.loading = null;
+				changes.error = error?.toString();
+			}
+
+			setXls((o) => ({ ...o, ...changes }));
+
+			if (!changes.loading) {
+				if (!changes.data.length) return;
+				exportToExcel([{ sheetName: "Afiliados", data: changes.data }], "Afiliados").catch(
+					(e) => setXls((o) => ({ ...o, error: e?.message ?? String(e) }))
+				);
+			}
+		};
+
+		setAfiliadosQuery((o) => ({
+			...o,
+			query: {
+				...o.query,
+				config: { ...o.query.config, body: { ...xls.params, sort: xls.sort } },
+			},
+			onLoad,
+		}));
+	}, [xls.reload, setAfiliadosQuery]);
+	// ===== FIN EXCEL =====
 
 	const onAplicaFiltros = () => {
+		const filtrosDepurados = { ...filtros };
+
+
+		const toNum = (v) => (v == null ? null : Number(v));
+		const toNumArr = (arr) =>
+			Array.isArray(arr) ? arr.map(Number).filter(Number.isFinite) : arr;
+
+		const provSel = provinciaSelect?.selected;
+		const provIdNum =
+			provSel && provSel !== provinciaSelectTodos ? toNum(provSel.value) : null;
+
+		const delegSel = delegacionSelect?.selected;
+		const delegId =
+			delegSel && delegSel !== delegacionSelectTodos ? toNum(delegSel.value) : null;
+
+		const seccSel = seccionalSelect?.selected;
+		const seccionalIdElegida =
+			seccSel && seccSel !== seccionalSelectTodos ? toNum(seccSel.value) : null;
+
+		// Si hay seccional puntual: usar solo esa y limpiar provincia/delegación para evitar OR
+		if (seccionalIdElegida != null) {
+			filtrosDepurados.ambitoSeccionales = { ids: [seccionalIdElegida] };
+			delete filtrosDepurados.ambitoDelegaciones;
+			delete filtrosDepurados.ambitoProvincias;
+		} else {
+			// No hay seccional puntual
+
+			if (provIdNum != null && delegId != null) {
+				// Provincia + Delegación => intersección
+				const seccs = (seccionalesAll || [])
+					.filter(
+						(s) =>
+							Number(s.provinciaId) === provIdNum &&
+							Number(s.refDelegacionId) === delegId
+					)
+					.map((s) => s.id)
+					.filter(Boolean);
+
+				filtrosDepurados.ambitoSeccionales = { ids: seccs };
+				delete filtrosDepurados.ambitoDelegaciones;
+				delete filtrosDepurados.ambitoProvincias;
+			} else if (delegId != null) {
+				// Solo Delegación
+				const seccsDeDeleg = (seccionalSelect.data || [])
+					.filter((s) => Number(s.refDelegacionId) === delegId)
+					.map((s) => s.id)
+					.filter(Boolean);
+
+				filtrosDepurados.ambitoSeccionales = { ids: seccsDeDeleg };
+				delete filtrosDepurados.ambitoDelegaciones;
+			} else if (provIdNum != null) {
+				// Solo Provincia
+				const seccsDeProvincia = (seccionalesAll || [])
+					.filter((s) => Number(s.provinciaId) === provIdNum)
+					.map((s) => s.id)
+					.filter(Boolean);
+
+				filtrosDepurados.ambitoSeccionales = { ids: seccsDeProvincia };
+				delete filtrosDepurados.ambitoProvincias; // evitamos OR
+			} else {
+				// "Todas" en provincia y sin delegación/seccional
+				if (seccionalSelect.selected === seccionalSelectTodos) {
+					delete filtrosDepurados.ambitoSeccionales;
+				}
+			}
+		}
+
+		// Normalizar arrays de IDs a number[]
+		if (filtrosDepurados.ambitoSeccionales?.ids) {
+			filtrosDepurados.ambitoSeccionales.ids = toNumArr(
+				filtrosDepurados.ambitoSeccionales.ids
+			);
+		}
+		if (filtrosDepurados.ambitoDelegaciones?.ids) {
+			filtrosDepurados.ambitoDelegaciones.ids = toNumArr(
+				filtrosDepurados.ambitoDelegaciones.ids
+			);
+		}
+		if (filtrosDepurados.ambitoProvincias?.ids) {
+			filtrosDepurados.ambitoProvincias.ids = toNumArr(
+				filtrosDepurados.ambitoProvincias.ids
+			);
+		}
+
+		// Si hay filtros específicos, remover ambitoTodos
+		const hayFiltroEspecifico =
+			(filtrosDepurados.ambitoSeccionales?.ids?.length ?? 0) > 0 ||
+			(filtrosDepurados.ambitoDelegaciones?.ids?.length ?? 0) > 0 ||
+			(filtrosDepurados.ambitoProvincias?.ids?.length ?? 0) > 0;
+
+		if (hayFiltroEspecifico) delete filtrosDepurados.ambitoTodos;
+
+		if (lockSeccional) {
+			filtrosDepurados.ambitoSeccionales = { ids: [fixedSeccId] };
+			delete filtrosDepurados.ambitoDelegaciones; // prioriza seccional
+		} else if (lockDelegacion) {
+			filtrosDepurados.ambitoDelegaciones = { ids: [effectiveDelegId] };
+		}
+
+		// Disparar recarga + CSV/Excel
 		setList((o) => ({
 			...o,
 			reload: true,
-			params: filtros,
+			params: filtrosDepurados,
 			data: [],
 			error: null,
 			pagination: { ...o.pagination, index: 1, count: 0 },
 		}));
-		setCSV((o) => ({ ...o, params: filtros }));
-	};
-
-	const onLimpiaFiltros = () => {
-		const filtros = { ...init.filtros };
-		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setMotivosBajaSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setProvinciaSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setFiltros(filtros);
-		if (JSON.stringify(list.params) === JSON.stringify(filtros)) return;
-		setList((o) => ({
-			...o,
-			reload: true,
-			params: filtros,
-			data: [],
-			error: null,
-		}));
-		setCSV((o) => ({ ...o, params: filtros }));
+		setCSV((o) => ({ ...o, params: filtrosDepurados }));
+		setXls((o) => ({ ...o, params: filtrosDepurados }));
 	};
 
 	const onCSV = () => setCSV((o) => ({ ...o, reload: true }));
+	const onExcel = () =>
+		setXls((o) => ({
+			...o,
+			reload: true,
+			loading: "Cargando bloque 1...",
+			data: [],
+			error: null,
+			sort: list.sort,
+			params: list.params,
+		}));
+
+	const onLimpiaFiltros = React.useCallback(() => {
+		const filtrosInits = { ...init.filtros };
+
+		setDelegacionSelect((o) => ({
+			...o,
+			selected: lockDelegacion
+				? (o.optionsSrc.find(opt => opt?.value === effectiveDelegId) ?? o.selectedDef)
+				: o.selectedDef
+		}));
+		setSeccionalSelect((o) => ({
+			...o,
+			selected: lockSeccional
+				? (o.optionsSrc.find(opt => opt?.value === fixedSeccId) ?? o.selectedDef)
+				: o.selectedDef
+		}));
+
+		setMotivosBajaSelect((o) => ({ ...o, selected: o.selectedDef }));
+		setEstadoSelect((o) => ({ ...o, selected: o.selectedDef }));
+		setProvinciaSelect((o) => ({ ...o, selected: o.selectedDef }));
+		setFiltros(filtrosInits);
+		if (JSON.stringify(list.params) === JSON.stringify(filtrosInits)) return;
+		setList((o) => ({
+			...o,
+			reload: true,
+			params: filtrosInits,
+			data: [],
+			error: null,
+		}));
+
+		setCSV((o) => ({ ...o, params: filtrosInits }));
+		setXls((o) => ({ ...o, params: filtrosInits }));
+	}, [
+		init.filtros,
+		list.params,
+		setDelegacionSelect,
+		setSeccionalSelect,
+		setMotivosBajaSelect,
+		setEstadoSelect,
+		setProvinciaSelect,
+	]);
 
 	//#region activa init
 	useEffect(() => {
@@ -2451,7 +2914,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		if (Object.keys(init.wait).length) return;
 		setInit((o) => ({ ...o, wait: null }));
 		onLimpiaFiltros();
-	}, [init, onLimpiaFiltros]);
+	}, [init]);
 	//#endregion activa init
 
 	UseKeyPress(["Escape"], () => onClose());
@@ -2467,8 +2930,26 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					<Grid width gap="inherit">
 						<Grid grow>
 							<SearchSelectMaterial
+								id="provinciaSelect"
+								label="Provincia"
+								disabled={lockProvincia}
+								error={!!provinciaSelect.error}
+								helperText={provinciaSelect.loading ?? provinciaSelect?.error}
+								value={provinciaSelect?.selected}
+								onChange={(selected) =>
+									setProvinciaSelect((o) => ({ ...o, selected }))
+								}
+								options={provinciaSelect.options}
+								onTextChange={(buscar) =>
+									setProvinciaSelect((o) => ({ ...o, buscar }))
+								}
+							/>
+						</Grid>
+						<Grid grow>
+							<SearchSelectMaterial
 								id="delegacionSelect"
 								label="Delegación"
+								disabled={lockDelegacion}
 								error={!!delegacionSelect.error}
 								helperText={delegacionSelect.loading ?? delegacionSelect.error}
 								value={delegacionSelect.selected}
@@ -2485,6 +2966,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 							<SearchSelectMaterial
 								id="seccionalSelect"
 								label="Seccional"
+								disabled={lockSeccionalPorJerarquia}
 								error={!!seccionalSelect.error}
 								helperText={seccionalSelect.loading ?? seccionalSelect?.error}
 								value={seccionalSelect.selected}
@@ -2497,6 +2979,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
+					</Grid>
+					<Grid width gap="inherit">
 						<Grid grow>
 							<SearchSelectMaterial
 								id="motivosBajaSelect"
@@ -2515,8 +2999,6 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								}
 							/>
 						</Grid>
-					</Grid>
-					<Grid width gap="inherit">
 						<Grid grow>
 							<SearchSelectMaterial
 								id="estadoSelect"
@@ -2531,30 +3013,13 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
-								//disabled={ambito.tipo == "Delegaciones" ? true : false}
-							/>
-						</Grid>
-						<Grid grow>
-							<SearchSelectMaterial
-								id="provinciaSelect"
-								label="Provincia"
-								error={!!provinciaSelect.error}
-								helperText={provinciaSelect.loading ?? provinciaSelect?.error}
-								value={provinciaSelect?.selected}
-								onChange={(selected) =>
-									setProvinciaSelect((o) => ({ ...o, selected }))
-								}
-								options={provinciaSelect.options}
-								onTextChange={(buscar) =>
-									setProvinciaSelect((o) => ({ ...o, buscar }))
-								}
 							/>
 						</Grid>
 						<Grid width="200px">
 							<Button
 								className="botonAzul"
 								disabled={
-									JSON.stringify(list.params) === JSON.stringify(filtros)
+									JSON.stringify(list.params) === JSON.stringify(filtros) || (provinciaSelect?.selected !== provinciaSelectTodos && !seccionalesAllReady)
 								}
 								onClick={onAplicaFiltros}
 							>
@@ -2600,7 +3065,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 									sortField = { cuil: "CUIL" }[sortField] ?? sortField;
 									const sort = `${sortField}${
 										sortOrder === "desc" ? "Desc" : ""
-									}`;
+										}`;
 									setList((o) => ({
 										...o,
 										reload: true,
@@ -2610,6 +3075,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 										pagination: { ...o.pagination, count: 0 },
 									}));
 									setCSV((o) => ({ ...o, params: { ...o.params, sort } }));
+									setXls((o) => ({ ...o, params: { ...o.params, sort } })); // ← NUEVO
 									return;
 								}
 								default:
@@ -2633,6 +3099,18 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								GENERA ARCHIVO CSV
 							</Button>
 						</Grid>
+						<Grid width="250px">
+							<Button
+								className="botonAmarillo"
+								loading={!!xls.loading}
+								onClick={() => onExcel()}
+								tarea="Informes_Afiliados_Afiliados_Excel"
+								disabled={list.data.length === 0}
+							>
+								GENERA ARCHIVO EXCEL
+							</Button>
+						</Grid>
+
 						<Grid width="150px">
 							<Button className="botonAmarillo" onClick={() => onClose()}>
 								FINALIZA
@@ -2644,6 +3122,12 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					)}
 					{csv.error == null ? null : (
 						<text style={{ color: "red" }}>{csv.error}</text>
+					)}
+					{xls.loading == null ? null : (
+						<text style={{ color: "green" }}>{xls.loading}</text>
+					)}
+					{xls.error == null ? null : (
+						<text style={{ color: "red" }}>{xls.error}</text>
 					)}
 				</Grid>
 			</Modal.Footer>
