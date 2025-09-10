@@ -240,12 +240,18 @@ const useGestionOS = ({
     const filtroTipoGestion = list?.params?.filtroTipoGestion?.value;
     const filtroDetalleTipoGestion = list?.params?.filtroDetalleTipoGestion?.value;
 
-    console.log("ambito", ambito);
     var usuarioAdulterado = {};
     if (ambito.tipo === "Seccionales") {
       usuarioAdulterado = {
         ambitoSeccionales: {
           ids: [ambito?.ids[0]],
+        },
+        ambitoTodos: null,
+      };
+    } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: [filtroSeccional],
         },
         ambitoTodos: null,
       };
@@ -267,7 +273,7 @@ const useGestionOS = ({
           ambitoSeccionales:
             filtroSeccional !== undefined && filtroSeccional !== 0
               ? usuarioAdulterado.ambitoSeccionales
-              : usuarioAdulterado.ambitoSeccionales,
+              : usuario.ambitoSeccionales,
           sort: "FechaDesc,IdDesc",
           ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
             ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
@@ -275,7 +281,7 @@ const useGestionOS = ({
           ...(!soloLetras.test(filtroPaciente)
             ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
             : { apellidoPaciente: filtroPaciente }),
-          ...(filtroMedioGestion && filtroMedioGestion !== 0
+          ...(filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS"
             ? { medioGestion: filtroMedioGestion }
             : null),
           ...(filtroTipoEstado && filtroTipoEstado !== 0
@@ -558,7 +564,7 @@ const useGestionOS = ({
         }}
         onValidate={(confirm) => {
           const record = {
-            fecha: moment().format("YYYY-MM-DD"),
+            fecha: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
             fechaEnvioMail: null,
             direccionesEmailDestino: null,
             respuestaEnvioEmail: null,
@@ -720,7 +726,7 @@ const useGestionOS = ({
           }
 
           const record = {
-            fecha: moment().format("YYYY-MM-DD"),
+            fecha: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
             fechaEnvioMail: null,
             direccionesEmailDestino: null,
             respuestaEnvioEmail: null,
@@ -902,7 +908,7 @@ const useGestionOS = ({
                   if (index < 0) return;
                   const r = {
                     ...changes.data.at(index),
-                    deletedDate: dayjs().format("YYYY-MM-DD"),
+                    deletedDate: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
                     deletedObs: record.deletedObs,
                   };
                   if (changes.selection.multi) {
