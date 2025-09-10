@@ -618,17 +618,31 @@ const SeccionalesForm = ({
 					<Grid col full gap="15px">
 						<Grid gap="inherit">
 							<InputMaterial
-								id="codigo"
-								label="Codigo"
-								mask={CodSeccional}
-								placeholder={"S-____"}
-								required
-								error={!!errors.codigo}
-								helperText={errors.codigo ?? ""}
-								value={data.codigo}
-								disabled={disabled.codigo}
-								onChange={(codigo) => onChange({ codigo })}
-							/>
+									id="codigo"
+									label="Código"
+									placeholder="S____"   
+									required
+									error={!!errors.codigo}
+									helperText={errors.codigo ?? ""}
+									value={(data.codigo ?? "").replace(/-/g, "").toUpperCase()}
+									disabled={disabled.codigo}
+									onChange={(codigo) => {
+										let clean = (codigo ?? "")
+											.toUpperCase()
+											.replace(/[^0-9S]/g, "");    
+
+										
+										if (!clean.startsWith("S")) {
+											clean = "S" + clean.replace(/S/g, "");
+										}
+
+										
+										clean = clean.slice(0, 5);
+
+										onChange({ codigo: clean });
+									}}
+									inputProps={{ maxLength: 5, pattern: "S[0-9]{4}" }} 
+								/>
 						</Grid>
 						<Grid width="full" gap="inherit">
 							<SearchSelectMaterial

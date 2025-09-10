@@ -666,11 +666,11 @@ const useLiquidacionesNomina = ({
   //#endregion
 
   const render = () => (
-    // console.log("list", list),
+    // console.log("list", list)
     <>
       <LiquidacionesNominaTable
         remote={list.remote}
-        data={list.data}
+        data={list.data.sort((a, b) => a.nombre.localeCompare(b.nombre))}
         loading={!!list.loading || !!list.loadingOverride}
         noDataIndication={
           list.loading ??
