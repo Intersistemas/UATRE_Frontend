@@ -1503,24 +1503,25 @@ const GestionOSForm = ({
     setMostrarAlertas(true);
   };
 
+  //Modificado por Mauro, si se moidfica no se mostrara el modal solo si es para agregar
   const handleCheckDocumentacion = async () => {
-    if (request == "A" || request == "M") {
-      const isValid = await onValidate(true);
-      if (!isValid) return;
+  if (request === "A") {                               
+    const isValid = await onValidate(true);
+    if (!isValid) return;
 
-      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
-        setModalDocumentacion({ documentacionOK: true });
-      } else {
-        //Modal preguntando documentacion
-        setModalDocumentacion({
-          visible: true,
-          documentacionOK: false,
-        });
-      }
+    if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
+      setModalDocumentacion({ documentacionOK: true });
     } else {
-      handleConfirma();
+      //Modal preguntando documentacion
+      setModalDocumentacion({ 
+        visible: true, 
+        documentacionOK: false 
+      });
     }
-  };
+  } else {
+    handleConfirma();
+  }
+};
 
   useEffect(() => {
     if (!modalDocumentacion?.documentacionOK) {
