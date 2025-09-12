@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -37,7 +37,8 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
-
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
+import "./GestionOSForm.responsive.css";
 const onChangeDef = (changes = {}) => { };
 const onCloseDef = (confirm = false) => { };
 const onValidateDef = (confirm = false) => { };
@@ -187,6 +188,19 @@ const GestionOSForm = ({
     documentacionOK: false,
   });
 
+  const toSafeString = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    // si viene como evento o con { value }
+    if (typeof v === "object") {
+      if ("target" in v) return String(v.target?.value ?? "");
+      if ("value" in v) return String(v.value ?? "");
+    }
+    return "";
+  };
+
+  const ultimoDniBuscadoRef = useRef("");
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
@@ -199,7 +213,7 @@ const GestionOSForm = ({
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
       if (request == "A") {
-        // changes.elPacienteEsTitular = false;
+        changes.elPacienteEsTitular = false;
         changes.tipoDocumentoId = false;
         changes.dniPaciente = false;
         changes.apellidoPaciente = false;
@@ -213,7 +227,6 @@ const GestionOSForm = ({
         changes.emailContacto = false;
         changes.emailContacto2 = false;
 
-        changes.titularPaciente = false;
         changes.atencionesPrevias = false;
         changes.medioGestion = false;
         changes.telefono = false;
@@ -243,7 +256,7 @@ const GestionOSForm = ({
   useEffect(() => {
     const changes = {};
 
-    if (!!!data?.titularPaciente && request == "A") {
+    if (!!!data?.elPacienteEsTitular && request == "A") {
       changes.tipoDocumentoId = "";
       changes.dniPaciente = "";
       changes.apellidoPaciente = "";
@@ -257,11 +270,11 @@ const GestionOSForm = ({
       changes.emailContacto = "";
       changes.emailContacto2 = "";
 
-      changes.titularPaciente = false;
+      changes.elPacienteEsTitular = false;
     }
 
     onChange(changes);
-  }, [data.titularPaciente]);
+  }, [data.elPacienteEsTitular]);
 
   //#endregion
 
@@ -357,70 +370,54 @@ const GestionOSForm = ({
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [data?.medioGestion]);
 
-  const onDownloadSolicitudAfiliacion = (conDatos) => {
-    const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
-    const { empleador } = titular || {};
-    const domicilioFiscal = empleador?.domicilios?.find(
-      (r) => r.tipoDomicilio === "FISCAL"
-    );
+  //Nuevo Mauro
+  const onDownloadSolicitudAfiliacion = async (conDatos) => {
+    const emp = titular?.empleador || {};
+    const domFiscal = Array.isArray(emp?.domicilios)
+      ? emp.domicilios.find(d => d?.tipoDomicilio === "FISCAL")
+      : null;
 
-    const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
-      ...Object.fromEntries(
-        `${moment().format("YYYY-MM-DD") || ""}`
-          .split("-")
-          .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
-      ),
-      ...Object.fromEntries(
-        `${Formato.Cuit(data?.cuitTitular)}`
-          .split("-")
-          .map((v, i) => [
-            `trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "trabajador.documento": ["DNI", match[2]].join(" "),
-      "trabajador.nacionalidad": "",
-      "trabajador.apellidos": data?.apellidoTitular,
-      "trabajador.nombres": data?.nombreTitular,
-      "trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
-      "trabajador.estado_civil": "", //estadoCivilSelect?.selected?.label,
-      "trabajador.sexo": sexoSelect?.selected?.label,
-      "trabajador.domicilio": data.domicilio,
-      "trabajador.localidad": data.localidad,
-      "trabajador.provincia": data.provincia,
-      "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": data.actividad,
-      "trabajador.telefono": data?.telefonoContacto,
-      "trabajador.correo": data?.emailContacto,
-      "trabajador.cuil": data?.cuitTitular,
+    const datos = conDatos ? [{
+      fecha: moment().format("DD/MM/YYYY"),
+      seccional_nro: seccionalSelect?.selected?.record?.codigo || "",
+      afiliado_nro: "",
+      trabajador: {
+        cuil: Formato.Cuit(data?.cuitTitular),
+        tipo_doc: tipoDocumentoSelect?.selected?.label || "",
+        nro_doc: (data?.dniPaciente ?? "").toString(),
+        nacionalidad: "",
+        apellidos: data?.apellidoTitular,
+        nombres: data?.nombreTitular,
+        fecha_nacimiento: moment(data?.fechaNacimiento).format("DD/MM/YYYY"),
+        estado_civil: "",
+        sexo: sexoSelect?.selected?.label || "",
+        domicilio: data?.domicilio || "",
+        localidad: data?.localidad || "",
+        provincia: data?.provincia || "",
+        oficio: "",
+        actividad: data?.actividad || "",
+        telefono: [data?.telefonoContacto, data?.telefonoContacto2].filter(Boolean).join(", "),
+        email: [data?.emailContacto, data?.emailContacto2].filter(Boolean).join(", "),
+      },
+      empleador: {
+        cuit: Formato.Cuit(emp?.cuit),
+        razon_social: emp?.razonSocial || emp?.nombre_o_razon_social || "",
+        domicilio: [domFiscal?.calle, domFiscal?.numero].filter(Boolean).join(" "),
+        localidad: domFiscal?.localidad || "",
+        provincia: domFiscal?.descripcionProvincia || "",
+        actividad: emp?.descripcionActividadPrincipal || emp?.actividad || "",
+        telefono: "",
+        email: "",
+      },
+    }] : [{}];
 
-      //Empleador
-      "empleador.razon_social": empleador?.razonSocial,
-      ...Object.fromEntries(
-        `${Formato.Cuit(empleador?.cuit)}`
-          .split("-")
-          .map((v, i) => [
-            `empleador.cuit.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "empleador.actividad": empleador?.descripcionActividadPrincipal,
-      "empleador.domicilio": `${domicilioFiscal?.calle} ${domicilioFiscal?.numero}`,
-      "empleador.localidad": domicilioFiscal?.localidad,
-      "empleador.provincia": domicilioFiscal?.descripcionProvincia,
-      "empleador.telefono": "", //empleador?.telefonoEmpleador,
-      "empleador.correo": "", //empleador?.emailEmpleador,
-    };
-    //if (request !== "A") return;
-    conDatos
-      ? solicitudAfiliacion({
-        data: dataFormulario,
-        onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-      })
-      : solicitudAfiliacion({
-        onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-      });
+    await generarPDFLibSolicitudAfiliacion({
+      datos,
+      descargar: true,
+      onBase64: () => { },
+      setPaginaActual: () => { },
+      setTotalPaginas: () => { },
+    });
   };
 
   const { setState: setDocumentosQuery } = useQueryState(
@@ -436,10 +433,10 @@ const GestionOSForm = ({
 
   //#region Controlo cada vez que se modifican los datos del titular
   useEffect(() => {
-    if (data?.titularPaciente) {
+    if (data?.elPacienteEsTitular) {
       handleDatosPaciente(true, titular);
     }
-  }, [titular, data?.titularPaciente]);
+  }, [titular, data?.elPacienteEsTitular]);
   //#endregion
 
   //#region Carga inicial Documentacion
@@ -635,6 +632,24 @@ const GestionOSForm = ({
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSituacion`,
             method: "GET",
+          },
+        };
+      }
+
+      case "GetUltimaGestionPaciente": {
+        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
+        const { dniPaciente } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+            body: {
+              pageIndex: 1,
+              pageSize: 1,
+              sort: "FechaDesc,IdDesc",
+              ...(dniPaciente ? { dniPaciente } : {}),
+            },
           },
         };
       }
@@ -1113,6 +1128,13 @@ const GestionOSForm = ({
   }, [setGestionObraSocialQuery]);
   //#endregion select GestionesObraSocial
 
+  // Habilitar Observaciones cuando se está en Modificar
+  useEffect(() => {
+    if (request === "M") {
+      setDisabledItems((prev) => ({ ...prev, observacionesEstado: false }));
+    }
+  }, [request]);
+
   useEffect(() => {
     const changes = {};
     if (data.telefono == null) changes.telefono = "+54 9";
@@ -1340,7 +1362,7 @@ const GestionOSForm = ({
 
   const handleDatosPaciente = (event) => {
     //setTitularPaciente(event)
-    onChange({ titularPaciente: event });
+    onChange({ elPacienteEsTitular: event });
 
     if (event) {
       const match = titular?.cuil
@@ -1363,24 +1385,25 @@ const GestionOSForm = ({
     setMostrarAlertas(true);
   };
 
+  //Modificado por Mauro, si se moidfica no se mostrara el modal solo si es para agregar
   const handleCheckDocumentacion = async () => {
-    if (request == "A" || request == "M") {
-      const isValid = await onValidate(true);
-      if (!isValid) return;
+  if (request === "A") {                               
+    const isValid = await onValidate(true);
+    if (!isValid) return;
 
-      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
-        setModalDocumentacion({ documentacionOK: true });
-      } else {
-        //Modal preguntando documentacion
-        setModalDocumentacion({
-          visible: true,
-          documentacionOK: false,
-        });
-      }
+    if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
+      setModalDocumentacion({ documentacionOK: true });
     } else {
-      handleConfirma();
+      //Modal preguntando documentacion
+      setModalDocumentacion({ 
+        visible: true, 
+        documentacionOK: false 
+      });
     }
-  };
+  } else {
+    handleConfirma();
+  }
+};
 
   useEffect(() => {
     if (!modalDocumentacion?.documentacionOK) {
@@ -1561,7 +1584,7 @@ const GestionOSForm = ({
           {
             [
               <Grid col width="full" gap="15px">
-                <Grid width="full" gap="inherit">
+                <Grid width="full" gap="inherit" className="gestionos-top">
                   <Grid>
                     <Grid col>
                       <Grid width="180px">
@@ -1641,8 +1664,8 @@ const GestionOSForm = ({
                       </Button>
                     </Grid>
                   </Grid>
-                  <Grid>
-                    <Grid width="230px">
+                  <Grid className="gestionos-row">
+                    <Grid width="300px" className="apellido-col">
                       <InputMaterial
                         id="apellidoTitular"
                         label="Apellido"
@@ -1657,12 +1680,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         }
-                        onChange={(apellidoTitular) =>
-                          onChange({ apellidoTitular })
-                        }
+                        onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
-                    <Grid width="380px">
+                    <Grid width="370px" className="nombre-col">
                       <InputMaterial
                         id="nombreTitular"
                         label="Nombre"
@@ -1677,12 +1698,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         } //disabled.nombreTitular
-                        onChange={(nombreTitular) =>
-                          onChange({ nombreTitular })
-                        }
+                        onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px">
+                    <Grid width="auto" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1697,23 +1716,19 @@ const GestionOSForm = ({
                           !data?.nombreTitular
                         }
                       >
-                        <h6>
-                          {titular?.confirmado
-                            ? `Confirmado`
-                            : `Confirma Titular`}
-                        </h6>
+                        <h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
                       </Button>
                     </Grid>
                   </Grid>
                 </Grid>
                 <Grid>
                   <CheckboxMaterial
-                    id="titularPaciente"
+                    id="elPacienteEsTitular"
                     label="El Paciente es El Titular"
                     required
-                    value={data?.titularPaciente}
+                    value={data?.elPacienteEsTitular}
                     onChange={(v) => handleDatosPaciente(v)}
-                    disabled={disabledItems.titularPaciente}
+                    disabled={disabledItems.elPacienteEsTitular}
                   />
                 </Grid>
                 <Grid width="full" gap="inherit">
@@ -2044,7 +2059,7 @@ const GestionOSForm = ({
                   />
                 </Grid>
 
-                <Grid width="50%" gap="inherit">
+                <Grid width="full" gap="inherit">
                   <SearchSelectMaterial
                     required
                     id="gestionObraSocial"

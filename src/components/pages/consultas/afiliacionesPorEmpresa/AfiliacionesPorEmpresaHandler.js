@@ -15,6 +15,7 @@ import useAfiliacionesPorEmpresaDetalle from "./afiliacionesPorEmpresaDetalle/us
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import ExcelDatos from "./ExcelDatos";
 
 //#region estadosSelect Options
 const estadosTodos = { label: "Todos" };
@@ -50,6 +51,9 @@ const AfiliacionesPorEmpresaHandler = () => {
 	const [paramsEdit, setParamsEdit] = useState({});
 	const [paramsSend, setParamsSend] = useState({});
 	//#endregion
+
+	//Modificacion Mauro
+	const [showInforme, setShowInforme] = useState(false);
 
 	const [actualizaBotones, setActualizaBotones] = useState("Pendiente");
 
@@ -415,6 +419,20 @@ const AfiliacionesPorEmpresaHandler = () => {
 					  }),
 				})
 			);
+
+			//Modificacion Mauro
+			actions.push(
+			  createAction({
+				name: "Informe",
+				onExecute: () => setShowInforme(true),
+				combination: "AltKey",
+				tarea: "Consultas_AfiliacionesPorEmpresaInforme",
+				keys: "i",
+				underlineindex: 0,
+			  })
+			);
+
+
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 	
@@ -649,6 +667,11 @@ useEffect(() => {
 				{tabs[tab].body()}
 			</div>
 			<KeyPress items={acciones} />
+
+			{/* Modificacion Mauro */}
+			{/* Modal del Informe  */}
+      		{showInforme && <ExcelDatos onClose={() => setShowInforme(false)} />}
+
 		</Grid>
 	);
 };
