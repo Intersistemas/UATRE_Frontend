@@ -116,6 +116,16 @@ const useGestionOS = ({
         };
       }
 
+       case "EnviarCorreo": {
+        return {
+          config: {
+            endpoint: `/Usuario/enviarCorreoConAdjuntoBase64`,
+            baseURL: "Seguridad",
+            method: "POST",
+          },
+        };
+      }
+
       case "GetAccesoOspreraSpecs": {
         return {
           config: {
