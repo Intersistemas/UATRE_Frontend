@@ -996,7 +996,7 @@ const useGestionOS = ({
                           `En representación del Afiliado <strong>${!!record.titularPaciente ? record?.apellidoTitular : record?.apellidoPaciente
                           } ${!!record.titularPaciente ? record?.nombreTitular : record?.nombrePaciente
                           }</strong>, con DNI Nº <strong>${record?.dniPaciente ?? ""}</strong>, Afiliado Nº <strong>${record?.cuitTitular ?? ""}</strong> ` +
-                          `se solicita <strong>${record?.gestionRubroDescripcion ?? ""}</strong> sobre <strong>${record?.gestionSubRubroDescripcion ?? ""}</strong> conforme lo que se detalla a continuación;<br></br>` +
+                          `se solicita <strong>${record?.gestionRubroDescripcion ?? ""}</strong> sobre <strong>${record?.gestionSubRubro ?? ""}</strong> conforme lo que se detalla a continuación;<br></br>` +
                           `<strong>${record?.texto ?? ""}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
                           `Tipo de Adjuntos: <strong>${!Array.isArray(record.documentacion) || record.documentacion.length === 0
                             ? "Sin archivos adjuntos"
