@@ -276,9 +276,11 @@ const GestionOSForm = ({
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
         
-  // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-  //#endregion
+         },
+});
+}; // <-- cierra sendEnviarEmailHandler
+
+
 
   useEffect(() => {
     const raw = toSafeString(data?.dniPaciente);
