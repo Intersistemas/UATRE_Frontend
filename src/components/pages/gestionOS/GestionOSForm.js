@@ -2037,7 +2037,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSubRubroId: selected.value });
+                        onChange({ gestionSubRubroId: selected.value,
+                          gestionSubRubroDescripcion: selected.label,
+                          gestionSubRubro: selected.label,
+                         });
                       }}
                       options={gestionSubRubroSelect.options}
                     />
