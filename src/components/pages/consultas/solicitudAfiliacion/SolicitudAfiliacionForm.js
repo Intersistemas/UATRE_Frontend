@@ -38,6 +38,16 @@ const styles = {
 };
 
 //#region options
+const toInputString = (v) => {
+	if (typeof v === "string" || typeof v === "number") return String(v);
+	if (v && typeof v === "object") {
+		if (v.value != null) return String(v.value);
+		if (v.target && v.target.value != null) return String(v.target.value);
+	}
+	return "";
+};
+
+const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
@@ -583,6 +593,79 @@ const SolicitudAfiliacionForm = ({
 	//#endregion select ciiu
 
 	//#endregion selects empleador
+	// PREFILL (data  readOnly)
+	useEffect(() => {
+		if (!data || Object.keys(data).length === 0) return;
+		setState((o) => ({
+			...o,
+			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+		}));
+	}, [data, readOnly]);
+
+	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+		if (!id) return;
+		setter((o) => {
+			const hit = (o.options || optionsState.options || []).find(match) || {};
+			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+		});
+	};
+
+	// Prefill selects
+	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => {
+		if (!trabPciaSelect.options?.length) return;
+		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+	}, [trabPciaSelect.options, data?.provinciaId]);
+	useEffect(() => {
+		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setTrabLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+	useEffect(() => {
+		if (!emplPciaSelect.options?.length) return;
+		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+	useEffect(() => {
+		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setEmplLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+
+	// READONLY banderas
+	const isRO = !!readOnly;
+	const disTrab = isRO || !state.validado.trabajador;
+	const disEmpl = isRO || !state.validado.empleador;
 
 	// PREFILL (data  readOnly)
 	useEffect(() => {
@@ -952,10 +1035,9 @@ const SolicitudAfiliacionForm = ({
 									onChange={(v) =>
 										setState((o) => ({
 											...o,
-											form: {
+											form: { 
 												...o.form,
-												cuil: v.replace(/[^0-9]+/g, ""),
-											},
+												 cuil: onlyDigits(v) },
 										}))
 									}
 								/>
@@ -1138,10 +1220,9 @@ const SolicitudAfiliacionForm = ({
 									onChange={(v) =>
 										setState((o) => ({
 											...o,
-											form: {
+											form: { 
 												...o.form,
-												documento: v.replace(/[^0-9]+/g, ""),
-											},
+												documento: onlyDigits(v) },
 										}))
 									}
 								/>
@@ -1150,7 +1231,6 @@ const SolicitudAfiliacionForm = ({
 								<SearchSelectMaterial
 									id="nacionalidadSelect"
 									label="Nacionalidad"
-
 									readOnly={isRO}
 									error={
 										!!(nacionalidadSelect.error || state.errors.nacionalidadId)
@@ -1569,7 +1649,9 @@ const SolicitudAfiliacionForm = ({
 									onChange={(v) =>
 										setState((o) => ({
 											...o,
-											form: { ...o.form, cuitEmpresa: v.replace(/[^0-9]+/g, "") },
+											form: { 
+												...o.form, 
+												cuitEmpresa: onlyDigits(v) },
 										}))
 									}
 								/>
@@ -1580,35 +1662,52 @@ const SolicitudAfiliacionForm = ({
 									className="botonAzul"
 									disabled={isRO}
 									onClick={() => {
-										const changes = { form: {}, errors: { cuitEmpresa: "" } };
+										const changes = { 
+											form: {}, 
+											errors: { cuitEmpresa: "" }, 
+										};
 										const cuit = state.form.cuitEmpresa;
 										const apply = () =>
 											setState((o) => {
 												const s = {
 													...o,
-													form: { ...o.form, ...changes.form },
-													errors: { ...o.errors, ...changes.errors },
+													form: { 
+														...o.form, 
+														...changes.form, 
+													},
+													errors: { 
+														...o.errors,
+														 ...changes.errors, 
+														},
 												};
-												s.validado = { ...o.validado, empleador: true };
+												s.validado = {
+													 ...o.validado,
+													  empleador: true, 
+													};
 												return s;
 											});
 										if (cuit) {
 											setPadronAFIPQuery((o) => ({
 												...o,
 												loading: "Empleador",
-												query: { ...o.query, params: { ...o.query.params, cuit } },
+												query: {
+													 ...o.query, 
+													 params: { ...o.query.params, cuit }, 
+													},
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
 														changes.errors.cuitEmpresa =
 															error.code === 404 ? "No existe en ARCA" : error.toString();
 													} else {
-														changes.form.razonSocial = ok.razonSocial || ok.nombre;
+														changes.form.razonSocial = 
+														ok.razonSocial || ok.nombre;
 														if (ok.domicilios?.length) {
 															const domicilio =
-																ok.domicilios.find((r) => r.tipoDomicilio === "LEGAL/REAL") ??
-																ok.domicilios[0];
-															changes.form.domicilioEmpresa = domicilio.direccion;
-
+																ok.domicilios.find(
+																	(r) => r.tipoDomicilio === "LEGAL/REAL"
+																) ?? ok.domicilios[0];
+															changes.form.domicilioEmpresa = 
+															domicilio.direccion;
 															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
 															const pcia =
 																(emplPciaSelect.options || []).find(
@@ -1626,10 +1725,7 @@ const SolicitudAfiliacionForm = ({
 																	...o,
 																	query: {
 																		...o.query,
-																		params: {
-																			...o.query.params,
-																			provinciaId: pcia?.value,
-																		},
+																		params: { ...o.query.params, provinciaId: pcia?.value,},
 																	},
 																	onPreLoad: () =>
 																		setEmplLocaSelect((s) => ({
@@ -1643,26 +1739,22 @@ const SolicitudAfiliacionForm = ({
 																			loading: null,
 																			error: error?.toString(),
 																			buscar: domicilio?.localidad ?? "",
-																			selected: {
-																				record: { nombre: domicilio?.localidad ?? "" },
-																			},
+																			selected: {record: { nombre: domicilio?.localidad ?? "" },
+                                    },
 																			origen: "text",
 																		})),
 																}));
 															} else {
+																// Fallback: no matcheó provincia por id → dejamos “texto” y localidad por texto
 																setEmplPciaSelect((o) => ({
 																	...o,
-																	selected: {
-																		record: { id: 0, nombre: domicilio?.provincia ?? "" },
-																	},
+																	selected: {record: { id: 0, nombre: domicilio?.provincia ?? "" }, },
 																	origen: "text",
 																}));
 																setEmplLocaSelect((o) => ({
 																	...o,
 																	data: o.data ?? [],
-																	selected: {
-																		record: { nombre: domicilio?.localidad ?? "" },
-																	},
+																	selected: { record: { nombre: domicilio?.localidad ?? "" }, },
 																	origen: "text",
 																}));
 															}
@@ -1672,7 +1764,10 @@ const SolicitudAfiliacionForm = ({
 															const actividad = ciiuSelect.options.find(
 																(r) => r.record.ciiu === ok.idActividadPrincipal
 															);
-															setCiiuSelect((o) => ({ ...o, selected: actividad }));
+															setCiiuSelect((o) => ({
+																 ...o, 
+																 selected: actividad, 
+																}));
 														}
 													}
 													apply();
@@ -1698,7 +1793,13 @@ const SolicitudAfiliacionForm = ({
 									helperText={state.errors.razonSocial}
 									disabled={disEmpl}
 									onChange={(razonSocial) =>
-										setState((o) => ({ ...o, form: { ...o.form, razonSocial } }))
+										setState((o) => ({ 
+											...o, 
+											form: { 
+												...o.form,
+												razonSocial, 
+											} 
+										}))
 									}
 								/>
 							</Grid>
@@ -1734,12 +1835,19 @@ const SolicitudAfiliacionForm = ({
 								value={emplPciaSelect.selected}
 								disabled={disEmpl}
 								onChange={(selected = {}) => {
-									setEmplPciaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setEmplPciaSelect((o) => ({
+										 ...o,
+										  selected, 
+										  origen: "option" 
+										}));
 									setLocalidadesQuery((o) => ({
 										...o,
 										query: {
 											...o.query,
-											params: { ...o.query.params, provinciaId: selected.value },
+											params: { 
+												...o.query.params,
+												 provinciaId: selected.value, 
+												},
 										},
 										onPreLoad: () =>
 											setEmplLocaSelect((s) => ({
@@ -1777,7 +1885,9 @@ const SolicitudAfiliacionForm = ({
 								id="emplLocaSelect"
 								label="Localidad"
 								readOnly={isRO}
-								error={!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)}
+								error={
+									!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)
+								}
 								helperText={
 									emplLocaSelect.loading ??
 									emplLocaSelect.error ??
@@ -1786,7 +1896,11 @@ const SolicitudAfiliacionForm = ({
 								value={emplLocaSelect.selected}
 								disabled={disEmpl}
 								onChange={(selected = {}) => {
-									setEmplLocaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setEmplLocaSelect((o) => ({
+										 ...o, 
+										 selected, 
+										 origen: "option", 
+										}));
 									setState((o) => ({
 										...o,
 										form: {
@@ -1808,7 +1922,9 @@ const SolicitudAfiliacionForm = ({
 								label="Actividad"
 								error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
 								helperText={
-									ciiuSelect.loading ?? ciiuSelect.error ?? state.errors.actividadIdEmpresa
+									ciiuSelect.loading ?? 
+									ciiuSelect.error ?? 
+									state.errors.actividadIdEmpresa
 								}
 								value={ciiuSelect.selected}
 								disabled={disEmpl}
@@ -1839,7 +1955,13 @@ const SolicitudAfiliacionForm = ({
 								helperText={state.errors.telefonoEmpresa}
 								disabled={disEmpl}
 								onChange={(telefonoEmpresa) =>
-									setState((o) => ({ ...o, form: { ...o.form, telefonoEmpresa } }))
+									setState((o) => ({ 
+										...o, 
+										form: { 
+											...o.form, 
+											telefonoEmpresa, 
+										} 
+									}))
 								}
 							/>
 							<InputMaterial
@@ -1851,7 +1973,13 @@ const SolicitudAfiliacionForm = ({
 								helperText={state.errors.celularEmpresa}
 								disabled={disEmpl}
 								onChange={(celularEmpresa) =>
-									setState((o) => ({ ...o, form: { ...o.form, celularEmpresa } }))
+									setState((o) => ({ 
+										...o, 
+										form: { 
+											...o.form,
+											 celularEmpresa, 
+											} 
+										}))
 								}
 							/>
 							<InputMaterial
@@ -1862,7 +1990,13 @@ const SolicitudAfiliacionForm = ({
 								helperText={state.errors.emailEmpresa}
 								disabled={disEmpl}
 								onChange={(emailEmpresa) =>
-									setState((o) => ({ ...o, form: { ...o.form, emailEmpresa } }))
+									setState((o) => ({ 
+										...o, 
+										form: { 
+											...o.form,
+											 emailEmpresa, 
+											} 
+										}))
 								}
 							/>
 						</Grid>
@@ -2047,42 +2181,7 @@ const SolicitudAfiliacionForm = ({
 			const datos = [{
 				fecha: Formato.Fecha(body.fecha),
 				seccional_nro: body.seccionalCodigo || "",
-				afiliado_nro: "",
-				trabajador: {
-					cuil: Formato.Cuit(body.cuil),
-					tipo_doc: body.tipoDocumentoDescripcion,
-					nro_doc: body.documento,
-					nacionalidad: body.nacionalidad,
-					apellidos: body.apellido,
-					nombres: body.nombre,
-					fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
-					estado_civil: body.estadoCivil,
-					sexo: body.sexoDescripcion,
-					domicilio: body.domicilio,
-					localidad: body.nombreLocalidadAfiliado,
-					provincia: body.provinciaNombre,
-					oficio: body.oficio,
-					actividad: body.actividadAfiliado,
-					telefono: body.celular,
-					email: body.email,
-				},
-				empleador: {
-					cuit: Formato.Cuit(body.cuitEmpresa),
-					razon_social: body.razonSocial,
-					domicilio: body.domicilioEmpresa,
-					localidad: body.nombreLocalidadEmpresa,
-					provincia: body.provinciaNombreEmpresa,
-					actividad: body.actividadEmpresa,
-					telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
-					email: body.emailEmpresa,
-				},
-			}];
-		const despliega = async () => {
-			//  Mapeo al contrato del generador nuevo
-			const datos = [{
-				fecha: Formato.Fecha(body.fecha),
-				seccional_nro: body.seccionalCodigo || "",
-				afiliado_nro: "",
+				afiliado_nro: "", 
 				trabajador: {
 					cuil: Formato.Cuit(body.cuil),
 					tipo_doc: body.tipoDocumentoDescripcion,
@@ -2116,14 +2215,14 @@ const SolicitudAfiliacionForm = ({
 				modulo: "Consultas",
 				proceso: "SolicitudPreviaAfiliacion",
 				parametros: datos[0],
-				observaciones: "Emite PDF con generador PDF-LIB",
+				observaciones: "Emite PDF con generador nuevo",
 			});
 
-			//  Genera y SOLO previsualiza (no descarga automática)
+			// Genera y DESCARGA. Además, deja data-uri para previsualizar en el iframe.
 			const base64 = await generarPDFLibSolicitudAfiliacion({
 				datos,
-				descargar: false,          
-				onBase64: () => { },
+				descargar: false,  // descarga automática "Solicitud_Afiliacion.pdf"
+				onBase64: () => { }, // ya devolvemos abajo
 				setPaginaActual: () => { },
 				setTotalPaginas: () => { },
 			});
@@ -2133,76 +2232,23 @@ const SolicitudAfiliacionForm = ({
 				base64: `data:application/pdf;base64,${base64}`,
 			}));
 		};
-		
-		//#region Validaciones AFIP
-		setPadronAFIPQuery((o) => ({
+
+		// permie carga manual
+		setCreateFormQuery((o) => ({
 			...o,
-			query: {
-				...o.query,
-				params: { ...o.query.params, cuit: body.cuil },
-			},
-			onPreLoad: () =>
-				setState((o) => ({ ...o, loading: "Validando trabajador..." })),
-			onLoad: ({ query, error }) => {
-				setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+			query: { ...o.query, config: { ...o.query.config, body } },
+			onPreLoad: () => 
+				setState((s) => ({ ...s, loading: "Enviando formulario..." })),
+			onLoad: ({ error }) => {
+				const changes = { loading: null };
 				if (error) {
-					if (error.code === 404) {
-						errors.cuil = error.toString();
-						setState((o) => ({ ...o, errors, loading: null }));
-						return;
-					} else {
-						audit({
-							modulo: "Consultas",
-							proceso: "SolicitudPreviaAfiliacion",
-							parametros: { ...query.params, valida: "trabajador" },
-							observaciones: `Error consulta AFIP: ${error.toString()}`,
-						});
-					}
+					changes.errors = { create: error.toString() };
+				} else {
+					despliega(); 
 				}
-				setPadronAFIPQuery((o) => ({
-					...o,
-					query: {
-						...o.query,
-						params: { ...o.query.params, cuit: body.cuitEmpresa },
-					},
-					onPreLoad: () =>
-						setState((o) => ({ ...o, loading: "Validando empleador..." })),
-					onLoad: ({ query, error }) => {
-						setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-						if (error) {
-							if (error.code === 404) {
-								errors.cuitEmpresa = error.toString();
-								setState((o) => ({ ...o, errors, loading: null }));
-								return;
-							} else {
-								audit({
-									modulo: "Consultas",
-									proceso: "SolicitudPreviaAfiliacion",
-									parametros: { ...query.params, valida: "empleador" },
-									observaciones: `Error consulta AFIP: ${error.toString()}`,
-								});
-							}
-						}
-						setCreateFormQuery((o) => ({
-							...o,
-							query: { ...o.query, config: { ...o.query.config, body } },
-							onPreLoad: () =>
-								setState((o) => ({ ...o, loading: "Enviando formulario..." })),
-							onLoad: ({ error }) => {
-								const changes = { loading: null }
-								if (error) {
-									changes.errors = { create: error.toString() }
-								} else {
-									despliega();
-								}
-								setState((o) => ({ ...o, ...changes }));
-							},
-						}));
-					},
-				}));
+				setState((s) => ({ ...s, ...changes }));
 			},
 		}));
-		//#endregion Validaciones AFIP
 	};
 
 	// props para bloquear edición cuando es solo lectura
@@ -2216,9 +2262,7 @@ const SolicitudAfiliacionForm = ({
 			<Modal.Body>{content}</Modal.Body>
 			<Modal.Footer>
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
-					<Grid width style={{ color: "red" }}>
-						{state.errors.create}
-						</Grid>
+					<Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
 					{state.base64 ? (
 						<div />
 					) : (
@@ -2227,11 +2271,7 @@ const SolicitudAfiliacionForm = ({
 								className="botonAmarillo"
 								onClick={onImprimie}
 								loading={!!state.loading}
-								disabled={
-									!and(
-										...Object.values(state.validado)
-									)
-								}
+								disabled={!and(...Object.values(state.validado))}
 							>
 								IMPRIME
 							</Button>
