@@ -136,6 +136,10 @@ const App = () => {
               element={<LiquidacionesProcesarHandler />}
             />
             <Route
+              path="Inicio/Empresas/Establecimientos/Liquidaciones/Procesar"
+              element={<LiquidacionesProcesarHandler />}
+            />
+            <Route
               path="Inicio/Empresas/Liquidaciones/Procesar/Existente"
               element={<LiquidacionesProcesarExistenteHandler />}
             />
@@ -209,10 +213,7 @@ const App = () => {
 
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
 
-            <Route
-              path="Inicio/GestionOS"
-              element={<GestionOSHandler />}
-            />
+            <Route path="Inicio/GestionOS" element={<GestionOSHandler />} />
 
             <Route path="Inicio/App" element={<AppHandler />} />
             <Route path="Inicio/App/Encuestas" element={<EncuestasHandler />} />
@@ -224,7 +225,7 @@ const App = () => {
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
 
             <Route path="/*" element={<PantallaEnDesarrollo />} />
-              {/* ----------------------------------------------------------- */}
+            {/* ----------------------------------------------------------- */}
             {/* RELEVAMIENTO DE TRABAJADORES */}
             <Route
               path="Inicio/Relevamiento"

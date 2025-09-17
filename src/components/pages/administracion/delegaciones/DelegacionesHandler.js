@@ -4,13 +4,18 @@ import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
+
 import useDocumentaciones from "components/documentacion/useDocumentaciones";
+
+
 import useDelegaciones from "./useDelegaciones";
 import useColaboradores from "components/colaboradores/useColaboradores";
 import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+
 import LotePDFViewer from "./carnet/LotePDFViewer";
+import DelegacionesInforme from "./ExcelDatos"
 
 const DelegacionesHandler = () => {
 	const dispatch = useDispatch();
@@ -30,6 +35,7 @@ const DelegacionesHandler = () => {
 	} = useDelegaciones();
 	const [delegacionesActions, setDelegacionesActions] = useState([]);
 	const [delegacionesCarnets, setDelegacionesCarnets] = useState(null);
+	const [showInforme, setShowInforme] = useState(false);
 	useEffect(() => {
 		const createAction = ({ action, request, ...x }) =>
 			new Action({
@@ -121,6 +127,20 @@ const DelegacionesHandler = () => {
 					}),
 			})
 		);
+
+		//Boton informe Excel
+		actions.push(
+			createAction({
+				name: "Informe",
+				onExecute: () => setShowInforme(true),
+				combination: "AltKey",
+				tarea: "Datos_DelegacionInforme",
+				keys: "n",
+				underlineindex: 1,
+				disabled: !delegacionesSelected?.id,
+			})
+		);
+
 		setDelegacionesActions(actions);
 	}, [delegacionesRequest, delegacionesSelected]);
 	tabs.push({
@@ -132,6 +152,13 @@ const DelegacionesHandler = () => {
 					<LotePDFViewer
 						{...delegacionesCarnets}
 						onClose={() => setDelegacionesCarnets(null)}
+					/>
+				)}
+
+				{showInforme && (
+					<DelegacionesInforme
+						delegacion={delegacionesSelected}
+						onClose={() => setShowInforme(false)}
 					/>
 				)}
 			</>
