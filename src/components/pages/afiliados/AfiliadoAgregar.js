@@ -1478,7 +1478,43 @@ const AfiliadoAgregar = (props) => {
     );
   }, [request]);
 
+  //modificado Mauro
+  useEffect(() => {
+    const d = props?.data || {};
+    if (d.cuil != null && d.cuil !== "") {
+      dispatchCUIL({ type: "USER_INPUT", value: String(d.cuil) });
+    }
+    if (d.email != null) {
+      dispatchEmail({ type: "USER_INPUT", value: String(d.email) });
+    }
+    if (d.telefonoPais != null) {
+      dispatchTelefonoPais({ type: "USER_INPUT", value: String(d.telefonoPais) });
+    }
+    if (d.telefonoArea != null) {
+      dispatchTelefonoArea({ type: "USER_INPUT", value: String(d.telefonoArea) });
+    }
+    if (d.telefonoNumero != null) {
+      dispatchTelefonoNumero({ type: "USER_INPUT", value: String(d.telefonoNumero) });
+    }
+  }, [props.data]);
+
   //#endregion
+
+  
+  //Agregado Mauro
+   // Helper simple para partir un teléfono Argentino en país/área/número
+ const parseTelefonoAR = (raw = "") => {
+   const only = String(raw).replace(/[^\d+0-9]/g, "");
+   // país: si viene con prefijo usa ese, si no, asume +54
+   const paisMatch = only.match(/^\+?\d{1,3}/);
+   const telefonoPais = paisMatch ? (paisMatch[0].startsWith("+") ? paisMatch[0] : `+${paisMatch[0]}`) : "+54";
+   const rest = only.replace(/^\+?\d{1,3}/, "");
+   // área/número: muy básico, intenta 2-4 dígitos de área y el resto como número
+   const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/);
+   const telefonoArea = m?.[1] ?? "";
+   const telefonoNumero = m?.[2] ?? rest;
+   return { telefonoPais, telefonoArea, telefonoNumero };
+ };
 
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
@@ -1723,7 +1759,21 @@ const AfiliadoAgregar = (props) => {
       });
     }
 
+    //NUEVO PARA ALEX
+    // Helper simple para descomponer teléfonos a País / Área / Número
+  const parseTelefonoAR = (raw = "") => {
+    const only = String(raw).replace(/[^\d+]/g, "");
+    let telefonoPais = /^\+?\d{1,3}/.test(only) ? only.match(/^\+?\d{1,3}/)[0] : "+54";
+    telefonoPais = telefonoPais.startsWith("+") ? telefonoPais : `+${telefonoPais}`;
+    const rest = only.replace(/^\+?\d{1,3}/, "");
+    const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/) || [];
+    const telefonoArea = m[1] || "";
+    const telefonoNumero = m[2] || rest;
+    return { telefonoPais, telefonoArea, telefonoNumero };
+  };
+
     const processConsultaPadron = async (padronObj) => {
+
       console.log("padronObj", padronObj);
       setErrorAFIP(false);
       //moment(padronRespuesta?.fechaFallecimiento).includes("0001-01-01") ? null : padronRespuesta?.fechaFallecimiento,
@@ -1956,6 +2006,26 @@ const AfiliadoAgregar = (props) => {
 
         ActualizaDatosAfip(padronObj);
       }
+
+      //Agregado Mauro
+    // Email (si AFIP trae algo)
+    if (padronObj?.email && typeof dispatchEmail === "function") {
+      dispatchEmail({ type: "USER_INPUT", value: String(padronObj.email) });
+    }
+
+    // Teléfono (si AFIP trae algo)
+    const telRaw = padronObj?.telefono || padronObj?.celular;
+    if (telRaw && typeof dispatchTelefonoNumero === "function") {
+      const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+      if (typeof dispatchTelefonoPais === "function") {
+        dispatchTelefonoPais({ type: "USER_INPUT", value: telefonoPais });
+      }
+      if (typeof dispatchTelefonoArea === "function") {
+        dispatchTelefonoArea({ type: "USER_INPUT", value: telefonoArea });
+      }
+      dispatchTelefonoNumero({ type: "USER_INPUT", value: telefonoNumero });
+    }
+
 
       setCUILLoading(false);
       setInputsTouched(true);

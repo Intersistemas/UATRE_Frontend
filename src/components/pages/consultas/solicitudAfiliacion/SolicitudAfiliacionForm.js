@@ -667,6 +667,82 @@ const SolicitudAfiliacionForm = ({
 	const disTrab = isRO || !state.validado.trabajador;
 	const disEmpl = isRO || !state.validado.empleador;
 
+	// PREFILL (data  readOnly)
+	useEffect(() => {
+		if (!data || Object.keys(data).length === 0) return;
+		setState((o) => ({
+			...o,
+			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+		}));
+	}, [data, readOnly]);
+
+	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+		if (!id) return;
+		setter((o) => {
+			const hit = (o.options || optionsState.options || []).find(match) || {};
+			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+		});
+	};
+
+	// Prefill selects
+	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => {
+		if (!trabPciaSelect.options?.length) return;
+		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+	}, [trabPciaSelect.options, data?.provinciaId]);
+	useEffect(() => {
+		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setTrabLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+	useEffect(() => {
+		if (!emplPciaSelect.options?.length) return;
+		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+	useEffect(() => {
+		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setEmplLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+
+	// READONLY flags
+	const isRO = !!readOnly;
+	const disTrab = isRO || !state.validado.trabajador;
+	const disEmpl = isRO || !state.validado.empleador;
+
+
+
 	//#endregion selects
 
 	//#region inicializaciones
@@ -1581,6 +1657,7 @@ const SolicitudAfiliacionForm = ({
 								/>
 							</Grid>
 							<Grid col width="100px">
+
 								<Button
 									className="botonAzul"
 									disabled={isRO}
@@ -1631,7 +1708,6 @@ const SolicitudAfiliacionForm = ({
 																) ?? ok.domicilios[0];
 															changes.form.domicilioEmpresa = 
 															domicilio.direccion;
-															//Modificado Mauro
 															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
 															const pcia =
 																(emplPciaSelect.options || []).find(
@@ -1664,7 +1740,7 @@ const SolicitudAfiliacionForm = ({
 																			error: error?.toString(),
 																			buscar: domicilio?.localidad ?? "",
 																			selected: {record: { nombre: domicilio?.localidad ?? "" },
-},
+                                    },
 																			origen: "text",
 																		})),
 																}));
@@ -1683,6 +1759,7 @@ const SolicitudAfiliacionForm = ({
 																}));
 															}
 														}
+
 														if (ok.idActividadPrincipal) {
 															const actividad = ciiuSelect.options.find(
 																(r) => r.record.ciiu === ok.idActividadPrincipal
@@ -1749,9 +1826,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="emplPciaSelect"
 								label="Provincia"
-								error={
-									!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)
-								}
+								error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
 								helperText={
 									emplPciaSelect.loading ??
 									emplPciaSelect.error ??
@@ -2101,39 +2176,6 @@ const SolicitudAfiliacionForm = ({
 			return;
 		}
 		//Modif Mauro
-		// const despliega = () => {
-		// 	const dataPrint = {
-		// 		"seccional.codigo": body.seccionalCodigo,
-		// 		...Object.fromEntries(`${body.fecha || ""}`.split("-").map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])),
-		// 		...Object.fromEntries(`${Formato.Cuit(body.cuil)}`.split("-").map((v, i) => [`trabajador.cuil.${["tipo", "id", "verificador"][i]}`, v])),
-		// 		"trabajador.documento": [body.tipoDocumentoDescripcion, body.documento].join(" "),
-		// 		"trabajador.nacionalidad": body.nacionalidad,
-		// 		"trabajador.apellidos": body.apellido,
-		// 		"trabajador.nombres": body.nombre,
-		// 		"trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
-		// 		"trabajador.estado_civil": body.estadoCivil,
-		// 		"trabajador.sexo": body.sexoDescripcion,
-		// 		"trabajador.domicilio": body.domicilio,
-		// 		"trabajador.localidad": body.nombreLocalidadAfiliado,
-		// 		"trabajador.provincia": body.provinciaNombre,
-		// 		"trabajador.oficio": body.oficio,
-		// 		"trabajador.actividad": body.actividadAfiliado,
-		// 		"trabajador.telefono": [body.telefono, body.celular].filter((r) => r).join(", "),
-		// 		"trabajador.correo": body.email,
-
-		// 		...Object.fromEntries(`${Formato.Cuit(body.cuitEmpresa)}`.split("-").map((v, i) => [`empleador.cuit.${["tipo", "id", "verificador"][i]}`, v])),
-		// 		"empleador.razon_social": body.razonSocial,
-		// 		"empleador.domicilio": body.domicilioEmpresa,
-		// 		"empleador.localidad": body.nombreLocalidadEmpresa,
-		// 		"empleador.provincia": body.provinciaNombreEmpresa,
-		// 		"empleador.actividad": body.actividadEmpresa,
-		// 		"empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa].filter((r) => r).join(", "),
-		// 		"empleador.correo": body.emailEmpresa,
-		// 	};
-		// 	audit({ modulo: "Consultas", proceso: "SolicitudPreviaAfiliacion", parametros: dataPrint, observaciones: `Emite PDF` });
-		// 	solicitudAfiliacion({ data: dataPrint, onLoad: (base64) => setState((o) => ({ ...o, base64 })) });
-		// };
-
 		const despliega = async () => {
 			// Mapeo a la estructura del nuevo generador
 			const datos = [{
@@ -2169,7 +2211,6 @@ const SolicitudAfiliacionForm = ({
 					email: body.emailEmpresa,
 				},
 			}];
-
 			audit({
 				modulo: "Consultas",
 				proceso: "SolicitudPreviaAfiliacion",
@@ -2236,6 +2277,7 @@ const SolicitudAfiliacionForm = ({
 							</Button>
 						)
 					)}
+
 					<Button className="botonAmarillo" onClick={() => onClose()}>
 						FINALIZA
 					</Button>
