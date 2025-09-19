@@ -178,6 +178,8 @@ const GestionOSForm = ({
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+  //ModificacionMauro
+  const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -273,20 +275,9 @@ const GestionOSForm = ({
         if (estadoEnviado) {
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
-
-        setDialogTexto("Se ha enviado un email a la dirección ingresada.");
-        setOpenDialog(true);
-      },
-      onError: async (error) => {
-        setDialogTexto(error?.message || "Error al enviar el email.");
-        setOpenDialog(true);
-      },
-      onFinally: async () => {
-        loading = false;
-        //onClose(true)
-      },
-    });
-  };
+        
+  // const [busy, setBusy] = useState({ busy: false, text: "" });
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
 
   //Este codigo de bloque rellena automaticamente
@@ -341,7 +332,7 @@ const GestionOSForm = ({
       changes.apellidoTitular = true;
       changes.nombreTitular = true;
       if (request == "A") {
-        // changes.elPacienteEsTitular = false;
+        changes.elPacienteEsTitular = false;
         changes.tipoDocumentoId = false;
         changes.dniPaciente = false;
         changes.apellidoPaciente = false;
@@ -355,7 +346,6 @@ const GestionOSForm = ({
         changes.emailContacto = false;
         changes.emailContacto2 = false;
 
-        changes.titularPaciente = false;
         changes.atencionesPrevias = false;
         changes.medioGestion = false;
         changes.telefono = false;
@@ -385,7 +375,7 @@ const GestionOSForm = ({
   useEffect(() => {
     const changes = {};
 
-    if (!!!data?.titularPaciente && request == "A") {
+    if (!!!data?.elPacienteEsTitular && request == "A") {
       changes.tipoDocumentoId = "";
       changes.dniPaciente = "";
       changes.apellidoPaciente = "";
@@ -399,13 +389,25 @@ const GestionOSForm = ({
       changes.emailContacto = "";
       changes.emailContacto2 = "";
 
-      changes.titularPaciente = false;
+      changes.elPacienteEsTitular = false;
     }
 
     onChange(changes);
-  }, [data.titularPaciente]);
+  }, [data.elPacienteEsTitular]);
 
   //#endregion
+
+  //Modificacion Mauro
+  useEffect(() => {
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: {},
+      onOk: (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setUltimoIdGestion(arr?.[0]?.id ?? null);
+      },
+    });
+  }, []);
 
   //#region Cambios atenciones previas
   useEffect(() => {
@@ -566,10 +568,10 @@ const GestionOSForm = ({
 
   //#region Controlo cada vez que se modifican los datos del titular
   useEffect(() => {
-    if (data?.titularPaciente) {
+    if (data?.elPacienteEsTitular) {
       handleDatosPaciente(true, titular);
     }
-  }, [titular, data?.titularPaciente]);
+  }, [titular, data?.elPacienteEsTitular]);
   //#endregion
 
   //#region Carga inicial Documentacion
@@ -682,6 +684,7 @@ const GestionOSForm = ({
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
+
       case "GetAfiliado": {
         return {
           config: {
@@ -1260,6 +1263,13 @@ const GestionOSForm = ({
   }, [setGestionObraSocialQuery]);
   //#endregion select GestionesObraSocial
 
+  // Habilitar Observaciones cuando se está en Modificar
+  useEffect(() => {
+    if (request === "M") {
+      setDisabledItems((prev) => ({ ...prev, observacionesEstado: false }));
+    }
+  }, [request]);
+
   useEffect(() => {
     const changes = {};
     if (data.telefono == null) changes.telefono = "+54 9";
@@ -1487,7 +1497,7 @@ const GestionOSForm = ({
 
   const handleDatosPaciente = (event) => {
     //setTitularPaciente(event)
-    onChange({ titularPaciente: event });
+    onChange({ elPacienteEsTitular: event });
 
     if (event) {
       const match = titular?.cuil
@@ -1544,17 +1554,17 @@ const GestionOSForm = ({
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
 
         if (!titular.existeEnUATRE) {
           onDownloadSolicitudAfiliacion(true);
@@ -1808,7 +1818,6 @@ const GestionOSForm = ({
                         onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
-
                     <Grid width="370px" className="nombre-col">
                       <InputMaterial
                         id="nombreTitular"
