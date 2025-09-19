@@ -289,6 +289,7 @@ const GestionOSForm = ({
   };
   //#endregion
 
+  //Este codigo de bloque rellena automaticamente
   useEffect(() => {
     const raw = toSafeString(data?.dniPaciente);
     const dni = raw.replace(/\D/g, "");
@@ -330,7 +331,7 @@ const GestionOSForm = ({
       },
     });
   }, [data?.dniPaciente, data?.medioGestion]);
-
+  //Fin del bloque de codigo que rellena automaticamente
 
   //#region DISABLED 0303
   useEffect(() => {
