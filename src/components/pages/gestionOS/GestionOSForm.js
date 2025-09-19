@@ -202,7 +202,7 @@ const GestionOSForm = ({
   const ultimoDniBuscadoRef = useRef("");
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  //const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
 
   //#region EMAIL
@@ -275,7 +275,12 @@ const GestionOSForm = ({
         if (estadoEnviado) {
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
-        
+      }, 
+    }); 
+  }; 
+
+
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
