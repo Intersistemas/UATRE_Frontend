@@ -2315,7 +2315,7 @@ const SolicitudAfiliacionForm = ({
 						)
 					)}
 
-					<Button className="botonAmarillo" onClick={() => onClose()}>
+					<Button className="botonAmarillo" onClick={() => onClose(true)}>
 						FINALIZA
 					</Button>
 				</Grid>

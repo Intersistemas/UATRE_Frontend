@@ -32,6 +32,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		render: formularioRender,
 		request: formularioRequest,
 		selected: formularioSelected,
+		changer: formularioChanger, // si tu hook expone un changer
 	} = useAfiliadoFormulariosAfiliacion({
 		params: {},
 		onLoadSelect: onLoadSelectKeepOrFirst,
@@ -54,6 +55,22 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 				action: `Agrega Solicitud`,
 				request: "A",
 				//tarea: "Datos_EmpresaAgrega",
+
+			record: {
+				cuil: "",
+				telefonoPais: "",
+				telefonoArea: "",
+				telefonoNumero: "",
+				email: "",
+				ciius: [],
+				provincias: { data: [] },
+				localidades: { data: [] },
+				seccionales: { data: [] },
+				tiposDocumentos: [],
+			},
+			
+
+
 				keys: "a",
 				underlineindex: 0,
 			}),
