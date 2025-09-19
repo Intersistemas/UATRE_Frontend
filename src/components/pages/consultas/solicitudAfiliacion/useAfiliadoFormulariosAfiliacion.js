@@ -167,7 +167,14 @@ const useAfiliadoFormulariosAfiliacion = ({
 	});
 	//#endregion
 	// Para no resincronizar la misma fila múltiples veces
+	//const syncedIdsRef = useRef(new Set());
+
+	// Para no resincronizar la misma fila múltiples veces
 	const syncedIdsRef = useRef(new Set());
+	// Ejecutar la auto-sincronización SOLO una vez al ingresar
+	const syncedOnceRef = useRef(false);
+	// Evitar “flicker”: conservar data mientras se carga
+	const [keepDataWhileLoading] = useState(true);
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -210,15 +217,15 @@ const useAfiliadoFormulariosAfiliacion = ({
 			setList((o) => ({ ...o, ...changes }));
 			return;
 		}
-		changes.data = [];
+		if (!keepDataWhileLoading) changes.data = [];
 
 		pushQuery({
 			action: "GetList",
 			config: {
 				body: {
 					...list.params,
-					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size,
+					pageIndex: 1,
+					pageSize: 100000,
 				},
 			},
 			onOk: async ({ index, size, count, data }) => {
@@ -227,20 +234,16 @@ const useAfiliadoFormulariosAfiliacion = ({
 				// changes.data = data;
 				// Orden
 				const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
-				const noHayOrdenDelUsuario = !list?.params?.orderBy; // si no clicaron ordenar
-				const ordenado = noHayOrdenDelUsuario
-					? [...data].sort((a, b) =>
-						rank(a) - rank(b) ||
-						// dentro de cada estado, más recientes primero
-						dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
-					)
-					: data;
+				const ordenado = [...data].sort((a, b) =>
+					rank(a) - rank(b) ||
+					dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
+				);
 				changes.data = ordenado;
 
 
 				const multi = list.selection.multi;
 				const record = list.selection.record;
-				changes.pagination = { index, size, count };
+				changes.pagination = { ...list.pagination, count: ordenado.length };
 				changes.selection = {
 					...list.selection,
 					...selectionDef,
@@ -258,7 +261,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 				changes.error = error;
 				changes.selection = { ...list.selection, ...selectionDef };
 			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
+			onFinally: async () => setList((o) => ({ ...o, ...changes, remote: false })),
 		});
 	}, [pushQuery, list]);
 	//#endregion
@@ -351,6 +354,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 	// Auto-sincroniza estados al cargar/refrescar la lista
 	useEffect(() => {
 		if (!Array.isArray(list.data) || list.data.length === 0) return;
+		if (syncedOnceRef.current) return;
 
 		// Tomamos solo las pendientes, que no fueron rechazadas ni aceptadas,
 		// y que aún no procesamos en este ciclo de vida.
@@ -362,7 +366,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 		);
 		if (pendientes.length === 0) return;
 
-		setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
+		//setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
 
 		// Procesamos secuencialmente para evitar condiciones de carrera
 		const run = async () => {
@@ -399,7 +403,10 @@ const useAfiliadoFormulariosAfiliacion = ({
 			}));
 		};
 
-		run();
+		run().finally(() => {
+			// Marcamos que ya sincronizamos en esta sesión del módulo
+			syncedOnceRef.current = true;
+		});
 	}, [list.data, pushQuery]);
 
 
@@ -428,6 +435,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 		switch (list.selection.request) {
 			// Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
+
+
 			case "I": {
 				const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
 				const email = row.email ?? row.correo ?? "";
@@ -449,9 +458,18 @@ const useAfiliadoFormulariosAfiliacion = ({
 							telefonoArea,
 							telefonoNumero,
 							email,
+							ciius: { data: [], selected: null },
+							provincias: { data: [], selected: null },
+							localidades: { data: [], selected: null },
 						}}
 						disabled={{ cuil: true }}
-						onClose={handleClose}
+						onClose={(result, accion) => {
+							if (accion === "Agrega" && result) {
+								// 🔄 recarga la lista completa
+								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+							}
+							handleClose();
+						}}
 					/>
 				);
 				break;
@@ -490,7 +508,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 								config: { body },
 								onOk: async () => {
 									// dispara recarga de lista manteniendo filtros/paginación
-									setList((o) => ({ ...o, loading: "Cargando...", data: o.remote ? [] : o.data }));
+									setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
 									handleClose();
 								},
 								onError: async (error) => {
@@ -510,7 +528,11 @@ const useAfiliadoFormulariosAfiliacion = ({
 				form = (
 					<SolicitudAfiliacionForm
 						onClose={(confirm) => {
-							if (!confirm) handleClose();
+							if (confirm) {
+								// recarga suave de TODO: vuelve a pedir la lista completa y reordena
+								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+							}
+							handleClose();
 						}}
 					/>
 				);
@@ -541,9 +563,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 					onChange: ({ index, size }) =>
 						setList((o) => ({
 							...o,
-							loading: "Cargando...",
-							pagination: { index, size },
-							data: o.remote ? [] : o.data,
+							// No marcamos loading ni vaciamos data: paginación local
+							pagination: { ...o.pagination, index, size },
 						})),
 				}}
 				selection={{
@@ -616,16 +637,29 @@ const useAfiliadoFormulariosAfiliacion = ({
 				onTableChange={(type, newState) => {
 					switch (type) {
 						case "sort": {
+							// Orden local para evitar roundtrip y mantener la regla de estado
 							let { sortField, sortOrder } = newState;
-							sortField = { fecha: "Fecha" }[sortField] ?? sortField;
-							return setList((o) => ({
-								...o,
-								loading: "Cargando...",
-								params: {
-									...o.params,
-									orderBy: `${sortField}${sortOrder === "desc" ? "Desc" : ""}`,
-								},
-							}));
+							if (!sortField || !sortOrder) return;
+							const dir = sortOrder === "desc" ? -1 : 1;
+							return setList((o) => {
+								const sorted = [...o.data].sort((a, b) => {
+									// Mantener prioridad por estado SIEMPRE
+									const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+									const byRank = rank(a) - rank(b);
+									if (byRank !== 0) return byRank;
+									// Luego, sort solicitado por el usuario
+									const va = a?.[sortField];
+									const vb = b?.[sortField];
+									if (dayjs(va).isValid() && dayjs(vb).isValid()) {
+										return (dayjs(va).valueOf() - dayjs(vb).valueOf()) * dir;
+									}
+									if (va == null && vb == null) return 0;
+									if (va == null) return 1;
+									if (vb == null) return -1;
+									return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+								});
+								return { ...o, data: sorted };
+							});
 						}
 						default:
 							return;

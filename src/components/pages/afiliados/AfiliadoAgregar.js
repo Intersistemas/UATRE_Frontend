@@ -341,7 +341,7 @@ const telefonoNumeroReducer = (state, action) => {
     return { value: action.value, isValid: validarTelefono("numero", action.value) };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: validarTelefono("numero", state.value)};
+    return { value: state.value, isValid: validarTelefono("numero", state.value) };
   }
   return { value: "", isValid: false };
 };
@@ -362,7 +362,7 @@ const seccionalSolicitudAfiliacionReducer = (state, action) => {
   return { value: "", isValid: false };
 };
 
-const onLoadedDef = ({ data, error }) => {};
+const onLoadedDef = ({ data, error }) => { };
 //#endregion
 
 const AfiliadoAgregar = (props) => {
@@ -558,10 +558,9 @@ const AfiliadoAgregar = (props) => {
       ${!localidadState.isValid ? "*Localidad\n" : ""}
       ${!seccionalState.isValid ? "*Seccional\n" : ""}      
       ${!actividadState.isValid ? "*Actividad\n" : ""}
-      ${
-        !seccionalSolicitudAfiliacionState.isValid
-          ? "*Seccional Solicita Afiliación\n"
-          : ""
+      ${!seccionalSolicitudAfiliacionState.isValid
+        ? "*Seccional Solicita Afiliación\n"
+        : ""
       }      
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
@@ -602,12 +601,11 @@ const AfiliadoAgregar = (props) => {
         setCUILLoading(false);
         setDialogTexto(
           //`Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
-          `${
-            error?.message
-              ? error?.message.includes("objeto")
-                ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)`
-                : error?.message
-              : "Error consultando ARCA"
+          `${error?.message
+            ? error?.message.includes("objeto")
+              ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)`
+              : error?.message
+            : "Error consultando ARCA"
           }`
         );
         setOpenDialog(true);
@@ -631,12 +629,11 @@ const AfiliadoAgregar = (props) => {
         setCUITLoading(false);
         setDialogTexto(
           //`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
-          `${
-            error?.message
-              ? error?.message.includes("objeto")
-                ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)`
-                : error?.message
-              : "Error consultando ARCA"
+          `${error?.message
+            ? error?.message.includes("objeto")
+              ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)`
+              : error?.message
+            : "Error consultando ARCA"
           }`
         );
         setOpenDialog(true);
@@ -847,9 +844,9 @@ const AfiliadoAgregar = (props) => {
           type: "USER_INPUT",
           value: afiliadoObj?.seccionalIdSolicitudAfiliacion
             ? {
-                value: afiliadoObj?.seccionalIdSolicitudAfiliacion,
-                label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`,
-              }
+              value: afiliadoObj?.seccionalIdSolicitudAfiliacion,
+              label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`,
+            }
             : {},
         });
 
@@ -922,7 +919,7 @@ const AfiliadoAgregar = (props) => {
                 //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
                 const sinAsignar =
                   myLocalidadId?.value ===
-                  provinciaSelected?.localidadIdPorDefecto
+                    provinciaSelected?.localidadIdPorDefecto
                     ? { provinciaId: provinciaSelected?.value }
                     : { localidadId: myLocalidadId.value };
                 dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
@@ -944,10 +941,10 @@ const AfiliadoAgregar = (props) => {
                     esAnterior && afiliadoObj?.seccionalId
                       ? { seccionalId: afiliadoObj?.seccionalId }
                       : myLocalidadId
-                      ? { localidadId: myLocalidadId.value }
-                      : provinciaSelected?.value
-                      ? { provinciaId: provinciaSelected?.value }
-                      : sinAsignar ?? null,
+                        ? { localidadId: myLocalidadId.value }
+                        : provinciaSelected?.value
+                          ? { provinciaId: provinciaSelected?.value }
+                          : sinAsignar ?? null,
                   onLoaded: ({ data }) => {
                     //if (!Array.isArray(data)) return;
                     const mySeccionalId =
@@ -1008,15 +1005,12 @@ const AfiliadoAgregar = (props) => {
         //alert
         if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
           setDialogTexto(
-            `El Afiliado: ${
-              afiliadoObj?.nombre
-            } ya está cargado para la Seccional: ${
-              afiliadoObj?.seccionalCodigo
+            `El Afiliado: ${afiliadoObj?.nombre
+            } ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo
             } ${afiliadoObj?.seccional}
-            ${
-              afiliadoObj.estadoSolicitud.includes("No Activo")
-                ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`
-                : ""
+            ${afiliadoObj.estadoSolicitud.includes("No Activo")
+              ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`
+              : ""
             }`
           );
           setOpenDialog(true);
@@ -1162,13 +1156,13 @@ const AfiliadoAgregar = (props) => {
         type: "USER_INPUT",
         value: seccionalSelected
           ? {
-              value: seccionalSelected?.id,
-              label: `${seccionalSelected?.codigo}-${seccionalSelected?.descripcion}-${seccionalSelected?.provinciaDescripcion}`,
-            }
+            value: seccionalSelected?.id,
+            label: `${seccionalSelected?.codigo}-${seccionalSelected?.descripcion}-${seccionalSelected?.provinciaDescripcion}`,
+          }
           : {
-              value: seccionalPorDefecto?.id,
-              label: `${seccionalPorDefecto?.codigo}-${seccionalPorDefecto?.descripcion}`,
-            },
+            value: seccionalPorDefecto?.id,
+            label: `${seccionalPorDefecto?.codigo}-${seccionalPorDefecto?.descripcion}`,
+          },
       });
     };
     //#region consulto todas las seccionales las cuales mostraré en el combo de SeccionalSolicitaAfiliacion
@@ -1350,96 +1344,96 @@ const AfiliadoAgregar = (props) => {
 
     seccionales.params.seccionalId // si busco solo la seccional ID
       ? request(
-          {
-            baseURL: "Afiliaciones",
-            endpoint: `/Seccional/${seccionales.params.seccionalId}`,
-            method: "GET",
-          },
-          async (ok) => (
-            console.log("GetSeccionalesSpecs_ok", ok),
-            changes.data.push({
-              value: provinciaState?.value?.seccionalIdPorDefecto,
-              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-            }),
-            changes.data.push(
-              ok.localidadCodPostal !== 99999 && {
-                value: ok.id,
-                label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
-              }
-            )
-          ),
-          async (error) => (
-            console.log("GetSeccionalesSpecs_error", error),
-            (changes.error = error)
-          ),
-          async () => applyChanges()
-        )
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/Seccional/${seccionales.params.seccionalId}`,
+          method: "GET",
+        },
+        async (ok) => (
+          console.log("GetSeccionalesSpecs_ok", ok),
+          changes.data.push({
+            value: provinciaState?.value?.seccionalIdPorDefecto,
+            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+          }),
+          changes.data.push(
+            ok.localidadCodPostal !== 99999 && {
+              value: ok.id,
+              label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
+            }
+          )
+        ),
+        async (error) => (
+          console.log("GetSeccionalesSpecs_error", error),
+          (changes.error = error)
+        ),
+        async () => applyChanges()
+      )
       : //NO BUSCO EXACTAMENTE UNA SECCIONAL
-        console.log("seccionales.params", seccionales.params);
+      console.log("seccionales.params", seccionales.params);
     seccionales.params.localidadId
       ? request(
-          {
-            baseURL: "Afiliaciones",
-            endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
-            method: "GET",
-          },
-          async (ok) => (
-            console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok),
-            changes.data.push({
-              value: provinciaState?.value?.seccionalIdPorDefecto,
-              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-            }),
-            changes.data.push(
-              ...ok
-                .sort((a, b) =>
-                  a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1
-                )
-                .map(
-                  (r) =>
-                    !r.seccionalDescripcion.includes("SIN ASIGNACION") && {
-                      value: r.seccionalId,
-                      label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-                    } //`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
-                )
-            )
-          ),
-          async (error) => (
-            console.log("GetSeccionalLocalidadByRefLocalidadId_error", error),
-            (changes.error = error)
-          ),
-          async () => applyChanges()
-        )
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
+          method: "GET",
+        },
+        async (ok) => (
+          console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok),
+          changes.data.push({
+            value: provinciaState?.value?.seccionalIdPorDefecto,
+            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+          }),
+          changes.data.push(
+            ...ok
+              .sort((a, b) =>
+                a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1
+              )
+              .map(
+                (r) =>
+                  !r.seccionalDescripcion.includes("SIN ASIGNACION") && {
+                    value: r.seccionalId,
+                    label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`,
+                  } //`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+              )
+          )
+        ),
+        async (error) => (
+          console.log("GetSeccionalLocalidadByRefLocalidadId_error", error),
+          (changes.error = error)
+        ),
+        async () => applyChanges()
+      )
       : request(
-          {
-            baseURL: "Afiliaciones",
-            endpoint: "/Seccional/GetSeccionalesSpecs",
-            body: seccionales.params,
-            method: "POST",
-          },
-          async (ok) => (
-            console.log("GetSeccionalesSpecs_ok", ok),
-            changes.data.push({
-              value: provinciaState?.value?.seccionalIdPorDefecto,
-              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-            }),
-            changes.data.push(
-              ...ok.data
-                .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-                .map(
-                  (r) =>
-                    r.localidadCodPostal !== 99999 && {
-                      value: r.id,
-                      label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-                    }
-                )
-            )
-          ),
-          async (error) => (
-            console.log("GetSeccionalesSpecs_error", error),
-            (changes.error = error)
-          ),
-          async () => applyChanges()
-        );
+        {
+          baseURL: "Afiliaciones",
+          endpoint: "/Seccional/GetSeccionalesSpecs",
+          body: seccionales.params,
+          method: "POST",
+        },
+        async (ok) => (
+          console.log("GetSeccionalesSpecs_ok", ok),
+          changes.data.push({
+            value: provinciaState?.value?.seccionalIdPorDefecto,
+            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+          }),
+          changes.data.push(
+            ...ok.data
+              .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+              .map(
+                (r) =>
+                  r.localidadCodPostal !== 99999 && {
+                    value: r.id,
+                    label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
+                  }
+              )
+          )
+        ),
+        async (error) => (
+          console.log("GetSeccionalesSpecs_error", error),
+          (changes.error = error)
+        ),
+        async () => applyChanges()
+      );
   }, [request, seccionales, provincias]);
 
   useEffect(() => {
@@ -1500,21 +1494,21 @@ const AfiliadoAgregar = (props) => {
 
   //#endregion
 
-  
+
   //Agregado Mauro
-   // Helper simple para partir un teléfono Argentino en país/área/número
- const parseTelefonoAR = (raw = "") => {
-   const only = String(raw).replace(/[^\d+0-9]/g, "");
-   // país: si viene con prefijo usa ese, si no, asume +54
-   const paisMatch = only.match(/^\+?\d{1,3}/);
-   const telefonoPais = paisMatch ? (paisMatch[0].startsWith("+") ? paisMatch[0] : `+${paisMatch[0]}`) : "+54";
-   const rest = only.replace(/^\+?\d{1,3}/, "");
-   // área/número: muy básico, intenta 2-4 dígitos de área y el resto como número
-   const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/);
-   const telefonoArea = m?.[1] ?? "";
-   const telefonoNumero = m?.[2] ?? rest;
-   return { telefonoPais, telefonoArea, telefonoNumero };
- };
+  // Helper simple para partir un teléfono Argentino en país/área/número
+  const parseTelefonoAR = (raw = "") => {
+    const only = String(raw).replace(/[^\d+0-9]/g, "");
+    // país: si viene con prefijo usa ese, si no, asume +54
+    const paisMatch = only.match(/^\+?\d{1,3}/);
+    const telefonoPais = paisMatch ? (paisMatch[0].startsWith("+") ? paisMatch[0] : `+${paisMatch[0]}`) : "+54";
+    const rest = only.replace(/^\+?\d{1,3}/, "");
+    // área/número: muy básico, intenta 2-4 dígitos de área y el resto como número
+    const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/);
+    const telefonoArea = m?.[1] ?? "";
+    const telefonoNumero = m?.[2] ?? rest;
+    return { telefonoPais, telefonoArea, telefonoNumero };
+  };
 
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
@@ -1539,7 +1533,7 @@ const AfiliadoAgregar = (props) => {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
           ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
           : "",
         claveTipo: padronEmpresaRespuesta.tipoClave,
         claveEstado: padronEmpresaRespuesta.estadoClave,
@@ -1591,8 +1585,8 @@ const AfiliadoAgregar = (props) => {
           nombreState.value ??
           `${padronRespuesta?.apellido ?? ""} ${padronRespuesta?.nombre ?? ""}`,
         /*nombre: `${padronRespuesta?.apellido ?? ""} ${
-					padronRespuesta?.nombre ?? "" 
-				}`,*/
+          padronRespuesta?.nombre ?? "" 
+        }`,*/
         puestoId: +puestoState.value,
         fechaIngreso: fechaIngresoState?.value,
         fechaEgreso: null,
@@ -1667,15 +1661,32 @@ const AfiliadoAgregar = (props) => {
           entidadId: 0,
         })),
       };
+
+
+
+
+
+
       const afiliadoAgregar = async (afiliadoResponseObj) => {
+        const estados = Array.isArray(props?.estadosSolicitudes)
+          ? props.estadosSolicitudes
+          : [];
+        const estadoLabel = estados.find(
+          (r) => r?.value === nuevoAfiliado?.estadoSolicitudId
+        )?.label ?? ""; // fallback vacío para no romper
+
         setNuevoAfiliadoResponse({
           ...nuevoAfiliado,
           id: afiliadoResponseObj,
-          estadoSolicitud: props.estadosSolicitudes.find(
-            (r) => r.value === nuevoAfiliado.estadoSolicitudId
-          )?.label,
+          estadoSolicitud: estadoLabel,
           empresaCUIT: cuitEmpresa,
         });
+
+
+
+
+
+
         setOpenDialog(true);
         //Si se incorpora automaticamente
         if (nuevoAfiliado.estadoSolicitudId === 2) {
@@ -1761,16 +1772,16 @@ const AfiliadoAgregar = (props) => {
 
     //NUEVO PARA ALEX
     // Helper simple para descomponer teléfonos a País / Área / Número
-  const parseTelefonoAR = (raw = "") => {
-    const only = String(raw).replace(/[^\d+]/g, "");
-    let telefonoPais = /^\+?\d{1,3}/.test(only) ? only.match(/^\+?\d{1,3}/)[0] : "+54";
-    telefonoPais = telefonoPais.startsWith("+") ? telefonoPais : `+${telefonoPais}`;
-    const rest = only.replace(/^\+?\d{1,3}/, "");
-    const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/) || [];
-    const telefonoArea = m[1] || "";
-    const telefonoNumero = m[2] || rest;
-    return { telefonoPais, telefonoArea, telefonoNumero };
-  };
+    const parseTelefonoAR = (raw = "") => {
+      const only = String(raw).replace(/[^\d+]/g, "");
+      let telefonoPais = /^\+?\d{1,3}/.test(only) ? only.match(/^\+?\d{1,3}/)[0] : "+54";
+      telefonoPais = telefonoPais.startsWith("+") ? telefonoPais : `+${telefonoPais}`;
+      const rest = only.replace(/^\+?\d{1,3}/, "");
+      const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/) || [];
+      const telefonoArea = m[1] || "";
+      const telefonoNumero = m[2] || rest;
+      return { telefonoPais, telefonoArea, telefonoNumero };
+    };
 
     const processConsultaPadron = async (padronObj) => {
 
@@ -1873,15 +1884,15 @@ const AfiliadoAgregar = (props) => {
 
         const provinciaSelected =
           domicilioReal.idProvincia === 0 &&
-          (domicilioReal.descripcionProvincia === null ||
-            domicilioReal.descripcionProvincia === "") // SI NO ENCUENTRO, va prov sin asignar
+            (domicilioReal.descripcionProvincia === null ||
+              domicilioReal.descripcionProvincia === "") // SI NO ENCUENTRO, va prov sin asignar
             ? provincias.data.find(
-                (provincia) => provincia.idProvinciaAFIP === 99999
-              ) // BUSCO EL ID de Provincia "Sin Asignar" mediante el IdProvinciaAFIP 99999
+              (provincia) => provincia.idProvinciaAFIP === 99999
+            ) // BUSCO EL ID de Provincia "Sin Asignar" mediante el IdProvinciaAFIP 99999
             : provincias.data.find(
-                (provincia) =>
-                  provincia.idProvinciaAFIP === domicilioReal.idProvincia
-              ); // IDPROVINCIAAFIP = 0 PARA CABA SEGUN AFIP
+              (provincia) =>
+                provincia.idProvinciaAFIP === domicilioReal.idProvincia
+            ); // IDPROVINCIAAFIP = 0 PARA CABA SEGUN AFIP
 
         dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
         if (provinciaSelected.idProvinciaAFIP === 99999) {
@@ -1961,17 +1972,17 @@ const AfiliadoAgregar = (props) => {
                   loading: "Cargando...",
                   params:
                     myLocalidad?.value !==
-                    provinciaSelected?.localidadIdPorDefecto
+                      provinciaSelected?.localidadIdPorDefecto
                       ? { localidadId: myLocalidad?.value }
                       : { provinciaId: provinciaSelected?.id } ?? {},
                   onLoaded: ({ data }) => {
                     const mySeccionalId =
                       myLocalidad?.value ===
-                      provinciaSelected?.localidadIdPorDefecto
+                        provinciaSelected?.localidadIdPorDefecto
                         ? data.at(0)
                         : data.at(1)
-                        ? data.at(1)
-                        : data.at(0);
+                          ? data.at(1)
+                          : data.at(0);
 
                     dispatchSeccional({
                       type: "USER_INPUT",
@@ -2008,23 +2019,23 @@ const AfiliadoAgregar = (props) => {
       }
 
       //Agregado Mauro
-    // Email (si AFIP trae algo)
-    if (padronObj?.email && typeof dispatchEmail === "function") {
-      dispatchEmail({ type: "USER_INPUT", value: String(padronObj.email) });
-    }
+      // Email (si AFIP trae algo)
+      if (padronObj?.email && typeof dispatchEmail === "function") {
+        dispatchEmail({ type: "USER_INPUT", value: String(padronObj.email) });
+      }
 
-    // Teléfono (si AFIP trae algo)
-    const telRaw = padronObj?.telefono || padronObj?.celular;
-    if (telRaw && typeof dispatchTelefonoNumero === "function") {
-      const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
-      if (typeof dispatchTelefonoPais === "function") {
-        dispatchTelefonoPais({ type: "USER_INPUT", value: telefonoPais });
+      // Teléfono (si AFIP trae algo)
+      const telRaw = padronObj?.telefono || padronObj?.celular;
+      if (telRaw && typeof dispatchTelefonoNumero === "function") {
+        const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+        if (typeof dispatchTelefonoPais === "function") {
+          dispatchTelefonoPais({ type: "USER_INPUT", value: telefonoPais });
+        }
+        if (typeof dispatchTelefonoArea === "function") {
+          dispatchTelefonoArea({ type: "USER_INPUT", value: telefonoArea });
+        }
+        dispatchTelefonoNumero({ type: "USER_INPUT", value: telefonoNumero });
       }
-      if (typeof dispatchTelefonoArea === "function") {
-        dispatchTelefonoArea({ type: "USER_INPUT", value: telefonoArea });
-      }
-      dispatchTelefonoNumero({ type: "USER_INPUT", value: telefonoNumero });
-    }
 
 
       setCUILLoading(false);
@@ -2034,9 +2045,8 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${
-          afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
-        }&VerificarHistorico=${false}`,
+        endpoint: `/AFIPConsulta?CUIT=${afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
+          }&VerificarHistorico=${false}`,
         method: "GET",
       },
       async (response) => {
@@ -2063,7 +2073,7 @@ const AfiliadoAgregar = (props) => {
       setLocalidadEmpresa(
         padronObj
           ? padronObj?.domicilios[1]?.localidad ??
-              padronObj?.domicilios[1]?.descripcionProvincia
+          padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
       //ciius
@@ -2073,9 +2083,8 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${
-          ["30", "33", "34"].includes(cuitEmpresa.toString) ? true : false
-        }`,
+        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${["30", "33", "34"].includes(cuitEmpresa.toString) ? true : false
+          }`,
         method: "GET",
       },
       processConsultaPadron
@@ -2178,8 +2187,8 @@ const AfiliadoAgregar = (props) => {
               value === localidades?.data?.at(0)
                 ? data.at(0)
                 : data.at(1)
-                ? data.at(1)
-                : data.at(0);
+                  ? data.at(1)
+                  : data.at(0);
 
             dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
           },
@@ -2472,7 +2481,7 @@ const AfiliadoAgregar = (props) => {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
         ? padronEmpresaRespuesta?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
         : "",
       claveTipo: padronEmpresaRespuesta.tipoClave,
       claveEstado: padronEmpresaRespuesta.estadoClave,
@@ -2760,28 +2769,25 @@ const AfiliadoAgregar = (props) => {
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${
-                      ultimaDDJJ?.data?.actividadTipo === "D" &&
+                    {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${ultimaDDJJ?.data?.actividadTipo === "D" &&
                       ultimaDDJJ?.data?.modalidadTipo === "D"
-                        ? "✔️"
-                        : "❌"
-                    }`}
+                      ? "✔️"
+                      : "❌"
+                      }`}
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${
-                      padronEmpresaRespuesta?.ciiU1EsRural ||
+                    {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${padronEmpresaRespuesta?.ciiU1EsRural ||
                       padronEmpresaRespuesta?.ciiU2EsRural ||
                       padronEmpresaRespuesta?.ciiU3EsRural
-                        ? "✔️"
-                        : "❌"
-                    }`}
+                      ? "✔️"
+                      : "❌"
+                      }`}
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`Operador con permisos de Autovalidación ${
-                      usuarioTareaValidacionAutomatica ? "✔️" : "❌"
-                    }`}
+                    {`Operador con permisos de Autovalidación ${usuarioTareaValidacionAutomatica ? "✔️" : "❌"
+                      }`}
                   </Typography>
                 </div>
               )}
@@ -2882,8 +2888,8 @@ const AfiliadoAgregar = (props) => {
                       //disabled={afiliadoExiste ? !!cuilValidado || !cuilState.isValid : true}
                       disabled={
                         cuilValidado == false &&
-                        padronRespuesta?.cuit &&
-                        afiliadoExiste
+                          padronRespuesta?.cuit &&
+                          afiliadoExiste
                           ? false
                           : true
                       }
@@ -3073,7 +3079,7 @@ const AfiliadoAgregar = (props) => {
                     error={
                       !localidadState.isValid && inputsTouched ? true : false
                     }
-                    //defaultValue={localidades[0]?.value ?? {}}
+                  //defaultValue={localidades[0]?.value ?? {}}
                   />
                 </div>
               </div>
@@ -3100,7 +3106,7 @@ const AfiliadoAgregar = (props) => {
                     value={puestoState.value}
                     onChange={handleChangeSelect}
                     disabled={InputDisabled()}
-                    //error={!puestoState.isValid && inputsTouched ? true : false}
+                  //error={!puestoState.isValid && inputsTouched ? true : false}
                   />
                 </div>
                 <div className={classes.input25}>
@@ -3163,15 +3169,15 @@ const AfiliadoAgregar = (props) => {
                     onChange={handleInputChange}
                     helperText={
                       !emailState.isValid &&
-                      emailState.value !== "" &&
-                      emailState.value !== null
+                        emailState.value !== "" &&
+                        emailState.value !== null
                         ? "Email inválido"
                         : ""
                     }
                     error={
                       !emailState.isValid &&
-                      emailState.value !== "" &&
-                      emailState.value !== null
+                        emailState.value !== "" &&
+                        emailState.value !== null
                         ? true
                         : false
                     }
@@ -3188,7 +3194,7 @@ const AfiliadoAgregar = (props) => {
                     disabled={InputDisabled()}
                     error={
                       !seccionalSolicitudAfiliacionState.isValid &&
-                      inputsTouched
+                        inputsTouched
                         ? true
                         : false
                     }
@@ -3229,8 +3235,8 @@ const AfiliadoAgregar = (props) => {
                 afiliado !== null
                   ? afiliado?.cuilValidado
                   : padronRespuesta?.cuit
-                  ? padronRespuesta?.cuit
-                  : 0
+                    ? padronRespuesta?.cuit
+                    : 0
               } //EL CUIL de AFIP SE GUARDA EN EL padronRespuesta.CUIT
               cuit={cuitEmpresa}
               onSeleccionRegistro={handleSeleccionDDJJ}

@@ -2043,41 +2043,6 @@ const SolicitudAfiliacionForm = ({
 		}
 		//Modif Mauro
 		const despliega = async () => {
-			// Mapeo a la estructura del nuevo generador
-			const datos = [{
-				fecha: Formato.Fecha(body.fecha),
-				seccional_nro: body.seccionalCodigo || "",
-				afiliado_nro: "",
-				trabajador: {
-					cuil: Formato.Cuit(body.cuil),
-					tipo_doc: body.tipoDocumentoDescripcion,
-					nro_doc: body.documento,
-					nacionalidad: body.nacionalidad,
-					apellidos: body.apellido,
-					nombres: body.nombre,
-					fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
-					estado_civil: body.estadoCivil,
-					sexo: body.sexoDescripcion,
-					domicilio: body.domicilio,
-					localidad: body.nombreLocalidadAfiliado,
-					provincia: body.provinciaNombre,
-					oficio: body.oficio,
-					actividad: body.actividadAfiliado,
-					telefono: body.celular,
-					email: body.email,
-				},
-				empleador: {
-					cuit: Formato.Cuit(body.cuitEmpresa),
-					razon_social: body.razonSocial,
-					domicilio: body.domicilioEmpresa,
-					localidad: body.nombreLocalidadEmpresa,
-					provincia: body.provinciaNombreEmpresa,
-					actividad: body.actividadEmpresa,
-					telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
-					email: body.emailEmpresa,
-				},
-			}];
-		const despliega = async () => {
 			//  Mapeo al contrato del generador nuevo
 			const datos = [{
 				fecha: Formato.Fecha(body.fecha),
@@ -2218,7 +2183,7 @@ const SolicitudAfiliacionForm = ({
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
 					<Grid width style={{ color: "red" }}>
 						{state.errors.create}
-						</Grid>
+					</Grid>
 					{state.base64 ? (
 						<div />
 					) : (
@@ -2238,7 +2203,7 @@ const SolicitudAfiliacionForm = ({
 						)
 					)}
 
-					<Button className="botonAmarillo" onClick={() => onClose()}>
+					<Button className="botonAmarillo" onClick={() => onClose(true)}>
 						FINALIZA
 					</Button>
 				</Grid>
