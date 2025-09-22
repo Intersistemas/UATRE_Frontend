@@ -102,14 +102,18 @@ export default function useTasasARCA(config = {}) {
 						return rangesOverlap(ymd1, ymd2, a, b);
 					});
 
-					if (conflict) {
-						const msg =
-							"Existe una TASA vigente que se superpone con el rango ingresado.\n" +
-							"Ajustá la vigencia para evitar solapamientos.";
-						errors.desdeFecha = errors.desdeFecha || "Rango superpuesto con una tasa vigente";
-						errors.hastaFecha = errors.hastaFecha || "Rango superpuesto con una tasa vigente";
-						if (typeof window !== "undefined" && window.alert) window.alert(msg);
-					}
+         if (conflict) {
+           // Mensaje global para mostrar dentro del formulario
+           const d = toYMD(conflict?.desdeFecha);
+           const h = toYMD(conflict?.hastaFecha);
+           errors._global =
+             `Existe una TASA vigente (${d ?? "-"} a ${h ?? "-"}) ` +
+             `que se superpone con el rango ingresado. ` +
+             `Ajustá la vigencia para evitar solapamientos.`;
+           // Marcamos también los campos
+           errors.desdeFecha = errors.desdeFecha || "Rango superpuesto con una tasa vigente";
+           errors.hastaFecha = errors.hastaFecha || "Rango superpuesto con una tasa vigente";
+         }
 				}
 
 				if (config.onEditValidate) config.onEditValidate(params);

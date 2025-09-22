@@ -6,8 +6,8 @@ import InputMaterial, { PorcentajeMask } from "components/ui/Input/InputMaterial
 import UseKeyPress from "components/helpers/UseKeyPress";
 import modalCss from "components/ui/Modal/Modal.module.css";
 
-const onChangeDef = (changes = {}) => {};
-const onCloseDef = (confirm = false) => {};
+const onChangeDef = (changes = {}) => { };
+const onCloseDef = (confirm = false) => { };
 
 //Agregado Mauro
 //Normalizar fechas a YYYY-MM-DD
@@ -130,7 +130,7 @@ export default function Form({
 									error={!!errors.resarcitorioMensual}
 									helperText={errors.resarcitorioMensual}
 									mask={PorcentajeMask}
-									onChange={(resarcitorioMensual) => onChange({ resarcitorioMensual }) }
+									onChange={(resarcitorioMensual) => onChange({ resarcitorioMensual })}
 								/>
 							)}
 						</Grid>
@@ -144,7 +144,7 @@ export default function Form({
 									error={!!errors.resarcitorioDiario}
 									helperText={errors.resarcitorioDiario}
 									mask={PorcentajeMask}
-									onChange={(resarcitorioDiario) => onChange({ resarcitorioDiario }) }
+									onChange={(resarcitorioDiario) => onChange({ resarcitorioDiario })}
 								/>
 							)}
 						</Grid>
@@ -158,7 +158,7 @@ export default function Form({
 									error={!!errors.punitorioMensual}
 									helperText={errors.punitorioMensual}
 									mask={PorcentajeMask}
-									onChange={(punitorioMensual) => onChange({ punitorioMensual }) }
+									onChange={(punitorioMensual) => onChange({ punitorioMensual })}
 								/>
 							)}
 						</Grid>
@@ -172,7 +172,7 @@ export default function Form({
 									error={!!errors.punitorioDiario}
 									helperText={errors.punitorioDiario}
 									mask={PorcentajeMask}
-									onChange={(punitorioDiario) => onChange({ punitorioDiario }) }
+									onChange={(punitorioDiario) => onChange({ punitorioDiario })}
 								/>
 							)}
 						</Grid>
@@ -192,6 +192,20 @@ export default function Form({
 			</Modal.Body>
 			<Modal.Footer>
 				<Grid gap="20px">
+					{errors?._global && (
+						<div
+							role="alert"
+							style={{
+								color: "#f00e0eff",
+								fontSize: "0.95rem",
+								fontWeight: 350,
+								marginTop: -8,
+							}}
+							aria-live="polite"
+						>
+							{errors._global}
+						</div>
+					)}
 					<Grid width="150px">
 						<Button className="botonAzul" onClick={() => onClose(true)}>
 							CONFIRMA
