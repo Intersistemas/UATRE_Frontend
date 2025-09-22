@@ -2,6 +2,7 @@ import React from "react";
 import TableHook from "components/ui/Table/TableHook";
 import Table from "./TasasARCATable";
 import Form from "./TasasARCAForm";
+import FormatearFecha from "../../../helpers/FormatearFecha"
 
 /** imports: TableHookConfig y TableHookReturn
  * @typedef {import('components/ui/Table/TableHook').TableHookConfig} TableHookConfig
@@ -50,7 +51,7 @@ const rangesOverlap = (a1, b1, a2, b2) => {
 	if ([x1, y1, x2, y2].some((n) => isNaN(n))) return false;
 	const startMax = Math.max(x1, x2);
 	const endMin = Math.min(y1, y2);
-	return startMax <= endMin; 
+	return startMax <= endMin;
 };
 
 
@@ -102,18 +103,18 @@ export default function useTasasARCA(config = {}) {
 						return rangesOverlap(ymd1, ymd2, a, b);
 					});
 
-         if (conflict) {
-           // Mensaje global para mostrar dentro del formulario
-           const d = toYMD(conflict?.desdeFecha);
-           const h = toYMD(conflict?.hastaFecha);
-           errors._global =
-             `Existe una TASA vigente (${d ?? "-"} a ${h ?? "-"}) ` +
-             `que se superpone con el rango ingresado. ` +
-             `Ajustá la vigencia para evitar solapamientos.`;
-           // Marcamos también los campos
-           errors.desdeFecha = errors.desdeFecha || "Rango superpuesto con una tasa vigente";
-           errors.hastaFecha = errors.hastaFecha || "Rango superpuesto con una tasa vigente";
-         }
+					if (conflict) {
+						// Mensaje global para mostrar dentro del formulario
+						const d = FormatearFecha(toYMD(conflict?.desdeFecha));
+						const h = FormatearFecha(toYMD(conflict?.hastaFecha));
+						errors._global =
+							`Existe una TASA vigente (${d ?? "-"} a ${h ?? "-"}) ` +
+							`que se superpone con el rango ingresado. ` +
+							`Ajustá la vigencia para evitar solapamientos.`;
+						// Marcamos también los campos
+						errors.desdeFecha = errors.desdeFecha || "Rango superpuesto con una tasa vigente";
+						errors.hastaFecha = errors.hastaFecha || "Rango superpuesto con una tasa vigente";
+					}
 				}
 
 				if (config.onEditValidate) config.onEditValidate(params);
