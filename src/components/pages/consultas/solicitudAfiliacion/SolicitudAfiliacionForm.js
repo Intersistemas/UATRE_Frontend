@@ -1513,25 +1513,6 @@ const SolicitudAfiliacionForm = ({
 								}
 							/>
 							<InputMaterial
-								id="celular"
-								readOnly={isRO}
-								type="tel"
-								label="Celular"
-								value={state.form.celular}
-								error={!!state.errors.celular}
-								helperText={state.errors.celular}
-								disabled={disTrab}
-								onChange={(celular) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celular,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
 								id="email"
 								label="Correo"
 								value={state.form.email}
@@ -2063,7 +2044,7 @@ const SolicitudAfiliacionForm = ({
 					provincia: body.provinciaNombre,
 					oficio: body.oficio,
 					actividad: body.actividadAfiliado,
-					telefono: body.celular,
+					telefono: body.telefono,
 					email: body.email,
 				},
 				empleador: {

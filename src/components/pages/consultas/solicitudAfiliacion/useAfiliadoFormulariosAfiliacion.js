@@ -65,6 +65,46 @@ const parseTelefonoAR = (raw = "") => {
 	return { telefonoPais: pais, telefonoArea: area, telefonoNumero: numero };
 };
 
+
+// === Helpers de fecha para UI ===
+const isSqlMinDate = (v) => {
+	if (!v) return false;
+	const s = String(v);
+	if (/^0001-01-01/.test(s)) return true;          // "0001-01-01 00:00:00..."
+	if (/^0?1\/0?1\/0*1(?:\D|$)/.test(s)) return true; // "01/01/1" o "01/01/0001"
+	const d = dayjs(v);
+	return d.isValid() && d.year() <= 1;
+};
+
+const formatFechaUi = (v) => {
+	if (!v || isSqlMinDate(v)) return "";
+	const d = dayjs(v);
+	return d.isValid() ? d.format("DD/MM/YYYY") : "";
+};
+
+
+// Limpia fechas mínimas en un registro
+const stripMinDatesRow = (r) => {
+	const clone = { ...r };
+	// agrega acá cualquier otro campo de fecha que uses en la grilla
+	const dateKeys = [
+		"fechaIncorporacion",
+		"fechaBaja",
+		"fechaCambio",
+		"fechaCambioEstado",
+	];
+	dateKeys.forEach((k) => {
+		if (k in clone && isSqlMinDate(clone[k])) {
+			// dejar vacío para que la UI no pinte "01/01/1"
+			clone[k] = "";
+		}
+	});
+	return clone;
+};
+
+
+
+
 // Modal de confirmación para rechazo
 const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
 	const [obs, setObs] = useState(row?.deletedObs ?? "");
@@ -166,6 +206,19 @@ const useAfiliadoFormulariosAfiliacion = ({
 		}
 	});
 	//#endregion
+
+	// Helper: pide una página y devuelve { ok } o { error }
+	const fetchListPage = (pageIndex, pageSize, params) =>
+		new Promise((resolve) => {
+			pushQuery({
+				action: "GetList",
+				config: { body: { ...params, pageIndex, pageSize } },
+				onOk: async (ok) => resolve({ ok }),
+				onError: async (error) => resolve({ error }),
+			});
+		});
+
+
 	// Para no resincronizar la misma fila múltiples veces
 	//const syncedIdsRef = useRef(new Set());
 
@@ -218,51 +271,57 @@ const useAfiliadoFormulariosAfiliacion = ({
 			return;
 		}
 		if (!keepDataWhileLoading) changes.data = [];
+		(async () => {
+			const requestedPageSize = 50; // si el back limita a 50, iteramos
+			let pageIndex = 1;
+			let acc = [];
+			let total = null;
 
-		pushQuery({
-			action: "GetList",
-			config: {
-				body: {
-					...list.params,
-					pageIndex: 1,
-					pageSize: 100000,
-				},
-			},
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				// changes.data = data;
-				// Orden
-				const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
-				const ordenado = [...data].sort((a, b) =>
-					rank(a) - rank(b) ||
-					dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
-				);
-				changes.data = ordenado;
+			while (true) {
+				const { ok, error } = await fetchListPage(pageIndex, requestedPageSize, list.params);
+				if (error) {
+					if (error.code !== 404) changes.error = error;
+					break;
+				}
+				const { data, count, size } = ok || {};
+				const chunk = Array.isArray(data) ? data : [];
+				const serverSize = Number(size) || requestedPageSize;
+
+				acc = acc.concat(chunk);
+				if (Number.isFinite(count)) total = Number(count);
+
+				const done =
+					chunk.length === 0 ||
+					(Number.isFinite(total) ? acc.length >= total : chunk.length < serverSize);
+				if (done) break;
+				pageIndex += 1;   // ← avanzar a la próxima página
+			}
+
+			// Orden final igual que antes
+			const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+			const ordenado = [...acc].sort(
+				(a, b) => rank(a) - rank(b) || dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
+			);
+			changes.data = ordenado.map(stripMinDatesRow);
 
 
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { ...list.pagination, count: ordenado.length };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
+			const multi = list.selection.multi;
+			const record = list.selection.record;
+			const totalCount = Number.isFinite(total) ? total : ordenado.length;
+			changes.pagination = { ...list.pagination, count: totalCount };
+			changes.selection = {
+				...list.selection,
+				...selectionDef,
+				record: list.onLoadSelect({ data: ordenado, multi, record }),
+			};
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
+			changes.selection.index = multi
+				? changes.selection.record?.map((r) => changes.data.indexOf(r))
+				: changes.data.indexOf(changes.selection.record);
 
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes, remote: false })),
-		});
+			list.onDataChange(changes.data);
+			setList((o) => ({ ...o, ...changes, remote: false }));
+		})();
 	}, [pushQuery, list]);
 	//#endregion
 
@@ -556,7 +615,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 					list.error?.message ??
 					"No existen datos para mostrar"
 				}
-				columns={columns}
+				columns={columnsWithDateFmt}
 				mostrarBuscar={mostrarBuscar}
 				pagination={{
 					...list.pagination,
@@ -669,6 +728,42 @@ const useAfiliadoFormulariosAfiliacion = ({
 			{form}
 		</>
 	);
+
+
+
+	// Detecta si una columna es de fecha
+	const isDateColumn = (col) => {
+		const df = String(col?.dataField || "").toLowerCase();
+		const tx = String(col?.text || col?.title || "").toLowerCase();
+		return df.includes("fecha") || tx.includes("fecha");
+	};
+	let __minDateLogs = 0;
+	const wrapDateFormatter = (orig, colName) => (cell, row, ...rest) => {
+		if (isSqlMinDate(cell)) {
+			if (__minDateLogs < 5) {
+				console.info("[AFI-FA] fecha mínima → vacío", { col: colName, raw: cell, id: row?.id, cuil: row?.cuil });
+				__minDateLogs++;
+			}
+			return "";
+		}
+		const out = orig ? orig(cell, row, ...rest) : cell;
+		if (isSqlMinDate(out)) return "";
+		if (!orig) return formatFechaUi(cell);
+		return out ?? "";
+	};
+
+	// Clonar columnas y forzar wrapper en TODAS las columnas de fecha
+	const columnsWithDateFmt = React.useMemo(() => {
+		if (!Array.isArray(columns)) return columns;
+		return columns.map((col) => {
+			if (!isDateColumn(col)) return col;
+			return {
+				...col,
+				formatter: wrapDateFormatter(col.formatter, col.dataField || col.text || "fecha"),
+			};
+		});
+	}, [columns]);
+
 
 	return { render, request, selected: list.selection.record };
 };
