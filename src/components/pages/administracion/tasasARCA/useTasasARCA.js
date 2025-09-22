@@ -15,34 +15,47 @@ import Form from "./TasasARCAForm";
 //Agregado Mauro
 // Normaliza fechas a "YYYY-MM-DD" o null
 const toYMD = (raw) => {
-  if (raw == null || raw === "") return null;
+	if (raw == null || raw === "") return null;
 
-  // Date nativo
-  if (raw instanceof Date && !isNaN(raw)) {
-    const y = raw.getFullYear();
-    const m = String(raw.getMonth() + 1).padStart(2, "0");
-    const d = String(raw.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-  // String
-  const s = String(raw).trim();
+	// Date nativo
+	if (raw instanceof Date && !isNaN(raw)) {
+		const y = raw.getFullYear();
+		const m = String(raw.getMonth() + 1).padStart(2, "0");
+		const d = String(raw.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
+	}
+	// String
+	const s = String(raw).trim();
 
-  // "YYYY-MM-DD"
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+	// "YYYY-MM-DD"
+	if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-  // ISO con tiempo → "YYYY-MM-DDTHH:mm:ss..." (me quedo con la parte de fecha)
-  const iso = s.match(/^(\d{4}-\d{2}-\d{2})[T\s].*$/);
-  if (iso) return iso[1];
+	// ISO con tiempo → "YYYY-MM-DDTHH:mm:ss..." (me quedo con la parte de fecha)
+	const iso = s.match(/^(\d{4}-\d{2}-\d{2})[T\s].*$/);
+	if (iso) return iso[1];
 
-  // No aceptamos otros formatos (dd/mm, mm/dd, etc.)
-  return null;
+	// No aceptamos otros formatos (dd/mm, mm/dd, etc.)
+	return null;
 };
 
 // Para comparar fácilmente fechas "YYYY-MM-DD"
 const ymdToNum = (ymd) => (ymd ? Number(ymd.replace(/-/g, "")) : NaN);
 
+const rangesOverlap = (a1, b1, a2, b2) => {
+	if (!a1 || !b1 || !a2 || !b2) return false;
+	const x1 = ymdToNum(a1);
+	const y1 = ymdToNum(b1);
+	const x2 = ymdToNum(a2);
+	const y2 = ymdToNum(b2);
+	if ([x1, y1, x2, y2].some((n) => isNaN(n))) return false;
+	const startMax = Math.max(x1, x2);
+	const endMin = Math.min(y1, y2);
+	return startMax <= endMin; 
+};
+
 
 export default function useTasasARCA(config = {}) {
+	const lastRowsRef = React.useRef([]);
 	return TableHook({
 		requests: ["A", "B", "M"],
 		config: {
@@ -79,6 +92,24 @@ export default function useTasasARCA(config = {}) {
 					if (!isNaN(n1) && !isNaN(n2) && n2 < n1) {
 						errors.hastaFecha = "Debe ser ≥ que 'Desde'";
 					}
+					const currentId = edit?.id ?? null;
+					const rowsForCheck = (Array.isArray(lastRowsRef.current) ? lastRowsRef.current : [])
+						.filter((r) => !r?.deletedDate && r?.id !== currentId);
+
+					const conflict = rowsForCheck.find((r) => {
+						const a = toYMD(r?.desdeFecha);
+						const b = toYMD(r?.hastaFecha);
+						return rangesOverlap(ymd1, ymd2, a, b);
+					});
+
+					if (conflict) {
+						const msg =
+							"Existe una TASA vigente que se superpone con el rango ingresado.\n" +
+							"Ajustá la vigencia para evitar solapamientos.";
+						errors.desdeFecha = errors.desdeFecha || "Rango superpuesto con una tasa vigente";
+						errors.hastaFecha = errors.hastaFecha || "Rango superpuesto con una tasa vigente";
+						if (typeof window !== "undefined" && window.alert) window.alert(msg);
+					}
 				}
 
 				if (config.onEditValidate) config.onEditValidate(params);
@@ -105,7 +136,11 @@ export default function useTasasARCA(config = {}) {
 				}
 			},
 		}),
-		tableRender: (p) => <Table {...p} />,
+		tableRender: (p) => {
+			// Capturamos SIEMPRE el dataset visible actual
+			lastRowsRef.current = Array.isArray(p?.data) ? p.data : [];
+			return <Table {...p} />;
+		},
 		formRender: ({ data, request, title, errors, apply, close }) => (
 			<Form
 				data={data}
@@ -115,14 +150,14 @@ export default function useTasasARCA(config = {}) {
 					const r = ["A", "M"].includes(request)
 						? {}
 						: Object.fromEntries([
-								"desdeFecha",
-								"hastaFecha",
-								"norma",
-								"resarcitorioMensual",
-								"resarcitorioDiario",
-								"punitorioMensual",
-								"punitorioDiario",
-							].map((k) => [k, true])
+							"desdeFecha",
+							"hastaFecha",
+							"norma",
+							"resarcitorioMensual",
+							"resarcitorioDiario",
+							"punitorioMensual",
+							"punitorioDiario",
+						].map((k) => [k, true])
 						);
 					if (request !== "B") r.deletedObs = true;
 					return r;
@@ -227,24 +262,24 @@ export default function useTasasARCA(config = {}) {
 
 			switch (request) {
 				case "A":
-					return { 
-						action: "Create", 
-						config: { body: normalized } 
+					return {
+						action: "Create",
+						config: { body: normalized }
 					};
-					
+
 				case "M": {
 					const { id, ...body } = normalized;
-					return { 
-						action: "Update", 
-						config: { body }, 
-						params: { id }, 
+					return {
+						action: "Update",
+						config: { body },
+						params: { id },
 					};
 				}
 				case "B": {
 					const { id, deletedObs } = normalized;
-					return { 
-						action: "Delete", 
-						config: { body: { deletedObs } }, 
+					return {
+						action: "Delete",
+						config: { body: { deletedObs } },
 						params: { id },
 					};
 				}
