@@ -398,6 +398,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 							: changes.data.indexOf(changes.selection.record);
 					} else {
 						changes.loading = "Cargando...";
+						changes.remote = true;
 					}
 					return { ...o, ...changes };
 				});
