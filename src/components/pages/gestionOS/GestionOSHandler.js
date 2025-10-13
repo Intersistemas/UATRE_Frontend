@@ -17,6 +17,7 @@ import SearchSelectMaterial, {
   mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import ExcelDatos from "./ExcelDatos";
 
 const GestionOSHandler = () => {
   const dispatch = useDispatch();
@@ -24,8 +25,19 @@ const GestionOSHandler = () => {
   //   const Usuario = useContext(AuthContext).usuario;
   const Usuario = useSelector((state) => state.usuarioLogueado);
 
+  const defaultFiltroSeccional =
+  Usuario.ambitoTodos !== null
+    ? { value: 0, label: "TODAS" }
+    : {
+        value: Usuario.ambitoSeccionales?.ids[0],
+        label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
+      };
+
+  const defaultParams = { filtroSeccional: defaultFiltroSeccional };
+
   const tabs = [];
   const [tab, setTab] = useState(0);
+  const [showInforme, setShowInforme] = useState(false);
 
   //#region Formularios Params
   const [paramsEdit, setParamsEdit] = useState({
@@ -33,6 +45,7 @@ const GestionOSHandler = () => {
     loading: "Cargando...",
     data: [],
     error: null,
+    ...defaultParams,
   });
   // const [paramsEditSeccional, setParamsEdit] = useState({
   //   reload: false,
@@ -354,7 +367,6 @@ const GestionOSHandler = () => {
           label: r.descripcion,
         }));
         changes.options.unshift({ value: 0, label: "TODOS" });
-        changes.options.unshift({ value: 0, label: "TODOS" });
         changes.filtroDetalleTipoGestion = {
           value: 0,
           label: "TODOS",
@@ -468,22 +480,19 @@ const GestionOSHandler = () => {
         })
       );
     }
-    /*
+    
 		actions.push(
 			createAction({
-				action: `Envía Email ${desc}`,
-				request: "E",
+				action: `Informe`,
+        onExecute: () => setShowInforme(true),
+				request: "i",
 				record: {},
-				tarea: "Osprera_GestionEnvioEmail",
-				...(formularioSelected?.medioGestion == 'telefono' || !formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "e",
-							underlineindex: 0,
-					  }),
+				tarea: "Osprera_GestionInforme",
+				disabled: !formularioSelected?.id,
+        keys: "i",
+        underlineindex: 0,
 			})
-		);*/
+		);
     setFormularioOspreraActions(actions); //cargo todas las acciones / botones
   }, [formularioOspreraRequest, formularioSelected]);
 
@@ -639,7 +648,7 @@ const GestionOSHandler = () => {
                   className="botonAzul"
                   disabled={Object.entries(paramsEdit).length === 0}
                   onClick={() => {
-                    const paramsEdit = {};
+                    const paramsEdit = { ...defaultParams };
                     setParamsEdit(paramsEdit);
                     if (
                       JSON.stringify(paramsEdit) === JSON.stringify(paramsSend)
@@ -812,6 +821,9 @@ const GestionOSHandler = () => {
       </div>
       <div className="contenido">{tabs[tab].body()}</div>
       <KeyPress items={acciones} />
+      {/* === Nuevo agregado: Modal del Informe === */}
+      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} />}
+      {/* === Fin nuevo agregado === */}
     </Grid>
   );
 };

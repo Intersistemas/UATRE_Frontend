@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import { matchIsValidTel } from "mui-tel-input";
 import AsArray from "components/helpers/AsArray";
@@ -11,6 +11,10 @@ import ValidarEmail from "components/validators/ValidarEmail";
 import AfiliadoFormulariosAfiliacionTable from "./AfiliadoFormulariosAfiliacionTable";
 import AfiliadoFormulariosAfiliacionIncorporacion from "./AfiliadoFormulariosAfiliacionIncorporacion";
 import SolicitudAfiliacionForm from "./SolicitudAfiliacionForm";
+import AfiliadosAgregar from "components/pages/afiliados/AfiliadoAgregar";
+import { Modal } from "react-bootstrap";
+import Button from "components/ui/Button/Button";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
 const selectionDef = {
 	action: "",
@@ -47,7 +51,51 @@ export const onLoadSelectKeep = ({ record }) => record;
 
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) => record ?? onLoadSelectFirst({ data, multi, record });
 
-export const onDataChangeDef = (data = []) => {};
+export const onDataChangeDef = (data = []) => { };
+
+const parseTelefonoAR = (raw = "") => {
+	const digits = String(raw || "").replace(/\D+/g, "");
+	let pais = "+54";
+	let rest = digits;
+	if (rest.startsWith("549")) rest = rest.slice(3);
+	else if (rest.startsWith("54")) rest = rest.slice(2);
+	if (rest.startsWith("9")) rest = rest.slice(1);
+	const numero = rest.slice(-7);
+	const area = rest.slice(0, Math.max(0, rest.length - 7)) || "";
+	return { telefonoPais: pais, telefonoArea: area, telefonoNumero: numero };
+};
+
+// Modal de confirmación para rechazo
+const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
+	const [obs, setObs] = useState(row?.deletedObs ?? "");
+	return (
+		<Modal centered show onHide={() => onClose()}>
+			<Modal.Header closeButton>Rechazar solicitud</Modal.Header>
+			<Modal.Body>
+				<div style={{ marginBottom: 10 }}>
+					¿Confirmás rechazar la solicitud del CUIL <b>{Formato.Cuit(row?.cuil)}</b>?
+				</div>
+				<InputMaterial
+					id="rechazoObs"
+					label="Motivo / Observaciones (opcional)"
+					value={obs}
+					onChange={(v) => setObs(v)}
+				/>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button className="botonAzul" loading={!!loading} onClick={() => onConfirm(obs)}>
+					CONFIRMAR RECHAZO
+				</Button>
+				<Button className="botonAmarillo" onClick={() => onClose()}>
+					CANCELAR
+				</Button>
+			</Modal.Footer>
+		</Modal>
+	);
+};
+
+
+
 
 const useAfiliadoFormulariosAfiliacion = ({
 	remote: remoteInit = true,
@@ -65,9 +113,9 @@ const useAfiliadoFormulariosAfiliacion = ({
 } = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log("action_useAfiliadoFormulario",action)
+		console.log("action_useAfiliadoFormulario", action)
 		switch (action) {
-			
+
 			case "GetList": {
 				return {
 					config: {
@@ -77,12 +125,21 @@ const useAfiliadoFormulariosAfiliacion = ({
 					},
 				};
 			}
-			/*case "Update": {
+			case "GetAfiliadoByCUIL": {
 				return {
 					config: {
-						baseURL: "Comunes",
-						endpoint: `/Empresas`,
-						method: "PUT",
+						baseURL: "Afiliaciones",
+						endpoint: `/Afiliado/GetAfiliadoByCUIL`,
+						method: "GET",
+					},
+				};
+			}
+			case "Resuelve": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/AfiliadoFormulariosAfiliacion/ResuelveFormularioAfiliacion`,
+						method: "PATCH",
 					},
 				};
 			}
@@ -103,12 +160,14 @@ const useAfiliadoFormulariosAfiliacion = ({
 						method: "PATCH",
 					},
 				};
-			}*/
+			}
 			default:
 				return null;
 		}
 	});
 	//#endregion
+	// Para no resincronizar la misma fila múltiples veces
+	const syncedIdsRef = useRef(new Set());
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -152,11 +211,11 @@ const useAfiliadoFormulariosAfiliacion = ({
 			return;
 		}
 		changes.data = [];
-			
+
 		pushQuery({
 			action: "GetList",
 			config: {
-					body: {
+				body: {
 					...list.params,
 					pageIndex: list.pagination.index,
 					pageSize: list.pagination.size,
@@ -165,7 +224,20 @@ const useAfiliadoFormulariosAfiliacion = ({
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
 					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
+				// changes.data = data;
+				// Orden
+				const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+				const noHayOrdenDelUsuario = !list?.params?.orderBy; // si no clicaron ordenar
+				const ordenado = noHayOrdenDelUsuario
+					? [...data].sort((a, b) =>
+						rank(a) - rank(b) ||
+						// dentro de cada estado, más recientes primero
+						dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
+					)
+					: data;
+				changes.data = ordenado;
+
+
 				const multi = list.selection.multi;
 				const record = list.selection.record;
 				changes.pagination = { index, size, count };
@@ -232,8 +304,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 							"data" in payload && Array.isArray(payload.data)
 								? [...payload.data]
 								: payload.clear
-								? []
-								: o.data,
+									? []
+									: o.data,
 						loadingOverride: payload.loading,
 						error: payload.error,
 						onLoadSelect:
@@ -276,29 +348,179 @@ const useAfiliadoFormulariosAfiliacion = ({
 		}
 	}, [pushQuery]);
 
-	let form = null;
-	if (list.selection.request) {
-		form = (
-			<SolicitudAfiliacionForm 
-				onClose={(confirm) => {
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								...selectionDef,
-								index: o.selection.index,
-								record:
-									!o.selection.multi && o.selection.index > -1
-										? o.data.at(o.selection.index)
-										: o.selection.record,
-							},
-						}));
-						return;
-					}}}
-			/>
+	// Auto-sincroniza estados al cargar/refrescar la lista
+	useEffect(() => {
+		if (!Array.isArray(list.data) || list.data.length === 0) return;
+
+		// Tomamos solo las pendientes, que no fueron rechazadas ni aceptadas,
+		// y que aún no procesamos en este ciclo de vida.
+		const pendientes = list.data.filter(
+			(r) =>
+				!r?.deletedDate && // no rechazadas
+				!r?.afiliadoIdAsignado && // no aceptadas
+				!syncedIdsRef.current.has(r.id) // no procesadas
 		);
+		if (pendientes.length === 0) return;
+
+		setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
+
+		// Procesamos secuencialmente para evitar condiciones de carrera
+		const run = async () => {
+			for (const row of pendientes) {
+				syncedIdsRef.current.add(row.id);
+				const cuilDigits = String(row?.cuil ?? "").replace(/\D/g, "");
+
+				// Envolvemos cada pushQuery en una promesa para serializar
+				await new Promise((resolve) => {
+					pushQuery({
+						action: "GetAfiliadoByCUIL",
+						params: { CUIL: cuilDigits, IncludeRelatedTables: false },
+						onOk: async (afiliado) => {
+							if (afiliado?.id) {
+								// Existe → marcar Aceptado
+								await pushQuery({
+									action: "Resuelve",
+									config: { body: { id: row.id, afiliadoIdAsignado: afiliado.id } },
+								});
+							}
+						},
+						// Si 404 → queda Pendiente
+						onFinally: async () => resolve(),
+					});
+				});
+			}
+
+			// Tras terminar, pedimos refrescar la grilla (mantiene filtros/paginación)
+			setList((o) => ({
+				...o,
+				loadingOverride: null,
+				loading: "Cargando...",
+				data: o.remote ? [] : o.data,
+			}));
+		};
+
+		run();
+	}, [list.data, pushQuery]);
+
+
+
+	//Modificaciones Mauro
+	let form = null;
+
+	if (list.selection.request) {
+		const row = list.selection.edit ?? list.selection.record ?? {};
+
+		// cierre común del modal: restablece la selección anterior
+		const handleClose = () => {
+			setList((o) => ({
+				...o,
+				selection: {
+					...o.selection,
+					...selectionDef,
+					index: o.selection.index,
+					record:
+						!o.selection.multi && o.selection.index > -1
+							? o.data.at(o.selection.index)
+							: o.selection.record,
+				},
+			}));
+		};
+
+		switch (list.selection.request) {
+			// Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
+			case "I": {
+				const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
+				const email = row.email ?? row.correo ?? "";
+				const telRaw = row.celular ?? row.telefono ?? "";
+				const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+
+				// forzamos remount para que el form tome estos valores iniciales
+				const prefillKey = `alta-${cuilDigits}-${telefonoPais}-${telefonoArea}-${telefonoNumero}-${email}`;
+
+				form = (
+					<AfiliadosAgregar
+						key={prefillKey}
+						title="Agrega Afiliado"
+						//ESTO ENVIAR A ALEX
+						accion="Agrega"
+						data={{
+							cuil: cuilDigits,
+							telefonoPais,
+							telefonoArea,
+							telefonoNumero,
+							email,
+						}}
+						disabled={{ cuil: true }}
+						onClose={handleClose}
+					/>
+				);
+				break;
+			}
+
+
+			// Consulta → ver formulario prefillado, solo lectura
+			case "C": {
+				const row = list.selection.edit ?? list.selection.record ?? {};
+				form = (
+					<SolicitudAfiliacionForm
+						title={`Consulta Solicitud ${row.cuil ?? ""}`}
+						data={row}
+						readOnly
+						hidePrint
+						onClose={handleClose}
+					/>
+				);
+				break;
+			}
+			// Rechazo
+			case "B": {
+				form = (
+					<RechazoModal
+						row={row}
+						onClose={handleClose}
+						loading={list.loadingOverride}
+						onConfirm={(obs) => {
+							const body = {
+								id: row?.id,
+								afiliadoIdAsignado: 0,
+								deletedObs: obs || "",
+							};
+							pushQuery({
+								action: "Resuelve",
+								config: { body },
+								onOk: async () => {
+									// dispara recarga de lista manteniendo filtros/paginación
+									setList((o) => ({ ...o, loading: "Cargando...", data: o.remote ? [] : o.data }));
+									handleClose();
+								},
+								onError: async (error) => {
+									console.error("Error al rechazar:", error);
+								},
+							});
+						}}
+					/>
+				);
+				break;
+			}
+
+
+
+
+			default: {
+				form = (
+					<SolicitudAfiliacionForm
+						onClose={(confirm) => {
+							if (!confirm) handleClose();
+						}}
+					/>
+				);
+			}
+		}
 	}
+
+
+
+
 
 	const render = () => (
 		<>

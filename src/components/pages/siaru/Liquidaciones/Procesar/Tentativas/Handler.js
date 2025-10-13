@@ -368,6 +368,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
   const tabs = [];
 
   const tareas = useTareasUsuario();
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   const verPorTipoPago = tareas.hasTarea("Siaru_DetalleTipoPago");
 
   //#region Trato queries a APIs
@@ -873,14 +874,14 @@ const Handler = ({ periodo, tentativas = [] }) => {
       {
         dataField: "empresaEstablecimiento_Nombre",
         text: "Establecimiento",
-        sort: true,
+        sort: false,
         style: { textAlign: "left" },
       },
       // { dataField: "esRural" },
       {
         dataField: "esRural",
         text: "Es Rural",
-        sort: true,
+        sort: false,
         headerStyle: { width: "100px" },
         formatter: Formato.Booleano,
         style: { textAlign: "center" },
@@ -1149,7 +1150,9 @@ const Handler = ({ periodo, tentativas = [] }) => {
 
     pushQuery({
       action: "CreateCabecera",
-      config: { body: liqCab.body },
+      config: {
+        body: { ...liqCab.body, createdByName: usuarioLogueado.nombre },
+      },
       onOk: async (data) => (changes.data = data),
       onError: async (error) => (changes.error = error),
       onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),

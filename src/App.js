@@ -59,6 +59,7 @@ import LocalidadesHandler from "components/pages/administracion/localidades/Loca
 import InformesHandler from "components/pages/informes/InformesHandler";
 
 import ConsultasHandler from "components/pages/consultas/ConsultasHandler";
+import AfiliadoFormulariosAfiliacionHandler from "components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 import AfiliacionesPorEmpresaHandler from 'components/pages/consultas/afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler';
 import GestionOSHandler from "components/pages/gestionOS/GestionOSHandler";
 
@@ -135,6 +136,10 @@ const App = () => {
               element={<LiquidacionesProcesarHandler />}
             />
             <Route
+              path="Inicio/Empresas/Establecimientos/Liquidaciones/Procesar"
+              element={<LiquidacionesProcesarHandler />}
+            />
+            <Route
               path="Inicio/Empresas/Liquidaciones/Procesar/Existente"
               element={<LiquidacionesProcesarExistenteHandler />}
             />
@@ -203,13 +208,12 @@ const App = () => {
               path="Inicio/Consultas/Afiliaciones"
               element={<AfiliacionesPorEmpresaHandler />}
             />
+            <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler />} />
+            
 
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
 
-            <Route
-              path="Inicio/GestionOS"
-              element={<GestionOSHandler />}
-            />
+            <Route path="Inicio/GestionOS" element={<GestionOSHandler />} />
 
             <Route path="Inicio/App" element={<AppHandler />} />
             <Route path="Inicio/App/Encuestas" element={<EncuestasHandler />} />
@@ -221,7 +225,7 @@ const App = () => {
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
 
             <Route path="/*" element={<PantallaEnDesarrollo />} />
-              {/* ----------------------------------------------------------- */}
+            {/* ----------------------------------------------------------- */}
             {/* RELEVAMIENTO DE TRABAJADORES */}
             <Route
               path="Inicio/Relevamiento"
