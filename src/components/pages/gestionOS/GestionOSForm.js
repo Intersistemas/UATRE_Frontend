@@ -202,8 +202,132 @@ const GestionOSForm = ({
   const ultimoDniBuscadoRef = useRef("");
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
+  //const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  //#endregion
+
+  //#region EMAIL
+  //Se debe procesar el(envio de email)
+  const sendEnviarEmailHandler = async () => {
+    loading = true;
+    const adjuntos = (documentacionList || []).map((r) => ({
+      fileName: r.nombreArchivo,
+      contentType: "application/octet-stream", // o usa el real si lo tienes
+      base64Data: r.archivo,
+    }));
+    // const localidadUsuario = `${
+    //   usuarioLogueado.ambitoSeccionales == null
+    //     ? seccionalSelect.selected.record.localidad
+    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
+    // }, `;
+
+    //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
+    const localidadUsuario = seccionalSelect?.options.find(
+      (o) => o.value === seccionalSelect.selected.value
+    )?.record?.localidadNombre;
+
+    const emails = [
+      usuarioLogueado.email,
+      data?.emailContacto ?? [],
+      data?.emailContacto2 ?? [],
+    ];
+    //console.log("seccionalSelect1", seccionalSelect);
+    //console.log("localidadUsuario",localidadUsuario)
+
+    pushQuery({
+      action: "EnviarCorreo",
+      config: {
+        body: {
+          to: [data?.direccionesEmailDestino] ?? [],
+          cco: emails.filter((email) => email),
+          attachments: adjuntos,
+          cuerpo:
+            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
+              "DD/MM/YYYY"
+            )}</strong><br></br>` +
+            `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
+            `En representación del Afiliado <strong>${!!data.titularPaciente
+              ? data?.apellidoTitular
+              : data?.apellidoPaciente
+            } ${!!data.titularPaciente
+              ? data?.nombreTitular
+              : data?.nombrePaciente
+            }</strong>, con DNI Nº <strong>${data?.dniPaciente ?? ""
+            }</strong>, Afiliado Nº <strong>${data?.cuitTitular ?? ""
+            }</strong> ` +
+            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>` +
+            `<strong>${data?.texto}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
+            `Tipo de Adjuntos: <strong>${documentacionList.length === 0
+              ? "Sin archivos adjuntos"
+              : documentacionList
+                .map((a) => a.refTipoDocumentacionDescripcion)
+                .join("/ ")
+            }</strong><br></br>` +
+            `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
+            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
+            `En caso de negativa de respuesta al presente, el afiliado realizará la respectiva denuncia ante la Superintendencia de Servicios de Salud, por la falta de atención de parte de esa Obra Social.<br><br/>` +
+            `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
+        },
+      },
+      onOk: async (ok) => {
+        const estadoEnviado = gestionEstadoSelect.options.find(
+          (o) => o.label.toString().trim() === "ENVIADO"
+        );
+        if (estadoEnviado) {
+          onChange({ gestionEstadoId: estadoEnviado?.value });
+        }
+      }, 
+    }); 
+  }; 
+
+
+
+  // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
+
+  //Este codigo de bloque rellena automaticamente
+  useEffect(() => {
+    const raw = toSafeString(data?.dniPaciente);
+    const dni = raw.replace(/\D/g, "");
+    if (!dni) {
+      // si se borró, reseteo el anti-rebote para permitir la misma búsqueda después
+      ultimoDniBuscadoRef.current = "";
+      return;
+    }
+
+    // (Opcional) sólo disparo con largos razonables
+    if (dni.length < 7) return;
+
+    if (ultimoDniBuscadoRef.current === dni) return;
+    ultimoDniBuscadoRef.current = dni;
+
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: { dniPaciente: dni },
+      onOk: async (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const ultima = arr[0];
+        if (!ultima) return;
+
+        const telAnterior =
+          ultima.telefonoContacto ||
+          ultima.telefono || "";
+        const mailAnterior =
+          ultima.emailContacto ||
+          ultima.direccionesEmailDestino || "";
+
+        const cambios = {};
+        if (!data.telefonoContacto && telAnterior) cambios.telefonoContacto = telAnterior;
+        if (!data.telefono && telAnterior && data.medioGestion === "telefono") cambios.telefono = telAnterior;
+        if (!data.emailContacto && mailAnterior) cambios.emailContacto = mailAnterior;
+        if (!data.direccionesEmailDestino && mailAnterior && data.medioGestion === "email")
+          cambios.direccionesEmailDestino = mailAnterior;
+
+        if (Object.keys(cambios).length) onChange(cambios);
+      },
+    });
+  }, [data?.dniPaciente, data?.medioGestion]);
+  //Fin del bloque de codigo que rellena automaticamente
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -1612,41 +1736,42 @@ const GestionOSForm = ({
                           }
                         />
                       </Grid>
-                      {(titular?.existeEnUATRE ||
-                        titular?.existeEnOSPRERA ||
-                        titular?.existeEnAFIP) && (
-                          <div>
-                            <h6
-                              style={{
-                                fontSize: "small",
-                                displa:
-                                  titular?.existeEnUATRE ||
-                                    (!!titular?.existeEnUATRE &&
-                                      titular.existeEnOSPRERA &&
-                                      !!titular.existeEnAFIP)
-                                    ? "none"
-                                    : "flex",
-                              }}
-                            >
-                              {" "}
-                              {titular.existeEnOSPRERA
-                                ? "Titular en Padron OSPRERA"
-                                : titular.existeEnAFIP
-                                  ? "Titular en ARCA"
-                                  : ""}{" "}
-                            </h6>
-                            <h6 style={{ fontSize: "small" }}>
-                              {titular.existeEnUATRE === true
-                                ? "Afiliado a UATRE"
-                                : titular.existeEnOSPRERA === null &&
-                                  titular.existeEnAFIP === null
-                                  ? "" //"No se encontraron datos para el CUIL ingresado"
-                                  : titular.existeEnUATRE === false
-                                    ? "No Afiliado a UATRE"
+                      <div className="afiliado-status">
+                        {(titular?.existeEnUATRE ||
+                          titular?.existeEnOSPRERA ||
+                          titular?.existeEnAFIP) && (
+                            <>
+                              <h6
+                                style={{
+                                  fontSize: "small",
+                                  display:
+                                    titular?.existeEnUATRE ||
+                                      (!!titular?.existeEnUATRE &&
+                                        titular.existeEnOSPRERA &&
+                                        !!titular.existeEnAFIP)
+                                      ? "none"
+                                      : "flex",
+                                }}
+                              >
+                                {titular.existeEnOSPRERA
+                                  ? "Titular en Padron OSPRERA"
+                                  : titular.existeEnAFIP
+                                    ? "Titular en ARCA"
                                     : ""}
-                            </h6>
-                          </div>
-                        )}
+                              </h6>
+                              <h6 style={{ fontSize: "small" }}>
+                                {titular.existeEnUATRE === true
+                                  ? "Afiliado a UATRE"
+                                  : titular.existeEnOSPRERA === null &&
+                                    titular.existeEnAFIP === null
+                                    ? ""
+                                    : titular.existeEnUATRE === false
+                                      ? "No Afiliado a UATRE"
+                                      : ""}
+                              </h6>
+                            </>
+                          )}
+                      </div>
                     </Grid>
                     <Grid col width="120px">
                       <Button
