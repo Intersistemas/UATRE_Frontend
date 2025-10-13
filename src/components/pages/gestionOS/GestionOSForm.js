@@ -202,7 +202,7 @@ const GestionOSForm = ({
   const ultimoDniBuscadoRef = useRef("");
 
   // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  //const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
 
   //#region EMAIL
@@ -278,10 +278,11 @@ const GestionOSForm = ({
         
          },
 });
-}; // <-- cierra sendEnviarEmailHandler
+}; 
 
 
 
+  //Este codigo de bloque rellena automaticamente
   useEffect(() => {
     const raw = toSafeString(data?.dniPaciente);
     const dni = raw.replace(/\D/g, "");
@@ -323,7 +324,7 @@ const GestionOSForm = ({
       },
     });
   }, [data?.dniPaciente, data?.medioGestion]);
-
+  //Fin del bloque de codigo que rellena automaticamente
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -1732,41 +1733,42 @@ const GestionOSForm = ({
                           }
                         />
                       </Grid>
-                      {(titular?.existeEnUATRE ||
-                        titular?.existeEnOSPRERA ||
-                        titular?.existeEnAFIP) && (
-                          <div>
-                            <h6
-                              style={{
-                                fontSize: "small",
-                                displa:
-                                  titular?.existeEnUATRE ||
-                                    (!!titular?.existeEnUATRE &&
-                                      titular.existeEnOSPRERA &&
-                                      !!titular.existeEnAFIP)
-                                    ? "none"
-                                    : "flex",
-                              }}
-                            >
-                              {" "}
-                              {titular.existeEnOSPRERA
-                                ? "Titular en Padron OSPRERA"
-                                : titular.existeEnAFIP
-                                  ? "Titular en ARCA"
-                                  : ""}{" "}
-                            </h6>
-                            <h6 style={{ fontSize: "small" }}>
-                              {titular.existeEnUATRE === true
-                                ? "Afiliado a UATRE"
-                                : titular.existeEnOSPRERA === null &&
-                                  titular.existeEnAFIP === null
-                                  ? "" //"No se encontraron datos para el CUIL ingresado"
-                                  : titular.existeEnUATRE === false
-                                    ? "No Afiliado a UATRE"
+                      <div className="afiliado-status">
+                        {(titular?.existeEnUATRE ||
+                          titular?.existeEnOSPRERA ||
+                          titular?.existeEnAFIP) && (
+                            <>
+                              <h6
+                                style={{
+                                  fontSize: "small",
+                                  display:
+                                    titular?.existeEnUATRE ||
+                                      (!!titular?.existeEnUATRE &&
+                                        titular.existeEnOSPRERA &&
+                                        !!titular.existeEnAFIP)
+                                      ? "none"
+                                      : "flex",
+                                }}
+                              >
+                                {titular.existeEnOSPRERA
+                                  ? "Titular en Padron OSPRERA"
+                                  : titular.existeEnAFIP
+                                    ? "Titular en ARCA"
                                     : ""}
-                            </h6>
-                          </div>
-                        )}
+                              </h6>
+                              <h6 style={{ fontSize: "small" }}>
+                                {titular.existeEnUATRE === true
+                                  ? "Afiliado a UATRE"
+                                  : titular.existeEnOSPRERA === null &&
+                                    titular.existeEnAFIP === null
+                                    ? ""
+                                    : titular.existeEnUATRE === false
+                                      ? "No Afiliado a UATRE"
+                                      : ""}
+                              </h6>
+                            </>
+                          )}
+                      </div>
                     </Grid>
                     <Grid col width="120px">
                       <Button
@@ -2157,7 +2159,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSubRubroId: selected.value });
+                        onChange({ gestionSubRubroId: selected.value,
+                          gestionSubRubroDescripcion: selected.label,
+                          gestionSubRubro: selected.label,
+                         });
                       }}
                       options={gestionSubRubroSelect.options}
                     />

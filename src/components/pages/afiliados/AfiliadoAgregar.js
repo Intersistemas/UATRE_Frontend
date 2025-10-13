@@ -1005,8 +1005,12 @@ const AfiliadoAgregar = (props) => {
         setEmpresaIdExiste(afiliadoObj.empresaId);
         setDocumentacionList(afiliadoObj.documentacion ?? []);
 
+        console.log("props**", props);
+        console.log("afiliado**", afiliado);
+
         //alert
-        if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
+        if (props?.accion == "Agrega" || (afiliado?.cuil && props?.cuil !== afiliado?.cuil)) {
+          console.log("no debe ingresar aqui**");
           setDialogTexto(
             `El Afiliado: ${
               afiliadoObj?.nombre
@@ -1014,7 +1018,7 @@ const AfiliadoAgregar = (props) => {
               afiliadoObj?.seccionalCodigo
             } ${afiliadoObj?.seccional}
             ${
-              afiliadoObj.estadoSolicitud.includes("No Activo")
+              afiliadoObj?.estadoSolicitud.includes("No Activo")
                 ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`
                 : ""
             }`
@@ -1047,11 +1051,38 @@ const AfiliadoAgregar = (props) => {
         setDomicilioEmpresa(
           `${empresaObj.domicilioCalle} ${empresaObj.domicilioNumero}`
         );
-        setLocalidadEmpresa("");
+        // AJUSTE LOCALIDAD EMPLEADOR (mostrar texto de AFIPConsultasDomicilios.Localidad)
+        const localidadTextoEmpresa =
+          empresaObj?.domicilioLocalidadDescripcion ||
+          empresaObj?.domicilioLocalidad ||
+          empresaObj?.localidadDescripcion ||
+          empresaObj?.localidad ||
+          "";
+        setLocalidadEmpresa(localidadTextoEmpresa);
         setTelefonoEmpresa(empresaObj.telefono ?? "");
         setCorreoEmpresa(empresaObj.email ?? "");
         setLugarTrabajoEmpresa("");
         //ciius
+
+        // Consulta puntual a AFIP para reforzar localidad (domicilio LEGAL/REAL) sin afectar guardado
+        if (empresaObj?.cuit) {
+          request(
+            {
+              baseURL: "Comunes",
+              endpoint: `/AFIPConsulta?CUIT=${empresaObj.cuit}&VerificarHistorico=false`,
+              method: "GET",
+            },
+            (padronEmpresaAFIP) => {
+              const domicilioLegal =
+                padronEmpresaAFIP?.domicilios?.find(
+                  (d) => d?.tipoDomicilio === "LEGAL/REAL"
+                ) || padronEmpresaAFIP?.domicilios?.[0];
+              if (domicilioLegal?.localidad) {
+                setLocalidadEmpresa(domicilioLegal.localidad);
+              }
+            }
+          );
+        }
       };
 
       request(
@@ -1478,7 +1509,43 @@ const AfiliadoAgregar = (props) => {
     );
   }, [request]);
 
+  //modificado Mauro
+  useEffect(() => {
+    const d = props?.data || {};
+    if (d.cuil != null && d.cuil !== "") {
+      dispatchCUIL({ type: "USER_INPUT", value: String(d.cuil) });
+    }
+    if (d.email != null) {
+      dispatchEmail({ type: "USER_INPUT", value: String(d.email) });
+    }
+    if (d.telefonoPais != null) {
+      dispatchTelefonoPais({ type: "USER_INPUT", value: String(d.telefonoPais) });
+    }
+    if (d.telefonoArea != null) {
+      dispatchTelefonoArea({ type: "USER_INPUT", value: String(d.telefonoArea) });
+    }
+    if (d.telefonoNumero != null) {
+      dispatchTelefonoNumero({ type: "USER_INPUT", value: String(d.telefonoNumero) });
+    }
+  }, [props.data]);
+
   //#endregion
+
+  
+  //Agregado Mauro
+   // Helper simple para partir un teléfono Argentino en país/área/número
+ const parseTelefonoAR = (raw = "") => {
+   const only = String(raw).replace(/[^\d+0-9]/g, "");
+   // país: si viene con prefijo usa ese, si no, asume +54
+   const paisMatch = only.match(/^\+?\d{1,3}/);
+   const telefonoPais = paisMatch ? (paisMatch[0].startsWith("+") ? paisMatch[0] : `+${paisMatch[0]}`) : "+54";
+   const rest = only.replace(/^\+?\d{1,3}/, "");
+   // área/número: muy básico, intenta 2-4 dígitos de área y el resto como número
+   const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/);
+   const telefonoArea = m?.[1] ?? "";
+   const telefonoNumero = m?.[2] ?? rest;
+   return { telefonoPais, telefonoArea, telefonoNumero };
+ };
 
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
@@ -1499,6 +1566,13 @@ const AfiliadoAgregar = (props) => {
     setAfiliadoProcesando(true);
     //#region Insertar Sol
     if (props.accion === "Agrega" && !afiliadoExiste) {
+      // ::::::::::::::::::::::::::::::::: MODIFICADO :::::::::::::::::::::::::::::::::
+  const domicilioAFIPEmpresa =
+        padronEmpresaRespuesta?.domicilios?.find(
+          (d) => d?.tipoDomicilio === "LEGAL/REAL"
+        ) || padronEmpresaRespuesta?.domicilios?.[0];
+  const cpIntEmpresaAlta = parseInt(domicilioAFIPEmpresa?.codigoPostal);
+
       const empresa = {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
@@ -1517,25 +1591,29 @@ const AfiliadoAgregar = (props) => {
         cierreMes: padronEmpresaRespuesta.mesCierre,
         email: correoEmpresa,
         telefono: telefonoEmpresa,
-        domicilioCalle: "string",
-        domicilioNumero: 0,
-        domicilioPiso: "string",
-        domicilioDpto: "string",
-        domicilioSector: "string",
-        domicilioTorre: "string",
-        domicilioManzana: "string",
-        domicilioProvinciasId: 0,
+        domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "sin dato",
+        domicilioNumero: parseInt(domicilioAFIPEmpresa?.numero) || 0,
+        domicilioPiso: "SIN DATO",
+        domicilioDpto: "SIN DATO",
+        domicilioSector: "SIN DATO",
+        domicilioTorre: "SIN DATO",
+        domicilioManzana: "SIN DATO",
+        domicilioProvinciaId: domicilioAFIPEmpresa?.idProvincia ?? 0,
         domicilioLocalidadesId: 0,
-        domicilioCodigoPostal: 0,
-        domicilioCPA: "string",
-        domicilioTipo: "string",
-        domicilioEstado: "string",
-        domicilioDatoAdicional: "string",
-        domicilioDatoAdicionalTipo: "string",
+  // Guardar CP con dos ceros al final
+  domicilioCodigoPostal: isNaN(cpIntEmpresaAlta) ? 0 : cpIntEmpresaAlta * 100,
+        domicilioCPA: "SIN DATO",
+        domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "sin dato",
+        domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "sin dato",
+        domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "sin dato",
+        domicilioDatoAdicionalTipo:
+          (domicilioAFIPEmpresa?.tipoDatoAdicional ?? domicilioAFIPEmpresa?.datoAdicionalTipo)?.toString() ||
+          "sin dato",
         ciiU1: padronEmpresaRespuesta.ciiU1,
         ciiU2: padronEmpresaRespuesta.ciiU2,
         ciiU3: padronEmpresaRespuesta.ciiU3,
-      };
+  };
+  // ::::::::::::::::::::::::::::::::: FIN MODIFICADO :::::::::::::::::::::::::::::::::
 
       const validaAutomatica =
         ultimaDDJJ.data?.actividadTipo === "D" &&
@@ -1723,7 +1801,21 @@ const AfiliadoAgregar = (props) => {
       });
     }
 
+    //NUEVO PARA ALEX
+    // Helper simple para descomponer teléfonos a País / Área / Número
+  const parseTelefonoAR = (raw = "") => {
+    const only = String(raw).replace(/[^\d+]/g, "");
+    let telefonoPais = /^\+?\d{1,3}/.test(only) ? only.match(/^\+?\d{1,3}/)[0] : "+54";
+    telefonoPais = telefonoPais.startsWith("+") ? telefonoPais : `+${telefonoPais}`;
+    const rest = only.replace(/^\+?\d{1,3}/, "");
+    const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/) || [];
+    const telefonoArea = m[1] || "";
+    const telefonoNumero = m[2] || rest;
+    return { telefonoPais, telefonoArea, telefonoNumero };
+  };
+
     const processConsultaPadron = async (padronObj) => {
+
       console.log("padronObj", padronObj);
       setErrorAFIP(false);
       //moment(padronRespuesta?.fechaFallecimiento).includes("0001-01-01") ? null : padronRespuesta?.fechaFallecimiento,
@@ -1956,6 +2048,26 @@ const AfiliadoAgregar = (props) => {
 
         ActualizaDatosAfip(padronObj);
       }
+
+      //Agregado Mauro
+    // Email (si AFIP trae algo)
+    if (padronObj?.email && typeof dispatchEmail === "function") {
+      dispatchEmail({ type: "USER_INPUT", value: String(padronObj.email) });
+    }
+
+    // Teléfono (si AFIP trae algo)
+    const telRaw = padronObj?.telefono || padronObj?.celular;
+    if (telRaw && typeof dispatchTelefonoNumero === "function") {
+      const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+      if (typeof dispatchTelefonoPais === "function") {
+        dispatchTelefonoPais({ type: "USER_INPUT", value: telefonoPais });
+      }
+      if (typeof dispatchTelefonoArea === "function") {
+        dispatchTelefonoArea({ type: "USER_INPUT", value: telefonoArea });
+      }
+      dispatchTelefonoNumero({ type: "USER_INPUT", value: telefonoNumero });
+    }
+
 
       setCUILLoading(false);
       setInputsTouched(true);
@@ -2330,11 +2442,6 @@ const AfiliadoAgregar = (props) => {
   };
 
   const InputDisabled = (input) => {
-    console.log("cuilState", cuilState);
-    console.log("afiliadoExiste", afiliadoExiste);
-    console.log("afiliado?.estadoSolicitudId", afiliado?.estadoSolicitudId);
-    console.log("consultaPadronCUILOk", consultaPadronCUILOk);
-
     //VALIDO PRIMERO EL CAMPO CUIL
     if (input === "cuil") {
       if (/*props.accion === "Modifica" && */ afiliadoExiste && cuilValidado) {
@@ -2398,6 +2505,13 @@ const AfiliadoAgregar = (props) => {
 
   //#region Funciones actualizacion
   const ActualizaDatosAfiliado = () => {
+    // ::::::::::::::::::::::::::::::::: MODIFICADO :::::::::::::::::::::::::::::::::
+  const domicilioAFIPEmpresa =
+      padronEmpresaRespuesta?.domicilios?.find(
+        (d) => d?.tipoDomicilio === "LEGAL/REAL"
+      ) || padronEmpresaRespuesta?.domicilios?.[0];
+  const cpIntEmpresaMod = parseInt(domicilioAFIPEmpresa?.codigoPostal);
+
     const empresa = {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
@@ -2416,25 +2530,29 @@ const AfiliadoAgregar = (props) => {
       cierreMes: padronEmpresaRespuesta.mesCierre,
       email: correoEmpresa,
       telefono: telefonoEmpresa,
-      domicilioCalle: "string",
-      domicilioNumero: 0,
+      domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "sin dato",
+      domicilioNumero: parseInt(domicilioAFIPEmpresa?.numero) || 0,
       domicilioPiso: "string",
       domicilioDpto: "string",
       domicilioSector: "string",
       domicilioTorre: "string",
       domicilioManzana: "string",
-      domicilioProvinciasId: 0,
+      domicilioProvinciaId: domicilioAFIPEmpresa?.idProvincia ?? 0,
       domicilioLocalidadesId: 0,
-      domicilioCodigoPostal: 0,
+  // Guardar CP con dos ceros al final
+  domicilioCodigoPostal: isNaN(cpIntEmpresaMod) ? 0 : cpIntEmpresaMod * 100,
       domicilioCPA: "string",
-      domicilioTipo: "string",
-      domicilioEstado: "string",
-      domicilioDatoAdicional: "string",
-      domicilioDatoAdicionalTipo: "string",
+      domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "sin dato",
+      domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "sin dato",
+      domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "sin dato",
+      domicilioDatoAdicionalTipo:
+        (domicilioAFIPEmpresa?.tipoDatoAdicional ?? domicilioAFIPEmpresa?.datoAdicionalTipo)?.toString() ||
+        "sin dato",
       ciiU1: padronEmpresaRespuesta.ciiU1,
       ciiU2: padronEmpresaRespuesta.ciiU2,
       ciiU3: padronEmpresaRespuesta.ciiU3,
     };
+    // ::::::::::::::::::::::::::::::::: FIN MODIFICADO :::::::::::::::::::::::::::::::::
 
     const domicilioRealAFIP = padronRespuesta?.domicilios?.find(
       (domicilio) => domicilio.tipoDomicilio === "LEGAL/REAL"
