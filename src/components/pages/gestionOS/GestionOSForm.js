@@ -275,53 +275,21 @@ const GestionOSForm = ({
         if (estadoEnviado) {
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
-        
-  // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-  //#endregion
 
-  useEffect(() => {
-    const raw = toSafeString(data?.dniPaciente);
-    const dni = raw.replace(/\D/g, "");
-    if (!dni) {
-      // si se borró, reseteo el anti-rebote para permitir la misma búsqueda después
-      ultimoDniBuscadoRef.current = "";
-      return;
-    }
-
-    // (Opcional) sólo disparo con largos razonables
-    if (dni.length < 7) return;
-
-    if (ultimoDniBuscadoRef.current === dni) return;
-    ultimoDniBuscadoRef.current = dni;
-
-    pushQuery({
-      action: "GetUltimaGestionPaciente",
-      params: { dniPaciente: dni },
-      onOk: async (res) => {
-        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        const ultima = arr[0];
-        if (!ultima) return;
-
-        const telAnterior =
-          ultima.telefonoContacto ||
-          ultima.telefono || "";
-        const mailAnterior =
-          ultima.emailContacto ||
-          ultima.direccionesEmailDestino || "";
-
-        const cambios = {};
-        if (!data.telefonoContacto && telAnterior) cambios.telefonoContacto = telAnterior;
-        if (!data.telefono && telAnterior && data.medioGestion === "telefono") cambios.telefono = telAnterior;
-        if (!data.emailContacto && mailAnterior) cambios.emailContacto = mailAnterior;
-        if (!data.direccionesEmailDestino && mailAnterior && data.medioGestion === "email")
-          cambios.direccionesEmailDestino = mailAnterior;
-
-        if (Object.keys(cambios).length) onChange(cambios);
+        setDialogTexto("Se ha enviado un email a la dirección ingresada.");
+        setOpenDialog(true);
+      },
+      onError: async (error) => {
+        setDialogTexto(error?.message || "Error al enviar el email.");
+        setOpenDialog(true);
+      },
+      onFinally: async () => {
+        loading = false;
+        //onClose(true)
       },
     });
-  }, [data?.dniPaciente, data?.medioGestion]);
-
+  };
+  //#endregion
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -1503,24 +1471,25 @@ const GestionOSForm = ({
     setMostrarAlertas(true);
   };
 
+  //Modificado por Mauro, si se moidfica no se mostrara el modal solo si es para agregar
   const handleCheckDocumentacion = async () => {
-    if (request == "A" || request == "M") {
-      const isValid = await onValidate(true);
-      if (!isValid) return;
+  if (request === "A") {                               
+    const isValid = await onValidate(true);
+    if (!isValid) return;
 
-      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
-        setModalDocumentacion({ documentacionOK: true });
-      } else {
-        //Modal preguntando documentacion
-        setModalDocumentacion({
-          visible: true,
-          documentacionOK: false,
-        });
-      }
+    if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
+      setModalDocumentacion({ documentacionOK: true });
     } else {
-      handleConfirma();
+      //Modal preguntando documentacion
+      setModalDocumentacion({ 
+        visible: true, 
+        documentacionOK: false 
+      });
     }
-  };
+  } else {
+    handleConfirma();
+  }
+};
 
   useEffect(() => {
     if (!modalDocumentacion?.documentacionOK) {
@@ -2154,7 +2123,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSubRubroId: selected.value });
+                        onChange({ gestionSubRubroId: selected.value,
+                          gestionSubRubroDescripcion: selected.label,
+                          gestionSubRubro: selected.label,
+                         });
                       }}
                       options={gestionSubRubroSelect.options}
                     />
