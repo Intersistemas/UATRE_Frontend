@@ -20,6 +20,7 @@ import SearchSelectMaterial, {
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import useSolicitudAfiliacion from "./SolicitudAfiliacion";
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const styles = {
 	group: {
@@ -158,7 +159,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
+const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 	//#region APIs
 	const { setState: setSeccionalesQuery } = useQueryState(
 		() => ({
@@ -579,7 +580,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 	//#endregion selects
 
 	//#region inicializaciones
-	
+
 	//#region Carga inicial select seccional
 	useEffect(() => {
 		setSeccionalesQuery((o) => ({
@@ -1532,44 +1533,54 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 																) ?? ok.domicilios[0];
 															changes.form.domicilioEmpresa =
 																domicilio.direccion;
-															const pcia = emplPciaSelect.options.find(
-																(r) =>
-																	r.record.idProvinciaAFIP ===
-																	domicilio.idProvincia
-															);
-															setEmplPciaSelect((o) => ({
-																...o,
-																selected: pcia,
-																origen: "option",
-															}));
+															//Modificado Mauro
+															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
+															const pcia =
+																(emplPciaSelect.options || []).find(
+																	(r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
+																) || null;
 
-															setLocalidadesQuery((o) => ({
-																...o,
-																query: {
-																	...o.query,
-																	params: {
-																		...o.query.params,
-																		provinciaId: pcia.value,
+															if (pcia) {
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: pcia,
+																	origen: "option",
+																}));
+
+																setLocalidadesQuery((o) => ({
+																	...o,
+																	query: {
+																		...o.query,
+																		params: { ...o.query.params, provinciaId: pcia.value },
 																	},
-																},
-																onPreLoad: () =>
-																	setEmplLocaSelect((o) => ({
-																		...o,
-																		loading: "Cargando...",
-																	})),
-																onLoad: ({ ok, error }) =>
-																	setEmplLocaSelect((o) => ({
-																		...o,
-																		data: Array.isArray(ok) ? ok : [],
-																		loading: null,
-																		error: error?.toString(),
-																		buscar: domicilio.localidad,
-																		selected: {
-																			record: { nombre: domicilio.localidad },
-																		},
-																		origen: "text",
-																	})),
-															}));
+																	onPreLoad: () =>
+																		setEmplLocaSelect((o) => ({ ...o, loading: "Cargando..." })),
+																	onLoad: ({ ok, error }) =>
+																		setEmplLocaSelect((o) => ({
+																			...o,
+																			data: Array.isArray(ok) ? ok : [],
+																			loading: null,
+																			error: error?.toString(),
+																			buscar: domicilio?.localidad ?? "",
+																			selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																			origen: "text",
+																		})),
+																}));
+															} else {
+																// Fallback: no matcheó provincia por id → dejamos “texto” y localidad por texto
+																setEmplPciaSelect((o) => ({
+																	...o,
+																	selected: { record: { id: 0, nombre: domicilio?.provincia ?? "" } },
+																	origen: "text",
+																}));
+																setEmplLocaSelect((o) => ({
+																	...o,
+																	data: o.data ?? [],
+																	selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																	origen: "text",
+																}));
+															}
+
 														}
 														if (ok.idActividadPrincipal) {
 															const actividad = ciiuSelect.options.find(
@@ -1987,73 +1998,61 @@ const SolicitudAfiliacionForm = ({ onClose = () => {} }) => {
 			setState((o) => ({ ...o, errors }));
 			return;
 		}
+		//Modif Mauro
+		const despliega = async () => {
+			// Mapeo a la estructura del nuevo generador
+			const datos = [{
+				fecha: Formato.Fecha(body.fecha),
+				seccional_nro: body.seccionalCodigo || "",
+				afiliado_nro: "",
+				trabajador: {
+					cuil: Formato.Cuit(body.cuil),
+					tipo_doc: body.tipoDocumentoDescripcion,
+					nro_doc: body.documento,
+					nacionalidad: body.nacionalidad,
+					apellidos: body.apellido,
+					nombres: body.nombre,
+					fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
+					estado_civil: body.estadoCivil,
+					sexo: body.sexoDescripcion,
+					domicilio: body.domicilio,
+					localidad: body.nombreLocalidadAfiliado,
+					provincia: body.provinciaNombre,
+					oficio: body.oficio,
+					actividad: body.actividadAfiliado,
+					telefono: body.celular,
+					email: body.email,
+				},
+				empleador: {
+					cuit: Formato.Cuit(body.cuitEmpresa),
+					razon_social: body.razonSocial,
+					domicilio: body.domicilioEmpresa,
+					localidad: body.nombreLocalidadEmpresa,
+					provincia: body.provinciaNombreEmpresa,
+					actividad: body.actividadEmpresa,
+					telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
+					email: body.emailEmpresa,
+				},
+			}];
 
-		const despliega = () => {
-			const data = {
-				"seccional.codigo": body.seccionalCodigo,
-				...Object.fromEntries(
-					`${body.fecha || ""}`
-						.split("-")
-						.map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
-				),
-				...Object.fromEntries(
-					`${Formato.Cuit(body.cuil)}`
-						.split("-")
-						.map((v, i) => [
-							`trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
-							v,
-						])
-				),
-				"trabajador.documento": [
-					body.tipoDocumentoDescripcion,
-					body.documento,
-				].join(" "),
-				"trabajador.nacionalidad": body.nacionalidad,
-				"trabajador.apellidos": body.apellido,
-				"trabajador.nombres": body.nombre,
-				"trabajador.nacimiento.fecha": Formato.Fecha(body.fechaNacimiento),
-				"trabajador.estado_civil": body.estadoCivil,
-				"trabajador.sexo": body.sexoDescripcion,
-				"trabajador.domicilio": body.domicilio,
-				"trabajador.localidad": body.nombreLocalidadAfiliado,
-				"trabajador.provincia": body.provinciaNombre,
-				"trabajador.oficio": body.oficio,
-				"trabajador.actividad": body.actividadAfiliado,
-				"trabajador.telefono": [body.telefono, body.celular]
-					.filter((r) => r)
-					.join(", "),
-				"trabajador.correo": body.email,
-
-				...Object.fromEntries(
-					`${Formato.Cuit(body.cuitEmpresa)}`
-						.split("-")
-						.map((v, i) => [
-							`empleador.cuit.${["tipo", "id", "verificador"][i]}`,
-							v,
-						])
-				),
-				"empleador.razon_social": body.razonSocial,
-				"empleador.domicilio": body.domicilioEmpresa,
-				"empleador.localidad": body.nombreLocalidadEmpresa,
-				"empleador.provincia": body.provinciaNombreEmpresa,
-				"empleador.actividad": body.actividadEmpresa,
-				"empleador.telefono": [body.telefonoEmpresa, body.celularEmpresa]
-					.filter((r) => r)
-					.join(", "),
-				"empleador.correo": body.emailEmpresa,
-			};
 			audit({
 				modulo: "Consultas",
 				proceso: "SolicitudPreviaAfiliacion",
-				parametros: data,
-				observaciones: `Emite PDF`,
+				parametros: datos[0],
+				observaciones: "Emite PDF con generador nuevo",
 			});
-			solicitudAfiliacion({
-				data,
-				onLoad: (base64) => setState((o) => ({ ...o, base64 })),
-			});
-		};
 
+			// Genera y DESCARGA. Además, deja data-uri para previsualizar en el iframe.
+			const base64 = await generarPDFLibSolicitudAfiliacion({
+				datos,
+				descargar: true, // descarga automática "Solicitud_Afiliacion.pdf"
+				onBase64: () => { }, // ya devolvemos abajo
+				setPaginaActual: () => { },
+				setTotalPaginas: () => { },
+			});
+			setState((o) => ({ ...o, base64: `data:application/pdf;base64,${base64}` }));
+		};
+		
 		//#region Validaciones AFIP
 		setPadronAFIPQuery((o) => ({
 			...o,

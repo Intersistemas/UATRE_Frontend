@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
@@ -37,10 +37,11 @@ import SearchSelectMaterial, {
 import moment from "moment/moment";
 import useSolicitudAfiliacion from "../consultas/solicitudAfiliacion/SolicitudAfiliacion";
 import { useSelector } from "react-redux";
-
-const onChangeDef = (changes = {}) => {};
-const onCloseDef = (confirm = false) => {};
-const onValidateDef = (confirm = false) => {};
+import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
+import "./GestionOSForm.responsive.css";
+const onChangeDef = (changes = {}) => { };
+const onCloseDef = (confirm = false) => { };
+const onValidateDef = (confirm = false) => { };
 
 /**
  * Proceso a ejecutar posterior carga
@@ -177,6 +178,8 @@ const GestionOSForm = ({
   });
   const [documentacionList, setDocumentacionList] = useState([]);
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
+  //ModificacionMauro
+  const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -185,99 +188,21 @@ const GestionOSForm = ({
     documentacionOK: false,
   });
 
+  const toSafeString = (v) => {
+    if (v == null) return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    // si viene como evento o con { value }
+    if (typeof v === "object") {
+      if ("target" in v) return String(v.target?.value ?? "");
+      if ("value" in v) return String(v.value ?? "");
+    }
+    return "";
+  };
+
+  const ultimoDniBuscadoRef = useRef("");
+
   // const [busy, setBusy] = useState({ busy: false, text: "" });
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-  //#endregion
-
-  //#region EMAIL
-  //Se debe procesar el(envio de email)
-  const sendEnviarEmailHandler = async () => {
-    loading = true;
-    const adjuntos = (documentacionList || []).map((r) => ({
-      fileName: r.nombreArchivo,
-      contentType: "application/octet-stream", // o usa el real si lo tienes
-      base64Data: r.archivo,
-    }));
-    // const localidadUsuario = `${
-    //   usuarioLogueado.ambitoSeccionales == null
-    //     ? seccionalSelect.selected.record.localidad
-    //     : usuarioLogueado.ambitosDescripciones[0]?.localidadDescripcion
-    // }, `;
-
-    //const localidadUsuario = `${seccionalSelect?.selectedAditionalData?.localidadNombre}, `;
-    const localidadUsuario = seccionalSelect?.options.find(
-      (o) => o.value === seccionalSelect.selected.value
-    )?.record?.localidadNombre;
-
-    const emails = [
-      usuarioLogueado.email,
-      data?.emailContacto ?? [],
-      data?.emailContacto2 ?? [],
-    ];
-    //console.log("seccionalSelect1", seccionalSelect);
-    //console.log("localidadUsuario",localidadUsuario)
-
-    pushQuery({
-      action: "EnviarCorreo",
-      config: {
-        body: {
-          to: [data?.direccionesEmailDestino] ?? [],
-          cco: emails.filter((email) => email),
-          attachments: adjuntos,
-          cuerpo:
-            `<p><strong>${localidadUsuario ?? " "}, ${moment().format(
-              "DD/MM/YYYY"
-            )}</strong><br></br>` +
-            `${data.gestionObraSocialDescripcion}<br></br>${data.gestionAreaOspreraDescripcion}<br></br><br></br>` +
-            `En representación del Afiliado <strong>${
-              !!data.titularPaciente
-                ? data?.apellidoTitular
-                : data?.apellidoPaciente
-            } ${
-              !!data.titularPaciente
-                ? data?.nombreTitular
-                : data?.nombrePaciente
-            }</strong>, con DNI Nº <strong>${
-              data?.dniPaciente ?? ""
-            }</strong>, Afiliado Nº <strong>${
-              data?.cuitTitular ?? ""
-            }</strong> ` +
-            `se solicita <strong>${gestionRubroSelect?.selected?.label}</strong> sobre <strong>${gestionSubRubroSelect?.selected?.label}</strong> conforme lo que se detalla a continuación;<br></br>` +
-            `<strong>${data?.texto}</strong>, adjuntando la documentación respectiva en su caso.<br><br/>` +
-            `Tipo de Adjuntos: <strong>${
-              documentacionList.length === 0
-                ? "Sin archivos adjuntos"
-                : documentacionList
-                    .map((a) => a.refTipoDocumentacionDescripcion)
-                    .join("/ ")
-            }</strong><br></br>` +
-            `Se requiere que se brinde la misma a la mayor brevedad posible o se me indique al mail o teléfono que se detalla al pie los pasos a seguir al respecto.<br><br/>` +
-            `La presente se origina por la imposibilidad del Afiliado de la referencia de realizarla por sus propios medios.<br><br/>` +
-            `En caso de negativa de respuesta al presente, el afiliado realizará la respectiva denuncia ante la Superintendencia de Servicios de Salud, por la falta de atención de parte de esa Obra Social.<br><br/>` +
-            `Muchas gracias.<br></br>MAIL: <strong>${usuarioLogueado.email}</strong><br></br>TELEFONO: <strong>${usuarioLogueado.phoneNumber}</strong></p>`,
-        },
-      },
-      onOk: async (ok) => {
-        const estadoEnviado = gestionEstadoSelect.options.find(
-          (o) => o.label.toString().trim() === "ENVIADO"
-        );
-        if (estadoEnviado) {
-          onChange({ gestionEstadoId: estadoEnviado?.value });
-        }
-
-        setDialogTexto("Se ha enviado un email a la dirección ingresada.");
-        setOpenDialog(true);
-      },
-      onError: async (error) => {
-        setDialogTexto(error?.message || "Error al enviar el email.");
-        setOpenDialog(true);
-      },
-      onFinally: async () => {
-        loading = false;
-        //onClose(true)
-      },
-    });
-  };
   //#endregion
 
   //#region DISABLED 0303
@@ -353,6 +278,18 @@ const GestionOSForm = ({
 
   //#endregion
 
+  //Modificacion Mauro
+  useEffect(() => {
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: {},
+      onOk: (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setUltimoIdGestion(arr?.[0]?.id ?? null);
+      },
+    });
+  }, []);
+
   //#region Cambios atenciones previas
   useEffect(() => {
     const changes = {};
@@ -396,9 +333,9 @@ const GestionOSForm = ({
   useEffect(() => {
     if (
       data?.gestionRubroDescripcion?.toString().toLowerCase() ===
-        "uso app/wapp" ||
+      "uso app/wapp" ||
       data?.gestionRubroDescripcion?.toString().toLowerCase() ===
-        "registro de reclamos"
+      "registro de reclamos"
     ) {
       onChange({ medioGestion: "telefono" });
       setDisabledItems((o) => ({ ...o, medioGestion: true }));
@@ -433,70 +370,54 @@ const GestionOSForm = ({
     setDisabledItems((o) => ({ ...o, ...changes }));
   }, [data?.medioGestion]);
 
-  const onDownloadSolicitudAfiliacion = (conDatos) => {
-    const match = data?.cuitTitular?.toString()?.match(/^(\d{2})(\d{8})(\d)$/);
-    const { empleador } = titular || {};
-    const domicilioFiscal = empleador?.domicilios?.find(
-      (r) => r.tipoDomicilio === "FISCAL"
-    );
+  //Nuevo Mauro
+  const onDownloadSolicitudAfiliacion = async (conDatos) => {
+    const emp = titular?.empleador || {};
+    const domFiscal = Array.isArray(emp?.domicilios)
+      ? emp.domicilios.find(d => d?.tipoDomicilio === "FISCAL")
+      : null;
 
-    const dataFormulario = {
-      "seccional.codigo": seccionalSelect?.selected?.record?.codigo,
-      ...Object.fromEntries(
-        `${moment().format("YYYY-MM-DD") || ""}`
-          .split("-")
-          .map((v, i) => [`fecha.${["anio", "mes", "dia"][i]}`, v])
-      ),
-      ...Object.fromEntries(
-        `${Formato.Cuit(data?.cuitTitular)}`
-          .split("-")
-          .map((v, i) => [
-            `trabajador.cuil.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "trabajador.documento": ["DNI", match[2]].join(" "),
-      "trabajador.nacionalidad": "",
-      "trabajador.apellidos": data?.apellidoTitular,
-      "trabajador.nombres": data?.nombreTitular,
-      "trabajador.nacimiento.fecha": Formato.Fecha(data?.fechaNacimiento),
-      "trabajador.estado_civil": "", //estadoCivilSelect?.selected?.label,
-      "trabajador.sexo": sexoSelect?.selected?.label,
-      "trabajador.domicilio": data.domicilio,
-      "trabajador.localidad": data.localidad,
-      "trabajador.provincia": data.provincia,
-      "trabajador.oficio": "", //oficioSelect?.selected?.label,
-      "trabajador.actividad": data.actividad,
-      "trabajador.telefono": data?.telefonoContacto,
-      "trabajador.correo": data?.emailContacto,
-      "trabajador.cuil": data?.cuitTitular,
+    const datos = conDatos ? [{
+      fecha: moment().format("DD/MM/YYYY"),
+      seccional_nro: seccionalSelect?.selected?.record?.codigo || "",
+      afiliado_nro: "",
+      trabajador: {
+        cuil: Formato.Cuit(data?.cuitTitular),
+        tipo_doc: tipoDocumentoSelect?.selected?.label || "",
+        nro_doc: (data?.dniPaciente ?? "").toString(),
+        nacionalidad: "",
+        apellidos: data?.apellidoTitular,
+        nombres: data?.nombreTitular,
+        fecha_nacimiento: moment(data?.fechaNacimiento).format("DD/MM/YYYY"),
+        estado_civil: "",
+        sexo: sexoSelect?.selected?.label || "",
+        domicilio: data?.domicilio || "",
+        localidad: data?.localidad || "",
+        provincia: data?.provincia || "",
+        oficio: "",
+        actividad: data?.actividad || "",
+        telefono: [data?.telefonoContacto, data?.telefonoContacto2].filter(Boolean).join(", "),
+        email: [data?.emailContacto, data?.emailContacto2].filter(Boolean).join(", "),
+      },
+      empleador: {
+        cuit: Formato.Cuit(emp?.cuit),
+        razon_social: emp?.razonSocial || emp?.nombre_o_razon_social || "",
+        domicilio: [domFiscal?.calle, domFiscal?.numero].filter(Boolean).join(" "),
+        localidad: domFiscal?.localidad || "",
+        provincia: domFiscal?.descripcionProvincia || "",
+        actividad: emp?.descripcionActividadPrincipal || emp?.actividad || "",
+        telefono: "",
+        email: "",
+      },
+    }] : [{}];
 
-      //Empleador
-      "empleador.razon_social": empleador?.razonSocial,
-      ...Object.fromEntries(
-        `${Formato.Cuit(empleador?.cuit)}`
-          .split("-")
-          .map((v, i) => [
-            `empleador.cuit.${["tipo", "id", "verificador"][i]}`,
-            v,
-          ])
-      ),
-      "empleador.actividad": empleador?.descripcionActividadPrincipal,
-      "empleador.domicilio": `${domicilioFiscal?.calle} ${domicilioFiscal?.numero}`,
-      "empleador.localidad": domicilioFiscal?.localidad,
-      "empleador.provincia": domicilioFiscal?.descripcionProvincia,
-      "empleador.telefono": "", //empleador?.telefonoEmpleador,
-      "empleador.correo": "", //empleador?.emailEmpleador,
-    };
-    //if (request !== "A") return;
-    conDatos
-      ? solicitudAfiliacion({
-          data: dataFormulario,
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        })
-      : solicitudAfiliacion({
-          onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
-        });
+    await generarPDFLibSolicitudAfiliacion({
+      datos,
+      descargar: true,
+      onBase64: () => { },
+      setPaginaActual: () => { },
+      setTotalPaginas: () => { },
+    });
   };
 
   const { setState: setDocumentosQuery } = useQueryState(
@@ -628,6 +549,7 @@ const GestionOSForm = ({
   //#region consultas API
   const pushQuery = useQueryQueue((action, params) => {
     switch (action) {
+
       case "GetAfiliado": {
         return {
           config: {
@@ -686,9 +608,9 @@ const GestionOSForm = ({
               Accept: "*/*",
             },
             /*body: JSON.stringify({
-							to: to,
-							attachments: attachments,
-						}),*/
+              to: to,
+              attachments: attachments,
+            }),*/
           },
         };
       }
@@ -710,6 +632,24 @@ const GestionOSForm = ({
             baseURL: "Afiliaciones",
             endpoint: `/GestionesSituacion`,
             method: "GET",
+          },
+        };
+      }
+
+      case "GetUltimaGestionPaciente": {
+        // Busca la última gestión por DNI de paciente (1 registro, más reciente)
+        const { dniPaciente } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/GestionOsprera/GetGestionOSpreraSpec`,
+            method: "POST",
+            body: {
+              pageIndex: 1,
+              pageSize: 1,
+              sort: "FechaDesc,IdDesc",
+              ...(dniPaciente ? { dniPaciente } : {}),
+            },
           },
         };
       }
@@ -1188,6 +1128,13 @@ const GestionOSForm = ({
   }, [setGestionObraSocialQuery]);
   //#endregion select GestionesObraSocial
 
+  // Habilitar Observaciones cuando se está en Modificar
+  useEffect(() => {
+    if (request === "M") {
+      setDisabledItems((prev) => ({ ...prev, observacionesEstado: false }));
+    }
+  }, [request]);
+
   useEffect(() => {
     const changes = {};
     if (data.telefono == null) changes.telefono = "+54 9";
@@ -1438,24 +1385,25 @@ const GestionOSForm = ({
     setMostrarAlertas(true);
   };
 
+  //Modificado por Mauro, si se moidfica no se mostrara el modal solo si es para agregar
   const handleCheckDocumentacion = async () => {
-    if (request == "A" || request == "M") {
-      const isValid = await onValidate(true);
-      if (!isValid) return;
+  if (request === "A") {                               
+    const isValid = await onValidate(true);
+    if (!isValid) return;
 
-      if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
-        setModalDocumentacion({ documentacionOK: true });
-      } else {
-        //Modal preguntando documentacion
-        setModalDocumentacion({
-          visible: true,
-          documentacionOK: false,
-        });
-      }
+    if (documentacionList.length !== 0 || data.medioGestion === "telefono") {
+      setModalDocumentacion({ documentacionOK: true });
     } else {
-      handleConfirma();
+      //Modal preguntando documentacion
+      setModalDocumentacion({ 
+        visible: true, 
+        documentacionOK: false 
+      });
     }
-  };
+  } else {
+    handleConfirma();
+  }
+};
 
   useEffect(() => {
     if (!modalDocumentacion?.documentacionOK) {
@@ -1472,25 +1420,25 @@ const GestionOSForm = ({
         !titular.existeEnAFIP
       ) {
         onDownloadSolicitudAfiliacion(false);
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
         setDialogTexto(
           "Debe confeccionar una ficha de Afiliación Manual de UATRE en el formato de Solicitud habitual."
         );
         setOpenDialog(true);
       } else {
-        if (data.medioGestion === "email") {
-          sendEnviarEmailHandler();
-        }
+        // if (data.medioGestion === "email") {
+        //   sendEnviarEmailHandler();
+        // }
 
         if (!titular.existeEnUATRE) {
           onDownloadSolicitudAfiliacion(true);
           setDialogTexto(
             "Se descargó la Solicitud de Afiliación de: " +
-              data?.apellidoTitular +
-              " " +
-              data?.nombreTitular
+            data?.apellidoTitular +
+            " " +
+            data?.nombreTitular
           );
           setOpenDialog(true);
         }
@@ -1636,7 +1584,7 @@ const GestionOSForm = ({
           {
             [
               <Grid col width="full" gap="15px">
-                <Grid width="full" gap="inherit">
+                <Grid width="full" gap="inherit" className="gestionos-top">
                   <Grid>
                     <Grid col>
                       <Grid width="180px">
@@ -1648,13 +1596,13 @@ const GestionOSForm = ({
                           required
                           error={!!errors.cuitTitular}
                           /*helperText={
-											errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
-										}
-										FormHelperTextProps={{
-											sx: {
-											margin: 0, // elimina el margen superior
-											},
-										}}*/
+                      errors.cuitTitular ? errors.cuitTitular : validacionCUIT.validado
+                    }
+                    FormHelperTextProps={{
+                      sx: {
+                      margin: 0, // elimina el margen superior
+                      },
+                    }}*/
                           value={data.cuitTitular}
                           disabled={disabledItems?.cuitTitular}
                           onChange={(value) =>
@@ -1667,38 +1615,38 @@ const GestionOSForm = ({
                       {(titular?.existeEnUATRE ||
                         titular?.existeEnOSPRERA ||
                         titular?.existeEnAFIP) && (
-                        <div>
-                          <h6
-                            style={{
-                              fontSize: "small",
-                              displa:
-                                titular?.existeEnUATRE ||
-                                (!!titular?.existeEnUATRE &&
-                                  titular.existeEnOSPRERA &&
-                                  !!titular.existeEnAFIP)
-                                  ? "none"
-                                  : "flex",
-                            }}
-                          >
-                            {" "}
-                            {titular.existeEnOSPRERA
-                              ? "Titular en Padron OSPRERA"
-                              : titular.existeEnAFIP
-                              ? "Titular en ARCA"
-                              : ""}{" "}
-                          </h6>
-                          <h6 style={{ fontSize: "small" }}>
-                            {titular.existeEnUATRE === true
-                              ? "Afiliado a UATRE"
-                              : titular.existeEnOSPRERA === null &&
-                                titular.existeEnAFIP === null
-                              ? "" //"No se encontraron datos para el CUIL ingresado"
-                              : titular.existeEnUATRE === false
-                              ? "No Afiliado a UATRE"
-                              : ""}
-                          </h6>
-                        </div>
-                      )}
+                          <div>
+                            <h6
+                              style={{
+                                fontSize: "small",
+                                displa:
+                                  titular?.existeEnUATRE ||
+                                    (!!titular?.existeEnUATRE &&
+                                      titular.existeEnOSPRERA &&
+                                      !!titular.existeEnAFIP)
+                                    ? "none"
+                                    : "flex",
+                              }}
+                            >
+                              {" "}
+                              {titular.existeEnOSPRERA
+                                ? "Titular en Padron OSPRERA"
+                                : titular.existeEnAFIP
+                                  ? "Titular en ARCA"
+                                  : ""}{" "}
+                            </h6>
+                            <h6 style={{ fontSize: "small" }}>
+                              {titular.existeEnUATRE === true
+                                ? "Afiliado a UATRE"
+                                : titular.existeEnOSPRERA === null &&
+                                  titular.existeEnAFIP === null
+                                  ? "" //"No se encontraron datos para el CUIL ingresado"
+                                  : titular.existeEnUATRE === false
+                                    ? "No Afiliado a UATRE"
+                                    : ""}
+                            </h6>
+                          </div>
+                        )}
                     </Grid>
                     <Grid col width="120px">
                       <Button
@@ -1716,8 +1664,8 @@ const GestionOSForm = ({
                       </Button>
                     </Grid>
                   </Grid>
-                  <Grid>
-                    <Grid width="230px">
+                  <Grid className="gestionos-row">
+                    <Grid width="300px" className="apellido-col">
                       <InputMaterial
                         id="apellidoTitular"
                         label="Apellido"
@@ -1732,12 +1680,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         }
-                        onChange={(apellidoTitular) =>
-                          onChange({ apellidoTitular })
-                        }
+                        onChange={(apellidoTitular) => onChange({ apellidoTitular })}
                       />
                     </Grid>
-                    <Grid width="380px">
+                    <Grid width="370px" className="nombre-col">
                       <InputMaterial
                         id="nombreTitular"
                         label="Nombre"
@@ -1752,12 +1698,10 @@ const GestionOSForm = ({
                             !titular.existeEnAFIP &&
                             !titular.existeEnOSPRERA)
                         } //disabled.nombreTitular
-                        onChange={(nombreTitular) =>
-                          onChange({ nombreTitular })
-                        }
+                        onChange={(nombreTitular) => onChange({ nombreTitular })}
                       />
                     </Grid>
-                    <Grid col width="180px">
+                    <Grid width="auto" className="gestionos-btn-col">
                       <Button
                         className="botonAzul"
                         onClick={confirmaTitularHandler}
@@ -1772,11 +1716,7 @@ const GestionOSForm = ({
                           !data?.nombreTitular
                         }
                       >
-                        <h6>
-                          {titular?.confirmado
-                            ? `Confirmado`
-                            : `Confirma Titular`}
-                        </h6>
+                        <h6>{titular?.confirmado ? `Confirmado` : `Confirma Titular`}</h6>
                       </Button>
                     </Grid>
                   </Grid>
@@ -2097,7 +2037,10 @@ const GestionOSForm = ({
                           selected,
                           origen: "option",
                         }));
-                        onChange({ gestionSubRubroId: selected.value });
+                        onChange({ gestionSubRubroId: selected.value,
+                          gestionSubRubroDescripcion: selected.label,
+                          gestionSubRubro: selected.label,
+                         });
                       }}
                       options={gestionSubRubroSelect.options}
                     />
