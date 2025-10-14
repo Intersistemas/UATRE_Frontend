@@ -6,8 +6,47 @@ import InputMaterial, { PorcentajeMask } from "components/ui/Input/InputMaterial
 import UseKeyPress from "components/helpers/UseKeyPress";
 import modalCss from "components/ui/Modal/Modal.module.css";
 
-const onChangeDef = (changes = {}) => {};
-const onCloseDef = (confirm = false) => {};
+const onChangeDef = (changes = {}) => { };
+const onCloseDef = (confirm = false) => { };
+
+//Agregado Mauro
+//Normalizar fechas a YYYY-MM-DD
+const toYMD = (val) => {
+	if (!val) return null;
+	if (val instanceof Date && !isNaN(val)) {
+		const y = val.getFullYear();
+		const m = String(val.getMonth() + 1).padStart(2, "0");
+		const d = String(val.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
+	}
+	const s = String(val).trim();
+
+	let m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
+	if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+
+	m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+	if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+
+	m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+	if (m) return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+
+	return null;
+};
+
+const pickDateValue = (v) => {
+	if (v == null) return "";
+	if (v && v.target && typeof v.target.value === "string") return v.target.value;
+	if (v.$d instanceof Date && typeof v.format === "function") return v.format("YYYY-MM-DD");
+	if (typeof v === "string") return v;
+	if (v instanceof Date && !isNaN(v)) {
+		const y = v.getFullYear();
+		const m = String(v.getMonth() + 1).padStart(2, "0");
+		const d = String(v.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
+	}
+	return "";
+};
+
 
 //Agregado Mauro
 //Normalizar fechas a YYYY-MM-DD
@@ -130,7 +169,7 @@ export default function Form({
 									error={!!errors.resarcitorioMensual}
 									helperText={errors.resarcitorioMensual}
 									mask={PorcentajeMask}
-									onChange={(resarcitorioMensual) => onChange({ resarcitorioMensual }) }
+									onChange={(resarcitorioMensual) => onChange({ resarcitorioMensual })}
 								/>
 							)}
 						</Grid>
@@ -144,7 +183,7 @@ export default function Form({
 									error={!!errors.resarcitorioDiario}
 									helperText={errors.resarcitorioDiario}
 									mask={PorcentajeMask}
-									onChange={(resarcitorioDiario) => onChange({ resarcitorioDiario }) }
+									onChange={(resarcitorioDiario) => onChange({ resarcitorioDiario })}
 								/>
 							)}
 						</Grid>
@@ -158,7 +197,7 @@ export default function Form({
 									error={!!errors.punitorioMensual}
 									helperText={errors.punitorioMensual}
 									mask={PorcentajeMask}
-									onChange={(punitorioMensual) => onChange({ punitorioMensual }) }
+									onChange={(punitorioMensual) => onChange({ punitorioMensual })}
 								/>
 							)}
 						</Grid>
@@ -172,7 +211,7 @@ export default function Form({
 									error={!!errors.punitorioDiario}
 									helperText={errors.punitorioDiario}
 									mask={PorcentajeMask}
-									onChange={(punitorioDiario) => onChange({ punitorioDiario }) }
+									onChange={(punitorioDiario) => onChange({ punitorioDiario })}
 								/>
 							)}
 						</Grid>
@@ -192,6 +231,20 @@ export default function Form({
 			</Modal.Body>
 			<Modal.Footer>
 				<Grid gap="20px">
+					{errors?._global && (
+						<div
+							role="alert"
+							style={{
+								color: "#f00e0eff",
+								fontSize: "0.95rem",
+								fontWeight: 350,
+								marginTop: -8,
+							}}
+							aria-live="polite"
+						>
+							{errors._global}
+						</div>
+					)}
 					<Grid width="150px">
 						<Button className="botonAzul" onClick={() => onClose(true)}>
 							CONFIRMA
