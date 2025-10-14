@@ -275,15 +275,12 @@ const GestionOSForm = ({
         if (estadoEnviado) {
           onChange({ gestionEstadoId: estadoEnviado?.value });
         }
-      }, 
-    }); 
-  }; 
+        
+         },
+});
+}; 
 
 
-
-  // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-  //#endregion
 
   //Este codigo de bloque rellena automaticamente
   useEffect(() => {
