@@ -333,7 +333,7 @@ const useLiquidacionesCabecera = ({
           }
           if (list.selection.request !== "B") {
             r.refMotivoBajaId = true;
-            // r.deletedObs = true;
+            r.deletedObs = true;
           }
           return r;
         })()}
@@ -383,7 +383,7 @@ const useLiquidacionesCabecera = ({
           if (list.selection.request === "B") {
             if (!record.refMotivoBajaId)
               errors.refMotivoBajaId = "Dato requerido";
-            // if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+            if (!record.deletedObs) errors.deletedObs = "Dato requerido";
           } else {
             // if (!record.afiliadoId)
             // 	errors.afiliadoCUIL = "Debe ingresar un afiliado existente";
