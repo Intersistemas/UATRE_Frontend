@@ -27,6 +27,26 @@ const selectionDef = {
 	errors: null,
 };
 
+const toLocalDateTimeString = (d, { endOfDay = false } = {}) => {
+  if (!d) return undefined;
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return undefined;
+  if (endOfDay) {
+    date.setHours(23, 59, 59, 999);
+  } else {
+    date.setHours(0, 0, 0, 0);
+  }
+  const pad = (n, s = 2) => String(n).padStart(s, "0");
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const HH = pad(date.getHours());
+  const MM = pad(date.getMinutes());
+  const SS = pad(date.getSeconds());
+  const mmm = String(date.getMilliseconds()).padStart(3, "0");
+  return `${yyyy}-${mm}-${dd}T${HH}:${MM}:${SS}.${mmm}`;
+};
+
 export const onLoadSelectFirst = ({ data, multi, record }) => {
 	const dataArray = AsArray(data);
 	if (multi) {
@@ -51,6 +71,17 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 export const onLoadSelectKeep = ({ record }) => record;
 
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) => record ?? onLoadSelectFirst({ data, multi, record });
+
+const mapGetListParams = (p = {}) => {
+  const out = {};
+  if (p.estadoSolicitudId != null) out.EstadoSolicitudId = p.estadoSolicitudId;
+  if (p.seccionalId != null) out.SeccionalId = p.seccionalId;
+  if (p.empresaCUIT) out.EmpresaCUIT = String(p.empresaCUIT);
+  if (p.fechaDesde) out.FechaDesde = toLocalDateTimeString(p.fechaDesde, { endOfDay: false });
+  if (p.fechaHasta) out.FechaHasta = toLocalDateTimeString(p.fechaHasta, { endOfDay: true });
+
+  return out;
+};
 
 export const onDataChangeDef = (data = []) => {};
 
@@ -94,9 +125,9 @@ const useAfiliacionesPorEmpresa = ({
 					config: {
 						baseURL: "Afiliaciones",
             			endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
-						method: "POST",
+						method: "GET",
 					},
-				//-	params: otherParams,
+					params: otherParams,
 				};
 			}
 			
@@ -262,53 +293,47 @@ const useAfiliacionesPorEmpresa = ({
 			return;
 		}*/
 		changes.data = [];
-		const soloLetras = /^[A-Za-z]+$/;
-		const filtro = list?.params?.filtro
 
-		
-		pushQuery({
-			action: "GetList",
-			config: {
-				body: {
-					...list.params,
-					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size,
-					ambitoTodos: usuario.ambitoTodos,
-					ambitoSeccionales: usuario.ambitoSeccionales,
-					ambitoDelegaciones: usuario.ambitoDelegaciones,
-					ambitoProvincias: usuario.ambitoProvincias,
-					sort: "-Id",
-					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
-				},
-			},
-			
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				console.log("data de la solicitud modificada:",data)
-				changes.data = data;
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { index, size, count };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
-
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
+   pushQuery({
+     action: "GetList",
+   params: {
+      pageIndex: list.pagination.index,
+      pageSize: list.pagination.size,
+      orderBy: list.params?.orderBy ?? "IdDesc",
+      ...mapGetListParams(list.params), 
+    },
+     onOk: async ({ index, size, count, data }) => {
+       if (!Array.isArray(data)) {
+         console.error("Se esperaba un arreglo", data);
+         return;
+       }
+       console.log("data de la solicitud modificada:", data);
+       changes.data = data;
+       const multi = list.selection.multi;
+       const record = list.selection.record;
+       changes.pagination = { index, size, count };
+       changes.selection = {
+         ...list.selection,
+         ...selectionDef,
+         record: list.onLoadSelect({ data, multi, record })
+       };
+       changes.selection.index = multi
+         ? changes.selection.record?.map((r) => changes.data.indexOf(r))
+         : changes.data.indexOf(changes.selection.record);
+       list.onDataChange(changes.data);
+     },
+     onError: async (error) => {
+       if (error.code === 404) {
+         return;
+       }
+       changes.error = error;
+       changes.selection = { ...list.selection, ...selectionDef };
+     },
+     onFinally: async () => {
+       setList((o) => ({ ...o, ...changes }));
+     }
+   });
 	}, [pushQuery, list]);
 	//#endregion
 
