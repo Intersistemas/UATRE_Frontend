@@ -465,12 +465,10 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 
 
-
 	let form = null;
 
 	if (list.selection.request) {
 		const row = list.selection.edit ?? list.selection.record ?? {};
-
 
 		const handleClose = () => {
 			setList((o) => ({
