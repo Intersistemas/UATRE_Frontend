@@ -11,6 +11,7 @@ import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
 import PDF_SolicitudAfiliacionHandler from "../afiliados/PDF_AFILIACION/PDF_SolicitudAfiliacionHandler";
 import { generarPDFLibSolicitudAfiliacion } from "../afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
+import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
 	const navigate = useNavigate();
@@ -96,22 +97,19 @@ const ConsultasHandler = () => {
 					</Button>
 					{/* ///////////////////////////////0/////////////////////////////////// */}
 				</Grid>
+				{process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" && (
 				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
-						onClick={() =>
-							setConsulta(
-								<SolicitudAfiliacionForm onClose={() => setConsulta(null)} />
-							)
-						}
+						onClick={() => navigate("SolicitudesAfiliacion")}
 						width="32"
 						tarea="Consultas_SolicitudPreviaAfiliacion"
 					>
-						Solicitud previa de afiliación
+						Solicitudes de Afiliación
 					</Button>
-				</Grid>
+				</Grid>)}	
 
-				
+
 				
 				<Grid width gap="inherit" justify="evenly">
 					<Button

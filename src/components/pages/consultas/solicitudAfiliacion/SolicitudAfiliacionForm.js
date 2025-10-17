@@ -159,7 +159,14 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
+const SolicitudAfiliacionForm = ({
+	title = "Solicitud previa de afiliación",
+	data = {},
+	readOnly = false,
+	hidePrint = false,
+	onClose = () => { },
+}) => {
+
 	//#region APIs
 	const { setState: setSeccionalesQuery } = useQueryState(
 		() => ({
@@ -577,6 +584,82 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 
 	//#endregion selects empleador
 
+	// PREFILL (data  readOnly)
+	useEffect(() => {
+		if (!data || Object.keys(data).length === 0) return;
+		setState((o) => ({
+			...o,
+			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+		}));
+	}, [data, readOnly]);
+
+	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+		if (!id) return;
+		setter((o) => {
+			const hit = (o.options || optionsState.options || []).find(match) || {};
+			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+		});
+	};
+
+	// Prefill selects
+	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => {
+		if (!trabPciaSelect.options?.length) return;
+		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+	}, [trabPciaSelect.options, data?.provinciaId]);
+	useEffect(() => {
+		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setTrabLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+	useEffect(() => {
+		if (!emplPciaSelect.options?.length) return;
+		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+	useEffect(() => {
+		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setEmplLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+
+	// READONLY flags
+	const isRO = !!readOnly;
+	const disTrab = isRO || !state.validado.trabajador;
+	const disEmpl = isRO || !state.validado.empleador;
+
+
+
 	//#endregion selects
 
 	//#region inicializaciones
@@ -765,6 +848,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 					<Grid width>
 						<SearchSelectMaterial
 							id="seccionalId"
+							readOnly={isRO}
 							autoFocus
 							label="Seccional"
 							error={
@@ -826,6 +910,8 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 						<InputMaterial
 							id="fecha"
 							type="date"
+							disabled={isRO}
+							readOnly={isRO}
 							label="Fecha"
 							value={state.form.fecha}
 							error={state.errors.fecha}
@@ -855,6 +941,8 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<Grid width="200px">
 								<InputMaterial
 									id="cuil"
+									disabled={isRO}
+									readOnly={isRO}
 									autoFocus={false}
 									mask={CUITMask}
 									label="CUIL"
@@ -875,6 +963,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<Grid col width="100px">
 								<Button
 									className="botonAzul"
+									disabled={isRO}
 									onClick={() => {
 										const changes = {
 											form: {},
@@ -998,6 +1087,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								<SearchSelectMaterial
 									id="tipoDocumentoId"
 									label="Tipo Doc."
+									readOnly={isRO}
 									error={
 										!!(
 											tipoDocumentoSelect.error || state.errors.tipoDocumentoId
@@ -1040,6 +1130,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									id="documento"
 									mask={DNIMask}
 									label="Número Doc."
+									readOnly={isRO}
 									value={state.form.documento}
 									error={!!state.errors.documento}
 									helperText={state.errors.documento}
@@ -1059,6 +1150,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								<SearchSelectMaterial
 									id="nacionalidadSelect"
 									label="Nacionalidad"
+									readOnly={isRO}
 									error={
 										!!(nacionalidadSelect.error || state.errors.nacionalidadId)
 									}
@@ -1099,6 +1191,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<InputMaterial
 								id="apellido"
 								label="Apellidos"
+								readOnly={isRO}
 								value={state.form.apellido}
 								error={!!state.errors.apellido}
 								helperText={state.errors.apellido}
@@ -1116,6 +1209,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<InputMaterial
 								id="nombre"
 								label="Nombres"
+								readOnly={isRO}
 								value={state.form.nombre}
 								error={!!state.errors.nombre}
 								helperText={state.errors.nombre}
@@ -1136,6 +1230,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								id="fechaNacimiento"
 								type="date"
 								label="Fecha de nacimiento"
+								readOnly={isRO}
 								value={state.form.fechaNacimiento}
 								error={state.errors.fechaNacimiento}
 								disabled={!state.validado.trabajador}
@@ -1152,6 +1247,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<SearchSelectMaterial
 								id="estadoCivilSelect"
 								label="Estado civil"
+								readOnly={isRO}
 								error={
 									!!(estadoCivilSelect.error || state.errors.estadoCivilId)
 								}
@@ -1189,6 +1285,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<SearchSelectMaterial
 								id="sexoSelect"
 								label="Sexo"
+								readOnly={isRO}
 								error={!!(sexoSelect.error || state.errors.sexoId)}
 								helperText={
 									sexoSelect.loading ?? sexoSelect.error ?? state.errors.sexoId
@@ -1216,6 +1313,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<InputMaterial
 								id="domicilio"
 								label="Domicilio real"
+								readOnly={isRO}
 								value={state.form.domicilio}
 								error={!!state.errors.domicilio}
 								helperText={state.errors.domicilio}
@@ -1240,7 +1338,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									state.errors.provinciaId
 								}
 								value={trabPciaSelect.selected}
-								disabled={!state.validado.trabajador}
+								disabled={disTrab}
 								onChange={(selected = {}) => {
 									setTrabPciaSelect((o) => ({
 										...o,
@@ -1293,6 +1391,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<SearchSelectMaterial
 								id="trabLocaSelect"
 								label="Localidad"
+								readOnly={isRO}
 								error={
 									!!(
 										trabLocaSelect.error || state.errors.refLocalidadIdAfiliado
@@ -1337,7 +1436,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									state.errors.oficioId
 								}
 								value={oficioSelect.selected}
-								disabled={!state.validado.trabajador}
+								disabled={disTrab}
 								onChange={(selected = {}) => {
 									setOficioSelect((o) => ({
 										...o,
@@ -1370,7 +1469,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									state.errors.actividadIdAfiliado
 								}
 								value={actividadSelect.selected}
-								disabled={!state.validado.trabajador}
+								disabled={disTrab}
 								onChange={(selected = {}) => {
 									setActividadSelect((o) => ({
 										...o,
@@ -1395,12 +1494,13 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 						<Grid width gap="inherit">
 							<InputMaterial
 								id="telefono"
+								readOnly={isRO}
 								type="tel"
 								label="Teléfono"
 								value={state.form.telefono}
 								error={!!state.errors.telefono}
 								helperText={state.errors.telefono}
-								disabled={!state.validado.trabajador}
+								disabled={disTrab}
 								onChange={(telefono) =>
 									setState((o) => ({
 										...o,
@@ -1412,30 +1512,12 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								}
 							/>
 							<InputMaterial
-								id="celular"
-								type="tel"
-								label="Celular"
-								value={state.form.celular}
-								error={!!state.errors.celular}
-								helperText={state.errors.celular}
-								disabled={!state.validado.trabajador}
-								onChange={(celular) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celular,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
 								id="email"
 								label="Correo"
 								value={state.form.email}
 								error={!!state.errors.email}
 								helperText={state.errors.email}
-								disabled={!state.validado.trabajador}
+								disabled={disTrab}
 								onChange={(email) =>
 									setState((o) => ({
 										...o,
@@ -1463,77 +1545,50 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									value={state.form.cuitEmpresa}
 									error={!!state.errors.cuitEmpresa}
 									helperText={state.errors.cuitEmpresa}
+									disabled={isRO}
 									onChange={(v) =>
 										setState((o) => ({
 											...o,
-											form: {
-												...o.form,
-												cuitEmpresa: v.replace(/[^0-9]+/g, ""),
-											},
+											form: { ...o.form, cuitEmpresa: v.replace(/[^0-9]+/g, "") },
 										}))
 									}
 								/>
 							</Grid>
 							<Grid col width="100px">
+
 								<Button
 									className="botonAzul"
+									disabled={isRO}
 									onClick={() => {
-										const changes = {
-											form: {},
-											errors: { cuitEmpresa: "" },
-										};
+										const changes = { form: {}, errors: { cuitEmpresa: "" } };
 										const cuit = state.form.cuitEmpresa;
 										const apply = () =>
 											setState((o) => {
-												const state = {
+												const s = {
 													...o,
-													form: {
-														...o.form,
-														...changes.form,
-													},
-													errors: {
-														...o.errors,
-														...changes.errors,
-													},
+													form: { ...o.form, ...changes.form },
+													errors: { ...o.errors, ...changes.errors },
 												};
-												state.validado = {
-													...o.validado,
-													empleador: true//!state.errors.cuitEmpresa,
-												};
-												return state;
+												s.validado = { ...o.validado, empleador: true };
+												return s;
 											});
 										if (cuit) {
 											setPadronAFIPQuery((o) => ({
 												...o,
 												loading: "Empleador",
-												query: {
-													...o.query,
-													params: { ...o.query.params, cuit },
-												},
+												query: { ...o.query, params: { ...o.query.params, cuit } },
 												onLoad: ({ query, ok, error }) => {
 													if (error) {
-														if (error.code === 404) {
-															changes.errors.cuitEmpresa = "No existe en ARCA";
-														} else {
-															changes.errors.cuitEmpresa = error.toString();
-															audit({
-																modulo: "Consultas",
-																proceso: "SolicitudPreviaAfiliacion",
-																parametros: { ...query.params, ingreso: "empleador" },
-																observaciones: `Error consulta AFIP: ${error.toString()}`,
-															});
-														}
+														changes.errors.cuitEmpresa =
+															error.code === 404 ? "No existe en ARCA" : error.toString();
 													} else {
-														changes.form.razonSocial =
-															ok.razonSocial || ok.nombre;
+														changes.form.razonSocial = ok.razonSocial || ok.nombre;
 														if (ok.domicilios?.length) {
 															const domicilio =
-																ok.domicilios.find(
-																	(r) => r.tipoDomicilio === "LEGAL/REAL"
-																) ?? ok.domicilios[0];
-															changes.form.domicilioEmpresa =
-																domicilio.direccion;
-															//Modificado Mauro
+																ok.domicilios.find((r) => r.tipoDomicilio === "LEGAL/REAL") ??
+																ok.domicilios[0];
+															changes.form.domicilioEmpresa = domicilio.direccion;
+
 															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
 															const pcia =
 																(emplPciaSelect.options || []).find(
@@ -1551,45 +1606,53 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 																	...o,
 																	query: {
 																		...o.query,
-																		params: { ...o.query.params, provinciaId: pcia.value },
+																		params: {
+																			...o.query.params,
+																			provinciaId: pcia?.value,
+																		},
 																	},
 																	onPreLoad: () =>
-																		setEmplLocaSelect((o) => ({ ...o, loading: "Cargando..." })),
+																		setEmplLocaSelect((s) => ({
+																			...s,
+																			loading: "Cargando...",
+																		})),
 																	onLoad: ({ ok, error }) =>
-																		setEmplLocaSelect((o) => ({
-																			...o,
+																		setEmplLocaSelect((s) => ({
+																			...s,
 																			data: Array.isArray(ok) ? ok : [],
 																			loading: null,
 																			error: error?.toString(),
 																			buscar: domicilio?.localidad ?? "",
-																			selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																			selected: {
+																				record: { nombre: domicilio?.localidad ?? "" },
+																			},
 																			origen: "text",
 																		})),
 																}));
 															} else {
-																// Fallback: no matcheó provincia por id → dejamos “texto” y localidad por texto
 																setEmplPciaSelect((o) => ({
 																	...o,
-																	selected: { record: { id: 0, nombre: domicilio?.provincia ?? "" } },
+																	selected: {
+																		record: { id: 0, nombre: domicilio?.provincia ?? "" },
+																	},
 																	origen: "text",
 																}));
 																setEmplLocaSelect((o) => ({
 																	...o,
 																	data: o.data ?? [],
-																	selected: { record: { nombre: domicilio?.localidad ?? "" } },
+																	selected: {
+																		record: { nombre: domicilio?.localidad ?? "" },
+																	},
 																	origen: "text",
 																}));
 															}
-
 														}
+
 														if (ok.idActividadPrincipal) {
 															const actividad = ciiuSelect.options.find(
 																(r) => r.record.ciiu === ok.idActividadPrincipal
 															);
-															setCiiuSelect((o) => ({
-																...o,
-																selected: actividad,
-															}));
+															setCiiuSelect((o) => ({ ...o, selected: actividad }));
 														}
 													}
 													apply();
@@ -1613,15 +1676,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 									value={state.form.razonSocial}
 									error={!!state.errors.razonSocial}
 									helperText={state.errors.razonSocial}
-									disabled={!state.validado.empleador}
+									disabled={disEmpl}
 									onChange={(razonSocial) =>
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												razonSocial,
-											},
-										}))
+										setState((o) => ({ ...o, form: { ...o.form, razonSocial } }))
 									}
 								/>
 							</Grid>
@@ -1630,6 +1687,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<InputMaterial
 								id="domicilioEmpresa"
 								label="Domicilio real"
+								readOnly={isRO}
 								value={state.form.domicilioEmpresa}
 								error={!!state.errors.domicilioEmpresa}
 								helperText={state.errors.domicilioEmpresa}
@@ -1647,41 +1705,31 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<SearchSelectMaterial
 								id="emplPciaSelect"
 								label="Provincia"
-								error={
-									!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)
-								}
+								error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
 								helperText={
 									emplPciaSelect.loading ??
 									emplPciaSelect.error ??
 									state.errors.provinciaidEmpresa
 								}
 								value={emplPciaSelect.selected}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(selected = {}) => {
-									setEmplPciaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-
+									setEmplPciaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setLocalidadesQuery((o) => ({
 										...o,
 										query: {
 											...o.query,
-											params: {
-												...o.query.params,
-												provinciaId: selected.value,
-											},
+											params: { ...o.query.params, provinciaId: selected.value },
 										},
 										onPreLoad: () =>
-											setEmplLocaSelect((o) => ({
-												...o,
+											setEmplLocaSelect((s) => ({
+												...s,
 												selected: {},
 												loading: "Cargando...",
 											})),
 										onLoad: ({ ok, error }) =>
-											setEmplLocaSelect((o) => ({
-												...o,
+											setEmplLocaSelect((s) => ({
+												...s,
 												data: Array.isArray(ok) ? ok : [],
 												loading: null,
 												error: error?.toString(),
@@ -1708,22 +1756,17 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 							<SearchSelectMaterial
 								id="emplLocaSelect"
 								label="Localidad"
-								error={
-									!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)
-								}
+								readOnly={isRO}
+								error={!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)}
 								helperText={
 									emplLocaSelect.loading ??
 									emplLocaSelect.error ??
 									state.errors.refLocalidadIdEmpresa
 								}
 								value={emplLocaSelect.selected}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(selected = {}) => {
-									setEmplLocaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
+									setEmplLocaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
 										...o,
 										form: {
@@ -1745,12 +1788,10 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								label="Actividad"
 								error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
 								helperText={
-									ciiuSelect.loading ??
-									ciiuSelect.error ??
-									state.errors.actividadIdEmpresa
+									ciiuSelect.loading ?? ciiuSelect.error ?? state.errors.actividadIdEmpresa
 								}
 								value={ciiuSelect.selected}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(selected = {}) => {
 									setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -1776,15 +1817,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								value={state.form.telefonoEmpresa}
 								error={!!state.errors.telefonoEmpresa}
 								helperText={state.errors.telefonoEmpresa}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(telefonoEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											telefonoEmpresa,
-										},
-									}))
+									setState((o) => ({ ...o, form: { ...o.form, telefonoEmpresa } }))
 								}
 							/>
 							<InputMaterial
@@ -1794,15 +1829,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								value={state.form.celularEmpresa}
 								error={!!state.errors.celularEmpresa}
 								helperText={state.errors.celularEmpresa}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(celularEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celularEmpresa,
-										},
-									}))
+									setState((o) => ({ ...o, form: { ...o.form, celularEmpresa } }))
 								}
 							/>
 							<InputMaterial
@@ -1811,15 +1840,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 								value={state.form.emailEmpresa}
 								error={!!state.errors.emailEmpresa}
 								helperText={state.errors.emailEmpresa}
-								disabled={!state.validado.empleador}
+								disabled={disEmpl}
 								onChange={(emailEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											emailEmpresa,
-										},
-									}))
+									setState((o) => ({ ...o, form: { ...o.form, emailEmpresa } }))
 								}
 							/>
 						</Grid>
@@ -2000,7 +2023,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 		}
 		//Modif Mauro
 		const despliega = async () => {
-			// Mapeo a la estructura del nuevo generador
+			//  Mapeo al contrato del generador nuevo
 			const datos = [{
 				fecha: Formato.Fecha(body.fecha),
 				seccional_nro: body.seccionalCodigo || "",
@@ -2020,7 +2043,7 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 					provincia: body.provinciaNombre,
 					oficio: body.oficio,
 					actividad: body.actividadAfiliado,
-					telefono: body.celular,
+					telefono: body.telefono,
 					email: body.email,
 				},
 				empleador: {
@@ -2034,23 +2057,26 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 					email: body.emailEmpresa,
 				},
 			}];
-
 			audit({
 				modulo: "Consultas",
 				proceso: "SolicitudPreviaAfiliacion",
 				parametros: datos[0],
-				observaciones: "Emite PDF con generador nuevo",
+				observaciones: "Emite PDF con generador PDF-LIB",
 			});
 
-			// Genera y DESCARGA. Además, deja data-uri para previsualizar en el iframe.
+			//  Genera y SOLO previsualiza (no descarga automática)
 			const base64 = await generarPDFLibSolicitudAfiliacion({
 				datos,
-				descargar: true, // descarga automática "Solicitud_Afiliacion.pdf"
-				onBase64: () => { }, // ya devolvemos abajo
+				descargar: false,          
+				onBase64: () => { },
 				setPaginaActual: () => { },
 				setTotalPaginas: () => { },
 			});
-			setState((o) => ({ ...o, base64: `data:application/pdf;base64,${base64}` }));
+
+			setState((o) => ({
+				...o,
+				base64: `data:application/pdf;base64,${base64}`,
+			}));
 		};
 		
 		//#region Validaciones AFIP
@@ -2124,6 +2150,9 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 		//#endregion Validaciones AFIP
 	};
 
+	// props para bloquear edición cuando es solo lectura
+	const ro = readOnly ? { disabled: true, readOnly: true } : {};
+
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
@@ -2138,16 +2167,23 @@ const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
 					{state.base64 ? (
 						<div />
 					) : (
-						<Button
-							className="botonAmarillo"
-							onClick={onImprimie}
-							loading={!!state.loading}
-							disabled={!and(...Object.values(state.validado))}
-						>
-							IMPRIME
-						</Button>
+						!readOnly && (
+							<Button
+								className="botonAmarillo"
+								onClick={onImprimie}
+								loading={!!state.loading}
+								disabled={
+									!and(
+										...Object.values(state.validado)
+									)
+								}
+							>
+								IMPRIME
+							</Button>
+						)
 					)}
-					<Button className="botonAmarillo" onClick={() => onClose()}>
+
+					<Button className="botonAmarillo" onClick={() => onClose(true)}>
 						FINALIZA
 					</Button>
 				</Grid>
