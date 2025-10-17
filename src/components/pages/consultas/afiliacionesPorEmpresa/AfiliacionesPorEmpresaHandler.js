@@ -494,6 +494,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
 					: {
+<<<<<<< HEAD
 							disabled: false,
 							keys: "r",
 							underlineindex: 0,
@@ -514,6 +515,14 @@ const AfiliacionesPorEmpresaHandler = () => {
 			);
 
 
+=======
+						disabled: false,
+						keys: "r",
+						underlineindex: 0,
+					}),
+			})
+		);
+>>>>>>> d4cdfcae8a9420a2850a3954f250b2bad117b07f
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
