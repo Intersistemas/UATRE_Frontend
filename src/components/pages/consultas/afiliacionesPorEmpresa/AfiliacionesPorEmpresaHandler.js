@@ -29,7 +29,6 @@ const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	});
 //#endregion seccionalSelect Options
 
-
 //#region estadosSelect Options
 const estadosTodos = { label: "Todos" };
 const estadosSelectOptions = ({ data = [], buscar = "", ...x }) =>
@@ -489,6 +488,24 @@ const AfiliacionesPorEmpresaHandler = () => {
 					  }),
 				})
 			);
+<<<<<<< HEAD
+=======
+
+			//Modificacion Mauro
+			actions.push(
+			  createAction({
+				name: "Informe",
+				onExecute: () => setShowInforme(true),
+				combination: "AltKey",
+				tarea: "Consultas_AfiliacionesPorEmpresaInforme",
+				keys: "i",
+				underlineindex: 0,
+			  })
+			);
+
+
+
+>>>>>>> a8cee8dc9da91f6afb01c843c3961ea51ea09e79
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
