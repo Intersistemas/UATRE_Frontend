@@ -9,7 +9,6 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 const onChangeDef = (changes = {}) => { };
 const onCloseDef = (confirm = false) => { };
 
-
 //Agregado Mauro
 //Normalizar fechas a YYYY-MM-DD
 const toYMD = (val) => {
@@ -47,7 +46,6 @@ const pickDateValue = (v) => {
 	}
 	return "";
 };
-
 
 export default function Form({
 	data = {},
