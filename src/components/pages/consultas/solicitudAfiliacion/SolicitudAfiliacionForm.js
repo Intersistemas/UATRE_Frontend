@@ -603,13 +603,6 @@ const SolicitudAfiliacionForm = ({
 		}));
 	}, [data, readOnly]);
 
-	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
-		if (!id) return;
-		setter((o) => {
-			const hit = (o.options || optionsState.options || []).find(match) || {};
-			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
-		});
-	};
 
 	// Prefill selects
 	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
@@ -741,6 +734,76 @@ const SolicitudAfiliacionForm = ({
 
 
 
+
+
+	// PREFILL (data  readOnly)
+	useEffect(() => {
+		if (!data || Object.keys(data).length === 0) return;
+		setState((o) => ({
+			...o,
+			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+		}));
+	}, [data, readOnly]);
+
+	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+		if (!id) return;
+		setter((o) => {
+			const hit = (o.options || optionsState.options || []).find(match) || {};
+			return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+		});
+	};
+
+	// Prefill selects
+	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => {
+		if (!trabPciaSelect.options?.length) return;
+		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+	}, [trabPciaSelect.options, data?.provinciaId]);
+	useEffect(() => {
+		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setTrabLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+	useEffect(() => {
+		if (!emplPciaSelect.options?.length) return;
+		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+	useEffect(() => {
+		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+		setLocalidadesQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+			onLoad: ({ ok, error }) =>
+				setEmplLocaSelect((s) => ({
+					...s,
+					data: Array.isArray(ok) ? ok : [],
+					loading: null,
+					error: error?.toString(),
+					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+					origen: "option",
+				})),
+		}));
+	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
 
 
 	//#endregion selects
@@ -1593,25 +1656,6 @@ const SolicitudAfiliacionForm = ({
 								}
 							/>
 							<InputMaterial
-								id="celular"
-								readOnly={isRO}
-								type="tel"
-								label="Celular"
-								value={state.form.celular}
-								error={!!state.errors.celular}
-								helperText={state.errors.celular}
-								disabled={disTrab}
-								onChange={(celular) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celular,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
 								id="email"
 								label="Correo"
 								value={state.form.email}
@@ -1746,7 +1790,6 @@ const SolicitudAfiliacionForm = ({
 																		})),
 																}));
 															} else {
-																// Fallback: no matcheó provincia por id → dejamos “texto” y localidad por texto
 																setEmplPciaSelect((o) => ({
 																	...o,
 																	selected: {record: { id: 0, nombre: domicilio?.provincia ?? "" }, },
@@ -1827,9 +1870,7 @@ const SolicitudAfiliacionForm = ({
 							<SearchSelectMaterial
 								id="emplPciaSelect"
 								label="Provincia"
-								error={
-									!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)
-								}
+								error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
 								helperText={
 									emplPciaSelect.loading ??
 									emplPciaSelect.error ??
@@ -2213,7 +2254,7 @@ const SolicitudAfiliacionForm = ({
 		// };
 
 		const despliega = async () => {
-			// Mapeo a la estructura del nuevo generador
+			//  Mapeo al contrato del generador nuevo
 			const datos = [{
 				fecha: Formato.Fecha(body.fecha),
 				seccional_nro: body.seccionalCodigo || "",
@@ -2233,7 +2274,7 @@ const SolicitudAfiliacionForm = ({
 					provincia: body.provinciaNombre,
 					oficio: body.oficio,
 					actividad: body.actividadAfiliado,
-					telefono: body.celular,
+					telefono: body.telefono,
 					email: body.email,
 				},
 				empleador: {
@@ -2247,15 +2288,14 @@ const SolicitudAfiliacionForm = ({
 					email: body.emailEmpresa,
 				},
 			}];
-
 			audit({
 				modulo: "Consultas",
 				proceso: "SolicitudPreviaAfiliacion",
 				parametros: datos[0],
-				observaciones: "Emite PDF con generador nuevo",
+				observaciones: "Emite PDF con generador PDF-LIB",
 			});
 
-			// Genera y DESCARGA. Además, deja data-uri para previsualizar en el iframe.
+			//  Genera y SOLO previsualiza (no descarga automática)
 			const base64 = await generarPDFLibSolicitudAfiliacion({
 				datos,
 				descargar: false,  // descarga automática "Solicitud_Afiliacion.pdf"
@@ -2315,7 +2355,7 @@ const SolicitudAfiliacionForm = ({
 						)
 					)}
 
-					<Button className="botonAmarillo" onClick={() => onClose()}>
+					<Button className="botonAmarillo" onClick={() => onClose(true)}>
 						FINALIZA
 					</Button>
 				</Grid>

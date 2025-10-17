@@ -65,6 +65,46 @@ const parseTelefonoAR = (raw = "") => {
 	return { telefonoPais: pais, telefonoArea: area, telefonoNumero: numero };
 };
 
+
+// === Helpers de fecha para UI ===
+const isSqlMinDate = (v) => {
+	if (!v) return false;
+	const s = String(v);
+	if (/^0001-01-01/.test(s)) return true;          // "0001-01-01 00:00:00..."
+	if (/^0?1\/0?1\/0*1(?:\D|$)/.test(s)) return true; // "01/01/1" o "01/01/0001"
+	const d = dayjs(v);
+	return d.isValid() && d.year() <= 1;
+};
+
+const formatFechaUi = (v) => {
+	if (!v || isSqlMinDate(v)) return "";
+	const d = dayjs(v);
+	return d.isValid() ? d.format("DD/MM/YYYY") : "";
+};
+
+
+// Limpia fechas mínimas en un registro
+const stripMinDatesRow = (r) => {
+	const clone = { ...r };
+	// agrega acá cualquier otro campo de fecha que uses en la grilla
+	const dateKeys = [
+		"fechaIncorporacion",
+		"fechaBaja",
+		"fechaCambio",
+		"fechaCambioEstado",
+	];
+	dateKeys.forEach((k) => {
+		if (k in clone && isSqlMinDate(clone[k])) {
+			// dejar vacío para que la UI no pinte "01/01/1"
+			clone[k] = "";
+		}
+	});
+	return clone;
+};
+
+
+
+
 // Modal de confirmación para rechazo
 const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
 	const [obs, setObs] = useState(row?.deletedObs ?? "");
@@ -93,9 +133,6 @@ const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
 		</Modal>
 	);
 };
-
-
-
 
 const useAfiliadoFormulariosAfiliacion = ({
 	remote: remoteInit = true,
@@ -166,8 +203,28 @@ const useAfiliadoFormulariosAfiliacion = ({
 		}
 	});
 	//#endregion
+
+	// Helper: pide una página y devuelve { ok } o { error }
+	const fetchListPage = (pageIndex, pageSize, params) =>
+		new Promise((resolve) => {
+			pushQuery({
+				action: "GetList",
+				config: { body: { ...params, pageIndex, pageSize } },
+				onOk: async (ok) => resolve({ ok }),
+				onError: async (error) => resolve({ error }),
+			});
+		});
+
+
+	// Para no resincronizar la misma fila múltiples veces
+	//const syncedIdsRef = useRef(new Set());
+
 	// Para no resincronizar la misma fila múltiples veces
 	const syncedIdsRef = useRef(new Set());
+	// Ejecutar la auto-sincronización SOLO una vez al ingresar
+	const syncedOnceRef = useRef(false);
+	// Evitar “flicker”: conservar data mientras se carga
+	const [keepDataWhileLoading] = useState(true);
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -210,56 +267,58 @@ const useAfiliadoFormulariosAfiliacion = ({
 			setList((o) => ({ ...o, ...changes }));
 			return;
 		}
-		changes.data = [];
+		if (!keepDataWhileLoading) changes.data = [];
+		(async () => {
+			const requestedPageSize = 50; // si el back limita a 50, iteramos
+			let pageIndex = 1;
+			let acc = [];
+			let total = null;
 
-		pushQuery({
-			action: "GetList",
-			config: {
-				body: {
-					...list.params,
-					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size,
-				},
-			},
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				// changes.data = data;
-				// Orden
-				const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
-				const noHayOrdenDelUsuario = !list?.params?.orderBy; // si no clicaron ordenar
-				const ordenado = noHayOrdenDelUsuario
-					? [...data].sort((a, b) =>
-						rank(a) - rank(b) ||
-						// dentro de cada estado, más recientes primero
-						dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
-					)
-					: data;
-				changes.data = ordenado;
+			while (true) {
+				const { ok, error } = await fetchListPage(pageIndex, requestedPageSize, list.params);
+				if (error) {
+					if (error.code !== 404) changes.error = error;
+					break;
+				}
+				const { data, count, size } = ok || {};
+				const chunk = Array.isArray(data) ? data : [];
+				const serverSize = Number(size) || requestedPageSize;
+
+				acc = acc.concat(chunk);
+				if (Number.isFinite(count)) total = Number(count);
+
+				const done =
+					chunk.length === 0 ||
+					(Number.isFinite(total) ? acc.length >= total : chunk.length < serverSize);
+				if (done) break;
+				pageIndex += 1;   // ← avanzar a la próxima página
+			}
+
+			// Orden final igual que antes
+			const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+			const ordenado = [...acc].sort(
+				(a, b) => rank(a) - rank(b) || dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
+			);
+			changes.data = ordenado.map(stripMinDatesRow);
 
 
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { index, size, count };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
+			const multi = list.selection.multi;
+			const record = list.selection.record;
+			const totalCount = Number.isFinite(total) ? total : ordenado.length;
+			changes.pagination = { ...list.pagination, count: totalCount };
+			changes.selection = {
+				...list.selection,
+				...selectionDef,
+				record: list.onLoadSelect({ data: ordenado, multi, record }),
+			};
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
+			changes.selection.index = multi
+				? changes.selection.record?.map((r) => changes.data.indexOf(r))
+				: changes.data.indexOf(changes.selection.record);
 
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
+			list.onDataChange(changes.data);
+			setList((o) => ({ ...o, ...changes, remote: false }));
+		})();
 	}, [pushQuery, list]);
 	//#endregion
 
@@ -339,6 +398,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 							: changes.data.indexOf(changes.selection.record);
 					} else {
 						changes.loading = "Cargando...";
+						changes.remote = true;
 					}
 					return { ...o, ...changes };
 				});
@@ -351,26 +411,25 @@ const useAfiliadoFormulariosAfiliacion = ({
 	// Auto-sincroniza estados al cargar/refrescar la lista
 	useEffect(() => {
 		if (!Array.isArray(list.data) || list.data.length === 0) return;
+		if (syncedOnceRef.current) return;
 
 		// Tomamos solo las pendientes, que no fueron rechazadas ni aceptadas,
 		// y que aún no procesamos en este ciclo de vida.
 		const pendientes = list.data.filter(
 			(r) =>
-				!r?.deletedDate && // no rechazadas
-				!r?.afiliadoIdAsignado && // no aceptadas
-				!syncedIdsRef.current.has(r.id) // no procesadas
+				!r?.deletedDate && 
+				!r?.afiliadoIdAsignado && 
+				!syncedIdsRef.current.has(r.id) 
 		);
 		if (pendientes.length === 0) return;
 
-		setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
+		//setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
 
-		// Procesamos secuencialmente para evitar condiciones de carrera
 		const run = async () => {
 			for (const row of pendientes) {
 				syncedIdsRef.current.add(row.id);
 				const cuilDigits = String(row?.cuil ?? "").replace(/\D/g, "");
 
-				// Envolvemos cada pushQuery en una promesa para serializar
 				await new Promise((resolve) => {
 					pushQuery({
 						action: "GetAfiliadoByCUIL",
@@ -390,7 +449,6 @@ const useAfiliadoFormulariosAfiliacion = ({
 				});
 			}
 
-			// Tras terminar, pedimos refrescar la grilla (mantiene filtros/paginación)
 			setList((o) => ({
 				...o,
 				loadingOverride: null,
@@ -399,18 +457,19 @@ const useAfiliadoFormulariosAfiliacion = ({
 			}));
 		};
 
-		run();
+		run().finally(() => {
+			// Marcamos que ya sincronizamos en esta sesión del módulo
+			syncedOnceRef.current = true;
+		});
 	}, [list.data, pushQuery]);
 
 
 
-	//Modificaciones Mauro
 	let form = null;
 
 	if (list.selection.request) {
 		const row = list.selection.edit ?? list.selection.record ?? {};
 
-		// cierre común del modal: restablece la selección anterior
 		const handleClose = () => {
 			setList((o) => ({
 				...o,
@@ -428,6 +487,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 		switch (list.selection.request) {
 			// Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
+
+
 			case "I": {
 				const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
 				const email = row.email ?? row.correo ?? "";
@@ -449,9 +510,18 @@ const useAfiliadoFormulariosAfiliacion = ({
 							telefonoArea,
 							telefonoNumero,
 							email,
+							ciius: { data: [], selected: null },
+							provincias: { data: [], selected: null },
+							localidades: { data: [], selected: null },
 						}}
 						disabled={{ cuil: true }}
-						onClose={handleClose}
+						onClose={(result, accion) => {
+							if (accion === "Agrega" && result) {
+								// 🔄 recarga la lista completa
+								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+							}
+							handleClose();
+						}}
 					/>
 				);
 				break;
@@ -490,7 +560,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 								config: { body },
 								onOk: async () => {
 									// dispara recarga de lista manteniendo filtros/paginación
-									setList((o) => ({ ...o, loading: "Cargando...", data: o.remote ? [] : o.data }));
+									setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
 									handleClose();
 								},
 								onError: async (error) => {
@@ -510,7 +580,11 @@ const useAfiliadoFormulariosAfiliacion = ({
 				form = (
 					<SolicitudAfiliacionForm
 						onClose={(confirm) => {
-							if (!confirm) handleClose();
+							if (confirm) {
+								// recarga suave de TODO: vuelve a pedir la lista completa y reordena
+								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+							}
+							handleClose();
 						}}
 					/>
 				);
@@ -534,16 +608,15 @@ const useAfiliadoFormulariosAfiliacion = ({
 					list.error?.message ??
 					"No existen datos para mostrar"
 				}
-				columns={columns}
+				columns={columnsWithDateFmt}
 				mostrarBuscar={mostrarBuscar}
 				pagination={{
 					...list.pagination,
 					onChange: ({ index, size }) =>
 						setList((o) => ({
 							...o,
-							loading: "Cargando...",
-							pagination: { index, size },
-							data: o.remote ? [] : o.data,
+							// No marcamos loading ni vaciamos data: paginación local
+							pagination: { ...o.pagination, index, size },
 						})),
 				}}
 				selection={{
@@ -616,16 +689,29 @@ const useAfiliadoFormulariosAfiliacion = ({
 				onTableChange={(type, newState) => {
 					switch (type) {
 						case "sort": {
+							// Orden local para evitar roundtrip y mantener la regla de estado
 							let { sortField, sortOrder } = newState;
-							sortField = { fecha: "Fecha" }[sortField] ?? sortField;
-							return setList((o) => ({
-								...o,
-								loading: "Cargando...",
-								params: {
-									...o.params,
-									orderBy: `${sortField}${sortOrder === "desc" ? "Desc" : ""}`,
-								},
-							}));
+							if (!sortField || !sortOrder) return;
+							const dir = sortOrder === "desc" ? -1 : 1;
+							return setList((o) => {
+								const sorted = [...o.data].sort((a, b) => {
+									// Mantener prioridad por estado SIEMPRE
+									const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
+									const byRank = rank(a) - rank(b);
+									if (byRank !== 0) return byRank;
+									// Luego, sort solicitado por el usuario
+									const va = a?.[sortField];
+									const vb = b?.[sortField];
+									if (dayjs(va).isValid() && dayjs(vb).isValid()) {
+										return (dayjs(va).valueOf() - dayjs(vb).valueOf()) * dir;
+									}
+									if (va == null && vb == null) return 0;
+									if (va == null) return 1;
+									if (vb == null) return -1;
+									return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+								});
+								return { ...o, data: sorted };
+							});
 						}
 						default:
 							return;
@@ -635,6 +721,42 @@ const useAfiliadoFormulariosAfiliacion = ({
 			{form}
 		</>
 	);
+
+
+
+	// Detecta si una columna es de fecha
+	const isDateColumn = (col) => {
+		const df = String(col?.dataField || "").toLowerCase();
+		const tx = String(col?.text || col?.title || "").toLowerCase();
+		return df.includes("fecha") || tx.includes("fecha");
+	};
+	let __minDateLogs = 0;
+	const wrapDateFormatter = (orig, colName) => (cell, row, ...rest) => {
+		if (isSqlMinDate(cell)) {
+			if (__minDateLogs < 5) {
+				console.info("[AFI-FA] fecha mínima → vacío", { col: colName, raw: cell, id: row?.id, cuil: row?.cuil });
+				__minDateLogs++;
+			}
+			return "";
+		}
+		const out = orig ? orig(cell, row, ...rest) : cell;
+		if (isSqlMinDate(out)) return "";
+		if (!orig) return formatFechaUi(cell);
+		return out ?? "";
+	};
+
+	// Clonar columnas y forzar wrapper en TODAS las columnas de fecha
+	const columnsWithDateFmt = React.useMemo(() => {
+		if (!Array.isArray(columns)) return columns;
+		return columns.map((col) => {
+			if (!isDateColumn(col)) return col;
+			return {
+				...col,
+				formatter: wrapDateFormatter(col.formatter, col.dataField || col.text || "fecha"),
+			};
+		});
+	}, [columns]);
+
 
 	return { render, request, selected: list.selection.record };
 };
