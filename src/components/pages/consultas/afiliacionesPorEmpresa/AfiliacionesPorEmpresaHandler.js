@@ -29,6 +29,18 @@ const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	});
 //#endregion seccionalSelect Options
 
+//#region seccionalSelect Options
+const seccionalTodos = { label: "Todas" };
+const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+		start: [seccionalTodos],
+		filter: (r) => includeSearch(r, buscar),
+		...x,
+	});
+//#endregion seccionalSelect Options
+
 //#region estadosSelect Options
 const estadosTodos = { label: "Todos" };
 const estadosSelectOptions = ({ data = [], buscar = "", ...x }) =>
@@ -482,6 +494,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 				...(!afiliacionPorEmpresaSelected?.id || afiliacionPorEmpresaSelected?.estado !== "Pendiente"
 					? { disabled: true }
 					: {
+<<<<<<< HEAD
 							disabled: false,
 							keys: "r",
 							underlineindex: 0,
@@ -502,6 +515,14 @@ const AfiliacionesPorEmpresaHandler = () => {
 			);
 
 
+=======
+						disabled: false,
+						keys: "r",
+						underlineindex: 0,
+					}),
+			})
+		);
+>>>>>>> d4cdfcae8a9420a2850a3954f250b2bad117b07f
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
