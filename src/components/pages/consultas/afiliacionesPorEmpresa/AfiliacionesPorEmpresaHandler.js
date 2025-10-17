@@ -488,8 +488,6 @@ const AfiliacionesPorEmpresaHandler = () => {
 					  }),
 				})
 			);
-<<<<<<< HEAD
-=======
 
 			//Modificacion Mauro
 			actions.push(
@@ -505,14 +503,13 @@ const AfiliacionesPorEmpresaHandler = () => {
 
 
 
->>>>>>> a8cee8dc9da91f6afb01c843c3961ea51ea09e79
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
 
 
 
-
+//Conflictos GIT
 
 	tabs.push({
 		header: () => <Tab label="Solicitudes de Afiliación" />,
