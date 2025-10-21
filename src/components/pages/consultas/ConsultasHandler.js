@@ -93,7 +93,7 @@ const ConsultasHandler = () => {
 						width="32"
 						tarea="Consultas_SolicitudAfiliacion"
 					>
-						Formulario de Solicitud de Afiliación
+						Solicitud de Afiliación
 					</Button>
 					{/* ///////////////////////////////0/////////////////////////////////// */}
 				</Grid>
@@ -106,7 +106,7 @@ const ConsultasHandler = () => {
 						width="32"
 						tarea="Consultas_SolicitudPreviaAfiliacion"
 					>
-						Solicitudes de Afiliación
+						Solicitudes Previa de Afiliación
 					</Button>
 				</Grid>)}				
 				
