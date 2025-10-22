@@ -113,12 +113,12 @@ const App = () => {
       <img src={fondo} alt="fondo" class="bg-image" />
       {isLoggedIn && 
       
-      Usuario?.CUIT !== "23190568504" ?
-        <Routes>
-          <Route path="/*" element={<PantallaEnMantenimiento />} />
-        </Routes>
-      :
-      (
+        Usuario?.cuit !== "23190568504" ?
+          <Routes>
+            <Route path="/*" element={<PantallaEnMantenimiento />} />
+          </Routes>
+        :
+        (
         <SideBar>
           <Routes>
             <Route path="/" element={<InicioHandler />} />

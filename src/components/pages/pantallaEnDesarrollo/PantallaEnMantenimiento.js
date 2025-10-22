@@ -11,10 +11,12 @@ const PantallaEnDesarrollo = (props) => {
   console.log("en desarrollo");
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
+  const logoutHandler = authContext.logout;
 
-  const handleCerrarModal = () => {
+  const logout = () => {
 
-    authContext?.isLoggedIn ? navigate("/Inicio") : navigate("");
+    logoutHandler();
+    navigate("ingreso");
    
   };
 
@@ -30,11 +32,10 @@ const PantallaEnDesarrollo = (props) => {
           <Button
             className="botonAmarillo"
             width={100}
-            onClick={()=>handleCerrarModal()}
-            onClose={()=>navigate("/")}
-            //onClick={()=>navigate("/")}
+            onClick={()=>logout()}
+            onClose={()=>logout()}
           >
-            Cierra
+            Cierra Sesión
           </Button>
         </div>
       </div>
