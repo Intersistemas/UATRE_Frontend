@@ -90,8 +90,8 @@ const AfiliacionesPorEmpresaForm = ({
     open: false,});
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   const ambito = useAmbitos().ambitoUser();
-  console.log("usuarioLogueado", usuarioLogueado);
-  console.log("useAmbitos",ambito)
+  //console.log("usuarioLogueado", usuarioLogueado);
+  //console.log("useAmbitos",ambito)
   const [totalesTrabajadores, setTotalesTrabajadores] = useState({
     loading: false,
     totales: null,

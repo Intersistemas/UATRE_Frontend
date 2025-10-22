@@ -52,6 +52,7 @@ import RelevamientoHandler from "./components/pages/relevamiento/RelevamientoHan
 
 
 import PantallaEnDesarrollo from "./components/pages/pantallaEnDesarrollo/PantallaEnDesarrollo";
+import PantallaEnMantenimiento from "./components/pages/pantallaEnDesarrollo/PantallaEnMantenimiento";
 
 import fondo from "./media/Background/color3.png";
 import DelegacionesHandler from "components/pages/administracion/delegaciones/DelegacionesHandler";
@@ -76,7 +77,7 @@ const App = () => {
   const Usuario = authContext.usuario;
   const showUsuarioPerfilForm = useSelector((state) => state.usuarioPerfil.show);
 
-  console.log("Usuario?.verAnuncio", Usuario?.verAnuncio);
+  console.log("Usuario*", Usuario);
 
   const [showModal, setShowModal] = useState(
     Usuario?.verAnuncio ? true : false
@@ -110,7 +111,14 @@ const App = () => {
         {!isLoggedIn && <Route path="/contacto" element={<Contacto />} />}
       </Routes>
       <img src={fondo} alt="fondo" class="bg-image" />
-      {isLoggedIn && (
+      {isLoggedIn && 
+      
+      Usuario?.CUIT !== "23190568504" ?
+        <Routes>
+          <Route path="/*" element={<PantallaEnMantenimiento />} />
+        </Routes>
+      :
+      (
         <SideBar>
           <Routes>
             <Route path="/" element={<InicioHandler />} />
