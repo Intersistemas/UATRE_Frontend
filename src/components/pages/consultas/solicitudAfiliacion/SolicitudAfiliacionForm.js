@@ -2177,11 +2177,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     const DocumentacionPanel = (
       <Grid full col gap="10px">
 
-        {!entidadId && (
-          <div style={{ fontStyle: "italic" }}>
-            Guardaremos la documentación localmente hasta que confirmes el formulario. Luego la subiremos a la BD.
-          </div>
-        )}
+
 
         <Documentacion
           data={documentacionList}
@@ -2340,11 +2336,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
     const MostrarDocumentacion = (
   <Grid full col gap="10px">
-    {!entidadId && (
-      <div style={{ fontStyle: "italic" }}>
-        Guardaremos la documentación localmente hasta que confirmes el formulario. Luego la subiremos a la BD.
-      </div>
-    )}
+
 
     <Table
       keyField="id"
