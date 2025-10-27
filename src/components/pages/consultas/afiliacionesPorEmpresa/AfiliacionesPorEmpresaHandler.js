@@ -502,7 +502,6 @@ const AfiliacionesPorEmpresaHandler = () => {
 			);
 
 
-
 		setAfiliacionesPorEmpresaActions(actions); //cargo todas las acciones / botones
 	}, [afiliacionesPorEmpresaRequest, afiliacionPorEmpresaSelected]);
 
