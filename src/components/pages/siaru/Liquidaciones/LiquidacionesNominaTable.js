@@ -7,14 +7,14 @@ const columnsDef = [
 	{
 		dataField: "cuil",
 		text: "CUIL",
-		sort: false,
+		sort: true,
 		headerStyle: { width: "150px" },
 		formatter: Formato.Cuit,
 	},
 	{
 		dataField: "nombre",
 		text: "Nombre",
-		sort: false,
+		sort: true,
 		style: { textAlign: "left" },
 	},
 	// {
@@ -37,7 +37,7 @@ const columnsDef = [
 	{
 		dataField: "remuneracionImponible",
 		text: "Remuneración",
-		sort: false,
+		sort: true,
 		headerStyle: { width: "155px" },
 		formatter: (v) => Formato.Moneda(v),
 		style: { textAlign: "right" },

@@ -197,12 +197,12 @@ const columns = [
 //#region delegacionSelectOptions
 const delegacionSelectTodos = { value: 0, label: "Todas" };
 const delegacionSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre }),
-		start: data.length === 1 ? [] : [delegacionSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.nombre }),
+    start: data.length === 1 ? [] : [delegacionSelectTodos],
+    ...x,
+  });
 //#endregion delegacionSelectOptions
 
 //#region seccionalSelectOptions
@@ -230,34 +230,34 @@ const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 //#region motivosBajaSelectOptions
 const motivosBajaSelectTodos = { value: 0, label: "Todos" };
 const motivosBajaSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
-		start: data.length === 1 ? [] : [motivosBajaSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion }),
+    start: data.length === 1 ? [] : [motivosBajaSelectTodos],
+    ...x,
+  });
 //#endregion motivosBajaSelectOptions
 
 //#region estadoSelectOptions
 const estadoSelectTodos = { value: 0, label: "Todos" };
 const estadoSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
-		start: data.length === 1 ? [] : [estadoSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion }),
+    start: data.length === 1 ? [] : [estadoSelectTodos],
+    ...x,
+  });
 //#endregion estadoSelectOptions
 
 //#region provinciaSelectOptions
 const provinciaSelectTodos = { value: null, label: "Todas" };
 const provinciaSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre }),
-		start: data.length === 1 ? [] : [provinciaSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.nombre }),
+    start: data.length === 1 ? [] : [provinciaSelectTodos],
+    ...x,
+  });
 //#endregion provinciaSelectOptions
 
 const Afiliados = ({ onClose = onCloseDef }) => {
