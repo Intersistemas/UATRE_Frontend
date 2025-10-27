@@ -27,6 +27,7 @@ import AdministracionHandler from "./components/pages/administracion/Administrac
 import SeccionalesHandler from "./components/pages/administracion/seccionales/SeccionalesHandler";
 import EmpresasHandler from "./components/pages/administracion/empresas/EmpresasHandler";
 import AccesosHandler from "./components/pages/administracion/accesos/UsuariosHandler";
+import AuditoriaProcHandler from "./components/pages/administracion/AuditoriaProcesos/AuditoriaProcHandler";
 
 //---ADMINISTRACION APP---
 import AppHandler from "./components/pages/app/AppHandler";
@@ -179,6 +180,10 @@ const App = () => {
             <Route
               path="Inicio/Administracion/Seccionales"
               element={<SeccionalesHandler />}
+            />
+            <Route
+              path="Inicio/Administracion/AuditoriaProcesos"
+              element={<AuditoriaProcHandler />}
             />
             <Route
               path="Inicio/Administracion/Empresas"

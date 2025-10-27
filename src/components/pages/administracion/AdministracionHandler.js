@@ -20,6 +20,7 @@ const AdministracionHandler = () => {
 		tareas.hasTarea("Datos_Localidad")  && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Localidades")}>Localidades</Button>)
 		tareas.hasTarea("Datos_Permisos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Accesos")}>Administración De Accesos</Button>)
 		tareas.hasTarea("Datos_TasasARCA")  && process.env.REACT_APP_SERVER?.toLowerCase() != "uatre.intersistemas.net" && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("Tasas")}>Tasas ARCA</Button>)
+		tareas.hasTarea("Datos_AuditoriaProcesos")   && newAccesos.push(<Button className="botonAmarillo" onClick={() => navigate("AuditoriaProcesos")}>Auditoria Procesos</Button>)
 
 	dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
 
