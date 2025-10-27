@@ -417,9 +417,9 @@ const useAfiliadoFormulariosAfiliacion = ({
 		// y que aún no procesamos en este ciclo de vida.
 		const pendientes = list.data.filter(
 			(r) =>
-				!r?.deletedDate && 
-				!r?.afiliadoIdAsignado && 
-				!syncedIdsRef.current.has(r.id) 
+				!r?.deletedDate &&
+				!r?.afiliadoIdAsignado &&
+				!syncedIdsRef.current.has(r.id)
 		);
 		if (pendientes.length === 0) return;
 
@@ -516,11 +516,42 @@ const useAfiliadoFormulariosAfiliacion = ({
 						}}
 						disabled={{ cuil: true }}
 						onClose={(result, accion) => {
-							if (accion === "Agrega" && result) {
-								// 🔄 recarga la lista completa
+							const closeAndRefresh = () => {
 								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+								handleClose();
+							};
+							if (accion !== "Agrega" || !result) return handleClose();
+
+							const nuevoAfiliadoId =
+								result?.id ?? result?.afiliadoId ?? result?.data?.id ?? 0;
+
+							if (nuevoAfiliadoId && row?.id) {
+								pushQuery({
+									action: "Resuelve",
+									config: { body: { id: row.id, afiliadoIdAsignado: nuevoAfiliadoId } },
+									onOk: async () => {
+										setList((o) => ({
+											...o,
+											data: o.data.map((r) =>
+												r.id === row.id
+													? {
+														...r,
+														afiliadoIdAsignado: nuevoAfiliadoId,
+														deletedDate: null,
+													}
+													: r
+											),
+										}));
+										closeAndRefresh();
+									},
+									onError: async (error) => {
+										console.error("Error al resolver aceptación:", error);
+										closeAndRefresh();
+									},
+								});
+							} else {
+								closeAndRefresh();
 							}
-							handleClose();
 						}}
 					/>
 				);
