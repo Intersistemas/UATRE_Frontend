@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
@@ -50,8 +50,6 @@ const toInputString = (v) => {
 };
 
 const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
-
-
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
@@ -110,7 +108,8 @@ const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	mapOptions({
 		data,
 		map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
-		filter: (r) => includeSearch(r, buscar),
+		// Excluir la opción con id = 0 (NO ESPECIFICADO) para evitar que sea elegible
+		filter: (r) => (r?.value ?? 0) !== 0 && includeSearch(r, buscar),
 		...x,
 	});
 //#endregion provinciaSelect Options
@@ -188,7 +187,20 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, readOnly = false, hidePrint = false, onClose = () => { }, initialTab = 0, mode = "A" }) => {
 
 	const [selectedTab, setSelectedTab] = useState(initialTab);
-	const handleChangeTab = (_e, v) => setSelectedTab(v);
+	const handleChangeTab = (_e, v) => {
+		//"Novedades"
+		if ((disableNovedades || mode === "A") && v === 2) return;
+		setSelectedTab(v);
+	};
+
+	const [disableNovedades, setDisableNovedades] = useState(mode === "A");
+
+	useEffect(() => {
+		// Si entramos en alta, mantener deshabilitada la pestaña Novedades
+		if (mode === "A") setDisableNovedades(true);
+	}, [mode]);
+
+
 
 	//#region APIs
 	const { setState: setSeccionalesQuery } = useQueryState(
@@ -200,16 +212,6 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			},
 		}),
 		{ query: { config: { errorType: "response" }, params: { soloActivos: true } } }
-	);
-	const { setState: setTiposDocumentosQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/TipoDocumento`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
 	);
 	const { setState: setNacionalidadesQuery } = useQueryState(
 		() => ({
@@ -289,7 +291,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	// Catálogo: DenunciaTipo (para "Tipo de Ingreso")
 	const { setState: setDenunciaTipoQuery } = useQueryState(
 		() => ({
-			config: { baseURL: "App", endpoint: `/DenunciaTipo`, method: "GET" },
+			config: { baseURL: "App", endpoint: `/DenunciaTipoIngreso`, method: "GET" },
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
@@ -376,6 +378,9 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	);
 
 	const [documentacionList, setDocumentacionList] = useState([]);
+	const [estadosList, setEstadosList] = useState([]);
+	const [selectedEstado, setSelectedEstado] = useState(null);
+	const [docsByEstadoId, setDocsByEstadoId] = useState({});
 	const { setState: setDocumentosQuery } = useQueryState(
 		() => ({
 			config: {
@@ -387,26 +392,22 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		{ query: { config: { errorType: "response" } } }
 	);
 
-	const { setState: createDocQuery } = useQueryState(
-		() => ({
-			config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "POST" },
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
+	const loadDocumentacion = (entidadId) => {
+		if (!entidadId) {
+			setDocumentacionList([]);
+			return;
+		}
+		setDocumentosQuery(o => ({
+			...o,
+			query: { ...o.query, params: { EntidadId: entidadId, EntidadTipo: "R" } },
+			onLoad: ({ ok, error }) => {
+				const arr = Array.isArray(ok) ? ok : [];
+				setDocumentacionList(arr);
+				if (error) console.error("DocumentacionEntidad/GetBySpec error:", error);
+			}
+		}));
+	};
 
-	const { setState: updateDocQuery } = useQueryState(
-		() => ({
-			config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "PUT" },
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-
-	const { setState: deleteDocQuery } = useQueryState(
-		() => ({
-			config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "DELETE" },
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
 	//#endregion APIs
 
 	const [state, setState] = useState({
@@ -426,33 +427,6 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		base64: null,
 	});
 
-	const { audit } = useAuditoriaProceso();
-
-	useEffect(() => {
-		const entidadId = data?.id ?? 0;
-		if (!entidadId) {
-			setDocumentacionList([]);
-			return;
-		}
-
-		setDocumentosQuery(o => ({
-			...o,
-			query: { ...o.query, params: { EntidadId: entidadId, EntidadTipo: "F" } },
-			onLoad: ({ ok, error }) => {
-				const arr = Array.isArray(ok) ? ok : [];
-				console.log(' DOCUMENTACIÓN CARGADA:', {
-					archivosEncontrados: arr.length,
-					archivos: arr.map(doc => ({
-						id: doc.id,
-						nombre: doc.nombreArchivo,
-						tipo: doc.refTipoDocumentacionDescripcion
-					}))
-				});
-				setDocumentacionList(arr);
-				if (error) console.error("DocumentacionEntidad/GetBySpec error:", error);
-			}
-		}));
-	}, [data?.id, setDocumentosQuery]);
 
 	// Cargar últimos estados de la denuncia (para prefill de Estado y Observaciones)
 	useEffect(() => {
@@ -464,23 +438,144 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			onPreLoad: () => { },
 			onLoad: ({ ok, error }) => {
 				const arr = Array.isArray(ok) ? ok : [];
-				if (!arr.length) return;
-				// ordenar por fecha (por si vienen desordenados) y tomar el último
-				const sorted = arr.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-				const last = sorted[sorted.length - 1] || arr[arr.length - 1];
-				setState((s) => ({
-					...s,
-					form: {
-						...s.form,
-						estado: last.estado || s.form.estado,
-						observacionesRegistro: last.observaciones || s.form.observacionesRegistro,
-					},
-				}));
+				try {
+					const sorted = arr.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+					setEstadosList(sorted);
+				} catch (e) {
+					setEstadosList(arr);
+				}
+				if (arr.length) {
+
+					const sorted = arr.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+					const last = sorted[sorted.length - 1] || arr[arr.length - 1];
+					setState((s) => ({
+						...s,
+						form: {
+							...s.form,
+							estado: last?.estado || s.form.estado,
+							// En modo M NO prellenar observaciones; en otros modos sí
+							observacionesRegistro:
+								(mode === "M")
+									? ""
+									: (last?.observaciones ?? s.form.observacionesRegistro),
+						},
+					}));
+					if (mode === "M") {
+						setDocumentacionList([]);
+					} else {
+						// cargar documentación con el id del Estado
+						const estadoId = Number(last?.id ?? last?.Id ?? 0);
+						loadDocumentacion(estadoId || entidadId);
+					}
+				} else {
+					if (mode === "M") setDocumentacionList([]);
+					else loadDocumentacion(entidadId);
+				}
+				if (error) console.error("DenunciasEstados GET error:", error);
 			},
+
+
 		}));
 	}, [data?.id, setGetEstadosQuery]);
+	// Cuando cambia la lista de estados, precargar la documentación de cada estado para poder duplicar filas por archivo
+	useEffect(() => {
+		if (!Array.isArray(estadosList) || estadosList.length === 0) return;
+		const ids = estadosList
+			.map(e => Number(e?.id ?? e?.Id ?? 0))
+			.filter((id) => Number.isFinite(id) && id > 0);
+		ids.forEach((id) => {
+			if (docsByEstadoId[id]) return;
+			// Traer documentación de ese estado
+			sendRequest(
+				{
+					baseURL: "Comunes",
+					endpoint: `/DocumentacionEntidad/GetBySpec?EntidadId=${id}&EntidadTipo=R`,
+					method: "GET",
+					errorType: "response",
+				},
+				(ok) => {
+					const arr = Array.isArray(ok) ? ok : [];
+					setDocsByEstadoId((prev) => ({ ...prev, [id]: arr }));
+				},
+				() => setDocsByEstadoId((prev) => ({ ...prev, [id]: [] }))
+			);
+		});
+	}, [estadosList, sendRequest, docsByEstadoId]);
 
-	// === MAPEO DE DOCUMENTACIÓN: Convierte item del form al formato del API
+	// Dataset para la grilla de Novedades: una fila por documento (o una vacía si no hay)
+	const novedadesRows = useMemo(() => {
+		const out = [];
+		(Array.isArray(estadosList) ? estadosList : []).forEach((estado, eIndex) => {
+			const estadoId = Number(estado?.id ?? estado?.Id ?? 0) || 0;
+			const docs = docsByEstadoId[estadoId];
+			if (Array.isArray(docs) && docs.length) {
+				docs.forEach((doc, dIndex) => {
+					out.push({
+						...estado,
+						_doc: doc,
+						rowKey: `${estadoId}-${dIndex}`,
+					});
+				});
+			} else {
+				out.push({ ...estado, _doc: null, rowKey: `${estadoId}-0-${eIndex}` });
+			}
+		});
+		return out;
+	}, [estadosList, docsByEstadoId]);
+
+	const NovedadesPanel = (
+		<Grid full>
+			<Table
+				keyField="rowKey"
+				data={novedadesRows}
+				mostrarBuscar={false}
+				pagination={{ size: 10 }}
+				noDataIndication={novedadesRows.length === 0 ? "No existen novedades para mostrar" : null}
+				selection={{
+					mode: "radio",
+					clickToSelect: true,
+					hideSelectColumn: true,
+					selected: selectedEstado ? [selectedEstado.rowKey] : [],
+					onSelect: (row) => {
+						setSelectedEstado(row);
+						const entidadId = Number(row?.id ?? row?.Id ?? 0);
+						if (entidadId) {
+							loadDocumentacion(entidadId);
+						}
+					},
+				}}
+				columns={[
+					{ dataField: "fecha", text: "Fecha", formatter: (v) => Formato.Fecha(v) },
+					{ dataField: "estado", text: "Estado", sort: true, style: { textAlign: "left" } },
+					{ dataField: "observaciones", text: "Observaciones", style: { textAlign: "left" } },
+
+					{
+						dataField: "documento",
+						text: "Documento",
+						isDummyField: true,
+						formatter: (_c, row) => {
+							const doc = row?._doc;
+							if (!doc) return "";
+							const nombre = doc?.nombreArchivo ?? doc?.fileName ?? "Documento";
+							const b64 = doc?.archivo ?? doc?.archivoBase64 ?? doc?.contenido;
+							const contentType = doc?.contentType || "application/octet-stream";
+							const href = doc?.url ? doc.url : (b64 ? `data:${contentType};base64,${b64}` : null);
+							return href ? (
+								<a href={href} target="_blank" rel="noreferrer" download={nombre}>
+									{nombre}
+								</a>
+							) : nombre;
+						},
+						headerStyle: { width: "220px", textAlign: "center" },
+						style: { textAlign: "left" },
+					},
+
+				]}
+			/>
+		</Grid>
+	);
+
+	// Mapeo documentacion
 	const compact = (obj) => Object.fromEntries(
 		Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
 	);
@@ -542,7 +637,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	//#region selects
 
 	const persistirDocumentacion = async (entidadId) => {
-		const entidadTipo = "F";
+		const entidadTipo = "R";
 		const lista = Array.isArray(documentacionList) ? documentacionList : [];
 
 		console.log(' PERSISTIENDO DOCUMENTACIÓN:', {
@@ -574,44 +669,44 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 			// Create vs Update según si trae id
 			if (payload.id) {
-				// ACTUALIZAR archivo existente
-				updateDocQuery(o => ({
-					...o,
-					query: { ...o.query, config: { ...o.query?.config, body: payload } },
-					onLoad: ({ ok, error }) => {
-						if (error) {
-							console.error(`❌ Error al actualizar archivo ${item.nombreArchivo}:`, error);
-						} else {
-							console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`);
-						}
+				sendRequest(
+					{
+						baseURL: "Comunes",
+						endpoint: `/DocumentacionEntidad`,
+						method: "PUT",
+						body: payload,
+						errorType: "response",
+					},
+					({ ok }) => {
+						console.log(` Archivo actualizado: ${item.nombreArchivo}`, ok);
+					},
+					(err) => {
+						console.error(` Error al actualizar archivo ${item.nombreArchivo}:`, err);
 					}
-				}));
+				);
 			} else {
-				// CREAR nuevo archivo
-				createDocQuery(o => ({
-					...o,
-					query: {
-						...o.query,
-						config: {
-							...o.query?.config,
-							headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-							body: payload
+				// Nuevo archivo
+				sendRequest(
+					{
+						baseURL: "Comunes",
+						endpoint: `/DocumentacionEntidad`,
+						method: "POST",
+						body: payload,
+						errorType: "response",
+					},
+					({ ok }) => {
+						console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
+						if (ok?.id || ok?.Id) {
+							const nuevo = [...lista];
+							nuevo[i] = { ...item, id: ok.id ?? ok.Id };
+							setDocumentacionList(nuevo);
+							setState(s => ({ ...s, form: { ...s.form, documentacion: nuevo } }));
 						}
 					},
-					onLoad: ({ ok, error }) => {
-						if (error) {
-							console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
-						} else {
-							console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
-							if (ok?.id || ok?.Id) {
-								const nuevo = [...lista];
-								nuevo[i] = { ...item, id: ok.id ?? ok.Id };
-								setDocumentacionList(nuevo);
-								setState(s => ({ ...s, form: { ...s.form, documentacion: nuevo } }));
-							}
-						}
+					(err) => {
+						console.error(` Error al crear archivo ${item.nombreArchivo}:`, err);
 					}
-				}));
+				);
 			}
 		}
 
@@ -786,17 +881,17 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		setDenunciaSituacionQuery(o => ({
 			...o,
 			onLoad: ({ ok, error }) => {
-				const data = Array.isArray(ok) ? ok : [];
+				const arr = Array.isArray(ok) ? ok : [];
 				setSituacionSelect(s => ({
 					...s,
 					loading: null,
-					data,
+					data: arr,
 					error: error?.toString(),
 				}));
 				// Prefill si ya viene un id
 				const wantedId = state.form?.denunciaSituacionId ?? data?.denunciaSituacionId;
 				if (wantedId) {
-					const hit = data.find(d => d.id === wantedId);
+					const hit = arr.find(d => d.id === wantedId);
 					if (hit) {
 						setSituacionSelect(s => ({
 							...s,
@@ -823,23 +918,25 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		setDenunciaTipoQuery(o => ({
 			...o,
 			onLoad: ({ ok, error }) => {
-				const data = Array.isArray(ok) ? ok : [];
+				const arr = Array.isArray(ok) ? ok : [];
 				setTipoIngresoSelect(s => ({
 					...s,
 					loading: null,
-					data,
+					data: arr,
 					error: error?.toString(),
 				}));
-				// Prefill si ya viene un id desde `data`
-				if (data?.length && (state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId)) {
-					const wantedId = state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId;
-					const hit = data.find(d => d.id === wantedId);
-					if (hit) {
-						setTipoIngresoSelect(s => ({
-							...s,
-							selected: { value: hit.id, label: hit.descripcion, record: hit },
-							origen: "option",
-						}));
+
+				if (arr?.length) {
+					const wantedId = state.form?.denunciaTipoIngresoId ?? data?.denunciaTipoIngresoId;
+					if (wantedId) {
+						const hit = arr.find(d => d.id === wantedId);
+						if (hit) {
+							setTipoIngresoSelect(s => ({
+								...s,
+								selected: { value: hit.id, label: hit.descripcion, record: hit },
+								origen: "option",
+							}));
+						}
 					}
 				}
 			},
@@ -936,54 +1033,100 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	}
 	);
 
-	// Trae seccionales por PROVINCIA (sin localidad) y setea la Delegación (texto)
+	// Query: mapa localidad 
+	const { setState: setSeccionalLocalidadQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Afiliaciones",
+				endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId`,
+				method: "GET",
+			},
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+	//Buscamos delegacion
 	useEffect(() => {
-		const provinciaId = trabPciaSelect?.selected?.value;
-		if (!provinciaId) {
-			// si se limpia provincia, también limpiamos seccional/delegación
-			setSeccionalSelect(s => ({ ...s, data: [], options: [], selected: {} }));
-			setState(s => ({ ...s, form: { ...s.form, delegacion: "", seccional: "" } }));
+		const refLocId =
+			trabLocaSelect?.selected?.record?.id ??
+			state?.form?.refLocalidadIdAfiliado ??
+			data?.refLocalidadIdAfiliado ??
+			null;
+
+		// si cambiaste la localidad a vacío → limpiar delegación
+		if (!refLocId) {
+			setState(s => ({ ...s, form: { ...s.form, delegacion: "" } }));
 			return;
 		}
 
-		setSeccionalesQuery(o => ({
+		// 1) pedir mapeo localidad
+		setSeccionalLocalidadQuery(o => ({
 			...o,
 			query: {
 				...o.query,
-				params: {
-					...(o.query?.params || {}),
-					soloActivos: true,
-					provinciaId,                // <-- SOLO ProvinciaId
-					// verSeccionalesLocalidades: false, // opcional
-					// (NO enviar localidadId)
-				},
+				params: { RefLocalidadId: refLocId, SoloActivos: true },
 			},
 			onLoad: ({ ok, error }) => {
-				const data = Array.isArray(ok) ? ok : [];
+				const arr = Array.isArray(ok) ? ok : (ok ? [ok] : []);
+				const item = arr[0];
 
-				// guardar dataset para el selector de seccionales
-				setSeccionalSelect(s => ({
-					...s,
-					loading: null,
-					data,
-					error: error?.toString(),
-					options: seccionalesSelectOptions({ data, buscar: s.buscar }),
-				}));
+				if (!item) {
+					console.warn("[Delegación] No hay SeccionalLocalidad para refLocId:", refLocId, "error:", error);
+					setState(s => ({ ...s, form: { ...s.form, delegacion: "" } }));
+					return;
+				}
 
-				// tomar una delegación de referencia (primera coincidencia)
-				const first = data[0] || {};
-				const delegacionTexto =
-					first.refDelegacionDescripcion ||
-					(first.seccionalLocalidad?.[0]?.refDelegacionDescripcion) ||
-					"";
+				const refDelegacionId = Number(item.refDelegacionId ?? item.RefDelegacionId ?? 0);
+				const delegacionDescFallback =
+					item.refDelegacionDescripcion || item.seccionalDescripcion || item.seccionalCodigo || "";
 
-				setState(s => ({
-					...s,
-					form: { ...s.form, delegacion: delegacionTexto },
-				}));
+
+				if (!refDelegacionId) {
+					console.warn("[Delegación] SeccionalLocalidad sin refDelegacionId. Usando fallback:", delegacionDescFallback);
+					setState(s => ({ ...s, form: { ...s.form, delegacion: delegacionDescFallback } }));
+					return;
+				}
+
+				// pedir DELEGACIÓN por id y tomar su nombre
+				sendRequest(
+					{
+						baseURL: "Comunes",
+						endpoint: `/RefDelegacion/GetById`,
+						method: "GET",
+						params: { id: refDelegacionId },
+						errorType: "response",
+					},
+					(okDel) => {
+						const rec = Array.isArray(okDel) ? okDel[0] : okDel;
+						const nombreDeleg = rec?.nombre || rec?.Nombre || "";
+
+						if (!nombreDeleg) {
+							console.warn("[Delegación] GetById sin nombre. Usando fallback:", delegacionDescFallback, "resp:", rec);
+							setState(s => ({ ...s, form: { ...s.form, delegacion: delegacionDescFallback } }));
+							return;
+						}
+
+						setState(s => ({ ...s, form: { ...s.form, delegacion: nombreDeleg } }));
+					},
+					(err) => {
+						console.error("[Delegación] RefDelegacion/GetById error:", err, "— usando fallback:", delegacionDescFallback);
+						setState(s => ({ ...s, form: { ...s.form, delegacion: delegacionDescFallback } }));
+					}
+				);
 			},
 		}));
-	}, [trabPciaSelect?.selected?.value, setSeccionalesQuery, setSeccionalSelect]);
+	}, [
+		// dispara cuando realmente cambia la localidad elegida o el prefill
+		trabLocaSelect?.selected?.record?.id,
+		state?.form?.refLocalidadIdAfiliado,
+		data?.refLocalidadIdAfiliado,
+		setSeccionalLocalidadQuery,
+		sendRequest,
+	]);
+
+
+
+
+
 
 
 
@@ -1128,7 +1271,13 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		if (!data || Object.keys(data).length === 0) return;
 		setState((o) => ({
 			...o,
-			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+			form: {
+				...o.form,
+				...data,
+				// En modo "M" forzar observaciones vacías
+				...(mode === "M" ? { observacionesRegistro: "" } : {}),
+				fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
+			},
 			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
 		}));
 	}, [data, readOnly]);
@@ -1192,29 +1341,29 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						return n;
 					});
 					setState((s) => ({ ...s, form: { ...s.form, seccional: rec.descripcion || rec.seccional || state.form.seccional || "" } }));
-						setLockedSeccional(true);
-						// Si la seccional trae refDelegacionId, prefill y bloquear también Delegación
-						const refDelegacionId = rec.refDelegacionId ?? rec.refDelegacion?.id ?? 0;
-						if (refDelegacionId) {
-							setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
-							setDelegacionesQuery((o) => ({
-								...o,
-								query: { ...o.query, params: { ...(o.query?.params || {}), id: refDelegacionId, soloActivos: true } },
-								onLoad: ({ ok, error }) => {
-									const dataD = Array.isArray(ok) ? ok : [];
-									setDelegacionSelect((prev) => {
-										const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
-										n.optionsSrc = delegacionSelectOptions(n);
-										const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
-										n.selected = sel;
-										n.selectedDef = sel;
-										return n;
-									});
-									setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataD[0]?.nombre) || state.form.delegacion || "" } }));
-									setLockedDelegacion(true);
-								},
-							}));
-						}
+					setLockedSeccional(true);
+					// Si la seccional trae refDelegacionId, prefill y bloquear también Delegación
+					const refDelegacionId = rec.refDelegacionId ?? rec.refDelegacion?.id ?? 0;
+					if (refDelegacionId) {
+						setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
+						setDelegacionesQuery((o) => ({
+							...o,
+							query: { ...o.query, params: { ...(o.query?.params || {}), id: refDelegacionId, soloActivos: true } },
+							onLoad: ({ ok, error }) => {
+								const dataD = Array.isArray(ok) ? ok : [];
+								setDelegacionSelect((prev) => {
+									const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
+									n.optionsSrc = delegacionSelectOptions(n);
+									const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
+									n.selected = sel;
+									n.selectedDef = sel;
+									return n;
+								});
+								setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataD[0]?.nombre) || state.form.delegacion || "" } }));
+								setLockedDelegacion(true);
+							},
+						}));
+					}
 				},
 				(err) => {
 					// no seleccionado si falla
@@ -1234,21 +1383,21 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		try { console.log('[DenunciasForm] MODIFICAR - data recibida:', data); } catch (e) { }
 
 		// Provincia: usar label textual si existe (varios nombres posibles) y no hay selección real aún
-const provinciaLabel =
-  data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion || data?.provinciaNombreAfiliado;
-const provinciaId = data?.provinciaId ?? data?.provinciaID ?? null;
+		const provinciaLabel =
+			data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion || data?.provinciaNombreAfiliado;
+		const provinciaId = data?.provinciaId ?? data?.provinciaID ?? null;
 
-if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.value)) {
-  setTrabPciaSelect((o) => ({
-    ...o,
-    selected: {
-      value: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0,   // << no tmp string
-      label: String(provinciaLabel || ""),
-      record: { id: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0, nombre: provinciaLabel },
-    },
-    origen: "server",
-  }));
-}
+		if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.value)) {
+			setTrabPciaSelect((o) => ({
+				...o,
+				selected: {
+					value: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0,   // << no tmp string
+					label: String(provinciaLabel || ""),
+					record: { id: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0, nombre: provinciaLabel },
+				},
+				origen: "server",
+			}));
+		}
 
 		// Localidad: similar
 		const localidadLabel = (data && (data.localidad || data.nombreLocalidadAfiliado || data.nombreLocalidad || data.localidadNombre)) || (state && state.form && (state.form.nombreLocalidadAfiliado || state.form.localidad || state.form.nombreLocalidad));
@@ -1267,10 +1416,6 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 	}, [mode, data && (data.provincia || data.provinciaNombre || data.provinciaId || data.localidad || data.nombreLocalidadAfiliado || data.localidadId)]);
 
-	// READONLY banderas
-	const isRO = !!readOnly;
-	const disTrab = isRO || !state.validado.trabajador;
-	const disEmpl = isRO || !state.validado.empleador;
 
 	// Si estamos en modo ALTA, fijar estado a Registrada (solo para UI, el payload ya cae a 'Registrada' por defecto)
 	useEffect(() => {
@@ -1287,13 +1432,6 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 		});
 	};
 
-	// Prefill selects (duplicados originales)
-	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
-	useEffect(() => { if (tipoIngresoSelect.options?.length) setSelectedById(setTipoIngresoSelect, tipoIngresoSelect, state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId); }, [tipoIngresoSelect.options, state.form?.denunciaTipoIngresoId, data?.denunciaTipoIngresoId]);
-	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
-	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
-	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
-	useEffect(() => { if (situacionSelect.options?.length) setSelectedById(setSituacionSelect, situacionSelect, state.form?.denunciaSituacionId || data?.denunciaSituacionId); }, [situacionSelect.options, state.form?.denunciaSituacionId, data?.denunciaSituacionId]);
 	useEffect(() => {
 		if (!trabPciaSelect.options?.length) return;
 		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
@@ -1362,23 +1500,6 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 	}, [setSeccionalesQuery]);
 	//#endregion Carga inicial select seccional
 
-	//#region Carga inicial select tipo documento
-	useEffect(() => {
-		setTiposDocumentosQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setTipoDocumentoSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setTiposDocumentosQuery]);
-	//#endregion Carga inicial select tipo documento
 
 	//#region Carga inicial select nacionalidad
 	useEffect(() => {
@@ -1542,13 +1663,93 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 	{
 
 
+		// Estados válidos según estado actual 
+		const ALL = [
+			"Registrada",
+			"Completada",
+			"Derivada",
+			"En Planificacion",
+			"Gestion con Empleador",
+			"Inspeccionada",
+			"Relevamiento App",
+			"Finalizada",
+		];
+		const GRUPO_MEDIO = [
+			"En Planificacion",
+			"Gestion con Empleador",
+			"Inspeccionada",
+			"Relevamiento App",
+		];
+
+		const pickLastEstado = (list = []) => {
+			if (!list.length) return "";
+			try {
+				const last = list.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).at(-1);
+				return String(last?.estado || "").trim();
+			} catch {
+				return String(list.at(-1)?.estado || "").trim();
+			}
+		};
+
+		// Estado PERSISTIDO DB: último en /DenunciasEstados
+		const estadoPersistido = String(
+			(pickLastEstado(estadosList) || data?.estado || "Registrada")
+		).trim();
+
+		const optionsFor = (estado) => {
+			if (estado === "Registrada") return ["Registrada", "Completada"];
+			if (estado === "Completada") {
+				return ["Completada", "Derivada", ...GRUPO_MEDIO, "Finalizada"];
+			}
+			if (estado === "Derivada") {
+
+				return ["Derivada", ...GRUPO_MEDIO, "Finalizada"];
+			}
+			if (GRUPO_MEDIO.includes(estado)) {
+				return [...GRUPO_MEDIO, "Finalizada"];
+			}
+
+
+			if (estado === "Finalizada") return ["Finalizada"];
+
+			return ["Registrada", "Completada"];
+		};
+
+		const estadoOptions = optionsFor(estadoPersistido).map(v => ({ value: v, label: v }));
+
+
+		const isRegistrada = estadoPersistido === "Registrada";
+		// Derivada a: opciones válidas según lo que vino desde DB
+		const derivadaPersistida = String(
+			state.form?.derivadaADescripcion || state.form?.derivadaA || data?.derivadoATipo || data?.derivadaATipo || "Sin derivacion"
+		).trim();
+		const derivadaOptionsFor = (tipo) => {
+			if (tipo === "Asesoria Letrada") return ["Asesoria Letrada"];
+			if (tipo === "CNTA") return ["CNTA"];
+			if (tipo === "Seccional") return ["Seccional"];
+			if (tipo === "Delegacion") return ["Delegacion", "Seccional"]; // permitir pasar a Seccional
+			// Sin derivación (o vacío): mostrar todas
+			return [
+				"Sin derivacion",
+				"Delegacion",
+				"Seccional",
+				"CNTA",
+				"Asesoria Letrada",
+			];
+		};
+		const derivadaAOptions = derivadaOptionsFor(derivadaPersistida).map(v => ({ value: v, label: v }));
+
+		const lockAllExceptRouting = !isRegistrada;     
+		const canEditAll = !readOnly && isRegistrada;   
+		const canEditRouting = !readOnly && !isRegistrada; 
+
 
 		const FormularioPanel = (
 			<Grid full col gap="10px">
 				{/* ====== CABECERA (nueva UI: SIN Seccional y SIN Fecha) ====== */}
 				<Grid width gap="inherit">
 					{
-						(mode === "M" || readOnly) ? (
+						(mode === "M" || readOnly || lockAllExceptRouting) ? (
 							<InputMaterial
 								id="provincia"
 								label="Provincia"
@@ -1561,6 +1762,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							<SearchSelectMaterial
 								id="provincia"
 								label="Provincia"
+								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabPciaSelect.error || state.errors.provincia)}
 								helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
 								value={trabPciaSelect.selected}
@@ -1592,7 +1794,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 						)
 					}
 					{
-						(mode === "M" || readOnly) ? (
+						(mode === "M" || readOnly || lockAllExceptRouting) ? (
 							<InputMaterial
 								id="localidad"
 								label="Localidad"
@@ -1603,6 +1805,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							<SearchSelectMaterial
 								id="localidad"
 								label="Localidad"
+								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabLocaSelect.error || state.errors.localidad)}
 								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
 								value={trabLocaSelect.selected}
@@ -1615,6 +1818,8 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 									}));
 								}}
 								options={trabLocaSelect.options}
+								freeSolo={false}
+								inputReadOnly={true}
 								onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
 							/>
 						)
@@ -1631,22 +1836,12 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 				<Grid col width gap="inherit" style={styles.group}>
 					<Grid width style={styles.titulo}>Carga de Datos</Grid>
 					<Grid col gap="inherit">
-						{/* Delegación (solo display) */}
-						{/* <Grid width gap="inherit">
-              <InputMaterial
-                id="delegacion"
-                label="Delegación"
-                readOnly
-                value={state.form.delegacion || data?.delegacion || ""}
-                onChange={() => {}}
-              />
-            </Grid> */}
 
 						{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */}
 						<Grid width gap="inherit">
 							<InputMaterial
 								id="nombreDenunciante"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Nombre Denunciante"
 								value={state.form.nombreDenunciante}
 								error={!!state.errors.nombreDenunciante}
@@ -1655,7 +1850,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							/>
 							<InputMaterial
 								id="telefonoContacto"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								type="tel"
 								label="Teléfono de contacto"
 								value={state.form.telefonoContacto}
@@ -1665,7 +1860,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							/>
 							<InputMaterial
 								id="correoElectronico"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Correo electrónico"
 								value={state.form.correoElectronico}
 								error={!!state.errors.correoElectronico}
@@ -1683,12 +1878,15 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 						<Grid width gap="inherit">
 							<SearchSelectMaterial
 								id="tipoIngreso"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Tipo de Ingreso"
+								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!tipoIngresoSelect.error}
 								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
 								value={tipoIngresoSelect.selected}
 								options={tipoIngresoSelect.options}
+								freeSolo={false}
+								inputReadOnly={true}
 								onChange={(selected = {}) => {
 									setTipoIngresoSelect(o => ({ ...o, selected, origen: "option" }));
 									setState(o => ({
@@ -1708,12 +1906,15 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							/>
 							<SearchSelectMaterial
 								id="situacion"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Situación"
+								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!situacionSelect.error}
 								helperText={situacionSelect.loading ?? situacionSelect.error}
 								value={situacionSelect.selected}
 								options={situacionSelect.options}
+								freeSolo={false}
+								inputReadOnly={true}
 								onChange={(selected = {}) => {
 									setSituacionSelect(o => ({ ...o, selected, origen: "option" }));
 									setState(o => ({
@@ -1731,7 +1932,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 							<InputMaterial
 								id="ubicacion"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Ubicación"
 								value={state.form.ubicacion}
 								error={!!state.errors.ubicacion}
@@ -1745,15 +1946,20 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							<Grid width="200px">
 								<InputMaterial
 									id="cuitEmpresa"
-									readOnly={readOnly}
+									readOnly={readOnly || lockAllExceptRouting}
 									mask={CUITMask}
 									label="CUIT Empleador"
 									value={state.form.cuitEmpresa}
 									error={!!state.errors.cuitEmpresa}
 									helperText={state.errors.cuitEmpresa}
-									onChange={(v) =>
-										setState((o) => ({ ...o, form: { ...o.form, cuitEmpresa: (String(v || "").match(/\d/g) || []).join("") } }))
-									}
+									onChange={(v) => {
+										const digits = (String(v || "").match(/\d/g) || []).join("");
+										setState((o) => ({
+											...o,
+											form: { ...o.form, cuitEmpresa: digits },
+											validado: { ...o.validado, empleador: false },
+										}));
+									}}
 								/>
 							</Grid>
 							<Grid col width="100px">
@@ -1762,60 +1968,83 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 									onClick={() => {
 										const changes = { form: {}, errors: { cuitEmpresa: "" } };
 										const cuit = state.form.cuitEmpresa;
-										const apply = () =>
+										const apply = (isOk = false) =>
 											setState((o) => ({
 												...o,
 												form: { ...o.form, ...changes.form },
 												errors: { ...o.errors, ...changes.errors },
-												validado: { ...o.validado, empleador: true },
+												validado: { ...o.validado, empleador: isOk },
 											}));
 										if (cuit) {
-											// 1) Consulta a AFIP
-											setPadronAFIPQuery((o) => ({
-												...o,
-												loading: "Empleador",
-												query: { ...o.query, params: { ...o.query.params, cuit } },
-												onLoad: ({ ok, error }) => {
-													if (error) {
-														changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
-														apply();
-														setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-													} else {
-														changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
-														// 2) Consultar endpoint /api/Empresas/GetEmpresaSpecs para obtener empresaId (filtro por cuit)
-														sendRequest(
-														{
-															baseURL: "Comunes",
-															endpoint: `/Empresas/GetEmpresaSpecs`,
-															method: "GET",
-															params: { cuit },
-															errorType: "response",
-														},
-														(okEmp) => {
-															// okEmp puede ser un array o un objeto; normalizar
-															const found = Array.isArray(okEmp) ? (okEmp[0] || null) : (okEmp || null);
-															const empresaId = found ? (found.id ?? found.Id ?? 0) : 0;
-															changes.form.empresaId = Number(empresaId || 0);
-															apply();
-															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-														},
-														(errEmp) => {
-															// Si falla la consulta de empresas, asumir empresaId = 0 pero continuar
-															console.error('Empresas/GetEmpresaSpecs error:', errEmp);
-															changes.form.empresaId = 0;
-															apply();
-															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-														}
-													);
-													}
+
+											// 1) Buscar primero en /Empresas/GetEmpresaSpecs
+											setPadronAFIPQuery((o) => ({ ...o, loading: "Empleador" }));
+											const cuitDigits = onlyDigits(cuit);
+											sendRequest(
+												{
+													baseURL: "Comunes",
+													endpoint: `/Empresas/GetEmpresaSpecs?CUIT=${encodeURIComponent(cuitDigits)}`,
+													method: "GET",
+													errorType: "response",
 												},
-											}));
+												(okEmp) => {
+													const found = Array.isArray(okEmp) ? (okEmp[0] || null) : (okEmp || null);
+													if (found) {
+														// Relleno desde Empresas y corto
+														changes.form.razonSocial = found.razonSocial || found.nombre || "";
+														changes.form.empresaId = Number(found.id ?? found.Id ?? 0);
+														apply(true);
+														setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+														return;
+													}
+													// Fallback a AFIP si no encontró
+													setPadronAFIPQuery((o) => ({ ...o, loading: "Empleador (AFIP)" }));
+													setPadronAFIPQuery((o) => ({
+														...o,
+														query: { ...o.query, params: { ...o.query.params, cuit: cuitDigits } },
+														onLoad: ({ ok, error }) => {
+															if (error) {
+																changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
+																apply(false);
+																setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+																return;
+															}
+															changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
+															changes.form.empresaId = 0; // no existe en catálogo local
+															apply(true);
+															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+														},
+													}));
+												},
+												(errEmp) => {
+													// Intentar AFIP igual
+													console.error('Empresas/GetEmpresaSpecs error:', errEmp);
+													setPadronAFIPQuery((o) => ({ ...o, loading: "Empleador (AFIP)" }));
+													setPadronAFIPQuery((o) => ({
+														...o,
+														query: { ...o.query, params: { ...o.query.params, cuit: cuitDigits } },
+														onLoad: ({ ok, error }) => {
+															if (error) {
+																changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
+																apply(false);
+																setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+																return;
+															}
+															changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
+															changes.form.empresaId = 0;
+															apply(true);
+															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+														},
+													}));
+												}
+											);
 										} else {
 											changes.errors.cuitEmpresa = "Dato requerido";
 											apply();
 										}
 									}}
-									loading={padronAFIPQuery.loading === "Empleador"}
+									loading={!!padronAFIPQuery.loading}
+									disabled={!!padronAFIPQuery.loading || lockAllExceptRouting}
 								>
 									Valida
 								</Button>
@@ -1823,7 +2052,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							<Grid grow>
 								<InputMaterial
 									id="razonSocial"
-									readOnly={readOnly}
+									readOnly={readOnly || lockAllExceptRouting}
 									label="Razón Social Empleador"
 									value={state.form.razonSocial}
 									error={!!state.errors.razonSocial}
@@ -1837,7 +2066,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 						<Grid width>
 							<InputMaterial
 								id="detalleDenuncia"
-								readOnly={readOnly}
+								readOnly={readOnly || lockAllExceptRouting}
 								label="Detalle de la denuncia"
 								multiline
 								rows={6}
@@ -1856,52 +2085,46 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 									readOnly={readOnly || mode === "A"}
 									id="estado"
 									label="Estado"
+									onKeyDown={(e) => { e.preventDefault(); }}
+									style={mode === "A" ? { backgroundColor: "#f5f5f5", opacity: 0.6 } : undefined}
 									value={state.form.estado ? { value: state.form.estado, label: state.form.estado } : { value: "Registrada", label: "Registrada" }}
-									options={[
-										{ value: "Registrada", label: "Registrada" },
-										{ value: "Completada", label: "Completada" },
-										{ value: "Derivada", label: "Derivada" },
-										{ value: "En Planificacion", label: "En Planificacion" },
-										{ value: "Gestion con Empleador", label: "Gestion con Empleador" },
-										{ value: "Inspeccionada", label: "Inspeccionada" },
-										{ value: "Relevamiento App", label: "Relevamiento App" },
-										{ value: "Finalizada", label: "Finalizada" },
-									]}
+									options={estadoOptions}
 									onChange={(selected = {}) => setState((o) => ({ ...o, form: { ...o.form, estado: selected?.value, estadoDescripcion: selected?.label } }))}
+									freeSolo={false}
+									inputReadOnly={true}
 									onTextChange={() => { }}
 								/>
 							</Grid>
 
 							<Grid grow>
 								<SearchSelectMaterial
-									readOnly={readOnly}
+									readOnly={readOnly || state.form.estado !== "Derivada"}
 									id="derivadaA"
 									label="Derivada a"
+									onKeyDown={(e) => { e.preventDefault(); }}
+									style={mode === "A" ? { backgroundColor: "#f5f5f5", opacity: 0.6 } : undefined}
 									value={state.form.derivadaA ? { value: state.form.derivadaA, label: state.form.derivadaA } : {}}
-									options={[
-										{ value: "Sin derivacion", label: "Sin derivacion" },
-										{ value: "Delegacion", label: "Delegacion" },
-										{ value: "Seccional", label: "Seccional" },
-										{ value: "CNTA", label: "CNTA" },
-										{ value: "Asesoria Letrada", label: "Asesoria Letrada" },
-									]}
+									options={derivadaAOptions}
 									onChange={(selected = {}) =>
 										setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } }))
 									}
+									freeSolo={false}
+									inputReadOnly={true}
 									onTextChange={() => { }}
 								/>
 							</Grid>
-
-
-
 							<Grid grow>
 								<SearchSelectMaterial
 									id="delegacionSelect"
 									label="Delegación"
+									onKeyDown={(e) => { e.preventDefault(); }}
+									style={mode === "A" ? { backgroundColor: "#f5f5f5", opacity: 0.6 } : undefined}
 									error={!!delegacionSelect.error}
 									helperText={delegacionSelect.loading ?? delegacionSelect.error}
 									value={delegacionSelect.selected}
 									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
+									freeSolo={false}
+									inputReadOnly={true}
 									onChange={(selected) => {
 										setDelegacionSelect((o) => ({ ...o, selected }));
 										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
@@ -1915,10 +2138,14 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 								<SearchSelectMaterial
 									id="seccionalSelect"
 									label="Seccional"
+									onKeyDown={(e) => { e.preventDefault(); }}
+									style={mode === "A" ? { backgroundColor: "#f5f5f5", opacity: 0.6 } : undefined}
 									error={!!seccionalSelect.error}
 									helperText={seccionalSelect.loading ?? seccionalSelect.error}
 									value={seccionalSelect.selected}
 									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
+									freeSolo={false}
+									inputReadOnly={true}
 									onChange={(selected) => {
 										setSeccionalSelect((o) => ({ ...o, selected }));
 										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
@@ -1949,7 +2176,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 		);
 
 		const entidadId = data?.id ?? 0;
-		const entidadTipo = "F";
+		const entidadTipo = "R";
 
 		const DocumentacionPanel = (
 			<Grid full col gap="10px">
@@ -1990,35 +2217,39 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 							// Si no hay EntidadId todavía, solo guardamos localmente
 							if (!entidadId) {
-								console.log('⏳ Guardado local - se enviará al servidor cuando se confirme el formulario');
+								console.log(' Guardado local - se enviará al servidor cuando se confirme el formulario');
 								return;
 							}
 
 							// Enviar al servidor
-							createDocQuery(o => ({
-								...o,
-								query: { ...o.query, config: { ...o.query?.config, body: payload } },
-								onLoad: ({ ok, error }) => {
-									if (error) {
-										console.error('❌ Error al crear archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo creado exitosamente:', ok);
-										// Actualizar con el ID real del servidor
-										const newId = ok?.id ?? item.id;
-										const next = [...temp];
-										next[next.length - 1] = { ...next[next.length - 1], id: newId };
-										setDocumentacionList(next);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-									}
+							sendRequest(
+								{
+									baseURL: "Comunes",
+									endpoint: `/DocumentacionEntidad`,
+									method: "POST",
+									body: payload,
+									errorType: "response",
+								},
+								({ ok }) => {
+									console.log('✅ Archivo creado exitosamente:', ok);
+									// Actualizar con el ID real del servidor
+									const newId = ok?.id ?? item.id;
+									const next = [...temp];
+									next[next.length - 1] = { ...next[next.length - 1], id: newId };
+									setDocumentacionList(next);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+								},
+								(err) => {
+									console.error(' Error al crear archivo:', err);
+									// Rollback
+									setDocumentacionList(prev);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
 								}
-							}));
+							);
 							return;
 						}
 
-						// === BAJA (ELIMINAR ARCHIVO)
+						//  BAJA
 						if (index != null && item == null) {
 							const current = prev[index];
 							console.log(' ELIMINANDO archivo:', current?.nombreArchivo);
@@ -2041,27 +2272,24 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							if (!entidadId) return;
 
 							// Eliminar del servidor
-							deleteDocQuery(o => ({
-								...o,
-								query: {
-									...o.query,
-									params: { ...(o.query?.params || {}), id },
-									config: {
-										...o.query?.config,
-										headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-									}
+							sendRequest(
+								{
+									baseURL: "Comunes",
+									endpoint: `/DocumentacionEntidad`,
+									method: "DELETE",
+									params: { id },
+									errorType: "response",
 								},
-								onLoad: ({ error }) => {
-									if (error) {
-										console.error('❌ Error al eliminar archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo eliminado del servidor exitosamente');
-									}
+								() => {
+									console.log(' Archivo eliminado del servidor exitosamente');
+								},
+								(err) => {
+									console.error(' Error al eliminar archivo:', err);
+									// Rollback
+									setDocumentacionList(prev);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
 								}
-							}));
+							);
 							return;
 						}
 
@@ -2080,20 +2308,24 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 							if (!entidadId) return;
 
 							// Actualizar en el servidor
-							updateDocQuery(o => ({
-								...o,
-								query: { ...o.query, config: { ...o.query?.config, body: payload } },
-								onLoad: ({ error }) => {
-									if (error) {
-										console.error('❌ Error al actualizar archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo actualizado exitosamente');
-									}
+							sendRequest(
+								{
+									baseURL: "Comunes",
+									endpoint: `/DocumentacionEntidad`,
+									method: "PUT",
+									body: payload,
+									errorType: "response",
+								},
+								() => {
+									console.log(' Archivo actualizado exitosamente');
+								},
+								(err) => {
+									console.error(' Error al actualizar archivo:', err);
+									// Rollback
+									setDocumentacionList(prev);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
 								}
-							}));
+							);
 							return;
 						}
 					}}
@@ -2110,83 +2342,39 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 				)}
 			</Grid>
 		);
-
-		const MostrarDocumentacion = (
-			<Grid full col gap="10px">
-
-
-				<Table
-					keyField="id"
-					data={Array.isArray(documentacionList) ? documentacionList : []}
-					columns={[
-						{
-							dataField: "refTipoDocumentacionDescripcion",
-							text: "Tipo Documentación",
-							style: { textAlign: "left" },
-						},
-						{
-							dataField: "nombreArchivo",
-							text: "Nombre del Archivo",
-							style: { textAlign: "left" },
-							formatter: (cell, row) =>
-								row?.url ? (
-									<a href={row.url} target="_blank" rel="noreferrer">
-										{cell || "(sin nombre)"}
-									</a>
-								) : (
-									cell || "(sin nombre)"
-								),
-						},
-					]}
-					mostrarBuscar={true}
-					pagination={false}
-				/>
-			</Grid>
-		);
-
 		content = (
 			<>
 				<Tabs value={selectedTab} onChange={handleChangeTab}>
 					<Tab label="Datos" />
 					<Tab label="Documentación" />
-					<Tab label="Novedades" />
+					<Tab
+						label="Novedades"
+						disabled={disableNovedades || mode === "A"}
+						sx={{
+							pointerEvents: (disableNovedades || mode === "A") ? "none" : "auto",
+							opacity: (disableNovedades || mode === "A") ? 0.5 : 1
+						}}
+					/>
 				</Tabs>
 				<div style={{ marginTop: 10 }}>
-					{selectedTab === 0 ? FormularioPanel : DocumentacionPanel}
+					{selectedTab === 0 ? FormularioPanel : selectedTab === 1 ? DocumentacionPanel : NovedadesPanel}
 				</div>
 			</>
 		);
 	}
 
-
-
-
-
-
-
-
-
-
-	// NUEVO: builder sin efectos secundarios
 	const buildPayloads = () => {
 		const errors = {};
 		const body = { ...state.form };
 
-		//if (!trabPciaSelect?.selected?.value) errors.provincia = "Dato requerido";
-		//if (!trabLocaSelect?.selected?.record?.id) errors.localidad = "Dato requerido";
-
-		// Si no está seleccionado en los selects, usá lo que vino del servidor (data) en modo edición.
-		// Usamos null/undefined checks en lugar de truthy para aceptar id = 0 cuando el servidor
-		// devolvió solo el nombre (p. ej. en ediciones antiguas). Además, si existe el nombre
-		// textual en `data` también lo consideramos suficiente.
 		const provinciaIdSel = (
 			trabPciaSelect?.selected?.value != null ? trabPciaSelect.selected.value :
-			(data?.provinciaId != null ? data.provinciaId : (data?.provinciaID != null ? data.provinciaID : null))
+				(data?.provinciaId != null ? data.provinciaId : (data?.provinciaID != null ? data.provinciaID : null))
 		);
 		const localidadIdSel = (
 			(trabLocaSelect?.selected?.record?.id != null ? trabLocaSelect.selected.record.id :
-			(data?.refLocalidadIdAfiliado != null ? data.refLocalidadIdAfiliado : (data?.localidadId != null ? data.localidadId : null))))
-		;
+				(data?.refLocalidadIdAfiliado != null ? data.refLocalidadIdAfiliado : (data?.localidadId != null ? data.localidadId : null))))
+			;
 
 		const provinciaTieneNombre = !!(trabPciaSelect?.selected?.record?.nombre || data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion);
 		const localidadTieneNombre = !!(trabLocaSelect?.selected?.record?.nombre || data?.localidad || data?.nombreLocalidadAfiliado || data?.nombreLocalidad);
@@ -2200,7 +2388,41 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 		if (body.cuitEmpresa && !ValidarCUIT(body.cuitEmpresa)) errors.cuitEmpresa = "Dato inválido";
 		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
 
+
+		// SOLO bloquear si se intenta pasar de Registrada -> Completada sin validar CUIT
+		const lastEstado = (() => {
+			if (Array.isArray(estadosList) && estadosList.length) {
+				try {
+					return String(
+						estadosList.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).at(-1)?.estado || ""
+					).trim();
+				} catch { /* noop */ }
+				return String(estadosList.at(-1)?.estado || "").trim();
+			}
+			return String(data?.estado || "Registrada").trim();
+		})();
+		const estadoNuevo = String(body.estado || state.form?.estado || "Registrada").trim();
+
+		// Regla: Para pasar de Registrada -> Completada es obligatorio y validar el CUIL del empleador
+		if (lastEstado === "Registrada" && estadoNuevo === "Completada") {
+			const hasCUIT = !!body.cuitEmpresa;
+			const isValidated = !!state.validado?.empleador;
+			if (!hasCUIT) {
+				errors.cuitEmpresa = "Valida CUIT empleador";
+				errors.validacionCUIL = "Ingrese y valide el CUIL del empleador";
+			} else if (!isValidated) {
+				errors.validacionCUIL = "Validar CUIL empleador";
+				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
+			}
+		}
+
+
 		if (Object.values(errors).some(Boolean)) {
+			// Si la validación del CUIT falla, también copiar el mensaje a `errors.create`
+			if (errors.validacionCUIL) {
+				errors.create = errors.validacionCUIL;
+				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
+			}
 			setState((o) => ({ ...o, errors }));
 			return null;
 		}
@@ -2218,6 +2440,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 		const appDenunciaPayload = {
 			nombre: body.nombreDenunciante || "",
 			correo: body.correoElectronico || "",
+			telefono: body.telefonoContacto || "",
 			//provincia: trabPciaSelect?.selected?.record?.nombre || "",
 			//localidad: trabLocaSelect?.selected?.record?.nombre || "",
 
@@ -2235,7 +2458,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 			denunciaSituacionId: Number(body.denunciaSituacionId || 0),
 			empleadorCUIT: Number(body.cuitEmpresa || 0),
 			empleadorNombre: body.razonSocial || "",
-						empresaId: Number(state.form?.empresaId || 0),
+			empresaId: Number(state.form?.empresaId || 0),
 			ubicacion: body.ubicacion || "",
 		};
 
@@ -2252,16 +2475,9 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 
 
-
-
-
-
-
-
-
-
-
 	const onAgregaDenuncia = () => {
+		setDisableNovedades(true);
+		setSelectedTab(0); // quedarnos en la pestaña Datos
 		const built = buildPayloads();
 		if (!built) return;
 		const { appDenunciaPayload, estadoPayload } = built;
@@ -2275,6 +2491,7 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 			onLoad: ({ ok, error }) => {
 				if (error) {
 					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
+					setDisableNovedades(false);
 					return;
 				}
 
@@ -2292,9 +2509,13 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 				setCreateEstadoQuery((o3) => ({
 					...o3,
 					query: { ...o3.query, config: { ...o3.query?.config, body: estadoPayload(appId) } },
-					onLoad: ({ error: error2 }) => {
+					onLoad: ({ ok, error: error2 }) => {
+						const rawEstadoId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+						const estadoId = rawEstadoId != null ? Number(rawEstadoId) : null;
+						const entidadParaDocumentacion = estadoId || appId;
+
 						Promise.resolve()
-							.then(() => persistirDocumentacion(appId))
+							.then(() => persistirDocumentacion(entidadParaDocumentacion))
 							.finally(() => {
 								setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
 								onClose(true);
@@ -2309,23 +2530,23 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 
 
-const onGuardaCambios = () => {
-  const built = buildPayloads();
-  if (!built) return;
-	const { appDenunciaPayload, estadoPayload } = built;
+	const onGuardaCambios = () => {
+		const built = buildPayloads();
+		if (!built) return;
+		const { appDenunciaPayload, estadoPayload } = built;
 
 
-	// Debug: ver payload y id resuelto antes de enviar PUT
-	try { console.log('[DenunciasForm] onGuardaCambios - built payload:', appDenunciaPayload, 'state.form.id:', state.form?.id, 'data.id:', data?.id, 'state.form:', state.form); } catch (e) { }
+		// Debug: ver payload y id resuelto antes de enviar PUT
+		try { console.log('[DenunciasForm] onGuardaCambios - built payload:', appDenunciaPayload, 'state.form.id:', state.form?.id, 'data.id:', data?.id, 'state.form:', state.form); } catch (e) { }
 
-	const id = state.form?.id || data?.id;
-	if (!id) {
-		setState((s) => ({ ...s, errors: { ...s.errors, create: "Falta Id para editar" } }));
-		return;
-	}
+		const id = state.form?.id || data?.id;
+		if (!id) {
+			setState((s) => ({ ...s, errors: { ...s.errors, create: "Falta Id para editar" } }));
+			return;
+		}
 
-	// Enviar directamente con sendRequest para asegurar la URL con id
-	setState((s) => ({ ...s, loading: "Guardando cambios..." }));
+		// Enviar directamente con sendRequest para asegurar la URL con id
+		setState((s) => ({ ...s, loading: "Guardando cambios..." }));
 		sendRequest(
 			{
 				baseURL: "App",
@@ -2347,20 +2568,23 @@ const onGuardaCambios = () => {
 							body: estadoBody,
 							errorType: "response",
 						},
-						() => {
+						(okEstado) => {
+							const rawEstadoId = okEstado?.id ?? okEstado?.Id ?? (Number.isFinite(okEstado) ? okEstado : null);
+							const estadoId = rawEstadoId != null ? Number(rawEstadoId) : null;
+							const entidadParaDocumentacion = estadoId || id;
+
 							// persistir documentación y cerrar
 							Promise.resolve()
-								.then(() => persistirDocumentacion(id))
+								.then(() => persistirDocumentacion(entidadParaDocumentacion))
 								.finally(() => onClose(true));
 						},
 						(errEstado) => {
-							// Si falla crear estado, mostrar error pero seguir con persistir documentación
 							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: errEstado?.toString() } }));
 							Promise.resolve()
 								.then(() => persistirDocumentacion(id))
 								.finally(() => onClose(true));
 						},
-						() => {}
+						() => { }
 					);
 				} else {
 					// Si no hay estadoBody, sólo persistir documentación
@@ -2372,9 +2596,9 @@ const onGuardaCambios = () => {
 			(error) => {
 				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
 			},
-			() => {}
+			() => { }
 		);
-};
+	};
 
 	// Construir título dinámico según el modo (Agregar / Modificar / Consulta)
 	const _numeroDenuncia = state.form?.numero || data?.numero || state.form?.id || data?.id || null;
@@ -2382,27 +2606,23 @@ const onGuardaCambios = () => {
 	const _fechaDenuncia = _fechaDenunciaRaw ? dayjs(_fechaDenunciaRaw).format("DD/MM/YYYY") : null;
 
 	let headerTitle = "Agrega Denuncia";
-		if (mode === "M") {
-			if (_numeroDenuncia) {
-				headerTitle = `Edita Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
-			} else if (_fechaDenuncia) {
-				headerTitle = `Edita Denuncia ${_fechaDenuncia}`;
-			} else {
-				headerTitle = `Edita Denuncia`;
-			}
-		} else if (mode === "C" || readOnly) {
-			if (_numeroDenuncia) {
-				headerTitle = `Consulta Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
-			} else if (_fechaDenuncia) {
-				headerTitle = `Consulta Denuncia ${_fechaDenuncia}`;
-			} else {
-				headerTitle = `Consulta Denuncia`;
-			}
+	if (mode === "M") {
+		if (_numeroDenuncia) {
+			headerTitle = `Edita Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+		} else if (_fechaDenuncia) {
+			headerTitle = `Edita Denuncia ${_fechaDenuncia}`;
+		} else {
+			headerTitle = `Edita Denuncia`;
 		}
-
-
-
-
+	} else if (mode === "C" || readOnly) {
+		if (_numeroDenuncia) {
+			headerTitle = `Consulta Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+		} else if (_fechaDenuncia) {
+			headerTitle = `Consulta Denuncia ${_fechaDenuncia}`;
+		} else {
+			headerTitle = `Consulta Denuncia`;
+		}
+	}
 
 	return (
 		<Modal size="xl" centered show>
@@ -2412,7 +2632,7 @@ const onGuardaCambios = () => {
 			<Modal.Body>{content}</Modal.Body>
 			<Modal.Footer>
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
-					<Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
+					<div />
 					{!readOnly && selectedTab === 0 && (
 						<>
 							{mode === "A" && (
