@@ -11,6 +11,8 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useDenuncias, { onLoadSelectKeepOrFirst } from "./useDenuncias";
 import AuthContext from "store/authContext";
+import DenunciasForm from "./DenunciasForm";
+import Action from "components/helpers/Action";
 
 const DenunciasHandler = () => {
   const dispatch = useDispatch();
@@ -18,6 +20,19 @@ const DenunciasHandler = () => {
 
   const tabs = [];
   const [tab, setTab] = useState(0);
+
+
+  // Modal DenunciasForm
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("A"); // A | M | C | B
+  const [formData, setFormData] = useState({});
+
+  const openForm = (mode, record = {}) => {
+    setFormMode(mode);
+    setFormData(record || {});
+    setFormOpen(true);
+  };
+
 
   // ==============================
   // QUERIES API
@@ -124,6 +139,52 @@ const DenunciasHandler = () => {
 
   const [denunciasActions, setDenunciasActions] = useState([]);
 
+
+useEffect(() => {
+  const createAction = ({ action, onExecute, ...x }) =>
+    new Action({
+      name: action,
+      onExecute,
+      combination: "AltKey",
+      ...x,
+    });
+
+  const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
+
+  const actions = [
+    // ALT  A
+    createAction({
+      action: "Agrega Denuncia",
+      onExecute: () => openForm("A"),
+      tarea: "Datos_DenunciaAgrega",
+      keys: "a",
+      underlineindex: 0,
+    }),
+    createAction({
+      action: `Consulta Denuncia ${desc}`,
+      onExecute: () => (denunciasSelected ? openForm("C", denunciasSelected) : null),
+      tarea: "Datos_DenunciaConsulta",
+      ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
+    }),
+    createAction({
+      action: `Modifica Denuncia ${desc}`,
+      onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
+      tarea: "Datos_DenunciaModifica",
+      ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
+    }),
+    createAction({
+      action: `Baja Denuncia ${desc}`,
+      onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
+      tarea: "Datos_DenunciaBaja",
+      ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
+    }),
+  ];
+
+  setDenunciasActions(actions);
+}, [denunciasSelected]);
+  
+
+
   useEffect(() => {
     const { filtro, ...params } = denunciaParams;
 
@@ -164,31 +225,71 @@ const DenunciasHandler = () => {
   const acciones = tabs[tab].actions;
 
   useEffect(() => {
-    dispatch(handleModuloSeleccionar({ nombre: "Localidades", acciones }));
+   dispatch(handleModuloSeleccionar({ nombre: "Denuncias", acciones }));
   }, [dispatch, acciones]);
 
   // ==============================
   // RENDER
   // ==============================
   return (
-    <Grid full col>
-      <Grid className="titulo">
-        <h1>DENUNCIAS</h1>
-      </Grid>
-
-      <Grid col className="tabs">
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          {tabs.map((r) => r.header())}
-        </Tabs>
-      </Grid>
-
-      <Grid className="contenido">
-        {tabs[tab].body()}
-      </Grid>
-
-      <KeyPress items={acciones} />
+  <Grid full col>
+    {/* Título principal */}
+    <Grid className="titulo">
+      <h1>DENUNCIAS</h1>
     </Grid>
-  );
+
+    {/* Tabs superiores */}
+    <Grid col className="tabs">
+      <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+        {tabs.map((r) => r.header())}
+      </Tabs>
+    </Grid>
+
+    {/* Contenido dinámico según tab */}
+    <Grid className="contenido">
+      {tabs[tab].body()}
+    </Grid>
+
+    {/* Accesos rápidos por teclado */}
+    <KeyPress items={acciones} />
+
+    {/* Modal del formulario DenunciasForm */}
+    {formOpen && (
+      <DenunciasForm
+        title={
+          <h3 style={{ margin: 0 }}>
+            {formMode === "A"
+              ? "Agregar Denuncia"
+              : formMode === "M"
+              ? "Modificar Denuncia"
+              : formMode === "C"
+              ? "Consulta Denuncia"
+              : "Baja Denuncia"}
+          </h3>
+        }
+        data={formData}
+        disabled={{
+          ...(formMode === "C" ? { codPostal: true, nombre: true } : {}),
+        }}
+        onChange={(changes) => setFormData((o) => ({ ...o, ...changes }))}
+        onClose={(confirm = false) => {
+          setFormOpen(false);
+          if (confirm) {
+            // 🔄 Refrescar la lista luego de confirmar
+            const { filtro, ...params } = denunciaParams;
+            const payload = {
+              params,
+              pagination: { size: 15 },
+              onLoadSelect: onLoadSelectKeepOrFirst,
+            };
+            if (filtro) payload.params.filterByCPNombre = filtro;
+            denunciaRequest("list", payload);
+          }
+        }}
+      />
+    )}
+  </Grid>
+);
 };
 
 export default DenunciasHandler;
