@@ -3,7 +3,6 @@ import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
 import Formato from "components/helpers/Formato";
-import { and } from "components/helpers/Utils";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
@@ -19,8 +18,6 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
-import useSolicitudAfiliacion from "../../consultas/solicitudAfiliacion/SolicitudAfiliacion";
-//import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 import Table from "components/ui/Table/Table";
 
 import { Tabs, Tab } from "@mui/material";
@@ -52,6 +49,22 @@ const toInputString = (v) => {
 };
 
 const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
+
+// Debug helper para inspeccionar payloads enviados
+function debugSend(tag, payload) {
+	try {
+		if (console.groupCollapsed) {
+			console.groupCollapsed(`[DEBUG] ${tag}`);
+		} else {
+			console.log(`[DEBUG] ${tag}`);
+		}
+		console.log(payload);
+		if (console.groupEnd) console.groupEnd();
+	} catch (e) {
+		console.log(`[DEBUG] ${tag}`, payload);
+	}
+	return payload;
+}
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
@@ -114,6 +127,18 @@ const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
 		...x,
 	});
 //#endregion provinciaSelect Options
+
+//#region delegacionSelect Options
+const delegacionSelectTodos = { value: 0, label: "Todas" };
+const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
+		filter: (r) => includeSearch(r, buscar),
+		start: data.length === 1 ? [] : [delegacionSelectTodos],
+		...x,
+	});
+//#endregion delegacionSelect Options
 
 //#region localidadSelect Options
 const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
@@ -249,6 +274,16 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
+	const { setState: setDelegacionesQuery } = useQueryState(
+		() => ({
+			config: {
+				baseURL: "Comunes",
+				endpoint: `/RefDelegacion/GetAll`,
+				method: "GET",
+			},
+		}),
+		{ query: { params: { soloActivos: true }, config: { errorType: "response" } } }
+	);
 	const { setState: setOficiosQuery } = useQueryState(
 		() => ({
 			config: {
@@ -264,6 +299,22 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			},
 		}
 	);
+	// Catálogo: DenunciaTipo (para "Tipo de Ingreso")
+	const { setState: setDenunciaTipoQuery } = useQueryState(
+		() => ({
+			config: { baseURL: "App", endpoint: `/DenunciaTipo`, method: "GET" },
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+
+	// Catálogo: DenunciaSituacion (para "Situación")
+	const { setState: setDenunciaSituacionQuery } = useQueryState(
+		() => ({
+			config: { baseURL: "App", endpoint: `/DenunciaSituacion`, method: "GET" },
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+
 	const { setState: setActividadesQuery } = useQueryState(
 		() => ({
 			config: {
@@ -309,21 +360,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		{ query: { config: { errorType: "response" } } }
 	);
 
-	// 2) Alta de Tipo de Ingreso (descripcion)
-	const { setState: setCreateTipoIngresoQuery } = useQueryState(
-		() => ({
-			config: { baseURL: "App", endpoint: `/DenunciaTipoIngreso`, method: "POST" },
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
 
-	// 2.b) Alta de Situación (descripcion)
-	const { setState: setCreateSituacionQuery } = useQueryState(
-		() => ({
-			config: { baseURL: "App", endpoint: `/DenunciaSituacion`, method: "POST" },
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
 
 	// 3) Alta de Estado de la denuncia
 	const { setState: setCreateEstadoQuery } = useQueryState(
@@ -370,6 +407,8 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	const [state, setState] = useState({
 		form: {
 			fecha: dayjs().format("YYYY-MM-DD"),
+			derivadaA: "Sin derivacion",
+			derivadaADescripcion: "Sin derivacion",
 		},
 		validado: {
 			seccionalId: false,
@@ -437,6 +476,9 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			item?.contenido ??
 			""
 		).toString().replace(/^data:.*;base64,/, "");
+
+		
+
 
 		const payload = {
 			id: item?.id,
@@ -565,6 +607,88 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	}, [seccionalSelect.buscar, seccionalSelect.data]);
 	//#endregion select seccional
 
+	//#region select delegacion
+	const [delegacionSelect, setDelegacionSelect] = useState({
+		reload: true,
+		loading: "Cargando...",
+		buscar: "",
+		data: [],
+		error: null,
+		optionsSrc: [],
+		options: [],
+		selected: {},
+		selectedDef: {},
+		origen: "",
+	});
+	// Buscador
+	useEffect(() => {
+		setDelegacionSelect((o) => ({
+			...o,
+			options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+		}));
+	}, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
+
+	// Carga inicial delegaciones
+	useEffect(() => {
+		if (!delegacionSelect.reload) return;
+		setDelegacionSelect((o) => ({
+			...o,
+			reload: false,
+			loading: "Cargando...",
+			data: [],
+			optionsSrc: [],
+			selected: {},
+			selectedDef: {},
+			buscar: "",
+		}));
+		setDelegacionesQuery((o) => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				let data = [];
+				if (Array.isArray(ok)) data = ok;
+				setDelegacionSelect((prev) => {
+					const n = {
+						...prev,
+						loading: null,
+						data: data,
+						error: error?.toString(),
+					};
+					n.optionsSrc = delegacionSelectOptions(n);
+					n.selectedDef = n.optionsSrc.length === 1 ? n.optionsSrc[0] : {};
+					n.selected = n.selectedDef;
+					return n;
+				});
+			},
+		}));
+	}, [delegacionSelect.reload, setDelegacionesQuery]);
+
+	//#endregion select delegacion
+
+	// Cuando cambia la delegación seleccionada, filtrar las seccionales disponibles
+	useEffect(() => {
+		const delegId = delegacionSelect.selected?.value;
+		// si no hay datos de seccionales aún, salir
+		if (!Array.isArray(seccionalSelect.data) || seccionalSelect.data.length === 0) return;
+
+		if (!delegId || delegId === 0) {
+			// restaurar todas las opciones
+			setSeccionalSelect((o) => ({
+				...o,
+				options: seccionalesSelectOptions(o),
+			}));
+			return;
+		}
+
+		const filtered = seccionalSelect.data.filter((s) => Number(s.refDelegacionId) === Number(delegId));
+		const opts = seccionalesSelectOptions({ data: filtered, buscar: seccionalSelect.buscar });
+		const nextSelected = opts.length === 1 ? opts[0] : (seccionalSelect.selected?.value ? opts.find((p) => p.value === seccionalSelect.selected.value) ?? seccionalSelect.selected : seccionalSelect.selected);
+		setSeccionalSelect((o) => ({ ...o, options: opts, selected: nextSelected }));
+		if (opts.length === 1) {
+			const sel = opts[0];
+			setState((o) => ({ ...o, form: { ...o.form, seccional: sel.record?.descripcion || sel.label } }));
+		}
+	}, [delegacionSelect.selected, seccionalSelect.data, seccionalSelect.buscar]);
+
 	//#region selects trabajador
 
 	//#region select tipo documento
@@ -577,6 +701,76 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		selected: {},
 		origen: "",
 	});
+
+
+	//#region select tipo ingreso
+	const [tipoIngresoSelect, setTipoIngresoSelect] = useState({
+		loading: "Cargando...",
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: {},
+		origen: "",
+	});
+	useEffect(() => {
+		setTipoIngresoSelect(o => ({
+			...o,
+			options: (o.data || []).map(r => ({ value: r.id, label: r.descripcion, record: r }))
+				.filter(opt => includeSearch(opt, o.buscar)),
+		}));
+	}, [tipoIngresoSelect.buscar, tipoIngresoSelect.data]);
+
+	//#region select situacion tipo
+	const [situacionSelect, setSituacionSelect] = useState({
+		loading: "Cargando...",
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: {},
+		origen: "",
+	});
+
+	// Opciones (map + filtro)
+	useEffect(() => {
+		setSituacionSelect(o => ({
+			...o,
+			options: (o.data || [])
+				.map(r => ({ value: r.id, label: r.descripcion, record: r }))
+				.filter(opt => includeSearch(opt, o.buscar)),
+		}));
+	}, [situacionSelect.buscar, situacionSelect.data]);
+
+	// Carga inicial del catálogo + preselect por id si viene en `data`
+	useEffect(() => {
+		setDenunciaSituacionQuery(o => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				const data = Array.isArray(ok) ? ok : [];
+				setSituacionSelect(s => ({
+					...s,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+				// Prefill si ya viene un id
+				const wantedId = state.form?.denunciaSituacionId ?? data?.denunciaSituacionId;
+				if (wantedId) {
+					const hit = data.find(d => d.id === wantedId);
+					if (hit) {
+						setSituacionSelect(s => ({
+							...s,
+							selected: { value: hit.id, label: hit.descripcion, record: hit },
+							origen: "option",
+						}));
+					}
+				}
+			},
+		}));
+	}, [setDenunciaSituacionQuery]);
+
+
 	// Buscador
 	useEffect(() => {
 		setTipoDocumentoSelect((o) => ({
@@ -585,6 +779,35 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}));
 	}, [tipoDocumentoSelect.buscar, tipoDocumentoSelect.data]);
 	//#endregion select tipo documento
+
+	useEffect(() => {
+		setDenunciaTipoQuery(o => ({
+			...o,
+			onLoad: ({ ok, error }) => {
+				const data = Array.isArray(ok) ? ok : [];
+				setTipoIngresoSelect(s => ({
+					...s,
+					loading: null,
+					data,
+					error: error?.toString(),
+				}));
+				// Prefill si ya viene un id desde `data`
+				if (data?.length && (state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId)) {
+					const wantedId = state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId;
+					const hit = data.find(d => d.id === wantedId);
+					if (hit) {
+						setTipoIngresoSelect(s => ({
+							...s,
+							selected: { value: hit.id, label: hit.descripcion, record: hit },
+							origen: "option",
+						}));
+					}
+				}
+			},
+		}));
+	}, [setDenunciaTipoQuery]);
+
+
 
 	//#region select nacionalidad
 	const [nacionalidadSelect, setNacionalidadSelect] = useState({
@@ -1114,8 +1337,27 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 	//#endregion inicializaciones
 
-	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
-
+	// Habilitar/limpiar Delegacion/Seccional según "Derivada a"
+	useEffect(() => {
+		const derivada = state.form.derivadaA;
+		// Si no está derivada (o es 'Sin derivacion') limpiar ambos campos
+		if (!derivada || derivada === "Sin derivacion") {
+			setDelegacionSelect((o) => ({ ...o, selected: {} }));
+			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
+			setState((o) => ({ ...o, form: { ...o.form, delegacion: "", seccional: "" } }));
+			return;
+		}
+		if (derivada === "Delegacion") {
+			// mantener delegacion, limpiar seccional
+			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
+			setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			return;
+		}
+		if (derivada === "Seccional") {
+			// permitir ambos: no hacemos limpieza automática (usuario debe elegir)
+			return;
+		}
+	}, [state.form.derivadaA]);
 
 
 	let content = null;
@@ -1175,11 +1417,12 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						options={trabLocaSelect.options}
 						onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
 					/>
+					<Grid width style={styles.String}>Delegacion: XXXXXXXXXXXXXXXXXXXXXXXXXXXXX</Grid>
 				</Grid>
 
 				{/* ====== BLOQUE PRINCIPAL ====== */}
 				<Grid col width gap="inherit" style={styles.group}>
-					<Grid width style={styles.titulo}>Delegacion: XXXXXXXXXXXX (TENGO QUE PONER BIEN ESTO)</Grid>
+					<Grid width style={styles.titulo}>Carga de Datos</Grid>
 					<Grid col gap="inherit">
 						{/* Delegación (solo display) */}
 						{/* <Grid width gap="inherit">
@@ -1192,7 +1435,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
               />
             </Grid> */}
 
-						{/* Nombre Denunciante / Teléfono de contacto */}
+						{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */}
 						<Grid width gap="inherit">
 							<InputMaterial
 								id="nombreDenunciante"
@@ -1211,10 +1454,6 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 								helperText={state.errors.telefonoContacto}
 								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, telefonoContacto: v } }))}
 							/>
-						</Grid>
-
-						{/* Correo electrónico */}
-						<Grid width>
 							<InputMaterial
 								id="correoElectronico"
 								label="Correo electrónico"
@@ -1225,56 +1464,70 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							/>
 						</Grid>
 
-						{/* Detalle de la denuncia (texto libre) */}
+						{/* Correo electrónico
 						<Grid width>
-							<InputMaterial
-								id="detalleDenuncia"
-								label="Detalle de la denuncia"
-								multiline
-								rows={6}
-								value={state.form.detalleDenuncia}
-								error={!!state.errors.detalleDenuncia}
-								helperText={state.errors.detalleDenuncia}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, detalleDenuncia: v } }))}
-							/>
-						</Grid>
 
-						{/* Tipo de Ingreso / Situación (placeholder: listas locales por ahora) */}
+						</Grid> */}
+
+						{/* Tipo de Ingreso / Situación / Ubicacion */}
 						<Grid width gap="inherit">
 							<SearchSelectMaterial
 								id="tipoIngreso"
 								label="Tipo de Ingreso"
-								value={state.form.tipoIngreso ? { value: state.form.tipoIngreso, label: state.form.tipoIngreso } : {}}
-								options={[
-									{ value: "Mail", label: "Mail" },
-									{ value: "Web", label: "Web" },
-									{ value: "AppDigital", label: "AppDigital" },
-									{ value: "Telefono", label: "Telefono" },
-
-
-								]}
-								onChange={(selected = {}) =>
-									setState((o) => ({ ...o, form: { ...o.form, tipoIngreso: selected?.value, tipoIngresoDescripcion: selected?.label } }))
-								}
-								onTextChange={() => { }}
+								error={!!tipoIngresoSelect.error}
+								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
+								value={tipoIngresoSelect.selected}
+								options={tipoIngresoSelect.options}
+								onChange={(selected = {}) => {
+									setTipoIngresoSelect(o => ({ ...o, selected, origen: "option" }));
+									setState(o => ({
+										...o,
+										form: {
+											...o.form,
+											// guardar el ID para el backend:
+											denunciaTipoIngresoId: Number(selected?.value || 0),
+											// guardar también la descripción por si la necesitás en UI:
+											tipoIngresoDescripcion: selected?.label || "",
+										},
+										// si tenías errores previos:
+										errors: { ...o.errors, tipoIngreso: "" },
+									}));
+								}}
+								onTextChange={(buscar) => setTipoIngresoSelect(o => ({ ...o, buscar, origen: "text" }))}
 							/>
 							<SearchSelectMaterial
 								id="situacion"
 								label="Situación"
-								value={state.form.situacion ? { value: state.form.situacion, label: state.form.situacion } : {}}
-								options={[
-									{ value: "Registrada", label: "Registrada" },
-									{ value: "En evaluación", label: "En evaluación" },
-									{ value: "Cerrada", label: "Cerrada" },
-								]}
-								onChange={(selected = {}) =>
-									setState((o) => ({ ...o, form: { ...o.form, situacion: selected?.value, situacionDescripcion: selected?.label } }))
-								}
-								onTextChange={() => { }}
+								error={!!situacionSelect.error}
+								helperText={situacionSelect.loading ?? situacionSelect.error}
+								value={situacionSelect.selected}
+								options={situacionSelect.options}
+								onChange={(selected = {}) => {
+									setSituacionSelect(o => ({ ...o, selected, origen: "option" }));
+									setState(o => ({
+										...o,
+										form: {
+											...o.form,
+											denunciaSituacionId: Number(selected?.value || 0),   // ← ID al backend
+											situacionDescripcion: selected?.label || "",         // ← texto para UI
+										},
+										errors: { ...o.errors, situacion: "" },
+									}));
+								}}
+								onTextChange={(buscar) => setSituacionSelect(o => ({ ...o, buscar, origen: "text" }))}
+							/>
+
+							<InputMaterial
+								id="ubicacion"
+								label="Ubicación"
+								value={state.form.ubicacion}
+								error={!!state.errors.ubicacion}
+								helperText={state.errors.ubicacion}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, ubicacion: v } }))}
 							/>
 						</Grid>
 
-						{/* CUIT Empleador (solo para obtener Razón Social) */}
+						{/* CUIT Empleador  */}
 						<Grid gap="inherit">
 							<Grid width="200px">
 								<InputMaterial
@@ -1340,25 +1593,91 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							</Grid>
 						</Grid>
 
-						{/* Ubicación / Estado (Estado: por ahora solo 'Registrada') */}
-						<Grid width gap="inherit">
+						{/* Detalle de la denuncia (texto libre) */}
+						<Grid width>
 							<InputMaterial
-								id="ubicacion"
-								label="Ubicación"
-								value={state.form.ubicacion}
-								error={!!state.errors.ubicacion}
-								helperText={state.errors.ubicacion}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, ubicacion: v } }))}
+								id="detalleDenuncia"
+								label="Detalle de la denuncia"
+								multiline
+								rows={6}
+								value={state.form.detalleDenuncia}
+								error={!!state.errors.detalleDenuncia}
+								helperText={state.errors.detalleDenuncia}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, detalleDenuncia: v } }))}
 							/>
-							<SearchSelectMaterial
-								id="estado"
-								label="Estado"
-								value={{ value: "Registrada", label: "Registrada" }}
-								options={[{ value: "Registrada", label: "Registrada" }]}
-								readOnly
-								onChange={() => { }}
-								onTextChange={() => { }}
-							/>
+						</Grid>
+
+						{/* Delegación y Seccional (desplegables) Estados y derivados a*/}
+						<Grid width gap="inherit">
+
+							<Grid grow>
+								<SearchSelectMaterial
+									id="estado"
+									label="Estado"
+									value={state.form.estado ? { value: state.form.estado, label: state.form.estado } : { value: "Registrada", label: "Registrada" }}
+									options={[
+										{ value: "Registrada", label: "Registrada" },
+										{ value: "Completada", label: "Completada" },
+										{ value: "Derivada", label: "Derivada" },
+									]}
+									onChange={(selected = {}) => setState((o) => ({ ...o, form: { ...o.form, estado: selected?.value, estadoDescripcion: selected?.label } }))}
+									onTextChange={() => { }}
+								/>
+							</Grid>
+
+							<Grid grow>
+								<SearchSelectMaterial
+									id="derivadaA"
+									label="Derivada a"
+									value={state.form.derivadaA ? { value: state.form.derivadaA, label: state.form.derivadaA } : {}}
+									options={[
+										{ value: "Sin derivacion", label: "Sin derivacion" },
+										{ value: "Delegacion", label: "Delegacion" },
+										{ value: "Seccional", label: "Seccional" },
+										{ value: "CNTA", label: "CNTA" },
+										{ value: "Asesoria Letrada", label: "Asesoria Letrada" },
+									]}
+									onChange={(selected = {}) =>
+										setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } }))
+									}
+									onTextChange={() => { }}
+								/>
+							</Grid>
+
+
+
+							<Grid grow>
+								<SearchSelectMaterial
+									id="delegacionSelect"
+									label="Delegación"
+									error={!!delegacionSelect.error}
+									helperText={delegacionSelect.loading ?? delegacionSelect.error}
+									value={delegacionSelect.selected}
+									readOnly={!(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
+									onChange={(selected) => {
+										setDelegacionSelect((o) => ({ ...o, selected }));
+										setState((o) => ({ ...o, form: { ...o.form, delegacion: selected.record?.nombre || selected.label } }));
+									}}
+									options={delegacionSelect.options}
+									onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
+								/>
+							</Grid>
+							<Grid grow>
+								<SearchSelectMaterial
+									id="seccionalSelect"
+									label="Seccional"
+									error={!!seccionalSelect.error}
+									helperText={seccionalSelect.loading ?? seccionalSelect.error}
+									value={seccionalSelect.selected}
+									readOnly={state.form.derivadaA !== "Seccional"}
+									onChange={(selected) => {
+										setSeccionalSelect((o) => ({ ...o, selected }));
+										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
+									}}
+									options={seccionalSelect.options}
+									onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
+								/>
+							</Grid>
 						</Grid>
 
 						{/* Observaciones del Registro (texto libre) */}
@@ -1378,8 +1697,6 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 				</Grid>
 			</Grid>
 		);
-
-
 
 		const entidadId = data?.id ?? 0;
 		const entidadTipo = "F";
@@ -1591,7 +1908,6 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		);
 	}
 
-
 	const onAgregaDenuncia = () => {
 		// === Validaciones (dejan igual lo que ya tenías) ===
 		const errors = {};
@@ -1608,130 +1924,98 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			return;
 		}
 
-		// === MAPEOS A LOS JSON EXACTOS QUE ESPERAN LOS ENDPOINTS ===
-		// 0) Helper para estado → id (ajustar con tus IDs reales)
-		const mapEstadoToId = (txt) => {
-			if (!txt) return 0;
-			const t = (txt || "").toLowerCase();
-			if (t === "registrada") return 1;          // TODO: reemplazar por el ID real
-			if (t === "en evaluación") return 2;       // TODO
-			if (t === "cerrada") return 3;             // TODO
+
+		// 1) /api/AppDenuncias  (JSON exacto)
+		// derivadoAId: calcular según la opción seleccionada en "Derivada a"
+		const derivadoAIdValue = (() => {
+			const selectedTipo = body.derivadaA || state.form?.derivadaA || "";
+			if (!selectedTipo) return 0;
+			if (selectedTipo === "Delegacion") return Number(delegacionSelect.selected?.value || 0);
+			if (selectedTipo === "Seccional") return Number(seccionalSelect.selected?.value || 0);
+			// CNTA, Asesoria Letrada u otros -> 0
 			return 0;
-		};
+		})();
 
+		const _derivadoATipoRaw = body.derivadaADescripcion || body.derivadaA || state.form?.derivadaADescripcion || state.form?.derivadaA || "";
+		const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
 
-
-		// Payloads “simples” (se completan con IDs al avanzar)
-		// 1) /api/DenunciaSituacion
-		const situacionPayload = {
-			descripcion: body.situacion || ""      // ej: "Registrada"
-		};
-
-		// 2) /api/DenunciaTipoIngreso
-		const tipoIngresoPayload = {
-			descripcion: body.tipoIngreso || ""    // "Mail" | "Web" | "AppDigital" | "Telefono"
-		};
-
-		// 3) /api/AppDenuncias  (se arma cuando ya tengamos ambos IDs)
-		const buildAppDenunciaPayload = (situacionId, tipoIngresoId) => ({
+		const appDenunciaPayload = {
 			nombre: body.nombreDenunciante || "",
 			correo: body.correoElectronico || "",
 			provincia: trabPciaSelect?.selected?.record?.nombre || "",
 			localidad: trabLocaSelect?.selected?.record?.nombre || "",
 			texto: body.detalleDenuncia || "",
-			foto: "",
+			foto: "",                             // si no usás fotos, dejalo vacío
 			localidadId: trabLocaSelect?.selected?.record?.id || 0,
-			denunciaTipoIngresoId: Number(tipoIngresoId || 0),
-			denunciaTipoId: 0,
-			derivadoADelegacion: 0,
-			derivadoASeccional: 0,
-			documentacionEntidadesId: 0,
-			denunciaSituacionId: Number(situacionId || 0),
+			denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),          // si más adelante guardás el ID, ponelo aquí
+			denunciaTipoId: 0,                    // (si aplica en tu modelo)
+			// derivadoATipo: enviar el texto seleccionado en el desplegable "Derivada a"
+			derivadoATipo: derivadoATipoValue,
+			derivadoAId: derivadoAIdValue,
+
+			documentacionEntidadesId: 0,          // si luego guardás documentación vinculada por Id
+			denunciaSituacionId: Number(body.denunciaSituacionId || 0),// si tenés ID; si no, dejalo en 0
 			empleadorCUIT: Number(body.cuitEmpresa || 0),
 			empleadorNombre: body.razonSocial || "",
-			empresaId: 0,
+			empresaId: 0,                         // si tenés empresaId, mapear
 			ubicacion: body.ubicacion || ""
-		});
+		};
 
-		// 4) /api/DenunciasEstados
+		// // 2) /api/DenunciaTipoIngreso  (descripcion = string del select)
+		// const tipoIngresoPayload = {
+		// 	descripcion: body.tipoIngreso || ""    // "Mail" | "Web" | "AppDigital" | "Telefono"
+		// };
+
+		// 3) /api/DenunciasEstado
 		const estadoPayload = (appDenunciasId) => ({
 			appDenunciasId,
-			refDenunciaEstadosId: mapEstadoToId(body.estado || "Registrada"),
+			// enviar el string seleccionado por el usuario en el formulario (fallback a 'Registrada')
+			estado: body.estado || state.form?.estado || "Registrada",
+			fechaAsociada: new Date().toISOString(),
 			fecha: new Date().toISOString(),
 			observaciones: body.observacionesRegistro || ""
 		});
 
+		// === SECUENCIA DE GUARDADO ===
+		// 1) Crear AppDenuncias
+		setCreateAppDenunciaQuery((o) => ({
+			...o,
+			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
+			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando denuncia..." })),
+			onLoad: ({ ok, error }) => {
+				if (error) {
+					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
+					return;
+				}
+				const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+				if (!appId) {
+					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: "No se devolvió Id de denuncia" } }));
+					return;
+				}
+				// (opcional) actualizar form con el nuevo Id
+				setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
 
-		// === SECUENCIA NUEVA (Situación → TipoIngreso → AppDenuncias → DenunciasEstado) ===
-		setState((s) => ({ ...s, loading: "Guardando denuncia..." }));
+				// 2) Enviar Estado inicial de la denuncia
+				try {
+					const payloadEstado = estadoPayload(appId);
+					// Loggear payload de estado para debug
+					debugSend("DenunciasEstadoPayload", payloadEstado);
+					setCreateEstadoQuery((o3) => ({
+						...o3,
+						query: { ...o3.query, config: { ...o3.query?.config, body: payloadEstado } },
+						onLoad: ({ ok: ok2, error: error2 }) => {
+							// Debug: response del endpoint DenunciasEstados
+							debugSend("DenunciasEstadoResponse", { ok: ok2, error: error2 });
+							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
+						},
+					}));
+				} catch (e) {
+					console.error('Error al enviar DenunciasEstados debug:', e);
+				}
 
-		const fail = (msg) =>
-			setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: msg } }));
-
-		// 1) Crear/obtener Situación (si hay texto)
-		const createSituacion = () =>
-			new Promise((resolve) => {
-				if (!situacionPayload.descripcion) return resolve(0);
-				setCreateSituacionQuery((o) => ({
-					...o,
-					query: { ...o.query, config: { ...o.query?.config, body: situacionPayload } },
-					onLoad: ({ ok, error }) => {
-						if (error) return fail(error.toString());
-						const id = ok?.id ?? ok?.Id ?? 0;
-						resolve(id);
-					},
-				}));
-			});
-
-		// 2) Crear/obtener TipoIngreso (si hay texto)
-		const createTipoIngreso = () =>
-			new Promise((resolve) => {
-				if (!tipoIngresoPayload.descripcion) return resolve(0);
-				setCreateTipoIngresoQuery((o) => ({
-					...o,
-					query: { ...o.query, config: { ...o.query?.config, body: tipoIngresoPayload } },
-					onLoad: ({ ok, error }) => {
-						if (error) return fail(error.toString());
-						const id = ok?.id ?? ok?.Id ?? 0;
-						resolve(id);
-					},
-				}));
-			});
-
-		// 3) Crear AppDenuncias
-		const createApp = (situacionId, tipoIngresoId) =>
-			new Promise((resolve) => {
-				const appDenunciaPayload = buildAppDenunciaPayload(situacionId, tipoIngresoId);
-				setCreateAppDenunciaQuery((o) => ({
-					...o,
-					query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
-					onLoad: ({ ok, error }) => {
-						if (error) return fail(error.toString());
-						const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
-						if (!appId) return fail("No se devolvió Id de denuncia");
-						setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
-						resolve(appId);
-					},
-				}));
-			});
-
-		// 4) Crear estado inicial
-		const createEstado = (appId) =>
-			setCreateEstadoQuery((o3) => ({
-				...o3,
-				query: { ...o3.query, config: { ...o3.query?.config, body: estadoPayload(appId) } },
-				onLoad: ({ error: err3 }) => {
-					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: err3?.toString() } }));
-				},
-			}));
-
-		// Encadenado
-		createSituacion()
-			.then((situacionId) => createTipoIngreso().then((tipoIngresoId) => [situacionId, tipoIngresoId]))
-			.then(([situacionId, tipoIngresoId]) => createApp(situacionId, tipoIngresoId))
-			.then((appId) => createEstado(appId));
+			}
+		}));
 	};
-
 
 	return (
 		<Modal size="xl" centered show>
