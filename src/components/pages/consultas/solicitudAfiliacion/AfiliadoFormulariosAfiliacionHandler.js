@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import dayjs from "dayjs";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, MenuItem } from "@mui/material";
 import AuthContext from "store/authContext";
 import Action from "components/helpers/Action";
 import Formato from "components/helpers/Formato";
@@ -19,6 +19,21 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 
 	const Usuario = useContext(AuthContext).usuario;
 
+
+	const scopeParams = useMemo(() => {
+		const s = {};
+		try {
+			if (Usuario?.ambitoSeccionales?.ids && Usuario.ambitoSeccionales.ids.length) {
+				s.ambitoSeccionales = { ids: [...Usuario.ambitoSeccionales.ids] };
+			} else if (Usuario?.ambitoDelegaciones?.ids && Usuario.ambitoDelegaciones.ids.length) {
+				s.ambitoDelegaciones = { ids: [...Usuario.ambitoDelegaciones.ids] };
+			}
+		} catch (e) {
+			// fallthrough: en caso de que la estructura no exista, dejar s vacío
+		}
+		return s;
+	}, [Usuario?.ambitoSeccionales?.ids, Usuario?.ambitoDelegaciones?.ids]);
+
 	const tabs = [];
 	const [tab, setTab] = useState(0);
 
@@ -32,9 +47,9 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		render: formularioRender,
 		request: formularioRequest,
 		selected: formularioSelected,
-		changer: formularioChanger, // si tu hook expone un changer
+		changer: formularioChanger,
 	} = useAfiliadoFormulariosAfiliacion({
-		params: {},
+		params: scopeParams,
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
 	const [formularioActions, setFormularioActions] = useState([]);
@@ -54,21 +69,21 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			createAction({
 				action: `Agrega Solicitud`,
 				request: "A",
-				//tarea: "Datos_EmpresaAgrega",
+				tarea: "SolicitudAfiliacion_Solicitud",
 
-			record: {
-				cuil: "",
-				telefonoPais: "",
-				telefonoArea: "",
-				telefonoNumero: "",
-				email: "",
-				ciius: [],
-				provincias: { data: [] },
-				localidades: { data: [] },
-				seccionales: { data: [] },
-				tiposDocumentos: [],
-			},
-			
+				record: {
+					cuil: "",
+					telefonoPais: "",
+					telefonoArea: "",
+					telefonoNumero: "",
+					email: "",
+					ciius: [],
+					provincias: { data: [] },
+					localidades: { data: [] },
+					seccionales: { data: [] },
+					tiposDocumentos: [],
+				},
+
 
 
 				keys: "a",
@@ -82,6 +97,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			createAction({
 				action: `Consulta Solicitud ${desc}`,
 				request: "C",
+				tarea: "SolicitudAfiliacion_ConsultaSolicitud",
 				record: {},
 				...(formularioSelected?.id
 					? {
@@ -127,6 +143,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 				createAction({
 					action: `Acepta Solicitud ${desc}`,
 					request: "I",
+					tarea: "SolicitudAfiliacion_AceptaSolicitud",
 					record: {},
 					keys: "r",
 					underlineindex: 0,
@@ -136,6 +153,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 				createAction({
 					action: `Rechaza Solicitud ${desc}`,
 					request: "B",
+					tarea: "SolicitudAfiliacion_RechazaSolicitud",
 					record: {
 						...formularioSelected,
 						deletedDate: dayjs().format("YYYY-MM-DD"),
@@ -148,7 +166,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			);
 		}
 		setFormularioActions(actions); //cargo todas las acciones / botones
-	}, [formularioRequest, formularioSelected]);
+	}, [formularioRequest, formularioSelected, Usuario?.nombre]);
 
 	tabs.push({
 		header: () => <Tab label="Formularios Afiliación" />,
@@ -208,6 +226,25 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 							}
 						/>
 					</Grid>
+					<Grid grow>
+						<InputMaterial
+							label="Filtro por Estado"
+							select
+							value={paramsEdit.estado ?? ""}
+							onChange={(estado) =>
+								setParamsEdit((o) => {
+									const paramsEdit = { ...o, estado };
+									if (!estado) delete paramsEdit.estado;
+									return paramsEdit;
+								})
+							}
+						>
+							<MenuItem value="">-- Todos --</MenuItem>
+							<MenuItem value="Pendiente">Pendiente</MenuItem>
+							<MenuItem value="Aceptado">Aceptado</MenuItem>
+							<MenuItem value="Rechazado">Rechazado</MenuItem>
+						</InputMaterial>
+					</Grid>
 					<Grid width="200px">
 						<Button
 							className="botonAzul"
@@ -244,11 +281,11 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 	//Carga de lista según parametros
 	useEffect(() => {
 		formularioRequest("list", {
-			params: paramsSend,
+			params: { ...paramsSend, ...scopeParams },
 			pagination: { index: 1, size: 15 },
 			onLoadSelect: onLoadSelectKeepOrFirst,
 		});
-	}, [formularioRequest, paramsSend]);
+	}, [formularioRequest, paramsSend, scopeParams]);
 	//#endregion
 
 	//#region modulo y acciones

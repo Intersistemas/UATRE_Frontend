@@ -102,6 +102,14 @@ const stripMinDatesRow = (r) => {
 	return clone;
 };
 
+// Deriva el estado del registro: Rechazado > Aceptado > Pendiente
+const estadoDe = (r) => {
+	if (!r) return "Pendiente";
+	if (r.deletedDate) return "Rechazado";
+	if (r.afiliadoIdAsignado) return "Aceptado";
+	return "Pendiente";
+};
+
 
 
 
@@ -224,7 +232,10 @@ const useAfiliadoFormulariosAfiliacion = ({
 	// Ejecutar la auto-sincronización SOLO una vez al ingresar
 	const syncedOnceRef = useRef(false);
 	// Evitar “flicker”: conservar data mientras se carga
+	const firstMountRef = useRef(true);
 	const [keepDataWhileLoading] = useState(true);
+	const [hydrating, setHydrating] = useState(false);
+
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -265,10 +276,12 @@ const useAfiliadoFormulariosAfiliacion = ({
 				? changes.selection.record?.map((r) => changes.data.indexOf(r))
 				: changes.data.indexOf(changes.selection.record);
 			setList((o) => ({ ...o, ...changes }));
+			setHydrating(false);
 			return;
 		}
 		if (!keepDataWhileLoading) changes.data = [];
 		(async () => {
+			setHydrating(true);
 			const requestedPageSize = 50; // si el back limita a 50, iteramos
 			let pageIndex = 1;
 			let acc = [];
@@ -294,18 +307,39 @@ const useAfiliadoFormulariosAfiliacion = ({
 				pageIndex += 1;   // ← avanzar a la próxima página
 			}
 
-			// Orden final igual que antes
-			const rank = (r) => (r?.deletedDate ? 2 : (r?.afiliadoIdAsignado ? 1 : 0));
-			const ordenado = [...acc].sort(
-				(a, b) => rank(a) - rank(b) || dayjs(b?.fecha).valueOf() - dayjs(a?.fecha).valueOf()
-			);
-			changes.data = ordenado.map(stripMinDatesRow);
+			const uniqueMap = new Map();
+			for (const r of acc) {
+				const key = r?.id ?? `${r?.cuil ?? ""}-${r?.fecha ?? ""}-${r?.nombre ?? ""}`;
+				if (!uniqueMap.has(key)) uniqueMap.set(key, r);
+			}
+			let ordenado = Array.from(uniqueMap.values());
 
+			ordenado.sort((a, b) => {
+				const fa = dayjs(a?.fecha).valueOf() || 0;
+				const fb = dayjs(b?.fecha).valueOf() || 0;
+				if (fb !== fa) return fb - fa;
+				const ida = a?.id ?? "";
+				const idb = b?.id ?? "";
+				const na = Number(ida);
+				const nb = Number(idb);
+				if (!Number.isNaN(na) && !Number.isNaN(nb)) return nb - na;
+				if (ida > idb) return -1;
+				if (ida < idb) return 1;
+				return 0;
+			});
+
+			const estadoFilter = list.params?.estado;
+			if (estadoFilter) {
+				ordenado = ordenado.filter((r) => estadoDe(r) === estadoFilter);
+			}
+
+			changes.data = ordenado.map(stripMinDatesRow);
 
 			const multi = list.selection.multi;
 			const record = list.selection.record;
-			const totalCount = Number.isFinite(total) ? total : ordenado.length;
-			changes.pagination = { ...list.pagination, count: totalCount };
+			const totalCount = ordenado.length;
+
+			changes.pagination = { ...list.pagination, count: totalCount, size: 15 };
 			changes.selection = {
 				...list.selection,
 				...selectionDef,
@@ -318,6 +352,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 			list.onDataChange(changes.data);
 			setList((o) => ({ ...o, ...changes, remote: false }));
+			setHydrating(false);
 		})();
 	}, [pushQuery, list]);
 	//#endregion
@@ -413,6 +448,11 @@ const useAfiliadoFormulariosAfiliacion = ({
 		if (!Array.isArray(list.data) || list.data.length === 0) return;
 		if (syncedOnceRef.current) return;
 
+		if (firstMountRef.current) {
+			firstMountRef.current = false;
+			return; 
+		}
+
 		// Tomamos solo las pendientes, que no fueron rechazadas ni aceptadas,
 		// y que aún no procesamos en este ciclo de vida.
 		const pendientes = list.data.filter(
@@ -422,8 +462,6 @@ const useAfiliadoFormulariosAfiliacion = ({
 				!syncedIdsRef.current.has(r.id)
 		);
 		if (pendientes.length === 0) return;
-
-		//setList((o) => ({ ...o, loadingOverride: "Sincronizando estados..." }));
 
 		const run = async () => {
 			for (const row of pendientes) {
@@ -449,12 +487,15 @@ const useAfiliadoFormulariosAfiliacion = ({
 				});
 			}
 
+			setHydrating(true); 
 			setList((o) => ({
 				...o,
 				loadingOverride: null,
 				loading: "Cargando...",
+				remote: true,      //  dispara el fetch remoto
 				data: o.remote ? [] : o.data,
 			}));
+			setHydrating(true);
 		};
 
 		run().finally(() => {
@@ -517,6 +558,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 						disabled={{ cuil: true }}
 						onClose={(result, accion) => {
 							const closeAndRefresh = () => {
+								//setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
+								setHydrating(true);
 								setList((o) => ({ ...o, loading: "Cargando...", remote: true }));
 								handleClose();
 							};
@@ -631,25 +674,25 @@ const useAfiliadoFormulariosAfiliacion = ({
 		<>
 			<AfiliadoFormulariosAfiliacionTable
 				remote={list.remote}
-				data={list.data}
-				loading={!!list.loading || !!list.loadingOverride}
+				data={hydrating ? [] : list.data}
+				loading={hydrating || !!list.loading || !!list.loadingOverride}
 				noDataIndication={
-					list.loading ??
-					list.loadingOverride ??
-					list.error?.message ??
-					"No existen datos para mostrar"
+					hydrating
+						? "Cargando..."
+						: (list.loading ?? list.loadingOverride ?? list.error?.message ?? "No existen datos para mostrar")
 				}
 				columns={columnsWithDateFmt}
 				mostrarBuscar={mostrarBuscar}
-				pagination={{
-					...list.pagination,
-					onChange: ({ index, size }) =>
-						setList((o) => ({
-							...o,
-							// No marcamos loading ni vaciamos data: paginación local
-							pagination: { ...o.pagination, index, size },
-						})),
-				}}
+				pagination={
+					hydrating
+						? false                
+						: {
+							...list.pagination,
+							onChange: ({ index, size }) =>
+								setList((o) => ({ ...o, pagination: { ...o.pagination, index, size } })),
+						}
+				}
+
 				selection={{
 					mode: list.selection.multi ? "checkbox" : "radio",
 					hideSelectColumn: hideSelectColumn,
