@@ -215,26 +215,26 @@ useEffect(() => {
     createAction({
       action: "Agrega Denuncia",
       onExecute: () => openForm("A"),
-      tarea: "Datos_DenunciaAgrega",
+      tarea: "AdminApp_DenunciaAgrega",
       keys: "a",
       underlineindex: 0,
     }),
     createAction({
       action: `Consulta Denuncia ${desc}`,
       onExecute: () => (denunciasSelected ? openForm("C", denunciasSelected) : null),
-      tarea: "Datos_DenunciaConsulta",
+      tarea: "AdminApp_DenunciaConsulta",
       ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
     }),
     createAction({
       action: `Modifica Denuncia ${desc}`,
       onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
-      tarea: "Datos_DenunciaModifica",
+      tarea: "AdminApp_DenunciaModifica",
       ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
     }),
     createAction({
       action: `Baja Denuncia ${desc}`,
       onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
-      tarea: "Datos_DenunciaBaja",
+      tarea: "AdminApp_DenunciaBaja",
       ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
     }),
   ];
