@@ -51,6 +51,8 @@ const DenunciasHandler = () => {
         ubicacion: r.ubicacion || "",
         derivadaA: r.derivadoATipo || "Sin derivacion",
         derivadaADescripcion: r.derivadoATipo || "Sin derivacion",
+        // Exponer el id destino (si viene) para que el formulario pueda usarlo
+        derivadoAId: r.derivadoAId ?? r.derivadoAId ?? 0,
         estado: r.estado || "Registrada",
         observacionesRegistro: r.observaciones || "",
       });

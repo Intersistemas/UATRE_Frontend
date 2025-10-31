@@ -5,6 +5,7 @@ import { isPossiblePhoneNumber } from "libphonenumber-js";
 import Formato from "components/helpers/Formato";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import useQueryState from "components/hooks/useQueryState";
+import useHttp from "components/hooks/useHttp";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, {
@@ -50,21 +51,7 @@ const toInputString = (v) => {
 
 const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
 
-// Debug helper para inspeccionar payloads enviados
-function debugSend(tag, payload) {
-	try {
-		if (console.groupCollapsed) {
-			console.groupCollapsed(`[DEBUG] ${tag}`);
-		} else {
-			console.log(`[DEBUG] ${tag}`);
-		}
-		console.log(payload);
-		if (console.groupEnd) console.groupEnd();
-	} catch (e) {
-		console.log(`[DEBUG] ${tag}`, payload);
-	}
-	return payload;
-}
+
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
@@ -361,14 +348,15 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	);
 
 	// 2) Modificación de AppDenuncias (PUT /AppDenuncias/{id})
-	// NOTA: endpoint lo seteo al invocar para respetar "/{id}"
 	const { setState: setUpdateAppDenunciaQuery } = useQueryState(
 		() => ({
-			config: { baseURL: "App", endpoint: "", method: "PUT" },
+			config: { baseURL: "App", endpoint: "/AppDenuncias", method: "PUT" },
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
 
+	// Hook http directo (usar sendRequest para llamadas puntuales)
+	const { sendRequest } = useHttp();
 
 
 	// 3) Alta de Estado de la denuncia
@@ -663,6 +651,10 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		selectedDef: {},
 		origen: "",
 	});
+
+	// Locks para bloquear el campo cuando la denuncia viene derivada a una entidad concreta
+	const [lockedDelegacion, setLockedDelegacion] = useState(false);
+	const [lockedSeccional, setLockedSeccional] = useState(false);
 	// Buscador
 	useEffect(() => {
 		setDelegacionSelect((o) => ({
@@ -1141,73 +1133,151 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}));
 	}, [data, readOnly]);
 
+	// Si abrimos en modo MODIFICAR o CONSULTA y la denuncia viene derivada a una entidad concreta,
+	// prefill y bloquear Delegación o Seccional según corresponda.
+	useEffect(() => {
+		if (!(mode === "M" || mode === "C")) return;
+		// derivado tipo y id pueden venir en state.form (prefill anterior) o en data
+		const tipoRaw = (state.form?.derivadaADescripcion || state.form?.derivadaA || data?.derivadoATipo || data?.derivadaATipo || "");
+		const tipo = tipoRaw === "Sin derivacion" ? "Sin datos" : tipoRaw;
+		const destinoId = Number(state.form?.derivadoAId ?? data?.derivadoAId ?? 0);
 
-	// Prefill selects
-	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
-	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
-	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
-	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+		// No hacer nada para CNTA, Asesoria Letrada o Sin datos
+		if (!tipo || ["CNTA", "Asesoria Letrada", "Sin datos"].includes(tipo)) return;
+
+		if (tipo === "Delegacion") {
+			if (!destinoId) return;
+			// Pedir solo la delegación indicada y seleccionarla, bloquear el campo
+			setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
+			setDelegacionesQuery((o) => ({
+				...o,
+				query: { ...o.query, params: { ...(o.query?.params || {}), id: destinoId, soloActivos: true } },
+				onLoad: ({ ok, error }) => {
+					const dataArr = Array.isArray(ok) ? ok : [];
+					setDelegacionSelect((prev) => {
+						const n = { ...prev, loading: null, data: dataArr, error: error?.toString() };
+						n.optionsSrc = delegacionSelectOptions(n);
+						// seleccionar la primera coincidencia con el id
+						const sel = n.optionsSrc.find((p) => Number(p.value) === Number(destinoId)) || n.optionsSrc[0] || {};
+						n.selected = sel;
+						n.selectedDef = sel;
+						return n;
+					});
+					// actualizar texto en el form y bloquear delegación
+					setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataArr[0]?.nombre) || state.form.delegacion || "" } }));
+					setLockedDelegacion(true);
+				},
+			}));
+			return;
+		}
+
+		if (tipo === "Seccional") {
+			if (!destinoId) return;
+			// Consultar la seccional por id y seleccionarla, bloquear el campo
+			setSeccionalSelect((o) => ({ ...o, loading: "Cargando..." }));
+			sendRequest(
+				{
+					baseURL: "Afiliaciones",
+					endpoint: `/Seccional/${destinoId}`,
+					method: "GET",
+					errorType: "response",
+				},
+				(ok) => {
+					const rec = ok || {};
+					const dataArr = Array.isArray(rec) ? rec : [rec];
+					setSeccionalSelect((prev) => {
+						const n = { ...prev, loading: null, data: dataArr, error: null };
+						n.options = seccionalesSelectOptions({ data: dataArr, buscar: prev.buscar });
+						n.selected = n.options.find((p) => Number(p.value) === Number(destinoId)) || (n.options[0] || {});
+						return n;
+					});
+					setState((s) => ({ ...s, form: { ...s.form, seccional: rec.descripcion || rec.seccional || state.form.seccional || "" } }));
+						setLockedSeccional(true);
+						// Si la seccional trae refDelegacionId, prefill y bloquear también Delegación
+						const refDelegacionId = rec.refDelegacionId ?? rec.refDelegacion?.id ?? 0;
+						if (refDelegacionId) {
+							setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
+							setDelegacionesQuery((o) => ({
+								...o,
+								query: { ...o.query, params: { ...(o.query?.params || {}), id: refDelegacionId, soloActivos: true } },
+								onLoad: ({ ok, error }) => {
+									const dataD = Array.isArray(ok) ? ok : [];
+									setDelegacionSelect((prev) => {
+										const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
+										n.optionsSrc = delegacionSelectOptions(n);
+										const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
+										n.selected = sel;
+										n.selectedDef = sel;
+										return n;
+									});
+									setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataD[0]?.nombre) || state.form.delegacion || "" } }));
+									setLockedDelegacion(true);
+								},
+							}));
+						}
+				},
+				(err) => {
+					// no seleccionado si falla
+					setSeccionalSelect((o) => ({ ...o, loading: null, error: err?.toString() }));
+				}
+			);
+			return;
+		}
+
+	}, [mode, data, state.form?.derivadaA, state.form?.derivadaADescripcion, state.form?.derivadoAId]);
+
+	// En modo MODIFICAR: si el endpoint devuelve strings de provincia/localidad, mostrarlos de inmediato
 	useEffect(() => {
-		if (!trabPciaSelect.options?.length) return;
-		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
-	}, [trabPciaSelect.options, data?.provinciaId]);
-	useEffect(() => {
-		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
-		setLocalidadesQuery((o) => ({
-			...o,
-			query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
-			onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-			onLoad: ({ ok, error }) =>
-				setTrabLocaSelect((s) => ({
-					...s,
-					data: Array.isArray(ok) ? ok : [],
-					loading: null,
-					error: error?.toString(),
-					selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
-					origen: "option",
-				})),
-		}));
-	}, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
-	useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
-	useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
-	useEffect(() => {
-		if (!emplPciaSelect.options?.length) return;
-		setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
-	}, [emplPciaSelect.options, data?.provinciaidEmpresa]);
-	useEffect(() => {
-		if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
-		setLocalidadesQuery((o) => ({
-			...o,
-			query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
-			onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-			onLoad: ({ ok, error }) =>
-				setEmplLocaSelect((s) => ({
-					...s,
-					data: Array.isArray(ok) ? ok : [],
-					loading: null,
-					error: error?.toString(),
-					selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
-					origen: "option",
-				})),
-		}));
-	}, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
-	useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+		if (mode !== "M" || !data) return;
+
+		// Debug: ver qué trae `data` al abrir en modo Modificar
+		try { console.log('[DenunciasForm] MODIFICAR - data recibida:', data); } catch (e) { }
+
+		// Provincia: usar label textual si existe (varios nombres posibles) y no hay selección real aún
+const provinciaLabel =
+  data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion || data?.provinciaNombreAfiliado;
+const provinciaId = data?.provinciaId ?? data?.provinciaID ?? null;
+
+if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.value)) {
+  setTrabPciaSelect((o) => ({
+    ...o,
+    selected: {
+      value: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0,   // << no tmp string
+      label: String(provinciaLabel || ""),
+      record: { id: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0, nombre: provinciaLabel },
+    },
+    origen: "server",
+  }));
+}
+
+		// Localidad: similar
+		const localidadLabel = (data && (data.localidad || data.nombreLocalidadAfiliado || data.nombreLocalidad || data.localidadNombre)) || (state && state.form && (state.form.nombreLocalidadAfiliado || state.form.localidad || state.form.nombreLocalidad));
+		const locId = (data && (data.localidadId || data.refLocalidadIdAfiliado || data.refLocalidadIdEmpresa || data.localidadID)) || (state && state.form && (state.form.refLocalidadIdAfiliado || state.form.localidadId)) || null;
+		if (localidadLabel && (!trabLocaSelect.selected || !trabLocaSelect.selected.value)) {
+			setTrabLocaSelect((o) => ({
+				...o,
+				selected: {
+					value: locId || `tmp-loc-${Date.now()}`,
+					label: String(localidadLabel || ""),
+					record: { id: locId, nombre: localidadLabel },
+				},
+				origen: "server",
+			}));
+		}
+
+	}, [mode, data && (data.provincia || data.provinciaNombre || data.provinciaId || data.localidad || data.nombreLocalidadAfiliado || data.localidadId)]);
 
 	// READONLY banderas
 	const isRO = !!readOnly;
 	const disTrab = isRO || !state.validado.trabajador;
 	const disEmpl = isRO || !state.validado.empleador;
 
-
-	// PREFILL (data  readOnly)
+	// Si estamos en modo ALTA, fijar estado a Registrada (solo para UI, el payload ya cae a 'Registrada' por defecto)
 	useEffect(() => {
-		if (!data || Object.keys(data).length === 0) return;
-		setState((o) => ({
-			...o,
-			form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
-			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
-		}));
-	}, [data, readOnly]);
+		if (mode === "A") {
+			setState((s) => ({ ...s, form: { ...s.form, estado: s.form?.estado || "Registrada" } }));
+		}
+	}, [mode]);
 
 	const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
 		if (!id) return;
@@ -1444,6 +1514,8 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		const derivada = state.form.derivadaA;
 		// Si no está derivada (o es 'Sin derivacion') limpiar ambos campos
 		if (!derivada || derivada === "Sin derivacion") {
+			setLockedDelegacion(false);
+			setLockedSeccional(false);
 			setDelegacionSelect((o) => ({ ...o, selected: {} }));
 			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
 			setState((o) => ({ ...o, form: { ...o.form, delegacion: "", seccional: "" } }));
@@ -1451,12 +1523,16 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}
 		if (derivada === "Delegacion") {
 			// mantener delegacion, limpiar seccional
+			setLockedSeccional(false);
+			setLockedDelegacion(false); // por defecto; se marcará locked cuando procesemos el derivadoAId
 			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
 			setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			return;
 		}
 		if (derivada === "Seccional") {
 			// permitir ambos: no hacemos limpieza automática (usuario debe elegir)
+			setLockedDelegacion(false);
+			setLockedSeccional(false);
 			return;
 		}
 	}, [state.form.derivadaA]);
@@ -1471,57 +1547,84 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			<Grid full col gap="10px">
 				{/* ====== CABECERA (nueva UI: SIN Seccional y SIN Fecha) ====== */}
 				<Grid width gap="inherit">
-					<SearchSelectMaterial
-						id="provincia"
-						label="Provincia"
-						error={!!(trabPciaSelect.error || state.errors.provincia)}
-						helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
-						value={trabPciaSelect.selected}
-						onChange={(selected = {}) => {
-							setTrabPciaSelect((o) => ({ ...o, selected, origen: "option" }));
-							setLocalidadesQuery((o) => ({
-								...o,
-								query: { ...o.query, params: { ...o.query.params, provinciaId: selected.value } },
-								onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, selected: {}, loading: "Cargando..." })),
-								onLoad: ({ ok, error }) =>
-									setTrabLocaSelect((s) => ({
-										...s,
-										data: Array.isArray(ok) ? ok : [],
-										loading: null,
-										error: error?.toString(),
-										selected: { record: { codPostal: 99999 } },
-										origen: "option",
-									})),
-							}));
-							setState((o) => ({
-								...o,
-								form: { ...o.form, provinciaNombre: selected.record?.nombre, provinciaId: selected.value, refLocalidadIdAfiliado: 0, nombreLocalidadAfiliado: "" },
-								errors: { ...o.errors, provincia: selected?.value ? "" : "Dato requerido" },
-							}));
-						}}
-						options={trabPciaSelect.options}
-						onTextChange={(buscar) => setTrabPciaSelect((o) => ({ ...o, buscar, origen: "text" }))}
+					{
+						(mode === "M" || readOnly) ? (
+							<InputMaterial
+								id="provincia"
+								label="Provincia"
+								readOnly
+								value={
+									state.form?.provinciaNombre || data?.provincia || trabPciaSelect.selected?.label || ""
+								}
+							/>
+						) : (
+							<SearchSelectMaterial
+								id="provincia"
+								label="Provincia"
+								error={!!(trabPciaSelect.error || state.errors.provincia)}
+								helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
+								value={trabPciaSelect.selected}
+								onChange={(selected = {}) => {
+									setTrabPciaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setLocalidadesQuery((o) => ({
+										...o,
+										query: { ...o.query, params: { ...o.query.params, provinciaId: selected.value } },
+										onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, selected: {}, loading: "Cargando..." })),
+										onLoad: ({ ok, error }) =>
+											setTrabLocaSelect((s) => ({
+												...s,
+												data: Array.isArray(ok) ? ok : [],
+												loading: null,
+												error: error?.toString(),
+												selected: { record: { codPostal: 99999 } },
+												origen: "option",
+											})),
+									}));
+									setState((o) => ({
+										...o,
+										form: { ...o.form, provinciaNombre: selected.record?.nombre, provinciaId: selected.value, refLocalidadIdAfiliado: 0, nombreLocalidadAfiliado: "" },
+										errors: { ...o.errors, provincia: selected?.value ? "" : "Dato requerido" },
+									}));
+								}}
+								options={trabPciaSelect.options}
+								onTextChange={(buscar) => setTrabPciaSelect((o) => ({ ...o, buscar, origen: "text" }))}
+							/>
+						)
+					}
+					{
+						(mode === "M" || readOnly) ? (
+							<InputMaterial
+								id="localidad"
+								label="Localidad"
+								readOnly
+								value={state.form?.nombreLocalidadAfiliado || data?.localidad || trabLocaSelect.selected?.label || ""}
+							/>
+						) : (
+							<SearchSelectMaterial
+								id="localidad"
+								label="Localidad"
+								error={!!(trabLocaSelect.error || state.errors.localidad)}
+								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
+								value={trabLocaSelect.selected}
+								onChange={(selected = {}) => {
+									setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
+									setState((o) => ({
+										...o,
+										form: { ...o.form, refLocalidadIdAfiliado: selected.record?.id, nombreLocalidadAfiliado: selected.record?.nombre },
+										errors: { ...o.errors, localidad: selected?.record?.id ? "" : "Dato requerido" },
+									}));
+								}}
+								options={trabLocaSelect.options}
+								onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
+							/>
+						)
+					}
+					<InputMaterial
+						id="delegacion"
+						label="Delegación"
+						readOnly
+						value={state.form.delegacion || data?.delegacion || ""}
 					/>
-					<SearchSelectMaterial
-						id="localidad"
-						label="Localidad"
-						error={!!(trabLocaSelect.error || state.errors.localidad)}
-						helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
-						value={trabLocaSelect.selected}
-						onChange={(selected = {}) => {
-							setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
-							setState((o) => ({
-								...o,
-								form: { ...o.form, refLocalidadIdAfiliado: selected.record?.id, nombreLocalidadAfiliado: selected.record?.nombre },
-								errors: { ...o.errors, localidad: selected?.record?.id ? "" : "Dato requerido" },
-							}));
-						}}
-						options={trabLocaSelect.options}
-						onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
-					/>
-					<Grid width style={styles.String}>
-						Delegacion: {state.form.delegacion || "—"}
-					</Grid>
 				</Grid>
 
 				{/* ====== BLOQUE PRINCIPAL ====== */}
@@ -1543,6 +1646,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						<Grid width gap="inherit">
 							<InputMaterial
 								id="nombreDenunciante"
+								readOnly={readOnly}
 								label="Nombre Denunciante"
 								value={state.form.nombreDenunciante}
 								error={!!state.errors.nombreDenunciante}
@@ -1551,6 +1655,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							/>
 							<InputMaterial
 								id="telefonoContacto"
+								readOnly={readOnly}
 								type="tel"
 								label="Teléfono de contacto"
 								value={state.form.telefonoContacto}
@@ -1560,6 +1665,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							/>
 							<InputMaterial
 								id="correoElectronico"
+								readOnly={readOnly}
 								label="Correo electrónico"
 								value={state.form.correoElectronico}
 								error={!!state.errors.correoElectronico}
@@ -1577,6 +1683,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						<Grid width gap="inherit">
 							<SearchSelectMaterial
 								id="tipoIngreso"
+								readOnly={readOnly}
 								label="Tipo de Ingreso"
 								error={!!tipoIngresoSelect.error}
 								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
@@ -1601,6 +1708,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							/>
 							<SearchSelectMaterial
 								id="situacion"
+								readOnly={readOnly}
 								label="Situación"
 								error={!!situacionSelect.error}
 								helperText={situacionSelect.loading ?? situacionSelect.error}
@@ -1623,6 +1731,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 							<InputMaterial
 								id="ubicacion"
+								readOnly={readOnly}
 								label="Ubicación"
 								value={state.form.ubicacion}
 								error={!!state.errors.ubicacion}
@@ -1636,6 +1745,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							<Grid width="200px">
 								<InputMaterial
 									id="cuitEmpresa"
+									readOnly={readOnly}
 									mask={CUITMask}
 									label="CUIT Empleador"
 									value={state.form.cuitEmpresa}
@@ -1660,6 +1770,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 												validado: { ...o.validado, empleador: true },
 											}));
 										if (cuit) {
+											// 1) Consulta a AFIP
 											setPadronAFIPQuery((o) => ({
 												...o,
 												loading: "Empleador",
@@ -1667,12 +1778,36 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 												onLoad: ({ ok, error }) => {
 													if (error) {
 														changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
+														apply();
+														setPadronAFIPQuery((o) => ({ ...o, loading: null }));
 													} else {
 														changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
-														// IMPORTANTE: NO traemos domicilio/provincia/localidad porque el nuevo formulario NO los muestra.
+														// 2) Consultar endpoint /api/Empresas/GetEmpresaSpecs para obtener empresaId (filtro por cuit)
+														sendRequest(
+														{
+															baseURL: "Comunes",
+															endpoint: `/Empresas/GetEmpresaSpecs`,
+															method: "GET",
+															params: { cuit },
+															errorType: "response",
+														},
+														(okEmp) => {
+															// okEmp puede ser un array o un objeto; normalizar
+															const found = Array.isArray(okEmp) ? (okEmp[0] || null) : (okEmp || null);
+															const empresaId = found ? (found.id ?? found.Id ?? 0) : 0;
+															changes.form.empresaId = Number(empresaId || 0);
+															apply();
+															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+														},
+														(errEmp) => {
+															// Si falla la consulta de empresas, asumir empresaId = 0 pero continuar
+															console.error('Empresas/GetEmpresaSpecs error:', errEmp);
+															changes.form.empresaId = 0;
+															apply();
+															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+														}
+													);
 													}
-													apply();
-													setPadronAFIPQuery((o) => ({ ...o, loading: null }));
 												},
 											}));
 										} else {
@@ -1688,6 +1823,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 							<Grid grow>
 								<InputMaterial
 									id="razonSocial"
+									readOnly={readOnly}
 									label="Razón Social Empleador"
 									value={state.form.razonSocial}
 									error={!!state.errors.razonSocial}
@@ -1701,6 +1837,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						<Grid width>
 							<InputMaterial
 								id="detalleDenuncia"
+								readOnly={readOnly}
 								label="Detalle de la denuncia"
 								multiline
 								rows={6}
@@ -1716,6 +1853,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 							<Grid grow>
 								<SearchSelectMaterial
+									readOnly={readOnly || mode === "A"}
 									id="estado"
 									label="Estado"
 									value={state.form.estado ? { value: state.form.estado, label: state.form.estado } : { value: "Registrada", label: "Registrada" }}
@@ -1723,6 +1861,11 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 										{ value: "Registrada", label: "Registrada" },
 										{ value: "Completada", label: "Completada" },
 										{ value: "Derivada", label: "Derivada" },
+										{ value: "En Planificacion", label: "En Planificacion" },
+										{ value: "Gestion con Empleador", label: "Gestion con Empleador" },
+										{ value: "Inspeccionada", label: "Inspeccionada" },
+										{ value: "Relevamiento App", label: "Relevamiento App" },
+										{ value: "Finalizada", label: "Finalizada" },
 									]}
 									onChange={(selected = {}) => setState((o) => ({ ...o, form: { ...o.form, estado: selected?.value, estadoDescripcion: selected?.label } }))}
 									onTextChange={() => { }}
@@ -1731,6 +1874,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 							<Grid grow>
 								<SearchSelectMaterial
+									readOnly={readOnly}
 									id="derivadaA"
 									label="Derivada a"
 									value={state.form.derivadaA ? { value: state.form.derivadaA, label: state.form.derivadaA } : {}}
@@ -1757,10 +1901,11 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 									error={!!delegacionSelect.error}
 									helperText={delegacionSelect.loading ?? delegacionSelect.error}
 									value={delegacionSelect.selected}
-									readOnly={!(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
+									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
 									onChange={(selected) => {
 										setDelegacionSelect((o) => ({ ...o, selected }));
-										setState((o) => ({ ...o, form: { ...o.form, delegacion: selected.record?.nombre || selected.label } }));
+										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
+										setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
 									}}
 									options={delegacionSelect.options}
 									onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
@@ -1773,7 +1918,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 									error={!!seccionalSelect.error}
 									helperText={seccionalSelect.loading ?? seccionalSelect.error}
 									value={seccionalSelect.selected}
-									readOnly={state.form.derivadaA !== "Seccional"}
+									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
 									onChange={(selected) => {
 										setSeccionalSelect((o) => ({ ...o, selected }));
 										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
@@ -1788,6 +1933,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						<Grid width>
 							<InputMaterial
 								id="observacionesRegistro"
+								readOnly={readOnly}
 								label="Observaciones del Registro"
 								multiline
 								rows={4}
@@ -2012,31 +2158,57 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		);
 	}
 
-	const buildAppDenunciaPayload = () => {
-		// === Validaciones (dejan igual lo que ya tenías) ===
+
+
+
+
+
+
+
+
+
+	// NUEVO: builder sin efectos secundarios
+	const buildPayloads = () => {
 		const errors = {};
 		const body = { ...state.form };
-		if (!trabPciaSelect?.selected?.value) errors.provincia = "Dato requerido";
-		if (!trabLocaSelect?.selected?.record?.id) errors.localidad = "Dato requerido";
+
+		//if (!trabPciaSelect?.selected?.value) errors.provincia = "Dato requerido";
+		//if (!trabLocaSelect?.selected?.record?.id) errors.localidad = "Dato requerido";
+
+		// Si no está seleccionado en los selects, usá lo que vino del servidor (data) en modo edición.
+		// Usamos null/undefined checks en lugar de truthy para aceptar id = 0 cuando el servidor
+		// devolvió solo el nombre (p. ej. en ediciones antiguas). Además, si existe el nombre
+		// textual en `data` también lo consideramos suficiente.
+		const provinciaIdSel = (
+			trabPciaSelect?.selected?.value != null ? trabPciaSelect.selected.value :
+			(data?.provinciaId != null ? data.provinciaId : (data?.provinciaID != null ? data.provinciaID : null))
+		);
+		const localidadIdSel = (
+			(trabLocaSelect?.selected?.record?.id != null ? trabLocaSelect.selected.record.id :
+			(data?.refLocalidadIdAfiliado != null ? data.refLocalidadIdAfiliado : (data?.localidadId != null ? data.localidadId : null))))
+		;
+
+		const provinciaTieneNombre = !!(trabPciaSelect?.selected?.record?.nombre || data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion);
+		const localidadTieneNombre = !!(trabLocaSelect?.selected?.record?.nombre || data?.localidad || data?.nombreLocalidadAfiliado || data?.nombreLocalidad);
+
+		if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
+		if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
+
 		if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
 		if (body.correoElectronico && !ValidarEmail(body.correoElectronico)) errors.correoElectronico = "Dato inválido";
 		if (body.telefonoContacto && !isPossiblePhoneNumber(body.telefonoContacto)) errors.telefonoContacto = "Dato inválido";
 		if (body.cuitEmpresa && !ValidarCUIT(body.cuitEmpresa)) errors.cuitEmpresa = "Dato inválido";
 		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
+
 		if (Object.values(errors).some(Boolean)) {
 			setState((o) => ({ ...o, errors }));
 			return null;
 		}
 
-
-		// 1) /api/AppDenuncias  (JSON exacto)
-		// derivadoAId: calcular según la opción seleccionada en "Derivada a"
 		const derivadoAIdValue = (() => {
 			const selectedTipo = body.derivadaA || state.form?.derivadaA || "";
-			if (!selectedTipo) return 0;
 			if (selectedTipo === "Delegacion") return Number(delegacionSelect.selected?.value || 0);
 			if (selectedTipo === "Seccional") return Number(seccionalSelect.selected?.value || 0);
-			// CNTA, Asesoria Letrada u otros -> 0
 			return 0;
 		})();
 
@@ -2046,125 +2218,196 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		const appDenunciaPayload = {
 			nombre: body.nombreDenunciante || "",
 			correo: body.correoElectronico || "",
-			provincia: trabPciaSelect?.selected?.record?.nombre || "",
-			localidad: trabLocaSelect?.selected?.record?.nombre || "",
+			//provincia: trabPciaSelect?.selected?.record?.nombre || "",
+			//localidad: trabLocaSelect?.selected?.record?.nombre || "",
+
+			provincia: trabPciaSelect?.selected?.record?.nombre || data?.provincia || "",
+			localidad: trabLocaSelect?.selected?.record?.nombre || data?.localidad || "",
+
 			texto: body.detalleDenuncia || "",
-			foto: "",                             // si no usás fotos, dejalo vacío
-			localidadId: trabLocaSelect?.selected?.record?.id || 0,
-			denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),          // si más adelante guardás el ID, ponelo aquí
-			denunciaTipoId: 0,                    // (si aplica en tu modelo)
-			// derivadoATipo: enviar el texto seleccionado en el desplegable "Derivada a"
+			foto: "",
+			localidadId: Number(localidadIdSel || 0),
+			denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),
+			denunciaTipoId: 0,
 			derivadoATipo: derivadoATipoValue,
 			derivadoAId: derivadoAIdValue,
-
-			documentacionEntidadesId: 0,          // si luego guardás documentación vinculada por Id
-			denunciaSituacionId: Number(body.denunciaSituacionId || 0),// si tenés ID; si no, dejalo en 0
+			documentacionEntidadesId: 0,
+			denunciaSituacionId: Number(body.denunciaSituacionId || 0),
 			empleadorCUIT: Number(body.cuitEmpresa || 0),
 			empleadorNombre: body.razonSocial || "",
-			empresaId: 0,                         // si tenés empresaId, mapear
-			ubicacion: body.ubicacion || ""
+						empresaId: Number(state.form?.empresaId || 0),
+			ubicacion: body.ubicacion || "",
 		};
 
-
-
-
-		// // 2) /api/DenunciaTipoIngreso  (descripcion = string del select)
-		// const tipoIngresoPayload = {
-		// 	descripcion: body.tipoIngreso || ""    // "Mail" | "Web" | "AppDigital" | "Telefono"
-		// };
-
-		// 3) /api/DenunciasEstado
 		const estadoPayload = (appDenunciasId) => ({
 			appDenunciasId,
-			// enviar el string seleccionado por el usuario en el formulario (fallback a 'Registrada')
 			estado: body.estado || state.form?.estado || "Registrada",
 			fechaAsociada: new Date().toISOString(),
 			fecha: new Date().toISOString(),
-			observaciones: body.observacionesRegistro || ""
+			observaciones: body.observacionesRegistro || "",
 		});
 
-		// === SECUENCIA DE GUARDADO ===
-		// 1) Crear AppDenuncias
+		return { appDenunciaPayload, estadoPayload };
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+	const onAgregaDenuncia = () => {
+		const built = buildPayloads();
+		if (!built) return;
+		const { appDenunciaPayload, estadoPayload } = built;
+		// Debug: ver qué payload se arma al crear
+		try { console.log('[DenunciasForm] onAgregaDenuncia - payload:', appDenunciaPayload, 'estadoPayload:', estadoPayload, 'state.form:', state.form); } catch (e) { }
+
 		setCreateAppDenunciaQuery((o) => ({
 			...o,
 			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
 			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando denuncia..." })),
-
 			onLoad: ({ ok, error }) => {
 				if (error) {
 					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
 					return;
 				}
 
-				const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+				//const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+				const rawId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+				const appId = rawId != null ? Number(rawId) : null;
 				if (!appId) {
 					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: "No se devolvió Id de denuncia" } }));
 					return;
 				}
 
-				// (opcional) guardar id en form
 				setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
 
-				// 2) Estado inicial
-				const payloadEstado = estadoPayload(appId);
-				debugSend("DenunciasEstadoPayload", payloadEstado);
-
+				// Estado inicial
 				setCreateEstadoQuery((o3) => ({
 					...o3,
-					query: { ...o3.query, config: { ...o3.query?.config, body: payloadEstado } },
-					onLoad: ({ ok: ok2, error: error2 }) => {
-						debugSend("DenunciasEstadoResponse", { ok: ok2, error: error2 });
-
-						// 3) Documentación (si hay), vinculada a la denuncia recién creada
+					query: { ...o3.query, config: { ...o3.query?.config, body: estadoPayload(appId) } },
+					onLoad: ({ error: error2 }) => {
 						Promise.resolve()
 							.then(() => persistirDocumentacion(appId))
 							.finally(() => {
-								setState((s) => ({
-									...s,
-									loading: null,
-									errors: { ...s.errors, create: error2?.toString() },
-								}));
+								setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
+								onClose(true);
 							});
 					},
 				}));
-			}
-
-		}));
-	};
-
-	const onAgregaDenuncia = () => {
-		// delega todo en tu builder/guarda
-		buildAppDenunciaPayload();
-	};
-
-
-	const onGuardaCambios = () => {
-		const appDenunciaPayload = buildAppDenunciaPayload();
-		if (!appDenunciaPayload) return; // validaciones fallaron
-
-		const id = state.form?.id || data?.id;
-		if (!id) {
-			setState((s) => ({ ...s, errors: { ...s.errors, create: "Falta Id para editar" } }));
-			return;
-		}
-
-		setUpdateAppDenunciaQuery((o) => ({
-			...o,
-			// PUT /AppDenuncias/{id}
-			config: { ...o.config, endpoint: `/AppDenuncias/${id}`, method: "PUT" },
-			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
-			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando cambios..." })),
-			onLoad: ({ ok, error }) => {
-				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
-				if (!error) onClose(true);
 			},
 		}));
 	};
 
+
+
+
+
+const onGuardaCambios = () => {
+  const built = buildPayloads();
+  if (!built) return;
+	const { appDenunciaPayload, estadoPayload } = built;
+
+
+	// Debug: ver payload y id resuelto antes de enviar PUT
+	try { console.log('[DenunciasForm] onGuardaCambios - built payload:', appDenunciaPayload, 'state.form.id:', state.form?.id, 'data.id:', data?.id, 'state.form:', state.form); } catch (e) { }
+
+	const id = state.form?.id || data?.id;
+	if (!id) {
+		setState((s) => ({ ...s, errors: { ...s.errors, create: "Falta Id para editar" } }));
+		return;
+	}
+
+	// Enviar directamente con sendRequest para asegurar la URL con id
+	setState((s) => ({ ...s, loading: "Guardando cambios..." }));
+		sendRequest(
+			{
+				baseURL: "App",
+				endpoint: `/AppDenuncias/${id}`,
+				method: "PUT",
+				body: appDenunciaPayload,
+				errorType: "response",
+			},
+			(ok) => {
+				// Al actualizar la denuncia, crear un nuevo estado asociado (POST /DenunciasEstados)
+				setState((s) => ({ ...s, loading: "Guardando estado...", errors: { ...s.errors, create: null } }));
+				const estadoBody = (typeof estadoPayload === "function") ? estadoPayload(id) : null;
+				if (estadoBody) {
+					sendRequest(
+						{
+							baseURL: "App",
+							endpoint: `/DenunciasEstados`,
+							method: "POST",
+							body: estadoBody,
+							errorType: "response",
+						},
+						() => {
+							// persistir documentación y cerrar
+							Promise.resolve()
+								.then(() => persistirDocumentacion(id))
+								.finally(() => onClose(true));
+						},
+						(errEstado) => {
+							// Si falla crear estado, mostrar error pero seguir con persistir documentación
+							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: errEstado?.toString() } }));
+							Promise.resolve()
+								.then(() => persistirDocumentacion(id))
+								.finally(() => onClose(true));
+						},
+						() => {}
+					);
+				} else {
+					// Si no hay estadoBody, sólo persistir documentación
+					Promise.resolve()
+						.then(() => persistirDocumentacion(id))
+						.finally(() => onClose(true));
+				}
+			},
+			(error) => {
+				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
+			},
+			() => {}
+		);
+};
+
+	// Construir título dinámico según el modo (Agregar / Modificar / Consulta)
+	const _numeroDenuncia = state.form?.numero || data?.numero || state.form?.id || data?.id || null;
+	const _fechaDenunciaRaw = state.form?.fecha || data?.fecha || null;
+	const _fechaDenuncia = _fechaDenunciaRaw ? dayjs(_fechaDenunciaRaw).format("DD/MM/YYYY") : null;
+
+	let headerTitle = "Agrega Denuncia";
+		if (mode === "M") {
+			if (_numeroDenuncia) {
+				headerTitle = `Edita Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+			} else if (_fechaDenuncia) {
+				headerTitle = `Edita Denuncia ${_fechaDenuncia}`;
+			} else {
+				headerTitle = `Edita Denuncia`;
+			}
+		} else if (mode === "C" || readOnly) {
+			if (_numeroDenuncia) {
+				headerTitle = `Consulta Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+			} else if (_fechaDenuncia) {
+				headerTitle = `Consulta Denuncia ${_fechaDenuncia}`;
+			} else {
+				headerTitle = `Consulta Denuncia`;
+			}
+		}
+
+
+
+
+
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
-				Carga de denuncias
+				{headerTitle}
 			</Modal.Header>
 			<Modal.Body>{content}</Modal.Body>
 			<Modal.Footer>
