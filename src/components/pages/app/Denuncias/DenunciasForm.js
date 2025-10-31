@@ -198,7 +198,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, readOnly = false, hidePrint = false, onClose = () => { }, initialTab = 0 }) => {
+const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, readOnly = false, hidePrint = false, onClose = () => { }, initialTab = 0, mode = "A" }) => {
 
 	const [selectedTab, setSelectedTab] = useState(initialTab);
 	const handleChangeTab = (_e, v) => setSelectedTab(v);
@@ -360,12 +360,29 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		{ query: { config: { errorType: "response" } } }
 	);
 
+	// 2) Modificación de AppDenuncias (PUT /AppDenuncias/{id})
+	// NOTA: endpoint lo seteo al invocar para respetar "/{id}"
+	const { setState: setUpdateAppDenunciaQuery } = useQueryState(
+		() => ({
+			config: { baseURL: "App", endpoint: "", method: "PUT" },
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+
 
 
 	// 3) Alta de Estado de la denuncia
 	const { setState: setCreateEstadoQuery } = useQueryState(
 		() => ({
 			config: { baseURL: "App", endpoint: "/DenunciasEstados", method: "POST" }
+		}),
+		{ query: { config: { errorType: "response" } } }
+	);
+
+	// GET: Estados de una denuncia (por appDenunciasId)
+	const { setState: setGetEstadosQuery } = useQueryState(
+		() => ({
+			config: { baseURL: "App", endpoint: "/DenunciasEstados", method: "GET" },
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
@@ -449,6 +466,32 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}));
 	}, [data?.id, setDocumentosQuery]);
 
+	// Cargar últimos estados de la denuncia (para prefill de Estado y Observaciones)
+	useEffect(() => {
+		const entidadId = data?.id ?? 0;
+		if (!entidadId) return;
+		setGetEstadosQuery((o) => ({
+			...o,
+			query: { ...o.query, params: { appDenunciasId: entidadId } },
+			onPreLoad: () => { },
+			onLoad: ({ ok, error }) => {
+				const arr = Array.isArray(ok) ? ok : [];
+				if (!arr.length) return;
+				// ordenar por fecha (por si vienen desordenados) y tomar el último
+				const sorted = arr.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+				const last = sorted[sorted.length - 1] || arr[arr.length - 1];
+				setState((s) => ({
+					...s,
+					form: {
+						...s.form,
+						estado: last.estado || s.form.estado,
+						observacionesRegistro: last.observaciones || s.form.observacionesRegistro,
+					},
+				}));
+			},
+		}));
+	}, [data?.id, setGetEstadosQuery]);
+
 	// === MAPEO DE DOCUMENTACIÓN: Convierte item del form al formato del API
 	const compact = (obj) => Object.fromEntries(
 		Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
@@ -477,7 +520,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			""
 		).toString().replace(/^data:.*;base64,/, "");
 
-		
+
 
 
 		const payload = {
@@ -689,7 +732,11 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		}
 	}, [delegacionSelect.selected, seccionalSelect.data, seccionalSelect.buscar]);
 
-	//#region selects trabajador
+	//#region selects trabajad
+
+
+
+
 
 	//#region select tipo documento
 	const [tipoDocumentoSelect, setTipoDocumentoSelect] = useState({
@@ -894,7 +941,60 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		options: [],
 		selected: {},
 		origen: "",
-	});
+	}
+	);
+
+	// Trae seccionales por PROVINCIA (sin localidad) y setea la Delegación (texto)
+	useEffect(() => {
+		const provinciaId = trabPciaSelect?.selected?.value;
+		if (!provinciaId) {
+			// si se limpia provincia, también limpiamos seccional/delegación
+			setSeccionalSelect(s => ({ ...s, data: [], options: [], selected: {} }));
+			setState(s => ({ ...s, form: { ...s.form, delegacion: "", seccional: "" } }));
+			return;
+		}
+
+		setSeccionalesQuery(o => ({
+			...o,
+			query: {
+				...o.query,
+				params: {
+					...(o.query?.params || {}),
+					soloActivos: true,
+					provinciaId,                // <-- SOLO ProvinciaId
+					// verSeccionalesLocalidades: false, // opcional
+					// (NO enviar localidadId)
+				},
+			},
+			onLoad: ({ ok, error }) => {
+				const data = Array.isArray(ok) ? ok : [];
+
+				// guardar dataset para el selector de seccionales
+				setSeccionalSelect(s => ({
+					...s,
+					loading: null,
+					data,
+					error: error?.toString(),
+					options: seccionalesSelectOptions({ data, buscar: s.buscar }),
+				}));
+
+				// tomar una delegación de referencia (primera coincidencia)
+				const first = data[0] || {};
+				const delegacionTexto =
+					first.refDelegacionDescripcion ||
+					(first.seccionalLocalidad?.[0]?.refDelegacionDescripcion) ||
+					"";
+
+				setState(s => ({
+					...s,
+					form: { ...s.form, delegacion: delegacionTexto },
+				}));
+			},
+		}));
+	}, [trabPciaSelect?.selected?.value, setSeccionalesQuery, setSeccionalSelect]);
+
+
+
 	// Buscador
 	useEffect(() => {
 		setTrabLocaSelect((o) => {
@@ -1119,9 +1219,11 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 
 	// Prefill selects (duplicados originales)
 	useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+	useEffect(() => { if (tipoIngresoSelect.options?.length) setSelectedById(setTipoIngresoSelect, tipoIngresoSelect, state.form?.denunciaTipoIngresoId || data?.denunciaTipoIngresoId); }, [tipoIngresoSelect.options, state.form?.denunciaTipoIngresoId, data?.denunciaTipoIngresoId]);
 	useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
 	useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
 	useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+	useEffect(() => { if (situacionSelect.options?.length) setSelectedById(setSituacionSelect, situacionSelect, state.form?.denunciaSituacionId || data?.denunciaSituacionId); }, [situacionSelect.options, state.form?.denunciaSituacionId, data?.denunciaSituacionId]);
 	useEffect(() => {
 		if (!trabPciaSelect.options?.length) return;
 		setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
@@ -1417,7 +1519,9 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						options={trabLocaSelect.options}
 						onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
 					/>
-					<Grid width style={styles.String}>Delegacion: XXXXXXXXXXXXXXXXXXXXXXXXXXXXX</Grid>
+					<Grid width style={styles.String}>
+						Delegacion: {state.form.delegacion || "—"}
+					</Grid>
 				</Grid>
 
 				{/* ====== BLOQUE PRINCIPAL ====== */}
@@ -1908,7 +2012,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		);
 	}
 
-	const onAgregaDenuncia = () => {
+	const buildAppDenunciaPayload = () => {
 		// === Validaciones (dejan igual lo que ya tenías) ===
 		const errors = {};
 		const body = { ...state.form };
@@ -1921,7 +2025,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
 		if (Object.values(errors).some(Boolean)) {
 			setState((o) => ({ ...o, errors }));
-			return;
+			return null;
 		}
 
 
@@ -1961,6 +2065,9 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			ubicacion: body.ubicacion || ""
 		};
 
+
+
+
 		// // 2) /api/DenunciaTipoIngreso  (descripcion = string del select)
 		// const tipoIngresoPayload = {
 		// 	descripcion: body.tipoIngreso || ""    // "Mail" | "Web" | "AppDigital" | "Telefono"
@@ -1982,38 +2089,75 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 			...o,
 			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
 			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando denuncia..." })),
+
 			onLoad: ({ ok, error }) => {
 				if (error) {
 					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
 					return;
 				}
+
 				const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
 				if (!appId) {
 					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: "No se devolvió Id de denuncia" } }));
 					return;
 				}
-				// (opcional) actualizar form con el nuevo Id
+
+				// (opcional) guardar id en form
 				setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
 
-				// 2) Enviar Estado inicial de la denuncia
-				try {
-					const payloadEstado = estadoPayload(appId);
-					// Loggear payload de estado para debug
-					debugSend("DenunciasEstadoPayload", payloadEstado);
-					setCreateEstadoQuery((o3) => ({
-						...o3,
-						query: { ...o3.query, config: { ...o3.query?.config, body: payloadEstado } },
-						onLoad: ({ ok: ok2, error: error2 }) => {
-							// Debug: response del endpoint DenunciasEstados
-							debugSend("DenunciasEstadoResponse", { ok: ok2, error: error2 });
-							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
-						},
-					}));
-				} catch (e) {
-					console.error('Error al enviar DenunciasEstados debug:', e);
-				}
+				// 2) Estado inicial
+				const payloadEstado = estadoPayload(appId);
+				debugSend("DenunciasEstadoPayload", payloadEstado);
 
+				setCreateEstadoQuery((o3) => ({
+					...o3,
+					query: { ...o3.query, config: { ...o3.query?.config, body: payloadEstado } },
+					onLoad: ({ ok: ok2, error: error2 }) => {
+						debugSend("DenunciasEstadoResponse", { ok: ok2, error: error2 });
+
+						// 3) Documentación (si hay), vinculada a la denuncia recién creada
+						Promise.resolve()
+							.then(() => persistirDocumentacion(appId))
+							.finally(() => {
+								setState((s) => ({
+									...s,
+									loading: null,
+									errors: { ...s.errors, create: error2?.toString() },
+								}));
+							});
+					},
+				}));
 			}
+
+		}));
+	};
+
+	const onAgregaDenuncia = () => {
+		// delega todo en tu builder/guarda
+		buildAppDenunciaPayload();
+	};
+
+
+	const onGuardaCambios = () => {
+		const appDenunciaPayload = buildAppDenunciaPayload();
+		if (!appDenunciaPayload) return; // validaciones fallaron
+
+		const id = state.form?.id || data?.id;
+		if (!id) {
+			setState((s) => ({ ...s, errors: { ...s.errors, create: "Falta Id para editar" } }));
+			return;
+		}
+
+		setUpdateAppDenunciaQuery((o) => ({
+			...o,
+			// PUT /AppDenuncias/{id}
+			config: { ...o.config, endpoint: `/AppDenuncias/${id}`, method: "PUT" },
+			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
+			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando cambios..." })),
+			onLoad: ({ ok, error }) => {
+				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
+				if (!error) onClose(true);
+			},
 		}));
 	};
 
@@ -2027,14 +2171,28 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
 					<Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
 					{!readOnly && selectedTab === 0 && (
-						<Button
-							className="botonAmarillo"
-							onClick={onAgregaDenuncia}
-							loading={!!state.loading}
-							disabled={!!state.loading}
-						>
-							AGREGA DENUNCIA
-						</Button>
+						<>
+							{mode === "A" && (
+								<Button
+									className="botonAmarillo"
+									onClick={onAgregaDenuncia}
+									loading={!!state.loading}
+									disabled={!!state.loading}
+								>
+									AGREGA DENUNCIA
+								</Button>
+							)}
+							{mode === "M" && (
+								<Button
+									className="botonAmarillo"
+									onClick={onGuardaCambios}
+									loading={!!state.loading}
+									disabled={!!state.loading}
+								>
+									GUARDAR CAMBIOS
+								</Button>
+							)}
+						</>
 					)}
 
 

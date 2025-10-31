@@ -29,6 +29,51 @@ const DenunciasHandler = () => {
 
   const openForm = (mode, record = {}) => {
     setFormMode(mode);
+
+    // Si es Modificar/Consulta y tenemos id, traemos el detalle con GET ?id=
+    if ((mode === "M" || mode === "C") && record?.id) {
+      const mapApiToForm = (r = {}) => ({
+        id: r.id,
+        provinciaNombre: r.provincia || "",
+        provinciaId: r.provinciaId || 0,
+        refLocalidadIdAfiliado: r.localidadId || 0,
+        nombreLocalidadAfiliado: r.localidad || "",
+        delegacion: r.delegacion || "",
+        seccional: r.seccional || "",
+        nombreDenunciante: r.nombre || "",
+        telefonoContacto: r.telefonoContacto || r.telefono || "",
+        correoElectronico: r.correo || "",
+        denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
+        denunciaSituacionId: r.denunciaSituacionId || 0,
+        cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
+        razonSocial: r.empleadorNombre || "",
+        detalleDenuncia: r.texto || "",
+        ubicacion: r.ubicacion || "",
+        derivadaA: r.derivadoATipo || "Sin derivacion",
+        derivadaADescripcion: r.derivadoATipo || "Sin derivacion",
+        estado: r.estado || "Registrada",
+        observacionesRegistro: r.observaciones || "",
+      });
+
+      pushQuery({
+        action: "GetDenunciaDetail",
+        params: { id: record.id }, // GET ?id=
+        onOk: (resp) => {
+          const payload = resp && resp.data ? resp.data : resp;
+          const full = Array.isArray(payload) ? payload[0] || {} : payload || {};
+          setFormData(mapApiToForm(full));
+          setFormOpen(true);
+        },
+        onError: () => {
+          // fallback con lo que tengamos
+          setFormData(record || {});
+          setFormOpen(true);
+        },
+      });
+      return;
+    }
+
+    // Alta / sin id: abrir directo
     setFormData(record || {});
     setFormOpen(true);
   };
@@ -47,6 +92,18 @@ const DenunciasHandler = () => {
         },
       };
     }
+
+   if (action === "GetDenunciaDetail") {
+     return {
+       config: {
+         baseURL: "App",
+         method: "GET",
+         endpoint: "/AppDenuncias",
+       },
+     };
+   }
+
+
     return null;
   });
 
@@ -268,9 +325,9 @@ useEffect(() => {
           </h3>
         }
         data={formData}
-        disabled={{
-          ...(formMode === "C" ? { codPostal: true, nombre: true } : {}),
-        }}
+        mode={formMode}
+        readOnly={formMode === "C"}
+        disabled={{ ...(formMode === "C" ? { codPostal: true, nombre: true } : {}) }}
         onChange={(changes) => setFormData((o) => ({ ...o, ...changes }))}
         onClose={(confirm = false) => {
           setFormOpen(false);
