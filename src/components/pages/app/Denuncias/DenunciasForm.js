@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
@@ -1192,29 +1192,29 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 						return n;
 					});
 					setState((s) => ({ ...s, form: { ...s.form, seccional: rec.descripcion || rec.seccional || state.form.seccional || "" } }));
-						setLockedSeccional(true);
-						// Si la seccional trae refDelegacionId, prefill y bloquear también Delegación
-						const refDelegacionId = rec.refDelegacionId ?? rec.refDelegacion?.id ?? 0;
-						if (refDelegacionId) {
-							setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
-							setDelegacionesQuery((o) => ({
-								...o,
-								query: { ...o.query, params: { ...(o.query?.params || {}), id: refDelegacionId, soloActivos: true } },
-								onLoad: ({ ok, error }) => {
-									const dataD = Array.isArray(ok) ? ok : [];
-									setDelegacionSelect((prev) => {
-										const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
-										n.optionsSrc = delegacionSelectOptions(n);
-										const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
-										n.selected = sel;
-										n.selectedDef = sel;
-										return n;
-									});
-									setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataD[0]?.nombre) || state.form.delegacion || "" } }));
-									setLockedDelegacion(true);
-								},
-							}));
-						}
+					setLockedSeccional(true);
+					// Si la seccional trae refDelegacionId, prefill y bloquear también Delegación
+					const refDelegacionId = rec.refDelegacionId ?? rec.refDelegacion?.id ?? 0;
+					if (refDelegacionId) {
+						setDelegacionSelect((o) => ({ ...o, loading: "Cargando..." }));
+						setDelegacionesQuery((o) => ({
+							...o,
+							query: { ...o.query, params: { ...(o.query?.params || {}), id: refDelegacionId, soloActivos: true } },
+							onLoad: ({ ok, error }) => {
+								const dataD = Array.isArray(ok) ? ok : [];
+								setDelegacionSelect((prev) => {
+									const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
+									n.optionsSrc = delegacionSelectOptions(n);
+									const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
+									n.selected = sel;
+									n.selectedDef = sel;
+									return n;
+								});
+								setState((s) => ({ ...s, form: { ...s.form, delegacion: (dataD[0]?.nombre) || state.form.delegacion || "" } }));
+								setLockedDelegacion(true);
+							},
+						}));
+					}
 				},
 				(err) => {
 					// no seleccionado si falla
@@ -1234,21 +1234,21 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 		try { console.log('[DenunciasForm] MODIFICAR - data recibida:', data); } catch (e) { }
 
 		// Provincia: usar label textual si existe (varios nombres posibles) y no hay selección real aún
-const provinciaLabel =
-  data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion || data?.provinciaNombreAfiliado;
-const provinciaId = data?.provinciaId ?? data?.provinciaID ?? null;
+		const provinciaLabel =
+			data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion || data?.provinciaNombreAfiliado;
+		const provinciaId = data?.provinciaId ?? data?.provinciaID ?? null;
 
-if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.value)) {
-  setTrabPciaSelect((o) => ({
-    ...o,
-    selected: {
-      value: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0,   // << no tmp string
-      label: String(provinciaLabel || ""),
-      record: { id: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0, nombre: provinciaLabel },
-    },
-    origen: "server",
-  }));
-}
+		if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.value)) {
+			setTrabPciaSelect((o) => ({
+				...o,
+				selected: {
+					value: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0,   // << no tmp string
+					label: String(provinciaLabel || ""),
+					record: { id: Number.isFinite(Number(provinciaId)) ? Number(provinciaId) : 0, nombre: provinciaLabel },
+				},
+				origen: "server",
+			}));
+		}
 
 		// Localidad: similar
 		const localidadLabel = (data && (data.localidad || data.nombreLocalidadAfiliado || data.nombreLocalidad || data.localidadNombre)) || (state && state.form && (state.form.nombreLocalidadAfiliado || state.form.localidad || state.form.nombreLocalidad));
@@ -1631,8 +1631,8 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 				<Grid col width gap="inherit" style={styles.group}>
 					<Grid width style={styles.titulo}>Carga de Datos</Grid>
 					<Grid col gap="inherit">
-						{/* Delegación (solo display) */}
-						{/* <Grid width gap="inherit">
+			{/* Delegación (solo display) */ }
+		{/* <Grid width gap="inherit">
               <InputMaterial
                 id="delegacion"
                 label="Delegación"
@@ -1642,213 +1642,213 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
               />
             </Grid> */}
 
-						{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */}
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="nombreDenunciante"
-								readOnly={readOnly}
-								label="Nombre Denunciante"
-								value={state.form.nombreDenunciante}
-								error={!!state.errors.nombreDenunciante}
-								helperText={state.errors.nombreDenunciante}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, nombreDenunciante: v } }))}
-							/>
-							<InputMaterial
-								id="telefonoContacto"
-								readOnly={readOnly}
-								type="tel"
-								label="Teléfono de contacto"
-								value={state.form.telefonoContacto}
-								error={!!state.errors.telefonoContacto}
-								helperText={state.errors.telefonoContacto}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, telefonoContacto: v } }))}
-							/>
-							<InputMaterial
-								id="correoElectronico"
-								readOnly={readOnly}
-								label="Correo electrónico"
-								value={state.form.correoElectronico}
-								error={!!state.errors.correoElectronico}
-								helperText={state.errors.correoElectronico}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, correoElectronico: v } }))}
-							/>
-						</Grid>
+		{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */ }
+		<Grid width gap="inherit">
+			<InputMaterial
+				id="nombreDenunciante"
+				readOnly={readOnly}
+				label="Nombre Denunciante"
+				value={state.form.nombreDenunciante}
+				error={!!state.errors.nombreDenunciante}
+				helperText={state.errors.nombreDenunciante}
+				onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, nombreDenunciante: v } }))}
+			/>
+			<InputMaterial
+				id="telefonoContacto"
+				readOnly={readOnly}
+				type="tel"
+				label="Teléfono de contacto"
+				value={state.form.telefonoContacto}
+				error={!!state.errors.telefonoContacto}
+				helperText={state.errors.telefonoContacto}
+				onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, telefonoContacto: v } }))}
+			/>
+			<InputMaterial
+				id="correoElectronico"
+				readOnly={readOnly}
+				label="Correo electrónico"
+				value={state.form.correoElectronico}
+				error={!!state.errors.correoElectronico}
+				helperText={state.errors.correoElectronico}
+				onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, correoElectronico: v } }))}
+			/>
+		</Grid>
 
-						{/* Correo electrónico
+		{/* Correo electrónico
 						<Grid width>
 
 						</Grid> */}
 
-						{/* Tipo de Ingreso / Situación / Ubicacion */}
-						<Grid width gap="inherit">
-							<SearchSelectMaterial
-								id="tipoIngreso"
-								readOnly={readOnly}
-								label="Tipo de Ingreso"
-								error={!!tipoIngresoSelect.error}
-								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
-								value={tipoIngresoSelect.selected}
-								options={tipoIngresoSelect.options}
-								onChange={(selected = {}) => {
-									setTipoIngresoSelect(o => ({ ...o, selected, origen: "option" }));
-									setState(o => ({
-										...o,
-										form: {
-											...o.form,
-											// guardar el ID para el backend:
-											denunciaTipoIngresoId: Number(selected?.value || 0),
-											// guardar también la descripción por si la necesitás en UI:
-											tipoIngresoDescripcion: selected?.label || "",
-										},
-										// si tenías errores previos:
-										errors: { ...o.errors, tipoIngreso: "" },
-									}));
-								}}
-								onTextChange={(buscar) => setTipoIngresoSelect(o => ({ ...o, buscar, origen: "text" }))}
-							/>
-							<SearchSelectMaterial
-								id="situacion"
-								readOnly={readOnly}
-								label="Situación"
-								error={!!situacionSelect.error}
-								helperText={situacionSelect.loading ?? situacionSelect.error}
-								value={situacionSelect.selected}
-								options={situacionSelect.options}
-								onChange={(selected = {}) => {
-									setSituacionSelect(o => ({ ...o, selected, origen: "option" }));
-									setState(o => ({
-										...o,
-										form: {
-											...o.form,
-											denunciaSituacionId: Number(selected?.value || 0),   // ← ID al backend
-											situacionDescripcion: selected?.label || "",         // ← texto para UI
-										},
-										errors: { ...o.errors, situacion: "" },
-									}));
-								}}
-								onTextChange={(buscar) => setSituacionSelect(o => ({ ...o, buscar, origen: "text" }))}
-							/>
+		{/* Tipo de Ingreso / Situación / Ubicacion */ }
+		<Grid width gap="inherit">
+			<SearchSelectMaterial
+				id="tipoIngreso"
+				readOnly={readOnly}
+				label="Tipo de Ingreso"
+				error={!!tipoIngresoSelect.error}
+				helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
+				value={tipoIngresoSelect.selected}
+				options={tipoIngresoSelect.options}
+				onChange={(selected = {}) => {
+					setTipoIngresoSelect(o => ({ ...o, selected, origen: "option" }));
+					setState(o => ({
+						...o,
+						form: {
+							...o.form,
+							// guardar el ID para el backend:
+							denunciaTipoIngresoId: Number(selected?.value || 0),
+							// guardar también la descripción por si la necesitás en UI:
+							tipoIngresoDescripcion: selected?.label || "",
+						},
+						// si tenías errores previos:
+						errors: { ...o.errors, tipoIngreso: "" },
+					}));
+				}}
+				onTextChange={(buscar) => setTipoIngresoSelect(o => ({ ...o, buscar, origen: "text" }))}
+			/>
+			<SearchSelectMaterial
+				id="situacion"
+				readOnly={readOnly}
+				label="Situación"
+				error={!!situacionSelect.error}
+				helperText={situacionSelect.loading ?? situacionSelect.error}
+				value={situacionSelect.selected}
+				options={situacionSelect.options}
+				onChange={(selected = {}) => {
+					setSituacionSelect(o => ({ ...o, selected, origen: "option" }));
+					setState(o => ({
+						...o,
+						form: {
+							...o.form,
+							denunciaSituacionId: Number(selected?.value || 0),   // ← ID al backend
+							situacionDescripcion: selected?.label || "",         // ← texto para UI
+						},
+						errors: { ...o.errors, situacion: "" },
+					}));
+				}}
+				onTextChange={(buscar) => setSituacionSelect(o => ({ ...o, buscar, origen: "text" }))}
+			/>
 
-							<InputMaterial
-								id="ubicacion"
-								readOnly={readOnly}
-								label="Ubicación"
-								value={state.form.ubicacion}
-								error={!!state.errors.ubicacion}
-								helperText={state.errors.ubicacion}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, ubicacion: v } }))}
-							/>
-						</Grid>
+			<InputMaterial
+				id="ubicacion"
+				readOnly={readOnly}
+				label="Ubicación"
+				value={state.form.ubicacion}
+				error={!!state.errors.ubicacion}
+				helperText={state.errors.ubicacion}
+				onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, ubicacion: v } }))}
+			/>
+		</Grid>
 
-						{/* CUIT Empleador  */}
-						<Grid gap="inherit">
-							<Grid width="200px">
-								<InputMaterial
-									id="cuitEmpresa"
-									readOnly={readOnly}
-									mask={CUITMask}
-									label="CUIT Empleador"
-									value={state.form.cuitEmpresa}
-									error={!!state.errors.cuitEmpresa}
-									helperText={state.errors.cuitEmpresa}
-									onChange={(v) =>
-										setState((o) => ({ ...o, form: { ...o.form, cuitEmpresa: (String(v || "").match(/\d/g) || []).join("") } }))
+		{/* CUIT Empleador  */ }
+		<Grid gap="inherit">
+			<Grid width="200px">
+				<InputMaterial
+					id="cuitEmpresa"
+					readOnly={readOnly}
+					mask={CUITMask}
+					label="CUIT Empleador"
+					value={state.form.cuitEmpresa}
+					error={!!state.errors.cuitEmpresa}
+					helperText={state.errors.cuitEmpresa}
+					onChange={(v) =>
+						setState((o) => ({ ...o, form: { ...o.form, cuitEmpresa: (String(v || "").match(/\d/g) || []).join("") } }))
+					}
+				/>
+			</Grid>
+			<Grid col width="100px">
+				<Button
+					className="botonAzul"
+					onClick={() => {
+						const changes = { form: {}, errors: { cuitEmpresa: "" } };
+						const cuit = state.form.cuitEmpresa;
+						const apply = () =>
+							setState((o) => ({
+								...o,
+								form: { ...o.form, ...changes.form },
+								errors: { ...o.errors, ...changes.errors },
+								validado: { ...o.validado, empleador: true },
+							}));
+						if (cuit) {
+							// 1) Consulta a AFIP
+							setPadronAFIPQuery((o) => ({
+								...o,
+								loading: "Empleador",
+								query: { ...o.query, params: { ...o.query.params, cuit } },
+								onLoad: ({ ok, error }) => {
+									if (error) {
+										changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
+										apply();
+										setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+									} else {
+										changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
+										// 2) Consultar endpoint /api/Empresas/GetEmpresaSpecs para obtener empresaId (filtro por cuit)
+										sendRequest(
+											{
+												baseURL: "Comunes",
+												endpoint: `/Empresas/GetEmpresaSpecs`,
+												method: "GET",
+												params: { cuit },
+												errorType: "response",
+											},
+											(okEmp) => {
+												// okEmp puede ser un array o un objeto; normalizar
+												const found = Array.isArray(okEmp) ? (okEmp[0] || null) : (okEmp || null);
+												const empresaId = found ? (found.id ?? found.Id ?? 0) : 0;
+												changes.form.empresaId = Number(empresaId || 0);
+												apply();
+												setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+											},
+											(errEmp) => {
+												// Si falla la consulta de empresas, asumir empresaId = 0 pero continuar
+												console.error('Empresas/GetEmpresaSpecs error:', errEmp);
+												changes.form.empresaId = 0;
+												apply();
+												setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+											}
+										);
 									}
-								/>
-							</Grid>
-							<Grid col width="100px">
-								<Button
-									className="botonAzul"
-									onClick={() => {
-										const changes = { form: {}, errors: { cuitEmpresa: "" } };
-										const cuit = state.form.cuitEmpresa;
-										const apply = () =>
-											setState((o) => ({
-												...o,
-												form: { ...o.form, ...changes.form },
-												errors: { ...o.errors, ...changes.errors },
-												validado: { ...o.validado, empleador: true },
-											}));
-										if (cuit) {
-											// 1) Consulta a AFIP
-											setPadronAFIPQuery((o) => ({
-												...o,
-												loading: "Empleador",
-												query: { ...o.query, params: { ...o.query.params, cuit } },
-												onLoad: ({ ok, error }) => {
-													if (error) {
-														changes.errors.cuitEmpresa = error.code === 404 ? "No existe en ARCA" : error.toString();
-														apply();
-														setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-													} else {
-														changes.form.razonSocial = ok?.razonSocial || ok?.nombre || "";
-														// 2) Consultar endpoint /api/Empresas/GetEmpresaSpecs para obtener empresaId (filtro por cuit)
-														sendRequest(
-														{
-															baseURL: "Comunes",
-															endpoint: `/Empresas/GetEmpresaSpecs`,
-															method: "GET",
-															params: { cuit },
-															errorType: "response",
-														},
-														(okEmp) => {
-															// okEmp puede ser un array o un objeto; normalizar
-															const found = Array.isArray(okEmp) ? (okEmp[0] || null) : (okEmp || null);
-															const empresaId = found ? (found.id ?? found.Id ?? 0) : 0;
-															changes.form.empresaId = Number(empresaId || 0);
-															apply();
-															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-														},
-														(errEmp) => {
-															// Si falla la consulta de empresas, asumir empresaId = 0 pero continuar
-															console.error('Empresas/GetEmpresaSpecs error:', errEmp);
-															changes.form.empresaId = 0;
-															apply();
-															setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-														}
-													);
-													}
-												},
-											}));
-										} else {
-											changes.errors.cuitEmpresa = "Dato requerido";
-											apply();
-										}
-									}}
-									loading={padronAFIPQuery.loading === "Empleador"}
-								>
-									Valida
-								</Button>
-							</Grid>
-							<Grid grow>
-								<InputMaterial
-									id="razonSocial"
-									readOnly={readOnly}
-									label="Razón Social Empleador"
-									value={state.form.razonSocial}
-									error={!!state.errors.razonSocial}
-									helperText={state.errors.razonSocial}
-									onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, razonSocial: v } }))}
-								/>
-							</Grid>
-						</Grid>
+								},
+							}));
+						} else {
+							changes.errors.cuitEmpresa = "Dato requerido";
+							apply();
+						}
+					}}
+					loading={padronAFIPQuery.loading === "Empleador"}
+				>
+					Valida
+				</Button>
+			</Grid>
+			<Grid grow>
+				<InputMaterial
+					id="razonSocial"
+					readOnly={readOnly}
+					label="Razón Social Empleador"
+					value={state.form.razonSocial}
+					error={!!state.errors.razonSocial}
+					helperText={state.errors.razonSocial}
+					onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, razonSocial: v } }))}
+				/>
+			</Grid>
+		</Grid>
 
-						{/* Detalle de la denuncia (texto libre) */}
-						<Grid width>
-							<InputMaterial
-								id="detalleDenuncia"
-								readOnly={readOnly}
-								label="Detalle de la denuncia"
-								multiline
-								rows={6}
-								value={state.form.detalleDenuncia}
-								error={!!state.errors.detalleDenuncia}
-								helperText={state.errors.detalleDenuncia}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, detalleDenuncia: v } }))}
-							/>
-						</Grid>
+		{/* Detalle de la denuncia (texto libre) */ }
+		<Grid width>
+			<InputMaterial
+				id="detalleDenuncia"
+				readOnly={readOnly}
+				label="Detalle de la denuncia"
+				multiline
+				rows={6}
+				value={state.form.detalleDenuncia}
+				error={!!state.errors.detalleDenuncia}
+				helperText={state.errors.detalleDenuncia}
+				onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, detalleDenuncia: v } }))}
+			/>
+		</Grid>
 
-						{/* Delegación y Seccional (desplegables) Estados y derivados a*/}
+		{/* Delegación y Seccional (desplegables) Estados y derivados a*/ }
 						<Grid width gap="inherit">
 
 							<Grid grow>
@@ -1894,266 +1894,266 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 
 
-							<Grid grow>
-								<SearchSelectMaterial
-									id="delegacionSelect"
-									label="Delegación"
-									error={!!delegacionSelect.error}
-									helperText={delegacionSelect.loading ?? delegacionSelect.error}
-									value={delegacionSelect.selected}
-									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
-									onChange={(selected) => {
-										setDelegacionSelect((o) => ({ ...o, selected }));
-										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
-										setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
-									}}
-									options={delegacionSelect.options}
-									onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
-								/>
-							</Grid>
-							<Grid grow>
-								<SearchSelectMaterial
-									id="seccionalSelect"
-									label="Seccional"
-									error={!!seccionalSelect.error}
-									helperText={seccionalSelect.loading ?? seccionalSelect.error}
-									value={seccionalSelect.selected}
-									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
-									onChange={(selected) => {
-										setSeccionalSelect((o) => ({ ...o, selected }));
-										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
-									}}
-									options={seccionalSelect.options}
-									onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
-								/>
-							</Grid>
-						</Grid>
-
-						{/* Observaciones del Registro (texto libre) */}
-						<Grid width>
-							<InputMaterial
-								id="observacionesRegistro"
-								readOnly={readOnly}
-								label="Observaciones del Registro"
-								multiline
-								rows={4}
-								value={state.form.observacionesRegistro}
-								error={!!state.errors.observacionesRegistro}
-								helperText={state.errors.observacionesRegistro}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, observacionesRegistro: v } }))}
-							/>
-						</Grid>
-					</Grid>
-				</Grid>
+			<Grid grow>
+				<SearchSelectMaterial
+					id="delegacionSelect"
+					label="Delegación"
+					error={!!delegacionSelect.error}
+					helperText={delegacionSelect.loading ?? delegacionSelect.error}
+					value={delegacionSelect.selected}
+					readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
+					onChange={(selected) => {
+						setDelegacionSelect((o) => ({ ...o, selected }));
+						// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
+						setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
+					}}
+					options={delegacionSelect.options}
+					onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
+				/>
 			</Grid>
+			<Grid grow>
+				<SearchSelectMaterial
+					id="seccionalSelect"
+					label="Seccional"
+					error={!!seccionalSelect.error}
+					helperText={seccionalSelect.loading ?? seccionalSelect.error}
+					value={seccionalSelect.selected}
+					readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
+					onChange={(selected) => {
+						setSeccionalSelect((o) => ({ ...o, selected }));
+						setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
+					}}
+					options={seccionalSelect.options}
+					onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
+				/>
+			</Grid>
+						</Grid >
+
+	{/* Observaciones del Registro (texto libre) */ }
+	< Grid width >
+		<InputMaterial
+			id="observacionesRegistro"
+			readOnly={readOnly}
+			label="Observaciones del Registro"
+			multiline
+			rows={4}
+			value={state.form.observacionesRegistro}
+			error={!!state.errors.observacionesRegistro}
+			helperText={state.errors.observacionesRegistro}
+			onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, observacionesRegistro: v } }))}
+		/>
+						</Grid >
+					</Grid >
+				</Grid >
+			</Grid >
 		);
 
-		const entidadId = data?.id ?? 0;
-		const entidadTipo = "F";
+const entidadId = data?.id ?? 0;
+const entidadTipo = "F";
 
-		const DocumentacionPanel = (
-			<Grid full col gap="10px">
+const DocumentacionPanel = (
+	<Grid full col gap="10px">
 
 
 
-				<Documentacion
-					data={documentacionList}
-					tipoDocumentacion={[
-						"Credencial",
-						"Documento de Identidad",
-						"Formulario",
-						"Otros",
-					]}
-					disabled={readOnly}
-					onChange={({ index, item }) => {
-						// MANEJO DE ARCHIVOS: Esta función se ejecuta cuando se suben, modifican o eliminan archivos
-						console.log(' Operación en documentación:', {
-							tipo: index == null ? 'CREAR' : item == null ? 'ELIMINAR' : 'ACTUALIZAR',
-							index: index,
-							nombreArchivo: item?.nombreArchivo || 'N/A',
-							tipoDocumento: item?.refTipoDocumentacionDescripcion || 'N/A',
-							entidadId: entidadId,
-							entidadTipo: entidadTipo
-						});
+		<Documentacion
+			data={documentacionList}
+			tipoDocumentacion={[
+				"Credencial",
+				"Documento de Identidad",
+				"Formulario",
+				"Otros",
+			]}
+			disabled={readOnly}
+			onChange={({ index, item }) => {
+				// MANEJO DE ARCHIVOS: Esta función se ejecuta cuando se suben, modifican o eliminan archivos
+				console.log(' Operación en documentación:', {
+					tipo: index == null ? 'CREAR' : item == null ? 'ELIMINAR' : 'ACTUALIZAR',
+					index: index,
+					nombreArchivo: item?.nombreArchivo || 'N/A',
+					tipoDocumento: item?.refTipoDocumentacionDescripcion || 'N/A',
+					entidadId: entidadId,
+					entidadTipo: entidadTipo
+				});
 
-						const prev = [...documentacionList];
+				const prev = [...documentacionList];
 
-						// === ALTA (CREAR NUEVO ARCHIVO)
-						if (index == null && item != null) {
-							console.log('CREANDO nuevo archivo:', item?.nombreArchivo);
-							const payload = mapDocToPayload(item, entidadId, entidadTipo);
+				// === ALTA (CREAR NUEVO ARCHIVO)
+				if (index == null && item != null) {
+					console.log('CREANDO nuevo archivo:', item?.nombreArchivo);
+					const payload = mapDocToPayload(item, entidadId, entidadTipo);
 
-							// Actualización optimista (se ve inmediatamente en la UI)
-							const temp = [...prev, { ...payload, id: item.id ?? 0 }];
-							setDocumentacionList(temp);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
+					// Actualización optimista (se ve inmediatamente en la UI)
+					const temp = [...prev, { ...payload, id: item.id ?? 0 }];
+					setDocumentacionList(temp);
+					setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
 
-							// Si no hay EntidadId todavía, solo guardamos localmente
-							if (!entidadId) {
-								console.log('⏳ Guardado local - se enviará al servidor cuando se confirme el formulario');
-								return;
-							}
+					// Si no hay EntidadId todavía, solo guardamos localmente
+					if (!entidadId) {
+						console.log('⏳ Guardado local - se enviará al servidor cuando se confirme el formulario');
+						return;
+					}
 
-							// Enviar al servidor
-							createDocQuery(o => ({
-								...o,
-								query: { ...o.query, config: { ...o.query?.config, body: payload } },
-								onLoad: ({ ok, error }) => {
-									if (error) {
-										console.error('❌ Error al crear archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo creado exitosamente:', ok);
-										// Actualizar con el ID real del servidor
-										const newId = ok?.id ?? item.id;
-										const next = [...temp];
-										next[next.length - 1] = { ...next[next.length - 1], id: newId };
-										setDocumentacionList(next);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-									}
-								}
-							}));
-							return;
-						}
-
-						// === BAJA (ELIMINAR ARCHIVO)
-						if (index != null && item == null) {
-							const current = prev[index];
-							console.log(' ELIMINANDO archivo:', current?.nombreArchivo);
-							const id = current?.id;
-
-							if (!id) {
-								// Si no hay id, solo eliminar localmente
-								const next = prev.filter((_, i) => i !== index);
+					// Enviar al servidor
+					createDocQuery(o => ({
+						...o,
+						query: { ...o.query, config: { ...o.query?.config, body: payload } },
+						onLoad: ({ ok, error }) => {
+							if (error) {
+								console.error('❌ Error al crear archivo:', error);
+								// Rollback
+								setDocumentacionList(prev);
+								setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+							} else {
+								console.log('✅ Archivo creado exitosamente:', ok);
+								// Actualizar con el ID real del servidor
+								const newId = ok?.id ?? item.id;
+								const next = [...temp];
+								next[next.length - 1] = { ...next[next.length - 1], id: newId };
 								setDocumentacionList(next);
 								setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-								console.log(' Archivo eliminado localmente');
-								return;
 							}
-
-							// Actualización optimista
-							const next = prev.filter((_, i) => i !== index);
-							setDocumentacionList(next);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-
-							if (!entidadId) return;
-
-							// Eliminar del servidor
-							deleteDocQuery(o => ({
-								...o,
-								query: {
-									...o.query,
-									params: { ...(o.query?.params || {}), id },
-									config: {
-										...o.query?.config,
-										headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-									}
-								},
-								onLoad: ({ error }) => {
-									if (error) {
-										console.error('❌ Error al eliminar archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo eliminado del servidor exitosamente');
-									}
-								}
-							}));
-							return;
 						}
+					}));
+					return;
+				}
 
-						// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
-						if (index != null && item != null) {
-							const current = prev[index] || {};
-							console.log(' ACTUALIZANDO archivo:', current?.nombreArchivo);
-							const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
+				// === BAJA (ELIMINAR ARCHIVO)
+				if (index != null && item == null) {
+					const current = prev[index];
+					console.log(' ELIMINANDO archivo:', current?.nombreArchivo);
+					const id = current?.id;
 
-							// Actualización optimista
-							const next = [...prev];
-							next.splice(index, 1, { ...current, ...item });
-							setDocumentacionList(next);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+					if (!id) {
+						// Si no hay id, solo eliminar localmente
+						const next = prev.filter((_, i) => i !== index);
+						setDocumentacionList(next);
+						setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+						console.log(' Archivo eliminado localmente');
+						return;
+					}
 
-							if (!entidadId) return;
+					// Actualización optimista
+					const next = prev.filter((_, i) => i !== index);
+					setDocumentacionList(next);
+					setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
 
-							// Actualizar en el servidor
-							updateDocQuery(o => ({
-								...o,
-								query: { ...o.query, config: { ...o.query?.config, body: payload } },
-								onLoad: ({ error }) => {
-									if (error) {
-										console.error('❌ Error al actualizar archivo:', error);
-										// Rollback
-										setDocumentacionList(prev);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-									} else {
-										console.log('✅ Archivo actualizado exitosamente');
-									}
-								}
-							}));
-							return;
+					if (!entidadId) return;
+
+					// Eliminar del servidor
+					deleteDocQuery(o => ({
+						...o,
+						query: {
+							...o.query,
+							params: { ...(o.query?.params || {}), id },
+							config: {
+								...o.query?.config,
+								headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
+							}
+						},
+						onLoad: ({ error }) => {
+							if (error) {
+								console.error('❌ Error al eliminar archivo:', error);
+								// Rollback
+								setDocumentacionList(prev);
+								setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+							} else {
+								console.log('✅ Archivo eliminado del servidor exitosamente');
+							}
 						}
-					}}
-				/>
-				{!readOnly && (
-					<Button
-						className="botonAmarillo"
-						marginTop={3}
-						width={50}
-						onClick={() => setSelectedTab(0)}
-					>
-						CONFIRMA DOCUMENTACIÓN
-					</Button>
-				)}
-			</Grid>
-		);
+					}));
+					return;
+				}
 
-		const MostrarDocumentacion = (
-			<Grid full col gap="10px">
+				// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
+				if (index != null && item != null) {
+					const current = prev[index] || {};
+					console.log(' ACTUALIZANDO archivo:', current?.nombreArchivo);
+					const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
+
+					// Actualización optimista
+					const next = [...prev];
+					next.splice(index, 1, { ...current, ...item });
+					setDocumentacionList(next);
+					setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+
+					if (!entidadId) return;
+
+					// Actualizar en el servidor
+					updateDocQuery(o => ({
+						...o,
+						query: { ...o.query, config: { ...o.query?.config, body: payload } },
+						onLoad: ({ error }) => {
+							if (error) {
+								console.error('❌ Error al actualizar archivo:', error);
+								// Rollback
+								setDocumentacionList(prev);
+								setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+							} else {
+								console.log('✅ Archivo actualizado exitosamente');
+							}
+						}
+					}));
+					return;
+				}
+			}}
+		/>
+		{!readOnly && (
+			<Button
+				className="botonAmarillo"
+				marginTop={3}
+				width={50}
+				onClick={() => setSelectedTab(0)}
+			>
+				CONFIRMA DOCUMENTACIÓN
+			</Button>
+		)}
+	</Grid>
+);
+
+const MostrarDocumentacion = (
+	<Grid full col gap="10px">
 
 
-				<Table
-					keyField="id"
-					data={Array.isArray(documentacionList) ? documentacionList : []}
-					columns={[
-						{
-							dataField: "refTipoDocumentacionDescripcion",
-							text: "Tipo Documentación",
-							style: { textAlign: "left" },
-						},
-						{
-							dataField: "nombreArchivo",
-							text: "Nombre del Archivo",
-							style: { textAlign: "left" },
-							formatter: (cell, row) =>
-								row?.url ? (
-									<a href={row.url} target="_blank" rel="noreferrer">
-										{cell || "(sin nombre)"}
-									</a>
-								) : (
-									cell || "(sin nombre)"
-								),
-						},
-					]}
-					mostrarBuscar={true}
-					pagination={false}
-				/>
-			</Grid>
-		);
+		<Table
+			keyField="id"
+			data={Array.isArray(documentacionList) ? documentacionList : []}
+			columns={[
+				{
+					dataField: "refTipoDocumentacionDescripcion",
+					text: "Tipo Documentación",
+					style: { textAlign: "left" },
+				},
+				{
+					dataField: "nombreArchivo",
+					text: "Nombre del Archivo",
+					style: { textAlign: "left" },
+					formatter: (cell, row) =>
+						row?.url ? (
+							<a href={row.url} target="_blank" rel="noreferrer">
+								{cell || "(sin nombre)"}
+							</a>
+						) : (
+							cell || "(sin nombre)"
+						),
+				},
+			]}
+			mostrarBuscar={true}
+			pagination={false}
+		/>
+	</Grid>
+);
 
-		content = (
-			<>
-				<Tabs value={selectedTab} onChange={handleChangeTab}>
-					<Tab label="Datos" />
-					<Tab label="Documentación" />
-					<Tab label="Novedades" />
-				</Tabs>
+content = (
+	<>
+		<Tabs value={selectedTab} onChange={handleChangeTab}>
+			<Tab label="Datos" />
+			<Tab label="Documentación" />
+<Tab label="Novedades" />
+				</Tabs >
 				<div style={{ marginTop: 10 }}>
 					{selectedTab === 0 ? FormularioPanel : DocumentacionPanel}
-				</div>
+	</div>
 			</>
 		);
 	}
@@ -2167,89 +2167,88 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 
 
-	// NUEVO: builder sin efectos secundarios
-	const buildPayloads = () => {
-		const errors = {};
-		const body = { ...state.form };
+// NUEVO: builder sin efectos secundarios
+const buildPayloads = () => {
+	const errors = {};
+	const body = { ...state.form };
 
-		//if (!trabPciaSelect?.selected?.value) errors.provincia = "Dato requerido";
-		//if (!trabLocaSelect?.selected?.record?.id) errors.localidad = "Dato requerido";
+	//if (!trabPciaSelect?.selected?.value) errors.provincia = "Dato requerido";
+	//if (!trabLocaSelect?.selected?.record?.id) errors.localidad = "Dato requerido";
 
-		// Si no está seleccionado en los selects, usá lo que vino del servidor (data) en modo edición.
-		// Usamos null/undefined checks en lugar de truthy para aceptar id = 0 cuando el servidor
-		// devolvió solo el nombre (p. ej. en ediciones antiguas). Además, si existe el nombre
-		// textual en `data` también lo consideramos suficiente.
-		const provinciaIdSel = (
-			trabPciaSelect?.selected?.value != null ? trabPciaSelect.selected.value :
+	// Si no está seleccionado en los selects, usá lo que vino del servidor (data) en modo edición.
+	// Usamos null/undefined checks en lugar de truthy para aceptar id = 0 cuando el servidor
+	// devolvió solo el nombre (p. ej. en ediciones antiguas). Además, si existe el nombre
+	// textual en `data` también lo consideramos suficiente.
+	const provinciaIdSel = (
+		trabPciaSelect?.selected?.value != null ? trabPciaSelect.selected.value :
 			(data?.provinciaId != null ? data.provinciaId : (data?.provinciaID != null ? data.provinciaID : null))
-		);
-		const localidadIdSel = (
-			(trabLocaSelect?.selected?.record?.id != null ? trabLocaSelect.selected.record.id :
+	);
+	const localidadIdSel = (
+		(trabLocaSelect?.selected?.record?.id != null ? trabLocaSelect.selected.record.id :
 			(data?.refLocalidadIdAfiliado != null ? data.refLocalidadIdAfiliado : (data?.localidadId != null ? data.localidadId : null))))
 		;
 
-		const provinciaTieneNombre = !!(trabPciaSelect?.selected?.record?.nombre || data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion);
-		const localidadTieneNombre = !!(trabLocaSelect?.selected?.record?.nombre || data?.localidad || data?.nombreLocalidadAfiliado || data?.nombreLocalidad);
+	const provinciaTieneNombre = !!(trabPciaSelect?.selected?.record?.nombre || data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion);
+	const localidadTieneNombre = !!(trabLocaSelect?.selected?.record?.nombre || data?.localidad || data?.nombreLocalidadAfiliado || data?.nombreLocalidad);
 
-		if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
-		if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
+	if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
+	if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
 
-		if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
-		if (body.correoElectronico && !ValidarEmail(body.correoElectronico)) errors.correoElectronico = "Dato inválido";
-		if (body.telefonoContacto && !isPossiblePhoneNumber(body.telefonoContacto)) errors.telefonoContacto = "Dato inválido";
-		if (body.cuitEmpresa && !ValidarCUIT(body.cuitEmpresa)) errors.cuitEmpresa = "Dato inválido";
-		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
+	if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
+	if (body.correoElectronico && !ValidarEmail(body.correoElectronico)) errors.correoElectronico = "Dato inválido";
+	if (body.telefonoContacto && !isPossiblePhoneNumber(body.telefonoContacto)) errors.telefonoContacto = "Dato inválido";
+	if (body.cuitEmpresa && !ValidarCUIT(body.cuitEmpresa)) errors.cuitEmpresa = "Dato inválido";
+	if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
 
-		if (Object.values(errors).some(Boolean)) {
-			setState((o) => ({ ...o, errors }));
-			return null;
-		}
+	if (Object.values(errors).some(Boolean)) {
+		setState((o) => ({ ...o, errors }));
+		return null;
+	}
 
-		const derivadoAIdValue = (() => {
-			const selectedTipo = body.derivadaA || state.form?.derivadaA || "";
-			if (selectedTipo === "Delegacion") return Number(delegacionSelect.selected?.value || 0);
-			if (selectedTipo === "Seccional") return Number(seccionalSelect.selected?.value || 0);
-			return 0;
-		})();
+	const derivadoAIdValue = (() => {
+		const selectedTipo = body.derivadaA || state.form?.derivadaA || "";
+		if (selectedTipo === "Delegacion") return Number(delegacionSelect.selected?.value || 0);
+		if (selectedTipo === "Seccional") return Number(seccionalSelect.selected?.value || 0);
+		return 0;
+	})();
 
-		const _derivadoATipoRaw = body.derivadaADescripcion || body.derivadaA || state.form?.derivadaADescripcion || state.form?.derivadaA || "";
-		const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
+	const _derivadoATipoRaw = body.derivadaADescripcion || body.derivadaA || state.form?.derivadaADescripcion || state.form?.derivadaA || "";
+	const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
 
-		const appDenunciaPayload = {
-			nombre: body.nombreDenunciante || "",
-			correo: body.correoElectronico || "",
-			//provincia: trabPciaSelect?.selected?.record?.nombre || "",
-			//localidad: trabLocaSelect?.selected?.record?.nombre || "",
+	const appDenunciaPayload = {
+		nombre: body.nombreDenunciante || "",
+		correo: body.correoElectronico || "",
+		//provincia: trabPciaSelect?.selected?.record?.nombre || "",
+		//localidad: trabLocaSelect?.selected?.record?.nombre || "",
 
-			provincia: trabPciaSelect?.selected?.record?.nombre || data?.provincia || "",
-			localidad: trabLocaSelect?.selected?.record?.nombre || data?.localidad || "",
+		provincia: trabPciaSelect?.selected?.record?.nombre || data?.provincia || "",
+		localidad: trabLocaSelect?.selected?.record?.nombre || data?.localidad || "",
 
-			texto: body.detalleDenuncia || "",
-			foto: "",
-			localidadId: Number(localidadIdSel || 0),
-			denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),
-			denunciaTipoId: 0,
-			derivadoATipo: derivadoATipoValue,
-			derivadoAId: derivadoAIdValue,
-			documentacionEntidadesId: 0,
-			denunciaSituacionId: Number(body.denunciaSituacionId || 0),
-			empleadorCUIT: Number(body.cuitEmpresa || 0),
-			empleadorNombre: body.razonSocial || "",
-						empresaId: Number(state.form?.empresaId || 0),
-			ubicacion: body.ubicacion || "",
-		};
-
-		const estadoPayload = (appDenunciasId) => ({
-			appDenunciasId,
-			estado: body.estado || state.form?.estado || "Registrada",
-			fechaAsociada: new Date().toISOString(),
-			fecha: new Date().toISOString(),
-			observaciones: body.observacionesRegistro || "",
-		});
-
-		return { appDenunciaPayload, estadoPayload };
+		texto: body.detalleDenuncia || "",
+		foto: "",
+		localidadId: Number(localidadIdSel || 0),
+		denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),
+		denunciaTipoId: 0,
+		derivadoATipo: derivadoATipoValue,
+		derivadoAId: derivadoAIdValue,
+		documentacionEntidadesId: 0,
+		denunciaSituacionId: Number(body.denunciaSituacionId || 0),
+		empleadorCUIT: Number(body.cuitEmpresa || 0),
+		empleadorNombre: body.razonSocial || "",
+		empresaId: Number(state.form?.empresaId || 0),
+		ubicacion: body.ubicacion || "",
 	};
 
+	const estadoPayload = (appDenunciasId) => ({
+		appDenunciasId,
+		estado: body.estado || state.form?.estado || "Registrada",
+		fechaAsociada: new Date().toISOString(),
+		fecha: new Date().toISOString(),
+		observaciones: body.observacionesRegistro || "",
+	});
+
+	return { appDenunciaPayload, estadoPayload };
+};
 
 
 
@@ -2261,57 +2260,58 @@ if (provinciaLabel && (!trabPciaSelect.selected || !trabPciaSelect.selected.valu
 
 
 
-	const onAgregaDenuncia = () => {
-		const built = buildPayloads();
-		if (!built) return;
-		const { appDenunciaPayload, estadoPayload } = built;
-		// Debug: ver qué payload se arma al crear
-		try { console.log('[DenunciasForm] onAgregaDenuncia - payload:', appDenunciaPayload, 'estadoPayload:', estadoPayload, 'state.form:', state.form); } catch (e) { }
 
-		setCreateAppDenunciaQuery((o) => ({
-			...o,
-			query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
-			onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando denuncia..." })),
-			onLoad: ({ ok, error }) => {
-				if (error) {
-					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
-					return;
-				}
+const onAgregaDenuncia = () => {
+	const built = buildPayloads();
+	if (!built) return;
+	const { appDenunciaPayload, estadoPayload } = built;
+	// Debug: ver qué payload se arma al crear
+	try { console.log('[DenunciasForm] onAgregaDenuncia - payload:', appDenunciaPayload, 'estadoPayload:', estadoPayload, 'state.form:', state.form); } catch (e) { }
 
-				//const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
-				const rawId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
-				const appId = rawId != null ? Number(rawId) : null;
-				if (!appId) {
-					setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: "No se devolvió Id de denuncia" } }));
-					return;
-				}
+	setCreateAppDenunciaQuery((o) => ({
+		...o,
+		query: { ...o.query, config: { ...o.query?.config, body: appDenunciaPayload } },
+		onPreLoad: () => setState((s) => ({ ...s, loading: "Guardando denuncia..." })),
+		onLoad: ({ ok, error }) => {
+			if (error) {
+				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error.toString() } }));
+				return;
+			}
 
-				setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
+			//const appId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+			const rawId = ok?.id ?? ok?.Id ?? (Number.isFinite(ok) ? ok : null);
+			const appId = rawId != null ? Number(rawId) : null;
+			if (!appId) {
+				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: "No se devolvió Id de denuncia" } }));
+				return;
+			}
 
-				// Estado inicial
-				setCreateEstadoQuery((o3) => ({
-					...o3,
-					query: { ...o3.query, config: { ...o3.query?.config, body: estadoPayload(appId) } },
-					onLoad: ({ error: error2 }) => {
-						Promise.resolve()
-							.then(() => persistirDocumentacion(appId))
-							.finally(() => {
-								setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
-								onClose(true);
-							});
-					},
-				}));
-			},
-		}));
-	};
+			setState((s) => ({ ...s, form: { ...s.form, id: appId } }));
+
+			// Estado inicial
+			setCreateEstadoQuery((o3) => ({
+				...o3,
+				query: { ...o3.query, config: { ...o3.query?.config, body: estadoPayload(appId) } },
+				onLoad: ({ error: error2 }) => {
+					Promise.resolve()
+						.then(() => persistirDocumentacion(appId))
+						.finally(() => {
+							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error2?.toString() } }));
+							onClose(true);
+						});
+				},
+			}));
+		},
+	}));
+};
 
 
 
 
 
 const onGuardaCambios = () => {
-  const built = buildPayloads();
-  if (!built) return;
+	const built = buildPayloads();
+	if (!built) return;
 	const { appDenunciaPayload, estadoPayload } = built;
 
 
@@ -2326,125 +2326,127 @@ const onGuardaCambios = () => {
 
 	// Enviar directamente con sendRequest para asegurar la URL con id
 	setState((s) => ({ ...s, loading: "Guardando cambios..." }));
-		sendRequest(
-			{
-				baseURL: "App",
-				endpoint: `/AppDenuncias/${id}`,
-				method: "PUT",
-				body: appDenunciaPayload,
-				errorType: "response",
-			},
-			(ok) => {
-				// Al actualizar la denuncia, crear un nuevo estado asociado (POST /DenunciasEstados)
-				setState((s) => ({ ...s, loading: "Guardando estado...", errors: { ...s.errors, create: null } }));
-				const estadoBody = (typeof estadoPayload === "function") ? estadoPayload(id) : null;
-				if (estadoBody) {
-					sendRequest(
-						{
-							baseURL: "App",
-							endpoint: `/DenunciasEstados`,
-							method: "POST",
-							body: estadoBody,
-							errorType: "response",
-						},
-						() => {
-							// persistir documentación y cerrar
-							Promise.resolve()
-								.then(() => persistirDocumentacion(id))
-								.finally(() => onClose(true));
-						},
-						(errEstado) => {
-							// Si falla crear estado, mostrar error pero seguir con persistir documentación
-							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: errEstado?.toString() } }));
-							Promise.resolve()
-								.then(() => persistirDocumentacion(id))
-								.finally(() => onClose(true));
-						},
-						() => {}
-					);
-				} else {
-					// Si no hay estadoBody, sólo persistir documentación
-					Promise.resolve()
-						.then(() => persistirDocumentacion(id))
-						.finally(() => onClose(true));
-				}
-			},
-			(error) => {
-				setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
-			},
-			() => {}
-		);
+	sendRequest(
+		{
+			baseURL: "App",
+			endpoint: `/AppDenuncias/${id}`,
+			method: "PUT",
+			body: appDenunciaPayload,
+			errorType: "response",
+		},
+		(ok) => {
+			// Al actualizar la denuncia, crear un nuevo estado asociado (POST /DenunciasEstados)
+			setState((s) => ({ ...s, loading: "Guardando estado...", errors: { ...s.errors, create: null } }));
+			const estadoBody = (typeof estadoPayload === "function") ? estadoPayload(id) : null;
+			if (estadoBody) {
+				sendRequest(
+					{
+						baseURL: "App",
+						endpoint: `/DenunciasEstados`,
+						method: "POST",
+						body: estadoBody,
+						errorType: "response",
+					},
+					() => {
+						// persistir documentación y cerrar
+						Promise.resolve()
+							.then(() => persistirDocumentacion(id))
+							.finally(() => onClose(true));
+					},
+					(errEstado) => {
+						// Si falla crear estado, mostrar error pero seguir con persistir documentación
+						setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: errEstado?.toString() } }));
+						Promise.resolve()
+							.then(() => persistirDocumentacion(id))
+							.finally(() => onClose(true));
+					},
+					() => { }
+				);
+			} else {
+				// Si no hay estadoBody, sólo persistir documentación
+				Promise.resolve()
+					.then(() => persistirDocumentacion(id))
+					.finally(() => onClose(true));
+			}
+		},
+		(error) => {
+			setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: error?.toString() } }));
+		},
+		() => { }
+	);
 };
 
-	// Construir título dinámico según el modo (Agregar / Modificar / Consulta)
-	const _numeroDenuncia = state.form?.numero || data?.numero || state.form?.id || data?.id || null;
-	const _fechaDenunciaRaw = state.form?.fecha || data?.fecha || null;
-	const _fechaDenuncia = _fechaDenunciaRaw ? dayjs(_fechaDenunciaRaw).format("DD/MM/YYYY") : null;
+// Construir título dinámico según el modo (Agregar / Modificar / Consulta)
+const _numeroDenuncia = state.form?.numero || data?.numero || state.form?.id || data?.id || null;
+const _fechaDenunciaRaw = state.form?.fecha || data?.fecha || null;
+const _fechaDenuncia = _fechaDenunciaRaw ? dayjs(_fechaDenunciaRaw).format("DD/MM/YYYY") : null;
 
-	let headerTitle = "Agrega Denuncia";
-		if (mode === "M") {
-			if (_numeroDenuncia) {
-				headerTitle = `Edita Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
-			} else if (_fechaDenuncia) {
-				headerTitle = `Edita Denuncia ${_fechaDenuncia}`;
-			} else {
-				headerTitle = `Edita Denuncia`;
-			}
-		} else if (mode === "C" || readOnly) {
-			if (_numeroDenuncia) {
-				headerTitle = `Consulta Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
-			} else if (_fechaDenuncia) {
-				headerTitle = `Consulta Denuncia ${_fechaDenuncia}`;
-			} else {
-				headerTitle = `Consulta Denuncia`;
-			}
-		}
-
-
+let headerTitle = "Agrega Denuncia";
+if (mode === "M") {
+	if (_numeroDenuncia) {
+		headerTitle = `Edita Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+	} else if (_fechaDenuncia) {
+		headerTitle = `Edita Denuncia ${_fechaDenuncia}`;
+	} else {
+		headerTitle = `Edita Denuncia`;
+	}
+} else if (mode === "C" || readOnly) {
+	if (_numeroDenuncia) {
+		headerTitle = `Consulta Denuncia Nro: ${_numeroDenuncia}${_fechaDenuncia ? ` - ${_fechaDenuncia}` : ""}`;
+	} else if (_fechaDenuncia) {
+		headerTitle = `Consulta Denuncia ${_fechaDenuncia}`;
+	} else {
+		headerTitle = `Consulta Denuncia`;
+	}
+}
 
 
 
-	return (
-		<Modal size="xl" centered show>
-			<Modal.Header className={modalCss.modalCabecera}>
-				{headerTitle}
-			</Modal.Header>
-			<Modal.Body>{content}</Modal.Body>
-			<Modal.Footer>
-				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
-					<Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
-					{!readOnly && selectedTab === 0 && (
-						<>
-							{mode === "A" && (
-								<Button
-									className="botonAmarillo"
-									onClick={onAgregaDenuncia}
-									loading={!!state.loading}
-									disabled={!!state.loading}
-								>
-									AGREGA DENUNCIA
-								</Button>
-							)}
-							{mode === "M" && (
-								<Button
-									className="botonAmarillo"
-									onClick={onGuardaCambios}
-									loading={!!state.loading}
-									disabled={!!state.loading}
-								>
-									GUARDAR CAMBIOS
-								</Button>
-							)}
-						</>
-					)}
 
 
-					<Button className="botonAmarillo" onClick={() => onClose(true)}>
-						FINALIZA
-					</Button>
-				</Grid>
-			</Modal.Footer>
-		</Modal>
+return (
+	<Modal size="xl" centered show>
+		<Modal.Header className={modalCss.modalCabecera}>
+			{headerTitle}
+		</Modal.Header>
+		<Modal.Body>{content}</Modal.Body>
+		<Modal.Footer>
+			<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
+<Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
+{
+	!readOnly && selectedTab === 0 && (
+		<>
+			{mode === "A" && (
+				<Button
+					className="botonAmarillo"
+					onClick={onAgregaDenuncia}
+					loading={!!state.loading}
+					disabled={!!state.loading}
+				>
+					AGREGA DENUNCIA
+				</Button>
+			)}
+			{mode === "M" && (
+				<Button
+					className="botonAmarillo"
+					onClick={onGuardaCambios}
+					loading={!!state.loading}
+					disabled={!!state.loading}
+				>
+					GUARDAR CAMBIOS
+				</Button>
+			)}
+		</>
+	)
+}
+
+
+<Button className="botonAmarillo" onClick={() => onClose(true)}>
+	FINALIZA
+</Button>
+				</Grid >
+			</Modal.Footer >
+		</Modal >
 	);
 };
 
