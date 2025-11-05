@@ -1,18 +1,11 @@
 
-import React, { useMemo } from "react";
+import React from "react";
 import AsArray from "components/helpers/AsArray";
 import Table from "components/ui/Table/Table";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 
 const DenunciasTable = ({ columns, ...x } = {}) => {
-  // Memoizar la data para evitar re-renders innecesarios
-  const memoizedData = useMemo(() => x.data || [], [x.data]);
-  
-  console.log("🔍 DenunciasTable props:", { 
-    columns: !!columns, 
-    xKeys: Object.keys(x), 
-    dataLength: memoizedData.length
-  });
+
 
   // Definimos las columnas de la tabla
   const columnsDef = [
