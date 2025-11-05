@@ -1,5 +1,5 @@
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 
@@ -10,13 +10,11 @@ import KeyPress from "components/keyPress/KeyPress";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useDenuncias, { onLoadSelectKeepOrFirst } from "./useDenuncias";
-import AuthContext from "store/authContext";
 import DenunciasForm from "./DenunciasForm";
 import Action from "components/helpers/Action";
 
 const DenunciasHandler = () => {
   const dispatch = useDispatch();
-  const { usuario } = useContext(AuthContext);
 
   const tabs = [];
   const [tab, setTab] = useState(0);
@@ -231,12 +229,12 @@ useEffect(() => {
       tarea: "AdminApp_DenunciaModifica",
       ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
     }),
-    createAction({
-      action: `Baja Denuncia ${desc}`,
-      onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
-      tarea: "AdminApp_DenunciaBaja",
-      ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
-    }),
+    // createAction({
+    //   action: `Baja Denuncia ${desc}`,
+    //   onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
+    //   tarea: "AdminApp_DenunciaBaja",
+    //   ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
+    // }),
   ];
 
   setDenunciasActions(actions);

@@ -291,7 +291,7 @@ const DenunciasForm = ({ title = "Solicitud previa de afiliación", data = {}, r
 	// Catálogo: DenunciaTipo (para "Tipo de Ingreso")
 	const { setState: setDenunciaTipoQuery } = useQueryState(
 		() => ({
-			config: { baseURL: "App", endpoint: `/DenunciaTipo`, method: "GET" },
+			config: { baseURL: "App", endpoint: `/DenunciaTipoIngreso`, method: "GET" },
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
