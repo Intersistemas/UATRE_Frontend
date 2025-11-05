@@ -43,14 +43,7 @@ const useDenuncias = ({
   applyAmbitoFilter = null,
 } = {}) => {
   
-  console.log("🔧 DEBUG useDenuncias - Parámetros recibidos:", {
-    filtroEstado: filtroEstado || "Ninguno",
-    filtroFechaDesde: filtroFechaDesde || "Ninguna",
-    filtroFechaHasta: filtroFechaHasta || "Ninguna",
-    tieneUsuarioAmbito: !!usuarioAmbito,
-    usuarioAmbitoCompleto: usuarioAmbito,
-    tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function"
-  });
+  
 
   const pushQuery = useQueryQueue((action) => {
     if (action === "GetList") {
@@ -79,7 +72,7 @@ const useDenuncias = ({
     remote,
     loadingOverride: loading,
     params: { sortBy: "+fecha" },
-    pagination: { index: 1, size: 3, ...paginationInit },
+    pagination: { index: 1, size: 10, ...paginationInit },
     data: [...AsArray(dataInit, true)],
     error,
     selection: { ...selectionDef },
@@ -122,12 +115,7 @@ const useDenuncias = ({
         action: "GetList",
         params: paramsFiltered,
         onOk: (response) => {
-          console.log("🎯 Respuesta del servidor (paginada):", { 
-            tipo: typeof response, 
-            esArray: Array.isArray(response),
-            tieneData: response?.data ? "Sí" : "No",
-            tieneCount: response?.count ? "Sí" : "No"
-          });
+
           
           let data = [];
           let paginationInfo = {};
@@ -135,16 +123,16 @@ const useDenuncias = ({
           if (response && typeof response === "object") {
             data = response.data || [];
             paginationInfo = {
-              index: response.index || list.pagination.index,
-              size: response.size || list.pagination.size,
+              index: list.pagination.index, // ✅ Mantener nuestro índice
+              size: list.pagination.size,   // ✅ Mantener nuestro tamaño (3)
               count: totalFilteredCount || response.count || 0,
-              pages: response.pages || Math.ceil((totalFilteredCount || response.count || 0) / list.pagination.size)
+              pages: Math.ceil((totalFilteredCount || response.count || 0) / list.pagination.size)
             };
           } else if (Array.isArray(response)) {
             data = response;
             paginationInfo = {
               index: list.pagination.index,
-              size: list.pagination.size,
+              size: list.pagination.size, // ✅ Mantener nuestro tamaño (3)
               count: totalFilteredCount || response.length
             };
           } else {
@@ -169,15 +157,7 @@ const useDenuncias = ({
             return;
           }
 
-          console.log("📊 Registros paginados recibidos:", {
-            totalRecibidos: data.length,
-            paginacion: paginationInfo,
-            primeros3: data.slice(0, 3).map(item => ({
-              id: item.id,
-              fechaCreacion: item.fechaCreacion,
-              estado: item.estado
-            }))
-          });
+
 
           // 🔐 APLICAR FILTRO POR ÁMBITO SOLO SI HAY ÁMBITO ESPECÍFICO
           if (usuarioAmbito && usuarioAmbito.tipo && usuarioAmbito.id && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
@@ -788,8 +768,11 @@ const useDenuncias = ({
           };
           changes.selection.index = data.indexOf(changes.selection.record);
         } else {
-          // ✅ Con paginación del backend, siempre recargar cuando hay cambios
-          changes.loading = "Cargando...";
+          // ✅ Para paginación frontend, solo recargar si no es un cambio de página
+          const isPaginationChange = payload.pagination && !payload.params && !payload.clear;
+          if (!isPaginationChange) {
+            changes.loading = "Cargando...";
+          }
         }
 
         return { ...o, ...changes };
@@ -798,21 +781,18 @@ const useDenuncias = ({
   }, []);
 
   const render = () => {
-    const denunciasData = {
-      data: list.data,
-      totalRegs: list.pagination.count,
-      page: list.pagination.index,
-      sizePerPage: list.pagination.size,
-    };
+
+
+
 
     const pagination = {
-      count: denunciasData.totalRegs,
-      index: denunciasData.page,
-      size: denunciasData.sizePerPage,
+      count: list.data.length,
+      index: list.pagination.index,
+      size: list.pagination.size,
       onChange: ({ index, size }) => {
+
         request("list", {
-          pagination: { index, size },
-          data: list.remote ? [] : list.data,
+          pagination: { index, size }
         });
       },
     };
@@ -820,7 +800,7 @@ const useDenuncias = ({
     return (
       <>
         <DenunciasTable
-          remote={list.remote}
+          remote={false}
           data={list.data}
           loading={!!list.loading}
           noDataIndication={
