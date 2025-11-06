@@ -86,7 +86,36 @@ const DenunciasHandler = () => {
   const [formMode, setFormMode] = useState("A"); // A | M | C | B
   const [formData, setFormData] = useState({});
 
-    const openForm = (mode, record = {}) => {
+
+  // ==============================
+  // QUERIES API
+  // ==============================
+  const pushQuery = useQueryQueue((action) => {
+    if (action === "GetDenuncia") {
+      // Mantengo este recurso porque ya lo tenías (sirve para combos/auxiliares)
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/EncuestaRespuestas",
+        },
+      };
+    }
+
+    if (action === "GetDenunciaDetail") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/AppDenuncias",
+        },
+      };
+    }
+
+    return null;
+  });
+
+  const openForm = useCallback((mode, record = {}) => {
     setFormMode(mode);
 
     // Si es Modificar/Consulta y tenemos id, traemos el detalle con GET ?id=
@@ -137,36 +166,7 @@ const DenunciasHandler = () => {
     // Alta / sin id: abrir directo
     setFormData(record || {});
     setFormOpen(true);
-  };
-
-
-  // ==============================
-  // QUERIES API
-  // ==============================
-  const pushQuery = useQueryQueue((action) => {
-    if (action === "GetDenuncia") {
-      // Mantengo este recurso porque ya lo tenías (sirve para combos/auxiliares)
-      return {
-        config: {
-          baseURL: "App",
-          method: "GET",
-          endpoint: "/EncuestaRespuestas",
-        },
-      };
-    }
-
-    if (action === "GetDenunciaDetail") {
-      return {
-        config: {
-          baseURL: "App",
-          method: "GET",
-          endpoint: "/AppDenuncias",
-        },
-      };
-    }
-
-    return null;
-  });
+  }, [pushQuery]);
 
   // ==============================
   // Estado auxiliar "denuncia" (lista simple nombre/id)
@@ -301,6 +301,7 @@ const DenunciasHandler = () => {
       });
 
     const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
+    const isFinalizada = (denunciasSelected?.estado || "").toLowerCase() === "finalizada";
 
     const actions = [
       // ALT + A
@@ -317,12 +318,17 @@ const DenunciasHandler = () => {
         tarea: "AdminApp_DenunciaConsulta",
         ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
       }),
-      createAction({
-        action: `Modifica Denuncia ${desc}`,
-        onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
-        tarea: "AdminApp_DenunciaModifica",
-        ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
-      }),
+      // Solo mostrar "Modificar" si la denuncia seleccionada NO está Finalizada
+      ...(!denunciasSelected || !isFinalizada
+        ? [
+            createAction({
+              action: `Modifica Denuncia ${desc}`,
+              onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
+              tarea: "AdminApp_DenunciaModifica",
+              ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
+            }),
+          ]
+        : []),
       // createAction({
       //   action: `Baja Denuncia ${desc}`,
       //   onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
