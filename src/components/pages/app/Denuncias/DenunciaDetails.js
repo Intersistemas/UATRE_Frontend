@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useContext } from "react";
 import Formato from "components/helpers/Formato";
 import Grid from "components/ui/Grid/Grid";
 import IM from "components/ui/Input/InputMaterial";
 import styles from "./DenunciaDetails.module.css";
 import useHttp from "components/hooks/useHttp";
+import AuthContext from "store/authContext";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const InputMaterial = (p) => <IM variant="standard" size="small" {...p} />;
 
@@ -16,7 +18,38 @@ const DenunciaDetails = (props) => {
     const [delegacionInfo, setDelegacionInfo] = useState(null);
     const { sendRequest } = useHttp();
 
-    const _ = require('lodash');
+    // Context y hooks para permisos
+    const { usuario } = useContext(AuthContext);
+    const tareasManager = useTareasUsuario();
+
+  // Verificar si el usuario puede ver todos los datos
+  const puedeVerTodosLosDatos = useMemo(() => {
+    if (!usuario) {
+      console.log(" Sin usuario - permisos denegados para detalles");
+      return false;
+    }
+    
+    // Verificar si es Administrador
+    const esAdministrador = usuario.roles?.includes("Administrador");
+    
+    // Verificar si tiene la tarea "Denuncias_Datos"
+    const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
+    
+    const resultado = esAdministrador || tieneTareaDenunciasDatos;
+    
+    console.log(" Verificación de permisos para detalles (ACTUALIZADA):", {
+      timestamp: new Date().toLocaleTimeString(),
+      esAdministrador,
+      tieneTareaDenunciasDatos,
+      puedeVerTodos: resultado,
+      usuarioRoles: usuario.roles,
+      tareasUsuario: usuario.modulosTareas?.map(t => t.nombreTarea),
+      usuarioId: usuario.id || usuario.userId,
+      cambioDetectado: "Recalcular permisos para detalles"
+    });
+    
+    return resultado;
+  }, [usuario, tareasManager]);    const _ = require('lodash');
  
     const validar = useCallback((value) =>{
         if (value === "Empresa no existente") return "EMPRESA NO REGISTRADA";
@@ -156,41 +189,72 @@ const DenunciaDetails = (props) => {
                         <Grid className={`${styles.contenido} ${styles.titulo}`} gap="1rem">
                             <Grid>Información Detallada de la Denuncia:</Grid>
                         </Grid>
-                        <Grid className={styles.grupo} col full>
-                            <Grid className={styles.contenido} col>
-                                <Grid className={styles.titulo}>Datos de la Denuncia:</Grid>
-                                <Grid width>
-                                    <Grid grow><InputMaterial label="Estado" value={validar(data.estado || data.denunciaEstado || data.estadoDenuncia)}/></Grid>
-                                    {/* <Grid grow><InputMaterial label="Fecha" value={validar(data.fecha)}/></Grid> */}
+                        
+                        {puedeVerTodosLosDatos ? (
+                            // USUARIOS CON PERMISOS COMPLETOS (Administrador o Denuncias_Datos)
+                            // Detalles: empresa, cuit, ubicación, detalle de la denuncia, derivación
+                            // (teléfono y provincia ahora están en la tabla principal)
+                            <>
+                                <Grid className={styles.grupo} col full>
+                                    <Grid className={styles.contenido} col>
+                                        <Grid className={styles.titulo}>Información de la Empresa:</Grid>
+                                        <Grid width>
+                                            <Grid grow><InputMaterial label="Empresa" value={validar(data.empleadorNombre)}/></Grid>
+                                            <Grid grow><InputMaterial label="CUIT" value={Formato.Cuit(data.empleadorCUIT) ?? validar(data.empleadorCUIT)} /></Grid>
+                                        </Grid>
+                                        <Grid width>
+                                            <Grid grow><InputMaterial label="Ubicación" value={validar(data.ubicacion)}/></Grid>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
-                                <Grid>
-                                    <Grid grow><InputMaterial label="Texto de la Denuncia" value={validar(data.texto)} multiline /></Grid>
+
+                                <Grid className={styles.grupo} col full>
+                                    <Grid className={styles.contenido} col>
+                                        <Grid className={styles.titulo}>Detalle de la Denuncia:</Grid>
+                                        <Grid>
+                                            <Grid grow><InputMaterial label="Detalle de la Denuncia" value={validar(data.texto)} multiline /></Grid>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
-                                {/* <Grid width>
-                                    <Grid grow><InputMaterial label="Provincia" width="12rem" value={validar(data.provincia)}/></Grid>
-                                    <Grid grow><InputMaterial label="Localidad" width="12rem" value={validar(data.localidad)}/></Grid>
-                                    <Grid grow><InputMaterial label="Ubicación" value={validar(data.ubicacion)}/></Grid>
-                                </Grid> */}
-                            </Grid>
-                        </Grid>
-                        <Grid className={styles.grupo} col full>
-                            <Grid className={styles.contenido} col>
-                                <Grid className={styles.titulo}>Datos del Empleador:</Grid>
-                                <Grid width>
-                                    <Grid grow><InputMaterial label="CUIT Empleador" value={Formato.Cuit(data.empleadorCUIT) ?? validar(data.empleadorCUIT)} /></Grid>
-                                    <Grid grow><InputMaterial label="Nombre del Empleador" value={validar(data.empleadorNombre)}/></Grid>
+
+                                <Grid className={styles.grupo} col full>
+                                    <Grid className={styles.contenido} col>
+                                        <Grid className={styles.titulo}>Derivación:</Grid>
+                                        <Grid width>
+                                            <Grid grow><InputMaterial label="Derivado A Tipo" value={validar(data.derivadoATipo)}/></Grid>
+                                            <Grid grow><InputMaterial label="Derivado A" value={getDerivacionDescripcion()}/></Grid>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
-                        </Grid>
-                        <Grid className={styles.grupo} col full>
-                            <Grid className={styles.contenido} col>
-                                <Grid className={styles.titulo}>Derivación:</Grid>
-                                <Grid width>
-                                    <Grid grow><InputMaterial label="Derivado A Tipo" value={validar(data.derivadoATipo)}/></Grid>
-                                    <Grid grow><InputMaterial label="Derivado A" value={getDerivacionDescripcion()}/></Grid>
+                            </>
+                        ) : (
+                            // USUARIOS CON PERMISOS LIMITADOS (sin rol Administrador ni tarea Denuncias_Datos)
+                            // Detalles: detalle de la denuncia, nombre de la empresa, cuit, ubicación
+                            // (teléfono ahora está en la tabla principal)
+                            <>
+                                <Grid className={styles.grupo} col full>
+                                    <Grid className={styles.contenido} col>
+                                        <Grid className={styles.titulo}>Detalle de la Denuncia:</Grid>
+                                        <Grid>
+                                            <Grid grow><InputMaterial label="Detalle de la Denuncia" value={validar(data.texto)} multiline /></Grid>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
-                        </Grid>
+
+                                <Grid className={styles.grupo} col full>
+                                    <Grid className={styles.contenido} col>
+                                        <Grid className={styles.titulo}>Información de la Empresa:</Grid>
+                                        <Grid width>
+                                            <Grid grow><InputMaterial label="Nombre de la Empresa" value={validar(data.empleadorNombre)}/></Grid>
+                                            <Grid grow><InputMaterial label="CUIT" value={Formato.Cuit(data.empleadorCUIT) ?? validar(data.empleadorCUIT)} /></Grid>
+                                        </Grid>
+                                        <Grid width>
+                                            <Grid grow><InputMaterial label="Ubicación" value={validar(data.ubicacion)}/></Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </>
+                        )}
                     </Grid>
                 );
                 break;
@@ -198,7 +262,7 @@ const DenunciaDetails = (props) => {
                 setHotField();
                 break;
         }
-    }, [config, data, tab, validar, getDerivacionDescripcion]);
+    }, [config, data, tab, validar, getDerivacionDescripcion, puedeVerTodosLosDatos]);
 
     return <>{hotField}</>;
 };

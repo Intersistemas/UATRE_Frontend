@@ -1,3 +1,5 @@
+
+
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
@@ -15,6 +17,9 @@ import { applyAmbitoFilter } from "./filtroAmbitoDenuncias";
 import DenunciasForm from "./DenunciasForm";
 import Action from "components/helpers/Action";
 import dayjs from "dayjs";
+import useGeneracionExcel from "components/hooks/useGeneracionExcel";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
+import ExportModal from "./ExportModal";
 
 const DenunciasHandler = () => {
   const dispatch = useDispatch();
@@ -22,20 +27,12 @@ const DenunciasHandler = () => {
 
   // Configurar ámbito del usuario para filtrado
   const usuarioAmbito = useMemo(() => {
-    console.log("🔧 DETALLE COMPLETO del usuario:", {
-      usuario: usuario,
-      tieneUsuario: !!usuario,
-      usuarioCompleto: JSON.stringify(usuario, null, 2)
-    });
-    
     if (!usuario) {
-      console.log("❌ No hay usuario - retornando null");
       return null;
     }
     
     // Verificar si el usuario tiene ámbito "Todos"
-    if (usuario.ambitoTodos) {
-      console.log("👥 Usuario con ámbito TODOS - sin filtro (retornando null)");
+    if (usuario.ambitoTodos && usuario.ambitoTodos.ids && usuario.ambitoTodos.ids.includes(0)) {
       return null; // Sin filtro, mostrar todas las denuncias
     }
     
@@ -43,36 +40,21 @@ const DenunciasHandler = () => {
     const seccionalesIds = usuario.ambitoSeccionales?.ids || usuario.ambitoSeccionales;
     if (seccionalesIds && Array.isArray(seccionalesIds) && seccionalesIds.length > 0) {
       const seccionalId = seccionalesIds[0]; // Tomar la primera seccional
-      console.log("🏢 Usuario con ámbito SECCIONAL:", seccionalId);
       return { tipo: "seccional", id: seccionalId };
     }
     
     // Si tiene ámbito de delegación específica
     const delegacionesIds = usuario.ambitoDelegaciones?.ids || usuario.ambitoDelegaciones;
-    console.log("🔍 DEBUG ambitoDelegaciones:", {
-      ambitoDelegaciones: usuario.ambitoDelegaciones,
-      delegacionesIds: delegacionesIds,
-      esArray: Array.isArray(delegacionesIds),
-      longitud: delegacionesIds?.length
-    });
-    
     if (delegacionesIds && Array.isArray(delegacionesIds) && delegacionesIds.length > 0) {
       const delegacionId = delegacionesIds[0]; // Tomar la primera delegación
-      console.log("🏛️ Usuario con ámbito DELEGACION:", {
-        delegacionId: delegacionId,
-        tipoDelId: typeof delegacionId,
-        objetoCompleto: { tipo: "delegacion", id: delegacionId }
-      });
       return { tipo: "delegacion", id: delegacionId };
     }
     
     // Si tiene ámbito de provincia específica (futuro)
     if (usuario.ambitoProvincias && usuario.ambitoProvincias.length > 0) {
-      console.log("🗺️ Usuario con ámbito PROVINCIA (sin implementar)");
       return null; // Por ahora sin filtro para provincias
     }
     
-    console.log("❓ Usuario sin ámbito definido - sin filtro");
     return null; // Sin filtro por defecto
   }, [usuario]);
 
@@ -86,6 +68,10 @@ const DenunciasHandler = () => {
   const [formMode, setFormMode] = useState("A"); // A | M | C | B
   const [formData, setFormData] = useState({});
 
+  // ==============================
+  // Modal ExportModal
+  // ==============================
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   // ==============================
   // QUERIES API
@@ -114,59 +100,6 @@ const DenunciasHandler = () => {
 
     return null;
   });
-
-  const openForm = useCallback((mode, record = {}) => {
-    setFormMode(mode);
-
-    // Si es Modificar/Consulta y tenemos id, traemos el detalle con GET ?id=
-    if ((mode === "M" || mode === "C") && record?.id) {
-      const mapApiToForm = (r = {}) => ({
-        id: r.id,
-        provinciaNombre: r.provincia || "",
-        provinciaId: r.provinciaId || 0,
-        refLocalidadIdAfiliado: r.localidadId || 0,
-        nombreLocalidadAfiliado: r.localidad || "",
-        delegacion: r.delegacion || "",
-        seccional: r.seccional || "",
-        nombreDenunciante: r.nombre || "",
-        telefonoContacto: r.telefonoContacto || r.telefono || "",
-        correoElectronico: r.correo || "",
-        denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
-        denunciaSituacionId: r.denunciaSituacionId || 0,
-        cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
-        razonSocial: r.empleadorNombre || "",
-        detalleDenuncia: r.texto || "",
-        ubicacion: r.ubicacion || "",
-        derivadaA: r.derivadoATipo || "Sin derivacion",
-        derivadaADescripcion: r.derivadoATipo || "Sin derivacion",
-        // Exponer el id destino (si viene) para que el formulario pueda usarlo
-        derivadoAId: r.derivadoAId ?? r.derivadoAId ?? 0,
-        estado: r.estado || "Registrada",
-        observacionesRegistro: r.observaciones || "",
-      });
-
-      pushQuery({
-        action: "GetDenunciaDetail",
-        params: { id: record.id }, // GET ?id=
-        onOk: (resp) => {
-          const payload = resp && resp.data ? resp.data : resp;
-          const full = Array.isArray(payload) ? payload[0] || {} : payload || {};
-          setFormData(mapApiToForm(full));
-          setFormOpen(true);
-        },
-        onError: () => {
-          // fallback con lo que tengamos
-          setFormData(record || {});
-          setFormOpen(true);
-        },
-      });
-      return;
-    }
-
-    // Alta / sin id: abrir directo
-    setFormData(record || {});
-    setFormOpen(true);
-  }, [pushQuery]);
 
   // ==============================
   // Estado auxiliar "denuncia" (lista simple nombre/id)
@@ -228,6 +161,61 @@ const DenunciasHandler = () => {
   }, [denuncia]);
 
 
+
+  // ==============================
+  // Modal DenunciasForm
+  // ==============================
+  const openForm = useCallback((mode, record = {}) => {
+    setFormMode(mode);
+
+    // Si es Modificar/Consulta y tenemos id, traemos el detalle con GET ?id=
+    if ((mode === "M" || mode === "C") && record?.id) {
+      const mapApiToForm = (r = {}) => ({
+        id: r.id,
+        provinciaNombre: r.provincia || "",
+        provinciaId: r.provinciaId || 0,
+        refLocalidadIdAfiliado: r.localidadId || 0,
+        nombreLocalidadAfiliado: r.localidad || "",
+        delegacion: r.delegacion || "",
+        seccional: r.seccional || "",
+        nombreDenunciante: r.nombre || "",
+        telefonoContacto: r.telefonoContacto || r.telefono || "",
+        correoElectronico: r.correo || "",
+        denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
+        denunciaSituacionId: r.denunciaSituacionId || 0,
+        cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
+        razonSocial: r.empleadorNombre || "",
+        detalleDenuncia: r.texto || "",
+        ubicacion: r.ubicacion || "",
+        derivadaA: r.derivadoATipo || "Sin derivacion",
+        derivadaADescripcion: r.derivadoATipo || "Sin derivacion",
+        derivadoAId: r.derivadoAId ?? r.derivadoAId ?? 0,
+        estado: r.estado || "Registrada",
+        observacionesRegistro: r.observaciones || "",
+      });
+
+      pushQuery({
+        action: "GetDenunciaDetail",
+        params: { id: record.id },
+        onOk: (resp) => {
+          const payload = resp && resp.data ? resp.data : resp;
+          const full = Array.isArray(payload) ? payload[0] || {} : payload || {};
+          setFormData(mapApiToForm(full));
+          setFormOpen(true);
+        },
+        onError: () => {
+          setFormData(record || {});
+          setFormOpen(true);
+        },
+      });
+      return;
+    }
+
+    // Alta / sin id: abrir directo
+    setFormData(record || {});
+    setFormOpen(true);
+  }, [pushQuery, setFormMode, setFormData, setFormOpen]);
+
   // ==============================
   // FILTRO: Estado + Rango de fechas -> IDs
   // ==============================
@@ -266,9 +254,109 @@ const DenunciasHandler = () => {
     }
   }, [estadoSelect.buscar, estadoSelect.data, estadoTodos]);
 
-  // ✅ Estados de filtros locales (se aplican automáticamente en useDenuncias)
+  //  Estados de filtros locales (se aplican automáticamente en useDenuncias)
   const [fechaDesde, setFechaDesde] = useState(null);
   const [fechaHasta, setFechaHasta] = useState(null);
+
+  // ==============================
+  // Exportar a Excel
+  // ==============================
+  const { exportToExcel } = useGeneracionExcel();
+  const tareasManager = useTareasUsuario();
+  const [exportLoading, setExportLoading] = useState(false);
+
+  // Verificar permisos del usuario para determinar qué columnas exportar
+  const puedeVerTodosLosDatos = useMemo(() => {
+    if (!usuario) return false;
+    
+    const esAdministrador = usuario.roles?.includes("Administrador");
+    const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
+    
+    return esAdministrador || tieneTareaDenunciasDatos;
+  }, [usuario, tareasManager]);
+
+  // Verificar permisos para exportar
+  const puedeExportar = useMemo(() => {
+    const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+    const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
+    return esAdministrador || tieneTareaExcel;
+  }, [usuario, tareasManager]);
+
+  const exportarAExcel = useCallback(() => {
+    if (exportLoading || !puedeExportar) return;
+    
+    setExportModalOpen(true);
+  }, [exportLoading, puedeExportar]);
+
+  // Función para manejar la exportación desde el modal
+  const handleExportFromModal = useCallback(async (selectedData, estadoSeleccionado) => {
+    if (!selectedData || selectedData.length === 0) {
+      alert("No hay datos seleccionados para exportar.");
+      return;
+    }
+
+    setExportLoading(true);
+    
+    try {
+      // Los datos ya vienen formateados desde el modal con la "Ultima Novedad"
+      // Solo necesitamos procesarlos según los permisos del usuario
+      const datosExcel = selectedData.map((row) => {
+        if (puedeVerTodosLosDatos) {
+          // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
+          return {
+            "Fecha": row["Fecha"] || "",
+            "Nombre": row["Nombre"] || "",
+            "Correo": row["Correo"] || "",
+            "Teléfono": row["Teléfono"] || "",
+            "Provincia": row["Provincia"] || "",
+            "Localidad": row["Localidad"] || "",
+            "Estado": row["Estado"] || "",
+            "Empresa": row["Empresa"] || "",
+            "CUIT": row["CUIT"] || "",
+            "Ubicación": row["Ubicación"] || "",
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
+            "Derivado A Tipo": row["Derivado A Tipo"] || "",
+            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+          };
+        } else {
+          //  USUARIOS CON PERMISOS LIMITADOS - Solo columnas básicas + Ultima Novedad
+          return {
+            "Fecha": row["Fecha"] || "",
+            "Teléfono": row["Teléfono"] || "",
+            "Localidad": row["Localidad"] || "",
+            "Estado": row["Estado"] || "",
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
+            "Empresa": row["Empresa"] || "",
+            "CUIT": row["CUIT"] || "",
+            "Ubicación": row["Ubicación"] || "",
+            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+          };
+        }
+      });
+
+      //  Generar el archivo Excel
+      const estadoFiltro = estadoSeleccionado?.value ? `_${estadoSeleccionado.value}` : "";
+      const nombreArchivo = `Denuncias_${puedeVerTodosLosDatos ? 'Completo' : 'Limitado'}${estadoFiltro}_con_Novedades`;
+      await exportToExcel([
+        { 
+          sheetName: "Denuncias", 
+          data: datosExcel 
+        }
+      ], nombreArchivo);
+
+      setExportModalOpen(false); // Cerrar el modal
+    } catch (error) {
+      console.error("Error en exportación a Excel:", error);
+      alert(`Error al generar Excel: ${error?.message || error}`);
+    } finally {
+      setExportLoading(false);
+    }
+  }, [
+    puedeVerTodosLosDatos, 
+    exportToExcel,
+    setExportModalOpen,
+    setExportLoading
+  ]);
 
   // ==============================
   // TABLA: DENUNCIAS
@@ -279,13 +367,13 @@ const DenunciasHandler = () => {
     request: denunciaRequest,
     selected: denunciasSelected,
   } = useDenuncias({
-    filtroEstado: estadoSelect.selected?.value || null, // 🎯 filtro por estado específico
-    filtroFechaDesde: fechaDesde ? dayjs(fechaDesde).format("YYYY-MM-DD") : null, // 🎯 filtro fecha desde
-    filtroFechaHasta: fechaHasta ? dayjs(fechaHasta).format("YYYY-MM-DD") : null, // 🎯 filtro fecha hasta
-    usuarioAmbito: usuarioAmbito, // 🔐 filtrado por ámbito del usuario
-    applyAmbitoFilter: applyAmbitoFilter, // 🔧 función de filtrado por ámbito
-    // ✅ Filtros aplicados automáticamente al cambiar los valores
-    // ✅ La columna "Estado" ya está definida en DenunciasTable.js
+    filtroEstado: estadoSelect.selected?.value || null, // filtro por estado específico
+    filtroFechaDesde: fechaDesde ? dayjs(fechaDesde).format("YYYY-MM-DD") : null, // filtro fecha desde
+    filtroFechaHasta: fechaHasta ? dayjs(fechaHasta).format("YYYY-MM-DD") : null, // filtro fecha hasta
+    usuarioAmbito: usuarioAmbito, //  filtrado por ámbito del usuario
+    applyAmbitoFilter: applyAmbitoFilter, //  función de filtrado por ámbito
+    //  Filtros aplicados automáticamente al cambiar los valores
+    //  La columna "Estado" ya está definida en DenunciasTable.js
   });
 
   // Acciones con atajos de teclado
@@ -301,7 +389,6 @@ const DenunciasHandler = () => {
       });
 
     const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
-    const isFinalizada = (denunciasSelected?.estado || "").toLowerCase() === "finalizada";
 
     const actions = [
       // ALT + A
@@ -318,27 +405,30 @@ const DenunciasHandler = () => {
         tarea: "AdminApp_DenunciaConsulta",
         ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
       }),
-      // Solo mostrar "Modificar" si la denuncia seleccionada NO está Finalizada
-      ...(!denunciasSelected || !isFinalizada
-        ? [
-            createAction({
-              action: `Modifica Denuncia ${desc}`,
-              onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
-              tarea: "AdminApp_DenunciaModifica",
-              ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
-            }),
-          ]
-        : []),
-      // createAction({
-      //   action: `Baja Denuncia ${desc}`,
-      //   onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
-      //   tarea: "AdminApp_DenunciaBaja",
-      //   ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
-      // }),
+      createAction({
+        action: `Modifica Denuncia ${desc}`,
+        onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
+        tarea: "AdminApp_DenunciaModifica",
+        ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
+      }),
+      createAction({
+        action: `Baja Denuncia ${desc}`,
+        onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
+        tarea: "AdminApp_DenunciaBaja",
+        ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
+      }),
+      //  Exportar a Excel - Solo para administradores o usuarios con tarea Excel_Denuncias
+      createAction({
+        action: "Exportar a Excel",
+        onExecute: () => exportarAExcel(),
+        keys: "e",
+        underlineindex: 0,
+        disabled: !puedeExportar, // Usar verificación personalizada de permisos
+      }),
     ];
 
     setDenunciasActions(actions);
-  }, [denunciasSelected, openForm]);
+  }, [denunciasSelected, openForm, exportarAExcel, puedeExportar]);
 
   // ==============================
   // Búsqueda y listado
@@ -361,6 +451,8 @@ const DenunciasHandler = () => {
     header: () => <Tab label="Denuncias" />,
     body: () => (
       <Grid width col gap="10px">
+
+
         {/* Fila de filtros por estado/fechas - Los filtros se aplican automáticamente */}
         <Grid grid="auto / 1fr 180px 180px 150px" gap="inherit">
           <SearchSelectMaterial
@@ -417,8 +509,6 @@ const DenunciasHandler = () => {
             Limpia filtros
           </Button>
         </Grid>
-
-
 
         {denunciaRender()}
       </Grid>
@@ -490,6 +580,28 @@ const DenunciasHandler = () => {
               });
             }
           }}
+        />
+      )}
+
+      {/* Modal de exportación */}
+      {exportModalOpen && (
+        <ExportModal
+          onClose={(exportData, estadoSeleccionado) => {
+            setExportModalOpen(false);
+            if (exportData && exportData.length > 0) {
+              handleExportFromModal(exportData, estadoSeleccionado);
+            }
+          }}
+          currentFilters={{
+            ...(estadoSelect.selected?.value && { estado: estadoSelect.selected.value }),
+            ...(fechaDesde && { fechaDesde: dayjs(fechaDesde).format("YYYY-MM-DD") }),
+            ...(fechaHasta && { fechaHasta: dayjs(fechaHasta).format("YYYY-MM-DD") }),
+            sortBy: "+fecha",
+            pageSize: 10000,
+            pageIndex: 1
+          }}
+          usuarioAmbito={usuarioAmbito}
+          applyAmbitoFilter={applyAmbitoFilter}
         />
       )}
     </Grid>
