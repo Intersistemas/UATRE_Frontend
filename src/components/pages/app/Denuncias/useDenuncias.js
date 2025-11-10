@@ -64,6 +64,15 @@ const useDenuncias = ({
         },
       };
     }
+    if (action === "GetTipoDenuncia") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/DenunciaTipo",
+        },
+      };
+    }
     return null;
   });
 
@@ -99,40 +108,67 @@ const useDenuncias = ({
 
     changes.data = [];
 
-    console.log("🔍 Iniciando carga de TODAS las denuncias (sin paginación)...", {
-      filtroEstado: filtroEstado || "Sin filtro",
-      note: "Cargando todas las denuncias para paginación client-side"
-    });
+    // Cargar todas las denuncias sin paginación para procesamiento client-side
 
     // � FUNCIÓN AUXILIAR PARA CARGAR DENUNCIAS (FLUJO NORMAL - TODAS SIN PAGINACIÓN)
     function cargarDenunciasConParametros(queryParams, totalFilteredCount) {
-      // ✅ Cargar todas las denuncias sin paginación del servidor
+      //  Cargar todas las denuncias sin paginación del servidor
       const paramsFiltered = { ...queryParams };
       
-      console.log("📡 Parámetros enviados al servidor:", paramsFiltered);
+
       
       pushQuery({
         action: "GetList",
         params: paramsFiltered,
         onOk: (response) => {
-
+          console.log(" Respuesta recibida de /AppDenuncias:", response);
           
           let data = [];
           let paginationInfo = {};
 
           if (response && typeof response === "object") {
             data = response.data || [];
+            
+            //  Log para ver la estructura de los primeros registros
+            if (Array.isArray(data) && data.length > 0) {
+              console.log(" Estructura de datos de denuncia (primeros 2 registros):", {
+                primerRegistro: data[0],
+                segundoRegistro: data[1] || "No hay segundo registro",
+                camposTelefono: {
+                  telefono: data[0]?.telefono,
+                  telefonoContacto: data[0]?.telefonoContacto,
+                  telContacto: data[0]?.telContacto,
+                  tel: data[0]?.tel
+                }
+              });
+            }
+            
             paginationInfo = {
-              index: list.pagination.index, // ✅ Mantener nuestro índice
-              size: list.pagination.size,   // ✅ Mantener nuestro tamaño (3)
+              index: list.pagination.index, //  Mantener nuestro índice
+              size: list.pagination.size,   //  Mantener nuestro tamaño (3)
               count: totalFilteredCount || response.count || 0,
               pages: Math.ceil((totalFilteredCount || response.count || 0) / list.pagination.size)
             };
           } else if (Array.isArray(response)) {
             data = response;
+            
+            //  Log para ver la estructura cuando es array directo
+            if (data.length > 0) {
+              console.log(" Estructura de datos de denuncia (array directo - primeros 2 registros):", {
+                primerRegistro: data[0],
+                segundoRegistro: data[1] || "No hay segundo registro",
+                camposTelefono: {
+                  telefono: data[0]?.telefono,
+                  telefonoContacto: data[0]?.telefonoContacto,
+                  telContacto: data[0]?.telContacto,
+                  tel: data[0]?.tel
+                }
+              });
+            }
+            
             paginationInfo = {
               index: list.pagination.index,
-              size: list.pagination.size, // ✅ Mantener nuestro tamaño (3)
+              size: list.pagination.size, //  Mantener nuestro tamaño (3)
               count: totalFilteredCount || response.length
             };
           } else {
@@ -159,50 +195,61 @@ const useDenuncias = ({
 
 
 
-          // 🔐 APLICAR FILTRO POR ÁMBITO SOLO SI HAY ÁMBITO ESPECÍFICO
+          //  APLICAR FILTRO POR ÁMBITO SOLO SI HAY ÁMBITO ESPECÍFICO
+          console.log(" VERIFICANDO FILTRO DE ÁMBITO:", {
+            usuarioAmbito,
+            tieneUsuarioAmbito: !!usuarioAmbito,
+            tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function",
+            totalDenunciasOriginales: data.length
+          });
+          
           if (usuarioAmbito && usuarioAmbito.tipo && usuarioAmbito.id && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
-            console.log("🔐 Aplicando filtro por ámbito específico (flujo normal)...", {
+            console.log(" Aplicando filtro por ámbito específico (flujo normal)...", {
               usuarioAmbito,
               totalDenunciasOriginales: data.length
             });
             try {
               applyAmbitoFilter(data, usuarioAmbito).then(filteredData => {
-                console.log("✅ Filtro por ámbito aplicado (flujo normal) - RESULTADO:", {
+                console.log(" Filtro por ámbito aplicado (flujo normal) - RESULTADO:", {
                   totalOriginal: data.length,
                   totalFiltrado: filteredData.length,
                   ambitoTipo: usuarioAmbito.tipo,
                   ambitoId: usuarioAmbito.id
                 });
                 
-                // 🔄 Cargar estados después del filtro por ámbito
+                // Cargar estados después del filtro por ámbito
                 cargarEstadosParaDenuncias(filteredData, {
                   ...paginationInfo,
                   count: filteredData.length // Actualizar count con datos filtrados
                 });
               }).catch(error => {
-                console.error("❌ Error aplicando filtro de ámbito:", error);
-                // 🔄 Cargar estados sin filtro por ámbito
+                console.error(" Error aplicando filtro de ámbito:", error);
+                // Cargar estados sin filtro por ámbito
                 cargarEstadosParaDenuncias(data, paginationInfo);
               });
             } catch (error) {
-              console.error("❌ Error aplicando filtro de ámbito:", error);
-              // 🔄 Cargar estados sin filtro por ámbito
+              console.error(" Error aplicando filtro de ámbito:", error);
+              // Cargar estados sin filtro por ámbito
               cargarEstadosParaDenuncias(data, paginationInfo);
             }
           } else {
-            console.log("🚫 Sin filtro por ámbito - mostrando todas las denuncias (flujo normal):", {
+            console.log(" Sin filtro por ámbito - mostrando todas las denuncias (flujo normal):", {
               tieneUsuarioAmbito: !!usuarioAmbito,
               usuarioAmbitoTipo: usuarioAmbito?.tipo,
               usuarioAmbitoId: usuarioAmbito?.id,
-              tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function"
+              tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function",
+              razonNoFiltrar: !usuarioAmbito ? "Sin usuarioAmbito" : 
+                             !usuarioAmbito.tipo ? "Sin tipo" :
+                             !usuarioAmbito.id ? "Sin id" :
+                             typeof applyAmbitoFilter !== "function" ? "Sin función de filtro" : "Desconocida"
             });
-            // 🔄 Cargar estados para todas las denuncias
+            // Cargar estados para todas las denuncias
             cargarEstadosParaDenuncias(data, paginationInfo);
           }
 
           // 🔧 FUNCIÓN PARA CARGAR ESTADOS DE LAS DENUNCIAS
           function cargarEstadosParaDenuncias(denunciasData, paginationInfo) {
-            console.log("🔄 Cargando estados para el flujo normal...");
+            console.log("Cargando estados para el flujo normal...");
             
             pushQuery({
               action: "GetEstados",
@@ -222,7 +269,7 @@ const useDenuncias = ({
                 }
 
                 if (!Array.isArray(estados)) {
-                  console.warn("⚠️ No se pudieron obtener los estados correctamente");
+                  console.warn(" No se pudieron obtener los estados correctamente");
                   estados = [];
                 }
 
@@ -243,13 +290,13 @@ const useDenuncias = ({
                   }
                 });
 
-                console.log("📊 Estados procesados para flujo normal:", {
+                console.log("Estados procesados para flujo normal:", {
                   totalEstados: estados.length,
                   denunciasConEstado: Object.keys(estadosMap).length,
                   primerEstado: Object.values(estadosMap)[0]
                 });
 
-                // 🔗 COMBINAR ESTADOS CON DENUNCIAS
+                //  COMBINAR ESTADOS CON DENUNCIAS
                 const dataConEstados = denunciasData.map(denuncia => {
                   const denunciaId = denuncia.id || denuncia.Id;
                   const estadoInfo = estadosMap[denunciaId];
@@ -262,7 +309,7 @@ const useDenuncias = ({
                   };
                 });
 
-                console.log("✅ Datos combinados con estados (flujo normal):", {
+                console.log(" Datos combinados con estados (flujo normal):", {
                   totalDenuncias: dataConEstados.length,
                   muestraEstados: dataConEstados.slice(0, 3).map(d => ({
                     id: d.id,
@@ -270,7 +317,7 @@ const useDenuncias = ({
                   }))
                 });
 
-                // ✅ ACTUALIZAR ESTADO FINAL
+                //  ACTUALIZAR ESTADO FINAL
                 setList((o) => ({ 
                   ...o, 
                   loading: null,
@@ -283,7 +330,7 @@ const useDenuncias = ({
                 }));
               },
               onError: (error) => {
-                console.error("❌ Error al cargar estados:", error);
+                console.error(" Error al cargar estados:", error);
                 
                 // Si falla la carga de estados, mostrar denuncias sin estados
                 setList((o) => ({ 
@@ -301,7 +348,7 @@ const useDenuncias = ({
           }
         },
         onError: (error) => {
-          console.error("❌ Error cargando denuncias:", error);
+          console.error(" Error cargando denuncias:", error);
           setList((o) => ({ 
             ...o, 
             loading: null,
@@ -315,7 +362,7 @@ const useDenuncias = ({
     //  FLUJO DE FILTRADO POR ESTADO (NUEVA ESTRATEGIA)
     // Cuando hay filtro por estado, necesitamos encontrar denuncias cuyo estado MÁS RECIENTE coincida
     if (filtroEstado) {
-      console.log("🔍 NUEVO ENFOQUE: Buscando denuncias con estado más reciente =", filtroEstado);
+      console.log(" NUEVO ENFOQUE: Buscando denuncias con estado más reciente =", filtroEstado);
       
       // Paso 1: Obtener TODOS los estados para determinar el más reciente de cada denuncia
       pushQuery({
@@ -331,12 +378,12 @@ const useDenuncias = ({
             estadosData = responseEstados.data;
           }
           
-          console.log("📊 Analizando todos los estados para encontrar más recientes:", {
+          console.log("Analizando todos los estados para encontrar más recientes:", {
             totalEstados: estadosData.length,
             filtrandoPor: filtroEstado
           });
           
-          // 🎯 NUEVA ESTRATEGIA: Encontrar el estado MÁS RECIENTE de cada denuncia
+          //  NUEVA ESTRATEGIA: Encontrar el estado MÁS RECIENTE de cada denuncia
           const estadoMasRecientePorDenuncia = {};
           
           estadosData.forEach(estado => {
@@ -352,13 +399,13 @@ const useDenuncias = ({
             }
           });
           
-          // 🔍 FILTRAR: Solo denuncias cuyo estado MÁS RECIENTE coincide con el filtro
+          //  FILTRAR: Solo denuncias cuyo estado MÁS RECIENTE coincide con el filtro
           const denunciasConEstadoFiltrado = Object.values(estadoMasRecientePorDenuncia)
             .filter(estado => estado.estado === filtroEstado);
           
           const denunciaIds = denunciasConEstadoFiltrado.map(estado => estado.appDenunciasId);
           
-          console.log("🎯 Filtrado por estado MÁS RECIENTE:", {
+          console.log(" Filtrado por estado MÁS RECIENTE:", {
             estadoBuscado: filtroEstado,
             totalDenunciasAnalizadas: Object.keys(estadoMasRecientePorDenuncia).length,
             denunciasConEstadoActual: denunciasConEstadoFiltrado.length,
@@ -370,7 +417,7 @@ const useDenuncias = ({
           });
           
           if (denunciaIds.length === 0) {
-            console.log("⚠️ No se encontraron denuncias para el estado:", filtroEstado);
+            console.log(" No se encontraron denuncias para el estado:", filtroEstado);
             setList((o) => ({ 
               ...o, 
               loading: null,
@@ -384,14 +431,14 @@ const useDenuncias = ({
           // 🔧 NUEVA ESTRATEGIA: CONSULTAS INDIVIDUALES 
           // El backend solo acepta UN ID por consulta, así que haremos múltiples llamadas
           
-          console.log(`🎯 Paso 2: Ejecutando consultas individuales para ${denunciaIds.length} IDs`);
+          console.log(` Paso 2: Ejecutando consultas individuales para ${denunciaIds.length} IDs`);
           
           // Calcular qué IDs necesitamos para la página actual
           const startIndex = (list.pagination.index - 1) * list.pagination.size;
           const endIndex = startIndex + list.pagination.size;
           const idsForCurrentPage = denunciaIds.slice(startIndex, endIndex);
           
-          console.log(`📄 IDs para página ${list.pagination.index}:`, {
+          console.log(`IDs para página ${list.pagination.index}:`, {
             totalIds: denunciaIds.length,
             startIndex,
             endIndex,
@@ -400,7 +447,7 @@ const useDenuncias = ({
           });
           
           if (idsForCurrentPage.length === 0) {
-            console.log("⚠️ No hay IDs para la página actual");
+            console.log(" No hay IDs para la página actual");
             setList((o) => ({ 
               ...o, 
               loading: null,
@@ -411,11 +458,11 @@ const useDenuncias = ({
             return;
           }
           
-          // 🔄 EJECUTAR MÚLTIPLES CONSULTAS EN PARALELO - UNA POR ID
+          // EJECUTAR MÚLTIPLES CONSULTAS EN PARALELO - UNA POR ID
           ejecutarConsultasIndividuales(idsForCurrentPage, denunciaIds.length);
         },
         onError: (error) => {
-          console.error("❌ Error al obtener IDs por estado:", error);
+          console.error(" Error al obtener IDs por estado:", error);
           setList((o) => ({ 
             ...o, 
             loading: null,
@@ -426,8 +473,8 @@ const useDenuncias = ({
       });
       return;
     } else {
-      // 🔄 FLUJO NORMAL - "TODOS LOS ESTADOS" O SIN FILTRO DE ESTADO
-      console.log("📋 Flujo normal activado:", {
+      // FLUJO NORMAL - "TODOS LOS ESTADOS" O SIN FILTRO DE ESTADO
+      console.log(" Flujo normal activado:", {
         razon: filtroEstado ? `Estado seleccionado: "${filtroEstado}"` : "Sin filtro de estado",
         filtroEstado: filtroEstado,
         esNulo: filtroEstado === null,
@@ -435,7 +482,7 @@ const useDenuncias = ({
         esTodos: filtroEstado === "Todos los estados"
       });
 
-      // 🔄 FLUJO NORMAL - CARGAR TODAS LAS DENUNCIAS
+      // FLUJO NORMAL - CARGAR TODAS LAS DENUNCIAS
       const queryParams = {};
       
       if (filtroFechaDesde) {
@@ -453,11 +500,11 @@ const useDenuncias = ({
     
     // 🔧 FUNCIÓN PARA EJECUTAR MÚLTIPLES CONSULTAS INDIVIDUALES
     function ejecutarConsultasIndividuales(idsArray, totalCount) {
-      console.log(`🚀 Iniciando ${idsArray.length} consultas individuales...`);
+      console.log(` Iniciando ${idsArray.length} consultas individuales...`);
       
       const promises = idsArray.map((id, index) => {
         return new Promise((resolve, reject) => {
-          console.log(`📞 Consulta ${index + 1}/${idsArray.length}: ID=${id}`);
+          console.log(` Consulta ${index + 1}/${idsArray.length}: ID=${id}`);
           
           const queryParams = { id: id };
           
@@ -473,7 +520,7 @@ const useDenuncias = ({
             action: "GetList",
             params: queryParams,
             onOk: (response) => {
-              console.log(`✅ Consulta ${index + 1} exitosa para ID=${id}:`, {
+              console.log(` Consulta ${index + 1} exitosa para ID=${id}:`, {
                 tipo: typeof response,
                 esArray: Array.isArray(response),
                 tieneData: response?.data ? "Sí" : "No"
@@ -490,11 +537,11 @@ const useDenuncias = ({
               }
               
               data = data.filter(item => item && item.id); // Filtrar respuestas válidas
-              console.log(`📄 Datos procesados para ID=${id}:`, data.length, "registros");
+              console.log(`Datos procesados para ID=${id}:`, data.length, "registros");
               resolve(data);
             },
             onError: (error) => {
-              console.error(`❌ Error en consulta ${index + 1} (ID=${id}):`, error);
+              console.error(` Error en consulta ${index + 1} (ID=${id}):`, error);
               resolve([]); // Resolver con array vacío en lugar de rechazar
             }
           });
@@ -503,7 +550,7 @@ const useDenuncias = ({
       
       // Esperar todas las consultas y combinar resultados
       Promise.all(promises).then(resultArrays => {
-        console.log(`📊 Todas las consultas completadas:`, {
+        console.log(`Todas las consultas completadas:`, {
           consultasEjecutadas: idsArray.length,
           resultadosRecibidos: resultArrays.length
         });
@@ -511,7 +558,7 @@ const useDenuncias = ({
         // Combinar todos los resultados en un solo array
         const denunciasEncontradas = resultArrays.flat().filter(item => item && item.id);
         
-        console.log(`🔗 Denuncias combinadas:`, {
+        console.log(` Denuncias combinadas:`, {
           totalDenuncias: denunciasEncontradas.length,
           primerasIds: denunciasEncontradas.slice(0, 3).map(d => d.id)
         });
@@ -519,7 +566,7 @@ const useDenuncias = ({
         // Continuar con el procesamiento de estados
         procesarDenunciasConEstados(denunciasEncontradas, totalCount);
       }).catch(error => {
-        console.error("❌ Error al ejecutar consultas múltiples:", error);
+        console.error(" Error al ejecutar consultas múltiples:", error);
         setList((o) => ({ 
           ...o, 
           loading: null,
@@ -531,21 +578,21 @@ const useDenuncias = ({
     
     // 🔧 FUNCIÓN PARA PROCESAR DENUNCIAS CON SUS ESTADOS
     function procesarDenunciasConEstados(denunciasData, totalCount) {
-      console.log("🔄 Iniciando procesamiento de estados para denuncias individuales...");
+      console.log("Iniciando procesamiento de estados para denuncias individuales...");
       
-      // 🔐 APLICAR FILTRO POR ÁMBITO EN EL CLIENTE (RESTAURADO)
+      //  APLICAR FILTRO POR ÁMBITO EN EL CLIENTE (RESTAURADO)
       let dataFiltradaPorAmbito = denunciasData;
       
       if (usuarioAmbito && usuarioAmbito.tipo && usuarioAmbito.id && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
         try {
-          console.log("🚀 Aplicando filtro por ámbito específico (consultas individuales)...", {
+          console.log(" Aplicando filtro por ámbito específico (consultas individuales)...", {
             usuarioAmbito,
             totalDenunciasOriginales: denunciasData.length
           });
           
           applyAmbitoFilter(denunciasData, usuarioAmbito).then(filteredData => {
             dataFiltradaPorAmbito = filteredData;
-            console.log("🔐 Filtro por ámbito aplicado (consultas individuales) - RESULTADO:", {
+            console.log(" Filtro por ámbito aplicado (consultas individuales) - RESULTADO:", {
               totalOriginal: denunciasData.length,
               totalFiltrado: dataFiltradaPorAmbito.length,
               ambitoTipo: usuarioAmbito.tipo,
@@ -553,15 +600,15 @@ const useDenuncias = ({
             });
             continuarConEstados(dataFiltradaPorAmbito, dataFiltradaPorAmbito.length);
           }).catch(error => {
-            console.error("❌ Error aplicando filtro de ámbito:", error);
+            console.error(" Error aplicando filtro de ámbito:", error);
             continuarConEstados(denunciasData, totalCount);
           });
         } catch (error) {
-          console.error("❌ Error aplicando filtro de ámbito:", error);
+          console.error(" Error aplicando filtro de ámbito:", error);
           continuarConEstados(denunciasData, totalCount);
         }
       } else {
-        console.log("🚫 Sin filtro por ámbito - mostrando todas las denuncias (consultas individuales):", {
+        console.log(" Sin filtro por ámbito - mostrando todas las denuncias (consultas individuales):", {
           tieneUsuarioAmbito: !!usuarioAmbito,
           usuarioAmbitoTipo: usuarioAmbito?.tipo,
           usuarioAmbitoId: usuarioAmbito?.id,
@@ -571,9 +618,9 @@ const useDenuncias = ({
       }
       
       function continuarConEstados(dataToProcess, totalCount) {
-        // 🔄 CARGAR ESTADOS DE LAS DENUNCIAS
+        // CARGAR ESTADOS DE LAS DENUNCIAS
         // Si estamos filtrando por estado específico, mantener ese filtro
-        console.log("🔄 Cargando estados de las denuncias...", {
+        console.log("Cargando estados de las denuncias...", {
           tieneFiltroPorEstado: !!filtroEstado,
           estadoFiltrado: filtroEstado
         });
@@ -598,7 +645,7 @@ const useDenuncias = ({
             }
 
             if (!Array.isArray(estados)) {
-              console.warn("⚠️ No se pudieron obtener los estados correctamente");
+              console.warn(" No se pudieron obtener los estados correctamente");
               estados = [];
             }
 
@@ -606,8 +653,8 @@ const useDenuncias = ({
             const estadosMap = {};
             
             if (filtroEstado) {
-              // 🎯 FILTRO ESPECÍFICO: Usar el estado filtrado más reciente
-              console.log("🔍 Aplicando filtro específico de estado:", filtroEstado);
+              //  FILTRO ESPECÍFICO: Usar el estado filtrado más reciente
+              console.log(" Aplicando filtro específico de estado:", filtroEstado);
               
               estados.forEach(item => {
                 const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId;
@@ -625,8 +672,8 @@ const useDenuncias = ({
                 }
               });
             } else {
-              // 📋 SIN FILTRO: Usar el estado más reciente de cada denuncia
-              console.log("📋 Sin filtro específico, usando estados más recientes");
+              //  SIN FILTRO: Usar el estado más reciente de cada denuncia
+              console.log(" Sin filtro específico, usando estados más recientes");
               
               estados.forEach(item => {
                 const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId;
@@ -644,14 +691,14 @@ const useDenuncias = ({
               });
             }
 
-            console.log("📊 Estados procesados:", {
+            console.log("Estados procesados:", {
               tipoFiltro: filtroEstado ? `Específico: ${filtroEstado}` : "Todos los estados",
               totalEstados: estados.length,
               denunciasConEstado: Object.keys(estadosMap).length,
               muestraEstados: Object.values(estadosMap).slice(0, 3)
             });
 
-            // 🔗 COMBINAR ESTADOS CON DENUNCIAS
+            //  COMBINAR ESTADOS CON DENUNCIAS
             const dataConEstados = dataToProcess.map(denuncia => {
               const denunciaId = denuncia.id || denuncia.Id;
               const estadoInfo = estadosMap[denunciaId];
@@ -664,11 +711,11 @@ const useDenuncias = ({
               };
             });
 
-            console.log("✅ Datos finales combinados con estados:", {
+            console.log(" Datos finales combinados con estados:", {
               totalDenuncias: dataConEstados.length,
             });
 
-            // ✅ ACTUALIZAR ESTADO FINAL
+            //  ACTUALIZAR ESTADO FINAL
             const finalChanges = {
               loading: null,
               data: dataConEstados,
@@ -694,7 +741,7 @@ const useDenuncias = ({
             setList((o) => ({ ...o, ...finalChanges }));
           },
           onError: (error) => {
-            console.error("❌ Error al cargar estados:", error);
+            console.error(" Error al cargar estados:", error);
             
             const finalChanges = {
               loading: null,
@@ -727,9 +774,9 @@ const useDenuncias = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pushQuery, list.loading, filtroEstado, filtroFechaDesde, filtroFechaHasta, usuarioAmbito, applyAmbitoFilter]);
 
-  // ✅ ACTIVAR LOADING CUANDO CAMBIEN LOS FILTROS
+  //  ACTIVAR LOADING CUANDO CAMBIEN LOS FILTROS
   useEffect(() => {
-    console.log("🔄 Filtros cambiaron, activando loading...", {
+    console.log("Filtros cambiaron, activando loading...", {
       filtroEstado: filtroEstado || "Ninguno",
       filtroFechaDesde: filtroFechaDesde || "Ninguna", 
       filtroFechaHasta: filtroFechaHasta || "Ninguna"
@@ -768,7 +815,7 @@ const useDenuncias = ({
           };
           changes.selection.index = data.indexOf(changes.selection.record);
         } else {
-          // ✅ Para paginación frontend, solo recargar si no es un cambio de página
+          //  Para paginación frontend, solo recargar si no es un cambio de página
           const isPaginationChange = payload.pagination && !payload.params && !payload.clear;
           if (!isPaginationChange) {
             changes.loading = "Cargando...";

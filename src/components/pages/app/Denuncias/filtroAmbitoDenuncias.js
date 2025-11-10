@@ -55,13 +55,13 @@ export const obtenerSeccionales = async () => {
   
   // Usar cache si está disponible y no ha expirado
   if (seccionalesCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
-    console.log("🔄 Usando seccionales desde cache");
+    console.log(" Usando seccionales desde cache");
     return seccionalesCache;
   }
 
   try {
     // Para desarrollo: usar URL completa (luego cambiar por useQueryQueue en producción)
-    console.log("🌐 Cargando seccionales desde API...");
+    console.log(" Cargando seccionales desde API...");
     const response = await fetch('http://uatretest.intersistemas.net:8200/api/Seccional');
     
     if (!response.ok) {
@@ -74,14 +74,14 @@ export const obtenerSeccionales = async () => {
     seccionalesCache = Array.isArray(data) ? data : data?.data || data?.items || [];
     cacheTimestamp = now;
     
-    console.log(`📊 Seccionales cargadas: ${seccionalesCache.length} registros`);
-    console.log("🔍 Primeras 3 seccionales:", seccionalesCache.slice(0, 3).map(s => 
+    console.log(` Seccionales cargadas: ${seccionalesCache.length} registros`);
+    console.log(" Primeras 3 seccionales:", seccionalesCache.slice(0, 3).map(s => 
       `${s.codigo} - ${s.descripcion} (Deleg: ${s.refDelegacionId})`
     ));
     
     return seccionalesCache;
   } catch (error) {
-    console.error("❌ Error obteniendo seccionales:", error.message);
+    console.error(" Error obteniendo seccionales:", error.message);
     // En caso de error, devolver array vacío
     seccionalesCache = [];
     cacheTimestamp = now;
@@ -99,13 +99,13 @@ export const obtenerSeccionales = async () => {
  */
 export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
   if (!usuarioAmbito || !denuncias || !Array.isArray(denuncias)) {
-    console.log("🚫 Sin filtro de ámbito - mostrando todas las denuncias");
+    console.log(" Sin filtro de ámbito - mostrando todas las denuncias");
     return denuncias;
   }
 
   const { tipo, id } = usuarioAmbito;
   
-  console.log(`🔍 Aplicando filtro de ámbito: ${tipo} (ID: ${id}) sobre ${denuncias.length} denuncias`);
+  console.log(` Aplicando filtro de ámbito: ${tipo} (ID: ${id}) sobre ${denuncias.length} denuncias`);
 
   try {
     if (tipo === "seccional") {
@@ -121,7 +121,7 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
                                String(derivadoId) === String(id);
         
         if (esParaSeccional) {
-          console.log(`✅ Denuncia ${denuncia.id} para seccional ${id}:`, {
+          console.log(` Denuncia ${denuncia.id} para seccional ${id}:`, {
             derivadoTipo,
             derivadoId,
             campoOriginal: {
@@ -134,11 +134,11 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
         return esParaSeccional;
       });
 
-      console.log(`🎯 Seccional ${id}: ${denunciasFiltradas.length} de ${denuncias.length} denuncias`);
+      console.log(` Seccional ${id}: ${denunciasFiltradas.length} de ${denuncias.length} denuncias`);
       
       // Si no encontramos denuncias, mostrar todas las denuncias para debug
       if (denunciasFiltradas.length === 0) {
-        console.log("⚠️ No se encontraron denuncias para la seccional. Campos disponibles:", 
+        console.log(" No se encontraron denuncias para la seccional. Campos disponibles:", 
           denuncias.slice(0, 5).map(d => Object.keys(d).filter(k => k.toLowerCase().includes('derivado')))
         );
       }
@@ -147,7 +147,7 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
 
     } else if (tipo === "delegacion") {
       // Para delegación: mostrar denuncias derivadas a la delegación + todas las de sus seccionales
-      console.log(`🏛️ Filtrando por delegación ${id}...`);
+      console.log(` Filtrando por delegación ${id}...`);
       
       // 1. Denuncias derivadas directamente a la delegación
       const denunciasDelDelegacion = denuncias.filter(denuncia => {
@@ -167,7 +167,7 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
 
       const idsSeccionalesDeLaDelegacion = seccionalesDeLaDelegacion.map(s => String(s.id));
       
-      console.log(`🏢 Delegación ${id} tiene ${seccionalesDeLaDelegacion.length} seccionales`);
+      console.log(` Delegación ${id} tiene ${seccionalesDeLaDelegacion.length} seccionales`);
 
       // 3. Denuncias derivadas a cualquiera de las seccionales de esta delegación
       const denunciasDeLasSeccionales = denuncias.filter(denuncia => {
@@ -187,16 +187,16 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
         arr.findIndex(d => d.id === denuncia.id) === index
       );
 
-      console.log(`🎯 Delegación ${id}: ${denunciasFiltradas.length} denuncias (${denunciasDelDelegacion.length} directas + ${denunciasDeLasSeccionales.length} de seccionales)`);
+      console.log(` Delegación ${id}: ${denunciasFiltradas.length} denuncias (${denunciasDelDelegacion.length} directas + ${denunciasDeLasSeccionales.length} de seccionales)`);
 
       return denunciasFiltradas;
     } else {
-      console.warn(`⚠️ Tipo de ámbito desconocido: ${tipo}`);
+      console.warn(` Tipo de ámbito desconocido: ${tipo}`);
       return denuncias;
     }
 
   } catch (error) {
-    console.error("❌ Error aplicando filtro de ámbito:", error);
+    console.error(" Error aplicando filtro de ámbito:", error);
     return denuncias; // En caso de error, devolver todas las denuncias
   }
 };
@@ -207,5 +207,5 @@ export const applyAmbitoFilter = async (denuncias, usuarioAmbito) => {
 export const limpiarCacheSeccionales = () => {
   seccionalesCache = null;
   cacheTimestamp = null;
-  console.log("🗑️ Cache de seccionales limpiado");
+  console.log(" Cache de seccionales limpiado");
 };
