@@ -390,6 +390,9 @@ const DenunciasHandler = () => {
 
     const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
 
+    const isFinalizada = (denunciasSelected?.estado || "").toLowerCase() === "finalizada";
+
+
     const actions = [
       // ALT + A
       createAction({
@@ -405,18 +408,22 @@ const DenunciasHandler = () => {
         tarea: "AdminApp_DenunciaConsulta",
         ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
       }),
-      createAction({
-        action: `Modifica Denuncia ${desc}`,
-        onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
-        tarea: "AdminApp_DenunciaModifica",
-        ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
-      }),
-      createAction({
-        action: `Baja Denuncia ${desc}`,
-        onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
-        tarea: "AdminApp_DenunciaBaja",
-        ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
-      }),
+      ...(!denunciasSelected || !isFinalizada
+        ? [
+            createAction({
+              action: `Modifica Denuncia ${desc}`,
+              onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
+              tarea: "AdminApp_DenunciaModifica",
+              ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
+            }),
+          ]
+        : []),
+      // createAction({
+      //   action: `Baja Denuncia ${desc}`,
+      //   onExecute: () => (denunciasSelected ? openForm("B", denunciasSelected) : null),
+      //   tarea: "AdminApp_DenunciaBaja",
+      //   ...(denunciasSelected ? { disabled: false, keys: "b", underlineindex: 0 } : { disabled: true }),
+      // }),
       //  Exportar a Excel - Solo para administradores o usuarios con tarea Excel_Denuncias
       createAction({
         action: "Exportar a Excel",
