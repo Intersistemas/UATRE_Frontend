@@ -1880,8 +1880,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										...o,
 										form: {
 											...o.form,
-											denunciaSituacionId: Number(selected?.value || 0),   // ← ID al backend
-											situacionDescripcion: selected?.label || "",         // ← texto para UI
+											denunciaSituacionId: Number(selected?.value || 0),  
+											situacionDescripcion: selected?.label || "",        
 										},
 										errors: { ...o.errors, situacion: "" },
 									}));
@@ -2363,7 +2363,31 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		})();
 		const estadoNuevo = String(body.estado || state.form?.estado || "Registrada").trim();
 
-		// Regla: Para pasar de Registrada -> Completada es obligatorio y validar el CUIL del empleador
+
+		if (estadoNuevo === "Derivada") {
+			const destino = (body.derivadaA || state.form?.derivadaA || "").trim();
+
+			if (destino === "Seccional") {
+				const hasSeccional = !!seccionalSelect?.selected?.value;
+				const hasDelegacion = !!delegacionSelect?.selected?.value;
+				if (!hasDelegacion) {
+					errors.delegacion = "Dato requerido";
+					try { setDelegacionSelect(s => ({ ...s, error: "Dato requerido" })); } catch (e) { /* noop */ }
+				}
+				if (!hasSeccional) {
+					errors.seccional = "Dato requerido";
+					try { setSeccionalSelect(s => ({ ...s, error: "Dato requerido" })); } catch (e) { /* noop */ }
+				}
+			}
+			if (destino === "Delegacion") {
+				const hasDelegacion = !!delegacionSelect?.selected?.value;
+				if (!hasDelegacion) {
+					errors.delegacion = "Dato requerido";
+					try { setDelegacionSelect(s => ({ ...s, error: "Dato requerido" })); } catch (e) { /* noop */ }
+				}
+			}
+		}
+
 		if (lastEstado === "Registrada" && estadoNuevo === "Completada") {
 			const hasCUIT = !!body.cuitEmpresa;
 			const isValidated = !!state.validado?.empleador;
@@ -2374,6 +2398,18 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				errors.validacionCUIL = "Validar CUIL empleador";
 				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
 			}
+
+			if (!body.correoElectronico) errors.correoElectronico = errors.correoElectronico || "Dato requerido";
+			if (!body.telefonoContacto) errors.telefonoContacto = errors.telefonoContacto || "Dato requerido";
+			if (!Number(body.denunciaTipoIngresoId || 0)) {
+				errors.tipoIngreso = errors.tipoIngreso || "Dato requerido";
+				try { setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" })); } catch(e) { /*x*/ }
+			}
+			if (!Number(body.denunciaSituacionId || 0)) {
+				errors.situacion = errors.situacion || "Dato requerido";
+				try { setSituacionSelect(s => ({ ...s, error: "Dato requerido" })); } catch(e) { /* x */ }
+			}
+			if (!body.ubicacion) errors.ubicacion = errors.ubicacion || "Dato requerido";
 		}
 
 
