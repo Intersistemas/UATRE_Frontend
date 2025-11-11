@@ -221,7 +221,7 @@ const App = () => {
               path="Inicio/App/EncuestaRespuestas"
               element={<EncuestasHandler />}
             />
-            <Route path="Inicio/App/Denuncias" element={<DenunciasHandler />} />
+            <Route path="Inicio/Denuncias" element={<DenunciasHandler />} />
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
 
             <Route path="/*" element={<PantallaEnDesarrollo />} />
