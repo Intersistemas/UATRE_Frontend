@@ -80,7 +80,7 @@ const useDenuncias = ({
     loading: remote ? "Cargando..." : null,
     remote,
     loadingOverride: loading,
-    params: { sortBy: "+fecha" },
+    params: { sortBy: "-fecha" },
     pagination: { index: 1, size: 10, ...paginationInit },
     data: [...AsArray(dataInit, true)],
     error,
@@ -275,9 +275,35 @@ const useDenuncias = ({
 
                 // Crear un mapa: appDenunciasId -> último estado (más reciente)
                 const estadosMap = {};
+                
+                console.log("🔍 DEBUG ESTADOS - Estructura de primeros estados recibidos:", {
+                  totalEstados: estados.length,
+                  primerosEstados: estados.slice(0, 3).map(item => ({
+                    appDenunciasId: item.appDenunciasId,
+                    appDenuncia_Id: item.appDenuncia_Id,
+                    denunciaId: item.denunciaId,
+                    id: item.id,
+                    estado: item.estado,
+                    fecha: item.fecha,
+                    fechaAsociada: item.fechaAsociada,
+                    fechaEstado: item.fechaEstado,
+                    itemCompleto: item
+                  }))
+                });
+                
                 estados.forEach(item => {
-                  const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId;
+                  const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId || item.id;
                   const fechaEstado = item.fechaAsociada || item.fecha || item.fechaEstado || "";
+                  
+                  console.log("🔍 DEBUG ESTADOS - Procesando estado:", {
+                    denunciaId,
+                    idOriginal: item.appDenunciasId,
+                    idAlternativo1: item.appDenuncia_Id,
+                    idAlternativo2: item.denunciaId,
+                    idGeneral: item.id,
+                    estado: item.estado,
+                    fechaEstado
+                  });
                   
                   if (denunciaId) {
                     if (!estadosMap[denunciaId] || fechaEstado > (estadosMap[denunciaId].fecha || "")) {
@@ -290,16 +316,35 @@ const useDenuncias = ({
                   }
                 });
 
-                console.log("Estados procesados para flujo normal:", {
+                console.log("🔍 DEBUG ESTADOS - Mapa de estados creado:", {
                   totalEstados: estados.length,
                   denunciasConEstado: Object.keys(estadosMap).length,
+                  mapaCompleto: estadosMap,
                   primerEstado: Object.values(estadosMap)[0]
+                });
+
+                console.log("🔍 DEBUG DENUNCIAS - Estructura de primeras denuncias:", {
+                  totalDenuncias: denunciasData.length,
+                  primerasDenuncias: denunciasData.slice(0, 3).map(denuncia => ({
+                    id: denuncia.id,
+                    Id: denuncia.Id,
+                    estadoOriginal: denuncia.estado,
+                    denunciaCompleta: denuncia
+                  }))
                 });
 
                 //  COMBINAR ESTADOS CON DENUNCIAS
                 const dataConEstados = denunciasData.map(denuncia => {
                   const denunciaId = denuncia.id || denuncia.Id;
                   const estadoInfo = estadosMap[denunciaId];
+                  
+                  console.log("🔍 DEBUG MAPEO - Combinando denuncia con estado:", {
+                    denunciaId,
+                    tieneEstadoInfo: !!estadoInfo,
+                    estadoInfo,
+                    estadoOriginalDenuncia: denuncia.estado,
+                    estadoFinal: estadoInfo ? estadoInfo.estado : (denuncia.estado || "Sin datos")
+                  });
                   
                   return {
                     ...denuncia,
@@ -309,11 +354,29 @@ const useDenuncias = ({
                   };
                 });
 
-                console.log(" Datos combinados con estados (flujo normal):", {
+                console.log("🔍 DEBUG FINAL - Datos combinados con estados (flujo normal):", {
                   totalDenuncias: dataConEstados.length,
-                  muestraEstados: dataConEstados.slice(0, 3).map(d => ({
+                  muestraEstados: dataConEstados.slice(0, 5).map(d => ({
                     id: d.id,
-                    estado: d.estado
+                    estado: d.estado,
+                    fechaEstado: d.fechaEstado
+                  })),
+                  estadosSinDatos: dataConEstados.filter(d => d.estado === "Sin datos").length
+                });
+
+                // ✅ ORDENAR POR FECHA DESCENDENTE (más nueva primero)
+                const dataOrdenada = dataConEstados.sort((a, b) => {
+                  const fechaA = new Date(a.fecha || a.fechaEstado || '1900-01-01');
+                  const fechaB = new Date(b.fecha || b.fechaEstado || '1900-01-01');
+                  return fechaB - fechaA; // Descendente
+                });
+
+                console.log("✅ Datos ordenados por fecha (más nueva primero):", {
+                  totalDenuncias: dataOrdenada.length,
+                  primerasFechas: dataOrdenada.slice(0, 3).map(d => ({
+                    id: d.id,
+                    fecha: d.fecha,
+                    fechaFormatted: new Date(d.fecha).toLocaleDateString()
                   }))
                 });
 
@@ -321,26 +384,32 @@ const useDenuncias = ({
                 setList((o) => ({ 
                   ...o, 
                   loading: null,
-                  data: dataConEstados,
+                  data: dataOrdenada,
                   pagination: { ...o.pagination, ...paginationInfo },
                   selection: { 
                     ...selectionDef,
-                    record: o.onLoadSelect({ data: dataConEstados, multi: false, record: o.selection.record })
+                    record: o.onLoadSelect({ data: dataOrdenada, multi: false, record: o.selection.record })
                   }
                 }));
               },
               onError: (error) => {
                 console.error(" Error al cargar estados:", error);
                 
-                // Si falla la carga de estados, mostrar denuncias sin estados
+                // Si falla la carga de estados, mostrar denuncias sin estados pero ordenadas
+                const denunciasOrdenadas = denunciasData.sort((a, b) => {
+                  const fechaA = new Date(a.fecha || '1900-01-01');
+                  const fechaB = new Date(b.fecha || '1900-01-01');
+                  return fechaB - fechaA; // Descendente
+                });
+                
                 setList((o) => ({ 
                   ...o, 
                   loading: null,
-                  data: denunciasData,
+                  data: denunciasOrdenadas,
                   pagination: { ...o.pagination, ...paginationInfo },
                   selection: { 
                     ...selectionDef,
-                    record: o.onLoadSelect({ data: denunciasData, multi: false, record: o.selection.record })
+                    record: o.onLoadSelect({ data: denunciasOrdenadas, multi: false, record: o.selection.record })
                   }
                 }));
               }
@@ -715,10 +784,17 @@ const useDenuncias = ({
               totalDenuncias: dataConEstados.length,
             });
 
+            // ✅ ORDENAR POR FECHA DESCENDENTE (más nueva primero) 
+            const dataConEstadosOrdenada = dataConEstados.sort((a, b) => {
+              const fechaA = new Date(a.fecha || a.fechaEstado || '1900-01-01');
+              const fechaB = new Date(b.fecha || b.fechaEstado || '1900-01-01');
+              return fechaB - fechaA; // Descendente
+            });
+
             //  ACTUALIZAR ESTADO FINAL
             const finalChanges = {
               loading: null,
-              data: dataConEstados,
+              data: dataConEstadosOrdenada,
               pagination: { 
                 index: list.pagination.index, 
                 size: list.pagination.size, 
@@ -727,15 +803,15 @@ const useDenuncias = ({
             };
 
             const record = list.selection.record;
-            if (dataConEstados.length === 0) {
+            if (dataConEstadosOrdenada.length === 0) {
               finalChanges.selection = { ...selectionDef };
             } else {
               finalChanges.selection = {
                 ...list.selection,
                 ...selectionDef,
-                record: list.onLoadSelect({ data: dataConEstados, multi: false, record }),
+                record: list.onLoadSelect({ data: dataConEstadosOrdenada, multi: false, record }),
               };
-              finalChanges.selection.index = dataConEstados.indexOf(finalChanges.selection.record);
+              finalChanges.selection.index = dataConEstadosOrdenada.indexOf(finalChanges.selection.record);
             }
 
             setList((o) => ({ ...o, ...finalChanges }));
@@ -743,9 +819,16 @@ const useDenuncias = ({
           onError: (error) => {
             console.error(" Error al cargar estados:", error);
             
+            // ✅ ORDENAR POR FECHA DESCENDENTE incluso en caso de error
+            const dataToProcessOrdenada = dataToProcess.sort((a, b) => {
+              const fechaA = new Date(a.fecha || '1900-01-01');
+              const fechaB = new Date(b.fecha || '1900-01-01');
+              return fechaB - fechaA; // Descendente
+            });
+            
             const finalChanges = {
               loading: null,
-              data: dataToProcess,
+              data: dataToProcessOrdenada,
               pagination: { 
                 index: list.pagination.index, 
                 size: list.pagination.size, 
@@ -754,15 +837,15 @@ const useDenuncias = ({
             };
 
             const record = list.selection.record;
-            if (dataToProcess.length === 0) {
+            if (dataToProcessOrdenada.length === 0) {
               finalChanges.selection = { ...selectionDef };
             } else {
               finalChanges.selection = {
                 ...list.selection,
                 ...selectionDef,
-                record: list.onLoadSelect({ data: dataToProcess, multi: false, record }),
+                record: list.onLoadSelect({ data: dataToProcessOrdenada, multi: false, record }),
               };
-              finalChanges.selection.index = dataToProcess.indexOf(finalChanges.selection.record);
+              finalChanges.selection.index = dataToProcessOrdenada.indexOf(finalChanges.selection.record);
             }
 
             setList((o) => ({ ...o, ...finalChanges }));
@@ -902,4 +985,3 @@ const useDenuncias = ({
 };
 
 export default useDenuncias;
- 
