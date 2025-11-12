@@ -637,7 +637,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				columns={[
 					{ dataField: "fecha", text: "Fecha", formatter: (v) => Formato.Fecha(v) },
 					{ dataField: "estado", text: "Estado", sort: true, style: { textAlign: "left" } },
-					{ dataField: "observaciones", text: "Observaciones", style: { textAlign: "left" } },
+					{ dataField: "observaciones", text: "Observaciones", style: { textAlign: "left" }, formatter: (v) => {
+						if (!v) return "";
+						return String(v);
+					}},
 
 					{
 						dataField: "documento",
@@ -646,15 +649,11 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						formatter: (_c, row) => {
 							const doc = row?._doc;
 							if (!doc) return "";
-							const nombre = doc?.nombreArchivo ?? doc?.fileName ?? "Documento";
-							const b64 = doc?.archivo ?? doc?.archivoBase64 ?? doc?.contenido;
-							const contentType = doc?.contentType || "application/octet-stream";
-							const href = doc?.url ? doc.url : (b64 ? `data:${contentType};base64,${b64}` : null);
-							return href ? (
-								<a href={href} target="_blank" rel="noreferrer" download={nombre}>
-									{nombre}
-								</a>
-							) : nombre;
+							//Tipo doc
+							const tipo =
+								doc?.refTipoDocumentacion ??
+								"";
+							return String(tipo || "");
 						},
 						headerStyle: { width: "220px", textAlign: "center" },
 						style: { textAlign: "left" },
@@ -1568,9 +1567,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 	//#endregion inicializaciones
 
+	const prevDerivadaARef = useRef(state.form.derivadaA);
+
 	// Habilitar/limpiar Delegacion/Seccional según "Derivada a"
 	useEffect(() => {
 		const derivada = state.form.derivadaA;
+		const prevDerivada = prevDerivadaARef.current;
 		setSeccionalSelect(o => ({ ...o, error: null, loading: null }));
 		setDelegacionSelect(o => ({ ...o, error: null, loading: null }));
 
@@ -1583,26 +1585,44 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			lockSecc = true;
 		}
 
+		const derivadaCambio = prevDerivada !== derivada;
 		// Caso sin derivación explícita
 		if (!derivada || derivada === "Sin derivacion") {
 			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
-			setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "", error: null }));
-			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "", error: null }));
-			setState((o) => ({ ...o, form: { ...o.form, seccional: "", delegacionDerivada: "" } }));
+			if (!lockDeleg) {
+				setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "", error: null }));
+				setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
+			}
+			if (!lockSecc) {
+				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "", error: null }));
+				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			}
+			prevDerivadaARef.current = derivada;
 			return;
 		}
 
 		// Derivada a Delegacion: permitir elegir delegación solo si BD NO la fijó como Delegacion
 		if (derivada === "Delegacion") {
+			if (derivadaCambio && prevDerivada !== "Delegacion" && !lockSecc) {
+				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "" }));
+				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			}
 			setLockedDelegacion(lockDeleg); 
 			setLockedSeccional(lockSecc);
-			setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
-			setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			if (!lockSecc) {
+				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
+				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			}
+			prevDerivadaARef.current = derivada;
 			return;
 		}
 		// Derivada a Seccional:
 		if (derivada === "Seccional") {
+			if (derivadaCambio && prevDerivada !== "Seccional" && !lockDeleg) {
+				setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "" }));
+				setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
+			}
 			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
 			if (!lockSecc) {
@@ -1622,8 +1642,20 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			return;
 		}
 
+		// Para cualquier otro destino (CTNA / Asesoria Letrada) limpiar ambos si cambió
+		if (derivadaCambio && !["Delegacion", "Seccional"].includes(derivada)) {
+			if (!lockDeleg) {
+				setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "" }));
+				setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
+			}
+			if (!lockSecc) {
+				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "" }));
+				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
+			}
+		}
 		setLockedDelegacion(lockDeleg);
 		setLockedSeccional(lockSecc);
+		prevDerivadaARef.current = derivada;
 	}, [state.form.derivadaA, serverDerivadoATipo, seccionalSelect.data, setSeccionalesQuery]);
 
 
@@ -1987,15 +2019,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 											if (shouldResetDerivacion) {
 												next.form.derivadaA = "Sin derivacion";
 												next.form.derivadaADescripcion = "Sin derivacion";
-												next.form.delegacionDerivada = "";
-												next.form.seccional = "";
+												if (!lockedDelegacion) next.form.delegacionDerivada = "";
+												if (!lockedSeccional) next.form.seccional = "";
 											}
 											return next;
 										});
 										// Limpiar selección visual SOLO bajo la misma condición
 										if (shouldResetDerivacion) {
-											setDelegacionSelect((o) => ({ ...o, selected: {}, error: null }));
-											setSeccionalSelect((o) => ({ ...o, selected: {}, error: null }));
+											if (!lockedDelegacion) setDelegacionSelect((o) => ({ ...o, selected: {}, error: null }));
+											if (!lockedSeccional) setSeccionalSelect((o) => ({ ...o, selected: {}, error: null }));
 										}
 									}}
 									freeSolo={false}
@@ -2313,6 +2345,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		const errors = {};
 		const body = { ...state.form };
 
+		const estadoActualForm = String(body.estado || state.form?.estado || "Registrada").trim();
+
 		const provinciaIdSel = (
 			trabPciaSelect?.selected?.value != null ? trabPciaSelect.selected.value :
 				(data?.provinciaId != null ? data.provinciaId : (data?.provinciaID != null ? data.provinciaID : null))
@@ -2325,23 +2359,27 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		const provinciaTieneNombre = !!(trabPciaSelect?.selected?.record?.nombre || data?.provincia || data?.provinciaNombre || data?.provinciaDescripcion);
 		const localidadTieneNombre = !!(trabLocaSelect?.selected?.record?.nombre || data?.localidad || data?.nombreLocalidadAfiliado || data?.nombreLocalidad);
 
-		if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
-		if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
-
-		if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
-		// Requeridos en alta
-		const isAlta = (mode === "A" || !data?.id);
-		if (isAlta && !body.correoElectronico) errors.correoElectronico = "Dato requerido";
-		if (isAlta && !body.telefonoContacto) errors.telefonoContacto = "Dato requerido";
-		if (isAlta && !Number(body.denunciaTipoIngresoId || 0)) {
-			errors.tipoIngreso = "Dato requerido";
-			setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" }));
+		if (estadoActualForm === "Registrada") {
+			if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
+			if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
+			if (!body.correoElectronico) errors.correoElectronico = "Dato requerido";
+			if (!body.telefonoContacto) errors.telefonoContacto = "Dato requerido";
+		} else {
+			if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
+			// Requeridos en alta
+			const isAlta = (mode === "A" || !data?.id);
+			if (isAlta && !body.correoElectronico) errors.correoElectronico = "Dato requerido";
+			if (isAlta && !body.telefonoContacto) errors.telefonoContacto = "Dato requerido";
+			if (isAlta && !Number(body.denunciaTipoIngresoId || 0)) {
+				errors.tipoIngreso = "Dato requerido";
+				setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" }));
+			}
+			if (isAlta && !Number(body.denunciaSituacionId || 0)) {
+				errors.situacion = "Dato requerido";
+				setSituacionSelect(s => ({ ...s, error: "Dato requerido" }));
+			}
+			if (isAlta && !body.ubicacion) errors.ubicacion = "Dato requerido";
 		}
-		if (isAlta && !Number(body.denunciaSituacionId || 0)) {
-			errors.situacion = "Dato requerido";
-			setSituacionSelect(s => ({ ...s, error: "Dato requerido" }));
-		}
-		if (isAlta && !body.ubicacion) errors.ubicacion = "Dato requerido";
 
 		if (body.correoElectronico && !ValidarEmail(body.correoElectronico)) errors.correoElectronico = errors.correoElectronico || "Dato inválido";
 		if (body.telefonoContacto && !isPossiblePhoneNumber(body.telefonoContacto)) errors.telefonoContacto = errors.telefonoContacto || "Dato inválido";
@@ -2349,7 +2387,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
 
 
-		// SOLO bloquear si se intenta pasar de Registrada -> Completada sin validar CUIT
+		// SOLO bloquear si se intenta pasar de Registrada a Completada sin validar CUIT
 		const lastEstado = (() => {
 			if (Array.isArray(estadosList) && estadosList.length) {
 				try {
@@ -2620,7 +2658,61 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			<Modal.Header className={modalCss.modalCabecera}>
 				{headerTitle}
 			</Modal.Header>
-			<Modal.Body>{content}</Modal.Body>
+			<Modal.Body>
+				{content}
+				{/* Panel de detalle FUERA del formulario, visible solo en pestaña Novedades */}
+				{selectedTab === 2 && selectedEstado && (
+					<div style={{
+						marginTop: 10,
+						border: '1px solid #186090',
+						borderRadius: 8,
+						padding: '10px 14px',
+						background: '#f9fcff',
+						boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+					}}>
+						<Grid col gap="6px">
+							<Grid style={{ fontWeight: 'bold', color: '#186090' }}>Detalle de la Novedad</Grid>
+							<Grid grid="auto / 7fr 1fr" gap="20px" style={{ alignItems: 'stretch' }}>
+								{/* Observaciones a la izquierda */}
+								<Grid col gap="4px">
+									<div style={{ fontWeight: 'bold' }}>Observaciones:</div>
+									<div style={{ height: 200, overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 13 }}>
+										{selectedEstado?.observaciones ? String(selectedEstado.observaciones) : <i>Sin observaciones</i>}
+									</div>
+								</Grid>
+								{/* Documentos a la derecha */}
+								<Grid col gap="4px">
+									<div style={{ fontWeight: 'bold' }}>Documento:</div>
+									<div style={{ height: 200, overflow: 'auto', fontSize: 13 }}>
+									{(() => {
+										const doc = selectedEstado?._doc;
+										const docs = doc ? [doc] : [];
+										if (!docs.length) return <i>Sin documentos</i>;
+										return (
+											<ul style={{ margin: 0, paddingLeft: 18 }}>
+												{docs.map((d, i) => {
+													const nombre = d?.nombreArchivo ?? d?.fileName ?? `Documento ${i + 1}`;
+													const b64 = d?.archivo ?? d?.archivoBase64 ?? d?.contenido;
+													const contentType = d?.contentType || 'application/octet-stream';
+													const href = d?.url ? d.url : (b64 ? `data:${contentType};base64,${b64}` : null);
+													return (
+														<li key={i} style={{ marginBottom: 4 }}>
+															{href ? (
+																<a href={href} target="_blank" rel="noreferrer" download={nombre}>{nombre}</a>
+															) : nombre}
+														</li>
+													);
+												})}
+											</ul>
+										);
+									})()}
+								</div>
+							</Grid>
+						</Grid>
+					</Grid>
+					</div>
+				)}
+			</Modal.Body>
 			<Modal.Footer>
 				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
 					<div />
