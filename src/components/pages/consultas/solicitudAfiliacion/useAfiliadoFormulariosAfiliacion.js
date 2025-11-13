@@ -530,23 +530,32 @@ const useAfiliadoFormulariosAfiliacion = ({
 			// Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
 
 
-			case "I": {
+				case "I": {
 				const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
 				const email = row.email ?? row.correo ?? "";
 				const telRaw = row.celular ?? row.telefono ?? "";
 				const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+				// CUIT Empleador prellenado
+				const cuitEmpresaPrefill = String(row?.cuitEmpresa ?? "").replace(/\D+/g, "");
 
 				// forzamos remount para que el form tome estos valores iniciales
-				const prefillKey = `alta-${cuilDigits}-${telefonoPais}-${telefonoArea}-${telefonoNumero}-${email}`;
+				const prefillKey = `alta-${cuilDigits}-${telefonoPais}-${telefonoArea}-${telefonoNumero}-${email}-${cuitEmpresaPrefill}`;
 
-				form = (
+					form = (
 					<AfiliadosAgregar
 						key={prefillKey}
 						title="Agrega Afiliado"
 						//ESTO ENVIAR A ALEX
 						accion="Agrega"
+						autoValidaDesdeSolicitud={true}
+							documentacionSolicitudId={row?.id}
 						data={{
 							cuil: cuilDigits,
+							estadoCivilId: row?.estadoCivilId,
+							sexoId: row?.sexoId,
+							oficioId: row?.oficioId,
+							actividadIdAfiliado: row?.actividadIdAfiliado,
+							cuitEmpresa: cuitEmpresaPrefill,
 							telefonoPais,
 							telefonoArea,
 							telefonoNumero,
@@ -804,12 +813,12 @@ const useAfiliadoFormulariosAfiliacion = ({
 		const tx = String(col?.text || col?.title || "").toLowerCase();
 		return df.includes("fecha") || tx.includes("fecha");
 	};
-	let __minDateLogs = 0;
-	const wrapDateFormatter = (orig, colName) => (cell, row, ...rest) => {
+	const minDateLogRef = React.useRef(0);
+	const wrapDateFormatter = React.useCallback((orig, colName) => (cell, row, ...rest) => {
 		if (isSqlMinDate(cell)) {
-			if (__minDateLogs < 5) {
+			if (minDateLogRef.current < 5) {
 				console.info("[AFI-FA] fecha mínima → vacío", { col: colName, raw: cell, id: row?.id, cuil: row?.cuil });
-				__minDateLogs++;
+				minDateLogRef.current++;
 			}
 			return "";
 		}
@@ -817,7 +826,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 		if (isSqlMinDate(out)) return "";
 		if (!orig) return formatFechaUi(cell);
 		return out ?? "";
-	};
+	}, []);
 
 	// Clonar columnas y forzar wrapper en TODAS las columnas de fecha
 	const columnsWithDateFmt = React.useMemo(() => {
@@ -829,7 +838,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 				formatter: wrapDateFormatter(col.formatter, col.dataField || col.text || "fecha"),
 			};
 		});
-	}, [columns]);
+	}, [columns, wrapDateFormatter]);
 
 
 	return { render, request, selected: list.selection.record };

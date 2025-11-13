@@ -290,6 +290,17 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         },
       }
     );
+  const { state: afiliadoByCuilQuery, setState: setAfiliadoByCuilQuery } =
+    useQueryState(
+      () => ({
+        config: {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado/GetAfiliadoByCUIL`,
+          method: "GET",
+        },
+      }),
+      { query: { config: { errorType: "response" } } }
+    );
   const { setState: setCIIUsQuery } = useQueryState(
     () => ({
       config: {
@@ -349,6 +360,10 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   const [state, setState] = useState({
     form: {
       fecha: dayjs().format("YYYY-MM-DD"),
+      // flags para control de habilitación de impresión
+      trabajadorExisteEnBD: false,
+      trabajadorExisteEnAFIP: false,
+      empleadorExisteEnAFIP: false,
     },
     validado: {
       seccionalId: false,
@@ -1466,87 +1481,134 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                         return state;
                       });
                     if (cuit) {
-                      setPadronAFIPQuery((o) => ({
+
+                      setAfiliadoByCuilQuery((o) => ({
                         ...o,
                         loading: "Trabajador",
                         query: {
                           ...o.query,
-                          params: { ...o.query.params, cuit },
+                          params: { ...o.query.params, CUIL: cuit, IncludeRelatedTables: false },
                         },
                         onLoad: ({ query, ok, error }) => {
-                          if (error) {
-                            if (error.code === 404) {
-                              changes.errors.cuil = "No existe en ARCA";
-                            } else {
-                              changes.errors.cuil = error.toString();
-                              audit({
-                                modulo: "Consultas",
-                                proceso: "SolicitudPreviaAfiliacion",
-                                parametros: { ...query.params, ingreso: "trabajador" },
-                                observaciones: `Error consulta AFIP: ${error.toString()}`,
-                              });
-                            }
-                          } else {
-                            changes.form.apellido = ok.apellido;
-                            changes.form.nombre = ok.nombre;
-                            changes.form.fechaNacimiento =
-                              `${ok.fechaNacimiento}`.slice(0, 10);
-                            setTipoDocumentoSelect((o) => ({
-                              ...o,
-                              selected:
-                                o.options.find(
-                                  (r) => r.label === ok.tipoDocumento
-                                ) ?? {},
-                            }));
-                            changes.form.documento = ok.numeroDocumento;
-                            if (ok.domicilios?.length) {
-                              const domicilio =
-                                ok.domicilios.find(
-                                  (r) => r.tipoDomicilio === "LEGAL/REAL"
-                                ) ?? ok.domicilios[0];
-                              changes.form.domicilio = domicilio.direccion;
-                              const pcia = trabPciaSelect.options.find(
-                                (r) =>
-                                  r.record.idProvinciaAFIP ===
-                                  domicilio.idProvincia
-                              );
-                              setTrabPciaSelect((o) => ({
-                                ...o,
-                                selected: pcia,
-                                origen: "option",
-                              }));
 
-                              setLocalidadesQuery((o) => ({
-                                ...o,
-                                query: {
-                                  ...o.query,
-                                  params: {
-                                    ...o.query.params,
-                                    provinciaId: pcia.value,
-                                  },
-                                },
-                                onPreLoad: () =>
-                                  setTrabLocaSelect((o) => ({
-                                    ...o,
-                                    loading: "Cargando...",
-                                  })),
-                                onLoad: ({ ok, error }) =>
-                                  setTrabLocaSelect((o) => ({
-                                    ...o,
-                                    data: Array.isArray(ok) ? ok : [],
-                                    loading: null,
-                                    error: error?.toString(),
-                                    buscar: domicilio.localidad,
-                                    selected: {
-                                      record: { nombre: domicilio.localidad },
-                                    },
-                                    origen: "text",
-                                  })),
-                              }));
-                            }
+                          if (ok && Object.keys(ok || {}).length) {
+
+                            changes.errors.cuil = "Este cuil es de un afiliado existente";
+                            changes.form.trabajadorExisteEnBD = true;
+
+                            changes.form.trabajadorExisteEnAFIP = false;
+                            apply();
+                            setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
+                            return;
                           }
-                          apply();
-                          setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+
+
+                          if (error && error.code && error.code !== 404) {
+                            changes.errors.cuil = error.toString();
+                            audit({
+                              modulo: "Consultas",
+                              proceso: "SolicitudPreviaAfiliacion",
+                              parametros: { ...query.params, ingreso: "trabajador" },
+                              observaciones: `Error consulta Afiliado/GetAfiliadoByCUIL: ${error.toString()}`,
+                            });
+
+                            changes.form.trabajadorExisteEnBD = false;
+                            apply();
+                            setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
+                            return;
+                          }
+
+                          setPadronAFIPQuery((o) => ({
+                            ...o,
+                            loading: "Trabajador",
+                            query: {
+                              ...o.query,
+                              params: { ...o.query.params, cuit },
+                            },
+                            onLoad: ({ query: q2, ok, error }) => {
+                                  if (error) {
+                                    if (error.code === 404) {
+                                      changes.errors.cuil = "No existe en ARCA";
+
+                                      changes.form.trabajadorExisteEnAFIP = false;
+                                    } else {
+                                      changes.errors.cuil = error.toString();
+                                      changes.form.trabajadorExisteEnAFIP = false;
+                                      audit({
+                                        modulo: "Consultas",
+                                        proceso: "SolicitudPreviaAfiliacion",
+                                        parametros: { ...q2.params, ingreso: "trabajador" },
+                                        observaciones: `Error consulta AFIP: ${error.toString()}`,
+                                      });
+                                    }
+                              } else {
+
+                                  changes.form.trabajadorExisteEnAFIP = true;
+                                  changes.form.trabajadorExisteEnBD = false;
+                                  changes.form.apellido = ok.apellido;
+                                changes.form.nombre = ok.nombre;
+                                changes.form.fechaNacimiento =
+                                  `${ok.fechaNacimiento}`.slice(0, 10);
+                                setTipoDocumentoSelect((o) => ({
+                                  ...o,
+                                  selected:
+                                    o.options.find(
+                                      (r) => r.label === ok.tipoDocumento
+                                    ) ?? {},
+                                }));
+                                changes.form.documento = ok.numeroDocumento;
+                                if (ok.domicilios?.length) {
+                                  const domicilio =
+                                    ok.domicilios.find(
+                                      (r) => r.tipoDomicilio === "LEGAL/REAL"
+                                    ) ?? ok.domicilios[0];
+                                  changes.form.domicilio = domicilio.direccion;
+                                  const pcia = trabPciaSelect.options.find(
+                                    (r) =>
+                                      r.record.idProvinciaAFIP ===
+                                      domicilio.idProvincia
+                                  );
+                                  setTrabPciaSelect((o) => ({
+                                    ...o,
+                                    selected: pcia,
+                                    origen: "option",
+                                  }));
+
+                                  setLocalidadesQuery((o) => ({
+                                    ...o,
+                                    query: {
+                                      ...o.query,
+                                      params: {
+                                        ...o.query.params,
+                                        provinciaId: pcia.value,
+                                      },
+                                    },
+                                    onPreLoad: () =>
+                                      setTrabLocaSelect((o) => ({
+                                        ...o,
+                                        loading: "Cargando...",
+                                      })),
+                                    onLoad: ({ ok, error }) =>
+                                      setTrabLocaSelect((o) => ({
+                                        ...o,
+                                        data: Array.isArray(ok) ? ok : [],
+                                        loading: null,
+                                        error: error?.toString(),
+                                        buscar: domicilio.localidad,
+                                        selected: {
+                                          record: { nombre: domicilio.localidad },
+                                        },
+                                        origen: "text",
+                                      })),
+                                  }));
+                                }
+                              }
+                              apply();
+                              setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+                            },
+                          }));
+
+                          setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
                         },
                       }));
                     } else {
@@ -2086,7 +2148,9 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                           if (error) {
                             changes.errors.cuitEmpresa =
                               error.code === 404 ? "No existe en ARCA" : error.toString();
+                            changes.form.empleadorExisteEnAFIP = false;
                           } else {
+                            changes.form.empleadorExisteEnAFIP = true;
                             changes.form.razonSocial =
                               ok.razonSocial || ok.nombre;
                             if (ok.domicilios?.length) {
@@ -2902,7 +2966,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                 className="botonAmarillo"
                 onClick={onImprimie}
                 loading={!!state.loading}
-                disabled={!and(...Object.values(state.validado))}
+                disabled={!(and(...Object.values(state.validado)) && !state.form.trabajadorExisteEnBD && state.form.trabajadorExisteEnAFIP && state.form.empleadorExisteEnAFIP)}
               >
                 IMPRIME
               </Button>

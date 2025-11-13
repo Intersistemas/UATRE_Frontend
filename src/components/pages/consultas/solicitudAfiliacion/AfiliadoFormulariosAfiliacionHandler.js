@@ -11,6 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useAfiliadoFormulariosAfiliacion, { onLoadSelectKeepOrFirst } from "./useAfiliadoFormulariosAfiliacion";
 import Button from "components/ui/Button/Button";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 
 const AfiliadoFormulariosAfiliacionHandler = () => {
 	const dispatch = useDispatch();
@@ -168,13 +169,23 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		setFormularioActions(actions); //cargo todas las acciones / botones
 	}, [formularioRequest, formularioSelected, Usuario?.nombre]);
 
+	const estadoOptions = useMemo(
+		() => [
+			{ value: "", label: " Todos " },
+			{ value: "Pendiente", label: "Pendiente" },
+			{ value: "Aceptado", label: "Aceptado" },
+			{ value: "Rechazado", label: "Rechazado" },
+		],
+		[]
+	);
+
 	tabs.push({
 		header: () => <Tab label="Formularios Afiliación" />,
 		body: () => (
 			<Grid width col gap="10px">
 				<Grid />
 				<Grid gap="inherit">
-					<Grid grow>
+					{/* <Grid grow>
 						<InputMaterial
 							label="Filtro por CUIL"
 							value={paramsEdit.cuil}
@@ -186,7 +197,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 								})
 							}
 						/>
-					</Grid>
+					</Grid> */}
 					<Grid grow>
 						<InputMaterial
 							label="Filtro por CUIT"
@@ -227,23 +238,30 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 						/>
 					</Grid>
 					<Grid grow>
-						<InputMaterial
-							label="Filtro por Estado"
-							select
-							value={paramsEdit.estado ?? ""}
-							onChange={(estado) =>
-								setParamsEdit((o) => {
-									const paramsEdit = { ...o, estado };
-									if (!estado) delete paramsEdit.estado;
-									return paramsEdit;
-								})
-							}
-						>
-							<MenuItem value="">-- Todos --</MenuItem>
-							<MenuItem value="Pendiente">Pendiente</MenuItem>
-							<MenuItem value="Aceptado">Aceptado</MenuItem>
-							<MenuItem value="Rechazado">Rechazado</MenuItem>
-						</InputMaterial>
+						<Grid grow style={{ minWidth: 100 }}>
+							<SearchSelectMaterial
+								label="Filtro por Estado"
+								options={estadoOptions}
+								value={
+									estadoOptions.find(
+										(o) => o.value === (paramsEdit.estado ?? "")
+									) || estadoOptions[0]
+								}
+								onChange={(selected = {}) => {
+									const value = selected.value || "";
+
+									setParamsEdit((o) => {
+										const paramsEdit = { ...o };
+										if (value) {
+											paramsEdit.estado = value;
+										} else {
+											delete paramsEdit.estado;
+										}
+										return paramsEdit;
+									});
+								}}
+							/>
+						</Grid>
 					</Grid>
 					<Grid width="200px">
 						<Button
