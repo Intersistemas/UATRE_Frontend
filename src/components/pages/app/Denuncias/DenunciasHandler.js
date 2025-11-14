@@ -450,17 +450,34 @@ const DenunciasHandler = () => {
     setSituacionSelect((s) => ({ ...s, options }));
   }, [situacionSelect.buscar, situacionSelect.data, situacionTodos]);
 
- // Opciones de Derivado A Tipo (solo catálogo local)
+ // Opciones de Derivado A Tipo (filtradas por ámbito)
  useEffect(() => {
    if (!derivadoATipoSelect.data.length) return;
+
+   let dataFiltrada = derivadoATipoSelect.data;
+
+
+  if (usuarioSeccionalId) {
+    dataFiltrada = derivadoATipoSelect.data.filter((r) => r.value === "Seccional");
+  } else if (usuarioDelegacionId) {
+
+    dataFiltrada = derivadoATipoSelect.data.filter((r) => ["Delegacion", "Seccional"].includes(r.value));
+  }
+
    const options = mapOptions({
-     data: derivadoATipoSelect.data,
+     data: dataFiltrada,
      map: (r) => ({ value: r.value, label: r.label }),
      filter: (r) => includeSearch(r, derivadoATipoSelect.buscar),
      start: [derivadoATipoTodos],
    });
    setDerivadoATipoSelect((s) => ({ ...s, options }));
- }, [derivadoATipoSelect.buscar, derivadoATipoSelect.data, derivadoATipoTodos]);
+ }, [
+   derivadoATipoSelect.buscar,
+   derivadoATipoSelect.data,
+   derivadoATipoTodos,
+   usuarioDelegacionId,
+   usuarioSeccionalId,
+ ]);
 
 
   //  Estados de filtros locales (se aplican automáticamente en useDenuncias)
@@ -680,7 +697,8 @@ const DenunciasHandler = () => {
   // Bloqueo por ámbito del usuario
   const bloquearDelegacion = !!usuarioSeccionalId || !!usuarioDelegacionId;
   const bloquearSeccional = !!usuarioSeccionalId;
-  const bloquearDerivadoA = !!usuarioSeccionalId || !!usuarioDelegacionId;
+
+  const bloquearDerivadoA = !!usuarioSeccionalId; 
 
   // Estados de disabled para aplicar opacidad visual
   const disabledDerivadoA = bloquearDerivadoA;
