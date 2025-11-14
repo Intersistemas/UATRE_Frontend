@@ -1324,6 +1324,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		});
 	}, [setPadronAFIPQuery, sendRequest]);
 	// PREFILL (data  readOnly)
+
 	useEffect(() => {
 		if (!data || Object.keys(data).length === 0) return;
 		setState((o) => ({
@@ -1331,6 +1332,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			form: {
 				...o.form,
 				...data,
+
+				derivadaA: data.derivadoATipo ?? data.derivadaATipo ?? data.derivadaA ?? o.form.derivadaA ?? "Sin derivacion",
+				derivadaADescripcion: data.derivadaADescripcion ?? data.derivadoATipo ?? o.form.derivadaADescripcion ?? "Sin derivacion",
+				
+				cuitEmpresa: data.empleadorCUIT ?? data.cuitEmpresa ?? o.form.cuitEmpresa ?? "",
+				razonSocial: data.empleadorNombre ?? data.razonSocial ?? o.form.razonSocial ?? "",
 				...(mode === "M" ? { observacionesRegistro: "" } : {}),
 				fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
 			},
@@ -1826,35 +1833,35 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */}
 						<Grid width gap="inherit">
 							<InputMaterial
-								id="nombreDenunciante"
+								id="nombre"
 								readOnly={isConsulta || readOnly || lockAllExceptRouting || ocultarDatosSensibles}
 								style={roStyle(isConsulta || readOnly || lockAllExceptRouting || ocultarDatosSensibles)}
 								label="Nombre Denunciante"
-								value={ocultarDatosSensibles ? "" : state.form.nombreDenunciante}
-								error={!!state.errors.nombreDenunciante}
-								helperText={state.errors.nombreDenunciante}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, nombreDenunciante: v } }))}
+								value={ocultarDatosSensibles ? "" : state.form.nombre}
+								error={!!state.errors.nombre}
+								helperText={state.errors.nombre}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, nombre: v } }))}
 							/>
 							<InputMaterial
-								id="telefonoContacto"
+								id="telefono"
 								readOnly={isConsulta || readOnly || lockAllExceptRouting}
 								style={roStyle(isConsulta || readOnly || lockAllExceptRouting)}
 								type="tel"
 								label="Teléfono de contacto"
-								value={state.form.telefonoContacto}
-								error={!!state.errors.telefonoContacto}
-								helperText={state.errors.telefonoContacto}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, telefonoContacto: v } }))}
+								value={state.form.telefono}
+								error={!!state.errors.telefono}
+								helperText={state.errors.telefono}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, telefono: v } }))}
 							/>
 							<InputMaterial
-								id="correoElectronico"
+								id="correo"
 								readOnly={isConsulta || readOnly || lockAllExceptRouting || ocultarDatosSensibles}
 								style={roStyle(isConsulta || readOnly || lockAllExceptRouting || ocultarDatosSensibles)}
 								label="Correo electrónico"
-								value={ocultarDatosSensibles ? "" : state.form.correoElectronico}
-								error={!!state.errors.correoElectronico}
-								helperText={state.errors.correoElectronico}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, correoElectronico: v } }))}
+								value={ocultarDatosSensibles ? "" : state.form.correo}
+								error={!!state.errors.correo}
+								helperText={state.errors.correo}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, correo: v } }))}
 							/>
 						</Grid>
 
@@ -1991,10 +1998,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								label="Detalle de la denuncia"
 								multiline
 								rows={6}
-								value={state.form.detalleDenuncia}
-								error={!!state.errors.detalleDenuncia}
-								helperText={state.errors.detalleDenuncia}
-								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, detalleDenuncia: v } }))}
+								value={state.form.texto}
+								error={!!state.errors.texto}
+								helperText={state.errors.texto}
+								onChange={(v) => setState((o) => ({ ...o, form: { ...o.form, texto: v } }))}
 							/>
 						</Grid>
 
@@ -2362,14 +2369,14 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		if (estadoActualForm === "Registrada") {
 			if (provinciaIdSel == null && !provinciaTieneNombre) errors.provincia = "Dato requerido";
 			if (localidadIdSel == null && !localidadTieneNombre) errors.localidad = "Dato requerido";
-			if (!body.correoElectronico) errors.correoElectronico = "Dato requerido";
-			if (!body.telefonoContacto) errors.telefonoContacto = "Dato requerido";
+			if (!body.correo) errors.correo = "Dato requerido";
+			if (!body.telefono) errors.telefono = "Dato requerido";
 		} else {
-			if (!body.nombreDenunciante) errors.nombreDenunciante = "Dato requerido";
+			if (!body.nombre) errors.nombre = "Dato requerido";
 			// Requeridos en alta
 			const isAlta = (mode === "A" || !data?.id);
-			if (isAlta && !body.correoElectronico) errors.correoElectronico = "Dato requerido";
-			if (isAlta && !body.telefonoContacto) errors.telefonoContacto = "Dato requerido";
+			if (isAlta && !body.correo) errors.correo = "Dato requerido";
+			if (isAlta && !body.telefono) errors.telefono = "Dato requerido";
 			if (isAlta && !Number(body.denunciaTipoIngresoId || 0)) {
 				errors.tipoIngreso = "Dato requerido";
 				setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" }));
@@ -2381,8 +2388,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			if (isAlta && !body.ubicacion) errors.ubicacion = "Dato requerido";
 		}
 
-		if (body.correoElectronico && !ValidarEmail(body.correoElectronico)) errors.correoElectronico = errors.correoElectronico || "Dato inválido";
-		if (body.telefonoContacto && !isPossiblePhoneNumber(body.telefonoContacto)) errors.telefonoContacto = errors.telefonoContacto || "Dato inválido";
+		if (body.correo && !ValidarEmail(body.correo)) errors.correo = errors.correo || "Dato inválido";
+		if (body.telefono && !isPossiblePhoneNumber(body.telefono)) errors.telefono = errors.telefono || "Dato inválido";
 		if (body.cuitEmpresa && !ValidarCUIT(body.cuitEmpresa)) errors.cuitEmpresa = "Dato inválido";
 		if (body.cuitEmpresa && !body.razonSocial) errors.razonSocial = "Complete Razón Social";
 
@@ -2437,8 +2444,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
 			}
 
-			if (!body.correoElectronico) errors.correoElectronico = errors.correoElectronico || "Dato requerido";
-			if (!body.telefonoContacto) errors.telefonoContacto = errors.telefonoContacto || "Dato requerido";
+			if (!body.correo) errors.correo = errors.correo || "Dato requerido";
+			if (!body.telefono) errors.telefono = errors.telefono || "Dato requerido";
 			if (!Number(body.denunciaTipoIngresoId || 0)) {
 				errors.tipoIngreso = errors.tipoIngreso || "Dato requerido";
 				try { setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" })); } catch(e) { /*x*/ }
@@ -2472,14 +2479,14 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
 
 		const appDenunciaPayload = {
-			nombre: body.nombreDenunciante || "",
-			correo: body.correoElectronico || "",
-			telefono: body.telefonoContacto || "",
+			nombre: body.nombre || "",
+			correo: body.correo || "",
+			telefono: body.telefono || "",
 
 			provincia: trabPciaSelect?.selected?.record?.nombre || data?.provincia || "",
 			localidad: trabLocaSelect?.selected?.record?.nombre || data?.localidad || "",
 
-			texto: body.detalleDenuncia || "",
+			texto: body.texto || "",
 			foto: "",
 			localidadId: Number(localidadIdSel || 0),
 			denunciaTipoIngresoId: Number(body.denunciaTipoIngresoId || 0),
@@ -2504,8 +2511,6 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		return { appDenunciaPayload, estadoPayload };
 	};
-
-
 
 	const onAgregaDenuncia = () => {
 		setDisableNovedades(true);
