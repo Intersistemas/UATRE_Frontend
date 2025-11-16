@@ -10,8 +10,8 @@ import useQueryState from "components/hooks/useQueryState";
 // import { pick } from "components/helpers/Utils";
 
 /**
- * @typedef {import('components/pages/administracion/delegaciones/Carnet/LotePDF').Delegacion} Delegacion
- * @typedef {import('components/pages/administracion/delegaciones/Carnet/LotePDF').AfiliadoDelegado} AfiliadoDelegado
+ * @typedef {import('components/pages/administracion/delegaciones/carnet/LotePDF').Delegacion} Delegacion
+ * @typedef {import('components/pages/administracion/delegaciones/carnet/LotePDF').AfiliadoDelegado} AfiliadoDelegado
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
  */
 

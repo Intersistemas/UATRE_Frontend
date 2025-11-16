@@ -10,4 +10,3 @@ const FormatearFecha = (fecha) => {
 };
 
 export default FormatearFecha;
- 

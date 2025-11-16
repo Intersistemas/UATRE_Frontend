@@ -63,7 +63,7 @@ const LiquidacionesCabeceraDetails = ({ data = {} }) => {
 					value={Formato.Moneda(data.totalRemuneraciones)}
 				/>
 				<MyInputMaterial
-					label="Aporte"
+					label="Capital"
 					value={Formato.Moneda(data.totalAporte)}
 				/>
 				<MyInputMaterial

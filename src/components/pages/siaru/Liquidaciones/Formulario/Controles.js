@@ -530,7 +530,7 @@ const Controles = ({
 					</Grid>
 					<Grid gap={`${gap}px`} full="width">
 						<InputMaterial
-							label="Aporte"
+							label="Capital"
 							value={valor(Formato.Moneda(calculados.interesNeto))}
 							disabled
 						/>

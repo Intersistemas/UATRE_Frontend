@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 // import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
@@ -10,6 +10,8 @@ import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 import styles from "./Localizar.module.css";
 import moment from "moment";
+import useAmbitos from 'components/hooks/useAmbitos';
+import AuthContext from "../../../../store/authContext"; 
 
 const onCloseDef = () => {};
 
@@ -33,6 +35,9 @@ const Localizar = ({ onClose = onCloseDef }) => {
 				return null;
 		}
 	});
+
+	const ambito = useAmbitos().ambitoUser();
+	const Usuario = useContext(AuthContext).usuario;
 
 	const [state, setState] = useState({
 		nroAfiliado: 0,
@@ -62,10 +67,12 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
+					ambitoTodos: {ids: [0]}  //NO TOCAR, LOCALIZA debe consultar los afiliados de TODOS los ambitos sin importar el usaurio logeado
 				},
 			},
 			onOk: ({ index, size, count, data }) =>
 				{
+					console.log("data afiliado selected",data);
 					setAfiliados((o) => ({
 						...o,
 						loading: null,
@@ -215,7 +222,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 									label="CUIL"
 									//mask="99-99.999.999-9"
 									mask={CUITMask}
-									value={afiliados.selected.cuil}
+									value={afiliados.selected.cuilValidado != 0 ? afiliados.selected.cuilValidado : afiliados.selected.cuil}
 								/>
 								<InputMaterialDetail
 									label="Documento"

@@ -1,3 +1,8 @@
+
+// //---------------------------------------------------------------------------------------------
+
+
+
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal } from "react-bootstrap";
@@ -5,88 +10,19 @@ import moment from "moment";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial, { CodSeccional } from "components/ui/Input/InputMaterial";
+import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, {
-	includeSearch,
-	mapOptions,
-} from "components/ui/Select/SearchSelectMaterial";
 import classes from "./EncuestasForm.module.css";
-import useQueryState from "components/hooks/useQueryState";
-import { Dialog, DialogActions, DialogContent, Typography } from "@mui/material";
-import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import FormatearFecha from "components/helpers/FormatearFecha";
-
-//-------------------------------------------------------------------request
-//#region estadoSelect Options
-const estadoDefOption = {};
-const estadoSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion estadoSeccionalSelect Options
-
-//#region provinciaSelect Options
-const provinciaDefOption = {};
-const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion provinciaSelect Options
-
-//#region seccionalesSelect Options
-const seccionalDefOption = {};
-const seccionalSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: `${r.codigo}-${r.descripcion}`, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion seccionalesSelect Options
-
-//#region localidadSelect Options
-const localidadDefOption = {};
-const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codPostal, r.nombre].join(" - "),
-			record: r,
-		}),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion localidadSelect Options
-
-//#region delegacionSelect Options
-const delegacionDefOption = {};
-const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion delegacionSelect Options
-
+import { Dialog,  DialogContent, Typography } from "@mui/material";
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
-const fechaInicio = new Date();
-
 
 
 const SeccionalesForm = ({
 	data = {},
 	title = "",
 	disabled = {},
+	//el hide es para ocultar campos que no se usan en este formulario
 	hide = {},
 	errors = {},
 	onChange = onChangeDef,
@@ -119,14 +55,11 @@ const SeccionalesForm = ({
 		onChange({fechaFinalizacion:  "2099-12-12" || moment(data.fechaFinalizacion).format("YYYY-MM-DD") })
 	},[]);
 
-	//#region Alert
 	const [openDialog, setOpenDialog] = useState(false);
 	const [dialogTexto, setDialogTexto] = useState("");
-	//#endregion
-
 	const [procesando, setProcesando] = useState(loading);
 
-		 //#region Capturo errores
+
 		 useEffect(() => {
 
 			setProcesando(loading);
@@ -136,8 +69,6 @@ const SeccionalesForm = ({
 			  return;
 			}    
 		  }, [errors, loading]);
-		//#endregion
-		//Fecha--------------------------------------------------------------------->
 
 		
 		// Estado para la fecha actual
@@ -164,7 +95,7 @@ const handleFechaChange = (e) => {
   
 	// Validar si la fecha seleccionada es anterior a la actual
 	if (moment(nuevaFecha).isBefore(moment().format("YYYY-MM-DD"))) {
-	  alert("No se puede seleccionar una fecha anterior a la actual.");
+	 console.error("Error: La fecha no puede ser anterior a la fecha actual.");
 	  setfechaFinalizacion(fechaActual); // Restablece a la fecha actual
 	  onChange({ fechaFinalizacion: fechaActual }); // Actualiza en el formulario
 	} else {
@@ -174,9 +105,7 @@ const handleFechaChange = (e) => {
   };
   
 
-		  //___________________________________________________________________________
-
-	//#endregion Carga inicial
+	//___________________________________________________________________________
 	return (
 		<>
 			<div>
@@ -198,13 +127,16 @@ const handleFechaChange = (e) => {
 				<Modal.Body>
 					{ 
 					<Grid col full gap="15px">
-						
+						{/* -----------------------------------------------------
+						ESTOS CAMBIOS SON PARA TODOS LOS FORMULARIOS 
+						\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+						|||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
 						<Grid gap="inherit">
 
 							<InputMaterial
 								type="date"
 								id="fecha"
-								label="Fecha Ingreso"
+								label="Fecha Inicio"
 								value={moment(getValue("fecha")).format("YYYY-MM-DD")}
 								error={!!errors.fecha}
 								helperText={errors.fecha ?? ""}
@@ -216,18 +148,6 @@ const handleFechaChange = (e) => {
 						<Grid gap="inherit">
 							
 
-							{/* <InputMaterial
-								type="date"
-								id="fechaFinalizacion"
-								label="Fecha Fin"
-								value={moment(getValue("fechaFinalizacion")).format("YYYY-MM-DD")}
-								error={!!errors.fechaFinalizacion}
-								helperText={errors.fechaFinalizacion ?? ""}
-								onChange={(fechaFinalizacion)=>onChange({fechaFinalizacion})}
-								disabled={disabled.fechaFinalizacion ?? false}
-								
-							/>		 */}
-
 								<InputMaterial
 								type="date"
 								id="fechaFinalizacion"
@@ -237,10 +157,14 @@ const handleFechaChange = (e) => {
 								helperText={errors.fechaFinalizacion ?? ""}
 								onChange={handleFechaChange} // Usa la función corregida
 								disabled={disabled.fechaFinalizacion ?? false}
-								inputProps={{
-									min: fechaActual, // No permite fechas anteriores a hoy
-								}}
+								
 								/>
+								{errors.fechaFinalizacion && (
+									<div style={{ color: "red", fontSize: "13px", marginTop: "4px" }}>
+										{errors.fechaFinalizacion}
+									</div>
+									)}
+
 				
 						</Grid>
 						<Grid width="full" gap="inherit">
@@ -254,14 +178,17 @@ const handleFechaChange = (e) => {
 					 			onChange={(value, _id) => onChange({ tema: value })}
 					 		/>
 							
-						</Grid>
+						</Grid> 
+
+						{/* -----------------------------------------------------
+						\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+						|||||||||||||||||||||||||||||||||||||||||||||||||||||||| */}
 						
 					
 
 
 
-
-
+						{/* esta condicion !hide.deletedObs, me permite ocultar el campo de observaciones de baja */}
 						{!hide.deletedObs && (
 							<>
 								<div className={classes.item7}>
@@ -324,6 +251,6 @@ const handleFechaChange = (e) => {
 export default SeccionalesForm;
 
 
-//---------------------------------------------------------------------------------------------
+// //---------------------------------------------------------------------------------------------
 
 

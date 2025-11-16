@@ -1,0 +1,558 @@
+================================================================================
+REGISTRO DE CAMBIOS - MÓDULO DE DENUNCIAS
+================================================================================
+Fecha: 4-5 de Noviembre de 2025
+Rama: Dev_Maxi_250124
+Desarrollador: Asistente GitHub Copilot
+
+================================================================================
+ARCHIVOS MODIFICADOS
+================================================================================
+
+1. useDenuncias.js
+   Ruta: src/components/pages/app/Denuncias/useDenuncias.js
+   
+2. DenunciasHandler.js
+   Ruta: src/components/pages/app/Denuncias/DenunciasHandler.js
+
+3. filtroAmbitoDenuncias.js
+   Ruta: src/components/pages/app/Denuncias/filtroAmbitoDenuncias.js
+   (Este archivo ya existía, NO se modificó pero se usa activamente)
+
+================================================================================
+CAMBIOS DETALLADOS POR ARCHIVO
+================================================================================
+
+───────────────────────────────────────────────────────────────────────────────
+📄 ARCHIVO: useDenuncias.js
+───────────────────────────────────────────────────────────────────────────────
+
+PROBLEMA INICIAL:
+- La paginación no funcionaba (traía todos los datos en una sola página)
+- Mostraba 15 registros por página (requerimiento: 10 registros)
+- La columna "Estado" no mostraba datos
+- No había filtros por estado ni fecha
+
+CAMBIOS REALIZADOS:
+
+1. PAGINACIÓN CLIENT-SIDE (Líneas ~130-320)
+   ─────────────────────────────
+   ANTES: 
+   - Llamaba al endpoint /AppDenuncias con parámetro Page
+   - El backend no respetaba la paginación
+   
+   AHORA:
+   - Carga TODOS los datos desde /AppDenuncias (sin parámetro Page)
+   - Aplica paginación localmente usando Array.slice()
+   - Tamaño de página: 10 registros (antes era 15)
+   - Calcula: startIndex = (pageIndex - 1) * pageSize
+   - Extrae: dataPaginada = datos.slice(startIndex, endIndex)
+
+2. CARGA Y MERGE DE ESTADOS (Líneas ~185-270)
+   ──────────────────────────────
+   AGREGADO:
+   - Después de cargar denuncias, llama al endpoint /DenunciasEstados
+   - Crea un mapa: { appDenunciasId: {estado, fecha, observaciones} }
+   - Combina estados con denuncias usando el ID
+   - Mantiene el estado más reciente si hay múltiples
+   - Agrega propiedades: estado, fechaEstado, observacionesEstado
+   
+   Código clave:
+   ```javascript
+   pushQuery({
+     action: "GetEstados",
+     params: {},
+     onOk: async (responseEstados) => {
+       // Crear mapa de estados
+       const estadosMap = {};
+       estados.forEach(item => {
+         estadosMap[item.appDenunciasId] = {
+           estado: item.estado,
+           fecha: item.fecha,
+           observaciones: item.observaciones
+         };
+       });
+       
+       // Combinar con denuncias
+       const dataConEstados = denuncias.map(denuncia => ({
+         ...denuncia,
+         estado: estadosMap[denuncia.id]?.estado || "Sin datos"
+       }));
+     }
+   });
+   ```
+
+3. FILTRO POR ESTADO (Líneas ~340-395)
+   ────────────────────
+   AGREGADO:
+   - Nuevo parámetro: filtroEstado
+   - useEffect que escucha cambios en filtroEstado
+   - Filtra denuncias donde item.estado === filtroEstado
+   - Filtro exacto (no usa includes, usa igualdad estricta)
+   - Se aplica automáticamente al cambiar el selector
+
+4. FILTRO POR FECHAS (Líneas ~360-380)
+   ────────────────────
+   AGREGADO:
+   - Nuevos parámetros: filtroFechaDesde, filtroFechaHasta
+   - Filtra sobre el campo denuncia.fecha (no fechaEstado)
+   - Compara fechas en formato YYYY-MM-DD (slice(0,10))
+   - filtroFechaDesde: item.fecha >= filtroFechaDesde
+   - filtroFechaHasta: item.fecha <= filtroFechaHasta
+   - Filtros combinables con estado
+
+5. FILTRO POR ÁMBITO (Líneas ~163-180)
+   ───────────────────
+   AGREGADO:
+   - Nuevos parámetros: usuarioAmbito, applyAmbitoFilter
+   - Se aplica ANTES de la paginación y otros filtros
+   - Llama a función externa: applyAmbitoFilter(data, usuarioAmbito)
+   - Filtra según seccional o delegación del usuario
+   - Los resultados se guardan en dataOriginal
+
+6. RE-PAGINACIÓN (Líneas ~433-465)
+   ──────────────
+   AGREGADO:
+   - useEffect adicional para cambios de página sin filtros
+   - Se ejecuta cuando cambia pagination.index o pagination.size
+   - Solo si NO hay filtros activos
+   - Actualiza pagination.count correctamente
+
+7. NORMALIZACIÓN DE RESPUESTAS API
+   ────────────────────────────────
+   AGREGADO:
+   - Maneja respuestas como array: [...]
+   - Maneja respuestas como objeto: { data: [...] }
+   - Código defensivo para evitar errores
+
+8. LOGS DE DEBUG
+   ──────────────
+   AGREGADO múltiples console.log para seguimiento:
+   - 🔧 DEBUG useDenuncias - Parámetros recibidos
+   - 🔍 Iniciando carga de denuncias
+   - 📊 Total de registros recibidos del API
+   - 🚀 Aplicando filtro por ámbito
+   - 🔐 Filtro por ámbito aplicado
+   - 🔄 Cargando estados de las denuncias
+   - 📥 Estados recibidos
+   - 🔗 COMBINAR ESTADOS CON DENUNCIAS
+   - 🔎 Aplicando filtros
+   - ✅ Filtro por [Estado/Fecha] aplicado
+   - 📄 Paginación aplicada
+
+9. PARÁMETROS DEL HOOK
+   ────────────────────
+   AGREGADOS:
+   - filtroEstado = null
+   - filtroFechaDesde = null
+   - filtroFechaHasta = null
+   - usuarioAmbito = null
+   - applyAmbitoFilter = null
+   
+   ELIMINADOS:
+   - filtroIds (ya no se usa)
+   - hayFiltroActivo (ya no se usa)
+
+10. ESTADO INTERNO
+    ──────────────
+    AGREGADO:
+    - dataOriginal: almacena el dataset completo filtrado por ámbito
+    
+    MODIFICADO:
+    - pagination.size: cambiado de 15 a 10
+
+───────────────────────────────────────────────────────────────────────────────
+📄 ARCHIVO: DenunciasHandler.js
+───────────────────────────────────────────────────────────────────────────────
+
+CAMBIOS REALIZADOS:
+
+1. ELIMINACIÓN DE COLUMNA "FECHA DE BAJA" (Línea ~350)
+   ─────────────────────────────────────────
+   ELIMINADO:
+   - Definición de columna deletedDate en el array columns
+   - Código eliminado:
+   ```javascript
+   {
+     dataField: "deletedDate",
+     text: "Fecha de baja",
+     formatter: Formato.Fecha,
+     style: { width: "120px" }
+   }
+   ```
+
+2. ELIMINACIÓN DE IMPORT INNECESARIO (Línea ~5)
+   ──────────────────────────────────
+   ELIMINADO:
+   - import Formato from "components/helpers/Formato"
+   (Ya no se necesita porque deletedDate usaba Formato.Fecha)
+
+3. ESTADO LOCAL PARA FILTROS (Líneas ~600-602)
+   ────────────────────────────
+   AGREGADO:
+   - const [fechaDesde, setFechaDesde] = useState(null)
+   - const [fechaHasta, setFechaHasta] = useState(null)
+
+4. ELIMINACIÓN DE LÓGICA DE FILTRO POR ENDPOINT (Líneas ~200-250)
+   ────────────────────────────────────────────────
+   ELIMINADO COMPLETAMENTE:
+   - Hook pushQueryEstados
+   - Estado denunciasParamsEdit
+   - Estado denunciasParamsSend
+   - Estado denunciasIdsPorEstado
+   - useEffect que llamaba a /DenunciasEstados para filtrar
+   - Toda la lógica de "Aplica filtro" por endpoint
+
+5. SIMPLIFICACIÓN DE UI DE FILTROS (Líneas ~720-780)
+   ──────────────────────────────────────
+   ANTES: Grid con 5 columnas
+   - Selector Estado | Desde | Hasta | Aplica Filtro | Limpia Filtros
+   
+   AHORA: Grid con 4 columnas
+   - Selector Estado | Desde | Hasta | Limpia Filtros
+   
+   CAMBIO en grid:
+   ANTES: grid="auto / 1fr 180px 180px 200px 200px"
+   AHORA: grid="auto / 1fr 180px 180px 150px"
+
+6. ELIMINACIÓN DEL BOTÓN "APLICA FILTRO"
+   ────────────────────────────────────
+   ELIMINADO:
+   - Button "Aplica filtro"
+   - Función onClick que activaba hayFiltroActivo
+   
+   RAZÓN: Los filtros ahora se aplican automáticamente al cambiar
+
+7. MODIFICACIÓN DE INVOCACIÓN useDenuncias (Líneas ~690-700)
+   ──────────────────────────────────────────────
+   ELIMINADO de parámetros:
+   - filtroIds: denunciasIdsPorEstado
+   - hayFiltroActivo: hayFiltroActivo
+   
+   AGREGADO a parámetros:
+   - filtroEstado: estadoSelect.selected?.value || null
+   - filtroFechaDesde: fechaDesde
+   - filtroFechaHasta: fechaHasta
+   - usuarioAmbito: usuarioAmbito
+   - applyAmbitoFilter: applyAmbitoFilter
+
+8. CONFIGURACIÓN DE ÁMBITO DE USUARIO (Líneas ~449-495)
+   ────────────────────────────────────────────
+   MODIFICADO:
+   - Detección de estructura de ámbitos con propiedad .ids
+   
+   ANTES:
+   ```javascript
+   if (usuario.ambitoSeccionales && usuario.ambitoSeccionales.length > 0) {
+     const seccionalId = usuario.ambitoSeccionales[0];
+   ```
+   
+   AHORA:
+   ```javascript
+   const seccionalesIds = usuario.ambitoSeccionales?.ids || usuario.ambitoSeccionales;
+   if (seccionalesIds && Array.isArray(seccionalesIds) && seccionalesIds.length > 0) {
+     const seccionalId = seccionalesIds[0];
+   ```
+   
+   RAZÓN: El API devuelve ámbitos como { ids: [104491] } no como [104491]
+   
+   MISMO CAMBIO aplicado para:
+   - ambitoSeccionales
+   - ambitoDelegaciones
+
+9. NORMALIZACIÓN DE RESPUESTA /EncuestaRespuestas (Líneas ~562-580)
+   ────────────────────────────────────────────────────────────────
+   MODIFICADO:
+   - Manejo de respuesta del endpoint GetDenuncia
+   
+   ANTES:
+   ```javascript
+   onOk: async (data) => {
+     if (!Array.isArray(data)) return console.error("Se esperaba un arreglo", { data });
+   ```
+   
+   AHORA:
+   ```javascript
+   onOk: async (response) => {
+     let data = Array.isArray(response) ? response : response?.data || [];
+     if (!Array.isArray(data)) {
+       console.error("Se esperaba un arreglo", { response });
+       data = [];
+     }
+   ```
+   
+   RAZÓN: El endpoint devuelve { data: [...] } no un array directo
+
+10. BOTÓN "LIMPIA FILTROS" (Líneas ~760-770)
+    ──────────────────────────────────────
+    MODIFICADO:
+    - Ahora resetea también fechaDesde y fechaHasta
+    
+    Código:
+    ```javascript
+    onClick={() => {
+      setEstadoSelect({
+        ...estadoSelect,
+        selected: estadoTodos,
+      });
+      setFechaDesde(null);
+      setFechaHasta(null);
+    }}
+    ```
+
+───────────────────────────────────────────────────────────────────────────────
+📄 ARCHIVO: filtroAmbitoDenuncias.js (SIN MODIFICACIONES)
+───────────────────────────────────────────────────────────────────────────────
+
+NOTA: Este archivo YA EXISTÍA y NO fue modificado en esta sesión.
+
+FUNCIONALIDAD:
+- Exporta función: applyAmbitoFilter(denuncias, usuarioAmbito)
+- Filtra denuncias según ámbito del usuario autenticado
+- Maneja dos tipos de ámbito:
+  
+  1. SECCIONAL:
+     - Muestra solo denuncias con derivadoATipo="Seccional" y derivadoAId=seccionalId
+  
+  2. DELEGACIÓN:
+     - Carga todas las seccionales desde /Seccional
+     - Filtra seccionales con refDelegacionId=delegacionId
+     - Muestra denuncias de:
+       * Delegación directa (derivadoATipo="Delegacion" y derivadoAId=delegacionId)
+       * Todas las seccionales de esa delegación
+  
+- Incluye cache de seccionales (5 minutos) para optimizar
+- Usa .toLowerCase() en comparaciones para evitar problemas de case
+- Manejo de errores robusto
+
+================================================================================
+FLUJO DE DATOS COMPLETO
+================================================================================
+
+1. CARGA INICIAL
+   ↓
+   useDenuncias → pushQuery("GetList") → /AppDenuncias
+   ↓
+   Recibe TODAS las denuncias (sin paginación)
+
+2. FILTRO POR ÁMBITO
+   ↓
+   Si usuarioAmbito existe:
+     → applyAmbitoFilter(denuncias, usuarioAmbito)
+     → Filtra por seccional o delegación
+     → Guarda en dataOriginal
+
+3. CARGA DE ESTADOS
+   ↓
+   pushQuery("GetEstados") → /DenunciasEstados
+   ↓
+   Recibe todos los estados
+   ↓
+   Crea mapa: { appDenunciasId: {estado, fecha, observaciones} }
+   ↓
+   Merge con denuncias: denuncia.estado = estadosMap[denuncia.id].estado
+   ↓
+   Actualiza dataOriginal con estados
+
+4. FILTROS MANUALES (si aplica)
+   ↓
+   Filtro por Estado: item.estado === filtroEstado
+   ↓
+   Filtro por Fecha Desde: item.fecha >= filtroFechaDesde
+   ↓
+   Filtro por Fecha Hasta: item.fecha <= filtroFechaHasta
+   ↓
+   datosFiltrados = datos después de todos los filtros
+
+5. PAGINACIÓN CLIENT-SIDE
+   ↓
+   startIndex = (pageIndex - 1) * pageSize
+   endIndex = startIndex + pageSize
+   dataPaginada = datosFiltrados.slice(startIndex, endIndex)
+   ↓
+   Actualiza list.data con dataPaginada
+   ↓
+   Actualiza list.pagination.count con total filtrado
+
+6. RENDER
+   ↓
+   DenunciasTable muestra dataPaginada
+   ↓
+   Usuario puede:
+   - Cambiar página → Re-paginar sobre datosFiltrados
+   - Cambiar filtros → Volver al paso 4
+   - Limpiar filtros → Volver al paso 5 (sin filtros)
+
+================================================================================
+CARACTERÍSTICAS IMPLEMENTADAS
+================================================================================
+
+✅ Paginación client-side (10 registros por página)
+✅ Columna Estado poblada desde /DenunciasEstados
+✅ Filtro por Estado (exacto, automático)
+✅ Filtro por rango de fechas (desde/hasta)
+✅ Filtro por ámbito de usuario (seccional/delegación)
+✅ Filtros combinables (ámbito + estado + fechas)
+✅ Aplicación automática de filtros (sin botón "Aplica")
+✅ Botón "Limpia filtros" funcional
+✅ Merge de datos de múltiples endpoints
+✅ Normalización de respuestas API
+✅ Detección correcta de estructura de ámbitos ({ ids: [...] })
+✅ Logs de debug detallados
+✅ Manejo de errores robusto
+✅ Cache de seccionales (5 minutos)
+
+================================================================================
+TESTS REALIZADOS Y CONFIRMADOS
+================================================================================
+
+✅ Paginación muestra exactamente 10 registros por página
+✅ Cambio de página funciona correctamente
+✅ Columna Estado muestra datos con estilos de color
+✅ Filtro "Todos los estados" muestra todas las denuncias
+✅ Filtro por estado específico muestra solo matching denuncias
+✅ Filtro por fecha desde funciona correctamente
+✅ Filtro por fecha hasta funciona correctamente
+✅ Filtros combinados (estado + fechas) funcionan juntos
+✅ Botón "Limpia filtros" resetea todos los filtros
+✅ Paginación se mantiene correcta con filtros activos
+✅ Ámbito de seccional filtra correctamente
+✅ Ámbito de delegación filtra correctamente (delegación + seccionales)
+✅ No hay errores en consola
+✅ Contador de paginación se actualiza correctamente
+
+================================================================================
+MEJORAS TÉCNICAS APLICADAS
+================================================================================
+
+1. ARQUITECTURA
+   - Separación de concerns: filtrado, paginación, carga de datos
+   - Client-side filtering/pagination más predecible
+   - Single source of truth: dataOriginal
+
+2. PERFORMANCE
+   - Cache de seccionales (evita llamadas repetidas)
+   - Filtros aplicados en memoria (no API calls)
+   - Paginación en memoria (no API calls)
+
+3. UX
+   - Filtros automáticos (feedback inmediato)
+   - Sin botón "Aplica filtro" innecesario
+   - Mensajes claros de "sin datos"
+   - Logs de debug para troubleshooting
+
+4. MANTENIBILIDAD
+   - Código defensivo (normalización de respuestas)
+   - Logs detallados para debugging
+   - Comentarios explicativos en código
+   - Separación de lógica de filtro de ámbito
+
+5. ROBUSTEZ
+   - Manejo de errores en cada paso
+   - Fallbacks para datos faltantes
+   - Validación de tipos de datos
+   - Compatibilidad con múltiples formatos de API
+
+================================================================================
+CONFIGURACIÓN DE ENDPOINTS UTILIZADOS
+================================================================================
+
+1. /AppDenuncias (GET)
+   - Método: GET
+   - BaseURL: "App"
+   - Retorna: Array de denuncias o { data: [...] }
+   - Campos clave: id, fecha, nombre, estado, derivadoATipo, derivadoAId
+
+2. /DenunciasEstados (GET)
+   - Método: GET
+   - BaseURL: "App"
+   - Retorna: Array de estados o { data: [...] }
+   - Campos clave: appDenunciasId, estado, fecha, observaciones
+
+3. /Seccional (GET)
+   - Método: GET
+   - BaseURL: "Afiliaciones"
+   - Retorna: Array de seccionales
+   - Campos clave: id, codigo, descripcion, refDelegacionId
+   - Usado por: filtroAmbitoDenuncias.js
+
+4. /EncuestaRespuestas (GET)
+   - Método: GET
+   - BaseURL: "App"
+   - Retorna: Array o { data: [...] }
+   - Usado para: selector auxiliar en DenunciasHandler
+
+================================================================================
+ESTRUCTURA DE DATOS USUARIO
+================================================================================
+
+Objeto usuario esperado:
+```javascript
+{
+  ambitoTodos: null | true,
+  ambitoSeccionales: {
+    ids: [104491, ...]
+  } | [104491, ...] | null,
+  ambitoDelegaciones: {
+    ids: [163, ...]
+  } | [163, ...] | null,
+  ambitoProvincias: null | {...}
+}
+```
+
+Lógica de prioridad:
+1. Si ambitoTodos → Sin filtro (todas las denuncias)
+2. Si ambitoSeccionales → Filtrar por seccional específica
+3. Si ambitoDelegaciones → Filtrar por delegación + sus seccionales
+4. Si ambitoProvincias → Sin implementar (sin filtro)
+5. Si ninguno → Sin filtro
+
+================================================================================
+COMPATIBILIDAD CON VERSIONES ANTERIORES
+================================================================================
+
+❌ BREAKING CHANGES:
+- Eliminada columna "Fecha de baja" (deletedDate)
+- Eliminados parámetros: filtroIds, hayFiltroActivo
+- Cambiado comportamiento de paginación (ahora client-side)
+
+✅ COMPATIBILIDAD MANTENIDA:
+- Todos los demás campos de denuncias
+- Interfaz de usuario similar
+- Endpoints sin cambios
+- Funcionalidades de alta/baja/modificación intactas
+
+================================================================================
+PRÓXIMOS PASOS SUGERIDOS (FUTURO)
+================================================================================
+
+1. Implementar filtro por ámbito de Provincia
+2. Agregar exportación a CSV/Excel de denuncias filtradas
+3. Considerar virtualización para datasets muy grandes (>1000 registros)
+4. Agregar debouncing en filtros de fecha para optimizar renders
+5. Implementar búsqueda por texto libre (nombre, CUIT, etc.)
+6. Agregar ordenamiento por columnas en tabla
+7. Persistir filtros en localStorage para mantener entre sesiones
+8. Agregar indicadores visuales de filtros activos
+9. Implementar filtros por múltiples estados (multi-select)
+10. Agregar gráficos/estadísticas de denuncias por estado
+
+================================================================================
+CONTACTO Y SOPORTE
+================================================================================
+
+Para preguntas sobre estos cambios:
+- Revisar este archivo de documentación
+- Consultar los logs de debug en consola del navegador
+- Revisar comentarios en código de los archivos modificados
+
+Archivos clave para entender el sistema:
+1. useDenuncias.js - Lógica principal de datos y filtros
+2. DenunciasHandler.js - Componente principal y UI
+3. filtroAmbitoDenuncias.js - Lógica de filtrado por ámbito
+4. DenunciasTable.js - Renderizado de tabla (sin cambios)
+5. DenunciasForm.js - Formulario CRUD (sin cambios)
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================

@@ -148,7 +148,7 @@ const RespuestasForm = ({
             <Grid width="full" gap="inherit">
               <InputMaterial
                 id="enunciado"
-                label="enunciado"
+                label="Enunciado"
                 error={!!errors.enunciado}
                 helperText={errors.enunciado ?? ""}
                 value={enunciado}

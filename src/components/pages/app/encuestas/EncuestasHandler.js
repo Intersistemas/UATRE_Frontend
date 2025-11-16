@@ -1,1048 +1,366 @@
 
-// import React, { useEffect, useState } from "react";
-// import { useDispatch } from "react-redux";
-// import { handleModuloSeleccionar } from "redux/actions";
-// import { Tabs, Tab } from "@mui/material";
-// import useRespuestas from "components/pages/app/encuestas/respuestas/useRespuestas";
-// import Action from "components/helpers/Action";
-// import useQueryState from "components/hooks/useQueryState";
-// import useTareasUsuario from "components/hooks/useTareasUsuario";
-// import KeyPress from "components/keyPress/KeyPress";
-// import usePreguntas from "components/pages/app/encuestas/preguntas/usePreguntas";
-// import Button from "components/ui/Button/Button";
-// import Grid from "components/ui/Grid/Grid";
-// import InputMaterial from "components/ui/Input/InputMaterial";
-// import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
-// import useSeccionales, { onLoadSelectKeepOrFirst } from "./useEncuestas";
-
-
-
-
-// //#region estadoSeccionalSelectPregunta Options
-// const estadoPregunta = { label: "Todos" };
-// const estadoSeccionalPreguntas = ({ data = [], buscar = "", ...x }) =>
-// 	mapOptions({
-// 		data,
-// 		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-// 		start: [estadoPregunta],
-// 		filter: (r) => includeSearch(r, buscar),
-// 		...x,
-// 	});
-// //___________________________________________________________________
-// const estadoRespuesta2 = { label: "Todos" };
-// const estadoSeccionalRespuestas = ({ data2 = [], buscar = "", ...x }) =>
-// 	mapOptions({
-// 		data2,
-// 		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-// 		start: [estadoRespuesta2],
-// 		filter: (r) => includeSearch(r, buscar),
-// 		...x,
-// 	});
-// //_________________________________________________________________
-
-
-// //#region respuestaSelect Options
-// const RespuestasTodas = { label: "Todas" };
-// const respuestaSelectOptions = ({ data = [], buscar = "", ...x }) =>
-// 	mapOptions({
-// 		data,
-// 		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-// 		start: [RespuestasTodas],
-// 		filter: (r) => includeSearch(r, buscar),
-// 		...x,
-// 	});
-// //#endregion respuestaSelect Options
-
-// const EncuestasHandler = () => {
-// 	const dispatch = useDispatch();
-
-// 	const { setState: setEstadosPreguntaSeccionalesQuery } = useQueryState(
-// 		() => ({
-// 			config: { 
-// 				baseURL: "App",
-// 				// endpoint: `/Encuestas`,
-// 				endpoint: `/Encuestas?Include=preguntas`,
-				
-// 				method: "GET",
-// 			},
-// 		}),
-// 		{ query: { config: { errorType: "response" } } }
-// 	);
-
-// 	//______________________________________________________________
-// 	const { setState: setEstadosRespuestaSeccionalesQuery2 } = useQueryState(
-// 		() => ({
-// 			config: {
-// 				baseURL: "App",
-// 				endpoint: "/Encuestas?Include=preguntas",
-// 				method: "GET",
-// 			},
-// 		}),
-// 		{ query: { config: { errorType: "response" } } }
-// 	);
-// 	//______________________________________________________________
-
-
-// 	const tabs = [];
-// 	const [tab, setTab] = useState(0);
-
-// 	const tarea = useTareasUsuario();
-// 	const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
-	
-
-
-// 	const [estadoSeccionalSelectPregunta, setEstadoSeccionallSelectPregunta] = useState({
-// 		loading: "Cargando...",
-// 		buscar: "",
-// 		data: [],
-// 		error: null,
-// 		options: [],
-// 		selected: estadoPregunta,
-// 		origen: "",
-// 	});
-// 	// Buscador
-// 	useEffect(() => {
-// 		setEstadoSeccionallSelectPregunta((o) => ({
-// 			...o,
-// 			options: estadoSeccionalPreguntas(o),
-// 		}));
-// 	}, [estadoSeccionalSelectPregunta.buscar, estadoSeccionalSelectPregunta.data]);
-
-
-// 	//____________________________________________________________________
-
-// 		const [estadoSeccionalSeelectRespuesta, setEstadoSeccionalSelecRespuestas] = useState({
-// 			loading: "Cargando...",
-// 			buscar: "",
-// 			data2: [],
-// 			error: null,
-// 			options: [],
-// 			selected: estadoRespuesta2,
-// 			origen: "",
-// 		});
-// 		// Buscador
-// 		useEffect(() => {
-// 			setEstadoSeccionallSelectPregunta((o) => ({
-// 				...o,
-// 				options: estadoSeccionalRespuestas(o),
-// 			}));
-// 		}, [estadoSeccionalSeelectRespuesta.buscar, estadoSeccionalSeelectRespuesta.data2]);
-
-// 	//_____________________________________________________________________
-
-
-	
-// 	const [respuestaSelect, setRespuestaSelect] = useState({
-// 		loading: "Cargando...",
-// 		buscar: "",
-// 		data: [],
-// 		error: null,
-// 		options: [],
-// 		selected: RespuestasTodas,
-// 		origen: "",
-// 	});
-// 	// Buscador
-// 	useEffect(() => {
-// 		setRespuestaSelect((o) => ({
-// 			...o,
-// 			options: respuestaSelectOptions(o),
-// 		}));
-// 	}, [respuestaSelect.buscar, respuestaSelect.data]);
-
-	
-// 	//#region Tab Seccionales
-
-// 	const [seccionalesParamsSend, setSeccionalesParamsSend] = useState({});
-// 	const {
-// 		render: seccionalesTab,
-// 		request: seccionalChanger,
-// 		selected: seccionalSelected,
-// 	} = useSeccionales();
-
-
-
-// 	//___________________________________________________________________
-
-// 	const [seccionalesParamsSend2, setSeccionalesParamsSend2] = useState({});
-// 	const {
-// 		render: seccionalesTab2,
-// 		request: seccionalChanger2,
-// 		selected: seccionalSelected2,
-// 	} = useSeccionales();
-// 	//___________________________________________________________________
-
-// 	const [seccionalesActions, setSeccionalesActions] = useState([]);
-	
-// 	useEffect(() => {
-// 		console.log("seccionalSelected",seccionalSelected)
-// 		const createAction = ({ action, request, ...x }) =>
-// 			new Action({
-// 				name: action,
-// 				onExecute: (action) => seccionalChanger("selected", { request, action }),
-// 				combination: "AltKey",
-// 				...x,
-// 			});
-// 			//ººººººººººººººººººººººººººººººººººººººººººººººººººººººººº
-// 		const actions = [
-// 			createAction({
-// 				action: `Agrega Encuesta`,
-// 				request: "A",
-// 				tarea: "Datos_EncuestaAgrega",
-// 				keys: "a",
-// 				underlineindex: 0,
-// 			}),
-// 		];
-// 		const desc = seccionalSelected?.tema;
-
-// 		actions.push(
-// 			createAction({
-// 				action: `Consulta Encuesta ${desc}`,
-// 				request: "C",
-// 				tarea: "Datos_EncuestaConsulta",
-// 				...(!seccionalSelected?.id ? 
-// 					{disabled:  true}
-// 					:
-// 					{ 
-// 					 disabled:  false,
-// 					 keys: "o",
-// 					 underlineindex: 1
-// 					}
-// 				)
-		
-// 			})
-// 		);
-// 		actions.push(
-// 			createAction({
-// 				action: `Modifica Encuesta ${desc}`,
-// 				request: "M",
-// 				tarea: "Datos_EncuestaModifica",
-
-// 				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
-// 					{disabled:  true}
-// 					:
-// 					{
-// 					 disabled:  false,
-// 					 keys: "m",
-// 					 underlineindex: 0
-// 					}
-// 				)
-// 			})
-// 		);
-// 		actions.push(
-// 			createAction({
-// 				action: `Baja Encuesta ${desc}`,
-// 				request: "B",
-// 				tarea: "Datos_EncuestaBaja",
-
-// 				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
-// 					{disabled:  true}
-// 					:
-// 					{
-// 					 disabled:  false,
-// 					 keys: "b",
-// 					 underlineindex: 0
-// 					}
-// 				)
-// 			})
-// 		);
-		
-// 		setSeccionalesActions(actions); //cargo todas las acciones / botones
-// 	}, [seccionalChanger, seccionalSelected]);
-
-// 	tabs.push({
-// 		header: () => <Tab label="Encuestas" />,
-// 		body: () => (
-// 			<Grid col gap="inherit">
-// 				<Grid width gap="inherit">
-// 					{seccionalesTab()}
-// 				</Grid>
-// 			</Grid>
-// 		),
-// 		actions: seccionalesActions,
-// 	});
-
-// 	useEffect(() => {
-// 		seccionalChanger("list", { params: seccionalesParamsSend, pagination: { index: 1, size: 15 },
-// 			onLoadSelect: onLoadSelectKeepOrFirst, });
-// 	}, [seccionalChanger, seccionalesParamsSend]);
-
-
-// 	//_________________________________________________________________________________________
-
-
-// 	useEffect(() => {
-// 		seccionalChanger2("list", { params: seccionalesParamsSend2, pagination: { index: 1, size: 15 },
-// 			onLoadSelect: onLoadSelectKeepOrFirst, });
-// 	}, [seccionalChanger2, seccionalesParamsSend2]);
-
-// 	//__________________________________________________________________________________________
-
-
-
-// 		//#region Carga inicial select estado seccional
-// 		useEffect(() => {
-// 			setEstadosPreguntaSeccionalesQuery((o) => ({
-// 				...o,
-// 				onLoad: ({ ok, error }) => {
-// 					let data = [];
-// 					if (Array.isArray(ok)) data = ok;
-// 					console.log("D1:", ok);
-					
-// 					setEstadoSeccionallSelectPregunta((o) => ({
-// 						...o,
-// 						loading: null,
-// 						data,
-// 						error: error?.toString(),
-// 					}));
-// 				},
-// 			}));
-// 		}, [setEstadosPreguntaSeccionalesQuery]);
-
-
-
-
-
-// 	//______________________________________________________________
-// 	useEffect(() => {
-// 		setEstadosRespuestaSeccionalesQuery2((o) => ({
-// 			...o,
-// 			onLoad: ({ ok, error }) => {
-// 				let data2 = [];
-// 				if (Array.isArray(ok?.data)) data2 = [...ok.data]; // Copia los datos de ok.data si es un array
-// 				console.log("Data de Respuestas, desde EncuestaHandler:", data2);
-	
-// 				setEstadoSeccionalSelecRespuestas((o) => ({
-// 					...o,
-// 					loading: null,
-// 					data2,  // Ahora data2 tiene los valores de ok.data (si existían)
-// 					error: error?.toString(),
-// 				}));
-// 			},
-// 		}));
-// 	}, [setEstadosRespuestaSeccionalesQuery2]);
-	
-// 	//_________________________________________________________________
-
-
-
-// 	//#region Tab Autoridades
-// 	const [preguntasTab, preguntasChanger, preguntasSelected] = usePreguntas();
-// 	const [autoridadesActions, setAutoridadesActions] = useState([]);
-// 	useEffect(() => {
-
-// 		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada1:", preguntasSelected)
-// 		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada2:", seccionalSelected)
-// 		const actions = [];
-// 		const secc = seccionalSelected?.tema ?? "";
-// 		if (!secc) {
-// 			setAutoridadesActions(actions);
-// 			return;
-// 		}
-// 		//Pasando como props
-
-// 		const seccDesc = `para Encuesta ${secc}`;
-// 		const createAction = ({ action, request, ...x }) =>
-// 			new Action({
-// 				name: action,
-// 				onExecute: (action) =>
-// 					preguntasChanger("selected", {
-// 						request,
-// 						action,
-// 						record: { seccionalId: seccionalSelected?.id },
-// 					}),
-// 				combination: "AltKey",
-// 				...x,
-// 			});
-// 		actions.push(
-// 			createAction({
-// 				action: `Agrega Pregunta ${seccDesc}`,
-// 				request: "A",
-// 				tarea: "Datos_SeccionalAutoridadesAgrega",
-// 				disabled:  false,
-// 				keys: "a",
-// 				underlineindex: 0
-// 			})
-// 		);
-// 		actions.push(
-// 			createAction({
-// 				action: `Modificar Pregunta ${seccDesc}`,
-// 				request: "M",
-// 				tarea: "Datos_SeccionalAutoridadesModificar",
-// 				disabled:  false,
-// 				keys: "m",
-// 				underlineindex: 0
-				
-// 			})
-// 		);
-// 		actions.push(
-// 			createAction({
-// 				action: `Bajar Pregunta ${seccDesc}`,
-// 				request: "B",
-// 				tarea: "Datos_SeccionalAutoridadesBajar",
-// 				disabled:  false,
-// 				keys: "b",
-// 				underlineindex: 0
-// 			})
-// 		);
-
-
-// 		setAutoridadesActions(actions);
-		
-// 	}, [preguntasChanger, preguntasSelected, seccionalSelected]);
-// 	tabs.push({
-// 		header: () => <Tab label="Preguntas" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
-// 		body: () => (
-// 			<>
-// 				{preguntasTab()}
-				
-// 			</>
-// 		),
-// 		actions: autoridadesActions,
-// 	});
-
- 
-
-// //------------------------------------------------------------------------------------
-// // Si cambia Seccional, refresco lista de autoridades
-// 	useEffect(() => {
-// 		console.log("seccionalSelected**",seccionalSelected)
-// 		preguntasChanger("list", {
-// 			clear: !seccionalSelected?.id,
-// 			data: seccionalSelected?.preguntas,
-// 			params: { id: seccionalSelected?.id },
-// 		});
-// 	}, [seccionalSelected, preguntasChanger]);
-
-
-
-// 	const [respuestasTab2, respuestasChanger2, respuestasSelected2] = useRespuestas();
-// 	const [respuestasActions, setRespuestasActions] = useState([]);
-
-// 	useEffect(() => {
-// 		const actions = [];
-// 		const secc = seccionalSelected2?.tema ?? "";
-// 		if (!secc) {
-// 			setRespuestasActions(actions);
-// 			return;
-// 		}
-// 		const seccDesc = `para Encuesta ${secc}`;
-// 		const createAction = ({ action, request, ...x }) =>
-// 			new Action({
-// 				name: action,
-// 				onExecute: (action) =>
-// 					respuestasChanger2("selected", {
-// 						request,
-// 						action,
-// 						record: { entidadTipo: "S", entidadId: seccionalSelected2?.id, soloactivos: true },
-// 					}),
-// 				combination: "AltKey",
-// 				...x,
-// 			});
-
-		
-
-// 		setRespuestasActions(actions);
-// 	}, [respuestasChanger2, respuestasSelected2, seccionalSelected2]);
-
-
-
-// 	tabs.push({
-// 		header: () => <Tab label="Respuestas" disabled={!seccionalSelected2?.id || seccionalSelected2.deletedDate || disableTabAutoridades } />,
-// 		body: () => (
-// 			<>
-// 				{respuestasTab2()}
-				
-// 			</> 
-// 		),
-// 		actions: respuestasActions,
-// 	});
-
-
-// //Datos que obtengo de useRespuestas 
-// //_________________________________________________________________________________________
-	
-// 		useEffect(() => {
-// 			console.log("%DATOS-RESPUESTAS-DE-ENCUESTA_HAN ", "color: green", estadoSeccionalSeelectRespuesta.data2);
-
-			
-// 			respuestasChanger2("list", { 
-// 				clear: !preguntasSelected?.id,
-// 				data: preguntasSelected,
-// 				params: { encuestaPreguntaId: preguntasSelected?.encuestaId, encuestaPreguntaId2: preguntasSelected?.id },
-// 			});
-// 		}, [estadoSeccionalSeelectRespuesta, preguntasSelected]); 
-// //______________________________________________________________________
-
-// //****************************************************************** */
-
-	
-// 	const acciones = tabs[tab].actions;
-// 	useEffect(() => {
-// 		dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
-// 	}, [dispatch, acciones]);
-
-
-// 	return (
-		
-// 		<Grid full col>
-//   {/* Título */}
-//   <Grid className="titulo">
-//     <h1>Encuesta</h1>
-//   </Grid>
-
-//   {/* Tabs */}
-//   <Grid className="tabs">
-//     <text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " "}</text>
-//     <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-//       {tabs.map((r) => r.header())}
-//     </Tabs>
-//   </Grid>
-
-//   {/* Contenido */}
-//   <Grid className="contenido" col gap="10px">
-//     {tabs.map(({ body }, i) => (
-//       <Grid col gap="inherit" hidden={i !== tab}>
-//         {/* Tabla */}
-//         {body()}
-
-        
-//       </Grid>
-//     ))}
-//   </Grid>
-
-//   {/* KeyPress */}
-//   <KeyPress items={acciones} />
-  
-// </Grid>
-
-
-
-// 	);
-// };
-
-// export default EncuestasHandler ;
-
-
-
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
 import useRespuestas from "components/pages/app/encuestas/respuestas/useRespuestas";
 import Action from "components/helpers/Action";
-import useQueryState from "components/hooks/useQueryState";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 import KeyPress from "components/keyPress/KeyPress";
 import usePreguntas from "components/pages/app/encuestas/preguntas/usePreguntas";
-import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
+import Button from "components/ui/Button/Button";
+import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
+import useEncuestas, { onLoadSelectKeepOrFirst } from "./useEncuestas";
 import InputMaterial from "components/ui/Input/InputMaterial";
-import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
-import useSeccionales, { onLoadSelectKeepOrFirst } from "./useEncuestas";
+import FormatearFecha from "components/helpers/FormatearFecha";
+import { Padding } from "@mui/icons-material";
 
 
+// Opciones para el filtro por estado
+const opcionesEstadoEncuesta = [ 
+  { label: "Todos", value: "todos" },
+  { label: "Activa", value: "activa" },
+  { label: "Inactiva", value: "inactiva" },
+];
 
-
-//#region estadoSeccionalSelectEncuesta Options
-const estadoEncuesta = { label: "Todos" };
-const estadoSeccionalEncuesta = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		start: [estadoEncuesta],
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//___________________________________________________________________
-const estadoRespuestaEncuesta2 = { label: "Todos" };
-const estadoSeccionalEncuesta2 = ({ data2 = [], buscar = "", ...x }) =>
-	mapOptions({
-		data2,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		start: [estadoRespuestaEncuesta2],
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//_________________________________________________________________
-
-
-//#region encuestaSelect Options
-const encuestasTodas = { label: "Todas" };
-const encuestaSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre, record: r }),
-		start: [encuestasTodas],
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
-//#endregion encuestaSelect Options
+const estadoEncuestaDefault = opcionesEstadoEncuesta[0];
 
 const EncuestasHandler = () => {
-	const dispatch = useDispatch();
-
-	const { setState: setEstadosEncuestaSeccionalesQuery } = useQueryState(
-		() => ({
-			config: { 
-				baseURL: "App",
-				// endpoint: `/Encuestas`,
-				endpoint: `/Encuestas?Include=preguntas`,
-				
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-
-	//______________________________________________________________
-	const { setState: setEstadosEncuestaSeccionalesQuery2 } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "App",
-				endpoint: "/Encuestas?Include=preguntas",
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	//______________________________________________________________
-
-
-	const tabs = [];
-	const [tab, setTab] = useState(0);
-
-	const tarea = useTareasUsuario();
-	const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
-	
-
-
-	const [estadoSeccionalSelectEncuesta, setEstadoSeccionallSelectEncuesta] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: estadoEncuesta,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setEstadoSeccionallSelectEncuesta((o) => ({
-			...o,
-			options: estadoSeccionalEncuesta(o),
-		}));
-	}, [estadoSeccionalSelectEncuesta.buscar, estadoSeccionalSelectEncuesta.data]);
-
-
-	//____________________________________________________________________
-
-		const [estadoSeccionalSeelectEncuesta, setEstadoSeccionalSelecEncuesta] = useState({
-			loading: "Cargando...",
-			buscar: "",
-			data2: [],
-			error: null,
-			options: [],
-			selected: estadoRespuestaEncuesta2,
-			origen: "",
-		});
-		// Buscador
-		useEffect(() => {
-			setEstadoSeccionallSelectEncuesta((o) => ({
-				...o,
-				options: estadoSeccionalEncuesta2(o),
-			}));
-		}, [estadoSeccionalSeelectEncuesta.buscar, estadoSeccionalSeelectEncuesta.data2]);
-
-	//___________________________________________________________________ __
-
-
-	
-	const [encuestaSelect, setEncuestaSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: encuestasTodas,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setEncuestaSelect((o) => ({
-			...o,
-			options: encuestaSelectOptions(o),
-		}));
-	}, [encuestaSelect.buscar, encuestaSelect.data]);
-
-	
-	//#region Tab Seccionales
-
-	const [encuestaParamsSend, setEncuestaParamsSend] = useState({});
-	const {
-		render: seccionalesTab,
-		request: seccionalChanger,
-		selected: seccionalSelected,
-	} = useSeccionales();
-
-
-
-	//___________________________________________________________________
-
-	const [encuestaParamsSend2, setEncuestaParamsSend2] = useState({});
-	const {
-		render: seccionalesTab2,
-		request: seccionalChanger2,
-		selected: seccionalSelected2,
-	} = useSeccionales();
-	//___________________________________________________________________
-
-	const [encuestaActions, setEncuestaActions] = useState([]);
-	
-	useEffect(() => {
-		console.log("seccionalSelected",seccionalSelected)
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
-				name: action,
-				onExecute: (action) => seccionalChanger("selected", { request, action }),
-				combination: "AltKey",
-				...x,
-			});
-			//ººººººººººººººººººººººººººººººººººººººººººººººººººººººººº
-		const actions = [
-			createAction({
-				action: `Agrega Encuesta`,
-				request: "A",
-				tarea: "Datos_EncuestaAgrega",
-				keys: "a",
-				underlineindex: 0,
-			}),
-		];
-		const desc = seccionalSelected?.tema;
-
-		actions.push(
-			createAction({
-				action: `Consulta Encuesta ${desc}`,
-				request: "C",
-				tarea: "Datos_EncuestaConsulta",
-				...(!seccionalSelected?.id ? 
-					{disabled:  true}
-					:
-					{ 
-					 disabled:  false,
-					 keys: "o",
-					 underlineindex: 1
-					}
-				)
-		
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Encuesta ${desc}`,
-				request: "M",
-				tarea: "Datos_EncuestaModifica",
-
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "m",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Baja Encuesta ${desc}`,
-				request: "B",
-				tarea: "Datos_EncuestaBaja",
-
-				...(seccionalSelected?.deletedDate || !seccionalSelected?.id ? 
-					{disabled:  true}
-					:
-					{
-					 disabled:  false,
-					 keys: "b",
-					 underlineindex: 0
-					}
-				)
-			})
-		);
-		
-		setEncuestaActions(actions); //cargo todas las acciones / botones
-	}, [seccionalChanger, seccionalSelected]);
-
-	tabs.push({
-		header: () => <Tab label="Encuestas" />,
-		body: () => (
-			<Grid col gap="inherit">
-				<Grid width gap="inherit">
-					{seccionalesTab()}
-				</Grid>
-			</Grid>
-		),
-		actions: encuestaActions,
-	});
-
-	useEffect(() => {
-		seccionalChanger("list", { params: encuestaParamsSend, pagination: { index: 1, size: 15 },
-			onLoadSelect: onLoadSelectKeepOrFirst, });
-	}, [seccionalChanger, encuestaParamsSend]);
-
-
-	//_________________________________________________________________________________________
-
-
-	useEffect(() => {
-		seccionalChanger2("list", { params: encuestaParamsSend2, pagination: { index: 1, size: 15 },
-			onLoadSelect: onLoadSelectKeepOrFirst, });
-	}, [seccionalChanger2, encuestaParamsSend2]);
-
-	//__________________________________________________________________________________________
-
-
-
-		//#region Carga inicial select estado seccional
-		useEffect(() => {
-			setEstadosEncuestaSeccionalesQuery((o) => ({
-				...o,
-				onLoad: ({ ok, error }) => {
-					let data = [];
-					if (Array.isArray(ok)) data = ok;
-					console.log("D1:", ok);
-					
-					setEstadoSeccionallSelectEncuesta((o) => ({
-						...o,
-						loading: null,
-						data,
-						error: error?.toString(),
-					}));
-				},
-			}));
-		}, [setEstadosEncuestaSeccionalesQuery]);
-
-
-
-
-
-	//______________________________________________________________
-	useEffect(() => {
-		setEstadosEncuestaSeccionalesQuery2((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data2 = [];
-				if (Array.isArray(ok?.data)) data2 = [...ok.data]; // Copia los datos de ok.data si es un array
-				console.log("Data de Respuestas, desde EncuestaHandler:", data2);
-	
-				setEstadoSeccionalSelecEncuesta((o) => ({
-					...o,
-					loading: null,
-					data2,  // Ahora data2 tiene los valores de ok.data (si existían)
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setEstadosEncuestaSeccionalesQuery2]);
-	
-	//_________________________________________________________________
-
-
-
-	//#region Tab Autoridades
-	const [preguntasTab, preguntasChanger, preguntasSelected] = usePreguntas();
-	const [autoridadesActions, setAutoridadesActions] = useState([]);
-	useEffect(() => {
-
-		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada1:", preguntasSelected)
-		console.log("EncuestasHanbled, aqui tengo la pregunta seleccionada2:", seccionalSelected)
-		const actions = [];
-		const secc = seccionalSelected?.tema ?? "";
-		if (!secc) {
-			setAutoridadesActions(actions);
-			return;
-		}
-		//Pasando como props
-
-		const seccDesc = `para Encuesta ${secc}`;
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
-				name: action,
-				onExecute: (action) =>
-					preguntasChanger("selected", {
-						request,
-						action,
-						record: { seccionalId: seccionalSelected?.id },
-					}),
-				combination: "AltKey",
-				...x,
-			});
-		actions.push(
-			createAction({
-				action: `Agrega Pregunta ${seccDesc}`,
-				request: "A",
-				tarea: "Datos_SeccionalAutoridadesAgrega",
-				disabled:  false,
-				keys: "a",
-				underlineindex: 0
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modificar Pregunta ${seccDesc}`,
-				request: "M",
-				tarea: "Datos_SeccionalAutoridadesModificar",
-				disabled:  false,
-				keys: "m",
-				underlineindex: 0
-				
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Bajar Pregunta ${seccDesc}`,
-				request: "B",
-				tarea: "Datos_SeccionalAutoridadesBajar",
-				disabled:  false,
-				keys: "b",
-				underlineindex: 0
-			})
-		);
-
-
-		setAutoridadesActions(actions);
-		
-	}, [preguntasChanger, preguntasSelected, seccionalSelected]);
-	tabs.push({
-		header: () => <Tab label="Preguntas" disabled={!seccionalSelected?.id || seccionalSelected.deletedDate || disableTabAutoridades } />,
-		body: () => (
-			<>
-				{preguntasTab()}
-				
-			</>
-		),
-		actions: autoridadesActions,
-	});
-
- 
-
-//------------------------------------------------------------------------------------
-// Si cambia Seccional, refresco lista de autoridades
-	useEffect(() => {
-		console.log("seccionalSelected**",seccionalSelected)
-		preguntasChanger("list", {
-			clear: !seccionalSelected?.id,
-			data: seccionalSelected?.preguntas,
-			params: { id: seccionalSelected?.id },
-		});
-	}, [seccionalSelected, preguntasChanger]);
-
-
-
-	const [respuestasTab2, respuestasChanger2, respuestasSelected2] = useRespuestas();
-	const [respuestasActions, setRespuestasActions] = useState([]);
-
-	useEffect(() => {
-		const actions = [];
-		const secc = seccionalSelected2?.tema ?? "";
-		if (!secc) {
-			setRespuestasActions(actions);
-			return;
-		}
-		const seccDesc = `para Encuesta ${secc}`;
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
-				name: action,
-				onExecute: (action) =>
-					respuestasChanger2("selected", {
-						request,
-						action,
-						record: { entidadTipo: "S", entidadId: seccionalSelected2?.id, soloactivos: true },
-					}),
-				combination: "AltKey",
-				...x,
-			});
-
-		
-
-		setRespuestasActions(actions);
-	}, [respuestasChanger2, respuestasSelected2, seccionalSelected2]);
-
-
-
-	tabs.push({
-		header: () => <Tab label="Respuestas" disabled={!seccionalSelected2?.id || seccionalSelected2.deletedDate || disableTabAutoridades } />,
-		body: () => (
-			<>
-				{respuestasTab2()}
-				
-			</> 
-		),
-		actions: respuestasActions,
-	});
-
-
-//Datos que obtengo de useRespuestas 
-//_________________________________________________________________________________________
-	
-		useEffect(() => {
-			console.log("%DATOS-RESPUESTAS-DE-ENCUESTA_HAN ", "color: green", estadoSeccionalSeelectEncuesta.data2);
-
-			
-			respuestasChanger2("list", { 
-				clear: !preguntasSelected?.id,
-				data: preguntasSelected,
-				params: { encuestaPreguntaId: preguntasSelected?.encuestaId, encuestaPreguntaId2: preguntasSelected?.id },
-			});
-		}, [estadoSeccionalSeelectEncuesta, preguntasSelected]); 
-//______________________________________________________________________
-
-//****************************************************************** */
-
-	
-	const acciones = tabs[tab].actions;
-	useEffect(() => {
-		dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
-	}, [dispatch, acciones]);
-
-
-	return (
-		
-		<Grid full col>
-  {/* Título */}
-  <Grid className="titulo">
-    <h1>Encuesta</h1>
-  </Grid>
-
-  {/* Tabs */}
-  <Grid className="tabs">
-    {/* <text>{seccionalSelected?.tema ? ` ${seccionalSelected?.tema}` : " "}</text> */}
-    <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-      {tabs.map((r) => r.header())}
-    </Tabs>
-  </Grid>
-
-  {/* Contenido */}
-  <Grid className="contenido" col gap="10px">
-    {tabs.map(({ body }, i) => (
-      <Grid col gap="inherit" hidden={i !== tab}>
-        {/* Tabla */}
-        {body()}
-
-        
-      </Grid>
-    ))}
-  </Grid>
-
-  {/* KeyPress */}
-  <KeyPress items={acciones} />
+  const dispatch = useDispatch();
+  const tabs = [];
+  const [tab, setTab] = useState(0);
+
+  const [estadoTemporal, setEstadoTemporal] = useState(opcionesEstadoEncuesta[0]); // lo que el usuario selecciona
+  const [estadoAplicado, setEstadoAplicado] = useState(opcionesEstadoEncuesta[0]); // lo que realmente se aplica al presionar el botón
+
+  const [searchNombre, setSearchNombre] = useState("");
+  const [searchFecha, setSearchFecha] = useState("");
+
+  const [encuestaParams, setEncuestaParams] = useState({ filtro: "" });
+
+
+  const tarea = useTareasUsuario();
+  const disableTabAutoridades = !tarea.hasTarea("Datos_SeccionalAutoridades");
+
+  const [estadoSeccionalSelectEncuesta, setEstadoSeccionallSelectEncuesta] = useState({
+    loading: null,
+    buscar: "",
+    error: null,
+    options: opcionesEstadoEncuesta,
+    selected: estadoEncuestaDefault,
+    origen: "",
+  });
+
+  const [encuestaParamsSend, setEncuestaParamsSend] = useState({});
+
+const {
+  render: seccionalesTab,
+  request: seccionalChanger,
+  selected: encuestaSelected,
+} = useEncuestas({
+  // filtroEstado: (data) => {
+  //   const filtro = estadoAplicado?.value;
+  //   const hoy = new Date();
+
+  //   return data.filter((encuesta) => {
+  //     const fechaFin = encuesta.fechaFinalizacion ? new Date(encuesta.fechaFinalizacion) : null;
+  //     const deleted = !!encuesta.deletedDate;
+
+  //     if (filtro === "todos") return true;
+  //     if (filtro === "activa") {
+  //       if (deleted) return false;
+  //       if (!fechaFin) return true;
+  //       return fechaFin > hoy;
+  //     }
+  //     if (filtro === "inactiva") return deleted;
+
+  //     return true;
+  //   });
+  // },
+  //Esta función selecciona la encuesta recién creada
   
-</Grid>
+filtroEstado: (data) => {
+  const filtro = estadoAplicado?.value;
+  const hoy = new Date();
+  const texto = encuestaParams.filtro?.toLowerCase() || "";
+
+  return data.filter((encuesta) => {
+    const fechaFin = encuesta.fechaFinalizacion ? new Date(encuesta.fechaFinalizacion) : null;
+    const fechaInicio = encuesta.fecha?.toLowerCase?.() || ""; // puede venir en string o Date
+    const tema = encuesta.tema?.toLowerCase() || "";
+    const deleted = !!encuesta.deletedDate;
+
+    // Estado
+    if (filtro === "activa") {
+      if (deleted) return false;
+      if (!fechaFin || fechaFin <= hoy) return false;
+    }
+    if (filtro === "inactiva" && !deleted) return false;
+
+    // Texto (fecha o tema)
+    return (
+      !texto ||
+      tema.includes(texto) ||
+      FormatearFecha(fechaInicio).toLowerCase().includes(texto)
+    );
+  });
+},
 
 
 
-	);
+  onEditComplete: ({ request, response }) => {
+    if (request === "A" && response?.id) {
+      seccionalChanger("list", {
+        pagination: { index: 1, size: 10 },
+        onLoadSelect: () => response, // <- selecciona la encuesta creada
+      });
+    }
+  }
+});
+
+
+  const [encuestaActions, setEncuestaActions] = useState([]);
+
+  useEffect(() => {
+    const createAction = ({ action, request, ...x }) =>
+      new Action({
+        name: action,
+        onExecute: () => seccionalChanger("selected", { request, action }),
+        combination: "AltKey",
+        ...x,
+      });
+
+    const actions = [
+      createAction({ action: `Agrega Encuesta`, request: "A", tarea: "Datos_EncuestaAgrega", keys: "a", underlineindex: 0 }),
+    ];
+
+    const desc = encuestaSelected?.tema;
+
+    actions.push(
+      createAction({
+        action: `Consulta Encuesta ${desc}`,
+        request: "C",
+        tarea: "Datos_EncuestaConsulta",
+        ...(encuestaSelected?.id ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
+      }),
+      createAction({
+        action: `Modifica Encuesta ${desc}`,
+        request: "M",
+        tarea: "Datos_EncuestaModifica",
+        ...(encuestaSelected?.deletedDate || !encuestaSelected?.id
+          ? { disabled: true }
+          : { disabled: false, keys: "m", underlineindex: 0 }),
+      }),
+      createAction({
+        action: `Baja Encuesta ${desc}`,
+        request: "B",
+        tarea: "Datos_EncuestaBaja",
+        ...(encuestaSelected?.deletedDate || !encuestaSelected?.id
+          ? { disabled: true }
+          : { disabled: false, keys: "b", underlineindex: 0 }),
+      })
+    );
+
+    setEncuestaActions(actions);
+  }, [seccionalChanger, encuestaSelected]);
+
+  tabs.push({
+    header: () => <Tab label="Encuestas" />,
+    body: () => (
+      <Grid col gap="inherit">
+        <Grid width gap="inherit">{seccionalesTab()}</Grid>
+      </Grid>
+    ),
+    actions: encuestaActions,
+  });
+
+  useEffect(() => {
+    seccionalChanger("list", {
+      params: encuestaParamsSend,
+      pagination: { index: 1, size: 10 },
+      onLoadSelect: onLoadSelectKeepOrFirst,
+    });
+  }, [seccionalChanger, encuestaParamsSend]);
+
+  // ==============================
+  // TAB: PREGUNTAS
+  // ==============================
+  const [preguntasTab, preguntasChanger, preguntasSelected] = usePreguntas();
+  const [preguntasActions, setPreguntasActions] = useState([]);
+
+  useEffect(() => {
+    const secc = encuestaSelected?.tema ?? "";
+    const actions = [];
+
+    if (!secc) return setPreguntasActions([]);
+
+    const seccDesc = `para Encuesta ${secc}`;
+    const createAction = ({ action, request, ...x }) =>
+      new Action({
+        name: action,
+        onExecute: () =>
+          preguntasChanger("selected", {
+            request,
+            action,
+            record: { seccionalId: encuestaSelected?.id },
+          }),
+        combination: "AltKey",
+        ...x,
+      });
+
+    actions.push(
+      createAction({ action: `Agrega Pregunta ${seccDesc}`, request: "A", tarea: "Datos_SeccionalAutoridadesAgrega", keys: "a" }),
+      createAction({ action: `Modificar Pregunta ${seccDesc}`, request: "M", tarea: "Datos_SeccionalAutoridadesModificar", keys: "m" }),
+      createAction({ action: `Bajar Pregunta ${seccDesc}`, request: "B", tarea: "Datos_SeccionalAutoridadesBajar", keys: "b" })
+    );
+
+    setPreguntasActions(actions);
+  }, [preguntasChanger, preguntasSelected, encuestaSelected]);
+
+  useEffect(() => {
+    preguntasChanger("list", {
+      clear: !encuestaSelected?.id,
+      data: encuestaSelected?.preguntas,
+      params: { id: encuestaSelected?.id },
+    });
+  }, [encuestaSelected, preguntasChanger]);
+
+  tabs.push({
+    header: () => <Tab label="Preguntas" disabled={!encuestaSelected?.id || encuestaSelected.deletedDate || disableTabAutoridades} />,
+    body: preguntasTab,
+    actions: preguntasActions,
+  });
+
+  // ==============================
+  // TAB: RESPUESTAS
+  // ==============================
+  const [respuestasTab, respuestasChanger, respuestasSelected] = useRespuestas();
+  const [respuestasActions, setRespuestasActions] = useState([]);
+
+  useEffect(() => {
+  if (!encuestaSelected?.id) return;
+
+  respuestasChanger("list", {
+    clear: !preguntasSelected?.id,
+    data: preguntasSelected,
+    params: {
+      encuestaId: encuestaSelected.id, // clave para que useRespuestas cargue las preguntas correctas
+      encuestaPreguntaId: preguntasSelected?.encuestaId,
+      encuestaPreguntaId2: preguntasSelected?.id,
+    },
+    respuestas: Array.isArray(preguntasSelected?.respuestas)
+      ? preguntasSelected.respuestas
+      : [],
+  });
+}, [preguntasSelected, encuestaSelected]); 
+
+
+  tabs.push({
+    header: () => <Tab label="Respuestas" disabled={!encuestaSelected?.id || encuestaSelected.deletedDate || disableTabAutoridades} />,
+    body: respuestasTab,
+    actions: respuestasActions,
+  });
+
+  // ==============================
+  // MODULO + ACCIONES
+  // ==============================
+  const acciones = tabs[tab].actions;
+  useEffect(() => {
+    dispatch(handleModuloSeleccionar({ nombre: "Seccionales", acciones }));
+  }, [dispatch, acciones]);
+
+  return (
+    <Grid full col gap="10px">
+      <Grid className="titulo">
+        <h1>ENCUESTA</h1>
+      </Grid>
+
+      {encuestaSelected?.tema && (
+        //estilo para tener margen izquierdo
+        <Grid style={{ marginLeft: '16px' }}>
+          <Grid className="subtitulo" style={{ fontWeight: 'bold', fontSize: '16px', color: '#003b71' }}>
+            Encuesta:  {encuestaSelected.tema.toUpperCase()}
+          </Grid>
+        </Grid>
+      )}
+
+      <Grid className="tabs">
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          {tabs.map((r) => r.header())}
+        </Tabs>
+      </Grid>
+      {/* {tab === 0 && (
+      <Grid grid="auto / 1fr 200px 200px" gap="inherit" align="center">
+      <SearchSelectMaterial
+        label="Estado de Encuesta"
+        value={estadoTemporal}
+        onChange={(selected = {}) => {
+          setEstadoTemporal(selected);
+        }}
+        options={opcionesEstadoEncuesta}
+      />
+
+
+      <Button
+        variant="contained"
+        onClick={() => setEstadoAplicado(estadoTemporal)}
+        disabled={estadoTemporal.value === estadoAplicado.value}
+      >
+        Aplicar filtro
+      </Button>
+
+        <Button
+        className="botonAzul"
+        onClick={() => {
+          setEstadoTemporal(opcionesEstadoEncuesta[0]);   // Resetea el select visual
+          setEstadoAplicado(opcionesEstadoEncuesta[0]);   // Aplica el filtro 'Todos'
+        }}
+      >
+        Limpia filtro
+      </Button>
+
+      </Grid>
+      )} */}
+
+  {tab === 0 && (
+  <Grid grid="auto / 1fr 200px 200px" gap="10px" align="center">
+    <InputMaterial
+      label="Filtro por Tema / Fecha"
+      value={encuestaParams.filtro}
+      onChange={(filtro) => setEncuestaParams((o) => ({ ...o, filtro }))}
+    />
+
+    <SearchSelectMaterial
+      label="Estado"
+      value={estadoTemporal}
+      onChange={(selected = {}) => setEstadoTemporal(selected)}
+      options={opcionesEstadoEncuesta}
+    />
+
+    <Button
+      variant="contained"
+      onClick={() => setEstadoAplicado(estadoTemporal)}
+      disabled={estadoTemporal.value === estadoAplicado.value}
+    >
+      Aplicar filtro
+    </Button>
+  </Grid>
+)}
+
+
+
+      <Grid className="contenido" col gap="10px">
+        {tabs.map(({ body }, i) => (
+          <Grid col gap="inherit" hidden={i !== tab} key={i}>
+            {body()}
+          </Grid>
+        ))}
+      </Grid>
+
+      <KeyPress items={acciones} />
+    </Grid>
+  );
 };
 
 export default EncuestasHandler;

@@ -11,8 +11,8 @@ import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
-import InputMaterial from "components/ui/Input/InputMaterial";
-import useLiquidacionesNomina from "./useLiquidacionesNomina";
+import InputMaterial, { EnteroMask, InteresesMask, PesosMask, PorcentajeMask } from "components/ui/Input/InputMaterial";
+import useLiquidacionesNomina from "../Liquidaciones/useLiquidacionesNomina";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -210,7 +210,7 @@ const LiquidacionesForm = ({
 					)}
 				</Grid>
 				<Grid width="full" gap="inherit">
-					<Grid width="full">
+					{/* <Grid width="full">
 						{hide.liquidacionTipoPagoId ? null : (
 							<SelectMaterial
 								name="liquidacionTipoPagoId"
@@ -235,45 +235,39 @@ const LiquidacionesForm = ({
 					<Grid width="full">
 						{hide.interesPorcentaje ? null : (
 							<InputMaterial
-								type="number"
+								mask={PorcentajeMask}
 								label="% interes tipo de pago"
 								value={data.interesPorcentaje}
 								error={!!errors.interesPorcentaje}
 								helperText={errors.interesPorcentaje}
 								disabled={!!disabled.interesPorcentaje}
-								onChange={(value) =>
-									onChange({ interesPorcentaje: Formato.Decimal(value) })
-								}
+								onChange={(value) => onChange({ interesPorcentaje: Number(value) })}
 							/>
 						)}
-					</Grid>
+					</Grid> */}
 					<Grid width="full">
 						{hide.cantidadTrabajadores ? null : (
 							<InputMaterial
-								type="number"
+								mask={EnteroMask}
 								label="Cantidad de trabajadores"
 								value={data.cantidadTrabajadores}
 								error={!!errors.cantidadTrabajadores}
 								helperText={errors.cantidadTrabajadores}
 								disabled={!!disabled.cantidadTrabajadores}
-								onChange={(value) =>
-									onChange({ cantidadTrabajadores: Formato.Entero(value) })
-								}
+								onChange={(value) => onChange({ cantidadTrabajadores: Number(value) })}
 							/>
 						)}
 					</Grid>
 					<Grid width="full">
 						{hide.totalRemuneraciones ? null : (
 							<InputMaterial
-								type="number"
+								mask={PesosMask}
 								label="Total remuneraciones"
 								value={data.totalRemuneraciones}
 								error={!!errors.totalRemuneraciones}
 								helperText={errors.totalRemuneraciones}
 								disabled={!!disabled.totalRemuneraciones}
-								onChange={(value) =>
-									onChange({ totalRemuneraciones: Formato.Decimal(value) })
-								}
+								onChange={(value) => onChange({ totalRemuneraciones: Number(value) })}
 							/>
 						)}
 					</Grid>
@@ -284,22 +278,25 @@ const LiquidacionesForm = ({
 				<Grid width="full" gap="inherit">
 					<Grid width="full">
 						<InputMaterial
-							label="Aporte"
-							value={Formato.Moneda(data.interesNeto)}
+							mask={PesosMask}
+							label="Capital"
+							value={data.interesNeto}
 							disabled
 						/>
 					</Grid>
 					<Grid width="full">
 						<InputMaterial
+							mask={InteresesMask}
 							label="Intereses"
-							value={Formato.Moneda(data.interesImporte)}
+							value={data.interesImporte}
 							disabled
 						/>
 					</Grid>
 					<Grid width="full">
 						<InputMaterial
+							mask={PesosMask}
 							label="Total a pagar"
-							value={Formato.Moneda(data.importeTotal)}
+							value={data.importeTotal}
 							disabled
 						/>
 					</Grid>

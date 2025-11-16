@@ -13,7 +13,6 @@ import SearchSelectMaterial, {
 	mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import Viewer from "./Viewer";
-import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
@@ -33,7 +32,8 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		//formatter: (v) => Formato.Cuit(v),
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
 	},
@@ -359,7 +359,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 				setList((o) => ({
 					...o,
 					selected: [...o.selected, ...data].filter(
-						(v, i, a) => a.indexOf(a.find((r) => r.id === v.id)) === i
+						(v, i, a) => a.findIndex(r => r.id === v.id) === i
 					),
 				}));
 			} else {
@@ -625,7 +625,10 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 									onClick={() =>
 										setNewSelection((o) => ({
 											...o,
-											params: filtros,
+											params: {
+												...filtros,
+												sort: list.sort
+											},
 											reload: true,
 										}))
 									}
@@ -658,6 +661,7 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 									className="botonAmarillo"
 									disabled={list.selected.length === 0 || !filtros.ambitoDelegaciones || !filtros.fechaIngreso }
 									onClick={() => onImprime()}
+									tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados_Imprime"
 								>
 									IMPRIME
 								</Button>

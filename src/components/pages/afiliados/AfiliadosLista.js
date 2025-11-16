@@ -30,6 +30,7 @@ import AfiliadoHistorico from "./AfiliadoHistorico";
 import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import AfiliadoSeccional from "./AfiliadosSeccionales";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
+import useAmbitos from 'components/hooks/useAmbitos';
 
 const AfiliadosLista = (props) => {
 
@@ -43,7 +44,7 @@ const AfiliadosLista = (props) => {
   const { sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
   const [openImpresiones, setOpenImpresiones] = useState(false);
-  
+  const ambito = useAmbitos().ambitoUser();
 
   const onLinkToGuiaAfiliaciones = () => {
 		const link = document.createElement("a");
@@ -305,7 +306,8 @@ const AfiliadosLista = (props) => {
 			text: "CUIL",
 			sort: true,
 			headerStyle: { width: "10rem", textAlign: "center" },
-			formatter: (v) => Formato.Cuit(v),
+      formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+			//formatter: (v) => Formato.Cuit(v),
 		},
 		{
 			headerTitle: true,
@@ -587,9 +589,9 @@ const AfiliadosLista = (props) => {
   });
 //#endregion 
 
-  const indication = () => {
-    <h4>No hay informacion a mostrar</h4>;
-  };
+  const indication = <h4>No hay información a mostrar</h4>
+      
+  
 
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);

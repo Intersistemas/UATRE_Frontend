@@ -1,3 +1,5 @@
+//Este componente es el -> "informes/afiliados/afiliados por seccional" de mi vista de informes
+
 import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
@@ -13,6 +15,8 @@ import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
 import AsArray from "components/helpers/AsArray";
+import useAmbitosUsuario from "components/hooks/useAmbitos";
+import { useSelector } from "react-redux";
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -35,7 +39,7 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
 		style: { textAlign: "center" },
 	},
 	{
@@ -179,20 +183,34 @@ const delegacionesSelectOptions = ({ data = [], ...x }) =>
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = { label: "Todas" };
-const seccionalesSelectOptions = ({ data = [], ...x }) =>
+const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 	mapOptions({
 		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codigo, r.descripcion].join(" - "),
-			record: r,
-		}),
+		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+		map: (r) => (ambitoUsuario.ambitoUsuario.tipo == "Todos" ? 
+			{
+				value: r.id,
+				label: [r.codigo, r.descripcion].join(" - "),
+				record: r,
+			} :
+			["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ?
+			 	{
+					value: r.id,
+					label: [r.codigo, r.descripcion].join(" - "),
+					record: r,
+				} : null 
+		),
 		start: data.length === 1 ? [] : [seccionalSelectDef],
 		...x,
 	});
 //#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
+	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
+	//console.log("ambitoUser_handler",ambitoUser)
+	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
+	
 	//#region APIs
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -249,7 +267,10 @@ const Handler = ({ onClose = () => {} }) => {
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
-		filtros: {},
+		filtros: {
+			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+            ambitoProvincias: usuario.ambitoProvincias, //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+		}, 
 		wait: { delegaciones: true, seccionales: true },
 		usuario,
 	});
@@ -373,6 +394,7 @@ const Handler = ({ onClose = () => {} }) => {
 			selected: seccionalSelectDef,
 			selectedDef: seccionalSelectDef,
 			buscar: "",
+			ambitoUsuario: {ambitoUsuario},
 		};
 		const data = [];
 		if (seccionalSelect.refDelegacionId) {
@@ -419,7 +441,8 @@ const Handler = ({ onClose = () => {} }) => {
 				changes.data = ambito
 					? data.filter((r) => ambito.includes(r.id))
 					: data;
-				changes.optionsSrc = seccionalesSelectOptions(changes);
+					console.log("ambitoUsuario")
+				changes.optionsSrc = seccionalesSelectOptions(changes, ambitoUsuario);
 				changes.selectedDef = changes.optionsSrc.length === 1
 					? changes.optionsSrc[0]
 					: seccionalSelectDef;
@@ -474,7 +497,7 @@ const Handler = ({ onClose = () => {} }) => {
 			} else {
 				setFiltros((o) => ({
 					...o,
-					ambitoDelegaciones: { ids: [selected.value] },
+					ambitoDelegaciones: { ids: [selected?.value] },
 				}));
 			}
 			finalizaInit();
@@ -507,7 +530,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoSeccionales: { ids: [selected.value] },
+			ambitoSeccionales: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);
@@ -541,8 +564,11 @@ const Handler = ({ onClose = () => {} }) => {
 				let data = [];
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
-					({ data, ...pagination } = ok);
-				} else {
+					//({ data, ...pagination } = ok);
+					console.log("usuarioConSeccionalInactiva", usuarioConSeccionalInactiva);
+					 //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+						({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
 				setList((o) => ({
@@ -563,9 +589,15 @@ const Handler = ({ onClose = () => {} }) => {
 		loading: null,
 		filtros: {},
 		/** @type {SeccionalAfiliados[]} */
+
+
+		//Aqui se guarda todos los datos de los afiliados
 		data: [],
 		error: null,
 		seccionales: [],
+
+		//Al momento de que se me carga mi data, se setea a true (padron.despliega = true)
+		//y se despliega el pdf
 		despliega: false,
 	});
 	//#endregion padron
@@ -652,6 +684,16 @@ const Handler = ({ onClose = () => {} }) => {
 	}, [setAfiliacionesQuery, padron]);
 	//#endregion Carga padron
 
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+	//Se ejecuta dicha funcion cuando selecciono imprimir
+	//y se encarga de validar si la delegacion fue seleccionada
+	//y si no fue seleccionada, muestra un mensaje de error
+	//si fue seleccionada, se carga el padron
+	//y se despliega el pdf
+	//si no hay error, se carga el padron
+	//y se despliega el pdf
+
 	const onCargaPadron = () => {
 		if (!filtros.ambitoDelegaciones) {
 			setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
@@ -661,6 +703,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setPadron((o) => ({
 			...o,
+			//Me cambia mi estado a "true" para que se cargue el padron
 			reload: true,
 			seccionales: seccionalSelect.data
 				.map((s) => ({
@@ -673,10 +716,20 @@ const Handler = ({ onClose = () => {} }) => {
 		}));
 	};
 
+
+
+	///////////////////////////////////////////////////////////
+	//Cuando (padron.despliega) es true, se despliega el pdf
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+
 	const padronRender = !padron.despliega ? null : (
 		<PDFViewer
 			data={padron.data}
 			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
+			ambitoUser={ambitoUsuario}
 		/>
 	);
 
@@ -905,6 +958,8 @@ const Handler = ({ onClose = () => {} }) => {
 						className="botonAmarillo"
 						loading={!!padron.loading}
 						onClick={() => onCargaPadron()}
+						tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
+						disabled={list.data.length === 0}
 					>
 						IMPRIME
 					</Button>

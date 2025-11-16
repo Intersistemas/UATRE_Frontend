@@ -9,9 +9,8 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import classes from "./PreguntasForm.module.css";
-import { Dialog, DialogContent, Typography } from "@mui/material";
-import { Height } from "@mui/icons-material";
-import { TextAlignment } from "pdf-lib";
+// import { Dialog, DialogContent, Typography } from "@mui/material";
+
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -53,37 +52,57 @@ const PreguntasForm = ({
 
   const [selectedOption, setSelectedOption] = useState(data.tipoPregunta || "Selecciona una opción");
   const [valorOrden, setValorOrden] = useState(data.ordenPregunta || "");
-  const [textoLibre, setTextoLibre] = useState(data.textoLibre || "");
+  // const [textoLibre, setTextoLibre] = useState(data.textoLibre || "");
   const [enunciado, setEnunciado] = useState(data.enunciado || "");
   const [opciones, setOpciones] = useState(data.detalles || []);
   const [nuevoValor, setNuevoValor] = useState("");
   const [fecha, setFecha] = useState(moment().format("YYYY-MM-DD"));
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogTexto, setDialogTexto] = useState("");
+  // const [dialogTexto, setDialogTexto] = useState("");
+
 
   // useEffect(() => {
+  //   setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  //   setValorOrden(data.ordenPregunta || "");
+  //   // setTextoLibre(data.textoLibre || "");
+  //   setEnunciado(data.enunciado || "");
+  //   setOpciones([...new Map((data.detalles || []).map((o) => [o.id, o])).values()]); // Eliminar duplicados
   //   setFecha(data.fecha || moment().format("YYYY-MM-DD"));
-  // }, [data.fecha]);
-
-  useEffect(() => {
-    setSelectedOption(data.tipoPregunta || "Selecciona una opción");
-    setValorOrden(data.ordenPregunta || "");
-    setTextoLibre(data.textoLibre || "");
-    setEnunciado(data.enunciado || "");
-    setOpciones([...new Map((data.detalles || []).map((o) => [o.id, o])).values()]); // Eliminar duplicados
-    setFecha(data.fecha || moment().format("YYYY-MM-DD"));
-  }, [data]);
+  // }, [data]);
   
+useEffect(() => {
+   console.log("ID:", data.id);
+  console.log("preguntasList:", data.preguntasList);
+  console.log("ordenes encontradas:", data.preguntasList?.map((p) => p.ordenPregunta));
+  setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  setEnunciado(data.enunciado || "");
+  setOpciones([
+    ...new Map((data.detalles || []).map((o) => [o.id, o])).values(),
+  ]);
+  setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+
+  if (!data.id && Array.isArray(data.preguntasList)) {
+    const ordenes = data.preguntasList
+      .map((p) => Number(p.ordenPregunta))
+      .filter(Boolean);
+    const siguienteOrden = ordenes.length ? Math.max(...ordenes) + 1 : 1;
+    setValorOrden(siguienteOrden);
+    onChange({ ordenPregunta: siguienteOrden });
+  } else {
+    setValorOrden(data.ordenPregunta || "");
+  }
+}, [data]);
+
   const handleSelect = (option) => {
     setSelectedOption(option);
     onChange({ tipoPregunta: option }); // Actualiza el tipo de pregunta en el estado principal
     console.log("Opción seleccionada:", option);
   };
 
-  const handleChangeTextoLibre = (value) => {
-    setTextoLibre(value);
-    onChange({ textoLibre: value });
-  };
+  // const handleChangeTextoLibre = (value) => {
+  //   setTextoLibre(value);
+  //   onChange({ textoLibre: value });
+  // };
 
   const handleChangeEnunciado = (value) => {
     setEnunciado(value);
@@ -119,7 +138,7 @@ const PreguntasForm = ({
 
   return (
     <>
-      <div>
+      {/* <div>
         <Dialog onClose={() => setOpenDialog(false)} open={openDialog}>
           <DialogContent dividers>
             <Typography gutterBottom style={{ whiteSpace: "pre-line" }}>
@@ -127,13 +146,15 @@ const PreguntasForm = ({
             </Typography>
           </DialogContent>
         </Dialog>
-      </div>
+      </div> */}
       <Modal show onHide={() => onClose()} size="lg" centered>
         <Modal.Header className={modalCss.modalCabecera}>
           <h3>{title}</h3>
         </Modal.Header>
         <Modal.Body>
+          
           <Grid col full gap="15px">
+            {/* --------------AQUI EMPIEZA MI FORM--------------------------------- */}
             <Grid gap="inherit">
               <InputMaterial
                 type="date"
@@ -150,7 +171,7 @@ const PreguntasForm = ({
             <Grid width="full" gap="inherit">
               <InputMaterial
                 id="enunciado"
-                label="enunciado"
+                label="Enunciado"
                 error={!!errors.enunciado}
                 helperText={errors.enunciado ?? ""}
                 value={enunciado}
@@ -159,16 +180,19 @@ const PreguntasForm = ({
               />
 
               <Dropdown onSelect={handleSelect}>
-                <Dropdown.Toggle variant="secondary">
+                <Dropdown.Toggle variant="secondary" disabled ={!hide.deletedObs ?? false} id="dropdown-basic">
                   {selectedOption}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item eventKey="TX">Texto Libre</Dropdown.Item>
-                  <Dropdown.Item eventKey="MC">Multiple Choices</Dropdown.Item>
+                  <Dropdown.Item eventKey="MC">Multiple Choice</Dropdown.Item>
                   <Dropdown.Item eventKey="OP">Opciones</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
             </Grid>
+
+
+            {/* ---------------------------------------------- */}
             <Grid width="full" gap="inherit">
               <Form.Group as={Row} className="align-items-center">
                 <Col xs="auto">
@@ -182,16 +206,23 @@ const PreguntasForm = ({
                     value={valorOrden}
                     disabled={disabled.ordenPregunta ?? false}
                     type="number"
-                    style={{ width: "100px" }}
+                    style={{ width: "100px",marginBottom: "15px" }}
                     onChange={(value) => handleChangeOrden(value)}
                   />
                 </Col>
               </Form.Group>
             </Grid>
-
-            {selectedOption === "MC" || selectedOption === "OP" ? (
+            {/* ---------------------------------------------- */}
+        {
+          hide.deletedObs
+            && (
+            selectedOption === "MC" || selectedOption === "OP" ? (
               <div>
-                <strong>Opciones/Multiple Choice:</strong>
+                {selectedOption === "MC" ? (
+                  <strong>Multiple Choice:</strong>
+                ) : (
+                  <strong>Opciones:</strong>
+                )}
                 <ListGroup>
                  
 
@@ -236,26 +267,20 @@ const PreguntasForm = ({
                   </Button>
                 </div>
               </div>
+              //---------------------------------------------------
             ) : selectedOption === "TX" ? (
-              <Form.Group>
-                <Form.Label></Form.Label>
-                <strong>Texto Libre:</strong>
-                <InputMaterial
-                
+              // <div style={{ marginTop: "10px", fontStyle: "italic" }}>
+              //   Tipo de pregunta: Texto libre. El encuestado completará su respuesta manualmente.
+              console.log("Tipo de pregunta: Texto libre. El encuestado completará su respuesta manualmente.")
+              // </div>
+            ) : null
+            )
+        }
 
-                  style={{marginBottom: "15px"}}
-                  type="text"
-                  placeholder="Ingrese texto aquí..."
-                  id="textoLibre"
-                  error={!!errors.textoLibre}
-                  helperText={errors.textoLibre ?? ""}
-                  value={textoLibre}
-                  disabled={disabled.textoLibre ?? false}
-                  onChange={(value) => handleChangeTextoLibre(value)}
-                />
-              </Form.Group>
-            ) : null}
+            {/* ---------------------------------------------- */}
           </Grid>
+
+        {/* Esto me muestra las opciones de baja de la pregunta seleccionada */}
           {!hide.deletedObs && (
             <>
               <div className={classes.item7}>

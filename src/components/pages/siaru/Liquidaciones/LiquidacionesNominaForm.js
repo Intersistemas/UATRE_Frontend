@@ -1,13 +1,11 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
-import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial, { CUITMask } from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask, PesosMask } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
-// import NominaDetailsAFIP from "./procesar/manual/NominaDetailsAFIP";
-import NominaDetailsAFIP from "../Liquidaciones/Procesar/Manual/NominaDetailsAFIP";
+import NominaDetailsAFIP from "./Procesar/Manual/NominaDetailsAFIP";
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -61,16 +59,14 @@ const LiquidacionesNominaForm = ({
 						<Grid width="25%">
 							{hide.cuil ? null : (
 								<InputMaterial
+									required
 									label="CUIL"
 									disabled={disabled.cuil}
 									error={!!errors.cuil}
 									helperText={errors.cuil ?? ""}
 									value={data.cuil || ""}
-									onChange={(v) =>
-										onChange({ cuil: Number(v.replace(/[^\d]/gim, "")) })
-									}
-									//mask="99\-99.999.999\-9"
 									mask={CUITMask}
+									onChange={(v) => onChange({ cuil: Number(v) })}
 								/>
 							)}
 						</Grid>
@@ -91,15 +87,14 @@ const LiquidacionesNominaForm = ({
 					<Grid width="full">
 						{hide.remuneracionImponible ? null : (
 							<InputMaterial
-								type="number"
-								label="Remuneracion"
+								required
+								label="Remuneracion Bruta + SAC"
 								value={data.remuneracionImponible}
 								disabled={!!disabled.remuneracionImponible}
 								error={!!errors.remuneracionImponible}
 								helperText={errors.remuneracionImponible}
-								onChange={(value) =>
-									onChange({ remuneracionImponible: Formato.Decimal(value) })
-								}
+								mask={PesosMask}
+								onChange={(v) => onChange({ remuneracionImponible: Number(v) }) }
 							/>
 						)}
 					</Grid>

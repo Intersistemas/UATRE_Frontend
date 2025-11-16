@@ -36,8 +36,6 @@ const AutoridadesForm = ({
 
 	const getValue = (v) => data[v] ?? "";
 
-
-	console.log("AutoridadesForm_data",data)
 	useEffect(()=>{
 		//format("YYYY-MM-DD")
 		moment(getValue("fechaVigenciaDesde")).format("YYYY-MM-DD")

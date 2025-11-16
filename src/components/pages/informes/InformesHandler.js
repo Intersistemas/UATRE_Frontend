@@ -40,7 +40,7 @@ const InformesHandler = () => {
 							setInforme(<AfiliadosEstados onClose={() => setInforme(null)} />)
 						}
 						width="32"
-						tarea="Informes_Afiliados_EstadoAfilidiados"
+						tarea="Informes_Afiliados_EstadoAfiliados" 
 						disabled={disableTabAfiliados}
 					>
 						Estado de afiliados

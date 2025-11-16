@@ -4,7 +4,7 @@ import Modal from "components/ui/Modal/Modal";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Button from "components/ui/Button/Button";
 import Formato from "components/helpers/Formato";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, { PesosMask } from "components/ui/Input/InputMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import NominaDetailsAFIP from "./NominaDetailsAFIP";
@@ -139,7 +139,8 @@ const NominaForm = ({
 				</Grid>
 				<Grid width="full" gap="inherit">
 					<Grid width="25%">
-						<InputMaterial
+						<InputMaterial			
+							required				
 							label="CUIL"
 							error={!!errores.cuil}
 							helperText={errores.cuil ?? ""}
@@ -156,7 +157,7 @@ const NominaForm = ({
 						/>
 					</Grid>
 					<Grid width="75%">
-						<InputMaterial
+						<InputMaterial							
 							label="Nombre"
 							error={!!errores.nombre}
 							helperText={errores.nombre ?? ""}
@@ -172,18 +173,14 @@ const NominaForm = ({
 				</Grid>
 				<Grid width="full">
 					<InputMaterial
-						type="number"
-						label="Remuneracion"
+						label="Remuneracion Bruta + SAC"
 						error={!!errores.remuneracion}
 						helperText={errores.remuneracion ?? ""}
 						value={data.remuneracion}
-						onChange={(value, _id) => {
-							const nuevo = Formato.Decimal(value);
-							if (nuevo < 0) return;
-							setData((old) => ({
-								...old,
-								remuneracion: nuevo,
-							}));
+						mask={PesosMask}
+						onChange={(remuneracion) => {
+							if (remuneracion < 0) return;
+							setData((o) => ({ ...o, remuneracion }));
 						}}
 					/>
 				</Grid>

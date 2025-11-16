@@ -11,116 +11,131 @@ import Round from "components/helpers/Round";
 import Grid from "components/ui/Grid/Grid";
 import SelectMaterial from "components/ui/Select/SelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import InputMaterial from "components/ui/Input/InputMaterial";
+import InputMaterial, {
+  CUITMask,
+  EnteroMask,
+  InteresesMask,
+  PesosMask,
+  PorcentajeMask,
+} from "components/ui/Input/InputMaterial";
 import Button from "components/ui/Button/Button";
 import FormaPagoPrint from "../../Impresion/FormaPagoPrint";
 import useLiquidaciones from "../../useLiquidaciones";
-import useLiquidacionesNomina from "../../useLiquidacionesNomina";
+import useLiquidacionesNomina from "../../../Liquidaciones/useLiquidacionesNomina";
+import useCalculoResarcitorios from "components/hooks/useCalculoResarcitorios";
 
-const RangoDias = (desde, hasta) => {
-	const dias = dayjs(hasta).diff(desde, "days");
-	if (dias < 0) return 0;
-	return dias;
-};
-
+/**
+ * @param {string} vencimiento Fecha de vencimiento ("YYYY-MM-DD")
+ * @param {string} pago Fecha de pago ("YYYY-MM-DD")
+ * @param {number} importe importe del pago
+ * @returns {{desde: string, hasta: string, tasa: number, interes: number, dias: number}}
+ */
+let calculoResarcitorioLiquidacion = (vencimiento, pago, importe) => ({
+  tasa: 0,
+  interes: 0,
+  dias: 0,
+});
 const calculosLiquidacion = ({ liquidacion = {}, cabecera = {} }) => {
-	const calculos = {};
-	calculos.interesNeto = Round(
-		liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
-		2
-	);
-	calculos.interesImporte = Round(
-		liquidacion.totalRemuneraciones *
-			(cabecera.interesesDiariosPosteriorVencimiento / 100) *
-			(cabecera.diasVencimiento ?? 0),
-		2
-	);
-	calculos.importeTotal = Round(
-		calculos.interesImporte + calculos.interesNeto,
-		2
-	);
-	return calculos;
+  const calculos = {
+    interesNeto: Round(
+      liquidacion.totalRemuneraciones * (liquidacion.interesPorcentaje / 100),
+      2
+    ),
+    interesImporte: 0,
+    importeTotal: 0,
+  };
+  ({ interes: calculos.interesImporte } = calculoResarcitorioLiquidacion(
+    cabecera.fechaVencimiento,
+    cabecera.fechaPagoEstimada,
+    calculos.interesNeto
+  ));
+
+  calculos.importeTotal = Round(
+    calculos.interesImporte + calculos.interesNeto,
+    2
+  );
+  return calculos;
 };
 
 //#region Controles personalizados
 const onChangeDef = (changes) => {};
 const LiquidacionCabecera = ({
-	data = {},
-	disabled = {},
-	errors = {},
-	onChange = onChangeDef,
-	onGenera = () => {},
+  data = {},
+  disabled = {},
+  errors = {},
+  onChange = onChangeDef,
+  onGenera = () => {},
 } = {}) => {
-	data ??= {};
-	disabled ??= {};
-	errors ??= {};
+  data ??= {};
+  disabled ??= {};
+  errors ??= {};
 
-	onChange ??= onChangeDef;
+  onChange ??= onChangeDef;
 
-	const tiposLiquidaciones = [
-		{ label: "Periodo", value: 0 },
-		{ label: "Acta", value: 1 },
-	];
+  const tiposLiquidaciones = [
+    { label: "Periodo", value: 0 },
+    { label: "Acta", value: 1 },
+  ];
 
-	return (
-		<Grid
-			col
-			width="full"
-			gap="inherit"
-			style={{
-				backgroundColor: "#ffffffb3",
-				color: "#186090",
-				padding: "10px",
-				border: "solid 1px",
-				borderRadius: "20px",
-			}}
-		>
-			<Grid
-				width="full"
-				style={{
-					fontWeight: "bold",
-					borderBottom: "dashed 1px",
-				}}
-			>
-				{errors.data ?? "Datos liquidacion"}
-			</Grid>
-			<Grid width="full" gap="inherit">
-				<SelectMaterial
-					name="tipoLiquidacion"
-					label="Tipo de liquidación"
-					value={data.tipoLiquidacion}
-					options={tiposLiquidaciones}
-					disabled
-				/>
-				<DateTimePicker
-					type="month"
-					label="Período"
-					disableFuture
-					minDate="1994-01-01"
-					maxDate={dayjs().format("YYYY-MM-DD")}
-					value={Formato.Mascara(data.periodo, "####-##-01")}
-					disabled
-				/>
-				<DateTimePicker
-					type="date"
-					label="Fecha de vencimiento"
-					value={data.fechaVencimiento}
-					disabled
-				/>
-				<DateTimePicker
-					type="date"
-					label="Fecha pago estimada"
-					minDate={dayjs().format("YYYY-MM-DD")}
-					value={data.fechaPagoEstimada}
-					disabled={!!disabled.fechaPagoEstimada}
-					error={errors.fechaPagoEstimada}
-					required
-					onChange={(f) =>
-						onChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") })
-					}
-				/>
-				<InputMaterial
-					type="number"
+  return (
+    <Grid
+      col
+      width="full"
+      gap="inherit"
+      style={{
+        backgroundColor: "#ffffffb3",
+        color: "#186090",
+        padding: "10px",
+        border: "solid 1px",
+        borderRadius: "20px",
+      }}
+    >
+      <Grid
+        width="full"
+        style={{
+          fontWeight: "bold",
+          borderBottom: "dashed 1px",
+        }}
+      >
+        {errors.data ?? "Datos liquidacion"}
+      </Grid>
+      <Grid width="full" gap="inherit">
+        <SelectMaterial
+          name="tipoLiquidacion"
+          label="Tipo de liquidación"
+          value={data.tipoLiquidacion}
+          options={tiposLiquidaciones}
+          disabled
+        />
+        <DateTimePicker
+          type="month"
+          label="Período"
+          disableFuture
+          minDate="1994-01-01"
+          maxDate={dayjs().format("YYYY-MM-DD")}
+          value={Formato.Mascara(data.periodo, "####-##-01")}
+          disabled
+        />
+        <DateTimePicker
+          type="date"
+          label="Fecha de vencimiento"
+          value={data.fechaVencimiento}
+          disabled
+        />
+        <DateTimePicker
+          type="date"
+          label="Fecha pago estimada"
+          minDate={dayjs().format("YYYY-MM-DD")}
+          value={data.fechaPagoEstimada}
+          disabled={!!disabled.fechaPagoEstimada}
+          error={errors.fechaPagoEstimada}
+          required
+          onChange={(f) =>
+            onChange({ fechaPagoEstimada: f?.format("YYYY-MM-DD") })
+          }
+        />
+        {/* <InputMaterial
+					mask={PorcentajeMask}
 					label="% Interes diario Post. Venc."
 					value={data.interesesDiariosPosteriorVencimiento}
 					disabled//={!!disabled.fechaPagoEstimada}
@@ -128,35 +143,35 @@ const LiquidacionCabecera = ({
 					// onChange={(interesesDiariosPosteriorVencimiento) =>
 					// 	onChange({ interesesDiariosPosteriorVencimiento })
 					// }
-				/>
-			</Grid>
-			<Grid width="full" gap="inherit">
-				<InputMaterial
-					type="number"
-					label="Cantidad de trabajadores"
-					value={data.cantidadTrabajadores}
-					disabled
-					// disabled={!!disabled.cantidadTrabajadores}
-					// error={!!errors.cantidadTrabajadores}
-					// helperText={errors.cantidadTrabajadores}
-					// onChange={(value) =>
-					// 	onChange({ cantidadTrabajadores: Formato.Entero(value) })
-					// }
-				/>
-				<InputMaterial
-					type="number"
-					label="Total remuneraciones"
-					value={data.totalRemuneraciones}
-					disabled
-					// disabled={!!disabled.totalRemuneraciones}
-					// error={!!errors.totalRemuneraciones}
-					// helperText={errors.totalRemuneraciones}
-					// onChange={(value) =>
-					// 	onChange({ totalRemuneraciones: Formato.Decimal(value) })
-					// }
-				/>
-			</Grid>
-			{/* <Grid style={{ fontWeight: "bold" }}>Subtotales</Grid>
+				/> */}
+      </Grid>
+      <Grid width="full" gap="inherit">
+        <InputMaterial
+          mask={EnteroMask}
+          label="Cantidad de trabajadores"
+          value={data.cantidadTrabajadores}
+          disabled
+          // disabled={!!disabled.cantidadTrabajadores}
+          // error={!!errors.cantidadTrabajadores}
+          // helperText={errors.cantidadTrabajadores}
+          // onChange={(value) =>
+          // 	onChange({ cantidadTrabajadores: Formato.Entero(value) })
+          // }
+        />
+        <InputMaterial
+          mask={PesosMask}
+          label="Total remuneraciones"
+          value={data.totalRemuneraciones}
+          disabled
+          // disabled={!!disabled.totalRemuneraciones}
+          // error={!!errors.totalRemuneraciones}
+          // helperText={errors.totalRemuneraciones}
+          // onChange={(value) =>
+          // 	onChange({ totalRemuneraciones: Formato.Decimal(value) })
+          // }
+        />
+      </Grid>
+      {/* <Grid style={{ fontWeight: "bold" }}>Subtotales</Grid>
 			<Grid width="full" gap="inherit">
 				<InputMaterial
 					label="Total sindical"
@@ -169,881 +184,1065 @@ const LiquidacionCabecera = ({
 					disabled
 				/>
 			</Grid> */}
-			<Grid style={{ fontWeight: "bold" }}>Totales</Grid>
-			<Grid width="full" gap="inherit">
-				<InputMaterial
-					label="Aporte"
-					value={Formato.Moneda(data.totalAporte)}
-					disabled
-				/>
-				<InputMaterial
-					label="Intereses"
-					value={Formato.Moneda(data.totalIntereses)}
-					disabled
-				/>
-				<InputMaterial
-					label="Total a pagar"
-					value={Formato.Moneda(data.totalImporte)}
-					disabled
-				/>
-			</Grid>
-			<Grid width="full" justify="end">
-				<Grid width="200px">
-					<Button
-						className="botonAmarillo"
-						tarea="Siaru_EmpresaLiquidacionGenera"
-						onClick={onGenera}
-						disabled={disabled.genera}
-					>
-						Genera liquidación
-					</Button>
-				</Grid>
-			</Grid>
-		</Grid>
-	);
+      <Grid style={{ fontWeight: "bold" }}>Totales</Grid>
+      <Grid width="full" gap="inherit">
+        <InputMaterial
+          mask={PesosMask}
+          label="Capital"
+          value={data.totalAporte}
+          disabled
+        />
+        <InputMaterial
+          mask={InteresesMask}
+          label="Intereses"
+          value={data.totalIntereses}
+          disabled
+        />
+        <InputMaterial
+          mask={PesosMask}
+          label="Total a pagar"
+          value={data.totalImporte}
+          disabled
+        />
+      </Grid>
+      <Grid width="full" justify="end">
+        <Grid width="200px">
+          <Button
+            className="botonAmarillo"
+            tarea="Siaru_EmpresaLiquidacionGenera"
+            onClick={onGenera}
+            disabled={disabled.genera}
+          >
+            Genera liquidación
+          </Button>
+        </Grid>
+      </Grid>
+    </Grid>
+  );
 };
+
 const ruralidadDef = [
-	{ label: "Rural", value: true },
-	{ label: "No Rural", value: false },
+  { label: "Rural", value: true },
+  { label: "No Rural", value: false },
 ];
 const LiquidacionNomina = ({
-	data = {},
-	disabled = {},
-	errors = {},
-	dependencies = {
-		establecimientos: [],
-		ruralidad: ruralidadDef,
-	},
-	onChange = onChangeDef,
+  data = {},
+  disabled = {},
+  errors = {},
+  dependencies = {
+    establecimientos: [],
+    ruralidad: ruralidadDef,
+  },
+  onChange = onChangeDef,
 } = {}) => {
-	data ??= {};
-	disabled ??= {};
-	errors ??= {};
+  data ??= {};
+  disabled ??= {};
+  errors ??= {};
 
-	dependencies ??= {};
-	const { establecimientos = [], ruralidad = ruralidadDef } = dependencies;
-	const establecimientosOptions = establecimientos.map(
-		({ id: value, nombre: label }) => ({ value, label })
-	);
+  dependencies ??= {};
+  const { establecimientos = [], ruralidad = ruralidadDef } = dependencies;
+  const establecimientosOptions = establecimientos.map(
+    ({ id: value, nombre: label }) => ({ value, label })
+  );
 
-	onChange ??= onChangeDef;
+  onChange ??= onChangeDef;
 
-	return (
-		<Grid
-			col
-			width="full"
-			gap="inherit"
-			style={{
-				backgroundColor: "#ffffffb3",
-				color: "#186090",
-				padding: "10px",
-				border: "solid 1px",
-				borderRadius: "20px",
-			}}
-		>
-			<Grid
-				width="full"
-				style={{
-					fontWeight: "bold",
-					borderBottom: "dashed 1px",
-				}}
-			>
-				{[errors.data, `DDJJ seleccionadas: ${data.length}`]
-					.filter((r) => r)
-					.join(" ")}
-			</Grid>
-			<Grid width="full" gap="inherit">
-				<Grid width="25%">
-					<InputMaterial label="CUIL" value={Formato.Cuit(data.cuil)} />
-				</Grid>
-				<Grid width="50%">
-					<InputMaterial label="Nombre" value={data.nombre} />
-				</Grid>
-				<Grid width="25%">
-					<InputMaterial
-						label="Remuneración imponible"
-						value={Formato.Moneda(data.remuneracionImponible)}
-					/>
-				</Grid>
-			</Grid>
-			<Grid width="full" gap="inherit">
-				<SelectMaterial
-					name="empresaEstablecimientoId"
-					label="Establecimiento"
-					value={data.empresaEstablecimientoId}
-					options={establecimientosOptions}
-					disabled={!!disabled.empresaEstablecimientoId}
-					onChange={(id) => {
-						const establecimiento = establecimientos.find((r) => r.id === id);
-						onChange({
-							empresaEstablecimientoId: establecimiento.id,
-							empresaEstablecimiento_Nombre: establecimiento.nombre,
-						});
-					}}
-				/>
-				<SelectMaterial
-					name="esRural"
-					label="Ruralidad"
-					value={data.esRural}
-					options={ruralidad}
-					disabled={!!disabled.esRural}
-					onChange={(esRural) => onChange({ esRural })}
-				/>
-			</Grid>
-		</Grid>
-	);
+  const [selectedEstablecimiento, setSelectedEstablecimiento] = useState(null);
+  const [selectedRuralidad, setSelectedRuralidad] = useState(null);
+
+  useEffect(() => {
+    setSelectedEstablecimiento(data.empresaEstablecimientoId);
+    setSelectedRuralidad(data.esRural);
+  }, [data.esRural, data.empresaEstablecimientoId]);
+
+  return (
+    <Grid
+      col
+      width="full"
+      gap="inherit"
+      style={{
+        backgroundColor: "#ffffffb3",
+        color: "#186090",
+        padding: "10px",
+        border: "solid 1px",
+        borderRadius: "20px",
+      }}
+    >
+      <Grid
+        width="full"
+        style={{
+          fontWeight: "bold",
+          borderBottom: "dashed 1px",
+        }}
+      >
+        {[errors.data, `DDJJ seleccionadas: ${data.length}`]
+          .filter((r) => r)
+          .join(" ")}
+      </Grid>
+      <Grid width="full" gap="inherit">
+        <Grid width="25%">
+          <InputMaterial mask={CUITMask} label="CUIL" value={data.cuil} readOnly={true} />
+        </Grid>
+        <Grid width="50%">
+          <InputMaterial label="Nombre" value={data.nombre} readOnly={true} />
+        </Grid>
+        <Grid width="25%">
+          <InputMaterial
+            mask={PesosMask}
+            label="Remuneración imponible"
+            readOnly={true}
+            value={data.remuneracionImponible}
+          />
+        </Grid>
+      </Grid>
+      <Grid width="full" gap="inherit">
+        <SelectMaterial
+          name="empresaEstablecimientoId"
+          label="Establecimiento"
+          // value={data.empresaEstablecimientoId}
+          value={selectedEstablecimiento}
+          options={establecimientosOptions}
+          disabled={!!disabled.empresaEstablecimientoId}
+          onChange={setSelectedEstablecimiento}
+          // onChange={(id) => {
+          //   const establecimiento = establecimientos.find((r) => r.id === id);
+          //   onChange({
+          //     empresaEstablecimientoId: establecimiento.id,
+          //     empresaEstablecimientoNroSucursal: establecimiento.nroSucursal,
+          //     empresaEstablecimiento_Nombre: establecimiento.nombre,
+          //   });
+          // }}
+        />
+        <SelectMaterial
+          name="esRural"
+          label="Ruralidad"
+          // value={data.esRural}
+          value={selectedRuralidad}
+          options={ruralidad}
+          disabled={!!disabled.esRural}
+          onChange={setSelectedRuralidad}
+          // onChange={(esRural) => onChange({ esRural })}
+        />
+      </Grid>
+      <Grid>
+        <Button
+          className="botonAmarillo"
+          disabled={data?.length === 0 || (!selectedEstablecimiento && selectedRuralidad === "")}
+          onClick={() => { 
+            console.log("selectedRuralidad", selectedRuralidad);           
+            const establecimiento = establecimientos.find(
+              (r) => r.id === selectedEstablecimiento
+            );
+            onChange({
+              ...(selectedEstablecimiento && { 
+                empresaEstablecimientoId: establecimiento?.id ?? "",
+                empresaEstablecimientoNroSucursal:establecimiento?.nroSucursal ?? "",
+                empresaEstablecimiento_Nombre: establecimiento?.nombre ?? ""
+              }),
+              ...(selectedRuralidad !== "" && { esRural: selectedRuralidad })
+            });
+            // liqNomChanger("unselectAll", { isSelect });
+          }}
+        >
+          ACTUALIZA ESTABLECIMIENTO/RURALIDAD
+        </Button>
+      </Grid>
+    </Grid>
+  );
 };
 //#endregion
 
 const Handler = ({ periodo, tentativas = [] }) => {
-	const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { calculoResumen: calculoResarcitorios } = useCalculoResarcitorios();
+  calculoResarcitorioLiquidacion = calculoResarcitorios;
 
-	const empresa = useSelector((state) => state.empresa);
-	const [redirect, setRedirect] = useState({ to: "", options: null });
-	if (redirect.to) navigate(redirect.to, redirect.options);
-	useEffect(() => {
-		if (!empresa?.id) setRedirect({ to: "/Inicio/Empresas" });
-	}, [empresa]);
+  const empresa = useSelector((state) => state.empresa);
+  const [redirect, setRedirect] = useState({ to: "", options: null });
+  if (redirect.to) navigate(redirect.to, redirect.options);
+  useEffect(() => {
+    if (!empresa?.id) setRedirect({ to: "/Inicio/Empresas" });
+  }, [empresa]);
 
-	const [tab, setTab] = useState(0);
-	const tabs = [];
+  const [tab, setTab] = useState(0);
+  const tabs = [];
 
-	//#region Trato queries a APIs
-	const pushQuery = useQueryQueue((action, params) => {
-		switch (action) {
-			case "GetLiquidacionTipoPago": {
-				return {
-					config: {
-						baseURL: "SIARU",
-						method: "GET",
-						endpoint: `/v1/LiquidacionesTiposPagos`,
-					},
-				};
-			}
-			case "CreateCabecera": {
-				return {
-					config: {
-						baseURL: "SIARU",
-						endpoint: "/LiquidacionesCabecera",
-						method: "POST",
-					},
-				};
-			}
-			case "GetCabecera": {
-				const { id, ...x } = params;
-				params = x;
-				return {
-					config: {
-						baseURL: "SIARU",
-						endpoint: `/LiquidacionesCabecera/${id}`,
-						method: "GET",
-					},
-					params,
-				};
-			}
-			case "GetEstablecimientosByEmpresa": {
-				return {
-					config: {
-						baseURL: "Comunes",
-						method: "GET",
-						endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
-					},
-				};
-			}
-			case "GetParameter": {
-				const { paramName, ...paramOthers } = params;
-				return {
-					config: {
-						baseURL: "Comunes",
-						endpoint: `/Parametros/${paramName}`,
-						method: "GET",
-					},
-					params: paramOthers,
-				};
-			}
-			default:
-				return null;
-		}
-	});
-	//#endregion
+  //#region Trato queries a APIs
+  const pushQuery = useQueryQueue((action, params) => {
+    switch (action) {
+      case "GetLiquidacionTipoPago": {
+        return {
+          config: {
+            baseURL: "SIARU",
+            method: "GET",
+            endpoint: `/v1/LiquidacionesTiposPagos`,
+          },
+        };
+      }
+      case "CreateCabecera": {
+        return {
+          config: {
+            baseURL: "SIARU",
+            endpoint: "/LiquidacionesCabecera",
+            method: "POST",
+          },
+        };
+      }
+      case "GetCabecera": {
+        const { id, ...x } = params;
+        params = x;
+        return {
+          config: {
+            baseURL: "SIARU",
+            endpoint: `/LiquidacionesCabecera/${id}`,
+            method: "GET",
+          },
+          params,
+        };
+      }
+      case "GetEstablecimientosByEmpresa": {
+        return {
+          config: {
+            baseURL: "Comunes",
+            method: "GET",
+            endpoint: `/EmpresaEstablecimientos/GetByEmpresa`,
+          },
+        };
+      }
+      case "GetParameter": {
+        const { paramName, ...paramOthers } = params;
+        return {
+          config: {
+            baseURL: "Comunes",
+            endpoint: `/Parametros/${paramName}`,
+            method: "GET",
+          },
+          params: paramOthers,
+        };
+      }
+      default:
+        return null;
+    }
+  });
+  //#endregion
 
-	//#region Cargo parametros
-	const [params, setParams] = useState({
-		loading: "Cargando...",
-		data: {
-			InteresesDiariosPosteriorVencimiento: 0,
-			LiquidacionTipoPagoIdSindical: 0,
-			LiquidacionTipoPagoIdSolidario: 0,
-		},
-		error: {},
-	});
-	useEffect(() => {
-		if (!params.loading) return;
-		const pending = Object.keys(params.data);
-		const changes = { loading: null, data: { ...params.data }, error: null };
-		const formatParamValue = (param, value) => {
-			switch (param) {
-				case "InteresesDiariosPosteriorVencimiento":
-				case "LiquidacionTipoPagoIdSindical":
-				case "LiquidacionTipoPagoIdSolidario":
-					return Formato.Decimal(value) ?? changes.data[param];
-				default:
-					return value ?? changes.data[param];
-			}
-		};
-		const queryParam = (param) =>
-			pushQuery({
-				action: "GetParameter",
-				params: { paramName: param },
-				onOk: async (res) => {
-					changes.data[param] = formatParamValue(param, res.valor);
-				},
-				onError: async (error) => {
-					changes.error ??= {};
-					changes.error[param] = error;
-				},
-				onFinally: async () => {
-					pending.splice(pending.indexOf(param), 1);
-					if (pending.length) return;
-					setParams((o) => ({ ...o, ...changes }));
-				},
-			});
-		pending.forEach((param) => queryParam(param));
-	}, [pushQuery, params]);
-	//#endregion
+  //#region Cargo parametros
+  const [params, setParams] = useState({
+    loading: "Cargando...",
+    data: {
+      InteresesDiariosPosteriorVencimiento: 0,
+      LiquidacionTipoPagoIdSindical: 0,
+      LiquidacionTipoPagoIdSolidario: 0,
+    },
+    error: {},
+  });
+  useEffect(() => {
+    if (!params.loading) return;
+    const pending = Object.keys(params.data);
+    const changes = { loading: null, data: { ...params.data }, error: null };
+    const formatParamValue = (param, value) => {
+      switch (param) {
+        case "InteresesDiariosPosteriorVencimiento":
+        case "LiquidacionTipoPagoIdSindical":
+        case "LiquidacionTipoPagoIdSolidario":
+          return Formato.Decimal(value) ?? changes.data[param];
+        default:
+          return value ?? changes.data[param];
+      }
+    };
+    const queryParam = (param) =>
+      pushQuery({
+        action: "GetParameter",
+        params: { paramName: param },
+        onOk: async (res) => {
+          changes.data[param] = formatParamValue(param, res.valor);
+        },
+        onError: async (error) => {
+          changes.error ??= {};
+          changes.error[param] = error;
+        },
+        onFinally: async () => {
+          pending.splice(pending.indexOf(param), 1);
+          if (pending.length) return;
+          setParams((o) => ({ ...o, ...changes }));
+        },
+      });
+    pending.forEach((param) => queryParam(param));
+  }, [pushQuery, params]);
+  //#endregion
 
-	//#region declaracion y carga de tipos de liquidacion
-	const [tiposPagos, setTiposPagos] = useState({
-		loading: "Cargando...",
-		data: null,
-		error: null,
-	});
-	useEffect(() => {
-		if (!tiposPagos.loading) return;
-		const changes = {
-			loading: null,
-			data: [],
-			error: null,
-		};
-		pushQuery({
-			action: "GetLiquidacionTipoPago",
-			onOk: async (data) => {
-				if (Array.isArray(data)) {
-					changes.data.push(...data);
-				} else {
-					console.error("Se esperaba un arreglo", data);
-				}
-			},
-			onError: async (error) => (changes.error = error),
-			onFinally: async () => setTiposPagos((o) => ({ ...o, ...changes })),
-		});
-	}, [pushQuery, tiposPagos]);
-	//#endregion
+  //#region declaracion y carga de tipos de liquidacion
+  const [tiposPagos, setTiposPagos] = useState({
+    loading: "Cargando...",
+    data: null,
+    error: null,
+  });
+  useEffect(() => {
+    if (!tiposPagos.loading) return;
+    const changes = {
+      loading: null,
+      data: [],
+      error: null,
+    };
+    pushQuery({
+      action: "GetLiquidacionTipoPago",
+      onOk: async (data) => {
+        if (Array.isArray(data)) {
+          changes.data.push(...data);
+        } else {
+          console.error("Se esperaba un arreglo", data);
+        }
+      },
+      onError: async (error) => (changes.error = error),
+      onFinally: async () => setTiposPagos((o) => ({ ...o, ...changes })),
+    });
+  }, [pushQuery, tiposPagos]);
+  //#endregion
 
-	//#region Cargo establecimientos
-	const [establecimientos, setEstablecimientos] = useState({
-		loading: "Cargando...",
-		params: { empresaId: empresa?.id, bajas: false },
-		data: [],
-		error: null,
-	});
-	useEffect(() => {
-		if (!establecimientos.loading) return;
-		const changes = {
-			loading: null,
-			data: [],
-			error: null,
-		};
-		const query = {
-			action: "GetEstablecimientosByEmpresa",
-			params: establecimientos.params,
-		};
-		query.onOk = async ({ index, size, pages, data }) => {
-			if (Array.isArray(data)) {
-				changes.data.push(...data);
-			} else {
-				console.error("Se esperaba un arreglo", data);
-			}
-			if (index < pages) {
-				changes.loading = "Cargando...";
-				query.params = {
-					...establecimientos.params,
-					pageIndex: index + 1,
-					pageSize: size,
-				};
-				pushQuery(query);
-			} else {
-				changes.loading = null;
-			}
-		};
-		query.onError = async (error) => {
-			changes.loading = null;
-			changes.error = error;
-		};
-		query.onFinally = async () => {
-			if (changes.loading) return;
-			changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
-			setEstablecimientos((o) => ({ ...o, ...changes }));
-		};
-		pushQuery(query);
-	}, [establecimientos, pushQuery]);
-	//#endregion
+  //#region Cargo establecimientos
+  const [establecimientos, setEstablecimientos] = useState({
+    loading: "Cargando...",
+    params: { empresaId: empresa?.id, bajas: false },
+    data: [],
+    error: null,
+  });
+  useEffect(() => {
+    if (!establecimientos.loading) return;
+    const changes = {
+      loading: null,
+      data: [],
+      error: null,
+    };
+    const query = {
+      action: "GetEstablecimientosByEmpresa",
+      params: establecimientos.params,
+    };
+    query.onOk = async ({ index, size, pages, data }) => {
+      if (Array.isArray(data)) {
+        changes.data.push(...data);
+      } else {
+        console.error("Se esperaba un arreglo", data);
+      }
+      if (index < pages) {
+        changes.loading = "Cargando...";
+        query.params = {
+          ...establecimientos.params,
+          pageIndex: index + 1,
+          pageSize: size,
+        };
+        pushQuery(query);
+      } else {
+        changes.loading = null;
+      }
+    };
+    query.onError = async (error) => {
+      changes.loading = null;
+      changes.error = error;
+    };
+    query.onFinally = async () => {
+      if (changes.loading) return;
+      changes.data.unshift({ id: 0, nombre: "Sin establecimiento" });
+      setEstablecimientos((o) => ({ ...o, ...changes }));
+    };
+    pushQuery(query);
+  }, [establecimientos, pushQuery]);
+  //#endregion
 
-	//#region Cargo estado
-	const [estado, setEstado] = useState({
-		loading: "Cargando...",
-		processing: null,
-		cabecera: {
-			empresaCUIT: empresa.cuit,
-			tipoLiquidacion: 0,
-			periodo,
-			acta: 0,
-			rectificativa: 0,
-			fechaVencimiento: dayjs(Formato.Mascara(periodo, "####-##-15"))
-				.add(1, "month")
-				.format("YYYY-MM-DD"),
-			fechaPagoEstimada: dayjs().format("YYYY-MM-DD"),
-			interesesDiariosPosteriorVencimiento: 0,
-			diasVencimiento: 0,
-			cantidadTrabajadores: 0,
-			totalRemuneraciones: 0,
-			totalAporte: 0,
-			totalIntereses: 0,
-			totalImporte: 0,
-			totalSindical: 0,
-			totalSolidario: 0,
-			liquidaciones: [],
-		},
-		liquidaciones: {
-			todas: [],
-			lastId: 0,
-			tipoPagoSindical: { id: 0, porcentaje: 0 },
-			tipoPagoSolidario: { id: 0, porcentaje: 0 },
-			retocadas: [],
-		},
-		nominas: {
-			todas: [],
-			sinEstablecimiento: 0,
-			ruralesSinEstablecimiento: 0,
-			cantidadTrabajadores: 0,
-			totalRemuneraciones: 0,
-		},
-	});
-	useEffect(() => {
-		if (!estado.loading) return;
-		if (params.loading) return;
-		if (tiposPagos.loading) return;
-		const getTipoPago = (id = 0, base = {}) => {
-			id = Number(id);
-			return tiposPagos.data.find((r) => r.id === id) ?? { ...base, id };
-		};
-		const changes = {
-			...estado,
-			loading: null,
-			processing: "Calculando...",
-			cabecera: {
-				...estado.cabecera,
-				interesesDiariosPosteriorVencimiento:
-					params.data.InteresesDiariosPosteriorVencimiento ?? 0,
-			},
-			liquidaciones: {
-				...estado.liquidaciones,
-				todas: [],
-				lastId: 0,
-				tipoPagoSindical: getTipoPago(
-					params.data.LiquidacionTipoPagoIdSindical,
-					estado.liquidaciones.tipoPagoSindical
-				),
-				tipoPagoSolidario: getTipoPago(
-					params.data.LiquidacionTipoPagoIdSolidario,
-					estado.liquidaciones.tipoPagoSolidario
-				),
-			},
-			nominas: {
-				...estado.nominas,
-				todas: [],
-				sinEstablecimiento: 0,
-				ruralesSinEstablecimiento: 0,
-				cantidadTrabajadores: 0,
-				totalRemuneraciones: 0,
-			},
-		};
-		tentativas.forEach((tentativa) => {
-			// Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
-			// En caso contrario, es solo a modo informativo de nomina
-			const nominas = AsArray(tentativa.nominas);
-			nominas.forEach((nomina) => {
-				changes.nominas.todas.push({
-					...nomina,
-					id: nomina.cuil,
-					esRural: !!nomina.esRural,
-					afiliadoId: nomina.afiliadoId ?? 0,
-					empresaEstablecimientoId: tentativa.empresaEstablecimientoId,
-					empresaEstablecimiento_Nombre:
-						tentativa.empresaEstablecimiento_Nombre,
-				});
-			});
-		});
-		setEstado(changes);
-	}, [estado, params, tiposPagos, tentativas]);
-	//#endregion
+  //#region Cargo estado
+  const [estado, setEstado] = useState({
+    loading: "Cargando...",
+    processing: null,
+    cabecera: {
+      empresaCUIT: empresa.cuit,
+      tipoLiquidacion: 0,
+      periodo,
+      acta: 0,
+      rectificativa: 0,
+      fechaVencimiento: dayjs(Formato.Mascara(periodo, "####-##-15"))
+        .add(1, "month")
+        .format("YYYY-MM-DD"),
+      fechaPagoEstimada: dayjs().format("YYYY-MM-DD"),
+      interesesDiariosPosteriorVencimiento: 0,
+      diasVencimiento: 0,
+      cantidadTrabajadores: 0,
+      totalRemuneraciones: 0,
+      totalAporte: 0,
+      totalIntereses: 0,
+      totalImporte: 0,
+      totalSindical: 0,
+      totalSolidario: 0,
+      liquidaciones: [],
+    },
+    liquidaciones: {
+      todas: [],
+      lastId: 0,
+      tipoPagoSindical: { id: 0, porcentaje: 0 },
+      tipoPagoSolidario: { id: 0, porcentaje: 0 },
+      retocadas: [],
+      // agrupadas: [],
+    },
+    nominas: {
+      todas: [],
+      sinEstablecimiento: 0,
+      ruralesSinEstablecimiento: 0,
+      cantidadTrabajadores: 0,
+      totalRemuneraciones: 0,
+    },
+  });
+  useEffect(() => {
+    if (!estado.loading) return;
+    if (params.loading) return;
+    if (tiposPagos.loading) return;
+    const getTipoPago = (id = 0, base = {}) => {
+      id = Number(id);
+      return tiposPagos.data.find((r) => r.id === id) ?? { ...base, id };
+    };
+    const changes = {
+      ...estado,
+      loading: null,
+      processing: "Calculando...",
+      cabecera: {
+        ...estado.cabecera,
+        interesesDiariosPosteriorVencimiento:
+          params.data.InteresesDiariosPosteriorVencimiento ?? 0,
+      },
+      liquidaciones: {
+        ...estado.liquidaciones,
+        todas: [],
+        lastId: 0,
+        tipoPagoSindical: getTipoPago(
+          params.data.LiquidacionTipoPagoIdSindical,
+          estado.liquidaciones.tipoPagoSindical
+        ),
+        tipoPagoSolidario: getTipoPago(
+          params.data.LiquidacionTipoPagoIdSolidario,
+          estado.liquidaciones.tipoPagoSolidario
+        ),
+      },
+      nominas: {
+        ...estado.nominas,
+        todas: [],
+        sinEstablecimiento: 0,
+        ruralesSinEstablecimiento: 0,
+        cantidadTrabajadores: 0,
+        totalRemuneraciones: 0,
+      },
+    };
+    tentativas.forEach((tentativa) => {
+      // Si tiene establecimiento y tipo de pago, entonces es una sugerencia de liquidacion válida
+      // En caso contrario, es solo a modo informativo de nomina
+      const nominas = AsArray(tentativa.nominas);
+      nominas.forEach((nomina) => {
+        changes.nominas.todas.push({
+          ...nomina,
+          id: nomina.cuil,
+          esRural: !!nomina.esRural,
+          afiliadoId: nomina.afiliadoId ?? 0,
+          empresaEstablecimientoId: tentativa.empresaEstablecimientoId,
+          empresaEstablecimientoNroSucursal:
+            tentativa.empresaEstablecimientoNroSucursal,
+          empresaEstablecimiento_Nombre:
+            tentativa.empresaEstablecimiento_Nombre,
+        });
+      });
+    });
+    setEstado(changes);
+  }, [estado, params, tiposPagos, tentativas]);
+  //#endregion
 
-	//#region Calculo estado
-	useEffect(() => {
-		if (!estado.processing) return;
+  //#region Calculo estado
+  useEffect(() => {
+    if (!estado.processing) return;
 
-		//Genero Cabecera
-		const cabecera = {
-			interesesDiariosPosteriorVencimiento:
-				estado.cabecera.interesesDiariosPosteriorVencimiento,
-			diasVencimiento: RangoDias(
-				estado.cabecera.fechaVencimiento,
-				estado.cabecera.fechaPagoEstimada
-			),
-			cantidadTrabajadores: 0,
-			totalRemuneraciones: 0,
-			totalAporte: 0,
-			totalIntereses: 0,
-			totalImporte: 0,
-			totalSindical: 0,
-			totalSolidario: 0,
-			liquidaciones: [],
-		};
+    //Genero Cabecera
+    const cabecera = {
+      interesesDiariosPosteriorVencimiento:
+        estado.cabecera.interesesDiariosPosteriorVencimiento,
+      // diasVencimiento: RangoDias(
+      // 	estado.cabecera.fechaVencimiento,
+      // 	estado.cabecera.fechaPagoEstimada
+      // ),
+      fechaVencimiento: estado.cabecera.fechaVencimiento,
+      fechaPagoEstimada: estado.cabecera.fechaPagoEstimada,
+      diasVencimiento: 0,
+      cantidadTrabajadores: 0,
+      totalRemuneraciones: 0,
+      totalAporte: 0,
+      totalIntereses: 0,
+      totalImporte: 0,
+      totalSindical: 0,
+      totalSolidario: 0,
+      liquidaciones: [],
+      // liquidacionesAgrupadas: [],
+    };
 
-		// Genero liquidaciones a partir de nominas
-		const liquidaciones = {
-			...estado.liquidaciones,
-			todas: [],
-			retocadas: [],
-		};
+    // Genero liquidaciones a partir de nominas
+    const liquidaciones = {
+      ...estado.liquidaciones,
+      todas: [],
+      retocadas: [],
+      // agrupadas: [],
+    };
 
-		const retocadas = estado.liquidaciones.retocadas.filter(
-			(v, i, a) =>
-				estado.liquidaciones.todas.find(({ id }) => v.id === id) &&
-				a.map(({ id }) => id).indexOf(v.id) === i
-		);
+    const retocadas = estado.liquidaciones.retocadas.filter(
+      (v, i, a) =>
+        estado.liquidaciones.todas.find(({ id }) => v.id === id) &&
+        a.map(({ id }) => id).indexOf(v.id) === i
+    );
 
-		let sinEstablecimiento = 0;
-		let ruralesSinEstablecimiento = 0
-		let cantidadTrabajadores = 0;
-		let totalRemuneraciones = 0;
-		estado.nominas.todas.forEach((nomina) => {
-			if (!nomina.empresaEstablecimientoId) {
-				sinEstablecimiento += 1;
-				if (nomina.esRural) ruralesSinEstablecimiento += 1;
-			}
-			cantidadTrabajadores += 1;
-			totalRemuneraciones += nomina.remuneracionImponible ?? 0;
+    let sinEstablecimiento = 0;
+    let ruralesSinEstablecimiento = 0;
+    let cantidadTrabajadores = 0;
+    let totalRemuneraciones = 0;
+    estado.nominas.todas.forEach((nomina) => {
+      if (!nomina.empresaEstablecimientoId) {
+        sinEstablecimiento += 1;
+        if (nomina.esRural) ruralesSinEstablecimiento += 1;
+      }
+      cantidadTrabajadores += 1;
+      totalRemuneraciones += nomina.remuneracionImponible ?? 0;
 
-			if (!nomina.empresaEstablecimientoId) return;
-			if (!nomina.esRural) return;
+      if (!nomina.empresaEstablecimientoId) return;
+      if (!nomina.esRural) return;
 
-			const tipoPago = nomina.afiliadoId
-				? liquidaciones.tipoPagoSindical
-				: liquidaciones.tipoPagoSolidario;
+      const tipoPago = nomina.afiliadoId
+        ? liquidaciones.tipoPagoSindical
+        : liquidaciones.tipoPagoSolidario;
 
-			let liquidacionAntes = estado.liquidaciones.todas.find(
-				(r) =>
-					r.empresaEstablecimientoId === nomina.empresaEstablecimientoId &&
-					r.liquidacionTipoPagoId === tipoPago.id
-			);
-			let liquidacion = {
-				id: Number(liquidacionAntes?.id ?? 0),
-				empresaEstablecimientoId: Number(nomina.empresaEstablecimientoId),
-				empresaEstablecimiento_Descripcion:
-					nomina.empresaEstablecimiento_Nombre,
-				liquidacionTipoPagoId: tipoPago.id,
-				cantidadTrabajadores: 0,
-				totalRemuneraciones: 0,
-				interesPorcentaje: Number(tipoPago.porcentaje),
-				interesNeto: 0,
-				tipoLiquidacion: 0,
-				nominas: [],
-			};
-			const liqFind = liquidaciones.todas.find(
-					(r) =>
-						r.empresaEstablecimientoId ===
-							liquidacion.empresaEstablecimientoId &&
-						r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
-				)
-			if (liqFind != null) liquidacion = liqFind;
-			if (!liquidacion.id) {
-				liquidaciones.lastId += 1;
-				liquidacion.id = liquidaciones.lastId;
-			}
-			liquidacion.nominas.push(nomina);
+      let liquidacionAntes = estado.liquidaciones.todas.find(
+        (r) =>
+          r.empresaEstablecimientoId === nomina.empresaEstablecimientoId &&
+          r.liquidacionTipoPagoId === tipoPago.id
+      );
+      let liquidacion = {
+        id: Number(liquidacionAntes?.id ?? 0),
+        empresaEstablecimientoId: Number(nomina.empresaEstablecimientoId),
+        empresaEstablecimientoNroSucursal:
+          nomina.empresaEstablecimientoNroSucursal,
+        empresaEstablecimiento_Descripcion:
+          nomina.empresaEstablecimiento_Nombre,
+        liquidacionTipoPagoId: tipoPago.id,
+        cantidadTrabajadores: 0,
+        totalRemuneraciones: 0,
+        interesPorcentaje: Number(tipoPago.porcentaje),
+        interesNeto: 0,
+        tipoLiquidacion: 0,
+        nominas: [],
+      };
+      const liqFind = liquidaciones.todas.find(
+        (r) =>
+          r.empresaEstablecimientoId === liquidacion.empresaEstablecimientoId
+        // r.liquidacionTipoPagoId === liquidacion.liquidacionTipoPagoId
+      );
+      if (liqFind != null) liquidacion = liqFind;
+      if (!liquidacion.id) {
+        liquidaciones.lastId += 1;
+        liquidacion.id = liquidaciones.lastId;
+      }
+      liquidacion.nominas.push(nomina);
 
-			const retocada = retocadas.find(({id}) => id === liquidacion.id);
+      const retocada = retocadas.find(({ id }) => id === liquidacion.id);
 
-			liquidacion.cantidadTrabajadores += 1;
-			liquidacion.cantidadTrabajadores = Round(retocada?.cantidadTrabajadores ?? liquidacion.cantidadTrabajadores);
-			liquidacion.totalRemuneraciones += Number(nomina.remuneracionImponible);
-			liquidacion.totalRemuneraciones = Round(retocada?.totalRemuneraciones ?? liquidacion.totalRemuneraciones, 2);
-			liquidacion.interesPorcentaje = Round(retocada?.interesPorcentaje ?? liquidacion.interesPorcentaje, 2);
+      liquidacion.cantidadTrabajadores += 1;
+      liquidacion.cantidadTrabajadores = Round(
+        retocada?.cantidadTrabajadores ?? liquidacion.cantidadTrabajadores
+      );
+      liquidacion.totalRemuneraciones += Number(nomina.remuneracionImponible);
+      liquidacion.totalRemuneraciones = Round(
+        retocada?.totalRemuneraciones ?? liquidacion.totalRemuneraciones,
+        2
+      );
+      liquidacion.interesPorcentaje = Round(
+        retocada?.interesPorcentaje ?? liquidacion.interesPorcentaje,
+        2
+      );
 
-			const calculos = calculosLiquidacion({ liquidacion, cabecera });
-			liquidacion.interesNeto = calculos.interesNeto;
-			liquidacion.interesImporte = calculos.interesImporte;
-			liquidacion.importeTotal = calculos.importeTotal;
+      const calculos = calculosLiquidacion({ liquidacion, cabecera });
+      liquidacion.interesNeto = calculos.interesNeto;
+      liquidacion.interesImporte = calculos.interesImporte;
+      liquidacion.importeTotal = calculos.importeTotal;
 
-			if (liqFind == null) {
-				liquidaciones.todas.push(liquidacion);
-				if (retocada) liquidaciones.retocadas.push(retocada);
-			}
-		});
+      if (liqFind == null) {
+        liquidaciones.todas.push(liquidacion);
+        if (retocada) liquidaciones.retocadas.push(retocada);
+      }
+    });
 
-		liquidaciones.todas
-			.filter(({ id }) =>
-				estado.cabecera.liquidaciones.find((r) => r.id === id)
-			)
-			.forEach((liquidacion) => {
-				cabecera.cantidadTrabajadores += liquidacion.cantidadTrabajadores;
-				cabecera.totalRemuneraciones += liquidacion.totalRemuneraciones;
-				cabecera.totalAporte += liquidacion.interesNeto;
-				cabecera.totalIntereses += liquidacion.interesImporte;
-				cabecera.totalImporte += liquidacion.importeTotal;
+    liquidaciones.todas
+      .filter(({ id }) =>
+        estado.cabecera.liquidaciones.find((r) => r.id === id)
+      )
+      .forEach((liquidacion) => {
+        cabecera.cantidadTrabajadores += liquidacion.cantidadTrabajadores;
+        cabecera.totalRemuneraciones += liquidacion.totalRemuneraciones;
+        cabecera.totalAporte += liquidacion.interesNeto;
 
-				switch (liquidacion.liquidacionTipoPagoId) {
-					case liquidaciones.tipoPagoSindical.id: {
-						cabecera.totalSindical += liquidacion.importeTotal;
-						break;
-					}
-					case liquidaciones.tipoPagoSolidario.id: {
-						cabecera.totalSolidario += liquidacion.importeTotal;
-						break;
-					}
-					default:
-						break;
-				}
-				cabecera.liquidaciones.push(liquidacion);
-			});
-		cabecera.cantidadTrabajadores = Round(cabecera.cantidadTrabajadores);
-		cabecera.totalRemuneraciones = Round(cabecera.totalRemuneraciones, 2);
-		cabecera.totalAporte = Round(cabecera.totalAporte, 2);
-		cabecera.totalIntereses = Round(cabecera.totalIntereses, 2);
-		cabecera.totalImporte = Round(cabecera.totalImporte, 2);
-		cabecera.totalSindical = Round(cabecera.totalSindical, 2);
-		cabecera.totalSolidario = Round(cabecera.totalSolidario, 2);
+        switch (liquidacion.liquidacionTipoPagoId) {
+          case liquidaciones.tipoPagoSindical.id: {
+            cabecera.totalSindical += liquidacion.importeTotal;
+            break;
+          }
+          case liquidaciones.tipoPagoSolidario.id: {
+            cabecera.totalSolidario += liquidacion.importeTotal;
+            break;
+          }
+          default:
+            break;
+        }
+        cabecera.liquidaciones.push(liquidacion);
+      });
+    cabecera.cantidadTrabajadores = Round(cabecera.cantidadTrabajadores);
+    cabecera.totalRemuneraciones = Round(cabecera.totalRemuneraciones, 2);
+    cabecera.totalAporte = Round(cabecera.totalAporte, 2);
+    cabecera.totalSindical = Round(cabecera.totalSindical, 2);
+    cabecera.totalSolidario = Round(cabecera.totalSolidario, 2);
+    ({ interes: cabecera.totalIntereses, dias: cabecera.diasVencimiento } =
+      calculoResarcitorios(
+        cabecera.fechaVencimiento,
+        cabecera.fechaPagoEstimada,
+        cabecera.totalAporte
+      ));
+    cabecera.totalImporte = Round(
+      cabecera.totalAporte + cabecera.totalIntereses,
+      2
+    );
+    totalRemuneraciones = Round(totalRemuneraciones, 2);
 
-		totalRemuneraciones = Round(totalRemuneraciones, 2);
-		
-		setEstado((o) => ({
-			...o,
-			processing: null,
-			cabecera: { ...o.cabecera, ...cabecera },
-			nominas: {
-				...o.nominas,
-				sinEstablecimiento,
-				ruralesSinEstablecimiento,
-				cantidadTrabajadores,
-				totalRemuneraciones,
-			},
-			liquidaciones: {
-				...o.liquidaciones,
-				...liquidaciones,
-			},
-		}));
-	}, [estado]);
-	//#endregion
+    setEstado((o) => ({
+      ...o,
+      processing: null,
+      cabecera: { ...o.cabecera, ...cabecera },
+      nominas: {
+        ...o.nominas,
+        sinEstablecimiento,
+        ruralesSinEstablecimiento,
+        cantidadTrabajadores,
+        totalRemuneraciones,
+      },
+      liquidaciones: {
+        ...o.liquidaciones,
+        ...liquidaciones,
+      },
+    }));
+  }, [estado]);
+  //#endregion
 
-	const leyendas = (
-		<>
-			<Grid width="full" style={{ color: "blue" }}>
-				{[
-					"Cantidad de trabajadores:",
-					estado.nominas.cantidadTrabajadores,
-				].join(" ")}
-			</Grid>
-			<Grid width="full" style={{ color: "blue" }}>
-				{[
-					"Total remuneraciones:",
-					Formato.Moneda(estado.nominas.totalRemuneraciones),
-				].join(" ")}
-			</Grid>
-			{estado.nominas.ruralesSinEstablecimiento ? (
-				<Grid width="full" style={{ color: "red" }}>
-					{[
-						"No es posible generar la liquidación",
-						`porque existen (${estado.nominas.ruralesSinEstablecimiento})`,
-						"empleados Rurales que no tienen establecimiento asignado",
-					].join(" ")}
-				</Grid>
-			) : null}
-		</>
-	)
+  const leyendas = (
+    <>
+      <Grid width="full" style={{ color: "blue" }}>
+        {[
+          "Cantidad de trabajadores:",
+          estado.nominas.cantidadTrabajadores,
+        ].join(" ")}
+      </Grid>
+      <Grid width="full" style={{ color: "blue" }}>
+        {[
+          "Total remuneraciones:",
+          Formato.Moneda(estado.nominas.totalRemuneraciones),
+        ].join(" ")}
+      </Grid>
+      {estado.nominas.ruralesSinEstablecimiento ? (
+        <Grid width="full" style={{ color: "red" }}>
+          {[
+            "No es posible generar la liquidación",
+            `porque existen (${estado.nominas.ruralesSinEstablecimiento})`,
+            "empleados Rurales que no tienen establecimiento asignado",
+          ].join(" ")}
+        </Grid>
+      ) : null}
+    </>
+  );
 
-	//#region Tab Nominas
-	const {
-		render: liqNomRender,
-		request: liqNomChanger,
-		selected: liqNomSel,
-	} = useLiquidacionesNomina({
-		remote: false,
-		multi: true,
-		hideSelectColumn: false,
-		mostrarBuscar: true,
-		columns: [
-			{ dataField: "cuil" },
-			{ dataField: "nombre" },
-			{
-				dataField: "empresaEstablecimiento_Nombre",
-				text: "Establecimiento",
-				sort: true,
-				style: { textAlign: "left" },
-			},
-			{ dataField: "esRural" },
-			{ dataField: "afiliadoId" },
-			{ dataField: "remuneracionImponible" },
-		],
-	});
-	const liqNomEdit = JoinOjects(liqNomSel, {
-		length: liqNomSel?.length ?? 0,
-	});
-	liqNomEdit.empresaEstablecimientoId ??= "";
-	liqNomEdit.esRural ??= "";
-	useEffect(() => {
-		liqNomChanger("list", { data: estado.nominas.todas });
-	}, [liqNomChanger, estado.nominas.todas]);
+  //#region Tab Nominas
+  const {
+    render: liqNomRender,
+    request: liqNomChanger,
+    selected: liqNomSel,
+    page: liqNomPage,
+    selection: liqNomSelection,
+    data: liqNomData,
+  } = useLiquidacionesNomina({
+    remote: false,
+    multi: true,
+    hideSelectColumn: true,
+    mostrarBuscar: true,
+    columns: [
+      { dataField: "cuil" },
+      { dataField: "nombre" },
+      {
+        dataField: "empresaEstablecimiento_Nombre",
+        text: "Establecimiento",
+        sort: true,
+        style: { textAlign: "left" },
+      },
+      // { dataField: "esRural" },
+      {
+        dataField: "esRural",
+        text: "Es Rural",
+        sort: true,
+        headerStyle: { width: "100px" },
+        formatter: Formato.Booleano,
+        style: { textAlign: "center" },
+      },
+      // { dataField: "afiliadoId" },
+      // {
+      // 	dataField: "afiliadoId",
+      // 	text: "Es Afiliado",
+      // 	sort: true,
+      // 	headerStyle: { width: "120px" },
+      // 	formatter: (value) =>
+      // 		Formato.Booleano(!!value),
+      // 	style: { textAlign: "center" },
+      // },
+      { dataField: "remuneracionImponible" },
+    ],
+    pagination: { size: 10 },
+  });
+  const liqNomEdit = JoinOjects(liqNomSel, {
+    length: liqNomSel?.length ?? 0,
+  });
+  liqNomEdit.empresaEstablecimientoId ??= "";
+  liqNomEdit.esRural ??= "";
+  useEffect(() => {
+    liqNomChanger("list", { data: estado.nominas.todas });
+  }, [liqNomChanger, estado.nominas.todas]);
 
-	tabs.push({
-		header: () => <Tab label="Nomina" />,
-		body: () => (
-			<Grid col full gap="inherit">
-				<Grid col width="full">
-					{liqNomRender()}
-				</Grid>
-				{leyendas}
-				<Grid col full="width" gap="inherit">
-					<LiquidacionNomina
-						data={liqNomEdit}
-						dependencies={{ establecimientos: establecimientos.data }}
-						onChange={(changes) => {
-							if (!liqNomEdit.length) return;
-							setEstado((o) => {
-								const todas = [...o.nominas.todas];
-								liqNomSel?.forEach((s) => {
-									const nomina = todas.find((r) => r.id === s.id);
-									if (nomina == null) return;
-									todas.splice(todas.indexOf(nomina), 1, {
-										...nomina,
-										...changes,
-									});
-								});
-								return {
-									...o,
-									processing: "Calculando...",
-									nominas: { ...o.nominas, todas },
-								};
-							});
-						}}
-					/>
-				</Grid>
-			</Grid>
-		),
-	});
-	//#endregion
+  useEffect(() => {
+    setIsSelect(!liqNomSel?.length || liqNomSel.length < liqNomEdit.length);
 
-	//#region Tab Liquidacion
-	const {
-		render: liqRender,
-		request: liqChanger,
-		selected: liqSel,
-	} = useLiquidaciones({
-		remote: false,
-		multi: true,
-		hideSelectColumn: true,
-		columns: (def, { request }) => [
-			...def,
-			{
-				dataField: "_acciones",
-				text: "Acciones",
-				isDummyField: true,
-				formatter: () => (
-					<Button className="botonAmarillo" style={{ padding: 0 }} tarea="Siaru_EmpresaRuralidadModifica">
-						Modifica
-					</Button>
-				),
-				headerStyle: { width: "110px" },
-				events: {
-					onClick: (e, column, columnIndex, row, rowIndex) => {
-						e.stopPropagation();
-						request("selected", {
-							request: "M",
-							record: row,
-							action: "Genera liquidacion",
-						});
-					},
-				},
-			},
-		],
-		onDataChange: (data) =>
-			setEstado((o) => ({
-				...o,
-				processing: "Calculando...",
-				liquidaciones: {
-					...o.liquidaciones,
-					todas: data,
-					retocadas: data
-						.map((actual) => {
-							const previa = o.liquidaciones.todas.find(
-								({ id }) => id === actual.id
-							);
-							let retocada = o.liquidaciones.retocadas.find(
-								({ id }) => id === actual.id
-							);
+    //Actualizo el select page
+    const { index, size } = liqNomPage;
+    const start = (index - 1) * size;
+    const end = start + size;
+    // Índices seleccionados que están en la página actual
+    const selectedIndexesOnPage = Array.isArray(liqNomSelection.index)
+      ? liqNomSelection.index.filter((idx) => idx >= start && idx < end)
+      : [];
 
-							if (
-								!previa ||
-								(previa.cantidadTrabajadores === actual.cantidadTrabajadores &&
-									previa.totalRemuneraciones === actual.totalRemuneraciones &&
-									previa.interesPorcentaje === actual.interesPorcentaje)
-							)
-								return retocada;
+    // Los registros seleccionados de la página actual
+    const recordsPaginaSeleccionados = selectedIndexesOnPage.map((idx) => {
+      // Buscar el registro correspondiente en liqNomSel
+      // Suponiendo que liqNomSel y liqNomSelection.index están sincronizados por posición
+      const pos = liqNomSelection.index.indexOf(idx);
+      return liqNomSel[pos];
+    });
+    const data = liqNomData ?? [];
+    const recordsPagina = data.slice(start, end);
 
-							retocada ??= { id: actual.id };
+    setIsSelectPage(
+      recordsPagina.length === recordsPaginaSeleccionados.length && recordsPaginaSeleccionados.length > 0 
+    );
 
-							if (previa.cantidadTrabajadores !== actual.cantidadTrabajadores)
-								retocada.cantidadTrabajadores = actual.cantidadTrabajadores;
+    //Actualizo isSelectAll
+    setIsSelectAll(
+      liqNomSel?.length === liqNomData.length && liqNomSel.length > 0
+    );
+  }, [liqNomSel, liqNomPage]);
 
-							if (previa.totalRemuneraciones !== actual.totalRemuneraciones)
-								retocada.totalRemuneraciones = actual.totalRemuneraciones;
+  // useEffect(() => {
+  //   const { index, size } = liqNomPage;
+  //   const start = (index - 1) * size;
+  //   const end = start + size;
 
-							if (previa.interesPorcentaje !== actual.interesPorcentaje)
-								retocada.interesPorcentaje = actual.interesPorcentaje;
+  //   // Índices seleccionados que están en la página actual
+  //   const selectedIndexesOnPage = Array.isArray(liqNomSelection.index)
+  //     ? liqNomSelection.index.filter((idx) => idx >= start && idx < end)
+  //     : [];
 
-							return retocada;
-						})
-						.filter((v, i, a) => v && a.indexOf(v) === i),
-				},
-			})),
-		onEditChange: ({ edit, changes }) => {
-			if (!("interesPorcentaje" in changes || "totalRemuneraciones" in changes))
-				return true;
-			
-			const liquidacion = { ...edit, ...changes };
-			const cabecera = { ...estado.cabecera };
+  //   // Los registros seleccionados de la página actual
+  //   const recordsPaginaSeleccionados = selectedIndexesOnPage.map((idx) => {
+  //     // Buscar el registro correspondiente en liqNomSel
+  //     // Suponiendo que liqNomSel y liqNomSelection.index están sincronizados por posición
+  //     const pos = liqNomSelection.index.indexOf(idx);
+  //     return liqNomSel[pos];
+  //   });
+  //   const data = liqNomData ?? [];
+  //   const recordsPagina = data.slice(start, end);
 
-			const calculos = calculosLiquidacion({ liquidacion, cabecera });
-			changes.interesNeto = calculos.interesNeto;
-			changes.interesImporte = calculos.interesImporte;
-			changes.importeTotal = calculos.importeTotal;
+  //   setIsSelectPage(
+  //     recordsPagina.length === recordsPaginaSeleccionados.length && recordsPaginaSeleccionados.length > 0 
+  //   );
+  // }, [liqNomPage]);
 
-			return true;
-		},
-		onLoadSelect: ({ data }) => [...data],
-	});
-	useEffect(() => {
-		liqChanger("list", { data: estado.liquidaciones.todas });
-	}, [liqChanger, estado.liquidaciones.todas]);
+  const [isSelect, setIsSelect] = useState(false);
+  const [isSelectAll, setIsSelectAll] = useState(false);
+  const [isSelectPage, setIsSelectPage] = useState(false);
 
-	//#region Cambio seleccion, reproceso cabecera
-	useEffect(() => {
-		const liquidaciones = liqSel ?? [];
-		const process = () => {
-			setEstado((o) => ({
-				...o,
-				processing: "Calculando...",
-				cabecera: { ...o.cabecera, liquidaciones },
-			}));
-		};
+  tabs.push({
+    header: () => <Tab label="Nomina" />,
+    body: () => (
+      <Grid col full gap="inherit">
+        <Grid col width="full">
+          {liqNomRender()}
+        </Grid>
+        <Grid>
+          <Button
+            width="200px"
+            // disabled={!liqNomData?.length}
+            className="botonAmarillo"
+            tarea="Siaru_EmpresaLiquidacionNominaEdita"
+            onClick={() => {
+              liqNomChanger("selectAll", { isSelectAll: !isSelectAll });
+              setIsSelectAll(!isSelectAll);
+              // setIsSelect(!isSelect);
+              // console.log("selected", liqNomSel);
+            }}
+          >
+            {isSelectAll ? `Deselecciona todos` : `Selecciona todos`}
+          </Button>
+          <Button
+            width="200px"
+            // disabled={!liqNomData?.length}
+            className="botonAmarillo"
+            tarea="Siaru_EmpresaLiquidacionNominaEdita"
+            onClick={() => {
+              console.log("isselectPage", isSelectPage);
+              liqNomChanger("selectPage", {
+                isSelectPage: !isSelectPage,
+                pagination: liqNomPage,
+              });
+              setIsSelectPage(!isSelectPage);
+            }}
+          >
+            {isSelectPage ? `Deselecciona página` : `Selecciona página`}
+          </Button>
+        </Grid>
+        {leyendas}
+        <Grid col full="width" gap="inherit">
+          <LiquidacionNomina
+            data={liqNomEdit}
+            dependencies={{ establecimientos: establecimientos.data }}
+            onChange={(changes) => {
+              if (!liqNomEdit.length) return;
+              setEstado((o) => {
+                const todas = [...o.nominas.todas];
+                liqNomSel?.forEach((s) => {
+                  const nomina = todas.find((r) => r.id === s.id);
+                  if (nomina == null) return;
+                  todas.splice(todas.indexOf(nomina), 1, {
+                    ...nomina,
+                    ...changes,
+                  });
+                });
 
-		if (estado.processing) return;
+                return {
+                  ...o,
+                  processing: "Calculando...",
+                  nominas: { ...o.nominas, todas },
+                };
+              });
+              liqNomChanger("unselectAll", { isSelect });
+            }}
+          />
+        </Grid>
+      </Grid>
+    ),
+  });
+  //#endregion
 
-		const viejo = estado.cabecera.liquidaciones.map((r) => r.id);
-		const nuevo = liquidaciones.map((r) => r.id);
+  //#region Tab Liquidacion
+  const {
+    render: liqRender,
+    request: liqChanger,
+    selected: liqSel,
+  } = useLiquidaciones({
+    remote: false,
+    multi: true,
+    hideSelectColumn: true,
+    columns: (def, { request }) => [
+      ...def,
+      // {
+      // 	// dataField: "_acciones",
+      // 	// text: "Acciones",
+      // 	// isDummyField: true,
+      // 	// formatter: () => (
+      // 	// 	<Button className="botonAmarillo" style={{ padding: 0 }} tarea="Siaru_EmpresaRuralidadModifica">
+      // 	// 		Modifica
+      // 	// 	</Button>
+      // 	// ),
+      // 	headerStyle: { width: "110px" },
+      // 	events: {
+      // 		onClick: (e, column, columnIndex, record, rowIndex) => {
+      // 			e.stopPropagation();
+      // 			request("selected", {
+      // 				request: "M",
+      // 				action: "Genera liquidacion",
+      // 				record,
+      // 			});
+      // 		},
+      // 	},
+      // },
+    ],
+    onDataChange: (data) =>
+      setEstado((o) => ({
+        ...o,
+        processing: "Calculando...",
+        liquidaciones: {
+          ...o.liquidaciones,
+          todas: data,
+          retocadas: data
+            .map((actual) => {
+              const previa = o.liquidaciones.todas.find(
+                ({ id }) => id === actual.id
+              );
+              let retocada = o.liquidaciones.retocadas.find(
+                ({ id }) => id === actual.id
+              );
 
-		if (viejo.length !== nuevo.length) return process();
-		if (viejo.filter((r) => !nuevo.includes(r)).length) return process();
-	}, [liqSel, estado]);
-	//#endregion
+              if (
+                !previa ||
+                (previa.cantidadTrabajadores === actual.cantidadTrabajadores &&
+                  previa.totalRemuneraciones === actual.totalRemuneraciones &&
+                  previa.interesPorcentaje === actual.interesPorcentaje)
+              )
+                return retocada;
 
-	const [liqCab, setLiqCab] = useState({
-		loading: null,
-		body: null,
-		imprime: null,
-		data: null,
-		error: null,
-	});
-	useEffect(() => {
-		if (!liqCab.loading) return;
-		const changes = { loading: null, data: null, error: null };
+              retocada ??= { id: actual.id };
 
-		// pushQuery({
-		// 	action: "GetCabecera",
-		// 	params: { id: 7 },
-		// 	onOk: async (data) => (changes.data = data),
-		// 	onError: async (error) => (changes.error = error),
-		// 	onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
-		// });
-		
-		pushQuery({
-			action: "CreateCabecera",
-			config: { body: liqCab.body },
-			onOk: async (data) => (changes.data = data),
-			onError: async (error) => (changes.error = error),
-			onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
-		});
-	}, [liqCab, pushQuery]);
+              if (previa.cantidadTrabajadores !== actual.cantidadTrabajadores)
+                retocada.cantidadTrabajadores = actual.cantidadTrabajadores;
 
-	tabs.push({
-		header: () => <Tab label="Liquidacion" />,
-		body: () => (
-			<Grid col width="full" gap="inherit">
-				<Grid width="full">{liqRender()}</Grid>
-				{leyendas}
-				<Grid col full="width" gap="inherit">
-					<LiquidacionCabecera
-						data={estado.cabecera}
-						disabled={{
-							genera:
-								!estado.cabecera.liquidaciones?.length ||
-								!!estado.nominas.ruralesSinEstablecimiento,
-						}}
-						onChange={(changes) =>
-							setEstado((o) => ({
-								...o,
-								processing: "Calculando...",
-								cabecera: { ...o.cabecera, ...changes },
-							}))
-						}
-						onGenera={() =>
-							setLiqCab((o) => ({
-								...o,
-								loading: "Cargando...",
-								body: estado.cabecera,
-							}))
-						}
-					/>
-				</Grid>
-				{!liqCab.data ? null : (
-					<FormaPagoPrint
-						liquidacionCabecera={liqCab.data}
-						onClose={() =>
-							setRedirect({ to: "/Inicio/Empresas/Liquidaciones" })
-						}
-					/>
-				)}
-			</Grid>
-		),
-	});
-	//#endregion
+              if (previa.totalRemuneraciones !== actual.totalRemuneraciones)
+                retocada.totalRemuneraciones = actual.totalRemuneraciones;
 
-	return (
-		<Grid col full gap="15px">
-			<Grid full="width">
-				<h2 className="subtitulo" style={{ margin: 0 }}>
-					Liquidar periodo {Formato.Periodo(periodo)} de
-					{` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
-				</h2>
-			</Grid>
-			<Grid width="full">
-				<Tabs value={tab} onChange={(_, v) => setTab(v)}>
-					{tabs.map((r) => r.header())}
-				</Tabs>
-			</Grid>
-			{tabs[tab].body()}
-		</Grid>
-	);
+              if (previa.interesPorcentaje !== actual.interesPorcentaje)
+                retocada.interesPorcentaje = actual.interesPorcentaje;
+
+              return retocada;
+            })
+            .filter((v, i, a) => v && a.indexOf(v) === i),
+        },
+      })),
+    onEditChange: ({ edit, changes }) => {
+      if (!("interesPorcentaje" in changes || "totalRemuneraciones" in changes))
+        return true;
+
+      const liquidacion = { ...edit, ...changes };
+      const cabecera = { ...estado.cabecera };
+
+      const calculos = calculosLiquidacion({ liquidacion, cabecera });
+      changes.interesNeto = calculos.interesNeto;
+      changes.interesImporte = calculos.interesImporte;
+      changes.importeTotal = calculos.importeTotal;
+
+      return true;
+    },
+    onLoadSelect: ({ data }) => [...data],
+  });
+  useEffect(() => {
+    liqChanger("list", { data: estado.liquidaciones.todas });
+  }, [liqChanger, estado.liquidaciones.todas]);
+
+  //#region Cambio seleccion, reproceso cabecera
+  useEffect(() => {
+    const liquidaciones = liqSel ?? [];
+    const process = () => {
+      setEstado((o) => ({
+        ...o,
+        processing: "Calculando...",
+        cabecera: { ...o.cabecera, liquidaciones },
+      }));
+    };
+
+    if (estado.processing) return;
+
+    const viejo = estado.cabecera.liquidaciones.map((r) => r.id);
+    const nuevo = liquidaciones.map((r) => r.id);
+
+    if (viejo.length !== nuevo.length) return process();
+    if (viejo.filter((r) => !nuevo.includes(r)).length) return process();
+  }, [liqSel, estado]);
+  //#endregion
+
+  const [liqCab, setLiqCab] = useState({
+    loading: null,
+    body: null,
+    imprime: null,
+    data: null,
+    error: null,
+  });
+  useEffect(() => {
+    if (!liqCab.loading) return;
+    const changes = { loading: null, data: null, error: null };
+
+    // pushQuery({
+    // 	action: "GetCabecera",
+    // 	params: { id: 7 },
+    // 	onOk: async (data) => (changes.data = data),
+    // 	onError: async (error) => (changes.error = error),
+    // 	onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
+    // });
+
+    pushQuery({
+      action: "CreateCabecera",
+      config: { body: liqCab.body },
+      onOk: async (data) => (changes.data = data),
+      onError: async (error) => (changes.error = error),
+      onFinally: async () => setLiqCab((o) => ({ ...o, ...changes })),
+    });
+  }, [liqCab, pushQuery]);
+
+  tabs.push({
+    header: () => <Tab label="Liquidacion" />,
+    body: () => (
+      <Grid col width="full" gap="inherit">
+        <Grid width="full">{liqRender()}</Grid>
+        {leyendas}
+        <Grid col full="width" gap="inherit">
+          <LiquidacionCabecera
+            data={estado.cabecera}
+            disabled={{
+              genera:
+                !estado.cabecera.liquidaciones?.length ||
+                !!estado.nominas.ruralesSinEstablecimiento,
+            }}
+            onChange={(changes) =>
+              setEstado((o) => ({
+                ...o,
+                processing: "Calculando...",
+                cabecera: { ...o.cabecera, ...changes },
+              }))
+            }
+            onGenera={() =>
+              setLiqCab((o) => ({
+                ...o,
+                loading: "Cargando...",
+                body: estado.cabecera,
+              }))
+            }
+          />
+        </Grid>
+        {!liqCab.data ? null : (
+          <FormaPagoPrint
+            liquidacionCabecera={liqCab.data}
+            onClose={() =>
+              setRedirect({ to: "/Inicio/Empresas/Liquidaciones" })
+            }
+          />
+        )}
+      </Grid>
+    ),
+  });
+  //#endregion
+
+  return (
+    <div style={{overflowY: "scroll"}}>
+    <Grid container col full gap="15px">
+      <Grid full="width">
+        <h2 className="subtitulo" style={{ margin: 0 }}>
+          Liquidar periodo {Formato.Periodo(periodo)} de
+          {` ${Formato.Cuit(empresa.cuit)} ${empresa.razonSocial ?? ""}`}
+        </h2>
+      </Grid>
+      <Grid width="full">
+        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+          {tabs.map((r) => r.header())}
+        </Tabs>
+      </Grid>
+      {tabs[tab].body()}
+    </Grid>
+    </div>
+  );
 };
 
 export default Handler;

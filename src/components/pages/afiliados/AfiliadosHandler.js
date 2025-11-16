@@ -39,9 +39,7 @@ const AfiliadosHandler = () => {
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
-  
-  
-
+   
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
     { value: 0, label: " Todos" },
@@ -69,7 +67,7 @@ const AfiliadosHandler = () => {
     let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
     
     let body = {
-          pageIndex: page,
+          pageIndex: page,//estadoSolicitudId != estadoSolicitud ? 1 : page,
           pageSize: sizePerPage,
           soloActivos: false,
 
@@ -77,7 +75,6 @@ const AfiliadosHandler = () => {
           ambitoSeccionales: Usuario.ambitoSeccionales,
           ambitoDelegaciones: Usuario.ambitoDelegaciones,
           ambitoProvincias: Usuario.ambitoProvincias,
-
           ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
           ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
@@ -113,7 +110,9 @@ const AfiliadosHandler = () => {
  
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
-      const estadosSolicitudesTable = estadosSolicitudesObj.map(
+      const estadosSolicitudesTable = estadosSolicitudesObj
+      .filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados")
+      .map(
         (estadoSolicitud) => {
           return {
             value: estadoSolicitud.id,
@@ -121,12 +120,10 @@ const AfiliadosHandler = () => {
           };
         }
       );
-      const estadosSolicitudesOptions = estadosSolicitudesTable.filter(
-        (estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado"
-      );
-
-      estadosSolicitudesOptions.push({ value: 0, label: "Todos" });
-      console.log("estadosSolicitudesOptions", estadosSolicitudesOptions);
+      const estadosSolicitudesOptions =  estadosSolicitudesTable.filter((estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado");
+      estadosSolicitudesOptions.push({ value: 0, label: "Todos" })
+       
+     
       setEstadosSolicitudes(
         estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
       );
@@ -273,6 +270,8 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilterChange = (filters) => {
+    console.log("filtro de estado de solicitud", filters);
+    estadoSolicitud != parseInt(filters.estadoSolicitud?.filterVal) && setPage(1); //Si el filtro de estado de solicitud cambia, voy a la primer pagina
     setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 

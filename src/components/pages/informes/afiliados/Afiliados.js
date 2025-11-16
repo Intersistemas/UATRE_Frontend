@@ -15,6 +15,10 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
 import AuthContext from "store/authContext";
+import useTareasUsuario from 'components/hooks/useTareasUsuario';
+import useAmbitos from 'components/hooks/useAmbitos';
+import { useSelector } from "react-redux";
+
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
@@ -38,7 +42,8 @@ const columns = [
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		//formatter: (v) => Formato.Cuit(v),
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
 	},
@@ -185,13 +190,6 @@ const columns = [
 		formatter: (v) => Formato.Periodo(v),
 		csvFormat: (v) => v,
 	},
-	{
-		dataField: "condicionRural",
-		text: "Condición Rural",
-		headerTitle: true,
-		headerStyle: { width: "12em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
 ];
 
 //#region delegacionSelectOptions
@@ -206,14 +204,18 @@ const delegacionSelectOptions = ({ data = [], ...x }) =>
 //#endregion delegacionSelectOptions
 
 //#region seccionalSelectOptions
-const seccionalSelectTodos = { value: 0, label: "Todas" };
-const seccionalSelectOptions = ({ data = [], ...x }) =>
+const seccionalSelectTodos = { label: "Todas" };
+const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
+	
 	mapOptions({
 		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
+		//map: (r) => ({ value: r.id, label: r.descripcion }),
+		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+		map: (r) => ( ambitoUsuario.tipo != "Todos" ? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ? { value: r.id, label: r.descripcion } : null : { value: r.id, label: r.descripcion } ),
 		start: data.length === 1 ? [] : [seccionalSelectTodos],
-		...x,
-	});
+		...x,	
+	})
+ 
 //#endregion seccionalSelectOptions
 
 //#region motivosBajaSelectOptions
@@ -250,6 +252,12 @@ const provinciaSelectOptions = ({ data = [], ...x }) =>
 //#endregion provinciaSelectOptions
 
 const Afiliados = ({ onClose = onCloseDef }) => {
+
+	const tareas = useTareasUsuario();
+	const ambitoUsuario = useAmbitos().ambitoUser();
+	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
+		
 	//#region Trato queries a APIs
 	const { setState: setAfiliadosQuery } = useQueryState(
 		() => ({
@@ -259,7 +267,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				method: "POST",
 			},
 		}),
-		{ query: { config: { errorType: "response" } } }
+		{ 
+			query: { 
+				config: { errorType: "response" } 
+			}
+		}
 	);
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
@@ -344,7 +356,12 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
-		filtros: {},
+		filtros: {
+			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+			ambitoDelegaciones: usuario.ambitoDelegaciones,
+			ambitoSeccionales: usuario.ambitoSeccionales,
+			ambitoProvincias: usuario.ambitoProvincias
+		},
 		wait: { delegaciones: true, seccionales: true, provincias: true },
 		usuario,
 	});
@@ -380,7 +397,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#region filtro seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
 		reload: false,
-		loading: null,
+		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
@@ -397,7 +414,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	useEffect(() => {
 		setSeccionalSelect((o) => ({
 			...o,
-			options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+			options: o.optionsSrc.filter((r) => includeSearch(r, seccionalSelect.buscar)),
 		}));
 	}, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
 	//#endregion filtro seccional
@@ -476,7 +493,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 	//#region list
 	const [list, setList] = useState({
 		reload: false,
-		loading: "Cargando...",
+		loading: null,
 		pagination: { index: 1, size: 10 },
 		sort: "nroAfiliadoDesc",
 		params: {},
@@ -551,6 +568,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			selected: seccionalSelectTodos,
 			selectedDef: seccionalSelectTodos,
 			buscar: "",
+			ambitoUsuario: ambitoUsuario,
 		};
 		const data = [];
 		if (seccionalSelect.refDelegacionId) {
@@ -597,7 +615,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				changes.data = ambito
 					? data.filter((r) => ambito.includes(r.id))
 					: data;
-				changes.optionsSrc = seccionalSelectOptions(changes);
+				changes.optionsSrc = seccionalSelectOptions(changes, ambitoUsuario);
 				changes.selectedDef =
 					changes.optionsSrc.length === 1
 						? changes.optionsSrc[0]
@@ -681,7 +699,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			...o,
 			onLoad: ({ ok, error }) => {
 				let data = [];
-				if (Array.isArray(ok)) data = ok;
+				if (Array.isArray(ok)) data = ok.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados");
+				console.log("data estados:", data);
 				setEstadoSelect((o) => {
 					const n = {
 						...o,
@@ -692,7 +711,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					n.optionsSrc = estadoSelectOptions(n);
 					n.selectedDef =
 						n.optionsSrc.length === 1 ? n.optionsSrc[0] : estadoSelectTodos;
-					n.selected = n.selectedDef;
+					n.selected =  n.selectedDef;
 					return n;
 				});
 			},
@@ -769,7 +788,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			} else {
 				setFiltros((o) => ({
 					...o,
-					ambitoDelegaciones: { ids: [selected.value] },
+					ambitoDelegaciones: { ids: [selected?.value] },
 				}));
 			}
 			finalizaInit();
@@ -803,7 +822,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoSeccionales: { ids: [selected.value] },
+			ambitoSeccionales: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);
@@ -823,7 +842,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			refMotivoBajaId: selected.value,
+			refMotivoBajaId: selected?.value,
 		}));
 	}, [motivosBajaSelect.loading, motivosBajaSelect.selected]);
 	//#endregion Cambia select motivosBaja
@@ -842,7 +861,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			estadoSolicitudId: selected.value,
+			estadoSolicitudId: selected?.value,
 		}));
 	}, [estadoSelect.loading, estadoSelect.selected]);
 	//#endregion Cambia select estado
@@ -872,7 +891,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 		}
 		setFiltros((o) => ({
 			...o,
-			ambitoProvincias: { ids: [selected.value] },
+			ambitoProvincias: { ids: [selected?.value] },
 		}));
 		finalizaInit();
 	}, [provinciaSelect.loading, provinciaSelect.selected]);
@@ -895,7 +914,6 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			query: {
 				...o.query,
 				config: {
-					...o.query.config,
 					body: {
 						...list.params,
 						sort: list.sort,
@@ -904,14 +922,23 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					},
 				},
 			},
+			onPreLoad: () =>
+				setList((o) => ({
+					...o,
+					reload: false,
+					loading: "Cargando...",
+					data: [],
+				})),
 			onLoad: ({ ok, error }) => {
+
 				let data = [];
-				let pagination = {};
-				if (ok) {
-					if (!Array.isArray(ok.data))
-						console.error("Se esperaba un arreglo", data);
-					else ({ data, ...pagination } = ok);
+				let pagination = { ...list.pagination, count: data.length };
+				if (Array.isArray(ok?.data)) {
+					({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+				} else {
+					console.error("Se esperaba un arreglo", ok?.data);
 				}
+
 				setList((o) => ({
 					...o,
 					loading: null,
@@ -951,11 +978,11 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 					setAfiliadosQuery((o) => ({
 						...o,
 						query: {
-							...query,
+							...o.query,
 							config: {
-								...query.config,
+								...o.query.config,
 								body: {
-									...query.config.body,
+									...o.query.config.body,
 									pageIndex: index + 1,
 									pageSize: size,
 								},
@@ -1032,6 +1059,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
 			provincias: [...AsArray(init.usuario.ambitoProvincias?.ids)],
 		};
+		console.log("ambito*",ambito)
 		const finalizaCarga = () => {
 			setInit((o) => {
 				const init = { ...o };
@@ -1176,6 +1204,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								onTextChange={(buscar) =>
 									setEstadoSelect((o) => ({ ...o, buscar }))
 								}
+								//disabled={ambito.tipo == "Delegaciones" ? true : false}
 							/>
 						</Grid>
 						<Grid grow>
@@ -1235,7 +1264,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								})),
 						}}
 						noDataIndication={
-							list.loading || list.error || "No existen datos para mostrar "
+							list.loading || list.error || "No existen datos para mostrar"
 						}
 						columns={columns}
 						onTableChange={(type, { sortOrder, sortField }) => {
@@ -1271,6 +1300,8 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 								className="botonAmarillo"
 								loading={!!csv.loading}
 								onClick={() => onCSV()}
+								tarea="Informes_Afiliados_Afiliados_CSV"
+								disabled={list.data.length === 0}
 							>
 								GENERA ARCHIVO CSV
 							</Button>

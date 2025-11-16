@@ -7,11 +7,11 @@ import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
-import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
+import InputMaterial from "components/ui/Input/InputMaterial";
 
 const onCloseDef = () => {};
 
@@ -93,7 +93,7 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 				onOk: (data) => {
 					if (!Array.isArray(data))
 						return console.error("Se esperaba un arreglo", data);
-					changes.data = data;
+					changes.data = data.filter((estadoSolicitud) => estadoSolicitud?.tipo === "Afiliados");
 				},
 				onError: (error) => (changes.error = error.toString()),
 				onFinally: () =>
@@ -157,7 +157,7 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 				<Grid col full gap="15px">
 					<Grid width gap="inherit">
 						<Grid width="200px">
-							<DateTimePicker
+							<InputMaterial
 								label="Período"
 								type="month"
 								minDate={dayjs().subtract(12, "month").format("YYYY-MM-DD")}
@@ -165,11 +165,6 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 								value={Formato.Mascara(filtros?.periodo, "####-##-01") ?? ""}
 								onChange={(periodo) =>
 									setFiltros((o) => {
-										console.log({
-											periodo,
-											minDate: dayjs().subtract(12, "month").format("YYYY-MM-DD"),
-											maxDate: dayjs().subtract(1, "month").format("YYYY-MM-DD"),
-										});
 										const r = {
 											...o,
 											periodo: Formato.Entero(periodo?.format("YYYYMM")),
@@ -287,7 +282,11 @@ const TrabajadoresEstados = ({ onClose = onCloseDef }) => {
 			<Modal.Footer>
 				<Grid gap="20px" justify="end">
 					<Grid width="250px">
-						<Button className="botonAmarillo" onClick={() => onCSV()}>
+						<Button 
+						className="botonAmarillo"
+						onClick={() => onCSV()}
+						tarea="Informes_DDJJ_TrabajadoresDeclarados_CSV"
+						>
 							GENERA ARCHIVO CSV
 						</Button>
 					</Grid>

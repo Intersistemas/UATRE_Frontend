@@ -32,7 +32,7 @@ export class TareasManager {
 
 		if (rol && this.#rolesAdmin.find((t) => t.toUpperCase() === rol.toUpperCase())) return true;
 
-		return this.#tareas.find((t) => t.nombreTarea === tarea) != null;
+		return this.#tareas.find((t) => t.nombreTarea.trim() === tarea) != null;
 	}
 }
 

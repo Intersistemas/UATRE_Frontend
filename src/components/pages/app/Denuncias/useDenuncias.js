@@ -1,363 +1,582 @@
-import React, { useCallback, useEffect, useState } from "react";
+// // export default useDenuncias;
+// import { useCallback, useEffect, useState } from "react";
+// import useQueryQueue from "components/hooks/useQueryQueue";
+// import AsArray from "components/helpers/AsArray";
+// import DenunciasTable from "./DenunciasTable";
+// import DenunciaDetails from "./DenunciaDetails";
+
+
+// const selectionDef = {
+//   action: "",
+//   request: "",
+//   index: null,
+//   record: null,
+// };
+
+import { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import JoinOjects from "components/helpers/JoinObjects";
 import AsArray from "components/helpers/AsArray";
-import dayjs from "dayjs";
-import LocalidadesForm from "./DenunciasForm";
 import DenunciasTable from "./DenunciasTable";
+import DenunciaDetails from "./DenunciaDetails";
 
 const selectionDef = {
-	action: "",
-	request: "",
-	index: null,
-	record: null,
-	edit: null,
-	errors: null,
+  action: "",
+  request: "",
+  index: null,
+  record: null,
 };
 
 export const onLoadSelectFirst = ({ data, multi, record }) => {
-	const dataArray = AsArray(data);
-	if (multi) {
-		record = AsArray(record);
-		let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
-		if (retorno.length === 0) retorno = [dataArray.at(0)].filter((r) => r);
-		return retorno.length ? retorno : null;
-	}
-	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
+  const dataArray = AsArray(data);
+  if (multi) {
+    record = AsArray(record);
+    let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
+    if (retorno.length === 0) retorno = [dataArray.at(0)].filter((r) => r);
+    return retorno.length ? retorno : null;
+  }
+  return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
 };
-
-export const onLoadSelectSame = ({ data, multi, record }) => {
-	const dataArray = AsArray(data);
-	if (multi) {
-		record = AsArray(record);
-		let retorno = dataArray.filter((d) => record.find((r) => r.id === d.id));
-		return retorno.length ? retorno : null;
-	}
-	return dataArray.find((r) => r.id === record?.id) ?? dataArray.at(0);
-};
-
-export const onLoadSelectKeep = ({ record }) => record;
 
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
-	record ? record : onLoadSelectFirst({ data, multi, record });
-
-export const onDataChangeDef = (data = []) => {};
-
-const onEditChangeDef = ({ edit = {}, changes = {}, request = "" } = {}) =>
-	true;
-const onEditValidateDef = ({ edit = {}, errors = {}, request = "" } = {}) => {};
-const onEditCompleteDef = ({
-	edit = {},
-	response = null,
-	request = "",
-} = {}) => {};
+  record ? record : onLoadSelectFirst({ data, multi, record });
 
 const useDenuncias = ({
-	remote: remoteInit = true,
-	data: dataInit = [],
-	loading,
-	error,
-	multi: multiInit = false,
-	pagination: paginationInit = { index: 1, size: 15 },
-	onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
-	onDataChange: onDataChangeInit = onDataChangeDef,
-	onEditChange: onEditChangeInit = onEditChangeDef,
-	onEditValidate: onEditValidateInit = onEditValidateDef,
-	onEditComplete: onEditCompleteInit = onEditCompleteDef,
-	columns,
-	hideSelectColumn = true,
-	mostrarBuscar = false,
+  remote = true,
+  data: dataInit = [],
+  loading,
+  error,
+  pagination: paginationInit = { index: 1, size: 10 },
+  onLoadSelect = onLoadSelectFirst,
+  columns,
+  hideSelectColumn = true,
+  filtroIds = [],
+  hayFiltroActivo = false,
+  filtroEstado = null,
+  filtroFechaDesde = null,
+  filtroFechaHasta = null,
+  usuarioAmbito = null,
+  applyAmbitoFilter = null,
 } = {}) => {
-	//#region Trato queries a APIs
-	const pushQuery = useQueryQueue((action) => {
-		switch (action) {
-			case "GetList": {
-				return {
-					config: {
-						baseURL: "App",
-						method: "GET",
-						endpoint: "/AppDenuncias",
-					},
-				};
-			}
-			default:
-				return null;
-		}
-	});
-	
+  
+  // DEBUG: Verificar parámetros recibidos
+  console.log("🔧 DEBUG useDenuncias - Parámetros recibidos:", {
+    usuarioAmbito,
+    applyAmbitoFilter: !!applyAmbitoFilter,
+    hayFiltroActivo,
+    filtroIds: filtroIds?.length || 0,
+    filtroEstado: filtroEstado || "Ninguno",
+    filtroFechaDesde: filtroFechaDesde || "Ninguna",
+    filtroFechaHasta: filtroFechaHasta || "Ninguna"
+  });
+  const pushQuery = useQueryQueue((action) => {
+    if (action === "GetList") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/AppDenuncias",
+        },
+      };
+    }
+    if (action === "GetEstados") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/DenunciasEstados",
+        },
+      };
+    }
+    return null;
+  });
 
-	//#region declaracion y carga list y selected
-	const [list, setList] = useState({
-		loading: null,
-		remote: remoteInit,
-		loadingOverride: loading,
-		params: { sortBy: "nombre" },
-		pagination: { index: 1, size: 15, ...paginationInit },
-		data: [...AsArray(dataInit, true)],
-		error,
-		selection: {
-			...selectionDef,
-			multi: multiInit,
-		},
-		onLoadSelect:
-			onLoadSelectInit === onLoadSelectFirst && multiInit
-				? onLoadSelectSame
-				: onLoadSelectInit,
-		onDataChange: onDataChangeInit ?? onDataChangeDef,
-		onEditChange: onEditChangeInit ?? onEditChangeDef,
-		onEditValidate: onEditValidateInit ?? onEditValidateDef,
-		onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
-	});
+  const [dataOriginal, setDataOriginal] = useState([]);
 
-	useEffect(() => {
-		if (!list.loading) return;
-		const changes = { loading: null, error: null };
-		if (!list.remote) {
-			const data = list.data;
-			const error = list.error;
-			const multi = list.selection.multi;
-			const record = list.selection.record;
-			changes.data = data;
-			changes.error = error;
-			changes.selection = {
-				...list.selection,
-				...selectionDef,
-				record: list.onLoadSelect({ data, multi, record }),
-			};
+  const [list, setList] = useState({
+    loading: remote ? "Cargando..." : null, // Activar loading si es remote
+    remote,
+    loadingOverride: loading,
+    params: { sortBy: "+fecha" },
+    pagination: { index: 1, size: 10, ...paginationInit },
+    data: [...AsArray(dataInit, true)],
+    error,
+    selection: { ...selectionDef },
+    onLoadSelect,
+  });
 
-			changes.selection.index = multi
-				? changes.selection.record?.map((r) => changes.data.indexOf(r))
-				: changes.data.indexOf(changes.selection.record);
-			setList((o) => ({ ...o, ...changes }));
-			return;
-		}
-		changes.data = [];
-		pushQuery({
-			action: "GetList",
-			params: {
-				...list.params,
-				pageIndex: list.pagination.index,
-				pageSize: list.pagination.size,
-			},
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				changes.data = data;
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { index, size, count };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
+  useEffect(() => {
+    if (!list.loading) return;
+    const changes = { loading: null, error: null };
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
+    if (!list.remote) {
+      const data = list.data;
+      const record = list.selection.record;
+      changes.data = data;
+      changes.selection = {
+        ...list.selection,
+        ...selectionDef,
+        record: list.onLoadSelect({ data, multi: false, record }),
+      };
+      changes.selection.index = data.indexOf(changes.selection.record);
+      setList((o) => ({ ...o, ...changes }));
+      return;
+    }
 
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
-	}, [pushQuery, list]);
-	//#endregion
+    changes.data = [];
 
-	const request = useCallback((type, payload = {}) => {
-		switch (type) {
-			case "selected": {
-				return setList((o) => {
-					const apply = [];
-					if (payload.request !== "A") {
-						apply.push(
-							...AsArray(
-								"record" in payload ? payload.record : o.selection.record,
-								true
-							)
-								.map(({ id }) => id)
-								.filter((r) => r)
-						);
-					}
-					return {
-						...o,
-						selection: {
-							...o.selection,
-							request: payload.request,
-							action: payload.action,
-							edit: {
-								...(payload.request === "A"
-									? {}
-									: JoinOjects(o.selection.record)),
-								...JoinOjects(payload.record),
-							},
-							apply,
-						},
-					};
-				});
-			}
-			case "list": {
-				return setList((o) => {
-					const changes = {
-						loading: null,
-						data:
-							"data" in payload && Array.isArray(payload.data)
-								? [...payload.data]
-								: payload.clear
-								? []
-								: o.data,
-						loadingOverride: payload.loading,
-						error: payload.error,
-						onLoadSelect:
-							"onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
-						selection: {
-							...o.selection,
-							multi: "multi" in payload ? !!payload.multi : o.selection.multi,
-						},
-					};
-					if (payload.params) changes.params = payload.params;
-					if (payload.pagination)
-						changes.pagination = { ...o.pagination, ...payload.pagination };
-					if (payload.clear) {
-						const data = changes.data;
-						const multi = changes.selection.multi;
-						const record = o.selection.record;
-						changes.selection = {
-							...o.selection,
-							...selectionDef,
-							record: changes.onLoadSelect({ data, multi, record }),
-						};
-						changes.selection.index = multi
-							? changes.selection.record?.map((r) => changes.data.indexOf(r))
-							: changes.data.indexOf(changes.selection.record);
-					} else {
-						changes.loading = "Cargando...";
-					}
-					return { ...o, ...changes };
-				});
-			}
-			default:
-				return;
-		}
-	}, []);
+    // SOLUCIÓN: Si el backend no respeta paginación, traemos TODO y paginamos en cliente
+    console.log("🔍 Iniciando carga de denuncias...", {
+      pageIndex: list.pagination.index,
+      pageSize: list.pagination.size,
+    });
 
+    pushQuery({
+      action: "GetList",
+      params: {}, // SIN parámetro Page - traemos todo
+      onOk: async (response) => {
+        console.log("🎯 Respuesta del servidor:", { 
+          tipo: typeof response, 
+          esArray: Array.isArray(response),
+          cantidad: Array.isArray(response) ? response.length : "N/A"
+        });
+        
+        // Normalizar respuesta del API
+        let data = [];
 
+        if (Array.isArray(response)) {
+          data = response;
+        } else if (response && typeof response === "object") {
+          data = response.data || response.items || response.results || response.denuncias || [];
+        } else {
+          console.error("Formato de respuesta inesperado:", response);
+          return;
+        }
 
-	const render = () => (
-		<>
-			<DenunciasTable
-				remote={list.remote}
-				data={list.data}
-				loading={!!list.loading}
-				noDataIndication={
-					list.loading ??
-					list.loadingOverride ??
-					list.error?.message ??
-					"No existen datos para mostrar"
-				}
-				
-				
-				pagination={{
-					...list.pagination,
-					onChange: ({ index, size }) =>
-						request("list", {
-							pagination: { index, size },
-							data: list.remote ? [] : list.data,
-						}),
-				}}
-				selection={{
-					mode: list.selection.multi ? "checkbox" : "radio",
-					hideSelectColumn: hideSelectColumn,
-					selected: AsArray(list.selection.record, !list.selection.multi)
-						.filter((r) => r)
-						.map((r) => r.id),
-					onSelect: (record, isSelect, rowIndex, e) => {
-						if (rowIndex == null) return;
-						setList((o) => {
-							let index = o.data.findIndex((r) => r.id === record.id);
-							if (o.selection.multi) {
-								const newIndex = [];
-								const newRecord = [];
-								o.selection.record?.forEach((r, i) => {
-									if (!isSelect && r.id === record.id) return;
-									newIndex.push(o.selection.index[i]);
-									newRecord.push(r);
-								});
-								if (isSelect && !newIndex.includes(index)) {
-									newIndex.push(index);
-									newRecord.push(record);
-								}
-								if (newIndex.length) {
-									index = newIndex;
-									record = newRecord;
-								} else {
-									index = null;
-									record = null;
-								}
-							}
-							return {
-								...o,
-								selection: {
-									...o.selection,
-									...selectionDef,
-									index,
-									record,
-								},
-							};
-						});
-					},
-					onSelectAll: (isSelect, rows, e) => {
-						if (!list.selection.multi) return;
-						setList((o) => {
-							let index = [];
-							let record = [];
-							if (isSelect) {
-								o.data.forEach((r, i) => {
-									record.push(r);
-									index.push(i);
-								});
-							} else {
-								index = null;
-								record = null;
-							}
-							return {
-								...o,
-								selection: {
-									...o.selection,
-									...selectionDef,
-									index,
-									record,
-								},
-							};
-						});
-					},
-				}}
-				onTableChange={(type, newState) => {
-					switch (type) {
-						case "sort": {
-							const { sortField, sortOrder } = newState;
-							return setList((o) => ({
-								...o,
-								loading: "Cargando...",
-								params: {
-									...o.params,
-									sortBy: `${sortOrder === "desc" ? "-" : "+"}${sortField}`,
-								},
-							}));
-						}
-						default:
-							return;
-					}
-				}}
-			/>
-		
-		</>
-	);
-	return { render, request, selected: list.selection.record };
+        if (!Array.isArray(data)) {
+          console.error("Se esperaba un arreglo en data", { data, response });
+          return;
+        }
+
+        console.log("📊 Total de registros recibidos del API:", data.length);
+
+        // Aplicar filtro por ámbito PRIMERO (antes de paginar)
+        let dataFiltradaPorAmbito = data;
+        
+        if (usuarioAmbito && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
+          try {
+            console.log("🚀 Aplicando filtro por ámbito...");
+            dataFiltradaPorAmbito = await applyAmbitoFilter(data, usuarioAmbito);
+            console.log("🔐 Filtro por ámbito aplicado:", {
+              totalOriginal: data.length,
+              totalFiltrado: dataFiltradaPorAmbito.length,
+              ambitoTipo: usuarioAmbito?.tipo,
+              ambitoId: usuarioAmbito?.id,
+            });
+          } catch (error) {
+            console.error("❌ Error aplicando filtro de ámbito:", error);
+            dataFiltradaPorAmbito = data;
+          }
+        }
+
+        // Guardar dataset completo (filtrado por ámbito) para usar con filtros posteriores
+        setDataOriginal(dataFiltradaPorAmbito);
+
+        // 🔄 CARGAR ESTADOS DE TODAS LAS DENUNCIAS
+        console.log("🔄 Cargando estados de las denuncias...");
+        
+        pushQuery({
+          action: "GetEstados",
+          params: {}, // Sin filtros, traer todos los estados
+          onOk: async (responseEstados) => {
+            console.log("📥 Estados recibidos:", { 
+              tipo: typeof responseEstados, 
+              esArray: Array.isArray(responseEstados),
+              cantidad: Array.isArray(responseEstados) ? responseEstados.length : "N/A"
+            });
+
+            let estados = [];
+            if (Array.isArray(responseEstados)) {
+              estados = responseEstados;
+            } else if (responseEstados && typeof responseEstados === "object") {
+              estados = responseEstados.data || responseEstados.items || responseEstados.estados || [];
+            }
+
+            if (!Array.isArray(estados)) {
+              console.warn("⚠️ No se pudieron obtener los estados correctamente");
+              estados = [];
+            }
+
+            // Crear un mapa: appDenunciasId -> último estado
+            const estadosMap = {};
+            estados.forEach(item => {
+              const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId;
+              const fechaEstado = item.fecha || item.fechaEstado || "";
+              
+              if (denunciaId) {
+                // Si ya existe un estado para esta denuncia, mantener el más reciente
+                if (!estadosMap[denunciaId] || fechaEstado > (estadosMap[denunciaId].fecha || "")) {
+                  estadosMap[denunciaId] = {
+                    estado: item.estado || "Sin datos",
+                    fecha: fechaEstado,
+                    observaciones: item.observaciones || "",
+                  };
+                }
+              }
+            });
+
+            console.log("📊 Estados procesados:", {
+              totalEstados: estados.length,
+              denunciasConEstado: Object.keys(estadosMap).length,
+              primerosEstados: Object.entries(estadosMap).slice(0, 3),
+            });
+
+            // 🔗 COMBINAR ESTADOS CON DENUNCIAS
+            const dataConEstados = dataFiltradaPorAmbito.map(denuncia => {
+              const denunciaId = denuncia.id || denuncia.Id;
+              const estadoInfo = estadosMap[denunciaId];
+              
+              return {
+                ...denuncia,
+                estado: estadoInfo ? estadoInfo.estado : (denuncia.estado || "Sin datos"),
+                fechaEstado: estadoInfo ? estadoInfo.fecha : null,
+                observacionesEstado: estadoInfo ? estadoInfo.observaciones : "",
+              };
+            });
+
+            console.log("✅ Datos combinados con estados:", {
+              totalDenuncias: dataConEstados.length,
+              primerasDenuncias: dataConEstados.slice(0, 2).map(d => ({
+                id: d.id,
+                nombre: d.nombre,
+                estado: d.estado,
+              })),
+            });
+
+            // Actualizar dataOriginal con los estados
+            setDataOriginal(dataConEstados);
+
+            // ✅ PAGINACIÓN DEL LADO DEL CLIENTE
+            const totalRecords = dataConEstados.length;
+            const { index: pageIndex, size: pageSize } = list.pagination;
+            const startIndex = (pageIndex - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const dataPaginada = dataConEstados.slice(startIndex, endIndex);
+
+            console.log("📄 Paginación aplicada:", {
+              totalRegistros: totalRecords,
+              paginaActual: pageIndex,
+              tamañoPagina: pageSize,
+              rangoInicio: startIndex,
+              rangoFin: endIndex,
+              registrosEnPagina: dataPaginada.length,
+            });
+
+            changes.data = dataPaginada;
+            changes.pagination = { 
+              index: pageIndex, 
+              size: pageSize, 
+              count: totalRecords 
+            };
+
+            const record = list.selection.record;
+            if (dataPaginada.length === 0) {
+              changes.selection = { ...selectionDef };
+            } else {
+              changes.selection = {
+                ...list.selection,
+                ...selectionDef,
+                record: list.onLoadSelect({ data: dataPaginada, multi: false, record }),
+              };
+              changes.selection.index = dataPaginada.indexOf(changes.selection.record);
+            }
+
+            // Aplicar cambios finales
+            setList((o) => ({ ...o, ...changes }));
+          },
+          onError: async (error) => {
+            console.error("❌ Error al cargar estados:", error);
+            
+            // Continuar sin estados en caso de error
+            const totalRecords = dataFiltradaPorAmbito.length;
+            const { index: pageIndex, size: pageSize } = list.pagination;
+            const startIndex = (pageIndex - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const dataPaginada = dataFiltradaPorAmbito.slice(startIndex, endIndex);
+
+            changes.data = dataPaginada;
+            changes.pagination = { 
+              index: pageIndex, 
+              size: pageSize, 
+              count: totalRecords 
+            };
+
+            const record = list.selection.record;
+            if (dataPaginada.length === 0) {
+              changes.selection = { ...selectionDef };
+            } else {
+              changes.selection = {
+                ...list.selection,
+                ...selectionDef,
+                record: list.onLoadSelect({ data: dataPaginada, multi: false, record }),
+              };
+              changes.selection.index = dataPaginada.indexOf(changes.selection.record);
+            }
+
+            setList((o) => ({ ...o, ...changes }));
+          },
+        });
+      },
+      onError: async (error) => {
+        console.error("❌ Error al cargar denuncias:", error);
+        if (error.code !== 404) {
+          changes.error = error;
+        }
+        changes.selection = { ...list.selection, ...selectionDef };
+        changes.loading = null;
+        setList((o) => ({ ...o, ...changes }));
+      },
+      // NO usar onFinally aquí porque los cambios se aplican dentro del callback de estados
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pushQuery, list.loading]);
+
+  // Filtrar por ESTADO y FECHAS cuando sea necesario
+  useEffect(() => {
+    // Si no hay datos originales, salir
+    if (!dataOriginal.length) {
+      return;
+    }
+
+    // Si no hay ningún filtro activo, salir
+    if (!filtroEstado && !filtroFechaDesde && !filtroFechaHasta) {
+      return;
+    }
+
+    console.log("🔎 Aplicando filtros...", {
+      totalOriginal: dataOriginal.length,
+      filtroEstado: filtroEstado || "Ninguno",
+      filtroFechaDesde: filtroFechaDesde || "Ninguna",
+      filtroFechaHasta: filtroFechaHasta || "Ninguna",
+    });
+
+    let datosFiltrados = [...dataOriginal];
+
+    // 1️⃣ FILTRO POR ESTADO (filtro directo sobre los datos)
+    if (filtroEstado) {
+      console.log("🔎 Aplicando filtro por Estado:", filtroEstado);
+      datosFiltrados = datosFiltrados.filter((item) => {
+        const estadoItem = item.estado || "Sin datos";
+        const match = estadoItem === filtroEstado;
+        return match;
+      });
+      console.log("✅ Filtro por Estado aplicado. Resultados:", datosFiltrados.length);
+    }
+
+    // 2️⃣ FILTRO POR FECHA DESDE
+    if (filtroFechaDesde) {
+      console.log("🔎 Aplicando filtro por Fecha Desde:", filtroFechaDesde);
+      datosFiltrados = datosFiltrados.filter((item) => {
+        const fechaItem = item.fecha ? String(item.fecha).slice(0, 10) : null;
+        if (!fechaItem) return false;
+        return fechaItem >= filtroFechaDesde;
+      });
+      console.log("✅ Filtro por Fecha Desde aplicado. Resultados:", datosFiltrados.length);
+    }
+
+    // 3️⃣ FILTRO POR FECHA HASTA
+    if (filtroFechaHasta) {
+      console.log("🔎 Aplicando filtro por Fecha Hasta:", filtroFechaHasta);
+      datosFiltrados = datosFiltrados.filter((item) => {
+        const fechaItem = item.fecha ? String(item.fecha).slice(0, 10) : null;
+        if (!fechaItem) return false;
+        return fechaItem <= filtroFechaHasta;
+      });
+      console.log("✅ Filtro por Fecha Hasta aplicado. Resultados:", datosFiltrados.length);
+    }
+
+    console.log("✅ Filtros combinados aplicados:", {
+      totalFiltrado: datosFiltrados.length,
+    });
+
+    // ✅ APLICAR PAGINACIÓN DESPUÉS DE LOS FILTROS
+    setList((o) => {
+      const totalRecords = datosFiltrados.length;
+      const { index: pageIndex, size: pageSize } = o.pagination;
+      const startIndex = (pageIndex - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const dataPaginada = datosFiltrados.slice(startIndex, endIndex);
+
+      console.log("📄 Paginación aplicada a los filtros:", {
+        totalFiltrado: totalRecords,
+        paginaActual: pageIndex,
+        registrosEnPagina: dataPaginada.length,
+      });
+
+      const newState = {
+        ...o,
+        data: dataPaginada,
+        pagination: { ...o.pagination, count: totalRecords },
+      };
+
+      if (dataPaginada.length === 0) {
+        newState.selection = { ...selectionDef };
+      } else {
+        const recordSelected = o.selection.record;
+        if (recordSelected && !dataPaginada.find((item) => item.id === recordSelected.id)) {
+          newState.selection = { ...selectionDef };
+        }
+      }
+
+      return newState;
+    });
+  }, [filtroEstado, filtroFechaDesde, filtroFechaHasta, dataOriginal]);
+
+  // ✅ Re-paginar cuando cambia el índice o tamaño de página (SIN filtros activos)
+  useEffect(() => {
+    // Solo aplicar cuando NO hay filtros activos y hay datos originales
+    if ((filtroEstado || filtroFechaDesde || filtroFechaHasta) || !dataOriginal.length || list.loading) {
+      return;
+    }
+
+    console.log("📄 Re-aplicando paginación (sin filtros)...", {
+      pageIndex: list.pagination.index,
+      pageSize: list.pagination.size,
+      totalOriginal: dataOriginal.length,
+    });
+
+    setList((o) => {
+      const { index: pageIndex, size: pageSize } = o.pagination;
+      const totalRecords = dataOriginal.length;
+      const startIndex = (pageIndex - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const dataPaginada = dataOriginal.slice(startIndex, endIndex);
+
+      console.log("✅ Paginación re-aplicada:", {
+        registrosEnPagina: dataPaginada.length,
+        totalRecords,
+      });
+
+      return {
+        ...o,
+        data: dataPaginada,
+        pagination: { ...o.pagination, count: totalRecords },
+      };
+    });
+  }, [list.pagination.index, list.pagination.size, dataOriginal, filtroEstado, filtroFechaDesde, filtroFechaHasta, list.loading]);
+
+  const request = useCallback((type, payload = {}) => {
+    if (type === "list") {
+      setList((o) => {
+        const changes = {
+          loading: null,
+          data: "data" in payload && Array.isArray(payload.data) ? [...payload.data] : payload.clear ? [] : o.data,
+          loadingOverride: payload.loading,
+          error: payload.error,
+          onLoadSelect: "onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
+        };
+
+        if (payload.params) changes.params = { ...o.params, ...payload.params };
+        if (payload.pagination) changes.pagination = { ...o.pagination, ...payload.pagination };
+
+        if (payload.clear) {
+          const data = changes.data;
+          const record = o.selection.record;
+          changes.selection = {
+            ...o.selection,
+            ...selectionDef,
+            record: changes.onLoadSelect({ data, multi: false, record }),
+          };
+          changes.selection.index = data.indexOf(changes.selection.record);
+        } else {
+          // ✅ Solo cargar desde servidor si es necesario
+          // Si solo cambió la paginación, NO hacer loading (paginación del lado cliente)
+          const onlyPaginationChange = payload.pagination && !payload.params && !payload.data;
+          if (!onlyPaginationChange) {
+            changes.loading = "Cargando...";
+          }
+        }
+
+        return { ...o, ...changes };
+      });
+    }
+  }, []);
+
+  const render = () => {
+    const denunciasData = {
+      data: list.data,
+      totalRegs: list.pagination.count,
+      page: list.pagination.index,
+      sizePerPage: list.pagination.size,
+    };
+
+    const pagination = {
+      count: denunciasData.totalRegs,
+      index: denunciasData.page,
+      size: denunciasData.sizePerPage,
+      onChange: ({ index, size }) => {
+        request("list", {
+          pagination: { index, size },
+          data: list.remote ? [] : list.data,
+        });
+      },
+    };
+
+    return (
+      <>
+        <DenunciasTable
+          remote={list.remote}
+          data={list.data}
+          loading={!!list.loading}
+          noDataIndication={
+            list.loading ?? list.loadingOverride ?? list.error?.message ?? (hayFiltroActivo && list.data.length === 0 ? "No hay denuncias que coincidan con los filtros aplicados" : "No existen datos para mostrar")
+          }
+          columns={columns}
+          pagination={pagination}
+          selection={{
+            mode: "radio",
+            hideSelectColumn,
+            selected: list.selection.record ? [list.selection.record.id] : [],
+            onSelect: (record) => {
+              const index = list.data.findIndex((r) => r.id === record.id);
+              setList((o) => ({
+                ...o,
+                selection: {
+                  ...o.selection,
+                  ...selectionDef,
+                  index,
+                  record,
+                },
+              }));
+            },
+          }}
+          onTableChange={(type, newState) => {
+            if (type === "sort") {
+              const { sortField, sortOrder } = newState;
+              setList((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: {
+                  ...o.params,
+                  sortBy: `${sortOrder === "desc" ? "-" : "+"}${sortField}`,
+                },
+              }));
+            }
+          }}
+        />
+        {list.selection.record && list.data.length > 0 && (
+          <DenunciaDetails
+            config={{
+              data: list.selection.record,
+              tab: "denuncia",
+            }}
+          />
+        )}
+      </>
+    );
+  };
+
+  return { render, request, selected: list.selection.record };
 };
 
 export default useDenuncias;
+ 

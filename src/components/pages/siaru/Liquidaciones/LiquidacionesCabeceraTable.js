@@ -7,8 +7,8 @@ import Table from "components/ui/Table/Table";
 const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 	const columnsDef = [
 		{
-			dataField: "id",
-			text: "Número",
+			dataField: "boletaId",
+			text: "Id Boleta",
 			sort: true,
 			headerStyle: { width: "100px" },
 			style: { textAlign: "center" },
@@ -25,7 +25,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			text: "Fecha",
 			formatter: Formato.Fecha,
 			sort: true,
-			headerStyle: { width: "100px" },
+			headerStyle: { width: "120px" },
 		},
 		// {
 		// 	dataField: "tipoLiquidacion",
@@ -47,12 +47,12 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			text: "T. Remun.",
 			formatter: (v) => Formato.Moneda(v),
 			sort: true,
-			headerStyle: { width: "120px" },
+			headerStyle: { width: "200px" },
 			style: { textAlign: "right" },
 		},
 		{
 			dataField: "totalAporte",
-			text: "T. aporte",
+			text: "Capital",
 			formatter: (v) => Formato.Moneda(v),
 			sort: true,
 			headerStyle: { width: "120px" },
@@ -73,7 +73,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			formatter: (_v, r) =>
 				Formato.Moneda(Round(r.totalAporte + r.totalIntereses, 2)),
 			sort: true,
-			headerStyle: { width: "140px" },
+			headerStyle: { width: "200px" },
 			style: { textAlign: "right" },
 		},
 		{
@@ -81,7 +81,7 @@ const LiquidacionesCabeceraTable = ({ columns, ...x } = {}) => {
 			text: "F. pago",
 			formatter: Formato.Fecha,
 			sort: true,
-			headerStyle: { width: "100px" },
+			headerStyle: { width: "120px" },
 		},
 		{
 			dataField: "fechaVencimiento",

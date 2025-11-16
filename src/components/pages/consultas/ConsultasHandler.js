@@ -9,7 +9,6 @@ import Localizar from "../afiliados/localizar/Localizar";
 import SeccionalesMap from "./seccionalMaps/seccionalesMap";
 import useSolicitudAfiliacion from "./solicitudAfiliacion/SolicitudAfiliacion";
 import SolicitudAfiliacionForm from "./solicitudAfiliacion/SolicitudAfiliacionForm";
-import AfiliadoFormulariosAfiliacionHandler from "./solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 
 const ConsultasHandler = () => {
 	const navigate = useNavigate();
@@ -25,11 +24,14 @@ const ConsultasHandler = () => {
 	console.log("disableTabSeccionales",disableTabSeccionales)
 	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
 
+	///////////////////////////////////0//////////////////////////////////////
 	const onDownloadSolicitudAfiliacion = () => {
 		solicitudAfiliacion({
 			onLoad: (base64) => download(base64, `SolicitudAfiliacion.pdf`),
 		});
 	};
+
+	////////////////////////////////0///////////////////////////////////////
 
 	const onDownloadSolicitudCambioSeccional = () => {
 		const link = document.createElement("a");
@@ -71,6 +73,7 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
+					{/* //////////////////////////////0///////////////////////////////////// */}
 					<Button
 						className="botonAmarillo"
 						onClick={() => onDownloadSolicitudAfiliacion()}
@@ -79,6 +82,7 @@ const ConsultasHandler = () => {
 					>
 						Solicitud de Afiliación
 					</Button>
+					{/* ///////////////////////////////0/////////////////////////////////// */}
 				</Grid>
 				<Grid width gap="inherit" justify="evenly">
 					<Button
@@ -108,7 +112,7 @@ const ConsultasHandler = () => {
 					</Button>
 				</Grid>
 
-				<Grid width gap="inherit" justify="evenly" display="none">
+				<Grid width gap="inherit" justify="evenly">
 					<Button
 						className="botonAmarillo"
 						onClick={onDownloadVisitaSeccional}
@@ -131,7 +135,17 @@ const ConsultasHandler = () => {
 					</Button>
 				
 				</Grid>
-				
+				<Grid width gap="inherit" justify="evenly">
+					<Button
+						className="botonAmarillo"
+						
+						onClick={() => navigate("Afiliaciones")}
+						width="32"
+						tarea="Consultas_AfiliacionesPorEmpresa"
+					>
+						Afiliaciones por Empresa
+					</Button>
+				</Grid>
 				
 			</>
 		),

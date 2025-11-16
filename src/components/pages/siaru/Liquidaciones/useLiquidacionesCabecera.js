@@ -3,10 +3,11 @@ import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
 import JoinOjects from "components/helpers/JoinObjects";
 import useQueryQueue from "components/hooks/useQueryQueue";
-// import LiquidacionesCabeceraTable from "./LiquidacionesCabeceraTable";
-import LiquidacionesCabeceraTable from "../Liquidaciones/LiquidacionesCabeceraTable";
-// import LiquidacionesCabeceraForm from "./LiquidacionesCabeceraForm";
-import LiquidacionesCabeceraForm from "../Liquidaciones/LiquidacionesCabeceraForm";
+import LiquidacionesCabeceraTable from "./LiquidacionesCabeceraTable";
+import LiquidacionesCabeceraForm from "./LiquidacionesCabeceraForm";
+import { useSelector } from "react-redux";
+import useTareasUsuario from "components/hooks/useTareasUsuario";
+
 const selectionDef = {
 	action: "",
 	request: "",
@@ -55,6 +56,12 @@ const useLiquidacionesCabecera = ({
 	hideSelectColumn = true,
 	mostrarBuscar = false,
 } = {}) => {
+	const usuarioLogueado = useSelector((state) => state.usuarioLogueado)
+	// console.log("usuarioLogueado", usuarioLogueado);
+	const usuarioTareas = useTareasUsuario();
+	// console.log("usuarioTareas", usuarioTareas);
+	const verTodasLiquidaciones = usuarioTareas.hasTarea("Siaru_LiquidacionesVerTodas");
+	// console.log("verTodasLiquidaciones", verTodasLiquidaciones);
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
@@ -185,6 +192,7 @@ const useLiquidacionesCabecera = ({
 			params: {
 				...list.params,
 				page: `${list.pagination.index},${list.pagination.size}`,
+				...(verTodasLiquidaciones ? {} : { usuario: usuarioLogueado.id }),
 			},
 			onOk: async ({ index, size, count, data }) => {
 				if (!Array.isArray(data))
