@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState, useRef } from "react";
 import moment from "moment";
 import {
   Dialog,
@@ -651,6 +651,10 @@ const AfiliadoAgregar = (props) => {
     useState(false);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
+ 
+  const autoVerificaCUILRef = useRef(false); 
+  const autoValidaCUILRef = useRef(false); 
+  const autoVerificaCUITEmpresaRef = useRef(false); 
   //#endregion
 
   //#region variables para respuestas de servicios
@@ -667,12 +671,6 @@ const AfiliadoAgregar = (props) => {
     onLoaded: onLoadedDef,
   });
 
-  const [seccionalSolicita, setSeccionalSolicita] = useState({
-    loading: "Cargando...",
-    data: [],
-    error: null,
-    onLoaded: onLoadedDef,
-  });
 
   const [localidades, setLocalidades] = useState({
     loading: null,
@@ -699,6 +697,8 @@ const AfiliadoAgregar = (props) => {
 
   //#region Documentación
   const [documentacionList, setDocumentacionList] = useState([]);
+  // Bandera para evitar doble carga de documentación desde la solicitud
+  const docFromSolicitudLoadedRef = useRef(false);
   //#endregion
 
   //#region Datos Personales Formulario
@@ -799,6 +799,70 @@ const AfiliadoAgregar = (props) => {
       }
     }
   }, [cuilParam, props.accion]);
+
+  // Carga inicial de documentación proveniente de la Solicitud Previa de Afiliación
+  useEffect(() => {
+    const solicitudId = props?.documentacionSolicitudId;
+    if (!solicitudId) return;               
+    if (docFromSolicitudLoadedRef.current) return;
+
+    if (documentacionList && documentacionList.length > 0) return;
+
+    const processDocs = (ok) => {
+      const arr = Array.isArray(ok) ? ok : [];
+
+      const mapped = arr.map(doc => ({
+        id: 0, 
+        entidadId: 0,
+        entidadTipo: 'A',
+        refTipoDocumentacionId: doc.refTipoDocumentacionId ?? doc.tipoDocumentacionId ?? doc.tipoId,
+        refTipoDocumentacionDescripcion: doc.refTipoDocumentacionDescripcion,
+        nombreArchivo: doc.nombreArchivo,
+        descripcion: doc.descripcion,
+        observaciones: doc.observaciones,
+        fechaVencimiento: doc.fechaVencimiento,
+        archivo: doc.archivo,
+        contentType: doc.contentType || 'application/octet-stream',
+        url: doc.url,
+      }));
+      if (mapped.length) {
+        setDocumentacionList(mapped);
+        docFromSolicitudLoadedRef.current = true;
+        console.log('[AfiliadoAgregar] Documentación importada desde Solicitud', { solicitudId, cantidad: mapped.length });
+      }
+    };
+    const processDocsError = (err) => {
+      console.warn('[AfiliadoAgregar] Error cargando documentación de la solicitud', err);
+    };
+    request(
+      {
+        baseURL: 'Comunes',
+        endpoint: `/DocumentacionEntidad/GetBySpec?EntidadId=${solicitudId}&EntidadTipo=F`,
+        method: 'GET'
+      },
+      processDocs,
+      processDocsError
+    );
+  }, [props?.documentacionSolicitudId, request, documentacionList]);
+
+  // Auto consulta AFIP apenas el CUIL es válido y todavía no se consultó (solo en alta, no modificación existente)
+  useEffect(() => {
+    if (autoVerificaCUILRef.current) return; 
+    if (props.accion !== "Agrega") return; 
+    if (!props.autoValidaDesdeSolicitud) return; 
+    if (!cuilState?.isValid) return; 
+    if (padronRespuesta) return; 
+    if (cuilLoading) return; 
+    if (!Array.isArray(provincias?.data) || provincias.data.length === 0) return;
+    autoVerificaCUILRef.current = true;
+    try {
+      validarAfiliadoCUILHandler();
+    } catch (e) {
+      console.warn("Auto verificación CUIL falló:", e);
+      autoVerificaCUILRef.current = false; 
+    }
+
+  }, [cuilState.isValid, padronRespuesta, cuilLoading, props.accion, provincias]);
 
   useEffect(() => {
     if (cuilState.value) {
@@ -1006,7 +1070,7 @@ const AfiliadoAgregar = (props) => {
         console.log("afiliado**", afiliado);
 
         //alert
-        if (props?.accion == "Agrega" || (afiliado?.cuil && props?.cuil !== afiliado?.cuil)) {
+  if (props?.accion == "Agrega" || (afiliado?.cuil && props?.cuil !== afiliado?.cuil)) {
           console.log("no debe ingresar aqui**");
           setDialogTexto(
             `El Afiliado: ${afiliadoObj?.nombre
@@ -1033,7 +1097,24 @@ const AfiliadoAgregar = (props) => {
         processGetAfiliado
       );
     }
-  }, [request, cuilState.value, cuilState.isValid]);
+  }, [request, cuilState, cuilState.value, cuilState.isValid, afiliado, props]);
+
+  // Auto validación 
+  useEffect(() => {
+    if (autoValidaCUILRef.current) return; 
+    if (!props.autoValidaDesdeSolicitud) return; 
+    if (cuilValidado) return; 
+    if (!padronRespuesta?.cuit) return; 
+    if (!afiliadoExiste) return; 
+    autoValidaCUILRef.current = true;
+    try {
+      validaCUILHandler();
+    } catch (e) {
+      console.warn("Auto validación CUIL falló:", e);
+      autoValidaCUILRef.current = false; 
+    }
+
+  }, [cuilValidado, padronRespuesta, afiliadoExiste]);
 
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
@@ -1144,9 +1225,11 @@ const AfiliadoAgregar = (props) => {
           return { value: actividad.id, label: actividad.descripcion };
         });
       setActividades(actividadesSelect);
+      const pre = props?.data?.actividadIdAfiliado;
+      const preferida = actividadesSelect.find((a) => a.value === pre)?.value ?? actividadesSelect[0]?.value;
       dispatchActividad({
         type: "USER_INPUT",
-        value: actividadesSelect[0].value,
+        value: preferida,
       });
     };
 
@@ -1158,7 +1241,7 @@ const AfiliadoAgregar = (props) => {
       },
       processActividades
     );
-  }, [request]);
+  }, [request, props?.data?.actividadIdAfiliado]);
 
   useEffect(() => {
     const processGetSeccionales = async (seccionalesObj) => {
@@ -1216,7 +1299,9 @@ const AfiliadoAgregar = (props) => {
           return { value: puesto.id, label: puesto.descripcion };
         });
       setPuestos(puestosSelect);
-      dispatchPuesto({ type: "USER_INPUT", value: puestosSelect[0].value });
+      const prePuesto = props?.data?.oficioId;
+      const preferido = puestosSelect.find((p) => p.value === prePuesto)?.value ?? puestosSelect[0]?.value;
+      dispatchPuesto({ type: "USER_INPUT", value: preferido });
     };
 
     request(
@@ -1227,7 +1312,7 @@ const AfiliadoAgregar = (props) => {
       },
       processPuestos
     );
-  }, [request]);
+  }, [request, props?.data?.oficioId]);
 
   useEffect(() => {
     const processSexos = async (sexosObj) => {
@@ -1381,23 +1466,22 @@ const AfiliadoAgregar = (props) => {
           endpoint: `/Seccional/${seccionales.params.seccionalId}`,
           method: "GET",
         },
-        async (ok) => (
-          console.log("GetSeccionalesSpecs_ok", ok),
+        async (ok) => {
+          console.log("GetSeccionalesSpecs_ok", ok);
           changes.data.push({
             value: provinciaState?.value?.seccionalIdPorDefecto,
             label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          }),
-          changes.data.push(
-            ok.localidadCodPostal !== 99999 && {
-              value: ok.id,
-              label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
-            }
-          )
-        ),
-        async (error) => (
-          console.log("GetSeccionalesSpecs_error", error),
-          (changes.error = error)
-        ),
+          });
+          const item = ok.localidadCodPostal !== 99999 && {
+            value: ok.id,
+            label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
+          };
+          if (item) changes.data.push(item);
+        },
+        async (error) => {
+          console.log("GetSeccionalesSpecs_error", error);
+          changes.error = error;
+        },
         async () => applyChanges()
       )
       : //NO BUSCO EXACTAMENTE UNA SECCIONAL
@@ -1409,12 +1493,12 @@ const AfiliadoAgregar = (props) => {
           endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
           method: "GET",
         },
-        async (ok) => (
-          console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok),
+        async (ok) => {
+          console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok);
           changes.data.push({
             value: provinciaState?.value?.seccionalIdPorDefecto,
             label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          }),
+          });
           changes.data.push(
             ...ok
               .sort((a, b) =>
@@ -1425,14 +1509,14 @@ const AfiliadoAgregar = (props) => {
                   !r.seccionalDescripcion.includes("SIN ASIGNACION") && {
                     value: r.seccionalId,
                     label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-                  } //`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+                  }
               )
-          )
-        ),
-        async (error) => (
-          console.log("GetSeccionalLocalidadByRefLocalidadId_error", error),
-          (changes.error = error)
-        ),
+          );
+        },
+        async (error) => {
+          console.log("GetSeccionalLocalidadByRefLocalidadId_error", error);
+          changes.error = error;
+        },
         async () => applyChanges()
       )
       : request(
@@ -1442,12 +1526,12 @@ const AfiliadoAgregar = (props) => {
           body: seccionales.params,
           method: "POST",
         },
-        async (ok) => (
-          console.log("GetSeccionalesSpecs_ok", ok),
+        async (ok) => {
+          console.log("GetSeccionalesSpecs_ok", ok);
           changes.data.push({
             value: provinciaState?.value?.seccionalIdPorDefecto,
             label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          }),
+          });
           changes.data.push(
             ...ok.data
               .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
@@ -1458,15 +1542,15 @@ const AfiliadoAgregar = (props) => {
                     label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
                   }
               )
-          )
-        ),
-        async (error) => (
-          console.log("GetSeccionalesSpecs_error", error),
-          (changes.error = error)
-        ),
+          );
+        },
+        async (error) => {
+          console.log("GetSeccionalesSpecs_error", error);
+          changes.error = error;
+        },
         async () => applyChanges()
       );
-  }, [request, seccionales, provincias]);
+  }, [request, seccionales, provincias, provinciaState.value]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
@@ -1509,6 +1593,25 @@ const AfiliadoAgregar = (props) => {
     const d = props?.data || {};
     if (d.cuil != null && d.cuil !== "") {
       dispatchCUIL({ type: "USER_INPUT", value: String(d.cuil) });
+    }
+    // Prefill CUIT Empleador desde Solicitud
+    const cuitEmpresaInicial = d.cuitEmpresa ?? d.empresaCUIT ?? d.cuitEmpleador;
+    if (cuitEmpresaInicial != null && String(cuitEmpresaInicial) !== "") {
+      const limpio = String(cuitEmpresaInicial).replace(/[^\d]/g, "");
+      dispatchCUIT({ type: "USER_INPUT", value: limpio });
+      setCUITEmpresa(limpio);
+    }
+    if (d.estadoCivilId != null && d.estadoCivilId > 0) {
+      dispatchEstadoCivil({ type: "USER_INPUT", value: d.estadoCivilId });
+    }
+    if (d.sexoId != null && d.sexoId > 0) {
+      dispatchSexo({ type: "USER_INPUT", value: d.sexoId });
+    }
+    if (d.oficioId != null && d.oficioId > 0) {
+      dispatchPuesto({ type: "USER_INPUT", value: d.oficioId });
+    }
+    if (d.actividadIdAfiliado != null && d.actividadIdAfiliado > 0) {
+      dispatchActividad({ type: "USER_INPUT", value: d.actividadIdAfiliado });
     }
     if (d.email != null) {
       dispatchEmail({ type: "USER_INPUT", value: String(d.email) });
@@ -1908,10 +2011,12 @@ const AfiliadoAgregar = (props) => {
           value: argentina?.value,
         });
 
-        dispatchActividad({
-          type: "USER_INPUT",
-          value: 1,
-        });
+        if (!(props?.data?.actividadIdAfiliado > 0) && !actividadState?.value) {
+          dispatchActividad({
+            type: "USER_INPUT",
+            value: 1,
+          });
+        }
 
         dispatchSeccionalSolicitudAfiliacion({
           type: "USER_INPUT",
@@ -1925,20 +2030,31 @@ const AfiliadoAgregar = (props) => {
           });
         //provincia
 
-        const provinciaSelected =
-          domicilioReal.idProvincia === 0 &&
+        // Selección robusta de provincia
+        let provinciaSelected = null;
+        if (domicilioReal) {
+          const sinDescripcion =
+            domicilioReal.idProvincia === 0 &&
             (domicilioReal.descripcionProvincia === null ||
-              domicilioReal.descripcionProvincia === "") // SI NO ENCUENTRO, va prov sin asignar
-            ? provincias.data.find(
-              (provincia) => provincia.idProvinciaAFIP === 99999
-            ) // BUSCO EL ID de Provincia "Sin Asignar" mediante el IdProvinciaAFIP 99999
-            : provincias.data.find(
-              (provincia) =>
-                provincia.idProvinciaAFIP === domicilioReal.idProvincia
-            ); // IDPROVINCIAAFIP = 0 PARA CABA SEGUN AFIP
+              domicilioReal.descripcionProvincia === "");
+          provinciaSelected = sinDescripcion
+            ? provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999)
+            : provincias?.data?.find(
+                (p) => p?.idProvinciaAFIP === domicilioReal?.idProvincia
+              );
+        }
+        // Fallback si no se encontró: usar provincia "Sin Asignar" 
+        if (!provinciaSelected) {
+          provinciaSelected =
+            provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999) ||
+            provincias?.data?.at?.(0) ||
+            null;
+        }
 
-        dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-        if (provinciaSelected.idProvinciaAFIP === 99999) {
+        if (provinciaSelected) {
+          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+        }
+        if (provinciaSelected?.idProvinciaAFIP === 99999) {
           //SI LA PROVINCIA ES POR DEFECTO (SIN ASIGNAR), TODO POR DEFECTO(SIN ASIGNAR)!
           dispatchLocalidad({
             type: "USER_INPUT",
@@ -2134,6 +2250,24 @@ const AfiliadoAgregar = (props) => {
     );
   };
   //#endregion
+
+  // Auto consulta AFIP para CUIT empleador cuando viene prellenado desde Solicitud
+  useEffect(() => {
+    if (autoVerificaCUITEmpresaRef.current) return;
+    if (props.accion !== "Agrega") return;
+    if (!props.autoValidaDesdeSolicitud) return;
+    if (!cuitState?.isValid) return;
+    if (padronEmpresaRespuesta) return;
+    if (cuitLoading) return;
+    autoVerificaCUITEmpresaRef.current = true;
+    try {
+      validarEmpresaCUITHandler();
+    } catch (e) {
+      console.warn("Auto verificación CUIT empleador falló:", e);
+      autoVerificaCUITEmpresaRef.current = false; 
+    }
+
+  }, [cuitState.isValid, padronEmpresaRespuesta, cuitLoading, props.accion, props.autoValidaDesdeSolicitud]);
 
   //#region handlers change select
   const handleChangeSelect = (value, name) => {
