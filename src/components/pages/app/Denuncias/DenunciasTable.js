@@ -259,7 +259,7 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
         },
         {
           dataField: "nombre",
-          text: "Nombre",
+          text: "Denunciante",
           sort: true,
         },
         {
