@@ -11,7 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
 import Button from "components/ui/Button/Button";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import SearchSelectMaterial, {
   includeSearch,
   mapOptions,

@@ -11,7 +11,7 @@ import SelectMaterial from "components/ui/Select/SelectMaterial";
 import useLiquidacionesCabecera from "./useLiquidacionesCabecera";
 import useLiquidaciones from "./useLiquidaciones";
 import LiquidacionDetails from "./LiquidacionDetails";
-import FormaPagoPrint from "./impresion/FormaPagoPrint";
+import FormaPagoPrint from "./Impresion/FormaPagoPrint";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const LiquidacionesHandler = () => {

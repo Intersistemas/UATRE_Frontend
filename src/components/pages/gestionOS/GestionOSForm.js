@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import useAmbitos from "components/hooks/useAmbitos";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, {
@@ -11,7 +12,7 @@ import InputMaterial, {
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -161,6 +162,7 @@ const GestionOSForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
+  const ambito = useAmbitos().ambitoUser();
   const [selectedTab, setSelectedTab] = useState(0);
   const [mostrarAlertas, setMostrarAlertas] = useState(false);
   const [disabledItems, setDisabledItems] = useState(disabled);
@@ -180,6 +182,10 @@ const GestionOSForm = ({
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
   //ModificacionMauro
   const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
+  
+  // Referencia para controlar si ya se estableció la seccional predeterminada
+  const seccionalPredeterminadaSet = useRef(false);
+  
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -719,7 +725,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -768,7 +774,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -817,7 +823,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     selectedAditionalData: {},
     origen: "",
   });
@@ -826,7 +832,10 @@ const GestionOSForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalDescripcion },
+      // Solo establecer selected si hay valores válidos
+      ...(data.seccionalId && data.seccionalDescripcion ? {
+        selected: { value: data.seccionalId, label: data.seccionalDescripcion }
+      } : {})
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccionales
@@ -853,17 +862,58 @@ const GestionOSForm = ({
       ...o,
       onLoad: ({ ok, error }) => {
         let data = [];
-        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        let seccionalPredeterminada = null;
+        
+        if (Array.isArray(ok)) {
+          data = ok.filter((r) => r.id !== 99999);
+          
+          // Si el ámbito es Delegaciones y estamos agregando una nueva gestión
+          if (ambito.tipo === 'Delegaciones' && request === 'A') {
+            const delegacionId = ambito.ids[0];
+            // Filtrar seccionales por la delegación actual
+            data = data.filter((r) => r.refDelegacionId === delegacionId);
+            
+            // Guardar la primera seccional para establecerla como predeterminada
+            // Solo si no hay una seccional ya seleccionada y no se ha establecido antes
+            if (data.length > 0 && !data.seccionalId && !seccionalPredeterminadaSet.current) {
+              seccionalPredeterminada = data[0];
+              seccionalPredeterminadaSet.current = true; // Marcar que ya se estableció
+            }
+          }
+        }
+        
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
           data,
           error: error?.toString(),
+          // Si hay una seccional predeterminada, establecerla en el selected
+          ...(seccionalPredeterminada ? {
+            selected: {
+              value: seccionalPredeterminada.id,
+              label: seccionalPredeterminada.descripcion,
+            }
+          } : {})
         }));
+        
+        // Llamar a onChange después de actualizar el estado solo si hay predeterminada
+        if (seccionalPredeterminada) {
+          onChange({
+            seccionalId: seccionalPredeterminada.id,
+            seccionalDescripcion: seccionalPredeterminada.descripcion,
+          });
+        }
       },
     }));
-  }, [setSeccionalesQuery]);
+  }, [setSeccionalesQuery, ambito, request]);
   //#endregion Carga inicial select seccionales
+
+  //#region Resetear referencia de seccional predeterminada cuando cambia el request
+  useEffect(() => {
+    // Resetear la referencia cuando se abre un nuevo formulario
+    seccionalPredeterminadaSet.current = false;
+  }, [request]);
+  //#endregion
 
   //#region select GestionesRubro
   const [gestionRubroSelect, setGestionRubroSelect] = useState({
@@ -872,7 +922,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -922,7 +972,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -973,7 +1023,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1027,7 +1077,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1078,7 +1128,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1127,7 +1177,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador

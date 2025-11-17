@@ -24,7 +24,7 @@ import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDF
 import Table from "components/ui/Table/Table";
 
 import { Tabs, Tab } from "@mui/material";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 
 const styles = {
   group: {

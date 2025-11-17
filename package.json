@@ -30,7 +30,7 @@
     "html2canvas": "^1.4.1",
     "imask": "^7.6.1",
     "jsbarcode": "^3.11.5",
-    "jspdf": "^3.0.2",
+    "jspdf": "^3.0.3",
     "moment": "^2.29.4",
     "mui-tel-input": "^5.0.0",
     "pdf-lib": "^1.17.1",

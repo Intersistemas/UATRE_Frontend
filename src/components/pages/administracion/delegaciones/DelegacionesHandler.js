@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@mui/material";
 import Grid from "components/ui/Grid/Grid";
 import Action from "components/helpers/Action";
 
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 
 
 import useDelegaciones from "./useDelegaciones";
@@ -14,7 +14,7 @@ import KeyPress from "components/keyPress/KeyPress";
 import useSeccionales from "../seccionales/useSeccionales";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
-import LotePDFViewer from "./carnet/LotePDFViewer";
+import LotePDFViewer from "./Carnet/LotePDFViewer";
 import DelegacionesInforme from "./ExcelDatos"
 
 const DelegacionesHandler = () => {
