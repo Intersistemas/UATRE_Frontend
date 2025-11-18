@@ -664,7 +664,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 										{
 						dataField: "createdBy",
-						text: "Creada por",
+						text: "Usuario",
 						formatter: (_value, row) => {
 							const doc = row?._doc;
 							return doc?.createdBy ?? row?.createdBy ?? "";
@@ -673,7 +673,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					},
 					{
 						dataField: "createdDate",
-						text: "Fecha",
+						text: "Fecha modificación",
 						formatter: (value, row) => {
 							const doc = row?._doc;
 							const fecha = doc?.createdDate ?? value;
