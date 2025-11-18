@@ -372,6 +372,7 @@ const AfiliadoAgregar = (props) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
+  const accion = props?.accion;
 
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
@@ -703,6 +704,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
+  const afiliadoRef = useRef(null);
 
   //#endregion
 
@@ -865,239 +867,240 @@ const AfiliadoAgregar = (props) => {
   }, [cuilState.isValid, padronRespuesta, cuilLoading, props.accion, provincias]);
 
   useEffect(() => {
-    if (cuilState.value) {
-      console.log("cuilState", cuilState);
-      //!cuilState.isValid ?
-      const processGetAfiliado = async (afiliadoObj) => {
-        console.log("afiliadoObj", afiliadoObj);
+    if (!cuilState.value) return;
+    if (afiliadoRef.current?.cuil === cuilState.value) return;
 
-        setAfiliado(afiliadoObj);
-        setCuilValidado(afiliadoObj.cuilValidado ? true : false);
-        setNuevoAfiliadoResponse(afiliadoObj);
-        setAfiliadoExiste(true);
+    const processGetAfiliado = async (afiliadoObj) => {
+      console.log("afiliadoObj", afiliadoObj);
+      const previousAfiliado = afiliadoRef.current;
 
-        //dispatches para validar los campos
-        dispatchFechaNacimiento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.fechaIngreso !== null
-              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
-              : "",
-        });
-        dispatchCUIL({
-          type: "USER_INPUT",
-          value: afiliadoObj.cuil,
-          isValid: ["30", "33", "34"].includes(
-            afiliadoObj.cuil.toString().slice(0, 2)
-          )
-            ? false
-            : ValidarCUIT(afiliadoObj.cuil),
-        });
+      setAfiliado(afiliadoObj);
+      afiliadoRef.current = afiliadoObj;
+      setCuilValidado(afiliadoObj.cuilValidado ? true : false);
+      setNuevoAfiliadoResponse(afiliadoObj);
+      setAfiliadoExiste(true);
 
-        dispatchFechaIngreso({
-          type: "USER_INPUT",
-          value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
-        });
+      //dispatches para validar los campos
+      dispatchFechaNacimiento({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.fechaIngreso !== null
+            ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+            : "",
+      });
+      dispatchCUIL({
+        type: "USER_INPUT",
+        value: afiliadoObj.cuil,
+        isValid: ["30", "33", "34"].includes(
+          afiliadoObj.cuil.toString().slice(0, 2)
+        )
+          ? false
+          : ValidarCUIT(afiliadoObj.cuil),
+      });
 
-        dispatchActividad({
-          type: "USER_INPUT",
-          value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
-        });
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
+      });
 
-        dispatchSeccionalSolicitudAfiliacion({
-          type: "USER_INPUT",
-          value: afiliadoObj?.seccionalIdSolicitudAfiliacion
-            ? {
+      dispatchActividad({
+        type: "USER_INPUT",
+        value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
+      });
+
+      dispatchSeccionalSolicitudAfiliacion({
+        type: "USER_INPUT",
+        value: afiliadoObj?.seccionalIdSolicitudAfiliacion
+          ? {
               value: afiliadoObj?.seccionalIdSolicitudAfiliacion,
               label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`,
             }
-            : {},
-        });
+          : {},
+      });
 
-        dispatchPuesto({
-          type: "USER_INPUT",
-          value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
-        });
-        dispatchNacionalidad({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.nacionalidadId === 0 ? "" : afiliadoObj.nacionalidadId,
-        });
-        dispatchSexo({
-          type: "USER_INPUT",
-          value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
-        });
-        dispatchEstadoCivil({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.estadoCivilId === 0 ? "" : afiliadoObj.estadoCivilId,
-        });
-        dispatchTipoDocumento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.tipoDocumentoId === 0
-              ? ""
-              : afiliadoObj.tipoDocumentoId,
-        });
+      dispatchPuesto({
+        type: "USER_INPUT",
+        value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
+      });
+      dispatchNacionalidad({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.nacionalidadId === 0 ? "" : afiliadoObj.nacionalidadId,
+      });
+      dispatchSexo({
+        type: "USER_INPUT",
+        value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
+      });
+      dispatchEstadoCivil({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.estadoCivilId === 0 ? "" : afiliadoObj.estadoCivilId,
+      });
+      dispatchTipoDocumento({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.tipoDocumentoId === 0
+            ? ""
+            : afiliadoObj.tipoDocumentoId,
+      });
 
-        dispatchLocalidad({
-          type: "USER_INPUT",
-          value: {
-            value: afiliadoObj?.refLocalidadId,
-            label: afiliadoObj?.localidad,
-          },
-        });
-        dispatchSeccional({
-          type: "USER_INPUT",
-          value: {
-            value: afiliadoObj?.seccionalId,
-            label: afiliadoObj?.seccional,
-          },
-        });
+      dispatchLocalidad({
+        type: "USER_INPUT",
+        value: {
+          value: afiliadoObj?.refLocalidadId,
+          label: afiliadoObj?.localidad,
+        },
+      });
+      dispatchSeccional({
+        type: "USER_INPUT",
+        value: {
+          value: afiliadoObj?.seccionalId,
+          label: afiliadoObj?.seccional,
+        },
+      });
 
-        setProvincias((o) => ({
-          ...o,
-          loading: "Cargando...",
-          onLoaded: ({ data }) => {
-            const provinciaSelected =
-              data.find((prov) => prov.value === afiliadoObj.provinciaId) ?? "";
+      setProvincias((o) => ({
+        ...o,
+        loading: "Cargando...",
+        onLoaded: ({ data }) => {
+          const provinciaSelected =
+            data.find((prov) => prov.value === afiliadoObj.provinciaId) ?? "";
 
-            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
 
-            setLocalidades((o) => ({
-              ...o,
-              loading: "Cargando...",
-              params: provinciaSelected
-                ? { provinciaId: provinciaSelected?.value }
-                : {},
-              onLoaded: ({ data }) => {
-                if (!Array.isArray(data)) return;
+          setLocalidades((o) => ({
+            ...o,
+            loading: "Cargando...",
+            params: provinciaSelected
+              ? { provinciaId: provinciaSelected?.value }
+              : {},
+            onLoaded: ({ data }) => {
+              if (!Array.isArray(data)) return;
 
-                //const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-                const myLocalidadId =
-                  data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {
-                    value: provinciaSelected?.localidadIdPorDefecto,
-                    label: provinciaSelected?.localidadDescripcionPorDefecto,
-                  } ??
-                  {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-                //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
-                const sinAsignar =
-                  myLocalidadId?.value ===
-                    provinciaSelected?.localidadIdPorDefecto
-                    ? { provinciaId: provinciaSelected?.value }
-                    : { localidadId: myLocalidadId.value };
-                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
+              //const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+              const myLocalidadId =
+                data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {
+                  value: provinciaSelected?.localidadIdPorDefecto,
+                  label: provinciaSelected?.localidadDescripcionPorDefecto,
+                } ??
+                {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+              //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
+              const sinAsignar =
+                myLocalidadId?.value ===
+                provinciaSelected?.localidadIdPorDefecto
+                  ? { provinciaId: provinciaSelected?.value }
+                  : { localidadId: myLocalidadId.value };
+              dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
 
-                //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
+              //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
 
-                const fechaIngres = moment(afiliadoObj?.fechaIngreso).format(
-                  "yyyy-MM-DD"
-                );
-                const esAnterior =
-                  moment(fechaIngres).isSameOrBefore("2024-02-05");
-                console.log("esAnterior", esAnterior);
+              const fechaIngres = moment(afiliadoObj?.fechaIngreso).format(
+                "yyyy-MM-DD"
+              );
+              const esAnterior =
+                moment(fechaIngres).isSameOrBefore("2024-02-05");
+              console.log("esAnterior", esAnterior);
 
-                setSeccionales((o) => ({
-                  ...o,
-                  loading: "Cargando...",
-                  //params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
-                  params:
-                    esAnterior && afiliadoObj?.seccionalId
-                      ? { seccionalId: afiliadoObj?.seccionalId }
-                      : myLocalidadId
-                        ? { localidadId: myLocalidadId.value }
-                        : provinciaSelected?.value
-                          ? { provinciaId: provinciaSelected?.value }
-                          : sinAsignar ?? null,
-                  onLoaded: ({ data }) => {
-                    //if (!Array.isArray(data)) return;
-                    const mySeccionalId =
-                      data.find((r) => r.value === afiliadoObj?.seccionalId) ??
-                      data.at(0) ??
-                      {};
-                    dispatchSeccional({
-                      type: "USER_INPUT",
-                      value: mySeccionalId,
-                    });
-                  },
-                }));
-              },
-            }));
-          },
-        }));
+              setSeccionales((o) => ({
+                ...o,
+                loading: "Cargando...",
+                //params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                params:
+                  esAnterior && afiliadoObj?.seccionalId
+                    ? { seccionalId: afiliadoObj?.seccionalId }
+                    : myLocalidadId
+                      ? { localidadId: myLocalidadId.value }
+                      : provinciaSelected?.value
+                        ? { provinciaId: provinciaSelected?.value }
+                        : sinAsignar ?? null,
+                onLoaded: ({ data }) => {
+                  //if (!Array.isArray(data)) return;
+                  const mySeccionalId =
+                    data.find((r) => r.value === afiliadoObj?.seccionalId) ??
+                    data.at(0) ??
+                    {};
+                  dispatchSeccional({
+                    type: "USER_INPUT",
+                    value: mySeccionalId,
+                  });
+                },
+              }));
+            },
+          }));
+        },
+      }));
 
-        dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
-        dispatchFechaNacimiento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.fechaNacimiento !== null
-              ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
-              : "",
-        });
-        dispatchNumeroDocumento({
-          type: "USER_INPUT",
-          value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
-        });
-        dispatchDomicilio({
-          type: "USER_INPUT",
-          value: afiliadoObj.domicilio ?? "",
-        });
-        dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
+      dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
+      dispatchFechaNacimiento({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.fechaNacimiento !== null
+            ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
+            : "",
+      });
+      dispatchNumeroDocumento({
+        type: "USER_INPUT",
+        value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
+      });
+      dispatchDomicilio({
+        type: "USER_INPUT",
+        value: afiliadoObj.domicilio ?? "",
+      });
+      dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
-        // dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
-        dispatchTelefonoPais({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoPais,
-        });
-        dispatchTelefonoArea({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoArea,
-        });
-        dispatchTelefonoNumero({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoNumero,
-        });
+      // dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
+      dispatchTelefonoPais({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoPais,
+      });
+      dispatchTelefonoArea({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoArea,
+      });
+      dispatchTelefonoNumero({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoNumero,
+      });
 
-        //datos empleador
-        dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
-        setCuitValidado(true);
-        setCUITEmpresa(afiliadoObj.empresaCUIT);
-        setRazonSocialEmpresa(afiliadoObj.empresa);
-        setEmpresaIdExiste(afiliadoObj.empresaId);
-        setDocumentacionList(afiliadoObj.documentacion ?? []);
+      //datos empleador
+      dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
+      setCuitValidado(true);
+      setCUITEmpresa(afiliadoObj.empresaCUIT);
+      setRazonSocialEmpresa(afiliadoObj.empresa);
+      setEmpresaIdExiste(afiliadoObj.empresaId);
+      setDocumentacionList(afiliadoObj.documentacion ?? []);
 
-        console.log("props**", props);
-        console.log("afiliado**", afiliado);
-
-        //alert
-  if (props?.accion == "Agrega" || (afiliado?.cuil && props?.cuil !== afiliado?.cuil)) {
-          console.log("no debe ingresar aqui**");
-          setDialogTexto(
-            `El Afiliado: ${afiliadoObj?.nombre
-            } ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo
-            } ${afiliadoObj?.seccional}
+      //alert
+      if (
+        accion === "Agrega" ||
+        (previousAfiliado?.cuil && cuilParam !== previousAfiliado?.cuil)
+      ) {
+        console.log("no debe ingresar aqui**");
+        setDialogTexto(
+          `El Afiliado: ${afiliadoObj?.nombre
+          } ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo
+          } ${afiliadoObj?.seccional}
             ${
               afiliadoObj?.estadoSolicitud.includes("No Activo")
                 ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`
                 : ""
             }`
-          );
-          setOpenDialog(true);
+        );
+        setOpenDialog(true);
 
-          return;
-        }
-      };
+        return;
+      }
+    };
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuilState.value}`,
-          method: "GET",
-        },
-        processGetAfiliado
-      );
-    }
-  }, [request, cuilState, cuilState.value, cuilState.isValid, afiliado, props]);
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuilState.value}`,
+        method: "GET",
+      },
+      processGetAfiliado
+    );
+  }, [request, cuilState.value, accion, cuilParam]);
 
   // Auto validación 
   useEffect(() => {
@@ -2402,6 +2405,7 @@ const AfiliadoAgregar = (props) => {
           setCuilValidado(false);
           setAfiliadoExiste(false);
           setAfiliado(null);
+          afiliadoRef.current = null;
           setNuevoAfiliadoResponse(null);
           setDialogTexto("");
           setPadronRespuesta(null);
