@@ -662,24 +662,24 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						style: { textAlign: "left" },
 					},
 
-										{
-						dataField: "createdBy",
-						text: "Usuario",
-						formatter: (_value, row) => {
-							const doc = row?._doc;
-							return doc?.createdBy ?? row?.createdBy ?? "";
-						},
-						style: { textAlign: "left" },
-					},
-					{
-						dataField: "createdDate",
-						text: "Fecha modificación",
-						formatter: (value, row) => {
-							const doc = row?._doc;
-							const fecha = doc?.createdDate ?? value;
-							return Formato.Fecha(fecha);
-						},
-					},
+					// 					{
+					// 	dataField: "createdBy",
+					// 	text: "Usuario",
+					// 	formatter: (_value, row) => {
+					// 		const doc = row?._doc;
+					// 		return doc?.createdBy ?? row?.createdBy ?? "";
+					// 	},
+					// 	style: { textAlign: "left" },
+					// },
+					// {
+					// 	dataField: "createdDate",
+					// 	text: "Fecha modificación",
+					// 	formatter: (value, row) => {
+					// 		const doc = row?._doc;
+					// 		const fecha = doc?.createdDate ?? value;
+					// 		return Formato.Fecha(fecha);
+					// 	},
+					// },
 
 				]}
 			/>
