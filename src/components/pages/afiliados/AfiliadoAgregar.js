@@ -1713,7 +1713,9 @@ const AfiliadoAgregar = (props) => {
   };
   // ::::::::::::::::::::::::::::::::: FIN MODIFICADO :::::::::::::::::::::::::::::::::
 
+      const forzarEstadoPendiente = !!props?.forzarEstadoPendiente;
       const validaAutomatica =
+        !forzarEstadoPendiente &&
         ultimaDDJJ.data?.actividadTipo === "D" &&
         ultimaDDJJ.data?.modalidadTipo === "D" &&
         (padronEmpresaRespuesta?.ciiU1EsRural ||

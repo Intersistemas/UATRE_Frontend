@@ -547,7 +547,8 @@ const useAfiliadoFormulariosAfiliacion = ({
 						title="Agrega Afiliado"
 						//ESTO ENVIAR A ALEX
 						accion="Agrega"
-						autoValidaDesdeSolicitud={true}
+							autoValidaDesdeSolicitud={true}
+							forzarEstadoPendiente={true}
 							documentacionSolicitudId={row?.id}
 						data={{
 							cuil: cuilDigits,
