@@ -136,7 +136,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 	const [disableNovedades, setDisableNovedades] = useState(mode === "A");
 
 	const roStyle = (isRestricted) => (isRestricted ? { opacity: 0.6 } : undefined);
-	const isConsulta = mode === "C"; 
+	const isConsulta = mode === "C";
 
 	useEffect(() => {
 		// Si entramos en alta, mantener deshabilitada la pestaña Novedades
@@ -479,7 +479,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		const filtered = Array.isArray(novedadesFilteredRows) ? novedadesFilteredRows : [];
 		const exists = filtered.some(r => r && r.rowKey === selectedEstado.rowKey);
 		if (exists) return;
-		
+
 		const selId = Number(selectedEstado?.id ?? selectedEstado?.Id ?? 0) || 0;
 		if (selId) {
 			const sameIdRow = filtered.find(r => Number(r?.id ?? r?.Id ?? 0) === selId);
@@ -492,13 +492,13 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		setSelectedEstado(filtered[0] || null);
 	}, [novedadesFilteredRows, selectedEstado]);
 
-	
+
 	useEffect(() => {
 		if (!(mode === "C" || mode === "M")) return;
-		if (mode === "M" && overrideDocsPorNuevoEstado) return; 
-		if (selectedEstado) return; 
+		if (mode === "M" && overrideDocsPorNuevoEstado) return;
+		if (selectedEstado) return;
 		const filtroActivo = !!(novEstadoSelect?.selected?.value) || !!novFechaDesde || !!novFechaHasta;
-		if (filtroActivo) return; 
+		if (filtroActivo) return;
 		if (!novedadesRows.length || !estadosList.length) return;
 		let last = null;
 		try {
@@ -527,7 +527,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		let combinados = mismosIds.flatMap(id => Array.isArray(docsByEstadoId[id]) ? docsByEstadoId[id] : []);
 		const seen = new Set();
 		combinados = combinados.filter(d => {
-			const key = (d.id ? `ID-${d.id}` : `FN-${(d.nombreArchivo||d.fileName||'').trim()}`);
+			const key = (d.id ? `ID-${d.id}` : `FN-${(d.nombreArchivo || d.fileName || '').trim()}`);
 			if (seen.has(key)) return false;
 			seen.add(key);
 			return true;
@@ -635,12 +635,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					},
 				}}
 				columns={[
-					{ dataField: "fecha", text: "Fecha", formatter: (v) => Formato.Fecha(v) },
+					{ dataField: "fecha", text: "Fecha estado", formatter: (v) => Formato.Fecha(v) },
 					{ dataField: "estado", text: "Estado", sort: true, style: { textAlign: "left" } },
-					{ dataField: "observaciones", text: "Observaciones", style: { textAlign: "left" }, formatter: (v) => {
-						if (!v) return "";
-						return String(v);
-					}},
+
+					{
+						dataField: "observaciones", text: "Observaciones", style: { textAlign: "left" }, formatter: (v) => {
+							if (!v) return "";
+							return String(v);
+						}
+					},
 
 					{
 						dataField: "documento",
@@ -658,6 +661,25 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						headerStyle: { width: "220px", textAlign: "center" },
 						style: { textAlign: "left" },
 					},
+
+					// 					{
+					// 	dataField: "createdBy",
+					// 	text: "Usuario",
+					// 	formatter: (_value, row) => {
+					// 		const doc = row?._doc;
+					// 		return doc?.createdBy ?? row?.createdBy ?? "";
+					// 	},
+					// 	style: { textAlign: "left" },
+					// },
+					// {
+					// 	dataField: "createdDate",
+					// 	text: "Fecha modificación",
+					// 	formatter: (value, row) => {
+					// 		const doc = row?._doc;
+					// 		const fecha = doc?.createdDate ?? value;
+					// 		return Formato.Fecha(fecha);
+					// 	},
+					// },
 
 				]}
 			/>
@@ -826,8 +848,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const rawSource = [
 			data?.derivadoATipo,
-			data?.derivadaATipo, 
-			data?.derivadaA,  
+			data?.derivadaATipo,
+			data?.derivadaA,
 			data?.derivadaADescripcion,
 		].map(v => (v == null ? "" : String(v))).find(v => v.trim() !== "") || "";
 		const raw = rawSource.trim();
@@ -1232,7 +1254,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 	const validateEmpleadorCUIT = useCallback((rawCUIT) => {
 		const cuitDigits = onlyDigits(rawCUIT || "");
 		if (!cuitDigits) {
-			setState((o) => ({ ...o, errors: { ...o.errors, cuitEmpresa: "Dato requerido" } }));
+			setState((o) => ({
+				...o,
+				form: { ...o.form, cuitEmpresa: "" },
+				errors: { ...o.errors, cuitEmpresa: "" },
+				validado: { ...o.validado, empleador: false },
+			}));
 			return Promise.resolve(false);
 		}
 
@@ -1268,10 +1295,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					}
 					// 2) Fallback a AFIP
 					setPadronAFIPQuery((o) => ({ ...o, loading: "Empleador (AFIP)" }));
-						sendRequest(
+					sendRequest(
 						{
 							baseURL: "Comunes",
-								endpoint: `/AFIPConsulta?CUIT=${encodeURIComponent(cuitDigits)}&VerificarHistorico=false`,
+							endpoint: `/AFIPConsulta?CUIT=${encodeURIComponent(cuitDigits)}&VerificarHistorico=false`,
 							method: "GET",
 							errorType: "response",
 						},
@@ -1327,6 +1354,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 	useEffect(() => {
 		if (!data || Object.keys(data).length === 0) return;
+		const hasCUITProp = Object.prototype.hasOwnProperty.call(data, "empleadorCUIT") || Object.prototype.hasOwnProperty.call(data, "cuitEmpresa");
+		const hasRazonProp = Object.prototype.hasOwnProperty.call(data, "empleadorNombre") || Object.prototype.hasOwnProperty.call(data, "razonSocial");
+		const cuitFromData = (() => {
+			const raw = data.empleadorCUIT ?? data.cuitEmpresa ?? "";
+			const digits = onlyDigits(raw);
+			return digits === "0" ? "" : digits;
+		})();
+		const razonFromData = data.empleadorNombre ?? data.razonSocial;
+
 		setState((o) => ({
 			...o,
 			form: {
@@ -1335,9 +1371,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 				derivadaA: data.derivadoATipo ?? data.derivadaATipo ?? data.derivadaA ?? o.form.derivadaA ?? "Sin derivacion",
 				derivadaADescripcion: data.derivadaADescripcion ?? data.derivadoATipo ?? o.form.derivadaADescripcion ?? "Sin derivacion",
-				
-				cuitEmpresa: data.empleadorCUIT ?? data.cuitEmpresa ?? o.form.cuitEmpresa ?? "",
-				razonSocial: data.empleadorNombre ?? data.razonSocial ?? o.form.razonSocial ?? "",
+				cuitEmpresa: hasCUITProp ? cuitFromData : o.form.cuitEmpresa ?? "",
+				empleadorCUIT: hasCUITProp ? cuitFromData : o.form?.empleadorCUIT,
+				razonSocial: hasRazonProp ? (razonFromData ?? "") : (o.form.razonSocial ?? ""),
+				empleadorNombre: hasRazonProp ? (razonFromData ?? "") : o.form?.empleadorNombre,
 				...(mode === "M" ? { observacionesRegistro: "" } : {}),
 				fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
 			},
@@ -1463,7 +1500,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			setState((s) => ({ ...s, form: { ...s.form, estado: s.form?.estado || "Registrada" } }));
 		}
 	}, [mode]);
-	// Validación automática de CUIT empleador
+	// Utilidad para conocer el último estado registrado
 	const getUltimoEstadoDesdeEndpoint = useCallback(() => {
 		if (Array.isArray(estadosList) && estadosList.length) {
 			try {
@@ -1479,21 +1516,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		return "";
 	}, [estadosList]);
 
-	const backendCUITRef = useRef(onlyDigits((data?.empleadorCUIT ?? data?.cuitEmpresa ?? "") || ""));
-	const autoCUITValidatedRef = useRef(false); 
-	useEffect(() => {
-		if (autoCUITValidatedRef.current) return; 
-		if (mode === "A") return; 
-		const denunciaId = Number(data?.id ?? 0);
-		if (!denunciaId) return; 
-		const ultimoEstado = getUltimoEstadoDesdeEndpoint();
-		if (ultimoEstado !== "Registrada") return; 
-		const backendCUIT = backendCUITRef.current;
-		if (!backendCUIT || backendCUIT === "0") return; 
-		if (state.validado?.empleador) return; 
-		autoCUITValidatedRef.current = true;
-		validateEmpleadorCUIT(backendCUIT);
-	}, [mode, data?.id, getUltimoEstadoDesdeEndpoint, state.validado?.empleador, validateEmpleadorCUIT]);
+
 
 	useEffect(() => {
 		if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
@@ -1585,8 +1608,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		let lockDeleg = false;
 		let lockSecc = false;
-		if (serverDerivadoATipo === "Delegacion") lockDeleg = true; 
-		else if (serverDerivadoATipo === "Seccional") { lockSecc = true; lockDeleg = true; } 
+		if (serverDerivadoATipo === "Delegacion") lockDeleg = true;
+		else if (serverDerivadoATipo === "Seccional") { lockSecc = true; lockDeleg = true; }
 		else if (serverDerivadoATipo === "CNTA" || serverDerivadoATipo === "Asesoria Letrada") {
 			lockDeleg = true;
 			lockSecc = true;
@@ -1615,7 +1638,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "" }));
 				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			}
-			setLockedDelegacion(lockDeleg); 
+			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
 			if (!lockSecc) {
 				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
@@ -1718,7 +1741,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			if (tipo === "Asesoria Letrada") return ["Asesoria Letrada"];
 			if (tipo === "CNTA") return ["CNTA"];
 			if (tipo === "Seccional") return ["Seccional"];
-			if (tipo === "Delegacion") return ["Seccional"]; 
+			if (tipo === "Delegacion") return ["Seccional"];
 			// Sin derivación (o vacío): mostrar todas
 			return [
 				"Sin derivacion",
@@ -1919,8 +1942,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										...o,
 										form: {
 											...o.form,
-											denunciaSituacionId: Number(selected?.value || 0),  
-											situacionDescripcion: selected?.label || "",        
+											denunciaSituacionId: Number(selected?.value || 0),
+											situacionDescripcion: selected?.label || "",
 										},
 										errors: { ...o.errors, situacion: "" },
 									}));
@@ -2145,7 +2168,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								const seen = new Set();
 								dataDocs = combinados.filter(d => {
 									const raw = (d.archivo || d.archivoBase64 || d.base64 || d.contenido || "").toString().replace(/^data:.*;base64,/, "");
-									const key = d.id ? `ID-${d.id}` : `${(d.nombreArchivo||d.fileName||'').trim()}@@${raw.length}@@${(d.contentType||'').trim()}`;
+									const key = d.id ? `ID-${d.id}` : `${(d.nombreArchivo || d.fileName || '').trim()}@@${raw.length}@@${(d.contentType || '').trim()}`;
 									if (seen.has(key)) return false;
 									seen.add(key);
 									return true;
@@ -2156,133 +2179,136 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					return (
 						<Documentacion
 							data={dataDocs}
-					tipoDocumentacion={[
-						"Credencial",
-						"Documento de Identidad",
-						"Formulario",
-						"Otros",
-					]}
-					disabled={readOnly}
-					onChange={({ index, item }) => {
+							tipoDocumentacion={[
+								"Credencial",
+								"Documento de Identidad",
+								"Actas",
+								"Documentos",
+								"Recibos",
+								"Fotos",
+								"Otros",
+							]}
+							disabled={readOnly}
+							onChange={({ index, item }) => {
 
-						const prev = [...documentacionList];
+								const prev = [...documentacionList];
 
-						// === ALTA (CREAR NUEVO ARCHIVO)
-						if (index == null && item != null) {
-							const payload = mapDocToPayload(item, entidadId, entidadTipo);
+								// === ALTA (CREAR NUEVO ARCHIVO)
+								if (index == null && item != null) {
+									const payload = mapDocToPayload(item, entidadId, entidadTipo);
 
-							// Actualización optimista (se ve inmediatamente en la UI)
-							const temp = [...prev, { ...payload, id: item.id ?? 0 }];
-							setDocumentacionList(temp);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
+									// Actualización optimista (se ve inmediatamente en la UI)
+									const temp = [...prev, { ...payload, id: item.id ?? 0 }];
+									setDocumentacionList(temp);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
 
-							// Si no hay EntidadId todavía, solo guardamos localmente
-							if (!entidadId) {
-								return;
-							}
+									// Si no hay EntidadId todavía, solo guardamos localmente
+									if (!entidadId) {
+										return;
+									}
 
-							// Enviar al servidor
-							sendRequest(
-								{
-									baseURL: "Comunes",
-									endpoint: `/DocumentacionEntidad`,
-									method: "POST",
-									body: payload,
-									errorType: "response",
-								},
-								({ ok }) => {
-									// Actualizar con el ID real del servidor
-									const newId = ok?.id ?? item.id;
-									const next = [...temp];
-									next[next.length - 1] = { ...next[next.length - 1], id: newId };
+									// Enviar al servidor
+									sendRequest(
+										{
+											baseURL: "Comunes",
+											endpoint: `/DocumentacionEntidad`,
+											method: "POST",
+											body: payload,
+											errorType: "response",
+										},
+										({ ok }) => {
+											// Actualizar con el ID real del servidor
+											const newId = ok?.id ?? item.id;
+											const next = [...temp];
+											next[next.length - 1] = { ...next[next.length - 1], id: newId };
+											setDocumentacionList(next);
+											setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+										},
+										(err) => {
+											console.error(' Error al crear archivo:', err);
+											// Rollback
+											setDocumentacionList(prev);
+											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+										}
+									);
+									return;
+								}
+
+								//  BAJA
+								if (index != null && item == null) {
+									const current = prev[index];
+									const id = current?.id;
+
+									if (!id) {
+										// Si no hay id, solo eliminar localmente
+										const next = prev.filter((_, i) => i !== index);
+										setDocumentacionList(next);
+										setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+										return;
+									}
+
+									// Actualización optimista
+									const next = prev.filter((_, i) => i !== index);
 									setDocumentacionList(next);
 									setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-								},
-								(err) => {
-									console.error(' Error al crear archivo:', err);
-									// Rollback
-									setDocumentacionList(prev);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+
+									if (!entidadId) return;
+
+									// Eliminar del servidor
+									sendRequest(
+										{
+											baseURL: "Comunes",
+											endpoint: `/DocumentacionEntidad/${id}`,
+											method: "DELETE",
+											errorType: "response",
+										},
+										() => {
+										},
+										(err) => {
+											console.error(' Error al eliminar archivo:', err);
+											// Rollback
+											setDocumentacionList(prev);
+											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+										}
+									);
+									return;
 								}
-							);
-							return;
-						}
 
-						//  BAJA
-						if (index != null && item == null) {
-							const current = prev[index];
-							const id = current?.id;
+								// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
+								if (index != null && item != null) {
+									const current = prev[index] || {};
+									const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
 
-							if (!id) {
-								// Si no hay id, solo eliminar localmente
-								const next = prev.filter((_, i) => i !== index);
-								setDocumentacionList(next);
-								setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-								return;
-							}
+									// Actualización optimista
+									const next = [...prev];
+									next.splice(index, 1, { ...current, ...item });
+									setDocumentacionList(next);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
 
-							// Actualización optimista
-							const next = prev.filter((_, i) => i !== index);
-							setDocumentacionList(next);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+									if (!entidadId) return;
 
-							if (!entidadId) return;
-
-							// Eliminar del servidor
-							sendRequest(
-								{
-									baseURL: "Comunes",
-									endpoint: `/DocumentacionEntidad/${id}`,
-									method: "DELETE",
-									errorType: "response",
-								},
-								() => {
-								},
-								(err) => {
-									console.error(' Error al eliminar archivo:', err);
-									// Rollback
-									setDocumentacionList(prev);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+									// Actualizar en el servidor
+									sendRequest(
+										{
+											baseURL: "Comunes",
+											endpoint: `/DocumentacionEntidad/${payload.id}`,
+											method: "PUT",
+											body: payload,
+											errorType: "response",
+										},
+										() => {
+										},
+										(err) => {
+											console.error(' Error al actualizar archivo:', err);
+											// Rollback
+											setDocumentacionList(prev);
+											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+										}
+									);
+									return;
 								}
-							);
-							return;
-						}
-
-						// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
-						if (index != null && item != null) {
-							const current = prev[index] || {};
-							const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
-
-							// Actualización optimista
-							const next = [...prev];
-							next.splice(index, 1, { ...current, ...item });
-							setDocumentacionList(next);
-							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-
-							if (!entidadId) return;
-
-							// Actualizar en el servidor
-							sendRequest(
-								{
-									baseURL: "Comunes",
-									endpoint: `/DocumentacionEntidad/${payload.id}`,
-									method: "PUT",
-									body: payload,
-									errorType: "response",
-								},
-								() => {
-								},
-								(err) => {
-									console.error(' Error al actualizar archivo:', err);
-									// Rollback
-									setDocumentacionList(prev);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-								}
-							);
-							return;
-						}
-					}}
-					/>
+							}}
+						/>
 					);
 				})()}
 				{!readOnly && (
@@ -2315,7 +2341,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			const arr = Array.isArray(estadosList) ? estadosList : [];
 			if (arr.length) {
 				try {
-					last = String(arr.slice().sort((a,b)=> new Date(a.fecha) - new Date(b.fecha)).at(-1)?.estado || "").trim();
+					last = String(arr.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).at(-1)?.estado || "").trim();
 				} catch {
 					last = String(arr.at(-1)?.estado || "").trim();
 				}
@@ -2434,36 +2460,25 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		}
 
 		if (lastEstado === "Registrada" && estadoNuevo === "Completada") {
-			const hasCUIT = !!body.cuitEmpresa;
-			const isValidated = !!state.validado?.empleador;
-			if (!hasCUIT) {
-				errors.cuitEmpresa = "Valida CUIT empleador";
-				errors.validacionCUIL = "Ingrese y valide el CUIL del empleador";
-			} else if (!isValidated) {
-				errors.validacionCUIL = "Validar CUIL empleador";
-				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
+			const razonSocial = String(body.razonSocial || "").trim();
+			if (!razonSocial) {
+				errors.razonSocial = errors.razonSocial || "Dato requerido";
 			}
-
 			if (!body.correo) errors.correo = errors.correo || "Dato requerido";
 			if (!body.telefono) errors.telefono = errors.telefono || "Dato requerido";
 			if (!Number(body.denunciaTipoIngresoId || 0)) {
 				errors.tipoIngreso = errors.tipoIngreso || "Dato requerido";
-				try { setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" })); } catch(e) { /*x*/ }
+				try { setTipoIngresoSelect(s => ({ ...s, error: "Dato requerido" })); } catch (e) { /*x*/ }
 			}
 			if (!Number(body.denunciaSituacionId || 0)) {
 				errors.situacion = errors.situacion || "Dato requerido";
-				try { setSituacionSelect(s => ({ ...s, error: "Dato requerido" })); } catch(e) { /* x */ }
+				try { setSituacionSelect(s => ({ ...s, error: "Dato requerido" })); } catch (e) { /* x */ }
 			}
 			if (!body.ubicacion) errors.ubicacion = errors.ubicacion || "Dato requerido";
 		}
 
 
 		if (Object.values(errors).some(Boolean)) {
-			// Si la validación del CUIT falla, también copiar el mensaje a `errors.create`
-			if (errors.validacionCUIL) {
-				errors.create = errors.validacionCUIL;
-				errors.cuitEmpresa = errors.cuitEmpresa || errors.validacionCUIL;
-			}
 			setState((o) => ({ ...o, errors }));
 			return null;
 		}
@@ -2495,7 +2510,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			derivadoAId: derivadoAIdValue,
 			documentacionEntidadesId: 0,
 			denunciaSituacionId: Number(body.denunciaSituacionId || 0),
-			empleadorCUIT: Number(body.cuitEmpresa || 0),
+			empleadorCUIT: body.cuitEmpresa ? Number(body.cuitEmpresa) : null,
 			empleadorNombre: body.razonSocial || "",
 			empresaId: Number(state.form?.empresaId || 0),
 			ubicacion: body.ubicacion || "",
@@ -2575,7 +2590,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		let lastPersistido = "";
 		if (Array.isArray(estadosList) && estadosList.length) {
-			try { lastPersistido = String(estadosList.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).at(-1)?.estado || "").trim(); } catch { lastPersistido = String(estadosList.at(-1)?.estado || "").trim(); }
+			try { lastPersistido = String(estadosList.slice().sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).at(-1)?.estado || "").trim(); } catch { lastPersistido = String(estadosList.at(-1)?.estado || "").trim(); }
 		}
 		const estadoActualForm = String(state.form?.estado || "").trim();
 		const creandoNuevoEstado = estadoActualForm && estadoActualForm !== lastPersistido;
@@ -2590,7 +2605,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				errorType: "response",
 			},
 			(ok) => {
-					// Al actualizar la denuncia, crear un nuevo estado asociado (POST /DenunciasEstados)
+				// Al actualizar la denuncia, crear un nuevo estado asociado (POST /DenunciasEstados)
 				setState((s) => ({ ...s, loading: "Guardando estado...", errors: { ...s.errors, create: null } }));
 				const estadoBody = (typeof estadoPayload === "function") ? estadoPayload(id) : null;
 				if (estadoBody) {
@@ -2609,13 +2624,13 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 							// persistir documentación y cerrar
 							Promise.resolve()
-									.then(() => persistirDocumentacion(entidadParaDocumentacion, { onlyNew: creandoNuevoEstado }))
+								.then(() => persistirDocumentacion(entidadParaDocumentacion, { onlyNew: creandoNuevoEstado }))
 								.finally(() => onClose(true));
 						},
 						(errEstado) => {
 							setState((s) => ({ ...s, loading: null, errors: { ...s.errors, create: errEstado?.toString() } }));
 							Promise.resolve()
-									.then(() => persistirDocumentacion(id, { onlyNew: creandoNuevoEstado }))
+								.then(() => persistirDocumentacion(id, { onlyNew: creandoNuevoEstado }))
 								.finally(() => onClose(true));
 						},
 						() => { }
@@ -2623,7 +2638,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				} else {
 					// Si no hay estadoBody, sólo persistir documentación
 					Promise.resolve()
-							.then(() => persistirDocumentacion(id, { onlyNew: creandoNuevoEstado }))
+						.then(() => persistirDocumentacion(id, { onlyNew: creandoNuevoEstado }))
 						.finally(() => onClose(true));
 				}
 			},
@@ -2689,32 +2704,32 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								<Grid col gap="4px">
 									<div style={{ fontWeight: 'bold' }}>Documento:</div>
 									<div style={{ height: 200, overflow: 'auto', fontSize: 13 }}>
-									{(() => {
-										const doc = selectedEstado?._doc;
-										const docs = doc ? [doc] : [];
-										if (!docs.length) return <i>Sin documentos</i>;
-										return (
-											<ul style={{ margin: 0, paddingLeft: 18 }}>
-												{docs.map((d, i) => {
-													const nombre = d?.nombreArchivo ?? d?.fileName ?? `Documento ${i + 1}`;
-													const b64 = d?.archivo ?? d?.archivoBase64 ?? d?.contenido;
-													const contentType = d?.contentType || 'application/octet-stream';
-													const href = d?.url ? d.url : (b64 ? `data:${contentType};base64,${b64}` : null);
-													return (
-														<li key={i} style={{ marginBottom: 4 }}>
-															{href ? (
-																<a href={href} target="_blank" rel="noreferrer" download={nombre}>{nombre}</a>
-															) : nombre}
-														</li>
-													);
-												})}
-											</ul>
-										);
-									})()}
-								</div>
+										{(() => {
+											const doc = selectedEstado?._doc;
+											const docs = doc ? [doc] : [];
+											if (!docs.length) return <i>Sin documentos</i>;
+											return (
+												<ul style={{ margin: 0, paddingLeft: 18 }}>
+													{docs.map((d, i) => {
+														const nombre = d?.nombreArchivo ?? d?.fileName ?? `Documento ${i + 1}`;
+														const b64 = d?.archivo ?? d?.archivoBase64 ?? d?.contenido;
+														const contentType = d?.contentType || 'application/octet-stream';
+														const href = d?.url ? d.url : (b64 ? `data:${contentType};base64,${b64}` : null);
+														return (
+															<li key={i} style={{ marginBottom: 4 }}>
+																{href ? (
+																	<a href={href} target="_blank" rel="noreferrer" download={nombre}>{nombre}</a>
+																) : nombre}
+															</li>
+														);
+													})}
+												</ul>
+											);
+										})()}
+									</div>
+								</Grid>
 							</Grid>
 						</Grid>
-					</Grid>
 					</div>
 				)}
 			</Modal.Body>

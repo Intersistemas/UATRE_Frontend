@@ -212,7 +212,7 @@ const DenunciaDetails = (props) => {
                                     <Grid className={styles.contenido} col>
                                         <Grid className={styles.titulo}>Detalle de la Denuncia:</Grid>
                                         <Grid>
-                                            <Grid grow><InputMaterial label="Detalle de la Denuncia" value={validar(data.texto)} multiline /></Grid>
+                                            <Grid grow><InputMaterial value={validar(data.texto)} multiline/></Grid>
                                         </Grid>
                                     </Grid>
                                 </Grid>

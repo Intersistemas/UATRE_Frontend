@@ -242,6 +242,15 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
       
       return [
         {
+          dataField: "id",
+          text: "Nro Denuncia",
+          sort: true,
+          headerStyle: { width: "120px" },
+          formatter: (cell, row) => {
+            return row?.id ?? cell ?? "Sin nro";
+          },
+        },
+        {
           dataField: "fecha",
           text: "Fecha",
           sort: true,
