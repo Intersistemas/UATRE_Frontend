@@ -1584,22 +1584,61 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                       },
                                     },
                                     onPreLoad: () =>
-                                      setTrabLocaSelect((o) => ({
-                                        ...o,
+                                      setTrabLocaSelect((s) => ({
+                                        ...s,
                                         loading: "Cargando...",
                                       })),
-                                    onLoad: ({ ok, error }) =>
-                                      setTrabLocaSelect((o) => ({
-                                        ...o,
-                                        data: Array.isArray(ok) ? ok : [],
+                                    onLoad: ({ ok, error }) => {
+                                      const dataArr = Array.isArray(ok) ? ok : [];
+                                      const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
+                                      const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
+                                        .replace(/\D+/g, "");
+                                      const hit = dataArr.find((r) => {
+                                        const nombre = String(r?.nombre || "").toLowerCase();
+                                        const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                        if (cpTarget && cp) return cp === cpTarget;
+                                        return nombreTarget && nombre === nombreTarget;
+                                      });
+
+                                      setTrabLocaSelect((s) => ({
+                                        ...s,
+                                        data: dataArr,
                                         loading: null,
                                         error: error?.toString(),
-                                        buscar: domicilio.localidad,
-                                        selected: {
-                                          record: { nombre: domicilio.localidad },
-                                        },
-                                        origen: "text",
-                                      })),
+                                        buscar: "",
+                                        selected: hit
+                                          ? {
+                                              value: hit.id,
+                                              label: [hit.codPostal, hit.nombre].join(" - "),
+                                              record: hit,
+                                            }
+                                          : {},
+                                        origen: hit ? "option" : s.origen,
+                                      }));
+
+                                      if (hit) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadIdAfiliado: hit.id,
+                                            refLocalidadNombreAfiliado: hit.nombre,
+                                            reflocalidadNombreAfiliado: hit.nombre,
+                                          },
+                                        }));
+                                      } else if (domicilio?.localidad) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadNombreAfiliado:
+                                              prev.form.refLocalidadNombreAfiliado || domicilio.localidad,
+                                            reflocalidadNombreAfiliado:
+                                              prev.form.reflocalidadNombreAfiliado || domicilio.localidad,
+                                          },
+                                        }));
+                                      }
+                                    },
                                   }));
                                 }
                               }
@@ -2178,25 +2217,61 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                   ...o,
                                   query: {
                                     ...o.query,
-                                    params: { ...o.query.params, provinciaId: pcia?.value, },
+                                    params: { ...o.query.params, provinciaId: pcia?.value },
                                   },
                                   onPreLoad: () =>
                                     setEmplLocaSelect((s) => ({
                                       ...s,
                                       loading: "Cargando...",
                                     })),
-                                  onLoad: ({ ok, error }) =>
+                                  onLoad: ({ ok, error }) => {
+                                    const dataArr = Array.isArray(ok) ? ok : [];
+                                    const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
+                                    const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
+                                      .replace(/\D+/g, "");
+                                    const hit = dataArr.find((r) => {
+                                      const nombre = String(r?.nombre || "").toLowerCase();
+                                      const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                      if (cpTarget && cp) return cp === cpTarget;
+                                      return nombreTarget && nombre === nombreTarget;
+                                    });
+
                                     setEmplLocaSelect((s) => ({
                                       ...s,
-                                      data: Array.isArray(ok) ? ok : [],
+                                      data: dataArr,
                                       loading: null,
                                       error: error?.toString(),
-                                      buscar: domicilio?.localidad ?? "",
-                                      selected: {
-                                        record: { nombre: domicilio?.localidad ?? "" },
-                                      },
-                                      origen: "text",
-                                    })),
+                                      buscar: "",
+                                      selected: hit
+                                        ? {
+                                            value: hit.id,
+                                            label: [hit.codPostal, hit.nombre].join(" - "),
+                                            record: hit,
+                                          }
+                                        : {},
+                                      origen: hit ? "option" : s.origen,
+                                    }));
+
+                                    if (hit) {
+                                      setState((prev) => ({
+                                        ...prev,
+                                        form: {
+                                          ...prev.form,
+                                          refLocalidadIdEmpresa: hit.id,
+                                          nombreLocalidadEmpresa: hit.nombre,
+                                        },
+                                      }));
+                                    } else if (domicilio?.localidad) {
+                                      setState((prev) => ({
+                                        ...prev,
+                                        form: {
+                                          ...prev.form,
+                                          nombreLocalidadEmpresa:
+                                            prev.form.nombreLocalidadEmpresa || domicilio.localidad,
+                                        },
+                                      }));
+                                    }
+                                  },
                                 }));
                               } else {
                                 setEmplPciaSelect((o) => ({
