@@ -259,7 +259,7 @@ const GestionOSHandler = () => {
         setParamsEdit((o) => ({ ...o, ...changesSeccional }));
       },
     });
-  }, []);
+  }, [pushQuery, Usuario.ambitoTodos, Usuario.ambitoSeccionales?.ids, Usuario.ambitosDescripciones]);
 
   // Cargo las Situcaiones segun el ESTADO que haya seleccionado
   useEffect(() => {
@@ -822,7 +822,7 @@ const GestionOSHandler = () => {
       <div className="contenido">{tabs[tab].body()}</div>
       <KeyPress items={acciones} />
       {/* === Nuevo agregado: Modal del Informe === */}
-      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} />}
+      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} paramsFiltrados={paramsSend} />}
       {/* === Fin nuevo agregado === */}
     </Grid>
   );

@@ -861,22 +861,24 @@ const GestionOSForm = ({
     setSeccionalesQuery((o) => ({
       ...o,
       onLoad: ({ ok, error }) => {
-        let data = [];
+        let allData = [];
+        let seccionalesFiltered = [];
         let seccionalPredeterminada = null;
         
         if (Array.isArray(ok)) {
-          data = ok.filter((r) => r.id !== 99999);
+          allData = ok.filter((r) => r.id !== 99999);
+          seccionalesFiltered = allData;
           
           // Si el ámbito es Delegaciones y estamos agregando una nueva gestión
           if (ambito.tipo === 'Delegaciones' && request === 'A') {
             const delegacionId = ambito.ids[0];
             // Filtrar seccionales por la delegación actual
-            data = data.filter((r) => r.refDelegacionId === delegacionId);
+            seccionalesFiltered = allData.filter((r) => r.refDelegacionId === delegacionId);
             
             // Guardar la primera seccional para establecerla como predeterminada
             // Solo si no hay una seccional ya seleccionada y no se ha establecido antes
-            if (data.length > 0 && !data.seccionalId && !seccionalPredeterminadaSet.current) {
-              seccionalPredeterminada = data[0];
+            if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+              seccionalPredeterminada = seccionalesFiltered[0];
               seccionalPredeterminadaSet.current = true; // Marcar que ya se estableció
             }
           }
@@ -885,7 +887,7 @@ const GestionOSForm = ({
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
-          data,
+          data: seccionalesFiltered,
           error: error?.toString(),
           // Si hay una seccional predeterminada, establecerla en el selected
           ...(seccionalPredeterminada ? {
@@ -905,7 +907,7 @@ const GestionOSForm = ({
         }
       },
     }));
-  }, [setSeccionalesQuery, ambito, request]);
+  }, [setSeccionalesQuery, ambito, request, onChange]);
   //#endregion Carga inicial select seccionales
 
   //#region Resetear referencia de seccional predeterminada cuando cambia el request
