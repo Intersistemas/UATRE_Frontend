@@ -1628,25 +1628,109 @@ const AfiliadoAgregar = (props) => {
     if (d.telefonoNumero != null) {
       dispatchTelefonoNumero({ type: "USER_INPUT", value: String(d.telefonoNumero) });
     }
+    const provinciaIdFromSolicitud = d.provinciaId ?? d.provinciaIdSolicitudAfiliacion ?? null;
+    const localidadValueFromSolicitud = d.localidadPrefill?.value ?? d.refLocalidadId ?? d.localidadId ?? null;
+    const seccionalValueFromSolicitud = d.seccionalPrefill?.value ?? d.seccionalId ?? d.seccionalIdSolicitudAfiliacion ?? null;
+
+    if (provinciaIdFromSolicitud) {
+      setProvincias((o) => ({
+        ...o,
+        loading: "Cargando...",
+        params: {},
+        onLoaded: ({ data }) => {
+          if (!Array.isArray(data)) return;
+          
+          let provinciaSelected = data.find((prov) => {
+            if (!prov) return false;
+            const provVal = prov.value;
+            if (provVal != null && String(provVal) === String(provinciaIdFromSolicitud)) return true;
+            if (prov.idProvinciaAFIP != null && String(prov.idProvinciaAFIP) === String(provinciaIdFromSolicitud)) return true;
+            return false;
+          }) ?? { value: provinciaIdFromSolicitud, label: d.provinciaDescripcion ?? d.provincia ?? "" };
+          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+
+          // cargar localidades para la provincia indicada y seleccionar la correcta
+          setLocalidades((o) => ({
+            ...o,
+            loading: "Cargando...",
+            params: { provinciaId: provinciaSelected.value },
+            onLoaded: ({ data }) => {
+              if (!Array.isArray(data)) return;
+
+
+   let localidadSelected = data.find((l) => l.value === localidadValueFromSolicitud);
+
+   if (!localidadSelected) {
+     const nombreDesdeSolicitud = (
+       d.localidadPrefill?.label ||
+       d.localidad ||
+       d.localidadDescripcion ||
+       ""
+     )
+       .toString()
+       .trim()
+       .toUpperCase();
+
+     if (nombreDesdeSolicitud) {
+       localidadSelected = data.find((l) => {
+         const labelSinCP = String(l.label || "")
+           .replace(/^\d+\s+/, "")
+           .toUpperCase()
+           .trim();
+         return labelSinCP === nombreDesdeSolicitud;
+       });
+     }
+   }
+
+   if (!localidadSelected && localidadValueFromSolicitud) {
+     const createdLocalidad = {
+       value: localidadValueFromSolicitud,
+       label:
+         d.localidad ||
+         d.localidadDescripcion ||
+         String(localidadValueFromSolicitud),
+     };
+     setLocalidades((prev) => ({
+       ...prev,
+       data: [createdLocalidad, ...(Array.isArray(prev.data) ? prev.data : data)],
+     }));
+     localidadSelected = createdLocalidad;
+   }
+
+    if (!localidadSelected) {
+      localidadSelected =
+        data.find((l) => l.value === provinciaSelected?.localidadIdPorDefecto) ??
+        data.at(0) ??
+        {};
+    }
+            
+              dispatchLocalidad({ type: "USER_INPUT", value: localidadSelected });
+
+              setSeccionales((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: localidadSelected?.value && localidadSelected?.value !== provinciaSelected?.localidadIdPorDefecto ? { localidadId: localidadSelected.value } : { provinciaId: provinciaSelected.value },
+                onLoaded: ({ data }) => {
+                  if (!Array.isArray(data)) return;
+                  const seccionalSelected = data.find((s) => s.value === seccionalValueFromSolicitud) ?? data.at(0) ?? {};
+                  dispatchSeccional({ type: "USER_INPUT", value: seccionalSelected });
+                },
+              }));
+            },
+          }));
+        },
+      }));
+    } else {
+      if (d.localidadPrefill) {
+        dispatchLocalidad({ type: "USER_INPUT", value: d.localidadPrefill });
+      }
+      if (d.seccionalPrefill) {
+        dispatchSeccional({ type: "USER_INPUT", value: d.seccionalPrefill });
+      }
+    }
   }, [props.data]);
 
   //#endregion
-
-
-  //Agregado Mauro
-  // Helper simple para partir un teléfono Argentino en país/área/número
-  const parseTelefonoAR = (raw = "") => {
-    const only = String(raw).replace(/[^\d+0-9]/g, "");
-    // país: si viene con prefijo usa ese, si no, asume +54
-    const paisMatch = only.match(/^\+?\d{1,3}/);
-    const telefonoPais = paisMatch ? (paisMatch[0].startsWith("+") ? paisMatch[0] : `+${paisMatch[0]}`) : "+54";
-    const rest = only.replace(/^\+?\d{1,3}/, "");
-    // área/número: muy básico, intenta 2-4 dígitos de área y el resto como número
-    const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/);
-    const telefonoArea = m?.[1] ?? "";
-    const telefonoNumero = m?.[2] ?? rest;
-    return { telefonoPais, telefonoArea, telefonoNumero };
-  };
 
   //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
@@ -2036,138 +2120,137 @@ const AfiliadoAgregar = (props) => {
         //provincia
 
         // Selección robusta de provincia
-        let provinciaSelected = null;
-        if (domicilioReal) {
-          const sinDescripcion =
-            domicilioReal.idProvincia === 0 &&
-            (domicilioReal.descripcionProvincia === null ||
-              domicilioReal.descripcionProvincia === "");
-          provinciaSelected = sinDescripcion
-            ? provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999)
-            : provincias?.data?.find(
-                (p) => p?.idProvinciaAFIP === domicilioReal?.idProvincia
-              );
-        }
-        // Fallback si no se encontró: usar provincia "Sin Asignar" 
-        if (!provinciaSelected) {
-          provinciaSelected =
-            provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999) ||
-            provincias?.data?.at?.(0) ||
-            null;
-        }
+        if (!props.autoValidaDesdeSolicitud) {
+          let provinciaSelected = null;
+          if (domicilioReal) {
+            const sinDescripcion =
+              domicilioReal.idProvincia === 0 &&
+              (domicilioReal.descripcionProvincia === null ||
+                domicilioReal.descripcionProvincia === "");
+            provinciaSelected = sinDescripcion
+              ? provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999)
+              : provincias?.data?.find(
+                  (p) => p?.idProvinciaAFIP === domicilioReal?.idProvincia
+                );
+          }
+          if (!provinciaSelected) {
+            provinciaSelected =
+              provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999) ||
+              provincias?.data?.at?.(0) ||
+              null;
+          }
 
-        if (provinciaSelected) {
-          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-        }
-        if (provinciaSelected?.idProvinciaAFIP === 99999) {
-          //SI LA PROVINCIA ES POR DEFECTO (SIN ASIGNAR), TODO POR DEFECTO(SIN ASIGNAR)!
-          dispatchLocalidad({
-            type: "USER_INPUT",
-            value: provinciaSelected.localidadIdPorDefecto,
-            label: provinciaSelected.localidadDescripcionPorDefecto,
-          });
-          dispatchSeccional({
-            type: "USER_INPUT",
-            value: provinciaSelected.seccionalIdPorDefecto,
-            label: provinciaSelected.seccionalDescripcionPorDefecto,
-          });
-        } else {
-          //SELECCIONÓ UNA PROVINCIA QUE NO ES POR DEFECTO
-          const localidadCodPostal =
-            domicilioReal.codigoPostal !== "0000"
-              ? domicilioReal.codigoPostal
-              : null;
-          //localidad
-          const processLocalidades = async (localidadesObj) => {
-            let localidad;
-            if (!localidad) {
-              localidad = localidadesObj?.find((localidad) => {
-                if (
-                  localidad.nombre === domicilioReal.localidad &&
-                  localidad.codPostal
-                    .toString()
-                    .includes(domicilioReal.codigoPostal)
-                )
-                  return localidad; //VERIFICO PRIMERO POR NOMBRE DE LOCALIDAD EXACTO + 4 primeros digitos del CP.
-              });
-            }
-
-            if (!localidad) {
-              localidad = localidadesObj?.find((localidad) => {
-                if (
-                  localidad.nombre.includes(domicilioReal.localidad) &&
-                  localidad.codPostal
-                    .toString()
-                    .includes(domicilioReal.codigoPostal)
-                )
-                  return localidad; //SINO VERIFICO POR NOMBRE DE LOCALIDAD APROXIMADO + 4 primeros digitos del CP.
-              });
-            }
-
-            if (!localidad) {
-              localidad = localidadesObj?.find((localidad) => {
-                if (localidad.id === provinciaSelected?.localidadIdPorDefecto)
-                  return localidad; // Si nada se encuentra, asigno el ID de SIN ASIGNACION/por defecto
-              });
-            }
-            if (!localidad) {
-              localidad = { id: provinciaSelected?.localidadIdPorDefecto };
-            }
-
-            setLocalidades((o) => ({
-              ...o,
-              loading: "Cargando...",
-              params: provinciaSelected
-                ? { provinciaId: provinciaSelected?.id }
-                : {}, //TRAIGO TODAS LAS LOCS de LA PROVINCIA
-              onLoaded: ({ data }) => {
-                if (!Array.isArray(data)) return;
-                //const myLocalidad = localidad?.id !==  provinciaSelected?.localidadIdPorDefecto ? data.find((r) => r.value === localidad?.id) : data.at(0);
-
-                const myLocalidad =
-                  data.find((l) => l.value === localidad?.id) ??
-                  data.at(0) ??
-                  {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-
-                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
-
-                setSeccionales((o) => ({
-                  ...o,
-                  loading: "Cargando...",
-                  params:
-                    myLocalidad?.value !==
-                      provinciaSelected?.localidadIdPorDefecto
-                      ? { localidadId: myLocalidad?.value }
-                      : { provinciaId: provinciaSelected?.id } ?? {},
-                  onLoaded: ({ data }) => {
-                    const mySeccionalId =
-                      myLocalidad?.value ===
-                        provinciaSelected?.localidadIdPorDefecto
-                        ? data.at(0)
-                        : data.at(1)
-                          ? data.at(1)
-                          : data.at(0);
-
-                    dispatchSeccional({
-                      type: "USER_INPUT",
-                      value: mySeccionalId,
-                    });
-                  },
-                }));
+          if (provinciaSelected) {
+            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+          }
+          if (provinciaSelected?.idProvinciaAFIP === 99999) {
+            dispatchLocalidad({
+              type: "USER_INPUT",
+              value: {
+                value: provinciaSelected.localidadIdPorDefecto,
+                label: provinciaSelected.localidadDescripcionPorDefecto,
               },
-            }));
-          };
+            });
+            dispatchSeccional({
+              type: "USER_INPUT",
+              value: {
+                value: provinciaSelected.seccionalIdPorDefecto,
+                label: provinciaSelected.seccionalDescripcionPorDefecto,
+              },
+            });
+          } else {
+            const localidadCodPostal =
+              domicilioReal.codigoPostal !== "0000"
+                ? domicilioReal.codigoPostal
+                : null;
+            const processLocalidades = async (localidadesObj) => {
+              let localidad;
+              if (!localidad) {
+                localidad = localidadesObj?.find((localidad) => {
+                  if (
+                    localidad.nombre === domicilioReal.localidad &&
+                    localidad.codPostal
+                      .toString()
+                      .includes(domicilioReal.codigoPostal)
+                  )
+                    return localidad;
+                });
+              }
 
-          request(
-            {
-              baseURL: "Afiliaciones",
-              //localidadCodPostal ? `/RefLocalidad?ProvinciaId=${provinciaSelected.id}&CodigoPostalUATRE=${parseInt(localidadCodPostal)}` :
-              endpoint: `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
-              //endpoint: `/RefLocalidad/GetRefLocalidadesPaginationSpecs?ProvinciaId=${provinciaSelected.id}&FilterByCPNombre=${localidadQuery}`,
-              method: "GET",
-            },
-            processLocalidades
-          );
+              if (!localidad) {
+                localidad = localidadesObj?.find((localidad) => {
+                  if (
+                    localidad.nombre.includes(domicilioReal.localidad) &&
+                    localidad.codPostal
+                      .toString()
+                      .includes(domicilioReal.codigoPostal)
+                  )
+                    return localidad;
+                });
+              }
+
+              if (!localidad) {
+                localidad = localidadesObj?.find((localidad) => {
+                  if (localidad.id === provinciaSelected?.localidadIdPorDefecto)
+                    return localidad;
+                });
+              }
+              if (!localidad) {
+                localidad = { id: provinciaSelected?.localidadIdPorDefecto };
+              }
+
+              setLocalidades((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: provinciaSelected
+                  ? { provinciaId: provinciaSelected?.id }
+                  : {},
+                onLoaded: ({ data }) => {
+                  if (!Array.isArray(data)) return;
+
+                  const myLocalidad =
+                    data.find((l) => l.value === localidad?.id) ??
+                    data.at(0) ??
+                    {};
+
+                  dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
+
+                  setSeccionales((o) => ({
+                    ...o,
+                    loading: "Cargando...",
+                    params:
+                      myLocalidad?.value !==
+                        provinciaSelected?.localidadIdPorDefecto
+                        ? { localidadId: myLocalidad?.value }
+                        : { provinciaId: provinciaSelected?.id } ?? {},
+                    onLoaded: ({ data }) => {
+                      const mySeccionalId =
+                        myLocalidad?.value ===
+                          provinciaSelected?.localidadIdPorDefecto
+                          ? data.at(0)
+                          : data.at(1)
+                            ? data.at(1)
+                            : data.at(0);
+
+                      dispatchSeccional({
+                        type: "USER_INPUT",
+                        value: mySeccionalId,
+                      });
+                    },
+                  }));
+                },
+              }));
+            };
+
+            request(
+              {
+                baseURL: "Afiliaciones",
+                endpoint: `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
+                method: "GET",
+              },
+              processLocalidades
+            );
+          }
         }
       }
 

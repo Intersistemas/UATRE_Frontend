@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
@@ -25,6 +25,7 @@ import Table from "components/ui/Table/Table";
 
 import { Tabs, Tab } from "@mui/material";
 import Documentacion from "components/documentacion/Documentacion";
+import AuthContext from "store/authContext";
 
 const styles = {
   group: {
@@ -58,7 +59,13 @@ const seccionalSelectDef = {};
 const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
   mapOptions({
     data,
-    map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
+    map: (r) => ({
+      value: r.id,
+      label: [r.seccionalCodigo ?? r.codigo, r.nombre ?? r.descripcion]
+        .filter((v) => v != null && v !== "")
+        .join(" - "),
+      record: r,
+    }),
     filter: (r) => includeSearch(r, buscar),
     start: [seccionalSelectDef],
     ...x,
@@ -178,6 +185,16 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const handleChangeTab = (_e, v) => setSelectedTab(v);
 
+  const { usuario = {} } = useContext(AuthContext);
+  const seccIdsUsuario = usuario?.ambitoSeccionales?.ids;
+  const seccIdUsuario = Array.isArray(seccIdsUsuario) && seccIdsUsuario.length === 1 ? seccIdsUsuario[0] : null;
+
+  const cuilUsuario = usuario?.cuit ?? null;
+
+  useEffect(() => {
+    console.log("SolicitudAfiliacionForm mounted - auth/usuario:", { usuario });
+  }, [usuario]);
+
   //#region APIs
   const { setState: setSeccionalesQuery } = useQueryState(
     () => ({
@@ -188,6 +205,17 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
       },
     }),
     { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
+  );
+  const { setState: setSeccionalQuery } = useQueryState(
+    (_, { id, ...params }) => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional/${id}`,
+        method: "GET",
+      },
+      params,
+    }),
+    { query: { config: { errorType: "response" } } }
   );
   const { setState: setTiposDocumentosQuery } = useQueryState(
     () => ({
@@ -290,7 +318,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         },
       }
     );
-  const { state: afiliadoByCuilQuery, setState: setAfiliadoByCuilQuery } =
+  const { setState: setAfiliadoByCuilQuery } =
     useQueryState(
       () => ({
         config: {
@@ -323,7 +351,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
       { query: { config: { errorType: "response" } } }
     );
 
-  const [documentacionList, setDocumentacionList] = useState([]);
   const { setState: setDocumentosQuery } = useQueryState(
     () => ({
       config: {
@@ -356,6 +383,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     { query: { config: { errorType: "response" } } }
   );
   //#endregion APIs
+  const [documentacionList, setDocumentacionList] = useState([]);
 
   const [state, setState] = useState({
     form: {
@@ -542,7 +570,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#region select seccional
   const [seccionalSelect, setSeccionalSelect] = useState({
-    loading: "Cargando...",
+    loading: seccIdUsuario ? null : "Cargando...",
     buscar: "",
     data: [],
     error: null,
@@ -903,11 +931,11 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }));
   }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
 
-  useEffect(() => {
-    if (readOnly) return; // evitar sobrescribir el selected que seteamos desde data
-    if (!trabPciaSelect.selected?.value) return;
-    // si ya tenemos datos no volvemos a pedir
-    if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+ useEffect(() => {
+   if (readOnly) return; 
+   if (!data || Object.keys(data).length === 0) return;
+   if (!trabPciaSelect.selected?.value) return;
+   if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
@@ -926,10 +954,14 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
           const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
           if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
         }
-        setTrabLocaSelect((s) => ({ ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selected || {}, origen: selected ? 'option' : s.origen }));
+        setTrabLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
       },
     }));
-  }, [trabPciaSelect.selected?.value, setLocalidadesQuery]);
+  }, [trabPciaSelect.selected?.value, setLocalidadesQuery, data, trabLocaSelect.data]);
   useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
   useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
   useEffect(() => {
@@ -964,9 +996,12 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
 
   useEffect(() => {
-    if (readOnly) return; // evitar sobrescribir el selected que seteamos desde data
-    if (!emplPciaSelect.selected?.value) return;
-    if (emplLocaSelect.data && emplLocaSelect.data.length) return;
+  if (readOnly) return; 
+
+  if (!data || Object.keys(data).length === 0) return;
+  if (!trabPciaSelect.selected?.value) return;
+  // si ya tenemos datos no volvemos a pedir
+  if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
@@ -984,7 +1019,11 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
           const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
           if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
         }
-        setEmplLocaSelect((s) => ({ ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selected || {}, origen: selected ? 'option' : s.origen }));
+        setEmplLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
       },
     }));
   }, [emplPciaSelect.selected?.value, setLocalidadesQuery]);
@@ -1078,38 +1117,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     });
   };
 
-  // Prefill selects (duplicados originales)
-  useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
-  useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
-  useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
-  useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
-  useEffect(() => {
-    if (!trabPciaSelect.options?.length) return;
-    setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
-  }, [trabPciaSelect.options, data?.provinciaId]);
-  useEffect(() => {
-    if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
-    setLocalidadesQuery((o) => ({
-      ...o,
-      query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
-      onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-      onLoad: ({ ok, error }) =>
-        setTrabLocaSelect((s) => ({
-          ...s,
-          data: Array.isArray(ok) ? ok : [],
-          loading: null,
-          error: error?.toString(),
-          selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
-          origen: "option",
-        })),
-    }));
-  }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
-  useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
-  useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
-  useEffect(() => {
-    if (!emplPciaSelect.options?.length) return;
-    setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
-  }, [emplPciaSelect.options, data?.provinciaidEmpresa]);
   useEffect(() => {
     if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
     setLocalidadesQuery((o) => ({
@@ -1127,7 +1134,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         })),
     }));
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
-  useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+ 
 
   //#endregion selects
 
@@ -1135,21 +1142,149 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#region Carga inicial select seccional
   useEffect(() => {
-    setSeccionalesQuery((o) => ({
+    if (seccIdUsuario) return;
+    const cargarPorAfiliado = !!cuilUsuario;
+
+    if (cargarPorAfiliado) {
+      setAfiliadoByCuilQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { CUIL: String(cuilUsuario).replace(/\D+/g, "") },
+        },
+        onLoad: ({ ok }) => {
+          const refLocalidadId = ok?.refLocalidadId ?? ok?.refLocalidadIdAfiliado ?? 0;
+          if (!refLocalidadId) {
+            // Fallback a listado general de seccionales activas
+            setSeccionalesQuery((p) => ({
+              ...p,
+              query: {
+                ...p.query,
+                params: { ...(p.query?.params || {}), soloActivos: true },
+              },
+              onLoad: ({ ok: seccOk, error }) => {
+                let data = [];
+                if (Array.isArray(seccOk)) data = seccOk;
+                
+                const hijas = [];
+                data.forEach((s) => {
+                  if (Array.isArray(s.seccionalLocalidad)) {
+                    hijas.push(...s.seccionalLocalidad);
+                  }
+                });
+                if (hijas.length) {
+
+                  const porId = new Map();
+                  [...data, ...hijas].forEach((s) => {
+                    if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                  });
+                  data = Array.from(porId.values());
+                }
+                setSeccionalSelect((s) => ({
+                  ...s,
+                  loading: null,
+                  data,
+                  error: error?.toString(),
+                }));
+              },
+            }));
+            return;
+          }
+
+          setSeccionalesQuery((p) => ({
+            ...p,
+            query: {
+              ...p.query,
+              params: { ...(p.query?.params || {}), soloActivos: true, LocalidadId: refLocalidadId },
+            },
+            onLoad: ({ ok: seccOk, error }) => {
+              let data = [];
+              if (Array.isArray(seccOk)) data = seccOk;
+
+              const hijas = [];
+              data.forEach((s) => {
+                if (Array.isArray(s.seccionalLocalidad)) {
+                  hijas.push(...s.seccionalLocalidad);
+                }
+              });
+              if (hijas.length) {
+                const porId = new Map();
+                [...data, ...hijas].forEach((s) => {
+                  if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                });
+                data = Array.from(porId.values());
+              }
+              setSeccionalSelect((s) => ({
+                ...s,
+                loading: null,
+                data,
+                error: error?.toString(),
+              }));
+            },
+          }));
+        },
+      }));
+    } else {
+
+      setSeccionalesQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { ...(o.query?.params || {}), soloActivos: true },
+        },
+        onLoad: ({ ok, error }) => {
+          let data = [];
+          if (Array.isArray(ok)) data = ok;
+          setSeccionalSelect((s) => ({
+            ...s,
+            loading: null,
+            data,
+            error: error?.toString(),
+          }));
+        },
+      }));
+    }
+  }, [setSeccionalesQuery, setAfiliadoByCuilQuery, seccIdUsuario, cuilUsuario]);
+  //#endregion Carga inicial select seccional
+
+  useEffect(() => {
+    if (!seccIdUsuario) return;
+
+    setSeccionalQuery((o) => ({
       ...o,
-      onLoad: ({ ok, error }) => {
-        let data = [];
-        if (Array.isArray(ok)) data = ok;
-        setSeccionalSelect((o) => ({
-          ...o,
-          loading: null,
-          data,
-          error: error?.toString(),
+      query: { ...o.query, params: { id: seccIdUsuario } },
+      onLoad: ({ ok }) => {
+        if (!ok) return;
+        const record = ok;
+        const selected = {
+          value: record.id,
+          label: [record.codigo, record.descripcion].join(" - "),
+          record,
+        };
+        setSeccionalSelect((s) => ({
+          ...s,
+          selected,
+          origen: "option",
+        }));
+        setState((st) => ({
+          ...st,
+          form: {
+            ...st.form,
+            seccionalId: record.id,
+            seccional: record.nombre,
+          },
+          validado: {
+            ...st.validado,
+            seccionalId: true,
+          },
+          errors: {
+            ...st.errors,
+            seccionalId: "",
+          },
         }));
       },
     }));
-  }, [setSeccionalesQuery]);
-  //#endregion Carga inicial select seccional
+  }, [seccIdUsuario, setSeccionalQuery]);
 
   // Prefill seccional cuando la lista de seccionales fue cargada y el registro trae info
   useEffect(() => {
@@ -1336,10 +1471,10 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     const FormularioPanel = (
       <Grid full col gap="10px">
         <Grid width gap="inherit">
-          <Grid width>
+          <Grid width style={seccIdUsuario ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
             <SearchSelectMaterial
               id="seccionalId"
-              readOnly={isRO}
+              readOnly={isRO || !!seccIdUsuario}
               autoFocus
               label="Seccional"
               error={
@@ -1586,6 +1721,8 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                     onPreLoad: () =>
                                       setTrabLocaSelect((s) => ({
                                         ...s,
+                          
+                                        selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                         loading: "Cargando...",
                                       })),
                                     onLoad: ({ ok, error }) => {
@@ -1600,20 +1737,28 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                         return nombreTarget && nombre === nombreTarget;
                                       });
 
+                                      const selectedTrab = hit
+                                        ? {
+                                            value: hit.id,
+                                            label: [hit.codPostal, hit.nombre].join(" - "),
+                                            record: hit,
+                                          }
+                                        : domicilio?.localidad
+                                          ? {
+                                              value: null,
+                                              label: domicilio.localidad,
+                                              record: { id: 0, nombre: domicilio.localidad },
+                                            }
+                                          : {};
+
                                       setTrabLocaSelect((s) => ({
                                         ...s,
                                         data: dataArr,
                                         loading: null,
                                         error: error?.toString(),
                                         buscar: "",
-                                        selected: hit
-                                          ? {
-                                              value: hit.id,
-                                              label: [hit.codPostal, hit.nombre].join(" - "),
-                                              record: hit,
-                                            }
-                                          : {},
-                                        origen: hit ? "option" : s.origen,
+                                        selected: selectedTrab,
+                                        origen: hit ? "option" : 'afip',
                                       }));
 
                                       if (hit) {
@@ -1631,10 +1776,13 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                           ...prev,
                                           form: {
                                             ...prev.form,
+        
                                             refLocalidadNombreAfiliado:
                                               prev.form.refLocalidadNombreAfiliado || domicilio.localidad,
                                             reflocalidadNombreAfiliado:
                                               prev.form.reflocalidadNombreAfiliado || domicilio.localidad,
+                                            
+                                            refLocalidadIdAfiliado: prev.form.refLocalidadIdAfiliado || 0,
                                           },
                                         }));
                                       }
@@ -2222,6 +2370,8 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                   onPreLoad: () =>
                                     setEmplLocaSelect((s) => ({
                                       ...s,
+                                     
+                                      selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                       loading: "Cargando...",
                                     })),
                                   onLoad: ({ ok, error }) => {
@@ -2237,40 +2387,47 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                     });
 
                                     setEmplLocaSelect((s) => ({
-                                      ...s,
-                                      data: dataArr,
-                                      loading: null,
-                                      error: error?.toString(),
-                                      buscar: "",
-                                      selected: hit
-                                        ? {
-                                            value: hit.id,
-                                            label: [hit.codPostal, hit.nombre].join(" - "),
-                                            record: hit,
-                                          }
-                                        : {},
-                                      origen: hit ? "option" : s.origen,
-                                    }));
+                                        ...s,
+                                        data: dataArr,
+                                        loading: null,
+                                        error: error?.toString(),
+                                        buscar: "",
+                                        selected: hit
+                                          ? {
+                                              value: hit.id,
+                                              label: [hit.codPostal, hit.nombre].join(" - "),
+                                              record: hit,
+                                            }
+                                          : domicilio?.localidad
+                                            ? {
+                                                value: null,
+                                                label: domicilio.localidad,
+                                                record: { id: 0, nombre: domicilio.localidad },
+                                              }
+                                            : {},
+                                        origen: hit ? "option" : 'afip',
+                                      }));
 
-                                    if (hit) {
-                                      setState((prev) => ({
-                                        ...prev,
-                                        form: {
-                                          ...prev.form,
-                                          refLocalidadIdEmpresa: hit.id,
-                                          nombreLocalidadEmpresa: hit.nombre,
-                                        },
-                                      }));
-                                    } else if (domicilio?.localidad) {
-                                      setState((prev) => ({
-                                        ...prev,
-                                        form: {
-                                          ...prev.form,
-                                          nombreLocalidadEmpresa:
-                                            prev.form.nombreLocalidadEmpresa || domicilio.localidad,
-                                        },
-                                      }));
-                                    }
+                                      if (hit) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadIdEmpresa: hit.id,
+                                            nombreLocalidadEmpresa: hit.nombre,
+                                          },
+                                        }));
+                                      } else if (domicilio?.localidad) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            nombreLocalidadEmpresa:
+                                              prev.form.nombreLocalidadEmpresa || domicilio.localidad,
+                                            refLocalidadIdEmpresa: prev.form.refLocalidadIdEmpresa || 0,
+                                          },
+                                        }));
+                                      }
                                   },
                                 }));
                               } else {
@@ -2707,8 +2864,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
     const MostrarDocumentacion = (
       <Grid full col gap="10px">
-
-
         <Table
           keyField="id"
           data={Array.isArray(documentacionList) ? documentacionList : []}

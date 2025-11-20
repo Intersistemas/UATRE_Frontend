@@ -110,9 +110,6 @@ const estadoDe = (r) => {
 	return "Pendiente";
 };
 
-
-
-
 // Modal de confirmación para rechazo
 const RechazoModal = ({ row, onClose, onConfirm, loading }) => {
 	const [obs, setObs] = useState(row?.deletedObs ?? "");
@@ -541,7 +538,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 				// forzamos remount para que el form tome estos valores iniciales
 				const prefillKey = `alta-${cuilDigits}-${telefonoPais}-${telefonoArea}-${telefonoNumero}-${email}-${cuitEmpresaPrefill}`;
 
-					form = (
+				form = (
 					<AfiliadosAgregar
 						key={prefillKey}
 						title="Agrega Afiliado"
@@ -550,7 +547,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 							autoValidaDesdeSolicitud={true}
 							forzarEstadoPendiente={true}
 							documentacionSolicitudId={row?.id}
-						data={{
+							data={{
 							cuil: cuilDigits,
 							estadoCivilId: row?.estadoCivilId,
 							sexoId: row?.sexoId,
@@ -563,7 +560,19 @@ const useAfiliadoFormulariosAfiliacion = ({
 							email,
 							ciius: { data: [], selected: null },
 							provincias: { data: [], selected: null },
-							localidades: { data: [], selected: null },
+								localidades: { data: [], selected: null },
+								
+								localidadPrefill: row?.refLocalidadIdAfiliado
+									? { value: row?.refLocalidadIdAfiliado, label: row?.localidad || row?.localidadDescripcion }
+									: row?.localidadId
+									? { value: row?.localidadId, label: row?.localidad || row?.localidadDescripcion }
+									: null,
+								seccionalPrefill: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion
+									? { value: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion, label: row?.seccional || row?.seccionalDescripcion }
+									: null,
+						
+								provinciaId: row?.provinciaId ?? row?.provinciaIdSolicitudAfiliacion ?? null,
+								provinciaDescripcion: row?.provincia || row?.provinciaDescripcion || null,
 						}}
 						disabled={{ cuil: true }}
 						onClose={(result, accion) => {
