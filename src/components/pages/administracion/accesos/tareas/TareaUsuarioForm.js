@@ -43,6 +43,9 @@ const TareaUsuarioForm = ({
 
 	const [procesandoTarea, setProcesandoTarea] = useState(loading);
 
+	// ✅ Estado para mostrar campos de baja después de procesar
+	const [mostrarBaja, setMostrarBaja] = useState(!!data.deletedDate);
+
 	const [modulos, setModulos] = useState({
 		loading: "Cargando...",
 		params: {},
@@ -101,13 +104,17 @@ const TareaUsuarioForm = ({
 	  }, [error]);
 	//#endregion
 
-	 //#region Capturo errores
+	 //#region Capturo cuando cambia loading
 	 useEffect(() => {
 	
 		  setProcesandoTarea(loading);
+		  // ✅ Si se completó la carga y hay deletedDate, mostrar los campos de baja
+		  if (!loading && data.deletedDate) {
+			setMostrarBaja(true);
+		  }
 		  return;
 		 
-	  }, [loading]);
+	  }, [loading, data.deletedDate]);
 	//#endregion
 
 	//#region TRAIGO TODAS LAS TAREAS DEL MODULO
@@ -226,7 +233,7 @@ const TareaUsuarioForm = ({
 							</Grid>
 						</Grid>
 					
-					{!hide.deletedObs && (
+					{!hide.deletedObs && data.deletedDate && (
 						<Grid width gap="inherit" col>
 							<Grid width gap="inherit">
 								<Grid width="50%">
@@ -235,8 +242,8 @@ const TareaUsuarioForm = ({
 										label="Fecha Baja"
 										error={!!errors.deletedDate}
 										helperText={errors.deletedDate ?? ""}
-										value={data.deletedDate}
-										disabled={disabled.deletedDate ?? false}
+										value={data.deletedDate ?? ""}
+										disabled={true}
 										onChange={(value, _id) => onChange({ deletedDate: value })}
 									/>
 								</Grid>
@@ -246,8 +253,8 @@ const TareaUsuarioForm = ({
 										label="Usuario Baja"
 										error={!!errors.deletedBy}
 										helperText={errors.deletedBy ?? ""}
-										value={data.deletedBy}
-										disabled={disabled.deletedBy ?? false}
+										value={data.deletedBy ?? ""}
+										disabled={true}
 										onChange={(value, _id) => onChange({ deletedBy: value })}
 									/>
 								</Grid>
@@ -258,7 +265,7 @@ const TareaUsuarioForm = ({
 									label="Observaciones Baja"
 									error={!!errors.deletedObs}
 									helperText={errors.deletedObs ?? ""}
-									value={data.deletedObs}
+									value={data.deletedObs ?? ""}
 									disabled={disabled.deletedObs ?? false}
 									onChange={(value, _id) => onChange({ deletedObs: value })}
 								/>

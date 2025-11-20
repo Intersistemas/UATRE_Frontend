@@ -41,6 +41,9 @@ const UsuarioAmbitoForm = ({
 
 	const [procesando, setProcesando] = useState(loading);
 
+	// ✅ Estado para mostrar campos de baja después de procesar
+	const [mostrarBaja, setMostrarBaja] = useState(!!data.deletedDate);
+
 	//#region TRAIGO TODOS LOS MODULOS DE UNA VEZ
 		
 	const ambitosTipoTodos =
@@ -79,19 +82,23 @@ const UsuarioAmbitoForm = ({
 	const { isLoading, error, sendRequest: request } = useHttp();	
 
 	
-	 //#region Capturo errores
+	 //#region Capturo cuando cambia loading
 	 useEffect(() => {
 	
 		console.log("error3",error)
 		console.log("loading3",loading)
-			if (error) {
-				setProcesando(false);
-				return;
-			}  
-			setProcesando(loading);
+		if (error) {
+			setProcesando(false);
 			return;
+		}  
+		setProcesando(loading);
+		// ✅ Si se completó la carga y hay deletedDate, mostrar los campos de baja
+		if (!loading && data.deletedDate) {
+			setMostrarBaja(true);
+		}
+		return;
 		 
-	  }, [loading,error,ambitosTipo.selected,ambitos.selected]);
+	  }, [loading, error, ambitosTipo.selected, ambitos.selected, data.deletedDate]);
 	//#endregion
 
 
@@ -233,7 +240,7 @@ const UsuarioAmbitoForm = ({
 							</Grid>
 						</Grid>
 					
-					{!hide.deletedObs && (
+					{!hide.deletedObs && data.deletedDate && (
 						<Grid width gap="inherit" col>
 							<Grid width gap="inherit">
 								<Grid width="50%">
@@ -242,8 +249,8 @@ const UsuarioAmbitoForm = ({
 										label="Fecha Baja"
 										error={!!errors.deletedDate}
 										helperText={errors.deletedDate ?? ""}
-										value={data.deletedDate}
-										disabled={disabled.deletedDate ?? false}
+										value={data.deletedDate ?? ""}
+										disabled={true}
 										onChange={(value, _id) => onChange({ deletedDate: value })}
 									/>
 								</Grid>
@@ -253,8 +260,8 @@ const UsuarioAmbitoForm = ({
 										label="Usuario Baja"
 										error={!!errors.deletedBy}
 										helperText={errors.deletedBy ?? ""}
-										value={data.deletedBy}
-										disabled={disabled.deletedBy ?? false}
+										value={data.deletedBy ?? ""}
+										disabled={true}
 										onChange={(value, _id) => onChange({ deletedBy: value })}
 									/>
 								</Grid>
@@ -265,7 +272,7 @@ const UsuarioAmbitoForm = ({
 									label="Observaciones Baja"
 									error={!!errors.deletedObs}
 									helperText={errors.deletedObs ?? ""}
-									value={data.deletedObs}
+									value={data.deletedObs ?? ""}
 									disabled={disabled.deletedObs ?? false}
 									onChange={(value, _id) => onChange({ deletedObs: value })}
 								/>
