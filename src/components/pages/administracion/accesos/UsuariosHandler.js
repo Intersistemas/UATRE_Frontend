@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
@@ -362,7 +363,7 @@ console.log("ambitoSelected",ambitoSelected)
 				ellipsis: true,
 			})
 		);
-		/*actions.push(
+		actions.push(
 			createAction({
 				action: `Baja Ambito ${ambitoDesc}`,
 				request: "B",
@@ -371,7 +372,7 @@ console.log("ambitoSelected",ambitoSelected)
 				underlineindex: 0,
 				ellipsis: true,
 			})
-		);*/
+		);
 		setAmbitosActions(actions);
 	}, [ambitoChanger, ambitoSelected, usuariosSelected?.id]);
 
@@ -388,91 +389,7 @@ console.log("ambitoSelected",ambitoSelected)
 			params: { usuarioId: usuariosSelected?.id },
 		});
 	}, [usuariosSelected?.id, ambitoChanger]);
-	//#endregion
-
-
-
-	/*
-	//#region Tab seccionales
-	const {
-		render: seccionalesRender,
-		request: seccionalesRequest,
-		selected: seccionalesSelected,
-	} = useSeccionales();
-	const [seccionalesActions, setSeccionalesActions] = useState([]);
-	useEffect(() => {
-		const actions = [];
-		const dele = usuarioSelected?.id;
-		if (!dele) {
-			setSeccionalesActions(actions);
-			return;
-		}
-		const deleDesc = `para Usuario ${dele}`;
-		const createAction = ({ action, request, ...x }) =>
-			new Action({
-				name: action,
-				onExecute: (action) =>
-					seccionalesRequest("selected", {
-						request,
-						action,
-						record: { refUsuarioId: usuarioSelected?.id },
-					}),
-				combination: "AltKey",
-				...x,
-			});
-		actions.push(
-			createAction({
-				action: `Agrega Seccional ${deleDesc}`,
-				request: "A",
-				keys: "a",
-				underlineindex: 0,
-			})
-		);
-		const selected = seccionalesSelected?.id;
-		if (!selected) {
-			setSeccionalesActions(actions);
-			return;
-		}
-		const selectedDesc = `${selected} ${deleDesc}`;
-		actions.push(
-			createAction({
-				action: `Consulta Seccional ${selectedDesc}`,
-				request: "C",
-				keys: "o",
-				underlineindex: 1,
-			})
-		);
-		// actions.push(
-		// 	createAction({
-		// 		action: `Modifica Seccional ${selectedDesc}`,
-		// 		request: "M",
-		// 		keys: "m",
-		// 		underlineindex: 0,
-		// 	})
-		// );
-		// actions.push(
-		// 	createAction({
-		// 		action: `Baja Seccional ${selectedDesc}`,
-		// 		request: "B",
-		// 		keys: "b",
-		// 		underlineindex: 0,
-		// 	})
-		// );
-		setSeccionalesActions(actions);
-	}, [seccionalesRequest, seccionalesSelected, usuarioSelected?.id]);
-	tabs.push({
-		header: () => <Tab label="Seccionales" disabled={!seccionalesSelected} />,
-		body: seccionalesRender,
-		actions: seccionalesActions,
-	});
-	// Si cambia usuario, refresco lista de seccionales
-	useEffect(() => {
-		seccionalesRequest("list", {
-			clear: !usuarioSelected?.id,
-			body: { refUsuarioId: usuarioSelected?.id },
-		});
-	}, [usuarioSelected?.id, seccionalesRequest]);
-	//#endregion*/
+	
 
 	//#region modulo y acciones
 	const acciones = tabs[tab].actions;
