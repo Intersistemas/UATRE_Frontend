@@ -72,21 +72,22 @@ const DenunciaDetails = (props) => {
         }
 
         try {
-            // Usamos RefLocalidadId con mayúscula inicial para mantener consistencia con otros usos en el proyecto
+
             await sendRequest(
                 {
                     baseURL: "Afiliaciones",
                     method: "GET",
-                    endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${derivadoAId}&SoloActivos=true`,
+                    endpoint: `/Seccional/${derivadoAId}`,
                 },
                 (response) => {
-                    if (Array.isArray(response) && response.length > 0) {
-                        setDerivacionInfo(response[0]);
+                    if (response) {
+                        setDerivacionInfo(response);
                     } else {
                         setDerivacionInfo(null);
                     }
                 },
                 (error) => {
+                    console.error("Error al obtener Seccional:", error);
                     setDerivacionInfo(null);
                 }
             );
@@ -171,7 +172,7 @@ const DenunciaDetails = (props) => {
             }
         } else if (tipoDerivacion === "seccional") {
             if (derivacionInfo) {
-                return derivacionInfo.seccionalDescripcion || 'Seccional no disponible';
+                return derivacionInfo.descripcion || 'Seccional no disponible';
             } else {
                 return validar(data.derivadoAId);
             }
