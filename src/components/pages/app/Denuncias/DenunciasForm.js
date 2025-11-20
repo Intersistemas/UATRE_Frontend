@@ -625,7 +625,17 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										loadDocumentacionCacheOnly(id);
 									}
 								});
-								const combinados = mismos.flatMap(id => Array.isArray(docsByEstadoId[id]) ? docsByEstadoId[id] : []);
+								// Combinar documentación ya presente en memoria con la cacheada por estado
+								let combinados = [...(Array.isArray(documentacionList) ? documentacionList : [])];
+								mismos.forEach(id => {
+									const docs = Array.isArray(docsByEstadoId[id]) ? docsByEstadoId[id] : [];
+									docs.forEach(doc => {
+										const key = doc.id ? `ID-${doc.id}` : `FN-${(doc.nombreArchivo || doc.fileName || "").trim()}`;
+										if (!combinados.some(d => (d.id ? `ID-${d.id}` : `FN-${(d.nombreArchivo || d.fileName || "").trim()}`) === key)) {
+											combinados.push(doc);
+										}
+									});
+								});
 								setDocumentacionList(combinados);
 								return;
 							}
@@ -756,19 +766,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			lista = lista.filter(d => !d.id);
 		}
 
-		const seen = new Set();
+		const seenIds = new Set();
 		lista = lista.filter(doc => {
-			const isNew = !doc.id;
-			const nombre = (doc.nombreArchivo || doc.fileName || "").trim();
-			const contentType = (doc.contentType || "").trim();
-			const raw = (doc.archivo || doc.archivoBase64 || doc.base64 || "").toString().replace(/^data:.*;base64,/, "");
-			const size = raw.length;
-			const key = isNew ? `${nombre}@@${size}@@${contentType}` : `EXISTING-${doc.id}`;
-			if (seen.has(key)) {
-				console.warn('[persistirDocumentacion] Documento duplicado ignorado:', { nombre, size, contentType });
-				return false;
+			if (doc.id) {
+				if (seenIds.has(doc.id)) return false;
+				seenIds.add(doc.id);
 			}
-			seen.add(key);
 			return true;
 		});
 
@@ -2151,34 +2154,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const DocumentacionPanel = (
 			<Grid full col gap="10px">
-
-				{(() => {
-					const shouldCombine = (mode === "C" || mode === "M") && !overrideDocsPorNuevoEstado;
-					let dataDocs = documentacionList;
-					if (shouldCombine) {
-						const estadoNombre = selectedEstado?.estado || state.form?.estado || "";
-						if (estadoNombre) {
-							const mismosIds = (Array.isArray(estadosList) ? estadosList : [])
-								.filter(e => (e?.estado ?? "") === estadoNombre)
-								.map(e => Number(e?.id ?? e?.Id ?? 0))
-								.filter(id => Number.isFinite(id) && id > 0);
-							const combinados = mismosIds.flatMap(id => Array.isArray(docsByEstadoId[id]) ? docsByEstadoId[id] : []);
-							if (combinados.length) {
-								// Dedupe por id o (nombre+size+tipo)
-								const seen = new Set();
-								dataDocs = combinados.filter(d => {
-									const raw = (d.archivo || d.archivoBase64 || d.base64 || d.contenido || "").toString().replace(/^data:.*;base64,/, "");
-									const key = d.id ? `ID-${d.id}` : `${(d.nombreArchivo || d.fileName || '').trim()}@@${raw.length}@@${(d.contentType || '').trim()}`;
-									if (seen.has(key)) return false;
-									seen.add(key);
-									return true;
-								});
-							}
-						}
-					}
-					return (
-						<Documentacion
-							data={dataDocs}
+				<Documentacion
+						data={documentacionList}
 							tipoDocumentacion={[
 								"Credencial",
 								"Documento de Identidad",
@@ -2190,47 +2167,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 							]}
 							disabled={readOnly}
 							onChange={({ index, item }) => {
-
-								const prev = [...documentacionList];
+								const prev = Array.isArray(documentacionList) ? documentacionList : [];
 
 								// === ALTA (CREAR NUEVO ARCHIVO)
 								if (index == null && item != null) {
-									const payload = mapDocToPayload(item, entidadId, entidadTipo);
-
-									// Actualización optimista (se ve inmediatamente en la UI)
-									const temp = [...prev, { ...payload, id: item.id ?? 0 }];
+									const temp = [...prev, { ...item }];
 									setDocumentacionList(temp);
 									setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
 
-									// Si no hay EntidadId todavía, solo guardamos localmente
-									if (!entidadId) {
-										return;
-									}
-
-									// Enviar al servidor
-									sendRequest(
-										{
-											baseURL: "Comunes",
-											endpoint: `/DocumentacionEntidad`,
-											method: "POST",
-											body: payload,
-											errorType: "response",
-										},
-										({ ok }) => {
-											// Actualizar con el ID real del servidor
-											const newId = ok?.id ?? item.id;
-											const next = [...temp];
-											next[next.length - 1] = { ...next[next.length - 1], id: newId };
-											setDocumentacionList(next);
-											setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-										},
-										(err) => {
-											console.error(' Error al crear archivo:', err);
-											// Rollback
-											setDocumentacionList(prev);
-											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-										}
-									);
+									// Persistencia diferida: se realiza luego vía persistirDocumentacion
 									return;
 								}
 
@@ -2307,10 +2252,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									);
 									return;
 								}
-							}}
-						/>
-					);
-				})()}
+						}}
+					/>
 				{!readOnly && (
 					<Button
 						className="botonAmarillo"
