@@ -19,13 +19,14 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
-import useSolicitudAfiliacion from "./SolicitudAfiliacion";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 import Table from "components/ui/Table/Table";
 
 import { Tabs, Tab } from "@mui/material";
 import Documentacion from "components/documentacion/Documentacion";
 import AuthContext from "store/authContext";
+import useAmbitos from "components/hooks/useAmbitos";
+import useHttp from "components/hooks/useHttp";
 
 const styles = {
   group: {
@@ -180,8 +181,15 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", data = {}, readOnly = false, hidePrint = false, onClose = () => { }, initialTab = 0 }) => {
-
+ const SolicitudAfiliacionForm = ({
+   title = "Solicitud previa de afiliación",
+   data = {},
+   readOnly = false,
+   hidePrint = false,
+   onClose = () => { },
+   initialTab = 0,
+   request = "A", // "A" = Alta (nuevo formulario)
+ }) => {
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const handleChangeTab = (_e, v) => setSelectedTab(v);
 
@@ -190,7 +198,11 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   const seccIdUsuario = Array.isArray(seccIdsUsuario) && seccIdsUsuario.length === 1 ? seccIdsUsuario[0] : null;
 
   const cuilUsuario = usuario?.cuit ?? null;
+  
 
+ const ambitos = useAmbitos();
+ const ambito = ambitos?.ambitoUser ? ambitos.ambitoUser() : { tipo: null, ids: [] };
+  const { sendRequest } = useHttp();
   useEffect(() => {
     console.log("SolicitudAfiliacionForm mounted - auth/usuario:", { usuario });
   }, [usuario]);
@@ -206,17 +218,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }),
     { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
   );
-  const { setState: setSeccionalQuery } = useQueryState(
-    (_, { id, ...params }) => ({
-      config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Seccional/${id}`,
-        method: "GET",
-      },
-      params,
-    }),
-    { query: { config: { errorType: "response" } } }
-  );
+
   const { setState: setTiposDocumentosQuery } = useQueryState(
     () => ({
       config: {
@@ -404,6 +406,35 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     base64: null,
   });
 
+  const [pdfUrl, setPdfUrl] = useState(null);
+
+  useEffect(() => {
+    let url = null;
+    if (state.base64) {
+      try {
+        // state.base64 is expected to be the raw base64 string (no data: prefix)
+        const raw = state.base64.replace(/^data:.*;base64,/, "");
+        const byteCharacters = atob(raw);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: state.contentType || "application/pdf" });
+        url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (e) {
+        console.error("Error creando Blob URL desde base64:", e);
+        setPdfUrl(null);
+      }
+    } else {
+      setPdfUrl(null);
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [state.base64, state.contentType]);
+
   const { audit } = useAuditoriaProceso();
 
   useEffect(() => {
@@ -521,46 +552,57 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         payloadId: payload.id
       });
 
-      // Create vs Update según si trae id
-      if (payload.id) {
-        // ACTUALIZAR archivo existente
-        updateDocQuery(o => ({
-          ...o,
-          query: { ...o.query, config: { ...o.query?.config, body: payload } },
-          onLoad: ({ ok, error }) => {
-            if (error) {
+      try {
+        if (payload.id) {
+          // ACTUALIZAR archivo existente
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "PUT",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
+              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`, ok);
+            },
+            (error) => {
               console.error(`❌ Error al actualizar archivo ${item.nombreArchivo}:`, error);
-            } else {
-              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`);
             }
-          }
-        }));
-      } else {
-        // CREAR nuevo archivo
-        createDocQuery(o => ({
-          ...o,
-          query: {
-            ...o.query,
-            config: {
-              ...o.query?.config,
-              headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-              body: payload
-            }
-          },
-          onLoad: ({ ok, error }) => {
-            if (error) {
-              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
-            } else {
+          );
+        } else {
+          // CREAR nuevo archivo
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "POST",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
               console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
               if (ok?.id || ok?.Id) {
-                const nuevo = [...lista];
-                nuevo[i] = { ...item, id: ok.id ?? ok.Id };
-                setDocumentacionList(nuevo);
-                setState(s => ({ ...s, form: { ...s.form, documentacion: nuevo } }));
+                const newId = ok.id ?? ok.Id;
+                setDocumentacionList((prev) => {
+                  const next = Array.isArray(prev) ? [...prev] : [];
+                  if (i < next.length) {
+                    next[i] = { ...next[i], id: newId };
+                  } else {
+                    next.push({ ...item, id: newId });
+                  }
+                  setState((s) => ({ ...s, form: { ...s.form, documentacion: next } }));
+                  return next;
+                });
               }
+            },
+            (error) => {
+              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
             }
-          }
-        }));
+          );
+        }
+      } catch (e) {
+        console.error(`❌ Excepción procesando archivo ${item.nombreArchivo}:`, e);
       }
     }
 
@@ -586,6 +628,110 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccional
+
+ useEffect(() => {
+   setSeccionalesQuery((o) => ({
+     ...o,
+     onLoad: ({ ok, error }) => {
+       let allData = [];
+       let seccionalesFiltered = [];
+       let seccionalPredeterminada = null;
+
+       if (Array.isArray(ok)) {
+         // 1) Traemos todas las seccionales
+         allData = ok.filter((r) => r.id !== 99999);
+         seccionalesFiltered = allData;
+
+         // 2) Si el usuario tiene ámbito Delegaciones y estamos en Alta ("A"),
+         //    filtramos solo las seccionales de su Delegación (refDelegacionId).
+         if (ambito?.tipo === "Delegaciones" && request === "A") {
+           const delegacionId = ambito.ids?.[0];
+           if (delegacionId) {
+             seccionalesFiltered = allData.filter(
+               (r) => r.refDelegacionId === delegacionId
+             );
+           }
+         }
+
+         // 3) Si el usuario tiene exactamente una Seccional asignada
+         //    (ámbito por seccional), priorizamos esa.
+         if (seccIdUsuario) {
+           const rec =
+             seccionalesFiltered.find((r) => r.id === seccIdUsuario) ||
+             allData.find((r) => r.id === seccIdUsuario);
+           if (rec) {
+             seccionalesFiltered = [rec];
+             seccionalPredeterminada = rec;
+           }
+         }
+
+         // 4) Si estamos en Alta (nuevo formulario) y no hay seccional fija aún,
+         //    preseleccionamos la primera visible.
+         if (!seccionalPredeterminada && !readOnly && !data?.id && seccionalesFiltered.length) {
+           seccionalPredeterminada = seccionalesFiltered[0];
+         }
+       }
+
+       // 5) Actualizamos el select de Seccional
+      setSeccionalSelect((prev) => {
+        const shouldSetSelected = Boolean(
+          seccionalPredeterminada && !prev.selected?.value && !state?.form?.seccionalId
+        );
+        return {
+          ...prev,
+          loading: null,
+          data: seccionalesFiltered,
+          error: error?.toString(),
+          options: seccionalesSelectOptions({
+            ...prev,
+            data: seccionalesFiltered,
+          }),
+          ...(shouldSetSelected
+            ? {
+                selected: {
+                  value: seccionalPredeterminada.id,
+                  label: [
+                    seccionalPredeterminada.seccionalCodigo ??
+                      seccionalPredeterminada.codigo,
+                    seccionalPredeterminada.nombre ??
+                      seccionalPredeterminada.descripcion,
+                  ]
+                    .filter((v) => v != null && v !== "")
+                    .join(" - "),
+                  record: seccionalPredeterminada,
+                },
+              }
+            : {}),
+        };
+      });
+
+      // 6) También actualizamos el form (seccionalId  nombre) y el validado
+      if (seccionalPredeterminada && !state?.form?.seccionalId && !seccionalSelect?.selected?.value) {
+        setState((s) => ({
+          ...s,
+          form: {
+            ...s.form,
+            seccionalId: seccionalPredeterminada.id,
+            seccional:
+              seccionalPredeterminada.nombre ??
+              seccionalPredeterminada.descripcion,
+          },
+          validado: {
+            ...s.validado,
+            seccionalId: true,
+          },
+          errors: {
+            ...s.errors,
+            seccionalId: "",
+          },
+        }));
+      }
+     },
+   }));
+ }, [setSeccionalesQuery, ambito, request, readOnly, data?.id, seccIdUsuario, seccionalSelect?.selected?.value, state?.form?.seccionalId]);
+  //#endregion select seccional
+
+
 
   //#region selects trabajador
 
@@ -756,9 +902,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   }, [actividadSelect.buscar, actividadSelect.data]);
   //#endregion select actividad
 
-  //#endregion selects trabajador
-
-  //#region selects empleador
 
   //#region select provincia
   const [emplPciaSelect, setEmplPciaSelect] = useState({
@@ -1247,45 +1390,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   }, [setSeccionalesQuery, setAfiliadoByCuilQuery, seccIdUsuario, cuilUsuario]);
   //#endregion Carga inicial select seccional
 
-  useEffect(() => {
-    if (!seccIdUsuario) return;
-
-    setSeccionalQuery((o) => ({
-      ...o,
-      query: { ...o.query, params: { id: seccIdUsuario } },
-      onLoad: ({ ok }) => {
-        if (!ok) return;
-        const record = ok;
-        const selected = {
-          value: record.id,
-          label: [record.codigo, record.descripcion].join(" - "),
-          record,
-        };
-        setSeccionalSelect((s) => ({
-          ...s,
-          selected,
-          origen: "option",
-        }));
-        setState((st) => ({
-          ...st,
-          form: {
-            ...st.form,
-            seccionalId: record.id,
-            seccional: record.nombre,
-          },
-          validado: {
-            ...st.validado,
-            seccionalId: true,
-          },
-          errors: {
-            ...st.errors,
-            seccionalId: "",
-          },
-        }));
-      },
-    }));
-  }, [seccIdUsuario, setSeccionalQuery]);
-
   // Prefill seccional cuando la lista de seccionales fue cargada y el registro trae info
   useEffect(() => {
     if (!seccionalSelect.data || seccionalSelect.data.length === 0) return;
@@ -1455,17 +1559,20 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#endregion inicializaciones
 
-  const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
-
   let content = null;
   if (state.base64) {
     content = (
-      <Grid
-        full
-        src={state.base64}
-        style={{ minHeight: "70vh" }}
-        render={(x) => <iframe title="SolicitudAfiliacion.pdf" {...x} />}
-      />
+      <Grid full style={{ minHeight: "70vh" }}>
+        {pdfUrl ? (
+          <iframe
+            title="SolicitudAfiliacion.pdf"
+            src={pdfUrl}
+            style={{ width: "100%", height: "70vh", border: 0 }}
+          />
+        ) : (
+          <div>Generando vista previa...</div>
+        )}
+      </Grid>
     );
   } else {
     const FormularioPanel = (
@@ -3130,7 +3237,9 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
       setState((o) => ({
         ...o,
-        base64: `data:application/pdf;base64,${base64}`,
+        // Guardamos solo el base64 puro y el contentType; el iframe usará un blob URL
+        base64: base64,
+        contentType: "application/pdf",
       }));
     };
 

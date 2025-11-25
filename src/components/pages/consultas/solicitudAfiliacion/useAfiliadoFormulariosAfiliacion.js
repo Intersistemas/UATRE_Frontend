@@ -527,7 +527,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 			// Acepta Solicitud → abrir alta prefillada con CUIL, celular y email
 
 
-				case "I": {
+			case "I": {
 				const cuilDigits = String(row.cuil ?? "").replace(/\D+/g, "");
 				const email = row.email ?? row.correo ?? "";
 				const telRaw = row.celular ?? row.telefono ?? "";
@@ -544,10 +544,10 @@ const useAfiliadoFormulariosAfiliacion = ({
 						title="Agrega Afiliado"
 						//ESTO ENVIAR A ALEX
 						accion="Agrega"
-							autoValidaDesdeSolicitud={true}
-							forzarEstadoPendiente={true}
-							documentacionSolicitudId={row?.id}
-							data={{
+						autoValidaDesdeSolicitud={true}
+						forzarEstadoPendiente={true}
+						documentacionSolicitudId={row?.id}
+						data={{
 							cuil: cuilDigits,
 							estadoCivilId: row?.estadoCivilId,
 							sexoId: row?.sexoId,
@@ -560,19 +560,19 @@ const useAfiliadoFormulariosAfiliacion = ({
 							email,
 							ciius: { data: [], selected: null },
 							provincias: { data: [], selected: null },
-								localidades: { data: [], selected: null },
-								
-								localidadPrefill: row?.refLocalidadIdAfiliado
-									? { value: row?.refLocalidadIdAfiliado, label: row?.localidad || row?.localidadDescripcion }
-									: row?.localidadId
+							localidades: { data: [], selected: null },
+
+							localidadPrefill: row?.refLocalidadIdAfiliado
+								? { value: row?.refLocalidadIdAfiliado, label: row?.localidad || row?.localidadDescripcion }
+								: row?.localidadId
 									? { value: row?.localidadId, label: row?.localidad || row?.localidadDescripcion }
 									: null,
-								seccionalPrefill: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion
-									? { value: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion, label: row?.seccional || row?.seccionalDescripcion }
-									: null,
-						
-								provinciaId: row?.provinciaId ?? row?.provinciaIdSolicitudAfiliacion ?? null,
-								provinciaDescripcion: row?.provincia || row?.provinciaDescripcion || null,
+							seccionalPrefill: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion
+								? { value: row?.seccionalId ?? row?.seccionalIdSolicitudAfiliacion, label: row?.seccional || row?.seccionalDescripcion }
+								: null,
+
+							provinciaId: row?.provinciaId ?? row?.provinciaIdSolicitudAfiliacion ?? null,
+							provinciaDescripcion: row?.provincia || row?.provinciaDescripcion || null,
 						}}
 						disabled={{ cuil: true }}
 						onClose={(result, accion) => {
@@ -704,7 +704,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 				mostrarBuscar={mostrarBuscar}
 				pagination={
 					hydrating
-						? false                
+						? false
 						: {
 							...list.pagination,
 							onChange: ({ index, size }) =>
