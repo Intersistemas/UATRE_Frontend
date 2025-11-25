@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
@@ -9,2151 +9,3316 @@ import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, {
-	CUITMask,
-	DNIMask,
+  CUITMask,
+  DNIMask,
 } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import SearchSelectMaterial, {
-	mapOptions,
-	includeSearch,
+  mapOptions,
+  includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
-import useSolicitudAfiliacion from "./SolicitudAfiliacion";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
+import Table from "components/ui/Table/Table";
+
+import { Tabs, Tab } from "@mui/material";
+import Documentacion from "components/documentacion/Documentacion";
+import AuthContext from "store/authContext";
+import useAmbitos from "components/hooks/useAmbitos";
+import useHttp from "components/hooks/useHttp";
 
 const styles = {
-	group: {
-		padding: "5px",
-		color: "#186090",
-		textAlign: "left",
-		border: "solid 1px",
-		borderRadius: "20px",
-	},
-	titulo: {
-		fontWeight: "bold",
-		textAlign: "left",
-		borderBottom: "dashed 1px",
-	},
+  group: {
+    padding: "5px",
+    color: "#186090",
+    textAlign: "left",
+    border: "solid 1px",
+    borderRadius: "20px",
+  },
+  titulo: {
+    fontWeight: "bold",
+    textAlign: "left",
+    borderBottom: "dashed 1px",
+  },
 };
 
 //#region options
+const toInputString = (v) => {
+  if (typeof v === "string" || typeof v === "number") return String(v);
+  if (v && typeof v === "object") {
+    if (v.value != null) return String(v.value);
+    if (v.target && v.target.value != null) return String(v.target.value);
+  }
+  return "";
+};
+
+const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
 
 //#region seccionalesSelect Options
 const seccionalSelectDef = {};
 const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		start: [seccionalSelectDef],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({
+      value: r.id,
+      label: [r.seccionalCodigo ?? r.codigo, r.nombre ?? r.descripcion]
+        .filter((v) => v != null && v !== "")
+        .join(" - "),
+      record: r,
+    }),
+    filter: (r) => includeSearch(r, buscar),
+    start: [seccionalSelectDef],
+    ...x,
+  });
 //#endregion seccionalesSelect Options
 
 //#region tipoDocumentoSelect Options
 const tipoDocumentoSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion tipoDocumentoSelect Options
 
 //#region nacionalidadSelect Options
 const nacionalidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion nacionalidadSelect Options
 
 //#region estadoCivilSelect Options
 const estadoCivilSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion estadoCivilSelect Options
 
 //#region sexoSelect Options
 const sexoSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion, record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion sexoSelect Options
 
 //#region provinciaSelect Options
 const provinciaSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: [r.id, r.nombre].join(" - "), record: r }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion provinciaSelect Options
 
 //#region localidadSelect Options
 const localidadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codPostal, r.nombre].join(" - "),
-			record: r,
-		}),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({
+      value: r.id,
+      label: [r.codPostal, r.nombre].join(" - "),
+      record: r,
+    }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion localidadSelect Options
 
 //#region ciiuSelect Options
 const ciiuSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.ciiu, r.descripcion].join(" - "),
-			record: r,
-		}),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({
+      value: r.id,
+      label: [r.ciiu, r.descripcion].join(" - "),
+      record: r,
+    }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion ciiuSelect Options
 
 //#region oficioSelect Options
 const oficioSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: r.descripcion,
-			record: r,
-		}),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({
+      value: r.id,
+      label: r.descripcion,
+      record: r,
+    }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion oficioSelect Options
 
 //#region actividadSelect Options
 const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: r.descripcion,
-			record: r,
-		}),
-		filter: (r) => includeSearch(r, buscar),
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({
+      value: r.id,
+      label: r.descripcion,
+      record: r,
+    }),
+    filter: (r) => includeSearch(r, buscar),
+    ...x,
+  });
 //#endregion actividadSelect Options
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ onClose = () => { } }) => {
-	//#region APIs
-	const { setState: setSeccionalesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Seccional`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" }, params: { soloActivos: true } } }
-	);
-	const { setState: setTiposDocumentosQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/TipoDocumento`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setNacionalidadesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Nacionalidad`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setEstadosCivilesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/EstadoCivil`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setSexosQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Sexo`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setProvinciasQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Provincia`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setLocalidadesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/RefLocalidad`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setOficiosQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Puesto`,
-				method: "GET",
-			},
-		}),
-		{
-			query: {
-				params: { soloActivos: true },
-				config: { errorType: "response" },
-			},
-		}
-	);
-	const { setState: setActividadesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Actividad`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { state: padronAFIPQuery, setState: setPadronAFIPQuery } =
-		useQueryState(
-			() => ({
-				config: {
-					baseURL: "Comunes",
-					endpoint: `/AFIPConsulta`,
-					method: "GET",
-				},
-			}),
-			{
-				query: {
-					params: { verificarHistorico: false },
-					config: { errorType: "response" },
-				},
-			}
-		);
-	const { setState: setCIIUsQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Comunes",
-				endpoint: `/RefCIIU`,
-				method: "GET",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	const { setState: setCreateFormQuery } =
-		useQueryState(
-			() => ({
-				config: {
-					baseURL: "Afiliaciones",
-					endpoint: `/AfiliadoFormulariosAfiliacion`,
-					method: "POST",
-				},
-			}),
-			{ query: { config: { errorType: "response" } } }
-		);
-	//#endregion APIs
-
-	const [state, setState] = useState({
-		form: {
-			fecha: dayjs().format("YYYY-MM-DD"),
-		},
-		validado: {
-			seccionalId: false,
-			fecha: true,
-			trabajador: false,
-			empleador: false,
-		},
-		errors: {},
-		loading: null,
-		base64: null,
-	});
-
-	const { audit } = useAuditoriaProceso();
-
-	//#region selects
-
-	//#region select seccional
-	const [seccionalSelect, setSeccionalSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setSeccionalSelect((o) => ({
-			...o,
-			options: seccionalesSelectOptions(o),
-		}));
-	}, [seccionalSelect.buscar, seccionalSelect.data]);
-	//#endregion select seccional
-
-	//#region selects trabajador
-
-	//#region select tipo documento
-	const [tipoDocumentoSelect, setTipoDocumentoSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setTipoDocumentoSelect((o) => ({
-			...o,
-			options: tipoDocumentoSelectOptions(o),
-		}));
-	}, [tipoDocumentoSelect.buscar, tipoDocumentoSelect.data]);
-	//#endregion select tipo documento
-
-	//#region select nacionalidad
-	const [nacionalidadSelect, setNacionalidadSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setNacionalidadSelect((o) => ({
-			...o,
-			options: nacionalidadSelectOptions(o),
-		}));
-	}, [nacionalidadSelect.buscar, nacionalidadSelect.data]);
-	//#endregion select nacionalidad
-
-	//#region select estado civil
-	const [estadoCivilSelect, setEstadoCivilSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setEstadoCivilSelect((o) => ({
-			...o,
-			options: estadoCivilSelectOptions(o),
-		}));
-	}, [estadoCivilSelect.buscar, estadoCivilSelect.data]);
-	//#endregion select estado civil
-
-	//#region select sexo
-	const [sexoSelect, setSexoSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setSexoSelect((o) => ({
-			...o,
-			options: sexoSelectOptions(o),
-		}));
-	}, [sexoSelect.buscar, sexoSelect.data]);
-	//#endregion select sexo
-
-	//#region select provincia
-	const [trabPciaSelect, setTrabPciaSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setTrabPciaSelect((o) => ({
-			...o,
-			options: provinciaSelectOptions(o),
-		}));
-	}, [trabPciaSelect.buscar, trabPciaSelect.data]);
-	//#endregion select provincia
-
-	//#region select localidad
-	const [trabLocaSelect, setTrabLocaSelect] = useState({
-		loading: "",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setTrabLocaSelect((o) => {
-			const options = localidadSelectOptions(o);
-			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn = record.codPostal
-					? (o) => o.record.codPostal === record.codPostal
-					: (o) => includeSearch(o, record.nombre);
-				selected = options.find(findFn);
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
-				}
-			}
-			return { ...o, options, selected, origen };
-		});
-	}, [trabLocaSelect.buscar, trabLocaSelect.data]);
-	//#endregion select localidad
-
-	//#region select oficio
-	const [oficioSelect, setOficioSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setOficioSelect((o) => ({
-			...o,
-			options: oficioSelectOptions(o),
-		}));
-	}, [oficioSelect.buscar, oficioSelect.data]);
-	//#endregion select sexo
-
-	//#region select actividad
-	const [actividadSelect, setActividadSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setActividadSelect((o) => ({
-			...o,
-			options: actividadSelectOptions(o),
-		}));
-	}, [actividadSelect.buscar, actividadSelect.data]);
-	//#endregion select actividad
-
-	//#endregion selects trabajador
-
-	//#region selects empleador
-
-	//#region select provincia
-	const [emplPciaSelect, setEmplPciaSelect] = useState({
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setEmplPciaSelect((o) => ({
-			...o,
-			options: provinciaSelectOptions(o),
-		}));
-	}, [emplPciaSelect.buscar, emplPciaSelect.data]);
-	//#endregion select provincia
-
-	//#region select localidad
-	const [emplLocaSelect, setEmplLocaSelect] = useState({
-		loading: "",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setEmplLocaSelect((o) => {
-			const options = localidadSelectOptions(o);
-			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn = record.codPostal
-					? (o) => o.record.codPostal === record.codPostal
-					: (o) => includeSearch(o, record.nombre);
-				selected = options.find(findFn);
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
-				}
-			}
-			return { ...o, options, selected, origen };
-		});
-	}, [emplLocaSelect.buscar, emplLocaSelect.data]);
-	//#endregion select localidad
-
-	//#region select ciiu
-	const [ciiuSelect, setCiiuSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setCiiuSelect((o) => ({
-			...o,
-			options: ciiuSelectOptions(o),
-		}));
-	}, [ciiuSelect.buscar, ciiuSelect.data]);
-	//#endregion select ciiu
-
-	//#endregion selects empleador
-
-	//#endregion selects
-
-	//#region inicializaciones
-
-	//#region Carga inicial select seccional
-	useEffect(() => {
-		setSeccionalesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				setSeccionalSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setSeccionalesQuery]);
-	//#endregion Carga inicial select seccional
-
-	//#region Carga inicial select tipo documento
-	useEffect(() => {
-		setTiposDocumentosQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setTipoDocumentoSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setTiposDocumentosQuery]);
-	//#endregion Carga inicial select tipo documento
-
-	//#region Carga inicial select nacionalidad
-	useEffect(() => {
-		setNacionalidadesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setNacionalidadSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setNacionalidadesQuery]);
-	//#endregion Carga inicial select nacionalidad
-
-	//#region Carga inicial select estado civil
-	useEffect(() => {
-		setEstadosCivilesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setEstadoCivilSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setEstadosCivilesQuery]);
-	//#endregion Carga inicial select estado civil
-
-	//#region Carga inicial select sexo
-	useEffect(() => {
-		setSexosQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setSexoSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setSexosQuery]);
-	//#endregion Carga inicial select sexo
-
-	//#region Carga inicial selects provincias
-	useEffect(() => {
-		setProvinciasQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				const changes = {
-					data,
-					loading: null,
-					error: error?.toString(),
-				};
-				setTrabPciaSelect((o) => ({ ...o, ...changes }));
-				setEmplPciaSelect((o) => ({ ...o, ...changes }));
-			},
-		}));
-	}, [setProvinciasQuery]);
-	//#endregion Carga inicial selects provincias
-
-	//#region Carga inicial selects oficios
-	useEffect(() => {
-		setOficiosQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setOficioSelect((o) => ({
-					...o,
-					data,
-					loading: null,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setOficiosQuery]);
-	//#endregion Carga inicial selects oficios
-
-	//#region Carga inicial selects actividades
-	useEffect(() => {
-		setActividadesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setActividadSelect((o) => ({
-					...o,
-					data,
-					loading: null,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setActividadesQuery]);
-	//#endregion Carga inicial selects actividades
-
-	//#region Carga inicial select ciiu
-	useEffect(() => {
-		setCIIUsQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
-				setCiiuSelect((o) => ({
-					...o,
-					loading: null,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setCIIUsQuery]);
-	//#endregion Carga inicial select ciiu
-
-	//#endregion inicializaciones
-
-	const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
-
-	let content = null;
-	if (state.base64) {
-		content = (
-			<Grid
-				full
-				src={state.base64}
-				style={{ minHeight: "70vh" }}
-				render={(x) => <iframe title="SolicitudAfiliacion.pdf" {...x} />}
-			/>
-		);
-	} else {
-		content = (
-			<Grid full col gap="10px">
-				<Grid width gap="inherit">
-					<Grid width>
-						<SearchSelectMaterial
-							id="seccionalId"
-							autoFocus
-							label="Seccional"
-							error={
-								!!(
-									seccionalSelect.error || state.errors.seccionalId
-								)
-							}
-							helperText={
-								seccionalSelect.loading ??
-								seccionalSelect.error ??
-								state.errors.seccionalId
-							}
-							value={seccionalSelect.selected}
-							onChange={(selected = {}) => {
-								setSeccionalSelect((o) => ({
-									...o,
-									selected,
-									origen: "option",
-								}));
-								setState((o) => ({
-									...o,
-									form: {
-										...o.form,
-										seccionalId: selected.record?.id,
-										seccional: selected.record?.nombre,
-									},
-									validado: {
-										...o.validado,
-										seccionalId: !!selected.record?.id
-									},
-									errors: {
-										...o.errors,
-										seccionalId: selected.record?.id ? "" : "Dato requerido"
-									}
-								}));
-							}}
-							options={seccionalSelect.options}
-							onTextChange={(buscar) => {
-								setSeccionalSelect((o) => ({
-									...o,
-									buscar,
-									origen: "text",
-								}));
-								setState((o) => ({
-									...o,
-									validado: {
-										...o.validado,
-										seccionalId: !!buscar
-									},
-									errors: {
-										...o.errors,
-										seccionalId: buscar ? "" : "Dato requerido"
-									}
-								}))
-							}}
-						/>
-					</Grid>
-					<Grid width>
-						<InputMaterial
-							id="fecha"
-							type="date"
-							label="Fecha"
-							value={state.form.fecha}
-							error={state.errors.fecha}
-							onChange={(v) =>
-								setState((o) => ({
-									...o,
-									form: { ...o.form, fecha: v?.format("YYYY-MM-DD") },
-									validado: {
-										...o.validado,
-										fecha: !!v
-									},
-									errors: {
-										...o.errors,
-										fecha: v ? "" : "Dato requerido"
-									}
-								}))
-							}
-						/>
-					</Grid>
-				</Grid>
-				<Grid col width gap="inherit" style={styles.group}>
-					<Grid width style={styles.titulo}>
-						Trabajador
-					</Grid>
-					<Grid col gap="inherit">
-						<Grid gap="inherit">
-							<Grid width="200px">
-								<InputMaterial
-									id="cuil"
-									autoFocus={false}
-									mask={CUITMask}
-									label="CUIL"
-									value={state.form.cuil}
-									error={!!state.errors.cuil}
-									helperText={state.errors.cuil}
-									onChange={(v) =>
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												cuil: v.replace(/[^0-9]+/g, ""),
-											},
-										}))
-									}
-								/>
-							</Grid>
-							<Grid col width="100px">
-								<Button
-									className="botonAzul"
-									onClick={() => {
-										const changes = {
-											form: {},
-											errors: { cuil: "" },
-										};
-										const cuit = state.form.cuil;
-										const apply = () =>
-											setState((o) => {
-												const state = {
-													...o,
-													form: {
-														...o.form,
-														...changes.form,
-													},
-													errors: {
-														...o.errors,
-														...changes.errors,
-													},
-												};
-												state.validado = {
-													...o.validado,
-													trabajador: true//!state.errors.cuil,
-												};
-												return state;
-											});
-										if (cuit) {
-											setPadronAFIPQuery((o) => ({
-												...o,
-												loading: "Trabajador",
-												query: {
-													...o.query,
-													params: { ...o.query.params, cuit },
-												},
-												onLoad: ({ query, ok, error }) => {
-													if (error) {
-														if (error.code === 404) {
-															changes.errors.cuil = "No existe en ARCA";
-														} else {
-															changes.errors.cuil = error.toString();
-															audit({
-																modulo: "Consultas",
-																proceso: "SolicitudPreviaAfiliacion",
-																parametros: { ...query.params, ingreso: "trabajador" },
-																observaciones: `Error consulta AFIP: ${error.toString()}`,
-															});
-														}
-													} else {
-														changes.form.apellido = ok.apellido;
-														changes.form.nombre = ok.nombre;
-														changes.form.fechaNacimiento =
-															`${ok.fechaNacimiento}`.slice(0, 10);
-														setTipoDocumentoSelect((o) => ({
-															...o,
-															selected:
-																o.options.find(
-																	(r) => r.label === ok.tipoDocumento
-																) ?? {},
-														}));
-														changes.form.documento = ok.numeroDocumento;
-														if (ok.domicilios?.length) {
-															const domicilio =
-																ok.domicilios.find(
-																	(r) => r.tipoDomicilio === "LEGAL/REAL"
-																) ?? ok.domicilios[0];
-															changes.form.domicilio = domicilio.direccion;
-															const pcia = trabPciaSelect.options.find(
-																(r) =>
-																	r.record.idProvinciaAFIP ===
-																	domicilio.idProvincia
-															);
-															setTrabPciaSelect((o) => ({
-																...o,
-																selected: pcia,
-																origen: "option",
-															}));
-
-															setLocalidadesQuery((o) => ({
-																...o,
-																query: {
-																	...o.query,
-																	params: {
-																		...o.query.params,
-																		provinciaId: pcia.value,
-																	},
-																},
-																onPreLoad: () =>
-																	setTrabLocaSelect((o) => ({
-																		...o,
-																		loading: "Cargando...",
-																	})),
-																onLoad: ({ ok, error }) =>
-																	setTrabLocaSelect((o) => ({
-																		...o,
-																		data: Array.isArray(ok) ? ok : [],
-																		loading: null,
-																		error: error?.toString(),
-																		buscar: domicilio.localidad,
-																		selected: {
-																			record: { nombre: domicilio.localidad },
-																		},
-																		origen: "text",
-																	})),
-															}));
-														}
-													}
-													apply();
-													setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-												},
-											}));
-										} else {
-											changes.errors.cuil = "Dato requerido";
-											apply();
-										}
-									}}
-									loading={padronAFIPQuery.loading === "Trabajador"}
-								>
-									Valida
-								</Button>
-							</Grid>
-							<Grid width="200px">
-								<SearchSelectMaterial
-									id="tipoDocumentoId"
-									label="Tipo Doc."
-									error={
-										!!(
-											tipoDocumentoSelect.error || state.errors.tipoDocumentoId
-										)
-									}
-									helperText={
-										tipoDocumentoSelect.loading ??
-										tipoDocumentoSelect.error ??
-										state.errors.tipoDocumentoId
-									}
-									value={tipoDocumentoSelect.selected}
-									disabled={!state.validado.trabajador}
-									onChange={(selected = {}) => {
-										setTipoDocumentoSelect((o) => ({
-											...o,
-											selected,
-											origen: "option",
-										}));
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												tipoDocumentoId: selected.value,
-												tipoDocumentoDescripcion: selected.label,
-											},
-										}));
-									}}
-									options={tipoDocumentoSelect.options}
-									onTextChange={(buscar) =>
-										setTipoDocumentoSelect((o) => ({
-											...o,
-											buscar,
-											origen: "text",
-										}))
-									}
-								/>
-							</Grid>
-							<Grid width="200px">
-								<InputMaterial
-									id="documento"
-									mask={DNIMask}
-									label="Número Doc."
-									value={state.form.documento}
-									error={!!state.errors.documento}
-									helperText={state.errors.documento}
-									disabled={!state.validado.trabajador}
-									onChange={(v) =>
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												documento: v.replace(/[^0-9]+/g, ""),
-											},
-										}))
-									}
-								/>
-							</Grid>
-							<Grid grow>
-								<SearchSelectMaterial
-									id="nacionalidadSelect"
-									label="Nacionalidad"
-									error={
-										!!(nacionalidadSelect.error || state.errors.nacionalidadId)
-									}
-									helperText={
-										nacionalidadSelect.loading ??
-										nacionalidadSelect.error ??
-										state.errors.nacionalidadId
-									}
-									value={nacionalidadSelect.selected}
-									disabled={!state.validado.trabajador}
-									onChange={(selected = {}) => {
-										setNacionalidadSelect((o) => ({
-											...o,
-											selected,
-											origen: "option",
-										}));
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												nacionalidadId: selected.value,
-												nacionalidad: selected.label,
-											},
-										}));
-									}}
-									options={nacionalidadSelect.options}
-									onTextChange={(buscar) =>
-										setNacionalidadSelect((o) => ({
-											...o,
-											buscar,
-											origen: "text",
-										}))
-									}
-								/>
-							</Grid>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="apellido"
-								label="Apellidos"
-								value={state.form.apellido}
-								error={!!state.errors.apellido}
-								helperText={state.errors.apellido}
-								disabled={!state.validado.trabajador}
-								onChange={(apellido) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											apellido,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
-								id="nombre"
-								label="Nombres"
-								value={state.form.nombre}
-								error={!!state.errors.nombre}
-								helperText={state.errors.nombre}
-								disabled={!state.validado.trabajador}
-								onChange={(nombre) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											nombre,
-										},
-									}))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="fechaNacimiento"
-								type="date"
-								label="Fecha de nacimiento"
-								value={state.form.fechaNacimiento}
-								error={state.errors.fechaNacimiento}
-								disabled={!state.validado.trabajador}
-								onChange={(v) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											fechaNacimiento: v?.format("YYYY-MM-DD"),
-										},
-									}))
-								}
-							/>
-							<SearchSelectMaterial
-								id="estadoCivilSelect"
-								label="Estado civil"
-								error={
-									!!(estadoCivilSelect.error || state.errors.estadoCivilId)
-								}
-								helperText={
-									estadoCivilSelect.loading ??
-									estadoCivilSelect.error ??
-									state.errors.estadoCivil
-								}
-								value={estadoCivilSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setEstadoCivilSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											estadoCivilId: selected.value,
-											estadoCivil: selected.label,
-										},
-									}));
-								}}
-								options={estadoCivilSelect.options}
-								onTextChange={(buscar) =>
-									setEstadoCivilSelect((o) => ({
-										...o,
-										buscar,
-										origen: "text",
-									}))
-								}
-							/>
-							<SearchSelectMaterial
-								id="sexoSelect"
-								label="Sexo"
-								error={!!(sexoSelect.error || state.errors.sexoId)}
-								helperText={
-									sexoSelect.loading ?? sexoSelect.error ?? state.errors.sexoId
-								}
-								value={sexoSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setSexoSelect((o) => ({ ...o, selected, origen: "option" }));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											sexoId: selected.value,
-											sexoDescripcion: selected.label,
-										},
-									}));
-								}}
-								options={sexoSelect.options}
-								onTextChange={(buscar) =>
-									setSexoSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="domicilio"
-								label="Domicilio real"
-								value={state.form.domicilio}
-								error={!!state.errors.domicilio}
-								helperText={state.errors.domicilio}
-								disabled={!state.validado.trabajador}
-								onChange={(domicilio) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											domicilio,
-										},
-									}))
-								}
-							/>
-							<SearchSelectMaterial
-								id="trabPciaSelect"
-								label="Provincia"
-								error={!!(trabPciaSelect.error || state.errors.provinciaId)}
-								helperText={
-									trabPciaSelect.loading ??
-									trabPciaSelect.error ??
-									state.errors.provinciaId
-								}
-								value={trabPciaSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setTrabPciaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-
-									setLocalidadesQuery((o) => ({
-										...o,
-										query: {
-											...o.query,
-											params: {
-												...o.query.params,
-												provinciaId: selected.value,
-											},
-										},
-										onPreLoad: () =>
-											setTrabLocaSelect((o) => ({
-												...o,
-												selected: {},
-												loading: "Cargando...",
-											})),
-										onLoad: ({ ok, error }) =>
-											setTrabLocaSelect((o) => ({
-												...o,
-												data: Array.isArray(ok) ? ok : [],
-												loading: null,
-												error: error?.toString(),
-												selected: { record: { codPostal: 99999 } },
-												origen: "option",
-											})),
-									}));
-
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											provinciaId: selected.value,
-											provinciaNombre: selected.record?.nombre,
-											refLocalidadIdAfiliado: 0,
-											reflocalidadNombreAfiliado: "",
-										},
-									}));
-								}}
-								options={trabPciaSelect.options}
-								onTextChange={(buscar) =>
-									setTrabPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-							<SearchSelectMaterial
-								id="trabLocaSelect"
-								label="Localidad"
-								error={
-									!!(
-										trabLocaSelect.error || state.errors.refLocalidadIdAfiliado
-									)
-								}
-								helperText={
-									trabLocaSelect.loading ??
-									trabLocaSelect.error ??
-									state.errors.localidad
-								}
-								value={trabLocaSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setTrabLocaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											refLocalidadIdAfiliado: selected.record?.id,
-											refLocalidadNombreAfiliado: selected.record?.nombre,
-										},
-									}));
-								}}
-								options={trabLocaSelect.options}
-								onTextChange={(buscar) =>
-									setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<SearchSelectMaterial
-								id="oficioSelect"
-								label="Oficio"
-								error={!!(oficioSelect.error || state.errors.oficioId)}
-								helperText={
-									oficioSelect.loading ??
-									oficioSelect.error ??
-									state.errors.oficioId
-								}
-								value={oficioSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setOficioSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											oficioId: selected.value,
-											oficio: selected.label,
-										},
-									}));
-								}}
-								options={oficioSelect.options}
-								onTextChange={(buscar) =>
-									setOficioSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-							<SearchSelectMaterial
-								id="actividadSelect"
-								label="Actividad que desarrolla"
-								error={
-									!!(actividadSelect.error || state.errors.actividadIdAfiliado)
-								}
-								helperText={
-									actividadSelect.loading ??
-									actividadSelect.error ??
-									state.errors.actividadIdAfiliado
-								}
-								value={actividadSelect.selected}
-								disabled={!state.validado.trabajador}
-								onChange={(selected = {}) => {
-									setActividadSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											actividadIdAfiliado: selected.value,
-											actividadAfiliado: selected.label,
-										},
-									}));
-								}}
-								options={actividadSelect.options}
-								onTextChange={(buscar) =>
-									setActividadSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="telefono"
-								type="tel"
-								label="Teléfono"
-								value={state.form.telefono}
-								error={!!state.errors.telefono}
-								helperText={state.errors.telefono}
-								disabled={!state.validado.trabajador}
-								onChange={(telefono) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											telefono,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
-								id="celular"
-								type="tel"
-								label="Celular"
-								value={state.form.celular}
-								error={!!state.errors.celular}
-								helperText={state.errors.celular}
-								disabled={!state.validado.trabajador}
-								onChange={(celular) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celular,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
-								id="email"
-								label="Correo"
-								value={state.form.email}
-								error={!!state.errors.email}
-								helperText={state.errors.email}
-								disabled={!state.validado.trabajador}
-								onChange={(email) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											email,
-										},
-									}))
-								}
-							/>
-						</Grid>
-					</Grid>
-				</Grid>
-				<Grid col width gap="inherit" style={styles.group}>
-					<Grid width style={styles.titulo}>
-						Empleador
-					</Grid>
-					<Grid col gap="inherit">
-						<Grid gap="inherit">
-							<Grid width="200px">
-								<InputMaterial
-									id="cuitEmpresa"
-									mask={CUITMask}
-									label="CUIT"
-									value={state.form.cuitEmpresa}
-									error={!!state.errors.cuitEmpresa}
-									helperText={state.errors.cuitEmpresa}
-									onChange={(v) =>
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												cuitEmpresa: v.replace(/[^0-9]+/g, ""),
-											},
-										}))
-									}
-								/>
-							</Grid>
-							<Grid col width="100px">
-								<Button
-									className="botonAzul"
-									onClick={() => {
-										const changes = {
-											form: {},
-											errors: { cuitEmpresa: "" },
-										};
-										const cuit = state.form.cuitEmpresa;
-										const apply = () =>
-											setState((o) => {
-												const state = {
-													...o,
-													form: {
-														...o.form,
-														...changes.form,
-													},
-													errors: {
-														...o.errors,
-														...changes.errors,
-													},
-												};
-												state.validado = {
-													...o.validado,
-													empleador: true//!state.errors.cuitEmpresa,
-												};
-												return state;
-											});
-										if (cuit) {
-											setPadronAFIPQuery((o) => ({
-												...o,
-												loading: "Empleador",
-												query: {
-													...o.query,
-													params: { ...o.query.params, cuit },
-												},
-												onLoad: ({ query, ok, error }) => {
-													if (error) {
-														if (error.code === 404) {
-															changes.errors.cuitEmpresa = "No existe en ARCA";
-														} else {
-															changes.errors.cuitEmpresa = error.toString();
-															audit({
-																modulo: "Consultas",
-																proceso: "SolicitudPreviaAfiliacion",
-																parametros: { ...query.params, ingreso: "empleador" },
-																observaciones: `Error consulta AFIP: ${error.toString()}`,
-															});
-														}
-													} else {
-														changes.form.razonSocial =
-															ok.razonSocial || ok.nombre;
-														if (ok.domicilios?.length) {
-															const domicilio =
-																ok.domicilios.find(
-																	(r) => r.tipoDomicilio === "LEGAL/REAL"
-																) ?? ok.domicilios[0];
-															changes.form.domicilioEmpresa =
-																domicilio.direccion;
-															//Modificado Mauro
-															const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
-															const pcia =
-																(emplPciaSelect.options || []).find(
-																	(r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
-																) || null;
-
-															if (pcia) {
-																setEmplPciaSelect((o) => ({
-																	...o,
-																	selected: pcia,
-																	origen: "option",
-																}));
-
-																setLocalidadesQuery((o) => ({
-																	...o,
-																	query: {
-																		...o.query,
-																		params: { ...o.query.params, provinciaId: pcia.value },
-																	},
-																	onPreLoad: () =>
-																		setEmplLocaSelect((o) => ({ ...o, loading: "Cargando..." })),
-																	onLoad: ({ ok, error }) =>
-																		setEmplLocaSelect((o) => ({
-																			...o,
-																			data: Array.isArray(ok) ? ok : [],
-																			loading: null,
-																			error: error?.toString(),
-																			buscar: domicilio?.localidad ?? "",
-																			selected: { record: { nombre: domicilio?.localidad ?? "" } },
-																			origen: "text",
-																		})),
-																}));
-															} else {
-																// Fallback: no matcheó provincia por id → dejamos “texto” y localidad por texto
-																setEmplPciaSelect((o) => ({
-																	...o,
-																	selected: { record: { id: 0, nombre: domicilio?.provincia ?? "" } },
-																	origen: "text",
-																}));
-																setEmplLocaSelect((o) => ({
-																	...o,
-																	data: o.data ?? [],
-																	selected: { record: { nombre: domicilio?.localidad ?? "" } },
-																	origen: "text",
-																}));
-															}
-
-														}
-														if (ok.idActividadPrincipal) {
-															const actividad = ciiuSelect.options.find(
-																(r) => r.record.ciiu === ok.idActividadPrincipal
-															);
-															setCiiuSelect((o) => ({
-																...o,
-																selected: actividad,
-															}));
-														}
-													}
-													apply();
-													setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-												},
-											}));
-										} else {
-											changes.errors.cuitEmpresa = "Dato requerido";
-											apply();
-										}
-									}}
-									loading={padronAFIPQuery.loading === "Empleador"}
-								>
-									Valida
-								</Button>
-							</Grid>
-							<Grid grow>
-								<InputMaterial
-									id="razonSocial"
-									label="Razon Social"
-									value={state.form.razonSocial}
-									error={!!state.errors.razonSocial}
-									helperText={state.errors.razonSocial}
-									disabled={!state.validado.empleador}
-									onChange={(razonSocial) =>
-										setState((o) => ({
-											...o,
-											form: {
-												...o.form,
-												razonSocial,
-											},
-										}))
-									}
-								/>
-							</Grid>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="domicilioEmpresa"
-								label="Domicilio real"
-								value={state.form.domicilioEmpresa}
-								error={!!state.errors.domicilioEmpresa}
-								helperText={state.errors.domicilioEmpresa}
-								disabled={!state.validado.empleador}
-								onChange={(domicilioEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											domicilioEmpresa,
-										},
-									}))
-								}
-							/>
-							<SearchSelectMaterial
-								id="emplPciaSelect"
-								label="Provincia"
-								error={
-									!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)
-								}
-								helperText={
-									emplPciaSelect.loading ??
-									emplPciaSelect.error ??
-									state.errors.provinciaidEmpresa
-								}
-								value={emplPciaSelect.selected}
-								disabled={!state.validado.empleador}
-								onChange={(selected = {}) => {
-									setEmplPciaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-
-									setLocalidadesQuery((o) => ({
-										...o,
-										query: {
-											...o.query,
-											params: {
-												...o.query.params,
-												provinciaId: selected.value,
-											},
-										},
-										onPreLoad: () =>
-											setEmplLocaSelect((o) => ({
-												...o,
-												selected: {},
-												loading: "Cargando...",
-											})),
-										onLoad: ({ ok, error }) =>
-											setEmplLocaSelect((o) => ({
-												...o,
-												data: Array.isArray(ok) ? ok : [],
-												loading: null,
-												error: error?.toString(),
-												selected: { record: { codPostal: 99999 } },
-												origen: "option",
-											})),
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											provinciaidEmpresa: selected.value,
-											provinciaNombreEmpresa: selected.label,
-											refLocalidadIdEmpresa: 0,
-											nombreLocalidadEmpresa: "",
-										},
-									}));
-								}}
-								options={emplPciaSelect.options}
-								onTextChange={(buscar) =>
-									setEmplPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-							<SearchSelectMaterial
-								id="emplLocaSelect"
-								label="Localidad"
-								error={
-									!!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)
-								}
-								helperText={
-									emplLocaSelect.loading ??
-									emplLocaSelect.error ??
-									state.errors.refLocalidadIdEmpresa
-								}
-								value={emplLocaSelect.selected}
-								disabled={!state.validado.empleador}
-								onChange={(selected = {}) => {
-									setEmplLocaSelect((o) => ({
-										...o,
-										selected,
-										origen: "option",
-									}));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											refLocalidadIdEmpresa: selected.record?.id,
-											nombreLocalidadEmpresa: selected.record?.nombre,
-										},
-									}));
-								}}
-								options={emplLocaSelect.options}
-								onTextChange={(buscar) =>
-									setEmplLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<SearchSelectMaterial
-								id="ciiuSelect"
-								label="Actividad"
-								error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
-								helperText={
-									ciiuSelect.loading ??
-									ciiuSelect.error ??
-									state.errors.actividadIdEmpresa
-								}
-								value={ciiuSelect.selected}
-								disabled={!state.validado.empleador}
-								onChange={(selected = {}) => {
-									setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											actividadIdEmpresa: selected.value,
-											actividadEmpresa: selected.label,
-										},
-									}));
-								}}
-								options={ciiuSelect.options}
-								onTextChange={(buscar) =>
-									setCiiuSelect((o) => ({ ...o, buscar, origen: "text" }))
-								}
-							/>
-						</Grid>
-						<Grid width gap="inherit">
-							<InputMaterial
-								id="telefonoEmpresa"
-								type="tel"
-								label="Teléfono"
-								value={state.form.telefonoEmpresa}
-								error={!!state.errors.telefonoEmpresa}
-								helperText={state.errors.telefonoEmpresa}
-								disabled={!state.validado.empleador}
-								onChange={(telefonoEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											telefonoEmpresa,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
-								id="celularEmpresa"
-								type="tel"
-								label="Celular"
-								value={state.form.celularEmpresa}
-								error={!!state.errors.celularEmpresa}
-								helperText={state.errors.celularEmpresa}
-								disabled={!state.validado.empleador}
-								onChange={(celularEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											celularEmpresa,
-										},
-									}))
-								}
-							/>
-							<InputMaterial
-								id="emailEmpresa"
-								label="Correo"
-								value={state.form.emailEmpresa}
-								error={!!state.errors.emailEmpresa}
-								helperText={state.errors.emailEmpresa}
-								disabled={!state.validado.empleador}
-								onChange={(emailEmpresa) =>
-									setState((o) => ({
-										...o,
-										form: {
-											...o.form,
-											emailEmpresa,
-										},
-									}))
-								}
-							/>
-						</Grid>
-					</Grid>
-				</Grid>
-			</Grid>
-		);
-	}
-
-	const onImprimie = () => {
-		// Validaciones simples primero
-		const errors = {};
-		const body = state.form;
-
-		//#region general
-		if (seccionalSelect.origen === "text") {
-			body.seccionalId = 0;
-			body.seccional = seccionalSelect.buscar;
-			errors.seccionalId = "Debe elegir una seccional"
-		} else {
-			body.seccionalId = seccionalSelect.selected.record?.id;
-			body.seccional = seccionalSelect.selected.record?.descripcion;
-			body.seccionalCodigo = seccionalSelect.selected.record?.codigo;
-		}
-		if (!body.seccional) errors.seccionalId = "Dato requerido";
-
-		if (!body.fecha) errors.fecha = "Dato requerido";
-		//#endregion general
-
-		//#region trabajador
-		if (!body.cuil) {
-			errors.cuil = "Dato requerido";
-		} else if (!ValidarCUIT(body.cuil)) {
-			errors.cuil = "Dato inválido";
-		}
-
-		if (tipoDocumentoSelect.origen === "text") {
-			body.tipoDocumentoId = 0;
-			body.tipoDocumentoDescripcion = tipoDocumentoSelect.buscar;
-		} else {
-			body.tipoDocumentoId = tipoDocumentoSelect.selected.record?.id;
-			body.tipoDocumentoDescripcion =
-				tipoDocumentoSelect.selected.record?.descripcion;
-		}
-		if (!body.tipoDocumentoDescripcion)
-			errors.tipoDocumentoId = "Dato requerido";
-
-		if (!body.documento) errors.documento = "Dato requerido";
-
-		if (nacionalidadSelect.origen === "text") {
-			body.nacionalidadId = 0;
-			body.nacionalidad = nacionalidadSelect.buscar;
-		} else {
-			body.nacionalidadId = nacionalidadSelect.selected.record?.id;
-			body.nacionalidad = nacionalidadSelect.selected.record?.descripcion;
-		}
-		if (!body.nacionalidad) errors.nacionalidadId = "Dato requerido";
-
-		if (!(body.apellido || body.nombre)) errors.nombre = "Dato requerido";
-		if (!body.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
-
-		if (estadoCivilSelect.origen === "text") {
-			body.estadoCivilId = 0;
-			body.estadoCivil = estadoCivilSelect.buscar;
-		} else {
-			body.estadoCivilId = estadoCivilSelect.selected.record?.id;
-			body.estadoCivil = estadoCivilSelect.selected.record?.descripcion;
-		}
-		if (!body.estadoCivil) errors.estadoCivilId = "Dato requerido";
-
-		if (sexoSelect.origen === "text") {
-			body.sexoId = 0;
-			body.sexoDescripcion = sexoSelect.buscar;
-		} else {
-			body.sexoId = sexoSelect.selected.record?.id;
-			body.sexoDescripcion = sexoSelect.selected.record?.descripcion;
-		}
-		if (!body.sexoDescripcion) errors.sexoId = "Dato requerido";
-
-		if (!body.domicilio) errors.domicilio = "Dato requerido";
-
-		if (trabPciaSelect.origen === "text") {
-			body.provinciaId = 0;
-			body.provinciaNombre = trabPciaSelect.buscar;
-		} else {
-			body.provinciaId = trabPciaSelect.selected.record?.id;
-			body.provinciaNombre = trabPciaSelect.selected.record?.nombre;
-		}
-		if (!body.provinciaNombre) errors.provinciaId = "Dato requerido";
-
-		if (trabLocaSelect.origen === "text") {
-			body.refLocalidadIdAfiliado = 0;
-			body.nombreLocalidadAfiliado = trabLocaSelect.buscar;
-		} else {
-			body.refLocalidadIdAfiliado = trabLocaSelect.selected.record?.id;
-			body.nombreLocalidadAfiliado = trabLocaSelect.selected.record?.nombre;
-		}
-		if (!body.nombreLocalidadAfiliado)
-			errors.refLocalidadIdAfiliado = "Dato requerido";
-
-		if (oficioSelect.origen === "text") {
-			body.oficioId = 0;
-			body.oficio = oficioSelect.buscar;
-		} else {
-			body.oficioId = oficioSelect.selected.record?.id;
-			body.oficio = oficioSelect.selected.record?.descripcion;
-		}
-		if (!body.oficio) errors.oficioId = "Dato requerido";
-
-		if (actividadSelect.origen === "text") {
-			body.actividadIdAfiliado = 0;
-			body.actividadAfiliado = actividadSelect.buscar;
-		} else {
-			body.actividadIdAfiliado = actividadSelect.selected.record?.id;
-			body.actividadAfiliado = actividadSelect.selected.record?.descripcion;
-		}
-		if (!body.actividadAfiliado) errors.actividadIdAfiliado = "Dato requerido";
-		if (body.telefono && !isPossiblePhoneNumber(body.telefono))
-			errors.telefono = "Dato inválido";
-		if (body.celular && !isPossiblePhoneNumber(body.celular))
-			errors.celular = "Dato inválido";
-		if (body.email && !ValidarEmail(body.email)) errors.email = "Dato inválido";
-
-		//#endregion trabajador
-
-		//#region empleador
-
-		if (!body.cuitEmpresa) {
-			errors.cuitEmpresa = "Dato requerido";
-		} else if (!ValidarCUIT(body.cuitEmpresa)) {
-			errors.cuitEmpresa = "Dato inválido";
-		}
-
-		if (!body.razonSocial) errors.razonSocial = "Dato requerido";
-
-		if (!body.domicilioEmpresa) errors.domicilioEmpresa = "Dato requerido";
-
-		if (emplPciaSelect.origen === "text") {
-			body.provinciaidEmpresa = 0;
-			body.provinciaNombreEmpresa = emplPciaSelect.buscar;
-		} else {
-			body.provinciaidEmpresa = emplPciaSelect.selected.record?.id;
-			body.provinciaNombreEmpresa = emplPciaSelect.selected.record?.nombre;
-		}
-		if (!body.provinciaNombreEmpresa)
-			errors.provinciaidEmpresa = "Dato requerido";
-
-		if (emplLocaSelect.origen === "text") {
-			body.refLocalidadIdEmpresa = 0;
-			body.nombreLocalidadEmpresa = emplLocaSelect.buscar;
-		} else {
-			body.refLocalidadIdEmpresa = emplLocaSelect.selected.record?.id;
-			body.nombreLocalidadEmpresa = emplLocaSelect.selected.record?.nombre;
-		}
-		if (!body.nombreLocalidadEmpresa)
-			errors.refLocalidadIdEmpresa = "Dato requerido";
-
-		if (ciiuSelect.origen === "text") {
-			body.actividadIdEmpresa = 0;
-			body.actividadEmpresa = ciiuSelect.buscar;
-		} else {
-			body.actividadIdEmpresa = ciiuSelect.selected.record?.id;
-			body.actividadEmpresa = ciiuSelect.selected.record?.descripcion;
-		}
-		if (!body.actividadEmpresa) errors.actividadIdEmpresa = "Dato requerido";
-		if (body.telefonoEmpresa && !isPossiblePhoneNumber(body.telefonoEmpresa))
-			errors.telefonoEmpresa = "Dato inválido";
-		if (body.celularEmpresa && !isPossiblePhoneNumber(body.celularEmpresa))
-			errors.celularEmpresa = "Dato inválido";
-		if (body.emailEmpresa && !ValidarEmail(body.emailEmpresa))
-			errors.emailEmpresa = "Dato inválido";
-
-		//#endregion empleador
-
-		if (Object.values(errors).filter((r) => r).length) {
-			setState((o) => ({ ...o, errors }));
-			return;
-		}
-		//Modif Mauro
-		const despliega = async () => {
-			// Mapeo a la estructura del nuevo generador
-			const datos = [{
-				fecha: Formato.Fecha(body.fecha),
-				seccional_nro: body.seccionalCodigo || "",
-				afiliado_nro: "",
-				trabajador: {
-					cuil: Formato.Cuit(body.cuil),
-					tipo_doc: body.tipoDocumentoDescripcion,
-					nro_doc: body.documento,
-					nacionalidad: body.nacionalidad,
-					apellidos: body.apellido,
-					nombres: body.nombre,
-					fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
-					estado_civil: body.estadoCivil,
-					sexo: body.sexoDescripcion,
-					domicilio: body.domicilio,
-					localidad: body.nombreLocalidadAfiliado,
-					provincia: body.provinciaNombre,
-					oficio: body.oficio,
-					actividad: body.actividadAfiliado,
-					telefono: body.celular,
-					email: body.email,
-				},
-				empleador: {
-					cuit: Formato.Cuit(body.cuitEmpresa),
-					razon_social: body.razonSocial,
-					domicilio: body.domicilioEmpresa,
-					localidad: body.nombreLocalidadEmpresa,
-					provincia: body.provinciaNombreEmpresa,
-					actividad: body.actividadEmpresa,
-					telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
-					email: body.emailEmpresa,
-				},
-			}];
-
-			audit({
-				modulo: "Consultas",
-				proceso: "SolicitudPreviaAfiliacion",
-				parametros: datos[0],
-				observaciones: "Emite PDF con generador nuevo",
-			});
-
-			// Genera y DESCARGA. Además, deja data-uri para previsualizar en el iframe.
-			const base64 = await generarPDFLibSolicitudAfiliacion({
-				datos,
-				descargar: true, // descarga automática "Solicitud_Afiliacion.pdf"
-				onBase64: () => { }, // ya devolvemos abajo
-				setPaginaActual: () => { },
-				setTotalPaginas: () => { },
-			});
-			setState((o) => ({ ...o, base64: `data:application/pdf;base64,${base64}` }));
-		};
-		
-		//#region Validaciones AFIP
-		setPadronAFIPQuery((o) => ({
-			...o,
-			query: {
-				...o.query,
-				params: { ...o.query.params, cuit: body.cuil },
-			},
-			onPreLoad: () =>
-				setState((o) => ({ ...o, loading: "Validando trabajador..." })),
-			onLoad: ({ query, error }) => {
-				setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-				if (error) {
-					if (error.code === 404) {
-						errors.cuil = error.toString();
-						setState((o) => ({ ...o, errors, loading: null }));
-						return;
-					} else {
-						audit({
-							modulo: "Consultas",
-							proceso: "SolicitudPreviaAfiliacion",
-							parametros: { ...query.params, valida: "trabajador" },
-							observaciones: `Error consulta AFIP: ${error.toString()}`,
-						});
-					}
-				}
-				setPadronAFIPQuery((o) => ({
-					...o,
-					query: {
-						...o.query,
-						params: { ...o.query.params, cuit: body.cuitEmpresa },
-					},
-					onPreLoad: () =>
-						setState((o) => ({ ...o, loading: "Validando empleador..." })),
-					onLoad: ({ query, error }) => {
-						setPadronAFIPQuery((o) => ({ ...o, loading: null }));
-						if (error) {
-							if (error.code === 404) {
-								errors.cuitEmpresa = error.toString();
-								setState((o) => ({ ...o, errors, loading: null }));
-								return;
-							} else {
-								audit({
-									modulo: "Consultas",
-									proceso: "SolicitudPreviaAfiliacion",
-									parametros: { ...query.params, valida: "empleador" },
-									observaciones: `Error consulta AFIP: ${error.toString()}`,
-								});
-							}
-						}
-						setCreateFormQuery((o) => ({
-							...o,
-							query: { ...o.query, config: { ...o.query.config, body } },
-							onPreLoad: () =>
-								setState((o) => ({ ...o, loading: "Enviando formulario..." })),
-							onLoad: ({ error }) => {
-								const changes = { loading: null }
-								if (error) {
-									changes.errors = { create: error.toString() }
-								} else {
-									despliega();
-								}
-								setState((o) => ({ ...o, ...changes }));
-							},
-						}));
-					},
-				}));
-			},
-		}));
-		//#endregion Validaciones AFIP
-	};
-
-	return (
-		<Modal size="xl" centered show>
-			<Modal.Header className={modalCss.modalCabecera}>
-				Solicitud previa de afiliación
-			</Modal.Header>
-			<Modal.Body>{content}</Modal.Body>
-			<Modal.Footer>
-				<Grid grid="auto / 1fr 150px 150px" width col gap="20px">
-					<Grid width style={{ color: "red" }}>
-						{state.errors.create}
-					</Grid>
-					{state.base64 ? (
-						<div />
-					) : (
-						<Button
-							className="botonAmarillo"
-							onClick={onImprimie}
-							loading={!!state.loading}
-							disabled={!and(...Object.values(state.validado))}
-						>
-							IMPRIME
-						</Button>
-					)}
-					<Button className="botonAmarillo" onClick={() => onClose()}>
-						FINALIZA
-					</Button>
-				</Grid>
-			</Modal.Footer>
-		</Modal>
-	);
+ const SolicitudAfiliacionForm = ({
+   title = "Solicitud previa de afiliación",
+   data = {},
+   readOnly = false,
+   hidePrint = false,
+   onClose = () => { },
+   initialTab = 0,
+   request = "A", // "A" = Alta (nuevo formulario)
+ }) => {
+  const [selectedTab, setSelectedTab] = useState(initialTab);
+  const handleChangeTab = (_e, v) => setSelectedTab(v);
+
+  const { usuario = {} } = useContext(AuthContext);
+  const seccIdsUsuario = usuario?.ambitoSeccionales?.ids;
+  const seccIdUsuario = Array.isArray(seccIdsUsuario) && seccIdsUsuario.length === 1 ? seccIdsUsuario[0] : null;
+
+  const cuilUsuario = usuario?.cuit ?? null;
+  
+
+ const ambitos = useAmbitos();
+ const ambito = ambitos?.ambitoUser ? ambitos.ambitoUser() : { tipo: null, ids: [] };
+  const { sendRequest } = useHttp();
+  useEffect(() => {
+    console.log("SolicitudAfiliacionForm mounted - auth/usuario:", { usuario });
+  }, [usuario]);
+
+  //#region APIs
+  const { setState: setSeccionalesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
+  );
+
+  const { setState: setTiposDocumentosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/TipoDocumento`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setNacionalidadesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Nacionalidad`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setEstadosCivilesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/EstadoCivil`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setSexosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Sexo`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setProvinciasQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Provincia`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setLocalidadesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/RefLocalidad`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setOficiosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Puesto`,
+        method: "GET",
+      },
+    }),
+    {
+      query: {
+        params: { soloActivos: true },
+        config: { errorType: "response" },
+      },
+    }
+  );
+  const { setState: setActividadesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Actividad`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { state: padronAFIPQuery, setState: setPadronAFIPQuery } =
+    useQueryState(
+      () => ({
+        config: {
+          baseURL: "Comunes",
+          endpoint: `/AFIPConsulta`,
+          method: "GET",
+        },
+      }),
+      {
+        query: {
+          params: { verificarHistorico: false },
+          config: { errorType: "response" },
+        },
+      }
+    );
+  const { setState: setAfiliadoByCuilQuery } =
+    useQueryState(
+      () => ({
+        config: {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado/GetAfiliadoByCUIL`,
+          method: "GET",
+        },
+      }),
+      { query: { config: { errorType: "response" } } }
+    );
+  const { setState: setCIIUsQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Comunes",
+        endpoint: `/RefCIIU`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setCreateFormQuery } =
+    useQueryState(
+      () => ({
+        config: {
+          baseURL: "Afiliaciones",
+          endpoint: `/AfiliadoFormulariosAfiliacion`,
+          method: "POST",
+        },
+      }),
+      { query: { config: { errorType: "response" } } }
+    );
+
+  const { setState: setDocumentosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Comunes",
+        endpoint: `/DocumentacionEntidad/GetBySpec`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+
+  const { setState: createDocQuery } = useQueryState(
+    () => ({
+      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "POST" },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+
+  const { setState: updateDocQuery } = useQueryState(
+    () => ({
+      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "PUT" },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+
+  const { setState: deleteDocQuery } = useQueryState(
+    () => ({
+      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "DELETE" },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  //#endregion APIs
+  const [documentacionList, setDocumentacionList] = useState([]);
+
+  const [state, setState] = useState({
+    form: {
+      fecha: dayjs().format("YYYY-MM-DD"),
+      // flags para control de habilitación de impresión
+      trabajadorExisteEnBD: false,
+      trabajadorExisteEnAFIP: false,
+      empleadorExisteEnAFIP: false,
+    },
+    validado: {
+      seccionalId: false,
+      fecha: true,
+      trabajador: false,
+      empleador: false,
+    },
+    errors: {},
+    loading: null,
+    base64: null,
+  });
+
+  const [pdfUrl, setPdfUrl] = useState(null);
+
+  useEffect(() => {
+    let url = null;
+    if (state.base64) {
+      try {
+        // state.base64 is expected to be the raw base64 string (no data: prefix)
+        const raw = state.base64.replace(/^data:.*;base64,/, "");
+        const byteCharacters = atob(raw);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: state.contentType || "application/pdf" });
+        url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (e) {
+        console.error("Error creando Blob URL desde base64:", e);
+        setPdfUrl(null);
+      }
+    } else {
+      setPdfUrl(null);
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [state.base64, state.contentType]);
+
+  const { audit } = useAuditoriaProceso();
+
+  useEffect(() => {
+    const entidadId = data?.id ?? 0;
+    if (!entidadId) {
+      setDocumentacionList([]);
+      return;
+    }
+
+    setDocumentosQuery(o => ({
+      ...o,
+      query: { ...o.query, params: { EntidadId: entidadId, EntidadTipo: "F" } },
+      onLoad: ({ ok, error }) => {
+        const arr = Array.isArray(ok) ? ok : [];
+        console.log(' DOCUMENTACIÓN CARGADA:', {
+          archivosEncontrados: arr.length,
+          archivos: arr.map(doc => ({
+            id: doc.id,
+            nombre: doc.nombreArchivo,
+            tipo: doc.refTipoDocumentacionDescripcion
+          }))
+        });
+        setDocumentacionList(arr);
+        if (error) console.error("DocumentacionEntidad/GetBySpec error:", error);
+      }
+    }));
+  }, [data?.id, setDocumentosQuery]);
+
+  // === MAPEO DE DOCUMENTACIÓN: Convierte item del form al formato del API
+  const compact = (obj) => Object.fromEntries(
+    Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  );
+
+  const mapDocToPayload = (item, entidadId, entidadTipo) => {
+    console.log(' MAPEANDO DOCUMENTO para API:', {
+      itemOriginal: {
+        id: item?.id,
+        nombreArchivo: item?.nombreArchivo,
+        tieneArchivo: !!(item?.archivo || item?.archivoBase64),
+      },
+      destino: { entidadId, entidadTipo }
+    });
+
+    const refTipoDocumentacionId =
+      item?.refTipoDocumentacionId ??
+      item?.tipoDocumentacionId ??
+      item?.tipoId;
+
+    const rawBase64 = (
+      item?.archivo ??
+      item?.archivoBase64 ??
+      item?.base64 ??
+      item?.contenido ??
+      ""
+    ).toString().replace(/^data:.*;base64,/, "");
+
+    const payload = {
+      id: item?.id,
+      entidadId,
+      entidadTipo,
+      refTipoDocumentacionId,
+      refTipoDocumentacionDescripcion: item?.refTipoDocumentacionDescripcion,
+      descripcion: item?.descripcion || item?.observaciones,
+      observaciones: item?.observaciones,
+      fechaVencimiento: item?.fechaVencimiento,
+      nombreArchivo: item?.nombreArchivo ?? item?.fileName,
+      archivo: rawBase64,
+      contentType: item?.contentType || "application/octet-stream",
+      url: item?.url,
+    };
+
+    const result = compact(payload);
+
+    console.log(' DOCUMENTO MAPEADO:', {
+      id: result.id,
+      nombreArchivo: result.nombreArchivo,
+      tipoDoc: result.refTipoDocumentacionId,
+      tieneArchivo: !!result.archivo,
+      tamañoBase64: result.archivo ? result.archivo.length + ' chars' : '0'
+    });
+
+    return result;
+  };
+
+  //#region selects
+
+  const persistirDocumentacion = async (entidadId) => {
+    const entidadTipo = "F";
+    const lista = Array.isArray(documentacionList) ? documentacionList : [];
+
+    console.log(' PERSISTIENDO DOCUMENTACIÓN:', {
+      entidadId: entidadId,
+      entidadTipo: entidadTipo,
+      totalArchivos: lista.length,
+      archivos: lista.map(doc => ({
+        id: doc.id,
+        nombre: doc.nombreArchivo,
+        tipo: doc.refTipoDocumentacionDescripcion,
+        tieneArchivo: !!doc.archivo
+      }))
+    });
+
+    if (lista.length === 0) {
+      console.log(' No hay documentación para persistir');
+      return;
+    }
+
+    for (let i = 0; i < lista.length; i++) {
+      const item = lista[i];
+      const payload = mapDocToPayload(item, entidadId, entidadTipo);
+
+      console.log(` Procesando archivo ${i + 1}/${lista.length}:`, {
+        nombre: item.nombreArchivo,
+        operacion: payload.id ? 'ACTUALIZAR' : 'CREAR',
+        payloadId: payload.id
+      });
+
+      try {
+        if (payload.id) {
+          // ACTUALIZAR archivo existente
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "PUT",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
+              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`, ok);
+            },
+            (error) => {
+              console.error(`❌ Error al actualizar archivo ${item.nombreArchivo}:`, error);
+            }
+          );
+        } else {
+          // CREAR nuevo archivo
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "POST",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
+              console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
+              if (ok?.id || ok?.Id) {
+                const newId = ok.id ?? ok.Id;
+                setDocumentacionList((prev) => {
+                  const next = Array.isArray(prev) ? [...prev] : [];
+                  if (i < next.length) {
+                    next[i] = { ...next[i], id: newId };
+                  } else {
+                    next.push({ ...item, id: newId });
+                  }
+                  setState((s) => ({ ...s, form: { ...s.form, documentacion: next } }));
+                  return next;
+                });
+              }
+            },
+            (error) => {
+              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
+            }
+          );
+        }
+      } catch (e) {
+        console.error(`❌ Excepción procesando archivo ${item.nombreArchivo}:`, e);
+      }
+    }
+
+    console.log('✅ Proceso de persistencia de documentación completado');
+  };
+
+
+  //#region select seccional
+  const [seccionalSelect, setSeccionalSelect] = useState({
+    loading: seccIdUsuario ? null : "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setSeccionalSelect((o) => ({
+      ...o,
+      options: seccionalesSelectOptions(o),
+    }));
+  }, [seccionalSelect.buscar, seccionalSelect.data]);
+  //#endregion select seccional
+
+ useEffect(() => {
+   setSeccionalesQuery((o) => ({
+     ...o,
+     onLoad: ({ ok, error }) => {
+       let allData = [];
+       let seccionalesFiltered = [];
+       let seccionalPredeterminada = null;
+
+       if (Array.isArray(ok)) {
+         // 1) Traemos todas las seccionales
+         allData = ok.filter((r) => r.id !== 99999);
+         seccionalesFiltered = allData;
+
+         // 2) Si el usuario tiene ámbito Delegaciones y estamos en Alta ("A"),
+         //    filtramos solo las seccionales de su Delegación (refDelegacionId).
+         if (ambito?.tipo === "Delegaciones" && request === "A") {
+           const delegacionId = ambito.ids?.[0];
+           if (delegacionId) {
+             seccionalesFiltered = allData.filter(
+               (r) => r.refDelegacionId === delegacionId
+             );
+           }
+         }
+
+         // 3) Si el usuario tiene exactamente una Seccional asignada
+         //    (ámbito por seccional), priorizamos esa.
+         if (seccIdUsuario) {
+           const rec =
+             seccionalesFiltered.find((r) => r.id === seccIdUsuario) ||
+             allData.find((r) => r.id === seccIdUsuario);
+           if (rec) {
+             seccionalesFiltered = [rec];
+             seccionalPredeterminada = rec;
+           }
+         }
+
+         // 4) Si estamos en Alta (nuevo formulario) y no hay seccional fija aún,
+         //    preseleccionamos la primera visible.
+         if (!seccionalPredeterminada && !readOnly && !data?.id && seccionalesFiltered.length) {
+           seccionalPredeterminada = seccionalesFiltered[0];
+         }
+       }
+
+       // 5) Actualizamos el select de Seccional
+      setSeccionalSelect((prev) => {
+        const shouldSetSelected = Boolean(
+          seccionalPredeterminada && !prev.selected?.value && !state?.form?.seccionalId
+        );
+        return {
+          ...prev,
+          loading: null,
+          data: seccionalesFiltered,
+          error: error?.toString(),
+          options: seccionalesSelectOptions({
+            ...prev,
+            data: seccionalesFiltered,
+          }),
+          ...(shouldSetSelected
+            ? {
+                selected: {
+                  value: seccionalPredeterminada.id,
+                  label: [
+                    seccionalPredeterminada.seccionalCodigo ??
+                      seccionalPredeterminada.codigo,
+                    seccionalPredeterminada.nombre ??
+                      seccionalPredeterminada.descripcion,
+                  ]
+                    .filter((v) => v != null && v !== "")
+                    .join(" - "),
+                  record: seccionalPredeterminada,
+                },
+              }
+            : {}),
+        };
+      });
+
+      // 6) También actualizamos el form (seccionalId  nombre) y el validado
+      if (seccionalPredeterminada && !state?.form?.seccionalId && !seccionalSelect?.selected?.value) {
+        setState((s) => ({
+          ...s,
+          form: {
+            ...s.form,
+            seccionalId: seccionalPredeterminada.id,
+            seccional:
+              seccionalPredeterminada.nombre ??
+              seccionalPredeterminada.descripcion,
+          },
+          validado: {
+            ...s.validado,
+            seccionalId: true,
+          },
+          errors: {
+            ...s.errors,
+            seccionalId: "",
+          },
+        }));
+      }
+     },
+   }));
+ }, [setSeccionalesQuery, ambito, request, readOnly, data?.id, seccIdUsuario, seccionalSelect?.selected?.value, state?.form?.seccionalId]);
+  //#endregion select seccional
+
+
+
+  //#region selects trabajador
+
+  //#region select tipo documento
+  const [tipoDocumentoSelect, setTipoDocumentoSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setTipoDocumentoSelect((o) => ({
+      ...o,
+      options: tipoDocumentoSelectOptions(o),
+    }));
+  }, [tipoDocumentoSelect.buscar, tipoDocumentoSelect.data]);
+  //#endregion select tipo documento
+
+  //#region select nacionalidad
+  const [nacionalidadSelect, setNacionalidadSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setNacionalidadSelect((o) => ({
+      ...o,
+      options: nacionalidadSelectOptions(o),
+    }));
+  }, [nacionalidadSelect.buscar, nacionalidadSelect.data]);
+  //#endregion select nacionalidad
+
+  //#region select estado civil
+  const [estadoCivilSelect, setEstadoCivilSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setEstadoCivilSelect((o) => ({
+      ...o,
+      options: estadoCivilSelectOptions(o),
+    }));
+  }, [estadoCivilSelect.buscar, estadoCivilSelect.data]);
+  //#endregion select estado civil
+
+  //#region select sexo
+  const [sexoSelect, setSexoSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setSexoSelect((o) => ({
+      ...o,
+      options: sexoSelectOptions(o),
+    }));
+  }, [sexoSelect.buscar, sexoSelect.data]);
+  //#endregion select sexo
+
+  //#region select provincia
+  const [trabPciaSelect, setTrabPciaSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setTrabPciaSelect((o) => ({
+      ...o,
+      options: provinciaSelectOptions(o),
+    }));
+  }, [trabPciaSelect.buscar, trabPciaSelect.data]);
+  //#endregion select provincia
+
+  //#region select localidad
+  const [trabLocaSelect, setTrabLocaSelect] = useState({
+    loading: "",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    if (readOnly) return; // en Consulta no re-procesar opciones/selected de localidades
+    setTrabLocaSelect((o) => {
+      const options = localidadSelectOptions(o);
+      let selected = o.selected;
+      let origen = o.origen;
+      if (!selected.value && selected.record) {
+        const record = selected.record;
+        const findFn = record.codPostal
+          ? (o) => o.record.codPostal === record.codPostal
+          : (o) => includeSearch(o, record.nombre);
+        selected = options.find(findFn);
+        if (selected) {
+          origen = "option";
+        } else {
+          selected = o.selected;
+        }
+      }
+      return { ...o, options, selected, origen };
+    });
+  }, [trabLocaSelect.buscar, trabLocaSelect.data]);
+  //#endregion select localidad
+
+  //#region select oficio
+  const [oficioSelect, setOficioSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setOficioSelect((o) => ({
+      ...o,
+      options: oficioSelectOptions(o),
+    }));
+  }, [oficioSelect.buscar, oficioSelect.data]);
+  //#endregion select sexo
+
+  //#region select actividad
+  const [actividadSelect, setActividadSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setActividadSelect((o) => ({
+      ...o,
+      options: actividadSelectOptions(o),
+    }));
+  }, [actividadSelect.buscar, actividadSelect.data]);
+  //#endregion select actividad
+
+
+  //#region select provincia
+  const [emplPciaSelect, setEmplPciaSelect] = useState({
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setEmplPciaSelect((o) => ({
+      ...o,
+      options: provinciaSelectOptions(o),
+    }));
+  }, [emplPciaSelect.buscar, emplPciaSelect.data]);
+  //#endregion select provincia
+
+  //#region select localidad
+  const [emplLocaSelect, setEmplLocaSelect] = useState({
+    loading: "",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    if (readOnly) return; // en Consulta no re-procesar opciones/selected de localidades
+    setEmplLocaSelect((o) => {
+      const options = localidadSelectOptions(o);
+      let selected = o.selected;
+      let origen = o.origen;
+      if (!selected.value && selected.record) {
+        const record = selected.record;
+        const findFn = record.codPostal
+          ? (o) => o.record.codPostal === record.codPostal
+          : (o) => includeSearch(o, record.nombre);
+        selected = options.find(findFn);
+        if (selected) {
+          origen = "option";
+        } else {
+          selected = o.selected;
+        }
+      }
+      return { ...o, options, selected, origen };
+    });
+  }, [emplLocaSelect.buscar, emplLocaSelect.data]);
+  //#endregion select localidad
+
+  //#region select ciiu
+  const [ciiuSelect, setCiiuSelect] = useState({
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    options: [],
+    selected: {},
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setCiiuSelect((o) => ({
+      ...o,
+      options: ciiuSelectOptions(o),
+    }));
+  }, [ciiuSelect.buscar, ciiuSelect.data]);
+  //#endregion select ciiu
+
+  //#endregion selects empleador
+  // PREFILL (data  readOnly)
+  useEffect(() => {
+    if (!data || Object.keys(data).length === 0) return;
+    setState((o) => ({
+      ...o,
+      form: {
+        ...o.form,
+        ...data,
+        fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
+        // asegurar que los campos de localidad usados por el formulario queden llenos
+        refLocalidadIdAfiliado: data?.refLocalidadIdAfiliado ?? o.form.refLocalidadIdAfiliado,
+        refLocalidadNombreAfiliado: data?.nombreLocalidadAfiliado ?? data?.localidadDescripcion ?? o.form.refLocalidadNombreAfiliado,
+        // mantener compatibilidad con typo histórico si existiera
+        reflocalidadNombreAfiliado: data?.nombreLocalidadAfiliado ?? data?.localidadDescripcion ?? o.form.reflocalidadNombreAfiliado,
+        refLocalidadIdEmpresa: data?.refLocalidadIdEmpresa ?? o.form.refLocalidadIdEmpresa,
+        nombreLocalidadEmpresa: data?.nombreLocalidadEmpresa ?? data?.localidadDescripcion ?? o.form.nombreLocalidadEmpresa,
+      },
+      validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+    }));
+    // Forzar también el selected en los select de localidades para que muestren
+    // el texto aunque la lista de opciones no incluya el registro.
+    if (data?.refLocalidadIdAfiliado || data?.nombreLocalidadAfiliado) {
+      const sel = {
+        value: data?.refLocalidadIdAfiliado || null,
+        label: data?.nombreLocalidadAfiliado || data?.localidadDescripcion || data?.localidadNombre || "",
+        record: { id: data?.refLocalidadIdAfiliado || 0, nombre: data?.nombreLocalidadAfiliado || data?.localidadDescripcion || data?.localidadNombre || "" },
+      };
+      setTrabLocaSelect((o) => ({
+        ...o,
+        selected: sel,
+        options: [sel],
+        origen: "option",
+      }));
+    }
+    if (data?.refLocalidadIdEmpresa || data?.nombreLocalidadEmpresa) {
+      const sel = {
+        value: data?.refLocalidadIdEmpresa || null,
+        label: data?.nombreLocalidadEmpresa || data?.localidadDescripcion || data?.localidadNombre || "",
+        record: { id: data?.refLocalidadIdEmpresa || 0, nombre: data?.nombreLocalidadEmpresa || data?.localidadDescripcion || data?.localidadNombre || "" },
+      };
+      setEmplLocaSelect((o) => ({
+        ...o,
+        selected: sel,
+        options: [sel],
+        origen: "option",
+      }));
+    }
+  }, [data, readOnly]);
+
+
+  useEffect(() => {
+    try {
+      if (data && Object.keys(data).length) {
+        // eslint-disable-next-line no-console
+        console.log("[DBG] SolicitudAfiliacionForm - data:", data);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[DBG] Error al imprimir data:", e);
+    }
+  }, [data]);
+
+
+  // Prefill selects
+  useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
+  useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
+  useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
+  useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
+  useEffect(() => {
+    if (!trabPciaSelect.options?.length) return;
+    setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
+  }, [trabPciaSelect.options, data?.provinciaId]);
+  useEffect(() => {
+    if (readOnly) return; 
+    if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
+    setLocalidadesQuery((o) => ({
+      ...o,
+      query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+      onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+      onLoad: ({ ok, error }) => {
+        const arr = Array.isArray(ok) ? ok : [];
+        const rec = (arr || []).find((r) => r.id === data.refLocalidadIdAfiliado);
+        const selected = rec
+          ? { value: rec.id, label: rec.nombre, record: rec }
+          : data?.refLocalidadIdAfiliado
+            ? { value: data.refLocalidadIdAfiliado, label: data?.nombreLocalidadAfiliado || data?.localidadDescripcion || data?.localidadNombre || data?.localidad || String(data.refLocalidadIdAfiliado), record: { id: data.refLocalidadIdAfiliado, nombre: data?.nombreLocalidadAfiliado || data?.localidadDescripcion || data?.localidadNombre || data?.localidad } }
+            : {};
+        setTrabLocaSelect((s) => ({
+          ...s,
+          data: arr,
+          loading: null,
+          error: error?.toString(),
+          selected,
+          origen: selected && selected.value ? "option" : s.origen,
+        }));
+      },
+    }));
+  }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
+
+ useEffect(() => {
+   if (readOnly) return; 
+   if (!data || Object.keys(data).length === 0) return;
+   if (!trabPciaSelect.selected?.value) return;
+   if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+    setLocalidadesQuery((o) => ({
+      ...o,
+      query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
+      onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+      onLoad: ({ ok, error }) => {
+        const dataArr = Array.isArray(ok) ? ok : [];
+ 
+        const nombre = data?.localidadDescripcionAfiliado ?? data?.localidadDescripcion ?? data?.localidadNombre ?? data?.localidad;
+        let selected = {};
+        if (data?.refLocalidadIdAfiliado) {
+          const rec = dataArr.find((r) => r.id === data.refLocalidadIdAfiliado);
+          if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
+        }
+        if ((!selected || !selected.value) && nombre) {
+          const nombreLc = String(nombre).toLowerCase();
+          const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
+          if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
+        }
+        setTrabLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
+      },
+    }));
+  }, [trabPciaSelect.selected?.value, setLocalidadesQuery, data, trabLocaSelect.data]);
+  useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
+  useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
+  useEffect(() => {
+    if (!emplPciaSelect.options?.length) return;
+    setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
+  }, [emplPciaSelect.options, data?.provinciaidEmpresa]);
+  useEffect(() => {
+    if (readOnly) return; 
+    if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+    setLocalidadesQuery((o) => ({
+      ...o,
+      query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+      onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+      onLoad: ({ ok, error }) => {
+        const arr = Array.isArray(ok) ? ok : [];
+        const rec = (arr || []).find((r) => r.id === data.refLocalidadIdEmpresa);
+        const selected = rec
+          ? { value: rec.id, label: rec.nombre, record: rec }
+          : data?.refLocalidadIdEmpresa
+            ? { value: data.refLocalidadIdEmpresa, label: data?.nombreLocalidadEmpresa || data?.localidadDescripcion || data?.localidadNombre || data?.localidad || String(data.refLocalidadIdEmpresa), record: { id: data.refLocalidadIdEmpresa, nombre: data?.nombreLocalidadEmpresa || data?.localidadDescripcion || data?.localidadNombre || data?.localidad } }
+            : {};
+        setEmplLocaSelect((s) => ({
+          ...s,
+          data: arr,
+          loading: null,
+          error: error?.toString(),
+          selected,
+          origen: selected && selected.value ? "option" : s.origen,
+        }));
+      },
+    }));
+  }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+
+  useEffect(() => {
+  if (readOnly) return; 
+
+  if (!data || Object.keys(data).length === 0) return;
+  if (!trabPciaSelect.selected?.value) return;
+  // si ya tenemos datos no volvemos a pedir
+  if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+    setLocalidadesQuery((o) => ({
+      ...o,
+      query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+      onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+      onLoad: ({ ok, error }) => {
+        const dataArr = Array.isArray(ok) ? ok : [];
+        const nombre = data?.localidadDescripcionEmpresa ?? data?.localidadDescripcion ?? data?.localidadNombre ?? data?.localidad;
+        let selected = {};
+        if (data?.refLocalidadIdEmpresa) {
+          const rec = dataArr.find((r) => r.id === data.refLocalidadIdEmpresa);
+          if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
+        }
+        if ((!selected || !selected.value) && nombre) {
+          const nombreLc = String(nombre).toLowerCase();
+          const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
+          if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
+        }
+        setEmplLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
+      },
+    }));
+  }, [emplPciaSelect.selected?.value, setLocalidadesQuery]);
+  useEffect(() => {
+    if (!emplLocaSelect.data || emplLocaSelect.data.length === 0) return;
+    if (emplLocaSelect.selected && emplLocaSelect.selected.value) return;
+    const nombre = data?.localidadDescripcionEmpresa ?? data?.localidadDescripcion ?? data?.localidadNombre ?? data?.localidad;
+    if (!nombre) return;
+    const hit = emplLocaSelect.data.find((r) => (r.nombre || '').toString().toLowerCase() === String(nombre).toLowerCase());
+    if (hit) {
+      const selected = { value: hit.id, label: hit.nombre, record: hit };
+      setEmplLocaSelect((o) => ({ ...o, selected, origen: 'option' }));
+      setState((o) => ({ ...o, form: { ...o.form, refLocalidadIdEmpresa: hit.id, localidadDescripcion: hit.nombre } }));
+    }
+  }, [emplLocaSelect.data, data?.localidadDescripcionEmpresa, data?.localidadDescripcion, data?.localidadNombre]);
+  useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+
+
+  useEffect(() => {
+
+    if (!oficioSelect.options?.length) return;
+    if (oficioSelect.selected && oficioSelect.selected.value) return;
+    const nombreOficio = data?.oficioDescripcion ?? data?.oficio ?? data?.oficioNombre ?? data?.oficioDescripcionAfiliado;
+    if (!nombreOficio) return;
+    const hit = (oficioSelect.options || []).find((opt) => {
+      const lab = String(opt.label || "").toLowerCase();
+      const nombre = String(nombreOficio || "").toLowerCase();
+      return lab === nombre || lab.includes(nombre) || nombre.includes(lab);
+    });
+    if (hit) {
+      setOficioSelect((o) => ({ ...o, selected: hit, origen: 'option' }));
+      setState((o) => ({ ...o, form: { ...o.form, oficioId: hit.value, oficio: hit.label } }));
+    }
+  }, [oficioSelect.options, oficioSelect.selected, data?.oficioDescripcion, data?.oficio, data?.oficioNombre]);
+
+  useEffect(() => {
+
+    if (!actividadSelect.options?.length) return;
+    if (actividadSelect.selected && actividadSelect.selected.value) return;
+    const nombreActTrab = data?.actividadIdAfiliadoDescripcion ?? data?.actividadPrincipalDescripcion ?? data?.actividadDescripcionAfiliado ?? data?.actividadDescripcion ?? data?.actividad;
+    if (!nombreActTrab) return;
+    const hit = (actividadSelect.options || []).find((opt) => {
+      const lab = String(opt.label || "").toLowerCase();
+      const nombre = String(nombreActTrab || "").toLowerCase();
+      return lab === nombre || lab.includes(nombre) || nombre.includes(lab);
+    });
+    if (hit) {
+      setActividadSelect((o) => ({ ...o, selected: hit, origen: 'option' }));
+      setState((o) => ({ ...o, form: { ...o.form, actividadIdAfiliado: hit.value, actividadAfiliado: hit.label } }));
+    }
+  }, [actividadSelect.options, actividadSelect.selected, data?.actividadIdAfiliadoDescripcion, data?.actividadPrincipalDescripcion, data?.actividadDescripcionAfiliado, data?.actividadDescripcion]);
+
+  useEffect(() => {
+
+    if (!ciiuSelect.options?.length) return;
+    if (ciiuSelect.selected && ciiuSelect.selected.value) return;
+    const nombreActEmp = data?.actividadIdEmpresaDescripcion ?? data?.actividadDescripcionEmpresa ?? data?.actividadEmpresa ?? data?.actividadDescripcion ?? data?.actividad;
+    if (!nombreActEmp) return;
+    const hit = (ciiuSelect.options || []).find((opt) => {
+      const lab = String(opt.label || "").toLowerCase();
+      const nombre = String(nombreActEmp || "").toLowerCase();
+      return lab === nombre || lab.includes(nombre) || nombre.includes(lab);
+    });
+    if (hit) {
+      setCiiuSelect((o) => ({ ...o, selected: hit, origen: 'option' }));
+      setState((o) => ({ ...o, form: { ...o.form, actividadIdEmpresa: hit.value, actividadEmpresa: hit.label } }));
+    }
+  }, [ciiuSelect.options, ciiuSelect.selected, data?.actividadIdEmpresaDescripcion, data?.actividadDescripcionEmpresa, data?.actividadEmpresa, data?.actividadDescripcion]);
+
+  // READONLY banderas
+  const isRO = !!readOnly;
+  const disTrab = isRO || !state.validado.trabajador;
+  const disEmpl = isRO || !state.validado.empleador;
+
+
+  // PREFILL (data  readOnly)
+  useEffect(() => {
+    if (!data || Object.keys(data).length === 0) return;
+    setState((o) => ({
+      ...o,
+      form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
+      validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
+    }));
+  }, [data, readOnly]);
+
+  const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
+    if (!id) return;
+    setter((o) => {
+      const hit = (o.options || optionsState.options || []).find(match) || {};
+      return { ...o, selected: hit, origen: hit.value ? "option" : o.origen };
+    });
+  };
+
+  useEffect(() => {
+    if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
+    setLocalidadesQuery((o) => ({
+      ...o,
+      query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
+      onPreLoad: () => setEmplLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
+      onLoad: ({ ok, error }) =>
+        setEmplLocaSelect((s) => ({
+          ...s,
+          data: Array.isArray(ok) ? ok : [],
+          loading: null,
+          error: error?.toString(),
+          selected: { value: data.refLocalidadIdEmpresa, record: (ok || []).find((r) => r.id === data.refLocalidadIdEmpresa) || {} },
+          origen: "option",
+        })),
+    }));
+  }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
+ 
+
+  //#endregion selects
+
+  //#region inicializaciones
+
+  //#region Carga inicial select seccional
+  useEffect(() => {
+    if (seccIdUsuario) return;
+    const cargarPorAfiliado = !!cuilUsuario;
+
+    if (cargarPorAfiliado) {
+      setAfiliadoByCuilQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { CUIL: String(cuilUsuario).replace(/\D+/g, "") },
+        },
+        onLoad: ({ ok }) => {
+          const refLocalidadId = ok?.refLocalidadId ?? ok?.refLocalidadIdAfiliado ?? 0;
+          if (!refLocalidadId) {
+            // Fallback a listado general de seccionales activas
+            setSeccionalesQuery((p) => ({
+              ...p,
+              query: {
+                ...p.query,
+                params: { ...(p.query?.params || {}), soloActivos: true },
+              },
+              onLoad: ({ ok: seccOk, error }) => {
+                let data = [];
+                if (Array.isArray(seccOk)) data = seccOk;
+                
+                const hijas = [];
+                data.forEach((s) => {
+                  if (Array.isArray(s.seccionalLocalidad)) {
+                    hijas.push(...s.seccionalLocalidad);
+                  }
+                });
+                if (hijas.length) {
+
+                  const porId = new Map();
+                  [...data, ...hijas].forEach((s) => {
+                    if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                  });
+                  data = Array.from(porId.values());
+                }
+                setSeccionalSelect((s) => ({
+                  ...s,
+                  loading: null,
+                  data,
+                  error: error?.toString(),
+                }));
+              },
+            }));
+            return;
+          }
+
+          setSeccionalesQuery((p) => ({
+            ...p,
+            query: {
+              ...p.query,
+              params: { ...(p.query?.params || {}), soloActivos: true, LocalidadId: refLocalidadId },
+            },
+            onLoad: ({ ok: seccOk, error }) => {
+              let data = [];
+              if (Array.isArray(seccOk)) data = seccOk;
+
+              const hijas = [];
+              data.forEach((s) => {
+                if (Array.isArray(s.seccionalLocalidad)) {
+                  hijas.push(...s.seccionalLocalidad);
+                }
+              });
+              if (hijas.length) {
+                const porId = new Map();
+                [...data, ...hijas].forEach((s) => {
+                  if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                });
+                data = Array.from(porId.values());
+              }
+              setSeccionalSelect((s) => ({
+                ...s,
+                loading: null,
+                data,
+                error: error?.toString(),
+              }));
+            },
+          }));
+        },
+      }));
+    } else {
+
+      setSeccionalesQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { ...(o.query?.params || {}), soloActivos: true },
+        },
+        onLoad: ({ ok, error }) => {
+          let data = [];
+          if (Array.isArray(ok)) data = ok;
+          setSeccionalSelect((s) => ({
+            ...s,
+            loading: null,
+            data,
+            error: error?.toString(),
+          }));
+        },
+      }));
+    }
+  }, [setSeccionalesQuery, setAfiliadoByCuilQuery, seccIdUsuario, cuilUsuario]);
+  //#endregion Carga inicial select seccional
+
+  // Prefill seccional cuando la lista de seccionales fue cargada y el registro trae info
+  useEffect(() => {
+    if (!seccionalSelect.data || seccionalSelect.data.length === 0) return;
+    const sid = data?.seccionalId ?? data?.seccional?.id ?? data?.seccionalIdEmpresa ?? data?.seccionalid ?? 0;
+    const sdesc = data?.seccionalDescripcion ?? data?.seccional ?? data?.seccionalDescripcionEmpresa ?? data?.seccionalNombre;
+    let selected = {};
+    if (sid) {
+      selected = seccionalSelect.data.find((r) => Number(r.id) === Number(sid)) || {};
+      if (selected) selected = { value: selected.id, label: [selected.codigo, selected.descripcion].join(' - '), record: selected };
+    }
+    if (!selected || !selected.value) {
+      if (sdesc) {
+        const hit = seccionalSelect.data.find((r) => (r.descripcion || r.nombre || '').toString().toLowerCase() === String(sdesc).toLowerCase());
+        if (hit) selected = { value: hit.id, label: [hit.codigo, hit.descripcion].join(' - '), record: hit };
+      }
+    }
+    if (selected && selected.value) {
+      setSeccionalSelect((o) => ({ ...o, selected, origen: 'option' }));
+      setState((o) => ({ ...o, form: { ...o.form, seccionalId: selected.record?.id, seccional: selected.record?.nombre } }));
+    }
+  }, [seccionalSelect.data, data?.seccionalId, data?.seccional, data?.seccionalDescripcion]);
+
+  //#region Carga inicial select tipo documento
+  useEffect(() => {
+    setTiposDocumentosQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setTipoDocumentoSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setTiposDocumentosQuery]);
+  //#endregion Carga inicial select tipo documento
+
+  //#region Carga inicial select nacionalidad
+  useEffect(() => {
+    setNacionalidadesQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setNacionalidadSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setNacionalidadesQuery]);
+  //#endregion Carga inicial select nacionalidad
+
+  //#region Carga inicial select estado civil
+  useEffect(() => {
+    setEstadosCivilesQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setEstadoCivilSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setEstadosCivilesQuery]);
+  //#endregion Carga inicial select estado civil
+
+  //#region Carga inicial select sexo
+  useEffect(() => {
+    setSexosQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setSexoSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setSexosQuery]);
+  //#endregion Carga inicial select sexo
+
+  //#region Carga inicial selects provincias
+  useEffect(() => {
+    setProvinciasQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        const changes = {
+          data,
+          loading: null,
+          error: error?.toString(),
+        };
+        setTrabPciaSelect((o) => ({ ...o, ...changes }));
+        setEmplPciaSelect((o) => ({ ...o, ...changes }));
+      },
+    }));
+  }, [setProvinciasQuery]);
+  //#endregion Carga inicial selects provincias
+
+  //#region Carga inicial selects oficios
+  useEffect(() => {
+    setOficiosQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setOficioSelect((o) => ({
+          ...o,
+          data,
+          loading: null,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setOficiosQuery]);
+  //#endregion Carga inicial selects oficios
+
+  //#region Carga inicial selects actividades
+  useEffect(() => {
+    setActividadesQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setActividadSelect((o) => ({
+          ...o,
+          data,
+          loading: null,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setActividadesQuery]);
+  //#endregion Carga inicial selects actividades
+
+  //#region Carga inicial select ciiu
+  useEffect(() => {
+    setCIIUsQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        setCiiuSelect((o) => ({
+          ...o,
+          loading: null,
+          data,
+          error: error?.toString(),
+        }));
+      },
+    }));
+  }, [setCIIUsQuery]);
+  //#endregion Carga inicial select ciiu
+
+  //#endregion inicializaciones
+
+  let content = null;
+  if (state.base64) {
+    content = (
+      <Grid full style={{ minHeight: "70vh" }}>
+        {pdfUrl ? (
+          <iframe
+            title="SolicitudAfiliacion.pdf"
+            src={pdfUrl}
+            style={{ width: "100%", height: "70vh", border: 0 }}
+          />
+        ) : (
+          <div>Generando vista previa...</div>
+        )}
+      </Grid>
+    );
+  } else {
+    const FormularioPanel = (
+      <Grid full col gap="10px">
+        <Grid width gap="inherit">
+          <Grid width style={seccIdUsuario ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
+            <SearchSelectMaterial
+              id="seccionalId"
+              readOnly={isRO || !!seccIdUsuario}
+              autoFocus
+              label="Seccional"
+              error={
+                !!(
+                  seccionalSelect.error || state.errors.seccionalId
+                )
+              }
+              helperText={
+                seccionalSelect.loading ??
+                seccionalSelect.error ??
+                state.errors.seccionalId
+              }
+              value={seccionalSelect.selected}
+              onChange={(selected = {}) => {
+                setSeccionalSelect((o) => ({
+                  ...o,
+                  selected,
+                  origen: "option",
+                }));
+                setState((o) => ({
+                  ...o,
+                  form: {
+                    ...o.form,
+                    seccionalId: selected.record?.id,
+                    seccional: selected.record?.nombre,
+                  },
+                  validado: {
+                    ...o.validado,
+                    seccionalId: !!selected.record?.id
+                  },
+                  errors: {
+                    ...o.errors,
+                    seccionalId: selected.record?.id ? "" : "Dato requerido"
+                  }
+                }));
+              }}
+              options={seccionalSelect.options}
+              onTextChange={(buscar) => {
+                setSeccionalSelect((o) => ({
+                  ...o,
+                  buscar,
+                  origen: "text",
+                }));
+                setState((o) => ({
+                  ...o,
+                  validado: {
+                    ...o.validado,
+                    seccionalId: !!buscar
+                  },
+                  errors: {
+                    ...o.errors,
+                    seccionalId: buscar ? "" : "Dato requerido"
+                  }
+                }))
+              }}
+            />
+          </Grid>
+          <Grid width>
+            <InputMaterial
+              id="fecha"
+              type="date"
+              disabled={isRO}
+              readOnly={isRO}
+              label="Fecha"
+              value={state.form.fecha}
+              error={state.errors.fecha}
+              onChange={(v) =>
+                setState((o) => ({
+                  ...o,
+                  form: { ...o.form, fecha: v?.format("YYYY-MM-DD") },
+                  validado: {
+                    ...o.validado,
+                    fecha: !!v
+                  },
+                  errors: {
+                    ...o.errors,
+                    fecha: v ? "" : "Dato requerido"
+                  }
+                }))
+              }
+            />
+          </Grid>
+        </Grid>
+        <Grid col width gap="inherit" style={styles.group}>
+          <Grid width style={styles.titulo}>
+            Trabajador
+          </Grid>
+          <Grid col gap="inherit">
+            <Grid gap="inherit">
+              <Grid width="200px">
+                <InputMaterial
+                  id="cuil"
+                  disabled={isRO}
+                  readOnly={isRO}
+                  autoFocus={false}
+                  mask={CUITMask}
+                  label="CUIL"
+                  value={state.form.cuil}
+                  error={!!state.errors.cuil}
+                  helperText={state.errors.cuil}
+                  onChange={(v) =>
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        cuil: onlyDigits(v)
+                      },
+                    }))
+                  }
+                />
+              </Grid>
+              <Grid col width="100px">
+                <Button
+                  className="botonAzul"
+                  disabled={isRO}
+                  onClick={() => {
+                    const changes = {
+                      form: {},
+                      errors: { cuil: "" },
+                    };
+                    const cuit = state.form.cuil;
+                    const apply = () =>
+                      setState((o) => {
+                        const state = {
+                          ...o,
+                          form: {
+                            ...o.form,
+                            ...changes.form,
+                          },
+                          errors: {
+                            ...o.errors,
+                            ...changes.errors,
+                          },
+                        };
+                        state.validado = {
+                          ...o.validado,
+                          trabajador: true//!state.errors.cuil,
+                        };
+                        return state;
+                      });
+                    if (cuit) {
+
+                      setAfiliadoByCuilQuery((o) => ({
+                        ...o,
+                        loading: "Trabajador",
+                        query: {
+                          ...o.query,
+                          params: { ...o.query.params, CUIL: cuit, IncludeRelatedTables: false },
+                        },
+                        onLoad: ({ query, ok, error }) => {
+
+                          if (ok && Object.keys(ok || {}).length) {
+
+                            changes.errors.cuil = "Este cuil es de un afiliado existente";
+                            changes.form.trabajadorExisteEnBD = true;
+
+                            changes.form.trabajadorExisteEnAFIP = false;
+                            apply();
+                            setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
+                            return;
+                          }
+
+
+                          if (error && error.code && error.code !== 404) {
+                            changes.errors.cuil = error.toString();
+                            audit({
+                              modulo: "Consultas",
+                              proceso: "SolicitudPreviaAfiliacion",
+                              parametros: { ...query.params, ingreso: "trabajador" },
+                              observaciones: `Error consulta Afiliado/GetAfiliadoByCUIL: ${error.toString()}`,
+                            });
+
+                            changes.form.trabajadorExisteEnBD = false;
+                            apply();
+                            setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
+                            return;
+                          }
+
+                          setPadronAFIPQuery((o) => ({
+                            ...o,
+                            loading: "Trabajador",
+                            query: {
+                              ...o.query,
+                              params: { ...o.query.params, cuit },
+                            },
+                            onLoad: ({ query: q2, ok, error }) => {
+                                  if (error) {
+                                    if (error.code === 404) {
+                                      changes.errors.cuil = "No existe en ARCA";
+
+                                      changes.form.trabajadorExisteEnAFIP = false;
+                                    } else {
+                                      changes.errors.cuil = error.toString();
+                                      changes.form.trabajadorExisteEnAFIP = false;
+                                      audit({
+                                        modulo: "Consultas",
+                                        proceso: "SolicitudPreviaAfiliacion",
+                                        parametros: { ...q2.params, ingreso: "trabajador" },
+                                        observaciones: `Error consulta AFIP: ${error.toString()}`,
+                                      });
+                                    }
+                              } else {
+
+                                  changes.form.trabajadorExisteEnAFIP = true;
+                                  changes.form.trabajadorExisteEnBD = false;
+                                  changes.form.apellido = ok.apellido;
+                                changes.form.nombre = ok.nombre;
+                                changes.form.fechaNacimiento =
+                                  `${ok.fechaNacimiento}`.slice(0, 10);
+                                setTipoDocumentoSelect((o) => ({
+                                  ...o,
+                                  selected:
+                                    o.options.find(
+                                      (r) => r.label === ok.tipoDocumento
+                                    ) ?? {},
+                                }));
+                                changes.form.documento = ok.numeroDocumento;
+                                if (ok.domicilios?.length) {
+                                  const domicilio =
+                                    ok.domicilios.find(
+                                      (r) => r.tipoDomicilio === "LEGAL/REAL"
+                                    ) ?? ok.domicilios[0];
+                                  changes.form.domicilio = domicilio.direccion;
+                                  const pcia = trabPciaSelect.options.find(
+                                    (r) =>
+                                      r.record.idProvinciaAFIP ===
+                                      domicilio.idProvincia
+                                  );
+                                  setTrabPciaSelect((o) => ({
+                                    ...o,
+                                    selected: pcia,
+                                    origen: "option",
+                                  }));
+
+                                  setLocalidadesQuery((o) => ({
+                                    ...o,
+                                    query: {
+                                      ...o.query,
+                                      params: {
+                                        ...o.query.params,
+                                        provinciaId: pcia.value,
+                                      },
+                                    },
+                                    onPreLoad: () =>
+                                      setTrabLocaSelect((s) => ({
+                                        ...s,
+                          
+                                        selected: s && s.origen === 'afip' ? s.selected : s.selected,
+                                        loading: "Cargando...",
+                                      })),
+                                    onLoad: ({ ok, error }) => {
+                                      const dataArr = Array.isArray(ok) ? ok : [];
+                                      const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
+                                      const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
+                                        .replace(/\D+/g, "");
+                                      const hit = dataArr.find((r) => {
+                                        const nombre = String(r?.nombre || "").toLowerCase();
+                                        const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                        if (cpTarget && cp) return cp === cpTarget;
+                                        return nombreTarget && nombre === nombreTarget;
+                                      });
+
+                                      const selectedTrab = hit
+                                        ? {
+                                            value: hit.id,
+                                            label: [hit.codPostal, hit.nombre].join(" - "),
+                                            record: hit,
+                                          }
+                                        : domicilio?.localidad
+                                          ? {
+                                              value: null,
+                                              label: domicilio.localidad,
+                                              record: { id: 0, nombre: domicilio.localidad },
+                                            }
+                                          : {};
+
+                                      setTrabLocaSelect((s) => ({
+                                        ...s,
+                                        data: dataArr,
+                                        loading: null,
+                                        error: error?.toString(),
+                                        buscar: "",
+                                        selected: selectedTrab,
+                                        origen: hit ? "option" : 'afip',
+                                      }));
+
+                                      if (hit) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadIdAfiliado: hit.id,
+                                            refLocalidadNombreAfiliado: hit.nombre,
+                                            reflocalidadNombreAfiliado: hit.nombre,
+                                          },
+                                        }));
+                                      } else if (domicilio?.localidad) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+        
+                                            refLocalidadNombreAfiliado:
+                                              prev.form.refLocalidadNombreAfiliado || domicilio.localidad,
+                                            reflocalidadNombreAfiliado:
+                                              prev.form.reflocalidadNombreAfiliado || domicilio.localidad,
+                                            
+                                            refLocalidadIdAfiliado: prev.form.refLocalidadIdAfiliado || 0,
+                                          },
+                                        }));
+                                      }
+                                    },
+                                  }));
+                                }
+                              }
+                              apply();
+                              setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+                            },
+                          }));
+
+                          setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
+                        },
+                      }));
+                    } else {
+                      changes.errors.cuil = "Dato requerido";
+                      apply();
+                    }
+                  }}
+                  loading={padronAFIPQuery.loading === "Trabajador"}
+                >
+                  Valida
+                </Button>
+              </Grid>
+              <Grid width="200px">
+                <SearchSelectMaterial
+                  id="tipoDocumentoId"
+                  label="Tipo Doc."
+                  readOnly={isRO}
+                  error={
+                    !!(
+                      tipoDocumentoSelect.error || state.errors.tipoDocumentoId
+                    )
+                  }
+                  helperText={
+                    tipoDocumentoSelect.loading ??
+                    tipoDocumentoSelect.error ??
+                    state.errors.tipoDocumentoId
+                  }
+                  value={tipoDocumentoSelect.selected}
+                  disabled={!state.validado.trabajador}
+                  onChange={(selected = {}) => {
+                    setTipoDocumentoSelect((o) => ({
+                      ...o,
+                      selected,
+                      origen: "option",
+                    }));
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        tipoDocumentoId: selected.value,
+                        tipoDocumentoDescripcion: selected.label,
+                      },
+                    }));
+                  }}
+                  options={tipoDocumentoSelect.options}
+                  onTextChange={(buscar) =>
+                    setTipoDocumentoSelect((o) => ({
+                      ...o,
+                      buscar,
+                      origen: "text",
+                    }))
+                  }
+                />
+              </Grid>
+              <Grid width="200px">
+                <InputMaterial
+                  id="documento"
+                  mask={DNIMask}
+                  label="Número Doc."
+                  readOnly={isRO}
+                  value={state.form.documento}
+                  error={!!state.errors.documento}
+                  helperText={state.errors.documento}
+                  disabled={!state.validado.trabajador}
+                  onChange={(v) =>
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        documento: onlyDigits(v)
+                      },
+                    }))
+                  }
+                />
+              </Grid>
+              <Grid grow>
+                <SearchSelectMaterial
+                  id="nacionalidadSelect"
+                  label="Nacionalidad"
+                  readOnly={isRO}
+                  error={
+                    !!(nacionalidadSelect.error || state.errors.nacionalidadId)
+                  }
+                  helperText={
+                    nacionalidadSelect.loading ??
+                    nacionalidadSelect.error ??
+                    state.errors.nacionalidadId
+                  }
+                  value={nacionalidadSelect.selected}
+                  disabled={!state.validado.trabajador}
+                  onChange={(selected = {}) => {
+                    setNacionalidadSelect((o) => ({
+                      ...o,
+                      selected,
+                      origen: "option",
+                    }));
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        nacionalidadId: selected.value,
+                        nacionalidad: selected.label,
+                      },
+                    }));
+                  }}
+                  options={nacionalidadSelect.options}
+                  onTextChange={(buscar) =>
+                    setNacionalidadSelect((o) => ({
+                      ...o,
+                      buscar,
+                      origen: "text",
+                    }))
+                  }
+                />
+              </Grid>
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="apellido"
+                label="Apellidos"
+                readOnly={isRO}
+                value={state.form.apellido}
+                error={!!state.errors.apellido}
+                helperText={state.errors.apellido}
+                disabled={!state.validado.trabajador}
+                onChange={(apellido) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      apellido,
+                    },
+                  }))
+                }
+              />
+              <InputMaterial
+                id="nombre"
+                label="Nombres"
+                readOnly={isRO}
+                value={state.form.nombre}
+                error={!!state.errors.nombre}
+                helperText={state.errors.nombre}
+                disabled={!state.validado.trabajador}
+                onChange={(nombre) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      nombre,
+                    },
+                  }))
+                }
+              />
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="fechaNacimiento"
+                type="date"
+                label="Fecha de nacimiento"
+                readOnly={isRO}
+                value={state.form.fechaNacimiento}
+                error={state.errors.fechaNacimiento}
+                disabled={!state.validado.trabajador}
+                onChange={(v) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      fechaNacimiento: v?.format("YYYY-MM-DD"),
+                    },
+                  }))
+                }
+              />
+              <SearchSelectMaterial
+                id="estadoCivilSelect"
+                label="Estado civil"
+                readOnly={isRO}
+                error={
+                  !!(estadoCivilSelect.error || state.errors.estadoCivilId)
+                }
+                helperText={
+                  estadoCivilSelect.loading ??
+                  estadoCivilSelect.error ??
+                  state.errors.estadoCivil
+                }
+                value={estadoCivilSelect.selected}
+                disabled={!state.validado.trabajador}
+                onChange={(selected = {}) => {
+                  setEstadoCivilSelect((o) => ({
+                    ...o,
+                    selected,
+                    origen: "option",
+                  }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      estadoCivilId: selected.value,
+                      estadoCivil: selected.label,
+                    },
+                  }));
+                }}
+                options={estadoCivilSelect.options}
+                onTextChange={(buscar) =>
+                  setEstadoCivilSelect((o) => ({
+                    ...o,
+                    buscar,
+                    origen: "text",
+                  }))
+                }
+              />
+              <SearchSelectMaterial
+                id="sexoSelect"
+                label="Sexo"
+                readOnly={isRO}
+                error={!!(sexoSelect.error || state.errors.sexoId)}
+                helperText={
+                  sexoSelect.loading ?? sexoSelect.error ?? state.errors.sexoId
+                }
+                value={sexoSelect.selected}
+                disabled={!state.validado.trabajador}
+                onChange={(selected = {}) => {
+                  setSexoSelect((o) => ({ ...o, selected, origen: "option" }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      sexoId: selected.value,
+                      sexoDescripcion: selected.label,
+                    },
+                  }));
+                }}
+                options={sexoSelect.options}
+                onTextChange={(buscar) =>
+                  setSexoSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="domicilio"
+                label="Domicilio real"
+                readOnly={isRO}
+                value={state.form.domicilio}
+                error={!!state.errors.domicilio}
+                helperText={state.errors.domicilio}
+                disabled={!state.validado.trabajador}
+                onChange={(domicilio) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      domicilio,
+                    },
+                  }))
+                }
+              />
+              <SearchSelectMaterial
+                id="trabPciaSelect"
+                label="Provincia"
+                error={!!(trabPciaSelect.error || state.errors.provinciaId)}
+                helperText={
+                  trabPciaSelect.loading ??
+                  trabPciaSelect.error ??
+                  state.errors.provinciaId
+                }
+                value={trabPciaSelect.selected}
+                disabled={disTrab}
+                onChange={(selected = {}) => {
+                  setTrabPciaSelect((o) => ({
+                    ...o,
+                    selected,
+                    origen: "option",
+                  }));
+
+                  setLocalidadesQuery((o) => ({
+                    ...o,
+                    query: {
+                      ...o.query,
+                      params: {
+                        ...o.query.params,
+                        provinciaId: selected.value,
+                      },
+                    },
+                    onPreLoad: () =>
+                      setTrabLocaSelect((o) => ({
+                        ...o,
+                        selected: {},
+                        loading: "Cargando...",
+                      })),
+                    onLoad: ({ ok, error }) =>
+                      setTrabLocaSelect((o) => ({
+                        ...o,
+                        data: Array.isArray(ok) ? ok : [],
+                        loading: null,
+                        error: error?.toString(),
+                        selected: { record: { codPostal: 99999 } },
+                        origen: "option",
+                      })),
+                  }));
+
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      provinciaId: selected.value,
+                      provinciaNombre: selected.record?.nombre,
+                      refLocalidadIdAfiliado: 0,
+                      reflocalidadNombreAfiliado: "",
+                    },
+                  }));
+                }}
+                options={trabPciaSelect.options}
+                onTextChange={(buscar) =>
+                  setTrabPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+              {isRO ? (
+                <InputMaterial
+                  id="trabLocalidadRead"
+                  label="Localidad"
+                  readOnly
+                  value={
+                    state.form.refLocalidadNombreAfiliado || state.form.reflocalidadNombreAfiliado || state.form.nombreLocalidadAfiliado || ""
+                  }
+                />
+              ) : (
+                <SearchSelectMaterial
+                  id="trabLocaSelect"
+                  label="Localidad"
+                  readOnly={isRO}
+                  error={
+                    !!(
+                      trabLocaSelect.error || state.errors.refLocalidadIdAfiliado
+                    )
+                  }
+                  helperText={
+                    trabLocaSelect.loading ??
+                    trabLocaSelect.error ??
+                    state.errors.localidad
+                  }
+                  value={trabLocaSelect.selected}
+                  disabled={!state.validado.trabajador}
+                  onChange={(selected = {}) => {
+                    setTrabLocaSelect((o) => ({
+                      ...o,
+                      selected,
+                      origen: "option",
+                    }));
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        refLocalidadIdAfiliado: selected.record?.id,
+                        refLocalidadNombreAfiliado: selected.record?.nombre,
+                      },
+                    }));
+                  }}
+                  options={trabLocaSelect.options}
+                  onTextChange={(buscar) =>
+                    setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
+                  }
+                />
+              )}
+            </Grid>
+            <Grid width gap="inherit">
+              <SearchSelectMaterial
+                id="oficioSelect"
+                label="Oficio"
+                error={!!(oficioSelect.error || state.errors.oficioId)}
+                helperText={
+                  oficioSelect.loading ??
+                  oficioSelect.error ??
+                  state.errors.oficioId
+                }
+                value={oficioSelect.selected}
+                disabled={disTrab}
+                onChange={(selected = {}) => {
+                  setOficioSelect((o) => ({
+                    ...o,
+                    selected,
+                    origen: "option",
+                  }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      oficioId: selected.value,
+                      oficio: selected.label,
+                    },
+                  }));
+                }}
+                options={oficioSelect.options}
+                onTextChange={(buscar) =>
+                  setOficioSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+              <SearchSelectMaterial
+                id="actividadSelect"
+                label="Actividad que desarrolla"
+                error={
+                  !!(actividadSelect.error || state.errors.actividadIdAfiliado)
+                }
+                helperText={
+                  actividadSelect.loading ??
+                  actividadSelect.error ??
+                  state.errors.actividadIdAfiliado
+                }
+                value={actividadSelect.selected}
+                disabled={disTrab}
+                onChange={(selected = {}) => {
+                  setActividadSelect((o) => ({
+                    ...o,
+                    selected,
+                    origen: "option",
+                  }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      actividadIdAfiliado: selected.value,
+                      actividadAfiliado: selected.label,
+                    },
+                  }));
+                }}
+                options={actividadSelect.options}
+                onTextChange={(buscar) =>
+                  setActividadSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="telefono"
+                readOnly={isRO}
+                type="tel"
+                label="Teléfono"
+                value={state.form.telefono}
+                error={!!state.errors.telefono}
+                helperText={state.errors.telefono}
+                disabled={disTrab}
+                onChange={(telefono) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      telefono,
+                    },
+                  }))
+                }
+              />
+              <InputMaterial
+                id="email"
+                label="Correo"
+                value={state.form.email}
+                error={!!state.errors.email}
+                helperText={state.errors.email}
+                disabled={disTrab}
+                onChange={(email) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      email,
+                    },
+                  }))
+                }
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid col width gap="inherit" style={styles.group}>
+          <Grid width style={styles.titulo}>
+            Empleador
+          </Grid>
+          <Grid col gap="inherit">
+            <Grid gap="inherit">
+              <Grid width="200px">
+                <InputMaterial
+                  id="cuitEmpresa"
+                  mask={CUITMask}
+                  label="CUIT"
+                  value={state.form.cuitEmpresa}
+                  error={!!state.errors.cuitEmpresa}
+                  helperText={state.errors.cuitEmpresa}
+                  disabled={isRO}
+                  onChange={(v) =>
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        cuitEmpresa: onlyDigits(v)
+                      },
+                    }))
+                  }
+                />
+              </Grid>
+              <Grid col width="100px">
+
+                <Button
+                  className="botonAzul"
+                  disabled={isRO}
+                  onClick={() => {
+                    const changes = {
+                      form: {},
+                      errors: { cuitEmpresa: "" },
+                    };
+                    const cuit = state.form.cuitEmpresa;
+                    const apply = () =>
+                      setState((o) => {
+                        const s = {
+                          ...o,
+                          form: {
+                            ...o.form,
+                            ...changes.form,
+                          },
+                          errors: {
+                            ...o.errors,
+                            ...changes.errors,
+                          },
+                        };
+                        s.validado = {
+                          ...o.validado,
+                          empleador: true,
+                        };
+                        return s;
+                      });
+                    if (cuit) {
+                      setPadronAFIPQuery((o) => ({
+                        ...o,
+                        loading: "Empleador",
+                        query: {
+                          ...o.query,
+                          params: { ...o.query.params, cuit },
+                        },
+                        onLoad: ({ query, ok, error }) => {
+                          if (error) {
+                            changes.errors.cuitEmpresa =
+                              error.code === 404 ? "No existe en ARCA" : error.toString();
+                            changes.form.empleadorExisteEnAFIP = false;
+                          } else {
+                            changes.form.empleadorExisteEnAFIP = true;
+                            changes.form.razonSocial =
+                              ok.razonSocial || ok.nombre;
+                            if (ok.domicilios?.length) {
+                              const domicilio =
+                                ok.domicilios.find(
+                                  (r) => r.tipoDomicilio === "LEGAL/REAL"
+                                ) ?? ok.domicilios[0];
+                              changes.form.domicilioEmpresa =
+                                domicilio.direccion;
+                              //Modificado Mauro
+                              const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
+                              const pcia =
+                                (emplPciaSelect.options || []).find(
+                                  (r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
+                                ) || null;
+
+                              if (pcia) {
+                                setEmplPciaSelect((o) => ({
+                                  ...o,
+                                  selected: pcia,
+                                  origen: "option",
+                                }));
+
+                                setLocalidadesQuery((o) => ({
+                                  ...o,
+                                  query: {
+                                    ...o.query,
+                                    params: { ...o.query.params, provinciaId: pcia?.value },
+                                  },
+                                  onPreLoad: () =>
+                                    setEmplLocaSelect((s) => ({
+                                      ...s,
+                                     
+                                      selected: s && s.origen === 'afip' ? s.selected : s.selected,
+                                      loading: "Cargando...",
+                                    })),
+                                  onLoad: ({ ok, error }) => {
+                                    const dataArr = Array.isArray(ok) ? ok : [];
+                                    const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
+                                    const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
+                                      .replace(/\D+/g, "");
+                                    const hit = dataArr.find((r) => {
+                                      const nombre = String(r?.nombre || "").toLowerCase();
+                                      const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                      if (cpTarget && cp) return cp === cpTarget;
+                                      return nombreTarget && nombre === nombreTarget;
+                                    });
+
+                                    setEmplLocaSelect((s) => ({
+                                        ...s,
+                                        data: dataArr,
+                                        loading: null,
+                                        error: error?.toString(),
+                                        buscar: "",
+                                        selected: hit
+                                          ? {
+                                              value: hit.id,
+                                              label: [hit.codPostal, hit.nombre].join(" - "),
+                                              record: hit,
+                                            }
+                                          : domicilio?.localidad
+                                            ? {
+                                                value: null,
+                                                label: domicilio.localidad,
+                                                record: { id: 0, nombre: domicilio.localidad },
+                                              }
+                                            : {},
+                                        origen: hit ? "option" : 'afip',
+                                      }));
+
+                                      if (hit) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadIdEmpresa: hit.id,
+                                            nombreLocalidadEmpresa: hit.nombre,
+                                          },
+                                        }));
+                                      } else if (domicilio?.localidad) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            nombreLocalidadEmpresa:
+                                              prev.form.nombreLocalidadEmpresa || domicilio.localidad,
+                                            refLocalidadIdEmpresa: prev.form.refLocalidadIdEmpresa || 0,
+                                          },
+                                        }));
+                                      }
+                                  },
+                                }));
+                              } else {
+                                setEmplPciaSelect((o) => ({
+                                  ...o,
+                                  selected: { record: { id: 0, nombre: domicilio?.provincia ?? "" }, },
+                                  origen: "text",
+                                }));
+                                setEmplLocaSelect((o) => ({
+                                  ...o,
+                                  data: o.data ?? [],
+                                  selected: { record: { nombre: domicilio?.localidad ?? "" }, },
+                                  origen: "text",
+                                }));
+                              }
+                            }
+
+                            if (ok.idActividadPrincipal) {
+                              const actividad = ciiuSelect.options.find(
+                                (r) => r.record.ciiu === ok.idActividadPrincipal
+                              );
+                              setCiiuSelect((o) => ({
+                                ...o,
+                                selected: actividad,
+                              }));
+                            }
+                          }
+                          apply();
+                          setPadronAFIPQuery((o) => ({ ...o, loading: null }));
+                        },
+                      }));
+                    } else {
+                      changes.errors.cuitEmpresa = "Dato requerido";
+                      apply();
+                    }
+                  }}
+                  loading={padronAFIPQuery.loading === "Empleador"}
+                >
+                  Valida
+                </Button>
+              </Grid>
+              <Grid grow>
+                <InputMaterial
+                  id="razonSocial"
+                  label="Razon Social"
+                  value={state.form.razonSocial}
+                  error={!!state.errors.razonSocial}
+                  helperText={state.errors.razonSocial}
+                  disabled={disEmpl}
+                  onChange={(razonSocial) =>
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        razonSocial,
+                      }
+                    }))
+                  }
+                />
+              </Grid>
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="domicilioEmpresa"
+                label="Domicilio real"
+                readOnly={isRO}
+                value={state.form.domicilioEmpresa}
+                error={!!state.errors.domicilioEmpresa}
+                helperText={state.errors.domicilioEmpresa}
+                disabled={!state.validado.empleador}
+                onChange={(domicilioEmpresa) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      domicilioEmpresa,
+                    },
+                  }))
+                }
+              />
+              <SearchSelectMaterial
+                id="emplPciaSelect"
+                label="Provincia"
+                error={!!(emplPciaSelect.error || state.errors.provinciaidEmpresa)}
+                helperText={
+                  emplPciaSelect.loading ??
+                  emplPciaSelect.error ??
+                  state.errors.provinciaidEmpresa
+                }
+                value={emplPciaSelect.selected}
+                disabled={disEmpl}
+                onChange={(selected = {}) => {
+                  setEmplPciaSelect((o) => ({
+                    ...o,
+                    selected,
+                    origen: "option"
+                  }));
+                  setLocalidadesQuery((o) => ({
+                    ...o,
+                    query: {
+                      ...o.query,
+                      params: {
+                        ...o.query.params,
+                        provinciaId: selected.value,
+                      },
+                    },
+                    onPreLoad: () =>
+                      setEmplLocaSelect((s) => ({
+                        ...s,
+                        selected: {},
+                        loading: "Cargando...",
+                      })),
+                    onLoad: ({ ok, error }) =>
+                      setEmplLocaSelect((s) => ({
+                        ...s,
+                        data: Array.isArray(ok) ? ok : [],
+                        loading: null,
+                        error: error?.toString(),
+                        selected: { record: { codPostal: 99999 } },
+                        origen: "option",
+                      })),
+                  }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      provinciaidEmpresa: selected.value,
+                      provinciaNombreEmpresa: selected.label,
+                      refLocalidadIdEmpresa: 0,
+                      nombreLocalidadEmpresa: "",
+                    },
+                  }));
+                }}
+                options={emplPciaSelect.options}
+                onTextChange={(buscar) =>
+                  setEmplPciaSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+              {isRO ? (
+                <InputMaterial
+                  id="emplLocalidadRead"
+                  label="Localidad"
+                  readOnly
+                  value={state.form.nombreLocalidadEmpresa || ""}
+                />
+              ) : (
+                <SearchSelectMaterial
+                  id="emplLocaSelect"
+                  label="Localidad"
+                  readOnly={isRO}
+                  error={
+                    !!(emplLocaSelect.error || state.errors.refLocalidadIdEmpresa)
+                  }
+                  helperText={
+                    emplLocaSelect.loading ??
+                    emplLocaSelect.error ??
+                    state.errors.refLocalidadIdEmpresa
+                  }
+                  value={emplLocaSelect.selected}
+                  disabled={disEmpl}
+                  onChange={(selected = {}) => {
+                    setEmplLocaSelect((o) => ({
+                      ...o,
+                      selected,
+                      origen: "option",
+                    }));
+                    setState((o) => ({
+                      ...o,
+                      form: {
+                        ...o.form,
+                        refLocalidadIdEmpresa: selected.record?.id,
+                        nombreLocalidadEmpresa: selected.record?.nombre,
+                      },
+                    }));
+                  }}
+                  options={emplLocaSelect.options}
+                  onTextChange={(buscar) =>
+                    setEmplLocaSelect((o) => ({ ...o, buscar, origen: "text" }))
+                  }
+                />
+              )}
+            </Grid>
+            <Grid width gap="inherit">
+              <SearchSelectMaterial
+                id="ciiuSelect"
+                label="Actividad"
+                error={!!(ciiuSelect.error || state.errors.actividadIdEmpresa)}
+                helperText={
+                  ciiuSelect.loading ??
+                  ciiuSelect.error ??
+                  state.errors.actividadIdEmpresa
+                }
+                value={ciiuSelect.selected}
+                disabled={disEmpl}
+                onChange={(selected = {}) => {
+                  setCiiuSelect((o) => ({ ...o, selected, origen: "option" }));
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      actividadIdEmpresa: selected.value,
+                      actividadEmpresa: selected.label,
+                    },
+                  }));
+                }}
+                options={ciiuSelect.options}
+                onTextChange={(buscar) =>
+                  setCiiuSelect((o) => ({ ...o, buscar, origen: "text" }))
+                }
+              />
+            </Grid>
+            <Grid width gap="inherit">
+              <InputMaterial
+                id="telefonoEmpresa"
+                type="tel"
+                label="Teléfono"
+                value={state.form.telefonoEmpresa}
+                error={!!state.errors.telefonoEmpresa}
+                helperText={state.errors.telefonoEmpresa}
+                disabled={disEmpl}
+                onChange={(telefonoEmpresa) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      telefonoEmpresa,
+                    }
+                  }))
+                }
+              />
+              <InputMaterial
+                id="celularEmpresa"
+                type="tel"
+                label="Celular"
+                value={state.form.celularEmpresa}
+                error={!!state.errors.celularEmpresa}
+                helperText={state.errors.celularEmpresa}
+                disabled={disEmpl}
+                onChange={(celularEmpresa) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      celularEmpresa,
+                    }
+                  }))
+                }
+              />
+              <InputMaterial
+                id="emailEmpresa"
+                label="Correo"
+                value={state.form.emailEmpresa}
+                error={!!state.errors.emailEmpresa}
+                helperText={state.errors.emailEmpresa}
+                disabled={disEmpl}
+                onChange={(emailEmpresa) =>
+                  setState((o) => ({
+                    ...o,
+                    form: {
+                      ...o.form,
+                      emailEmpresa,
+                    }
+                  }))
+                }
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    );
+
+    const entidadId = data?.id ?? 0;
+    const entidadTipo = "F";
+
+    const DocumentacionPanel = (
+      <Grid full col gap="10px">
+
+
+
+        <Documentacion
+          data={documentacionList}
+          tipoDocumentacion={[
+            "Credencial",
+            "Documento de Identidad",
+            "Formulario",
+            "Otros",
+          ]}
+          disabled={readOnly}
+          onChange={({ index, item }) => {
+            // MANEJO DE ARCHIVOS: Esta función se ejecuta cuando se suben, modifican o eliminan archivos
+            console.log(' Operación en documentación:', {
+              tipo: index == null ? 'CREAR' : item == null ? 'ELIMINAR' : 'ACTUALIZAR',
+              index: index,
+              nombreArchivo: item?.nombreArchivo || 'N/A',
+              tipoDocumento: item?.refTipoDocumentacionDescripcion || 'N/A',
+              entidadId: entidadId,
+              entidadTipo: entidadTipo
+            });
+
+            const prev = [...documentacionList];
+
+            // === ALTA (CREAR NUEVO ARCHIVO)
+            if (index == null && item != null) {
+              console.log('CREANDO nuevo archivo:', item?.nombreArchivo);
+              const payload = mapDocToPayload(item, entidadId, entidadTipo);
+
+              // Actualización optimista (se ve inmediatamente en la UI)
+              const temp = [...prev, { ...payload, id: item.id ?? 0 }];
+              setDocumentacionList(temp);
+              setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
+
+              // Si no hay EntidadId todavía, solo guardamos localmente
+              if (!entidadId) {
+                console.log('⏳ Guardado local - se enviará al servidor cuando se confirme el formulario');
+                return;
+              }
+
+              // Enviar al servidor
+              createDocQuery(o => ({
+                ...o,
+                query: { ...o.query, config: { ...o.query?.config, body: payload } },
+                onLoad: ({ ok, error }) => {
+                  if (error) {
+                    console.error('❌ Error al crear archivo:', error);
+                    // Rollback
+                    setDocumentacionList(prev);
+                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+                  } else {
+                    console.log('✅ Archivo creado exitosamente:', ok);
+                    // Actualizar con el ID real del servidor
+                    const newId = ok?.id ?? item.id;
+                    const next = [...temp];
+                    next[next.length - 1] = { ...next[next.length - 1], id: newId };
+                    setDocumentacionList(next);
+                    setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+                  }
+                }
+              }));
+              return;
+            }
+
+            // === BAJA (ELIMINAR ARCHIVO)
+            if (index != null && item == null) {
+              const current = prev[index];
+              console.log(' ELIMINANDO archivo:', current?.nombreArchivo);
+              const id = current?.id;
+
+              if (!id) {
+                // Si no hay id, solo eliminar localmente
+                const next = prev.filter((_, i) => i !== index);
+                setDocumentacionList(next);
+                setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+                console.log(' Archivo eliminado localmente');
+                return;
+              }
+
+              // Actualización optimista
+              const next = prev.filter((_, i) => i !== index);
+              setDocumentacionList(next);
+              setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+
+              if (!entidadId) return;
+
+              // Eliminar del servidor
+              deleteDocQuery(o => ({
+                ...o,
+                query: {
+                  ...o.query,
+                  params: { ...(o.query?.params || {}), id },
+                  config: {
+                    ...o.query?.config,
+                    headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
+                  }
+                },
+                onLoad: ({ error }) => {
+                  if (error) {
+                    console.error('❌ Error al eliminar archivo:', error);
+                    // Rollback
+                    setDocumentacionList(prev);
+                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+                  } else {
+                    console.log('✅ Archivo eliminado del servidor exitosamente');
+                  }
+                }
+              }));
+              return;
+            }
+
+            // === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
+            if (index != null && item != null) {
+              const current = prev[index] || {};
+              console.log(' ACTUALIZANDO archivo:', current?.nombreArchivo);
+              const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
+
+              // Actualización optimista
+              const next = [...prev];
+              next.splice(index, 1, { ...current, ...item });
+              setDocumentacionList(next);
+              setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+
+              if (!entidadId) return;
+
+              // Actualizar en el servidor
+              updateDocQuery(o => ({
+                ...o,
+                query: { ...o.query, config: { ...o.query?.config, body: payload } },
+                onLoad: ({ error }) => {
+                  if (error) {
+                    console.error('❌ Error al actualizar archivo:', error);
+                    // Rollback
+                    setDocumentacionList(prev);
+                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
+                  } else {
+                    console.log('✅ Archivo actualizado exitosamente');
+                  }
+                }
+              }));
+              return;
+            }
+          }}
+        />
+        {!readOnly && (
+          <Button
+            className="botonAmarillo"
+            marginTop={3}
+            width={50}
+            onClick={() => setSelectedTab(0)}
+          >
+            CONFIRMA DOCUMENTACIÓN
+          </Button>
+        )}
+      </Grid>
+    );
+
+    const MostrarDocumentacion = (
+      <Grid full col gap="10px">
+        <Table
+          keyField="id"
+          data={Array.isArray(documentacionList) ? documentacionList : []}
+          columns={[
+            {
+              dataField: "refTipoDocumentacionDescripcion",
+              text: "Tipo Documentación",
+              style: { textAlign: "left" },
+            },
+            {
+              dataField: "nombreArchivo",
+              text: "Nombre del Archivo",
+              style: { textAlign: "left" },
+              formatter: (cell, row) =>
+                row?.url ? (
+                  <a href={row.url} target="_blank" rel="noreferrer">
+                    {cell || "(sin nombre)"}
+                  </a>
+                ) : (
+                  cell || "(sin nombre)"
+                ),
+            },
+          ]}
+          mostrarBuscar={true}
+          pagination={false}
+        />
+      </Grid>
+    );
+
+    content = (
+      <>
+        <Tabs value={selectedTab} onChange={handleChangeTab}>
+          <Tab label="Formulario" />
+          <Tab label="Documentación" />
+        </Tabs>
+        <div style={{ marginTop: 10 }}>
+          {selectedTab === 0 ? FormularioPanel : DocumentacionPanel}
+        </div>
+      </>
+    );
+  }
+
+
+
+
+  const onImprimie = () => {
+    // Validaciones simples primero
+    const errors = {};
+    const body = state.form;
+
+    //#region general
+    if (seccionalSelect.origen === "text") {
+      body.seccionalId = 0;
+      body.seccional = seccionalSelect.buscar;
+      errors.seccionalId = "Debe elegir una seccional"
+    } else {
+      body.seccionalId = seccionalSelect.selected.record?.id;
+      body.seccional = seccionalSelect.selected.record?.descripcion;
+      body.seccionalCodigo = seccionalSelect.selected.record?.codigo;
+    }
+    if (!body.seccional) errors.seccionalId = "Dato requerido";
+
+    if (!body.fecha) errors.fecha = "Dato requerido";
+    //#endregion general
+
+    //#region trabajador
+    if (!body.cuil) {
+      errors.cuil = "Dato requerido";
+    } else if (!ValidarCUIT(body.cuil)) {
+      errors.cuil = "Dato inválido";
+    }
+
+    if (tipoDocumentoSelect.origen === "text") {
+      body.tipoDocumentoId = 0;
+      body.tipoDocumentoDescripcion = tipoDocumentoSelect.buscar;
+    } else {
+      body.tipoDocumentoId = tipoDocumentoSelect.selected.record?.id;
+      body.tipoDocumentoDescripcion =
+        tipoDocumentoSelect.selected.record?.descripcion;
+    }
+    if (!body.tipoDocumentoDescripcion)
+      errors.tipoDocumentoId = "Dato requerido";
+
+    if (!body.documento) errors.documento = "Dato requerido";
+
+    if (nacionalidadSelect.origen === "text") {
+      body.nacionalidadId = 0;
+      body.nacionalidad = nacionalidadSelect.buscar;
+    } else {
+      body.nacionalidadId = nacionalidadSelect.selected.record?.id;
+      body.nacionalidad = nacionalidadSelect.selected.record?.descripcion;
+    }
+    if (!body.nacionalidad) errors.nacionalidadId = "Dato requerido";
+
+    if (!(body.apellido || body.nombre)) errors.nombre = "Dato requerido";
+    if (!body.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
+
+    if (estadoCivilSelect.origen === "text") {
+      body.estadoCivilId = 0;
+      body.estadoCivil = estadoCivilSelect.buscar;
+    } else {
+      body.estadoCivilId = estadoCivilSelect.selected.record?.id;
+      body.estadoCivil = estadoCivilSelect.selected.record?.descripcion;
+    }
+    if (!body.estadoCivil) errors.estadoCivilId = "Dato requerido";
+
+    if (sexoSelect.origen === "text") {
+      body.sexoId = 0;
+      body.sexoDescripcion = sexoSelect.buscar;
+    } else {
+      body.sexoId = sexoSelect.selected.record?.id;
+      body.sexoDescripcion = sexoSelect.selected.record?.descripcion;
+    }
+    if (!body.sexoDescripcion) errors.sexoId = "Dato requerido";
+
+    if (!body.domicilio) errors.domicilio = "Dato requerido";
+
+    if (trabPciaSelect.origen === "text") {
+      body.provinciaId = 0;
+      body.provinciaNombre = trabPciaSelect.buscar;
+    } else {
+      body.provinciaId = trabPciaSelect.selected.record?.id;
+      body.provinciaNombre = trabPciaSelect.selected.record?.nombre;
+    }
+    if (!body.provinciaNombre) errors.provinciaId = "Dato requerido";
+
+    if (trabLocaSelect.origen === "text") {
+      body.refLocalidadIdAfiliado = 0;
+      body.nombreLocalidadAfiliado = trabLocaSelect.buscar;
+    } else {
+      body.refLocalidadIdAfiliado = trabLocaSelect.selected.record?.id;
+      body.nombreLocalidadAfiliado = trabLocaSelect.selected.record?.nombre;
+    }
+    if (!body.nombreLocalidadAfiliado)
+      errors.refLocalidadIdAfiliado = "Dato requerido";
+
+    if (oficioSelect.origen === "text") {
+      body.oficioId = 0;
+      body.oficio = oficioSelect.buscar;
+    } else {
+      body.oficioId = oficioSelect.selected.record?.id;
+      body.oficio = oficioSelect.selected.record?.descripcion;
+    }
+    if (!body.oficio) errors.oficioId = "Dato requerido";
+
+    if (actividadSelect.origen === "text") {
+      body.actividadIdAfiliado = 0;
+      body.actividadAfiliado = actividadSelect.buscar;
+    } else {
+      body.actividadIdAfiliado = actividadSelect.selected.record?.id;
+      body.actividadAfiliado = actividadSelect.selected.record?.descripcion;
+    }
+    if (!body.actividadAfiliado) errors.actividadIdAfiliado = "Dato requerido";
+    if (body.telefono && !isPossiblePhoneNumber(body.telefono))
+      errors.telefono = "Dato inválido";
+    if (body.celular && !isPossiblePhoneNumber(body.celular))
+      errors.celular = "Dato inválido";
+    if (body.email && !ValidarEmail(body.email)) errors.email = "Dato inválido";
+
+    //#endregion trabajador
+
+    //#region empleador
+
+    if (!body.cuitEmpresa) {
+      errors.cuitEmpresa = "Dato requerido";
+    } else if (!ValidarCUIT(body.cuitEmpresa)) {
+      errors.cuitEmpresa = "Dato inválido";
+    }
+
+    if (!body.razonSocial) errors.razonSocial = "Dato requerido";
+
+    if (!body.domicilioEmpresa) errors.domicilioEmpresa = "Dato requerido";
+
+    if (emplPciaSelect.origen === "text") {
+      body.provinciaidEmpresa = 0;
+      body.provinciaNombreEmpresa = emplPciaSelect.buscar;
+    } else {
+      body.provinciaidEmpresa = emplPciaSelect.selected.record?.id;
+      body.provinciaNombreEmpresa = emplPciaSelect.selected.record?.nombre;
+    }
+    if (!body.provinciaNombreEmpresa)
+      errors.provinciaidEmpresa = "Dato requerido";
+
+    if (emplLocaSelect.origen === "text") {
+      body.refLocalidadIdEmpresa = 0;
+      body.nombreLocalidadEmpresa = emplLocaSelect.buscar;
+    } else {
+      body.refLocalidadIdEmpresa = emplLocaSelect.selected.record?.id;
+      body.nombreLocalidadEmpresa = emplLocaSelect.selected.record?.nombre;
+    }
+    if (!body.nombreLocalidadEmpresa)
+      errors.refLocalidadIdEmpresa = "Dato requerido";
+
+    if (ciiuSelect.origen === "text") {
+      body.actividadIdEmpresa = 0;
+      body.actividadEmpresa = ciiuSelect.buscar;
+    } else {
+      body.actividadIdEmpresa = ciiuSelect.selected.record?.id;
+      body.actividadEmpresa = ciiuSelect.selected.record?.descripcion;
+    }
+    if (!body.actividadEmpresa) errors.actividadIdEmpresa = "Dato requerido";
+    if (body.telefonoEmpresa && !isPossiblePhoneNumber(body.telefonoEmpresa))
+      errors.telefonoEmpresa = "Dato inválido";
+    if (body.celularEmpresa && !isPossiblePhoneNumber(body.celularEmpresa))
+      errors.celularEmpresa = "Dato inválido";
+    if (body.emailEmpresa && !ValidarEmail(body.emailEmpresa))
+      errors.emailEmpresa = "Dato inválido";
+
+    //#endregion empleador
+
+    if (Object.values(errors).filter((r) => r).length) {
+      setState((o) => ({ ...o, errors }));
+      return;
+    }
+
+    const despliega = async () => {
+      const datos = [{
+        fecha: Formato.Fecha(body.fecha),
+        seccional_nro: body.seccionalCodigo || "",
+        afiliado_nro: "",
+        trabajador: {
+          cuil: Formato.Cuit(body.cuil),
+          tipo_doc: body.tipoDocumentoDescripcion,
+          nro_doc: body.documento,
+          nacionalidad: body.nacionalidad,
+          apellidos: body.apellido,
+          nombres: body.nombre,
+          fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
+          estado_civil: body.estadoCivil,
+          sexo: body.sexoDescripcion,
+          domicilio: body.domicilio,
+          localidad: body.nombreLocalidadAfiliado,
+          provincia: body.provinciaNombre,
+          oficio: body.oficio,
+          actividad: body.actividadAfiliado,
+          telefono: body.telefono,
+          email: body.email,
+        },
+        empleador: {
+          cuit: Formato.Cuit(body.cuitEmpresa),
+          razon_social: body.razonSocial,
+          domicilio: body.domicilioEmpresa,
+          localidad: body.nombreLocalidadEmpresa,
+          provincia: body.provinciaNombreEmpresa,
+          actividad: body.actividadEmpresa,
+          telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
+          email: body.emailEmpresa,
+        },
+      }];
+      audit({
+        modulo: "Consultas",
+        proceso: "SolicitudPreviaAfiliacion",
+        parametros: datos[0],
+        observaciones: "Emite PDF con generador PDF-LIB",
+      });
+
+      const base64 = await generarPDFLibSolicitudAfiliacion({
+        datos,
+        descargar: false,
+        onBase64: () => { },
+        setPaginaActual: () => { },
+        setTotalPaginas: () => { },
+      });
+
+      setState((o) => ({
+        ...o,
+        // Guardamos solo el base64 puro y el contentType; el iframe usará un blob URL
+        base64: base64,
+        contentType: "application/pdf",
+      }));
+    };
+
+    // permie carga manual
+    setCreateFormQuery((o) => ({
+      ...o,
+      query: { ...o.query, config: { ...o.query.config, body } },
+      onPreLoad: () =>
+        setState((s) => ({ ...s, loading: "Enviando formulario..." })),
+      onLoad: ({ ok, error }) => {
+        const changes = { loading: null };
+
+        if (error) {
+          console.error('❌ Error al crear formulario:', error);
+          changes.errors = { create: error.toString() };
+        } else {
+          console.log('✅ Formulario creado exitosamente:', ok);
+
+          // Soporta { id }, { Id } o el id plano
+          const nuevoId = (ok && (ok.id ?? ok.Id)) ?? (Number.isFinite(ok) ? ok : null);
+
+          console.log(' ID del formulario creado:', nuevoId);
+
+          if (nuevoId) {
+            setState(s => ({ ...s, form: { ...s.form, id: nuevoId } }));
+
+            // PERSISTIR DOCUMENTACIÓN con el ID real
+            console.log(' Iniciando persistencia de documentación con ID:', nuevoId);
+            persistirDocumentacion(nuevoId);
+          } else {
+            console.warn(' No se pudo obtener el ID del formulario creado');
+          }
+
+          // Generar vista previa en PDF
+          console.log(' Generando vista previa PDF');
+          despliega();
+        }
+
+
+
+
+
+        setState((s) => ({ ...s, ...changes }));
+      },
+    }));
+  };
+
+
+  return (
+    <Modal size="xl" centered show>
+      <Modal.Header className={modalCss.modalCabecera}>
+        Solicitud previa de afiliación
+      </Modal.Header>
+      <Modal.Body>{content}</Modal.Body>
+      <Modal.Footer>
+        <Grid grid="auto / 1fr 150px 150px" width col gap="20px">
+          <Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
+          {state.base64 ? (
+            <div />
+          ) : (
+            !readOnly && selectedTab === 0 && (
+              <Button
+                className="botonAmarillo"
+                onClick={onImprimie}
+                loading={!!state.loading}
+                disabled={!(and(...Object.values(state.validado)) && !state.form.trabajadorExisteEnBD && state.form.trabajadorExisteEnAFIP && state.form.empleadorExisteEnAFIP)}
+              >
+                IMPRIME
+              </Button>
+            )
+          )}
+
+          <Button className="botonAmarillo" onClick={() => onClose(true)}>
+            FINALIZA
+          </Button>
+        </Grid>
+      </Modal.Footer>
+    </Modal>
+  );
 };
 
 export default SolicitudAfiliacionForm;
