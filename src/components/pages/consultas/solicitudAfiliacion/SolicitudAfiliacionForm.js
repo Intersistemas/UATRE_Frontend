@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
 import { isPossiblePhoneNumber } from "libphonenumber-js";
@@ -19,7 +19,6 @@ import SearchSelectMaterial, {
 } from "components/ui/Select/SearchSelectMaterial";
 import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
-import useSolicitudAfiliacion from "./SolicitudAfiliacion";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 import Table from "components/ui/Table/Table";
 
