@@ -24,6 +24,9 @@ import Table from "components/ui/Table/Table";
 
 import { Tabs, Tab } from "@mui/material";
 import Documentacion from "components/documentacion/Documentacion";
+import AuthContext from "store/authContext";
+import useAmbitos from "components/hooks/useAmbitos";
+import useHttp from "components/hooks/useHttp";
 
 const styles = {
   group: {
@@ -57,7 +60,13 @@ const seccionalSelectDef = {};
 const seccionalesSelectOptions = ({ data = [], buscar = "", ...x }) =>
   mapOptions({
     data,
-    map: (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }),
+    map: (r) => ({
+      value: r.id,
+      label: [r.seccionalCodigo ?? r.codigo, r.nombre ?? r.descripcion]
+        .filter((v) => v != null && v !== "")
+        .join(" - "),
+      record: r,
+    }),
     filter: (r) => includeSearch(r, buscar),
     start: [seccionalSelectDef],
     ...x,
@@ -172,10 +181,31 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", data = {}, readOnly = false, hidePrint = false, onClose = () => { }, initialTab = 0 }) => {
-
+ const SolicitudAfiliacionForm = ({
+   title = "Solicitud previa de afiliación",
+   data = {},
+   readOnly = false,
+   hidePrint = false,
+   onClose = () => { },
+   initialTab = 0,
+   request = "A", // "A" = Alta (nuevo formulario)
+ }) => {
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const handleChangeTab = (_e, v) => setSelectedTab(v);
+
+  const { usuario = {} } = useContext(AuthContext);
+  const seccIdsUsuario = usuario?.ambitoSeccionales?.ids;
+  const seccIdUsuario = Array.isArray(seccIdsUsuario) && seccIdsUsuario.length === 1 ? seccIdsUsuario[0] : null;
+
+  const cuilUsuario = usuario?.cuit ?? null;
+  
+
+ const ambitos = useAmbitos();
+ const ambito = ambitos?.ambitoUser ? ambitos.ambitoUser() : { tipo: null, ids: [] };
+  const { sendRequest } = useHttp();
+  useEffect(() => {
+    console.log("SolicitudAfiliacionForm mounted - auth/usuario:", { usuario });
+  }, [usuario]);
 
   //#region APIs
   const { setState: setSeccionalesQuery } = useQueryState(
@@ -188,6 +218,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }),
     { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
   );
+
   const { setState: setTiposDocumentosQuery } = useQueryState(
     () => ({
       config: {
@@ -289,7 +320,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         },
       }
     );
-  const { state: afiliadoByCuilQuery, setState: setAfiliadoByCuilQuery } =
+  const { setState: setAfiliadoByCuilQuery } =
     useQueryState(
       () => ({
         config: {
@@ -322,7 +353,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
       { query: { config: { errorType: "response" } } }
     );
 
-  const [documentacionList, setDocumentacionList] = useState([]);
   const { setState: setDocumentosQuery } = useQueryState(
     () => ({
       config: {
@@ -355,6 +385,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     { query: { config: { errorType: "response" } } }
   );
   //#endregion APIs
+  const [documentacionList, setDocumentacionList] = useState([]);
 
   const [state, setState] = useState({
     form: {
@@ -374,6 +405,35 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     loading: null,
     base64: null,
   });
+
+  const [pdfUrl, setPdfUrl] = useState(null);
+
+  useEffect(() => {
+    let url = null;
+    if (state.base64) {
+      try {
+        // state.base64 is expected to be the raw base64 string (no data: prefix)
+        const raw = state.base64.replace(/^data:.*;base64,/, "");
+        const byteCharacters = atob(raw);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: state.contentType || "application/pdf" });
+        url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (e) {
+        console.error("Error creando Blob URL desde base64:", e);
+        setPdfUrl(null);
+      }
+    } else {
+      setPdfUrl(null);
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [state.base64, state.contentType]);
 
   const { audit } = useAuditoriaProceso();
 
@@ -492,46 +552,57 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         payloadId: payload.id
       });
 
-      // Create vs Update según si trae id
-      if (payload.id) {
-        // ACTUALIZAR archivo existente
-        updateDocQuery(o => ({
-          ...o,
-          query: { ...o.query, config: { ...o.query?.config, body: payload } },
-          onLoad: ({ ok, error }) => {
-            if (error) {
+      try {
+        if (payload.id) {
+          // ACTUALIZAR archivo existente
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "PUT",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
+              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`, ok);
+            },
+            (error) => {
               console.error(`❌ Error al actualizar archivo ${item.nombreArchivo}:`, error);
-            } else {
-              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`);
             }
-          }
-        }));
-      } else {
-        // CREAR nuevo archivo
-        createDocQuery(o => ({
-          ...o,
-          query: {
-            ...o.query,
-            config: {
-              ...o.query?.config,
-              headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-              body: payload
-            }
-          },
-          onLoad: ({ ok, error }) => {
-            if (error) {
-              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
-            } else {
+          );
+        } else {
+          // CREAR nuevo archivo
+          await sendRequest(
+            {
+              baseURL: "Comunes",
+              endpoint: `/DocumentacionEntidad`,
+              method: "POST",
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+            },
+            (ok) => {
               console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
               if (ok?.id || ok?.Id) {
-                const nuevo = [...lista];
-                nuevo[i] = { ...item, id: ok.id ?? ok.Id };
-                setDocumentacionList(nuevo);
-                setState(s => ({ ...s, form: { ...s.form, documentacion: nuevo } }));
+                const newId = ok.id ?? ok.Id;
+                setDocumentacionList((prev) => {
+                  const next = Array.isArray(prev) ? [...prev] : [];
+                  if (i < next.length) {
+                    next[i] = { ...next[i], id: newId };
+                  } else {
+                    next.push({ ...item, id: newId });
+                  }
+                  setState((s) => ({ ...s, form: { ...s.form, documentacion: next } }));
+                  return next;
+                });
               }
+            },
+            (error) => {
+              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
             }
-          }
-        }));
+          );
+        }
+      } catch (e) {
+        console.error(`❌ Excepción procesando archivo ${item.nombreArchivo}:`, e);
       }
     }
 
@@ -541,7 +612,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#region select seccional
   const [seccionalSelect, setSeccionalSelect] = useState({
-    loading: "Cargando...",
+    loading: seccIdUsuario ? null : "Cargando...",
     buscar: "",
     data: [],
     error: null,
@@ -557,6 +628,110 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccional
+
+ useEffect(() => {
+   setSeccionalesQuery((o) => ({
+     ...o,
+     onLoad: ({ ok, error }) => {
+       let allData = [];
+       let seccionalesFiltered = [];
+       let seccionalPredeterminada = null;
+
+       if (Array.isArray(ok)) {
+         // 1) Traemos todas las seccionales
+         allData = ok.filter((r) => r.id !== 99999);
+         seccionalesFiltered = allData;
+
+         // 2) Si el usuario tiene ámbito Delegaciones y estamos en Alta ("A"),
+         //    filtramos solo las seccionales de su Delegación (refDelegacionId).
+         if (ambito?.tipo === "Delegaciones" && request === "A") {
+           const delegacionId = ambito.ids?.[0];
+           if (delegacionId) {
+             seccionalesFiltered = allData.filter(
+               (r) => r.refDelegacionId === delegacionId
+             );
+           }
+         }
+
+         // 3) Si el usuario tiene exactamente una Seccional asignada
+         //    (ámbito por seccional), priorizamos esa.
+         if (seccIdUsuario) {
+           const rec =
+             seccionalesFiltered.find((r) => r.id === seccIdUsuario) ||
+             allData.find((r) => r.id === seccIdUsuario);
+           if (rec) {
+             seccionalesFiltered = [rec];
+             seccionalPredeterminada = rec;
+           }
+         }
+
+         // 4) Si estamos en Alta (nuevo formulario) y no hay seccional fija aún,
+         //    preseleccionamos la primera visible.
+         if (!seccionalPredeterminada && !readOnly && !data?.id && seccionalesFiltered.length) {
+           seccionalPredeterminada = seccionalesFiltered[0];
+         }
+       }
+
+       // 5) Actualizamos el select de Seccional
+      setSeccionalSelect((prev) => {
+        const shouldSetSelected = Boolean(
+          seccionalPredeterminada && !prev.selected?.value && !state?.form?.seccionalId
+        );
+        return {
+          ...prev,
+          loading: null,
+          data: seccionalesFiltered,
+          error: error?.toString(),
+          options: seccionalesSelectOptions({
+            ...prev,
+            data: seccionalesFiltered,
+          }),
+          ...(shouldSetSelected
+            ? {
+                selected: {
+                  value: seccionalPredeterminada.id,
+                  label: [
+                    seccionalPredeterminada.seccionalCodigo ??
+                      seccionalPredeterminada.codigo,
+                    seccionalPredeterminada.nombre ??
+                      seccionalPredeterminada.descripcion,
+                  ]
+                    .filter((v) => v != null && v !== "")
+                    .join(" - "),
+                  record: seccionalPredeterminada,
+                },
+              }
+            : {}),
+        };
+      });
+
+      // 6) También actualizamos el form (seccionalId  nombre) y el validado
+      if (seccionalPredeterminada && !state?.form?.seccionalId && !seccionalSelect?.selected?.value) {
+        setState((s) => ({
+          ...s,
+          form: {
+            ...s.form,
+            seccionalId: seccionalPredeterminada.id,
+            seccional:
+              seccionalPredeterminada.nombre ??
+              seccionalPredeterminada.descripcion,
+          },
+          validado: {
+            ...s.validado,
+            seccionalId: true,
+          },
+          errors: {
+            ...s.errors,
+            seccionalId: "",
+          },
+        }));
+      }
+     },
+   }));
+ }, [setSeccionalesQuery, ambito, request, readOnly, data?.id, seccIdUsuario, seccionalSelect?.selected?.value, state?.form?.seccionalId]);
+  //#endregion select seccional
+
+
 
   //#region selects trabajador
 
@@ -727,9 +902,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   }, [actividadSelect.buscar, actividadSelect.data]);
   //#endregion select actividad
 
-  //#endregion selects trabajador
-
-  //#region selects empleador
 
   //#region select provincia
   const [emplPciaSelect, setEmplPciaSelect] = useState({
@@ -902,11 +1074,11 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     }));
   }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
 
-  useEffect(() => {
-    if (readOnly) return; // evitar sobrescribir el selected que seteamos desde data
-    if (!trabPciaSelect.selected?.value) return;
-    // si ya tenemos datos no volvemos a pedir
-    if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+ useEffect(() => {
+   if (readOnly) return; 
+   if (!data || Object.keys(data).length === 0) return;
+   if (!trabPciaSelect.selected?.value) return;
+   if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
@@ -925,10 +1097,14 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
           const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
           if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
         }
-        setTrabLocaSelect((s) => ({ ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selected || {}, origen: selected ? 'option' : s.origen }));
+        setTrabLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
       },
     }));
-  }, [trabPciaSelect.selected?.value, setLocalidadesQuery]);
+  }, [trabPciaSelect.selected?.value, setLocalidadesQuery, data, trabLocaSelect.data]);
   useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
   useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
   useEffect(() => {
@@ -963,9 +1139,12 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
 
   useEffect(() => {
-    if (readOnly) return; // evitar sobrescribir el selected que seteamos desde data
-    if (!emplPciaSelect.selected?.value) return;
-    if (emplLocaSelect.data && emplLocaSelect.data.length) return;
+  if (readOnly) return; 
+
+  if (!data || Object.keys(data).length === 0) return;
+  if (!trabPciaSelect.selected?.value) return;
+  // si ya tenemos datos no volvemos a pedir
+  if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
@@ -983,7 +1162,11 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
           const rec = dataArr.find((r) => (r.nombre || '').toString().toLowerCase() === nombreLc || (r.nombre || '').toString().toLowerCase().includes(nombreLc) || nombreLc.includes((r.nombre || '').toString().toLowerCase()));
           if (rec) selected = { value: rec.id, label: rec.nombre, record: rec };
         }
-        setEmplLocaSelect((s) => ({ ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selected || {}, origen: selected ? 'option' : s.origen }));
+        setEmplLocaSelect((s) => {
+          const selectedFinal = (s && s.origen === 'afip' && s.selected) ? s.selected : (selected || {});
+          const origenFinal = selected ? 'option' : (s && s.origen === 'afip' ? 'afip' : s.origen);
+          return { ...s, data: dataArr, options: dataArr.map((r) => ({ value: r.id, label: r.nombre, record: r })), loading: null, error: error?.toString(), selected: selectedFinal, origen: origenFinal };
+        });
       },
     }));
   }, [emplPciaSelect.selected?.value, setLocalidadesQuery]);
@@ -1077,38 +1260,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
     });
   };
 
-  // Prefill selects (duplicados originales)
-  useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
-  useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
-  useEffect(() => { if (estadoCivilSelect.options?.length) setSelectedById(setEstadoCivilSelect, estadoCivilSelect, data?.estadoCivilId); }, [estadoCivilSelect.options, data?.estadoCivilId]);
-  useEffect(() => { if (sexoSelect.options?.length) setSelectedById(setSexoSelect, sexoSelect, data?.sexoId); }, [sexoSelect.options, data?.sexoId]);
-  useEffect(() => {
-    if (!trabPciaSelect.options?.length) return;
-    setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
-  }, [trabPciaSelect.options, data?.provinciaId]);
-  useEffect(() => {
-    if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
-    setLocalidadesQuery((o) => ({
-      ...o,
-      query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
-      onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
-      onLoad: ({ ok, error }) =>
-        setTrabLocaSelect((s) => ({
-          ...s,
-          data: Array.isArray(ok) ? ok : [],
-          loading: null,
-          error: error?.toString(),
-          selected: { value: data.refLocalidadIdAfiliado, record: (ok || []).find((r) => r.id === data.refLocalidadIdAfiliado) || {} },
-          origen: "option",
-        })),
-    }));
-  }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
-  useEffect(() => { if (oficioSelect.options?.length) setSelectedById(setOficioSelect, oficioSelect, data?.oficioId); }, [oficioSelect.options, data?.oficioId]);
-  useEffect(() => { if (actividadSelect.options?.length) setSelectedById(setActividadSelect, actividadSelect, data?.actividadIdAfiliado); }, [actividadSelect.options, data?.actividadIdAfiliado]);
-  useEffect(() => {
-    if (!emplPciaSelect.options?.length) return;
-    setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
-  }, [emplPciaSelect.options, data?.provinciaidEmpresa]);
   useEffect(() => {
     if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
     setLocalidadesQuery((o) => ({
@@ -1126,7 +1277,7 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
         })),
     }));
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
-  useEffect(() => { if (ciiuSelect.options?.length) setSelectedById(setCiiuSelect, ciiuSelect, data?.actividadIdEmpresa); }, [ciiuSelect.options, data?.actividadIdEmpresa]);
+ 
 
   //#endregion selects
 
@@ -1134,20 +1285,109 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#region Carga inicial select seccional
   useEffect(() => {
-    setSeccionalesQuery((o) => ({
-      ...o,
-      onLoad: ({ ok, error }) => {
-        let data = [];
-        if (Array.isArray(ok)) data = ok;
-        setSeccionalSelect((o) => ({
-          ...o,
-          loading: null,
-          data,
-          error: error?.toString(),
-        }));
-      },
-    }));
-  }, [setSeccionalesQuery]);
+    if (seccIdUsuario) return;
+    const cargarPorAfiliado = !!cuilUsuario;
+
+    if (cargarPorAfiliado) {
+      setAfiliadoByCuilQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { CUIL: String(cuilUsuario).replace(/\D+/g, "") },
+        },
+        onLoad: ({ ok }) => {
+          const refLocalidadId = ok?.refLocalidadId ?? ok?.refLocalidadIdAfiliado ?? 0;
+          if (!refLocalidadId) {
+            // Fallback a listado general de seccionales activas
+            setSeccionalesQuery((p) => ({
+              ...p,
+              query: {
+                ...p.query,
+                params: { ...(p.query?.params || {}), soloActivos: true },
+              },
+              onLoad: ({ ok: seccOk, error }) => {
+                let data = [];
+                if (Array.isArray(seccOk)) data = seccOk;
+                
+                const hijas = [];
+                data.forEach((s) => {
+                  if (Array.isArray(s.seccionalLocalidad)) {
+                    hijas.push(...s.seccionalLocalidad);
+                  }
+                });
+                if (hijas.length) {
+
+                  const porId = new Map();
+                  [...data, ...hijas].forEach((s) => {
+                    if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                  });
+                  data = Array.from(porId.values());
+                }
+                setSeccionalSelect((s) => ({
+                  ...s,
+                  loading: null,
+                  data,
+                  error: error?.toString(),
+                }));
+              },
+            }));
+            return;
+          }
+
+          setSeccionalesQuery((p) => ({
+            ...p,
+            query: {
+              ...p.query,
+              params: { ...(p.query?.params || {}), soloActivos: true, LocalidadId: refLocalidadId },
+            },
+            onLoad: ({ ok: seccOk, error }) => {
+              let data = [];
+              if (Array.isArray(seccOk)) data = seccOk;
+
+              const hijas = [];
+              data.forEach((s) => {
+                if (Array.isArray(s.seccionalLocalidad)) {
+                  hijas.push(...s.seccionalLocalidad);
+                }
+              });
+              if (hijas.length) {
+                const porId = new Map();
+                [...data, ...hijas].forEach((s) => {
+                  if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
+                });
+                data = Array.from(porId.values());
+              }
+              setSeccionalSelect((s) => ({
+                ...s,
+                loading: null,
+                data,
+                error: error?.toString(),
+              }));
+            },
+          }));
+        },
+      }));
+    } else {
+
+      setSeccionalesQuery((o) => ({
+        ...o,
+        query: {
+          ...o.query,
+          params: { ...(o.query?.params || {}), soloActivos: true },
+        },
+        onLoad: ({ ok, error }) => {
+          let data = [];
+          if (Array.isArray(ok)) data = ok;
+          setSeccionalSelect((s) => ({
+            ...s,
+            loading: null,
+            data,
+            error: error?.toString(),
+          }));
+        },
+      }));
+    }
+  }, [setSeccionalesQuery, setAfiliadoByCuilQuery, seccIdUsuario, cuilUsuario]);
   //#endregion Carga inicial select seccional
 
   // Prefill seccional cuando la lista de seccionales fue cargada y el registro trae info
@@ -1319,26 +1559,29 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
   //#endregion inicializaciones
 
-  const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
-
   let content = null;
   if (state.base64) {
     content = (
-      <Grid
-        full
-        src={state.base64}
-        style={{ minHeight: "70vh" }}
-        render={(x) => <iframe title="SolicitudAfiliacion.pdf" {...x} />}
-      />
+      <Grid full style={{ minHeight: "70vh" }}>
+        {pdfUrl ? (
+          <iframe
+            title="SolicitudAfiliacion.pdf"
+            src={pdfUrl}
+            style={{ width: "100%", height: "70vh", border: 0 }}
+          />
+        ) : (
+          <div>Generando vista previa...</div>
+        )}
+      </Grid>
     );
   } else {
     const FormularioPanel = (
       <Grid full col gap="10px">
         <Grid width gap="inherit">
-          <Grid width>
+          <Grid width style={seccIdUsuario ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
             <SearchSelectMaterial
               id="seccionalId"
-              readOnly={isRO}
+              readOnly={isRO || !!seccIdUsuario}
               autoFocus
               label="Seccional"
               error={
@@ -1585,6 +1828,8 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                     onPreLoad: () =>
                                       setTrabLocaSelect((s) => ({
                                         ...s,
+                          
+                                        selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                         loading: "Cargando...",
                                       })),
                                     onLoad: ({ ok, error }) => {
@@ -1599,20 +1844,28 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                         return nombreTarget && nombre === nombreTarget;
                                       });
 
+                                      const selectedTrab = hit
+                                        ? {
+                                            value: hit.id,
+                                            label: [hit.codPostal, hit.nombre].join(" - "),
+                                            record: hit,
+                                          }
+                                        : domicilio?.localidad
+                                          ? {
+                                              value: null,
+                                              label: domicilio.localidad,
+                                              record: { id: 0, nombre: domicilio.localidad },
+                                            }
+                                          : {};
+
                                       setTrabLocaSelect((s) => ({
                                         ...s,
                                         data: dataArr,
                                         loading: null,
                                         error: error?.toString(),
                                         buscar: "",
-                                        selected: hit
-                                          ? {
-                                              value: hit.id,
-                                              label: [hit.codPostal, hit.nombre].join(" - "),
-                                              record: hit,
-                                            }
-                                          : {},
-                                        origen: hit ? "option" : s.origen,
+                                        selected: selectedTrab,
+                                        origen: hit ? "option" : 'afip',
                                       }));
 
                                       if (hit) {
@@ -1630,10 +1883,13 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                           ...prev,
                                           form: {
                                             ...prev.form,
+        
                                             refLocalidadNombreAfiliado:
                                               prev.form.refLocalidadNombreAfiliado || domicilio.localidad,
                                             reflocalidadNombreAfiliado:
                                               prev.form.reflocalidadNombreAfiliado || domicilio.localidad,
+                                            
+                                            refLocalidadIdAfiliado: prev.form.refLocalidadIdAfiliado || 0,
                                           },
                                         }));
                                       }
@@ -2221,6 +2477,8 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                   onPreLoad: () =>
                                     setEmplLocaSelect((s) => ({
                                       ...s,
+                                     
+                                      selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                       loading: "Cargando...",
                                     })),
                                   onLoad: ({ ok, error }) => {
@@ -2236,40 +2494,47 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
                                     });
 
                                     setEmplLocaSelect((s) => ({
-                                      ...s,
-                                      data: dataArr,
-                                      loading: null,
-                                      error: error?.toString(),
-                                      buscar: "",
-                                      selected: hit
-                                        ? {
-                                            value: hit.id,
-                                            label: [hit.codPostal, hit.nombre].join(" - "),
-                                            record: hit,
-                                          }
-                                        : {},
-                                      origen: hit ? "option" : s.origen,
-                                    }));
+                                        ...s,
+                                        data: dataArr,
+                                        loading: null,
+                                        error: error?.toString(),
+                                        buscar: "",
+                                        selected: hit
+                                          ? {
+                                              value: hit.id,
+                                              label: [hit.codPostal, hit.nombre].join(" - "),
+                                              record: hit,
+                                            }
+                                          : domicilio?.localidad
+                                            ? {
+                                                value: null,
+                                                label: domicilio.localidad,
+                                                record: { id: 0, nombre: domicilio.localidad },
+                                              }
+                                            : {},
+                                        origen: hit ? "option" : 'afip',
+                                      }));
 
-                                    if (hit) {
-                                      setState((prev) => ({
-                                        ...prev,
-                                        form: {
-                                          ...prev.form,
-                                          refLocalidadIdEmpresa: hit.id,
-                                          nombreLocalidadEmpresa: hit.nombre,
-                                        },
-                                      }));
-                                    } else if (domicilio?.localidad) {
-                                      setState((prev) => ({
-                                        ...prev,
-                                        form: {
-                                          ...prev.form,
-                                          nombreLocalidadEmpresa:
-                                            prev.form.nombreLocalidadEmpresa || domicilio.localidad,
-                                        },
-                                      }));
-                                    }
+                                      if (hit) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            refLocalidadIdEmpresa: hit.id,
+                                            nombreLocalidadEmpresa: hit.nombre,
+                                          },
+                                        }));
+                                      } else if (domicilio?.localidad) {
+                                        setState((prev) => ({
+                                          ...prev,
+                                          form: {
+                                            ...prev.form,
+                                            nombreLocalidadEmpresa:
+                                              prev.form.nombreLocalidadEmpresa || domicilio.localidad,
+                                            refLocalidadIdEmpresa: prev.form.refLocalidadIdEmpresa || 0,
+                                          },
+                                        }));
+                                      }
                                   },
                                 }));
                               } else {
@@ -2706,8 +2971,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
     const MostrarDocumentacion = (
       <Grid full col gap="10px">
-
-
         <Table
           keyField="id"
           data={Array.isArray(documentacionList) ? documentacionList : []}
@@ -2974,7 +3237,9 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
       setState((o) => ({
         ...o,
-        base64: `data:application/pdf;base64,${base64}`,
+        // Guardamos solo el base64 puro y el contentType; el iframe usará un blob URL
+        base64: base64,
+        contentType: "application/pdf",
       }));
     };
 
