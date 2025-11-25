@@ -1,9 +1,8 @@
-// export default useDenuncias;
 import { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AsArray from "components/helpers/AsArray";
 import DenunciasTable from "./DenunciasTable";
-import dayjs from "dayjs";
+import DenunciaDetails from "./DenunciaDetails";
 
 const selectionDef = {
   action: "",
@@ -26,42 +25,82 @@ export const onLoadSelectFirst = ({ data, multi, record }) => {
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) =>
   record ? record : onLoadSelectFirst({ data, multi, record });
 
+
+
+
+
+
 const useDenuncias = ({
   remote = true,
   data: dataInit = [],
   loading,
   error,
-  pagination: paginationInit = { index: 1, size: 15 },
+  pagination: paginationInit = { index: 1, size: 10 },
   onLoadSelect = onLoadSelectFirst,
   columns,
   hideSelectColumn = true,
+  filtroIds = [],
+  hayFiltroActivo = false,
+  filtroEstado = null,
+  filtroFechaDesde = null,
+  filtroFechaHasta = null,
+  usuarioAmbito = null,
+  applyAmbitoFilter = null,
+  filtroTipoIngresoId = null,
+  filtroSituacionId = null,
+  filtroDerivadoATipo = null,
+  filtroDerivadoAId = null,
 } = {}) => {
+
+
+
+
+
+
+
+  
+  
+
   const pushQuery = useQueryQueue((action) => {
     if (action === "GetList") {
       return {
         config: {
           baseURL: "App",
-          method: "GET",
+          method: "GET", 
           endpoint: "/AppDenuncias",
+        },
+      };
+    }
+    if (action === "GetEstados") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/DenunciasEstados",
+        },
+      };
+    }
+    if (action === "GetTipoDenuncia") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/DenunciaTipo",
         },
       };
     }
     return null;
   });
 
-  const [dataOriginal, setDataOriginal] = useState([]);
-
   const [list, setList] = useState({
-    loading: null,
+    loading: remote ? "Cargando..." : null,
     remote,
     loadingOverride: loading,
-    params: { sortBy: "nombre" },
-    pagination: { index: 1, size: 15, ...paginationInit },
+    params: { sortBy: "-fecha" },
+    pagination: { index: 1, size: 10, ...paginationInit },
     data: [...AsArray(dataInit, true)],
     error,
-    selection: {
-      ...selectionDef,
-    },
+    selection: { ...selectionDef },
     onLoadSelect,
   });
 
@@ -77,126 +116,299 @@ const useDenuncias = ({
         ...list.selection,
         ...selectionDef,
         record: list.onLoadSelect({ data, multi: false, record }),
-        index: data.indexOf(record),
       };
+      changes.selection.index = data.indexOf(changes.selection.record);
       setList((o) => ({ ...o, ...changes }));
       return;
     }
 
     changes.data = [];
 
-    pushQuery({
-      action: "GetList",
-      params: {
-        ...list.params,
-        pageIndex: list.pagination.index,
-        pageSize: list.pagination.size,
-      },
-    //   onOk: async ({ index, size, count, data }) => {
-    //     if (!Array.isArray(data))
-    //       return console.error("Se esperaba un arreglo", data);
-    //     changes.data = data;
-    //     changes.pagination = { index, size, count };
-    //     const record = list.selection.record;
-    //     changes.selection = {
-    //       ...list.selection,
-    //       ...selectionDef,
-    //       record: list.onLoadSelect({ data, multi: false, record }),
-    //     };
-    //     changes.selection.index = data.indexOf(changes.selection.record);
-    //   },
-	onOk: async ({ index, size, count, data }) => {
-  if (!Array.isArray(data))
-    return console.error("Se esperaba un arreglo", data);
+    // Cargar todas las denuncias sin paginación para procesamiento client-side
 
-	setDataOriginal(data); // guardamos el original para futuros filtros
-	let filteredData = data;
+    // � FUNCIÓN AUXILIAR PARA CARGAR DENUNCIAS (FLUJO NORMAL - TODAS SIN PAGINACIÓN)
+    function cargarDenunciasConParametros(queryParams, totalFilteredCount) {
+      //  Cargar todas las denuncias sin paginación del servidor
+      const paramsFiltered = { ...queryParams };
+      
 
-  const filtro = list.params?.filterByCPNombre?.toLowerCase?.().trim();
+      
+      pushQuery({
+        action: "GetList",
+        params: paramsFiltered,
+        onOk: (response) => {
+          
+          let data = [];
+          let paginationInfo = {};
 
-  if (filtro) {
-	filteredData = dataOriginal.filter((item) => {
-      const nombre = item.nombre?.toLowerCase?.() || "";
-      const fechaYMD = item.fecha ? dayjs(item.fecha).format("YYYY-MM-DD") : "";
-      const fechaDMY = item.fecha ? dayjs(item.fecha).format("DD/MM/YYYY") : "";
-      return (
-        nombre.includes(filtro) ||
-        fechaYMD.includes(filtro) ||
-        fechaDMY.includes(filtro)
-      );
-    });
-  }
+          if (response && typeof response === "object") {
+            data = response.data || [];
+            
+            
+            paginationInfo = {
+              index: list.pagination.index, //  Mantener nuestro índice
+              size: list.pagination.size,   //  Mantener nuestro tamaño (3)
+              count: totalFilteredCount || response.count || 0,
+              pages: Math.ceil((totalFilteredCount || response.count || 0) / list.pagination.size)
+            };
+          } else if (Array.isArray(response)) {
+            data = response;
+            
+            
+            paginationInfo = {
+              index: list.pagination.index,
+              size: list.pagination.size, //  Mantener nuestro tamaño (3)
+              count: totalFilteredCount || response.length
+            };
+          } else {
+            console.error("Formato de respuesta inesperado:", response);
+            setList((o) => ({ 
+              ...o, 
+              loading: null,
+              error: "Formato de respuesta inesperado",
+              selection: { ...selectionDef }
+            }));
+            return;
+          }
 
-  changes.data = filteredData;
-  changes.pagination = { index, size, count: filteredData.length };
+          if (!Array.isArray(data)) {
+            console.error("Se esperaba un arreglo en data", { data, response });
+            setList((o) => ({ 
+              ...o, 
+              loading: null,
+              error: "Datos inválidos del servidor",
+              selection: { ...selectionDef }
+            }));
+            return;
+          }
+          
+          if (usuarioAmbito && usuarioAmbito.tipo && usuarioAmbito.id && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
+            console.log(" Aplicando filtro por ámbito específico (flujo normal)...", {
+              usuarioAmbito,
+              totalDenunciasOriginales: data.length
+            });
+            try {
+              applyAmbitoFilter(data, usuarioAmbito).then(filteredData => {
+                console.log(" Filtro por ámbito aplicado (flujo normal) - RESULTADO:", {
+                  totalOriginal: data.length,
+                  totalFiltrado: filteredData.length,
+                  ambitoTipo: usuarioAmbito.tipo,
+                  ambitoId: usuarioAmbito.id
+                });
+                
+                // Cargar estados después del filtro por ámbito
+                cargarEstadosParaDenuncias(filteredData, {
+                  ...paginationInfo,
+                  count: filteredData.length // Actualizar count con datos filtrados
+                });
+              }).catch(error => {
+                console.error(" Error aplicando filtro de ámbito:", error);
+                // Cargar estados sin filtro por ámbito
+                cargarEstadosParaDenuncias(data, paginationInfo);
+              });
+            } catch (error) {
+              console.error(" Error aplicando filtro de ámbito:", error);
+              // Cargar estados sin filtro por ámbito
+              cargarEstadosParaDenuncias(data, paginationInfo);
+            }
+          } else {
+            // Cargar estados para todas las denuncias
+            cargarEstadosParaDenuncias(data, paginationInfo);
+          }
 
-  const record = list.selection.record;
-  changes.selection = {
-    ...list.selection,
-    ...selectionDef,
-    record: list.onLoadSelect({ data: filteredData, multi: false, record }),
-  };
-  changes.selection.index = filteredData.indexOf(changes.selection.record);
-},
+          // 🔧 FUNCIÓN PARA CARGAR ESTADOS DE LAS DENUNCIAS
+          function cargarEstadosParaDenuncias(denunciasData, paginationInfo) {
 
-      onError: async (error) => {
-        if (error.code !== 404) {
-          changes.error = error;
+            
+            pushQuery({
+              action: "GetEstados",
+              params: {}, // Sin filtro - obtener todos los estados
+              onOk: (responseEstados) => {
+                console.log("📥 Estados recibidos para flujo normal:", { 
+                  tipo: typeof responseEstados, 
+                  esArray: Array.isArray(responseEstados),
+                  cantidad: Array.isArray(responseEstados) ? responseEstados.length : "N/A"
+                });
+
+                let estados = [];
+                if (Array.isArray(responseEstados)) {
+                  estados = responseEstados;
+                } else if (responseEstados && typeof responseEstados === "object") {
+                  estados = responseEstados.data || responseEstados.items || responseEstados.estados || [];
+                }
+
+                if (!Array.isArray(estados)) {
+                  console.warn(" No se pudieron obtener los estados correctamente");
+                  estados = [];
+                }
+
+                // Crear un mapa: appDenunciasId -> último estado (más reciente)
+                const estadosMap = {};
+                
+                
+                estados.forEach(item => {
+                  const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId || item.id;
+                  const fechaEstado = item.fechaAsociada || item.fecha || item.fechaEstado || "";
+
+                  
+                  if (denunciaId) {
+                    if (!estadosMap[denunciaId] || fechaEstado > (estadosMap[denunciaId].fecha || "")) {
+                      estadosMap[denunciaId] = {
+                        estado: item.estado || "Sin datos",
+                        fecha: fechaEstado,
+                        observaciones: item.observaciones || "",
+                      };
+                    }
+                  }
+                });
+
+
+
+                //  COMBINAR ESTADOS CON DENUNCIAS
+                let dataConEstados = denunciasData.map(denuncia => {
+                  const denunciaId = denuncia.id || denuncia.Id;
+                  const estadoInfo = estadosMap[denunciaId];
+                  
+                  return {
+                    ...denuncia,
+                    estado: estadoInfo ? estadoInfo.estado : (denuncia.estado || "Sin datos"),
+                    fechaEstado: estadoInfo ? estadoInfo.fecha : null,
+                    observacionesEstado: estadoInfo ? estadoInfo.observaciones : "",
+                  };
+                });
+
+
+                if (filtroEstado) {
+                  const filtroLower = String(filtroEstado).toLowerCase();
+                  dataConEstados = dataConEstados.filter((d) =>
+                    String(d.estado || "").toLowerCase() === filtroLower
+                  );
+                }
+
+
+                if (filtroDerivadoAId) {
+                  const target = Number(filtroDerivadoAId);
+                  dataConEstados = dataConEstados.filter(d => {
+                    const derivTipo = String(d.derivadoATipo || d.derivadoA_Tipo || d.derivado_a_tipo || "").toLowerCase();
+                    const derivId = Number(d.derivadoAId ?? d.derivadoA_Id ?? d.derivado_a_id ?? 0);
+                    return derivId === target || (derivId === target && (derivTipo === 'delegacion' || derivTipo === 'seccional'));
+                  });
+                }
+
+
+                // ✅ ORDENAR POR FECHA DESCENDENTE (más nueva primero)
+                const dataOrdenada = dataConEstados.sort((a, b) => {
+                  const fechaA = new Date(a.fecha || a.fechaEstado || '1900-01-01');
+                  const fechaB = new Date(b.fecha || b.fechaEstado || '1900-01-01');
+                  return fechaB - fechaA; // Descendente
+                });
+
+                //  ACTUALIZAR ESTADO FINAL
+                setList((o) => ({ 
+                  ...o, 
+                  loading: null,
+                  data: dataOrdenada,
+                  pagination: { ...o.pagination, ...paginationInfo },
+                  selection: { 
+                    ...selectionDef,
+                    record: o.onLoadSelect({ data: dataOrdenada, multi: false, record: o.selection.record })
+                  }
+                }));
+              },
+              onError: (error) => {
+                console.error(" Error al cargar estados:", error);
+                
+                // Si falla la carga de estados, mostrar denuncias sin estados pero ordenadas
+                const denunciasOrdenadas = denunciasData.sort((a, b) => {
+                  const fechaA = new Date(a.fecha || '1900-01-01');
+                  const fechaB = new Date(b.fecha || '1900-01-01');
+                  return fechaB - fechaA; // Descendente
+                });
+                
+                setList((o) => ({ 
+                  ...o, 
+                  loading: null,
+                  data: denunciasOrdenadas,
+                  pagination: { ...o.pagination, ...paginationInfo },
+                  selection: { 
+                    ...selectionDef,
+                    record: o.onLoadSelect({ data: denunciasOrdenadas, multi: false, record: o.selection.record })
+                  }
+                }));
+              }
+            });
+          }
+        },
+        onError: (error) => {
+          console.error(" Error cargando denuncias:", error);
+          setList((o) => ({ 
+            ...o, 
+            loading: null,
+            error: error,
+            selection: { ...o.selection, ...selectionDef }
+          }));
         }
-        changes.selection = { ...list.selection, ...selectionDef };
-      },
-      onFinally: async () => setList((o) => ({ ...o, ...changes })),
-    });
-  }, [pushQuery, list]);
+      });
+    }
 
+   const queryParams = {};
+   if (filtroFechaDesde) queryParams.fechaDesde = filtroFechaDesde;
+   if (filtroFechaHasta) queryParams.fechaHasta = filtroFechaHasta;
+   if (filtroTipoIngresoId) queryParams.denunciaTipoIngresoId = filtroTipoIngresoId;
+   if (filtroSituacionId) queryParams.denunciaSituacionId = filtroSituacionId;
+   if (filtroDerivadoATipo) queryParams.derivadoATipo = filtroDerivadoATipo;
+   if (filtroDerivadoAId) queryParams.derivadoAId = filtroDerivadoAId;
 
+   cargarDenunciasConParametros(queryParams, null);
+   return;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+    pushQuery,
+    list.loading,
+    filtroEstado,
+    filtroFechaDesde,
+    filtroFechaHasta,
+    usuarioAmbito,
+    applyAmbitoFilter,
+    filtroTipoIngresoId,
+    filtroSituacionId,
+    filtroDerivadoATipo,
+    filtroDerivadoAId,
+  ]);
+
+  //  ACTIVAR LOADING CUANDO CAMBIEN LOS FILTROS
   useEffect(() => {
-  const filtro = list.params?.filterByCPNombre?.toLowerCase?.().trim();
-  if (!dataOriginal.length) return;
+    
+    // Siempre activar loading y resetear a página 1 cuando cambien filtros
+    setList((o) => ({
+      ...o,
+      loading: "Cargando...",
+      pagination: { ...o.pagination, index: 1 } // Resetear a página 1
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [    filtroEstado,
+    filtroFechaDesde,
+    filtroFechaHasta,
+    filtroTipoIngresoId,
+    filtroSituacionId,
+    filtroDerivadoATipo,
+    filtroDerivadoAId,
+  ]);
 
-  const filteredData = filtro
-    ? dataOriginal.filter((item) => {
-        const nombre = item.nombre?.toLowerCase?.() || "";
-        const fechaYMD = item.fecha ? dayjs(item.fecha).format("YYYY-MM-DD") : "";
-        const fechaDMY = item.fecha ? dayjs(item.fecha).format("DD/MM/YYYY") : "";
-        return (
-          nombre.includes(filtro) ||
-          fechaYMD.includes(filtro) ||
-          fechaDMY.includes(filtro)
-        );
-      })
-    : [...dataOriginal]; // sin filtro, mostrar todo
-
-  setList((o) => ({
-    ...o,
-    data: filteredData,
-    pagination: { ...o.pagination, count: filteredData.length },
-  }));
-}, [list.params?.filterByCPNombre, dataOriginal]);
-
-
-
-//------------------------------------------------
   const request = useCallback((type, payload = {}) => {
     if (type === "list") {
       setList((o) => {
         const changes = {
           loading: null,
-          data:
-            "data" in payload && Array.isArray(payload.data)
-              ? [...payload.data]
-              : payload.clear
-              ? []
-              : o.data,
+          data: "data" in payload && Array.isArray(payload.data) ? [...payload.data] : payload.clear ? [] : o.data,
           loadingOverride: payload.loading,
           error: payload.error,
-          onLoadSelect:
-            "onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
+          onLoadSelect: "onLoadSelect" in payload ? payload.onLoadSelect : o.onLoadSelect,
         };
 
-        if (payload.params) changes.params = payload.params;
-        if (payload.pagination)
-          changes.pagination = { ...o.pagination, ...payload.pagination };
+        if (payload.params) changes.params = { ...o.params, ...payload.params };
+        if (payload.pagination) changes.pagination = { ...o.pagination, ...payload.pagination };
 
         if (payload.clear) {
           const data = changes.data;
@@ -208,7 +420,11 @@ const useDenuncias = ({
           };
           changes.selection.index = data.indexOf(changes.selection.record);
         } else {
-          changes.loading = "Cargando...";
+          //  Para paginación frontend, solo recargar si no es un cambio de página
+          const isPaginationChange = payload.pagination && !payload.params && !payload.clear;
+          if (!isPaginationChange) {
+            changes.loading = "Cargando...";
+          }
         }
 
         return { ...o, ...changes };
@@ -216,60 +432,78 @@ const useDenuncias = ({
     }
   }, []);
 
-  const render = () => (
-    <DenunciasTable
-      remote={list.remote}
-      data={list.data}
-      loading={!!list.loading}
-      noDataIndication={
-        list.loading ?? list.loadingOverride ?? list.error?.message ?? "No existen datos para mostrar"
-      }
-      pagination={{
-        ...list.pagination,
-        onChange: ({ index, size }) =>
-          request("list", {
-            pagination: { index, size },
-            data: list.remote ? [] : list.data,
-          }),
-      }}
-      selection={{
-        mode: "radio",
-        hideSelectColumn,
-        selected: list.selection.record ? [list.selection.record.id] : [],
-        onSelect: (record) => {
-          const index = list.data.findIndex((r) => r.id === record.id);
-          setList((o) => ({
-            ...o,
-            selection: {
-              ...o.selection,
-              ...selectionDef,
-              index,
-              record,
-            },
-          }));
-        },
-      }}
-      onTableChange={(type, newState) => {
-        if (type === "sort") {
-          const { sortField, sortOrder } = newState;
-          setList((o) => ({
-            ...o,
-            loading: "Cargando...",
-            params: {
-              ...o.params,
-              sortBy: `${sortOrder === "desc" ? "-" : "+"}${sortField}`,
-            },
-          }));
-        }
-      }}
-    />
-  );
+  const render = () => {
 
-  return {
-    render,
-    request,
-    selected: list.selection.record,
+
+
+
+    const pagination = {
+      count: list.data.length,
+      index: list.pagination.index,
+      size: list.pagination.size,
+      onChange: ({ index, size }) => {
+
+        request("list", {
+          pagination: { index, size }
+        });
+      },
+    };
+
+    return (
+      <>
+        <DenunciasTable
+          remote={false}
+          data={list.data}
+          loading={!!list.loading}
+          noDataIndication={
+            list.loading ?? list.loadingOverride ?? list.error?.message ?? (hayFiltroActivo && list.data.length === 0 ? "No hay denuncias que coincidan con los filtros aplicados" : "No existen datos para mostrar")
+          }
+          columns={columns}
+          pagination={pagination}
+          selection={{
+            mode: "radio",
+            hideSelectColumn,
+            selected: list.selection.record ? [list.selection.record.id] : [],
+            onSelect: (record) => {
+              const index = list.data.findIndex((r) => r.id === record.id);
+              setList((o) => ({
+                ...o,
+                selection: {
+                  ...o.selection,
+                  ...selectionDef,
+                  index,
+                  record,
+                },
+              }));
+            },
+          }}
+          onTableChange={(type, newState) => {
+            if (type === "sort") {
+              const { sortField, sortOrder } = newState;
+              setList((o) => ({
+                ...o,
+                loading: "Cargando...",
+                params: {
+                  ...o.params,
+                  sortBy: `${sortOrder === "desc" ? "-" : "+"}${sortField}`,
+                },
+              }));
+            }
+          }}
+        />
+        {list.selection.record && list.data.length > 0 && (
+          <DenunciaDetails
+            config={{
+              data: list.selection.record,
+              tab: "denuncia",
+            }}
+          />
+        )}
+      </>
+    );
   };
+
+  return { render, request, selected: list.selection.record };
 };
 
 export default useDenuncias;
