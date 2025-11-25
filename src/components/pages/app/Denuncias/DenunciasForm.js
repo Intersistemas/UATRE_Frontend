@@ -24,29 +24,30 @@ import { Tabs, Tab } from "@mui/material";
 import Documentacion from "components/documentacion/Documentacion";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
+
 const styles = {
-	group: {
-		padding: "5px",
-		color: "#186090",
-		textAlign: "left",
-		border: "solid 1px",
-		borderRadius: "20px",
-	},
-	titulo: {
-		fontWeight: "bold",
-		textAlign: "left",
-		borderBottom: "dashed 1px",
-	},
+    group: {
+        padding: "5px",
+        color: "#186090",
+        textAlign: "left",
+        border: "solid 1px",
+        borderRadius: "20px",
+    },
+    titulo: {
+        fontWeight: "bold",
+        textAlign: "left",
+        borderBottom: "dashed 1px",
+    },
 };
 
 //#region options
 const toInputString = (v) => {
-	if (typeof v === "string" || typeof v === "number") return String(v);
-	if (v && typeof v === "object") {
-		if (v.value != null) return String(v.value);
-		if (v.target && v.target.value != null) return String(v.target.value);
-	}
-	return "";
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    if (v && typeof v === "object") {
+        if (v.value != null) return String(v.value);
+        if (v.target && v.target.value != null) return String(v.target.value);
+    }
+    return "";
 };
 
 const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
@@ -228,6 +229,41 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 	);
 
 	const { sendRequest } = useHttp();
+
+	const [usuariosCache, setUsuariosCache] = useState({});
+	const usuariosPending = useRef(new Set());
+
+	const fetchUsuarioById = useCallback((id) => {
+		if (!id) return;
+		if (usuariosPending.current.has(id)) return; 
+		usuariosPending.current.add(id);
+		sendRequest(
+			{
+				baseURL: "Seguridad",
+				endpoint: `/Usuario/GetAll?id=${encodeURIComponent(id)}`,
+				method: "GET",
+				errorType: "response",
+			},
+			(ok) => {
+				try {
+					console.debug('[fetchUsuarioById] ok response for', id, ok);
+					let first = null;
+					if (Array.isArray(ok) && ok.length) first = ok[0];
+					else if (ok && Array.isArray(ok.data) && ok.data.length) first = ok.data[0];
+					else if (ok && Array.isArray(ok.items) && ok.items.length) first = ok.items[0];
+					else if (ok && typeof ok === 'object' && (ok.nombre || ok.Nombre || ok.userName || ok.userName)) first = ok;
+					const nombre = first ? (first.nombre ?? first.Nombre ?? first.userName ?? first.user ?? String(id)) : String(id);
+					setUsuariosCache((prev) => ({ ...prev, [id]: nombre }));
+				} finally {
+					usuariosPending.current.delete(id);
+				}
+			},
+			() => {
+				setUsuariosCache((prev) => ({ ...prev, [id]: String(id) }));
+				usuariosPending.current.delete(id);
+			}
+		);
+	}, [sendRequest]);
 
 
 	// 3) Alta de Estado de la denuncia
@@ -467,6 +503,25 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		return rows;
 	}, [novedadesRows, novEstadoSelect?.selected?.value, novFechaDesde, novFechaHasta]);
 
+	// Añade nombre de usuario resuelto a cada fila para mostrar en la grilla
+	const novedadesDisplayRows = useMemo(() => {
+		return (Array.isArray(novedadesFilteredRows) ? novedadesFilteredRows : []).map(r => {
+			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
+			return { ...r, usuarioNombre: id ? (usuariosCache[id] ?? id) : "" };
+		});
+	}, [novedadesFilteredRows, usuariosCache]);
+
+	// Efecto para disparar fetchs para ids que aún no están en cache
+	useEffect(() => {
+		if (!Array.isArray(novedadesFilteredRows)) return;
+		const faltantes = new Set();
+		novedadesFilteredRows.forEach(r => {
+			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
+			if (id && !usuariosCache[id] && !usuariosPending.current.has(id)) faltantes.add(id);
+		});
+		faltantes.forEach(id => fetchUsuarioById(id));
+	}, [novedadesFilteredRows, usuariosCache, fetchUsuarioById]);
+
 	const selectedKeys = useMemo(() => {
 		if (!selectedEstado) return [];
 		const exists = (Array.isArray(novedadesFilteredRows) ? novedadesFilteredRows : [])
@@ -601,10 +656,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 			<Table
 				keyField="rowKey"
-				data={novedadesFilteredRows}
+				data={novedadesDisplayRows}
 				mostrarBuscar={false}
 				pagination={{ size: 10 }}
-				noDataIndication={novedadesFilteredRows.length === 0 ? "No existen novedades para mostrar" : null}
+				noDataIndication={novedadesDisplayRows.length === 0 ? "No existen novedades para mostrar" : null}
 				selection={{
 					mode: "radio",
 					clickToSelect: true,
@@ -672,24 +727,25 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						style: { textAlign: "left" },
 					},
 
-					// 					{
-					// 	dataField: "createdBy",
-					// 	text: "Usuario",
-					// 	formatter: (_value, row) => {
-					// 		const doc = row?._doc;
-					// 		return doc?.createdBy ?? row?.createdBy ?? "";
-					// 	},
-					// 	style: { textAlign: "left" },
-					// },
-					// {
-					// 	dataField: "createdDate",
-					// 	text: "Fecha modificación",
-					// 	formatter: (value, row) => {
-					// 		const doc = row?._doc;
-					// 		const fecha = doc?.createdDate ?? value;
-					// 		return Formato.Fecha(fecha);
-					// 	},
-					// },
+					{
+						dataField: "createdBy",
+						text: "Usuario",
+						formatter: (_value, row) => {
+							return row?.usuarioNombre ?? "";
+						},
+						style: { textAlign: "left" },
+					},
+					{
+						dataField: "createdDate",
+						text: "Fecha creación",
+						formatter: (value, row) => {
+							const doc = row?._doc;
+							const fecha = doc?.createdDate ?? value;
+							return Formato.Fecha(fecha);
+						},
+						headerStyle: { width: "160px", textAlign: "center" },
+						style: { textAlign: "left" },
+					},
 
 				]}
 			/>
