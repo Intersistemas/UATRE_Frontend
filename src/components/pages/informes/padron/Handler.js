@@ -820,7 +820,3 @@ const Handler = ({ onClose = () => {} }) => {
 };
 
 export default Handler;
-
-
-
-
