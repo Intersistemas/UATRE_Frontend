@@ -2753,7 +2753,6 @@ const SolicitudAfiliacionForm = ({ title = "Solicitud previa de afiliación", da
 
 
 
-
   const onImprimie = () => {
     // Validaciones simples primero
     const errors = {};

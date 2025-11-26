@@ -11,7 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
 import Button from "components/ui/Button/Button";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import SearchSelectMaterial, {
   includeSearch,
   mapOptions,
@@ -259,7 +259,7 @@ const GestionOSHandler = () => {
         setParamsEdit((o) => ({ ...o, ...changesSeccional }));
       },
     });
-  }, []);
+  }, [pushQuery, Usuario.ambitoTodos, Usuario.ambitoSeccionales?.ids, Usuario.ambitosDescripciones]);
 
   // Cargo las Situcaiones segun el ESTADO que haya seleccionado
   useEffect(() => {
@@ -822,7 +822,7 @@ const GestionOSHandler = () => {
       <div className="contenido">{tabs[tab].body()}</div>
       <KeyPress items={acciones} />
       {/* === Nuevo agregado: Modal del Informe === */}
-      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} />}
+      {showInforme && <ExcelDatos onClose={() => setShowInforme(false)} paramsFiltrados={paramsSend} />}
       {/* === Fin nuevo agregado === */}
     </Grid>
   );

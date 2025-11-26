@@ -48,7 +48,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		render: formularioRender,
 		request: formularioRequest,
 		selected: formularioSelected,
-		changer: formularioChanger,
+		changer: formularioChanger, // si tu hook expone un changer
 	} = useAfiliadoFormulariosAfiliacion({
 		params: scopeParams,
 		onLoadSelect: onLoadSelectKeepOrFirst,
