@@ -260,7 +260,8 @@ const DenunciasHandler = () => {
 
       pushQuery({
         action: "GetDenunciaDetail",
-        params: { id: record.id },
+        config: { endpoint: `/AppDenuncias/${record.id}` },
+        params: {},
         onOk: (resp) => {
           const payload = resp && resp.data ? resp.data : resp;
           const full = Array.isArray(payload) ? payload[0] || {} : payload || {};

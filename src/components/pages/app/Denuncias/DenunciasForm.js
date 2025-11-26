@@ -1209,9 +1209,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				sendRequest(
 					{
 						baseURL: "Comunes",
-						endpoint: `/RefDelegacion/GetById`,
+						endpoint: `/RefDelegacion/GetById?Id=${encodeURIComponent(refDelegacionId)}`,
 						method: "GET",
-						params: { id: refDelegacionId },
 						errorType: "response",
 					},
 					(okDel) => {
