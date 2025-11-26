@@ -718,7 +718,6 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 				if (!lockDelegacion && !lockSeccional) delete n.ambitoProvincias;
 			} else {
 				n.ambitoProvincias = { ids: [provIdSel] };
-				if (!lockDelegacion && !lockSeccional) delete n.ambitoTodos;
 			}
 			if (lockSeccional) {
 				n.ambitoSeccionales = { ids: [fixedSeccId] };
@@ -1365,13 +1364,13 @@ const Afiliados = ({ onClose = onCloseDef }) => {
 			);
 		}
 
-		// Si hay filtros específicos, remover ambitoTodos
-		const hayFiltroEspecifico =
-			(filtrosDepurados.ambitoSeccionales?.ids?.length ?? 0) > 0 ||
-			(filtrosDepurados.ambitoDelegaciones?.ids?.length ?? 0) > 0 ||
-			(filtrosDepurados.ambitoProvincias?.ids?.length ?? 0) > 0;
+		// Si el usuario lo tiene, lo mantenemos aunque haya filtros específicos.
+		if (usuario?.ambitoTodos) {
+			filtrosDepurados.ambitoTodos = usuario.ambitoTodos; // true
+		} else {
+			delete filtrosDepurados.ambitoTodos;
+		}
 
-		if (hayFiltroEspecifico) delete filtrosDepurados.ambitoTodos;
 
 		if (lockSeccional) {
 			filtrosDepurados.ambitoSeccionales = { ids: [fixedSeccId] };

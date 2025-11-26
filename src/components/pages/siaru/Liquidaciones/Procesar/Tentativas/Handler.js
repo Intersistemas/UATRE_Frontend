@@ -874,14 +874,14 @@ const Handler = ({ periodo, tentativas = [] }) => {
       {
         dataField: "empresaEstablecimiento_Nombre",
         text: "Establecimiento",
-        sort: false,
+        sort: true,
         style: { textAlign: "left" },
       },
       // { dataField: "esRural" },
       {
         dataField: "esRural",
         text: "Es Rural",
-        sort: false,
+        sort: true,
         headerStyle: { width: "100px" },
         formatter: Formato.Booleano,
         style: { textAlign: "center" },
