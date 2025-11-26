@@ -751,7 +751,7 @@ const DenunciasHandler = () => {
         ...x,
       });
 
-    const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
+    const desc = denunciasSelected?.id || "";
 
     const isFinalizada = (denunciasSelected?.estado || "").toLowerCase() === "finalizada";
 
@@ -766,7 +766,7 @@ const DenunciasHandler = () => {
         underlineindex: 0,
       }),
       createAction({
-        action: `Consulta Denuncia ${desc}`,
+        action: `Consulta Denuncia nro. ${desc}`,
         onExecute: () => (denunciasSelected ? openForm("C", denunciasSelected) : null),
         tarea: "AdminApp_DenunciaConsulta",
         ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
@@ -774,7 +774,7 @@ const DenunciasHandler = () => {
       ...(!denunciasSelected || !isFinalizada
         ? [
           createAction({
-            action: `Modifica Denuncia ${desc}`,
+            action: `Modifica Denuncia nro. ${desc}`,
             onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
             tarea: "AdminApp_DenunciaModifica",
             ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
