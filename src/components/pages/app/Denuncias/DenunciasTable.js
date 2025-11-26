@@ -30,7 +30,9 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
   // Verificar si el usuario puede ver todos los datos
   const puedeVerTodosLosDatos = React.useMemo(() => {
     if (!usuario) {
-      console.log(" Sin usuario - permisos denegados");
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(" Sin usuario - permisos denegados");
+      }
       return false;
     }
     
@@ -42,19 +44,21 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     
     const resultado = esAdministrador || tieneTareaDenunciasDatos;
     
-    console.log(" Verificación de permisos para tabla (ACTUALIZADA):", {
-      timestamp: new Date().toLocaleTimeString(),
-      esAdministrador,
-      tieneTareaDenunciasDatos,
-      puedeVerTodos: resultado,
-      usuarioRoles: usuario.roles,
-      tareasUsuario: usuario.modulosTareas?.map(t => t.nombreTarea),
-      usuarioId: usuario.id || usuario.userId,
-      cambioDetectado: "Recalcular permisos",
-      tareasManagerInfo: {
-        esAdminEnTareasManager: tareasManager.hasTarea("ANY_TASK") // Test si es admin general
-      }
-    });
+    if (process.env.NODE_ENV !== "production") {
+      console.debug(" Verificación de permisos para tabla (ACTUALIZADA):", {
+        timestamp: new Date().toLocaleTimeString(),
+        esAdministrador,
+        tieneTareaDenunciasDatos,
+        puedeVerTodos: resultado,
+        usuarioRoles: usuario.roles,
+        tareasUsuario: usuario.modulosTareas?.map(t => t.nombreTarea),
+        usuarioId: usuario.id || usuario.userId,
+        cambioDetectado: "Recalcular permisos",
+        tareasManagerInfo: {
+          esAdminEnTareasManager: tareasManager.hasTarea("ANY_TASK") // Test si es admin general
+        }
+      });
+    }
     
     return resultado;
   }, [usuario, tareasManager]);
@@ -69,7 +73,9 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
 
     setCargandoTipos(true);
     
-    console.log("🔍 Obteniendo tipo de denuncia:", { tipoId });
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("🔍 Obteniendo tipo de denuncia:", { tipoId });
+    }
     
     // 🔧 Crear configuración dinámica con el ID en el endpoint
     const configDinamica = {
@@ -82,7 +88,9 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
       action: "GetTipoDenuncia",
       config: configDinamica, // Usar configuración dinámica
       onOk: (response) => {
-        console.log(" Respuesta del tipo de denuncia:", { tipoId, response });
+        if (process.env.NODE_ENV !== "production") {
+          console.debug(" Respuesta del tipo de denuncia:", { tipoId, response });
+        }
         const descripcion = response?.descripcion || "Tipo desconocido";
         setTiposDenuncia(prev => ({
           ...prev,
@@ -106,23 +114,27 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
   // Effect para precargar los tipos de denuncia cuando cambian las props
   useEffect(() => {
     if (x.data && Array.isArray(x.data)) {
-      console.log(" Datos de denuncias recibidos para tipos:", {
-        totalRegistros: x.data.length,
-        primerosRegistros: x.data.slice(0, 2).map(item => ({
-          id: item.id,
-          denunciaTipoId: item.denunciaTipoId,
-          denunciaTipoIngresoId: item.denunciaTipoIngresoId,
-          tipoId: item.tipoId,
-          tipo: item.tipo
-        }))
-      });
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(" Datos de denuncias recibidos para tipos:", {
+          totalRegistros: x.data.length,
+          primerosRegistros: x.data.slice(0, 2).map(item => ({
+            id: item.id,
+            denunciaTipoId: item.denunciaTipoId,
+            denunciaTipoIngresoId: item.denunciaTipoIngresoId,
+            tipoId: item.tipoId,
+            tipo: item.tipo
+          }))
+        });
+      }
       
       const tiposUnicos = [...new Set(x.data
         .map(item => item.denunciaTipoId || item.denunciaTipoIngresoId || item.tipoId)
         .filter(Boolean)
       )];
       
-      console.log(" Tipos únicos encontrados:", tiposUnicos);
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(" Tipos únicos encontrados:", tiposUnicos);
+      }
       
       tiposUnicos.forEach(tipoId => {
         if (!tiposDenuncia[tipoId] && !cargandoTipos) {
@@ -238,7 +250,9 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     if (puedeVerTodosLosDatos) {
       // USUARIOS CON PERMISOS COMPLETOS (Administrador o Denuncias_Datos)
       // Tabla: fecha, nombre, correo, teléfono, provincia, localidad, estado (sin tipo temporalmente)
-      console.log(" Usuario con permisos completos - Mostrando: fecha, nombre, correo, teléfono, provincia, localidad, estado");
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(" Usuario con permisos completos - Mostrando: fecha, nombre, correo, teléfono, provincia, localidad, estado");
+      }
       
       return [
         {
@@ -281,12 +295,14 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
           text: "Teléfono",
           sort: true,
           formatter: (cell, row) => {
-            console.log(" Formateando teléfono (PERMISOS COMPLETOS):", { 
-              cell, 
-              telefonoContacto: row.telefonoContacto,
-              telefono: row.telefono,
-              rowCompleta: row
-            });
+            if (process.env.NODE_ENV !== "production") {
+              console.debug(" Formateando teléfono (PERMISOS COMPLETOS):", { 
+                cell, 
+                telefonoContacto: row.telefonoContacto,
+                telefono: row.telefono,
+                rowCompleta: row
+              });
+            }
             
             const telefono = cell || row.telefonoContacto || row.telefono;
             return telefono || "Sin teléfono";
@@ -359,7 +375,9 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     } else {
       // USUARIOS CON PERMISOS LIMITADOS (sin rol Administrador ni tarea Denuncias_Datos)
       // Tabla: fecha, teléfono, localidad, estado (sin tipo temporalmente)
-      console.log(" Usuario con permisos limitados - Mostrando: fecha, teléfono, localidad, estado");
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(" Usuario con permisos limitados - Mostrando: fecha, teléfono, localidad, estado");
+      }
       
       return [
         {
@@ -383,12 +401,14 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
           text: "Teléfono",
           sort: true,
           formatter: (cell, row) => {
-            console.log(" Formateando teléfono (PERMISOS LIMITADOS):", { 
-              cell, 
-              telefonoContacto: row.telefonoContacto,
-              telefono: row.telefono,
-              rowCompleta: row
-            });
+            if (process.env.NODE_ENV !== "production") {
+              console.debug(" Formateando teléfono (PERMISOS LIMITADOS):", { 
+                cell, 
+                telefonoContacto: row.telefonoContacto,
+                telefono: row.telefono,
+                rowCompleta: row
+              });
+            }
             
             const telefono = cell || row.telefonoContacto || row.telefono;
             return telefono || "Sin teléfono";
