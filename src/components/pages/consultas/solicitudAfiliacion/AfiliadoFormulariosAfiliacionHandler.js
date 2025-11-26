@@ -32,6 +32,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 		render: formularioRender,
 		request: formularioRequest,
 		selected: formularioSelected,
+		changer: formularioChanger, // si tu hook expone un changer
 	} = useAfiliadoFormulariosAfiliacion({
 		params: {},
 		onLoadSelect: onLoadSelectKeepOrFirst,
@@ -54,6 +55,22 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 				action: `Agrega Solicitud`,
 				request: "A",
 				//tarea: "Datos_EmpresaAgrega",
+
+			record: {
+				cuil: "",
+				telefonoPais: "",
+				telefonoArea: "",
+				telefonoNumero: "",
+				email: "",
+				ciius: [],
+				provincias: { data: [] },
+				localidades: { data: [] },
+				seccionales: { data: [] },
+				tiposDocumentos: [],
+			},
+			
+
+
 				keys: "a",
 				underlineindex: 0,
 			}),
@@ -65,45 +82,56 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 			createAction({
 				action: `Consulta Solicitud ${desc}`,
 				request: "C",
-				//tarea: "Datos_EmpresaConsulta",
 				record: {},
 				...(formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "o",
-							underlineindex: 1,
-					  }),
-			})
-		);
-		actions.push(
-			createAction({
-				action: `Modifica Solicitud ${desc}`,
-				request: "M",
-				record: {},
-				//tarea: "Datos_EmpresaModifica",
-				...(formularioSelected?.deletedDate || !formularioSelected?.id
-					? { disabled: true }
-					: {
-							disabled: false,
-							keys: "m",
-							underlineindex: 0,
-					  }),
+					? {
+						disabled: false,
+						keys: "o",
+						underlineindex: 1,
+					}
+					: { disabled: true }),
 			})
 		);
 
-		if (!formularioSelected?.deletedDate && !formularioSelected?.afiliadoIdAsignado) {
+		//    // Verifica CUIL en Afiliados y, si existe, acepta automáticamente
+		//    actions.push(
+		//      createAction({
+		//        action: `Sincroniza estado ${desc}`,
+		//        request: "V",
+		//        record: {},
+		//        ...(formularioSelected?.id
+		//          ? { disabled: false, keys: "v", underlineindex: 0 }
+		//          : { disabled: true }),
+		//      })
+		//    );
+
+		// actions.push(
+		// 	createAction({
+		// 		action: `Modifica Solicitud ${desc}`,
+		// 		request: "M",
+		// 		record: {},
+		// 		//tarea: "Datos_EmpresaModifica",
+		// 		...(formularioSelected?.deletedDate || !formularioSelected?.id
+		// 			? { disabled: true }
+		// 			: {
+		// 					disabled: false,
+		// 					keys: "m",
+		// 					underlineindex: 0,
+		// 			  }),
+		// 	})
+		// );
+
+		// Disponible cuando NO está aceptada ni rechazada
+		if (!formularioSelected?.afiliadoIdAsignado && !formularioSelected?.deletedDate) {
 			actions.push(
 				createAction({
 					action: `Acepta Solicitud ${desc}`,
 					request: "I",
 					record: {},
-					//tarea: "Datos_EmpresaReactiva",
 					keys: "r",
 					underlineindex: 0,
 				})
 			);
-		} else {
 			actions.push(
 				createAction({
 					action: `Rechaza Solicitud ${desc}`,
@@ -112,15 +140,10 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 						...formularioSelected,
 						deletedDate: dayjs().format("YYYY-MM-DD"),
 						deletedBy: Usuario.nombre,
+						deletedObs: "",
 					},
-					//tarea: "Datos_EmpresaBaja",
-					...(formularioSelected?.deletedDate || !formularioSelected?.id
-						? { disabled: true }
-						: {
-								disabled: false,
-								keys: "b",
-								underlineindex: 0,
-						  }),
+					keys: "b",
+					underlineindex: 0,
 				})
 			);
 		}
@@ -252,7 +275,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 					{tabs.map((r) => r.header())}
 				</Tabs>
 			</div>
-			<div className="contenido">	
+			<div className="contenido">
 				{tabs[tab].body()}
 			</div>
 			<KeyPress items={acciones} />

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import useAmbitos from "components/hooks/useAmbitos";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial, {
@@ -11,7 +12,7 @@ import InputMaterial, {
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/documentacion/Documentacion";
+import Documentacion from "components/Documentacion/Documentacion";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -161,6 +162,8 @@ const GestionOSForm = ({
   onClose ??= onCloseDef;
   onValidate ??= onValidateDef;
 
+  const ambito = useAmbitos().ambitoUser();
+  const Usuario = useSelector((state) => state.usuarioLogueado);
   const [selectedTab, setSelectedTab] = useState(0);
   const [mostrarAlertas, setMostrarAlertas] = useState(false);
   const [disabledItems, setDisabledItems] = useState(disabled);
@@ -180,6 +183,10 @@ const GestionOSForm = ({
   const { request: solicitudAfiliacion } = useSolicitudAfiliacion();
   //ModificacionMauro
   const [ultimoIdGestion, setUltimoIdGestion] = useState(null);
+  
+  // Referencia para controlar si ya se estableció la seccional predeterminada
+  const seccionalPredeterminadaSet = useRef(false);
+  
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
@@ -201,9 +208,51 @@ const GestionOSForm = ({
 
   const ultimoDniBuscadoRef = useRef("");
 
-  // const [busy, setBusy] = useState({ busy: false, text: "" });
-  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   //#endregion
+
+  //Este codigo de bloque rellena automaticamente
+  useEffect(() => {
+    const raw = toSafeString(data?.dniPaciente);
+    const dni = raw.replace(/\D/g, "");
+    if (!dni) {
+      // si se borró, reseteo el anti-rebote para permitir la misma búsqueda después
+      ultimoDniBuscadoRef.current = "";
+      return;
+    }
+
+    // (Opcional) sólo disparo con largos razonables
+    if (dni.length < 7) return;
+
+    if (ultimoDniBuscadoRef.current === dni) return;
+    ultimoDniBuscadoRef.current = dni;
+
+    pushQuery({
+      action: "GetUltimaGestionPaciente",
+      params: { dniPaciente: dni },
+      onOk: async (res) => {
+        const arr = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        const ultima = arr[0];
+        if (!ultima) return;
+
+        const telAnterior =
+          ultima.telefonoContacto ||
+          ultima.telefono || "";
+        const mailAnterior =
+          ultima.emailContacto ||
+          ultima.direccionesEmailDestino || "";
+
+        const cambios = {};
+        if (!data.telefonoContacto && telAnterior) cambios.telefonoContacto = telAnterior;
+        if (!data.telefono && telAnterior && data.medioGestion === "telefono") cambios.telefono = telAnterior;
+        if (!data.emailContacto && mailAnterior) cambios.emailContacto = mailAnterior;
+        if (!data.direccionesEmailDestino && mailAnterior && data.medioGestion === "email")
+          cambios.direccionesEmailDestino = mailAnterior;
+
+        if (Object.keys(cambios).length) onChange(cambios);
+      },
+    });
+  }, [data?.dniPaciente, data?.medioGestion]);
+  //Fin del bloque de codigo que rellena automaticamente
 
   //#region DISABLED 0303
   useEffect(() => {
@@ -677,7 +726,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -726,7 +775,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -775,7 +824,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     selectedAditionalData: {},
     origen: "",
   });
@@ -784,7 +833,10 @@ const GestionOSForm = ({
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
-      selected: { value: data.seccionalId, label: data.seccionalDescripcion },
+      // Solo establecer selected si hay valores válidos
+      ...(data.seccionalId && data.seccionalDescripcion ? {
+        selected: { value: data.seccionalId, label: data.seccionalDescripcion }
+      } : {})
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccionales
@@ -810,18 +862,127 @@ const GestionOSForm = ({
     setSeccionalesQuery((o) => ({
       ...o,
       onLoad: ({ ok, error }) => {
-        let data = [];
-        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        let allData = [];
+        let seccionalesFiltered = [];
+        let seccionalPredeterminada = null;
+
+        if (Array.isArray(ok)) {
+          allData = ok.filter((r) => r.id !== 99999);
+          seccionalesFiltered = allData;
+
+          // Si el ámbito es Delegaciones y estamos agregando una nueva gestión
+          if (ambito.tipo === 'Delegaciones' && request === 'A') {
+            const delegacionId = ambito.ids[0];
+            // Filtrar seccionales por la delegación actual
+            seccionalesFiltered = allData.filter((r) => r.refDelegacionId === delegacionId);
+
+            // Intentar obtener la seccional del usuario mediante Afiliado (por CUIL/CUIT)
+            // Si no se encuentra o no pertenece a la delegación, se usará la primera seccional
+            if (Usuario?.cuit) {
+              pushQuery({
+                action: "GetAfiliado",
+                params: { CUIL: Usuario.cuit },
+                onOk: async (afiliado) => {
+                  try {
+                    const seccionalIdUsuario = afiliado?.seccionalId;
+                    const seccionalUsuario = seccionalesFiltered.find(s => s.id === seccionalIdUsuario);
+                    if (seccionalUsuario && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalUsuario;
+                      seccionalPredeterminadaSet.current = true;
+                    } else if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalesFiltered[0];
+                      seccionalPredeterminadaSet.current = true;
+                    }
+
+                    setSeccionalSelect((o) => ({
+                      ...o,
+                      loading: null,
+                      data: seccionalesFiltered,
+                      error: error?.toString(),
+                      ...(seccionalPredeterminada
+                        ? { selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion } }
+                        : {}),
+                    }));
+
+                    if (seccionalPredeterminada) {
+                      onChange({
+                        seccionalId: seccionalPredeterminada.id,
+                        seccionalDescripcion: seccionalPredeterminada.descripcion,
+                      });
+                    }
+                  } catch (e) {
+                    // En caso de error, fallback a primera seccional disponible
+                    if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalesFiltered[0];
+                      seccionalPredeterminadaSet.current = true;
+                      setSeccionalSelect((o) => ({
+                        ...o,
+                        loading: null,
+                        data: seccionalesFiltered,
+                        error: error?.toString(),
+                        selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion },
+                      }));
+                      onChange({ seccionalId: seccionalPredeterminada.id, seccionalDescripcion: seccionalPredeterminada.descripcion });
+                    } else {
+                      setSeccionalSelect((o) => ({ ...o, loading: null, data: seccionalesFiltered, error: error?.toString() }));
+                    }
+                  }
+                },
+                onError: async () => {
+                  // No se encontró afiliado: fallback a primera seccional
+                  if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                    seccionalPredeterminada = seccionalesFiltered[0];
+                    seccionalPredeterminadaSet.current = true;
+                    setSeccionalSelect((o) => ({
+                      ...o,
+                      loading: null,
+                      data: seccionalesFiltered,
+                      error: error?.toString(),
+                      selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion },
+                    }));
+                    onChange({ seccionalId: seccionalPredeterminada.id, seccionalDescripcion: seccionalPredeterminada.descripcion });
+                  } else {
+                    setSeccionalSelect((o) => ({ ...o, loading: null, data: seccionalesFiltered, error: error?.toString() }));
+                  }
+                },
+              });
+              // Salimos porque la actualización del estado se hará en los callbacks
+              return;
+            } else {
+              // No hay CUIT del usuario: usar la primera seccional si aplica
+              if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                seccionalPredeterminada = seccionalesFiltered[0];
+                seccionalPredeterminadaSet.current = true;
+              }
+            }
+          }
+        }
+
+        // Si no se necesitó consultar afiliado o ya no quedó mejor opción, actualizar estado normalmente
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
-          data,
+          data: seccionalesFiltered,
           error: error?.toString(),
+          ...(seccionalPredeterminada
+            ? { selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion } }
+            : {}),
         }));
+
+        if (seccionalPredeterminada) {
+          onChange({ seccionalId: seccionalPredeterminada.id, seccionalDescripcion: seccionalPredeterminada.descripcion });
+        }
       },
     }));
-  }, [setSeccionalesQuery]);
+  }, [setSeccionalesQuery, ambito, request, onChange]);
   //#endregion Carga inicial select seccionales
+
+  //#region Resetear referencia de seccional predeterminada cuando cambia el request
+  useEffect(() => {
+    // Resetear la referencia cuando se abre un nuevo formulario
+    seccionalPredeterminadaSet.current = false;
+  }, [request]);
+  //#endregion
 
   //#region select GestionesRubro
   const [gestionRubroSelect, setGestionRubroSelect] = useState({
@@ -830,7 +991,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -880,7 +1041,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -931,7 +1092,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -985,7 +1146,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1036,7 +1197,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1085,7 +1246,7 @@ const GestionOSForm = ({
     data: [],
     error: null,
     options: [],
-    selected: {},
+    selected: null,
     origen: "",
   });
   // Buscador
@@ -1612,41 +1773,42 @@ const GestionOSForm = ({
                           }
                         />
                       </Grid>
-                      {(titular?.existeEnUATRE ||
-                        titular?.existeEnOSPRERA ||
-                        titular?.existeEnAFIP) && (
-                          <div>
-                            <h6
-                              style={{
-                                fontSize: "small",
-                                displa:
-                                  titular?.existeEnUATRE ||
-                                    (!!titular?.existeEnUATRE &&
-                                      titular.existeEnOSPRERA &&
-                                      !!titular.existeEnAFIP)
-                                    ? "none"
-                                    : "flex",
-                              }}
-                            >
-                              {" "}
-                              {titular.existeEnOSPRERA
-                                ? "Titular en Padron OSPRERA"
-                                : titular.existeEnAFIP
-                                  ? "Titular en ARCA"
-                                  : ""}{" "}
-                            </h6>
-                            <h6 style={{ fontSize: "small" }}>
-                              {titular.existeEnUATRE === true
-                                ? "Afiliado a UATRE"
-                                : titular.existeEnOSPRERA === null &&
-                                  titular.existeEnAFIP === null
-                                  ? "" //"No se encontraron datos para el CUIL ingresado"
-                                  : titular.existeEnUATRE === false
-                                    ? "No Afiliado a UATRE"
+                      <div className="afiliado-status">
+                        {(titular?.existeEnUATRE ||
+                          titular?.existeEnOSPRERA ||
+                          titular?.existeEnAFIP) && (
+                            <>
+                              <h6
+                                style={{
+                                  fontSize: "small",
+                                  display:
+                                    titular?.existeEnUATRE ||
+                                      (!!titular?.existeEnUATRE &&
+                                        titular.existeEnOSPRERA &&
+                                        !!titular.existeEnAFIP)
+                                      ? "none"
+                                      : "flex",
+                                }}
+                              >
+                                {titular.existeEnOSPRERA
+                                  ? "Titular en Padron OSPRERA"
+                                  : titular.existeEnAFIP
+                                    ? "Titular en ARCA"
                                     : ""}
-                            </h6>
-                          </div>
-                        )}
+                              </h6>
+                              <h6 style={{ fontSize: "small" }}>
+                                {titular.existeEnUATRE === true
+                                  ? "Afiliado a UATRE"
+                                  : titular.existeEnOSPRERA === null &&
+                                    titular.existeEnAFIP === null
+                                    ? ""
+                                    : titular.existeEnUATRE === false
+                                      ? "No Afiliado a UATRE"
+                                      : ""}
+                              </h6>
+                            </>
+                          )}
+                      </div>
                     </Grid>
                     <Grid col width="120px">
                       <Button
