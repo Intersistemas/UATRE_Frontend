@@ -265,6 +265,42 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		);
 	}, [sendRequest]);
 
+		// Caché y pending para detalles del estado (cuando no hay documentación asociada)
+		const [estadoDetailsCache, setEstadoDetailsCache] = useState({});
+		const estadosPending = useRef(new Set());
+
+		const fetchEstadoById = useCallback((id) => {
+			if (!id) return;
+			if (estadosPending.current.has(id)) return;
+			estadosPending.current.add(id);
+			sendRequest(
+				{
+					baseURL: "App",
+					endpoint: `/DenunciasEstados/${encodeURIComponent(id)}`,
+					method: "GET",
+					errorType: "response",
+				},
+				(ok) => {
+					try {
+						let data = null;
+						if (ok && !Array.isArray(ok) && typeof ok === 'object') data = ok;
+						else if (Array.isArray(ok) && ok.length) data = ok[0];
+						else if (ok && Array.isArray(ok.data) && ok.data.length) data = ok.data[0];
+						else if (ok && Array.isArray(ok.items) && ok.items.length) data = ok.items[0];
+						const createdBy = data?.createdBy ?? data?.createdById ?? data?.creadoPor ?? data?.createdByUser ?? null;
+						const createdDate = data?.createdDate ?? data?.fecha ?? null;
+						setEstadoDetailsCache(prev => ({ ...prev, [id]: { createdBy, createdDate } }));
+					} finally {
+						estadosPending.current.delete(id);
+					}
+				},
+				() => {
+					setEstadoDetailsCache(prev => ({ ...prev, [id]: null }));
+					estadosPending.current.delete(id);
+				}
+			);
+		}, [sendRequest]);
+
 
 	// 3) Alta de Estado de la denuncia
 	const { setState: setCreateEstadoQuery } = useQueryState(
@@ -503,15 +539,18 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		return rows;
 	}, [novedadesRows, novEstadoSelect?.selected?.value, novFechaDesde, novFechaHasta]);
 
-	// Añade nombre de usuario resuelto a cada fila para mostrar en la grilla
 	const novedadesDisplayRows = useMemo(() => {
 		return (Array.isArray(novedadesFilteredRows) ? novedadesFilteredRows : []).map(r => {
-			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
-			return { ...r, usuarioNombre: id ? (usuariosCache[id] ?? id) : "" };
+			const estadoId = Number(r?.id ?? r?.Id ?? 0) || 0;
+			const doc = r?._doc;
+			const det = estadoDetailsCache[estadoId];
+			const createdBy = doc?.createdBy ?? r?.createdBy ?? (det ? det.createdBy : "");
+			const createdDate = doc?.createdDate ?? r?.createdDate ?? (det ? det.createdDate : null);
+			const usuarioNombre = createdBy ? (usuariosCache[createdBy] ?? createdBy) : "";
+			return { ...r, usuarioNombre, createdBy, createdDate };
 		});
-	}, [novedadesFilteredRows, usuariosCache]);
+	}, [novedadesFilteredRows, usuariosCache, estadoDetailsCache]);
 
-	// Efecto para disparar fetchs para ids que aún no están en cache
 	useEffect(() => {
 		if (!Array.isArray(novedadesFilteredRows)) return;
 		const faltantes = new Set();
@@ -519,8 +558,27 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
 			if (id && !usuariosCache[id] && !usuariosPending.current.has(id)) faltantes.add(id);
 		});
+		Object.values(estadoDetailsCache).forEach(det => {
+			if (det && det.createdBy) {
+				const id = det.createdBy;
+				if (id && !usuariosCache[id] && !usuariosPending.current.has(id)) faltantes.add(id);
+			}
+		});
 		faltantes.forEach(id => fetchUsuarioById(id));
-	}, [novedadesFilteredRows, usuariosCache, fetchUsuarioById]);
+	}, [novedadesFilteredRows, usuariosCache, estadoDetailsCache, fetchUsuarioById]);
+
+	useEffect(() => {
+		if (!Array.isArray(novedadesFilteredRows)) return;
+		const faltantesEstados = new Set();
+		novedadesFilteredRows.forEach(r => {
+			const estadoId = Number(r?.id ?? r?.Id ?? 0) || 0;
+			const doc = r?._doc;
+			if (!doc && estadoId && estadoDetailsCache[estadoId] === undefined && !estadosPending.current.has(estadoId)) {
+				faltantesEstados.add(estadoId);
+			}
+		});
+		faltantesEstados.forEach(id => fetchEstadoById(id));
+	}, [novedadesFilteredRows, estadoDetailsCache, fetchEstadoById]);
 
 	const selectedKeys = useMemo(() => {
 		if (!selectedEstado) return [];
@@ -1004,6 +1062,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		setSeccionalSelect((o) => ({ ...o, options: opts, selected: nextSelected }));
 		if (opts.length === 1) {
 			const sel = opts[0];
+			console.log('[useEffect delegacionSelect.selected] auto-set form.seccional to', sel.record?.descripcion || sel.label);
 			setState((o) => ({ ...o, form: { ...o.form, seccional: sel.record?.descripcion || sel.label } }));
 		}
 	}, [delegacionSelect.selected, seccionalSelect.data, seccionalSelect.buscar, seccionalSelect.selected]);
@@ -1863,6 +1922,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const estadoOptions = optionsFor(estadoPersistido).map(v => ({ value: v, label: v }));
 
+		const ESTADO_KEY = state.form?.estado || "Registrada";
+		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
+
 
 		const isRegistrada = estadoPersistido === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
@@ -1881,6 +1943,30 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			];
 		};
 		const derivadaAOptions = derivadaOptionsFor(derivadaPersistida).map(v => ({ value: v, label: v }));
+
+		const DERIVADA_A_KEY = state.form?.derivadaA || "Sin derivacion";
+		const DERIVADA_A_VALUE = derivadaAOptions.find(o => o.value === DERIVADA_A_KEY) || null;
+
+		// Tipo Ingreso / Situación
+		const TIPO_INGRESO_KEY = state.form?.denunciaTipoIngresoId || null;
+		const TIPO_INGRESO_VALUE = (tipoIngresoSelect?.options || []).find(o => o.value === TIPO_INGRESO_KEY) || null;
+
+		const SITUACION_KEY = state.form?.denunciaSituacionId || null;
+		const SITUACION_VALUE = (situacionSelect?.options || []).find(o => o.value === SITUACION_KEY) || null;
+
+		// Provincia / Localidad (Trabajador)
+		const TRAB_PCIA_KEY = state.form?.provinciaId || null;
+		const TRAB_PCIA_VALUE = (trabPciaSelect?.options || []).find(o => o.value === TRAB_PCIA_KEY) || null;
+
+		const TRAB_LOCA_KEY = state.form?.refLocalidadIdAfiliado || null;
+		const TRAB_LOCA_VALUE = (trabLocaSelect?.options || []).find(o => o.value === TRAB_LOCA_KEY) || null;
+
+		// Delegación / Seccional (derivación)
+		const DELEGACION_KEY = (delegacionSelect?.selected?.value != null) ? delegacionSelect.selected.value : null;
+		const DELEGACION_VALUE = (delegacionSelect?.options || []).find(o => o.value === DELEGACION_KEY) || null;
+
+		const SECCIONAL_KEY = (seccionalSelect?.selected?.value != null) ? seccionalSelect.selected.value : null;
+		const SECCIONAL_VALUE = (seccionalSelect?.options || []).find(o => o.value === SECCIONAL_KEY) || null;
 
 		const lockDerivadaSelectByServer = ["Seccional", "CNTA", "Asesoria Letrada"].includes(derivadaPersistida);
 
@@ -1908,7 +1994,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabPciaSelect.error || state.errors.provincia)}
 								helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
-								value={trabPciaSelect.selected}
+								value={TRAB_PCIA_VALUE}
 								onChange={(selected = {}) => {
 									setTrabPciaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setLocalidadesQuery((o) => ({
@@ -1952,7 +2038,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								//onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabLocaSelect.error || state.errors.localidad)}
 								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
-								value={trabLocaSelect.selected}
+								value={TRAB_LOCA_VALUE}
 								onChange={(selected = {}) => {
 									setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -2032,7 +2118,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!tipoIngresoSelect.error}
 								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
-								value={tipoIngresoSelect.selected}
+								value={TIPO_INGRESO_VALUE}
 								options={tipoIngresoSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2061,7 +2147,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!situacionSelect.error}
 								helperText={situacionSelect.loading ?? situacionSelect.error}
-								value={ocultarDatosSensibles ? null : situacionSelect.selected}
+								value={ocultarDatosSensibles ? null : SITUACION_VALUE}
 								options={situacionSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2167,7 +2253,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Estado"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || mode === "A")}
-									value={state.form.estado ? { value: state.form.estado, label: state.form.estado } : { value: "Registrada", label: "Registrada" }}
+									value={ESTADO_VALUE}
 									options={estadoOptions}
 									onChange={(selected = {}) => {
 										const persisted = (getUltimoEstadoDesdeEndpoint?.() || "").toLowerCase();
@@ -2202,7 +2288,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Derivada a"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || state.form.estado !== "Derivada" || lockDerivadaSelectByServer)}
-									value={state.form.derivadaA ? { value: state.form.derivadaA, label: state.form.derivadaA } : {}}
+									value={DERIVADA_A_VALUE}
 									options={derivadaAOptions}
 									onChange={(selected = {}) =>
 										setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } }))
@@ -2220,11 +2306,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									style={roStyle(lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional"))}
 									error={!!delegacionSelect.error}
 									helperText={delegacionSelect.loading ?? (delegacionSelect.selected?.value ? null : delegacionSelect.error)}
-									value={delegacionSelect.selected}
+									value={DELEGACION_VALUE}
 									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
 									freeSolo={false}
 									inputReadOnly={true}
 									onChange={(selected) => {
+										console.log('[delegacion onChange] selected=', selected, 'prev seccionalSelected=', seccionalSelect.selected);
 										setDelegacionSelect((o) => ({ ...o, selected, error: null, loading: null }));
 										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
 										setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
@@ -2241,11 +2328,12 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									style={roStyle(lockedSeccional || state.form.derivadaA !== "Seccional")}
 									error={!!seccionalSelect.error}
 									helperText={seccionalSelect.loading ?? (seccionalSelect.selected?.value ? null : seccionalSelect.error)}
-									value={seccionalSelect.selected}
+									value={SECCIONAL_VALUE}
 									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
 									freeSolo={false}
 									inputReadOnly={true}
 									onChange={(selected) => {
+										console.log('[seccional onChange] selected=', selected, 'current delegacionSelected=', delegacionSelect.selected);
 										setSeccionalSelect((o) => ({ ...o, selected, error: null, loading: null }));
 										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
 									}}
