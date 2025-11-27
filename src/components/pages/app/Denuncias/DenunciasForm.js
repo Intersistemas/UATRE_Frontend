@@ -1863,6 +1863,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const estadoOptions = optionsFor(estadoPersistido).map(v => ({ value: v, label: v }));
 
+		const ESTADO_KEY = state.form?.estado || "Registrada";
+		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
+
 
 		const isRegistrada = estadoPersistido === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
@@ -1881,6 +1884,30 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			];
 		};
 		const derivadaAOptions = derivadaOptionsFor(derivadaPersistida).map(v => ({ value: v, label: v }));
+
+		const DERIVADA_A_KEY = state.form?.derivadaA || "Sin derivacion";
+		const DERIVADA_A_VALUE = derivadaAOptions.find(o => o.value === DERIVADA_A_KEY) || null;
+
+		// Tipo Ingreso / Situación
+		const TIPO_INGRESO_KEY = state.form?.denunciaTipoIngresoId || null;
+		const TIPO_INGRESO_VALUE = (tipoIngresoSelect?.options || []).find(o => o.value === TIPO_INGRESO_KEY) || null;
+
+		const SITUACION_KEY = state.form?.denunciaSituacionId || null;
+		const SITUACION_VALUE = (situacionSelect?.options || []).find(o => o.value === SITUACION_KEY) || null;
+
+		// Provincia / Localidad (Trabajador)
+		const TRAB_PCIA_KEY = state.form?.provinciaId || null;
+		const TRAB_PCIA_VALUE = (trabPciaSelect?.options || []).find(o => o.value === TRAB_PCIA_KEY) || null;
+
+		const TRAB_LOCA_KEY = state.form?.refLocalidadIdAfiliado || null;
+		const TRAB_LOCA_VALUE = (trabLocaSelect?.options || []).find(o => o.value === TRAB_LOCA_KEY) || null;
+
+		// Delegación / Seccional (derivación)
+		const DELEGACION_KEY = (delegacionSelect?.selected?.value != null) ? delegacionSelect.selected.value : null;
+		const DELEGACION_VALUE = (delegacionSelect?.options || []).find(o => o.value === DELEGACION_KEY) || null;
+
+		const SECCIONAL_KEY = (seccionalSelect?.selected?.value != null) ? seccionalSelect.selected.value : null;
+		const SECCIONAL_VALUE = (seccionalSelect?.options || []).find(o => o.value === SECCIONAL_KEY) || null;
 
 		const lockDerivadaSelectByServer = ["Seccional", "CNTA", "Asesoria Letrada"].includes(derivadaPersistida);
 
@@ -1908,7 +1935,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabPciaSelect.error || state.errors.provincia)}
 								helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
-								value={trabPciaSelect.selected}
+								value={TRAB_PCIA_VALUE}
 								onChange={(selected = {}) => {
 									setTrabPciaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setLocalidadesQuery((o) => ({
@@ -1952,7 +1979,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								//onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabLocaSelect.error || state.errors.localidad)}
 								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
-								value={trabLocaSelect.selected}
+								value={TRAB_LOCA_VALUE}
 								onChange={(selected = {}) => {
 									setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -2032,7 +2059,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!tipoIngresoSelect.error}
 								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
-								value={tipoIngresoSelect.selected}
+								value={TIPO_INGRESO_VALUE}
 								options={tipoIngresoSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2061,7 +2088,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!situacionSelect.error}
 								helperText={situacionSelect.loading ?? situacionSelect.error}
-								value={ocultarDatosSensibles ? null : situacionSelect.selected}
+								value={ocultarDatosSensibles ? null : SITUACION_VALUE}
 								options={situacionSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2167,7 +2194,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Estado"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || mode === "A")}
-									value={state.form.estado ? { value: state.form.estado, label: state.form.estado } : { value: "Registrada", label: "Registrada" }}
+									value={ESTADO_VALUE}
 									options={estadoOptions}
 									onChange={(selected = {}) => {
 										const persisted = (getUltimoEstadoDesdeEndpoint?.() || "").toLowerCase();
@@ -2202,7 +2229,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Derivada a"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || state.form.estado !== "Derivada" || lockDerivadaSelectByServer)}
-									value={state.form.derivadaA ? { value: state.form.derivadaA, label: state.form.derivadaA } : {}}
+									value={DERIVADA_A_VALUE}
 									options={derivadaAOptions}
 									onChange={(selected = {}) =>
 										setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } }))
@@ -2220,7 +2247,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									style={roStyle(lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional"))}
 									error={!!delegacionSelect.error}
 									helperText={delegacionSelect.loading ?? (delegacionSelect.selected?.value ? null : delegacionSelect.error)}
-									value={delegacionSelect.selected}
+									value={DELEGACION_VALUE}
 									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
 									freeSolo={false}
 									inputReadOnly={true}
@@ -2241,7 +2268,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									style={roStyle(lockedSeccional || state.form.derivadaA !== "Seccional")}
 									error={!!seccionalSelect.error}
 									helperText={seccionalSelect.loading ?? (seccionalSelect.selected?.value ? null : seccionalSelect.error)}
-									value={seccionalSelect.selected}
+									value={SECCIONAL_VALUE}
 									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
 									freeSolo={false}
 									inputReadOnly={true}
