@@ -265,6 +265,42 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		);
 	}, [sendRequest]);
 
+		// Caché y pending para detalles del estado (cuando no hay documentación asociada)
+		const [estadoDetailsCache, setEstadoDetailsCache] = useState({});
+		const estadosPending = useRef(new Set());
+
+		const fetchEstadoById = useCallback((id) => {
+			if (!id) return;
+			if (estadosPending.current.has(id)) return;
+			estadosPending.current.add(id);
+			sendRequest(
+				{
+					baseURL: "App",
+					endpoint: `/DenunciasEstados/${encodeURIComponent(id)}`,
+					method: "GET",
+					errorType: "response",
+				},
+				(ok) => {
+					try {
+						let data = null;
+						if (ok && !Array.isArray(ok) && typeof ok === 'object') data = ok;
+						else if (Array.isArray(ok) && ok.length) data = ok[0];
+						else if (ok && Array.isArray(ok.data) && ok.data.length) data = ok.data[0];
+						else if (ok && Array.isArray(ok.items) && ok.items.length) data = ok.items[0];
+						const createdBy = data?.createdBy ?? data?.createdById ?? data?.creadoPor ?? data?.createdByUser ?? null;
+						const createdDate = data?.createdDate ?? data?.fecha ?? null;
+						setEstadoDetailsCache(prev => ({ ...prev, [id]: { createdBy, createdDate } }));
+					} finally {
+						estadosPending.current.delete(id);
+					}
+				},
+				() => {
+					setEstadoDetailsCache(prev => ({ ...prev, [id]: null }));
+					estadosPending.current.delete(id);
+				}
+			);
+		}, [sendRequest]);
+
 
 	// 3) Alta de Estado de la denuncia
 	const { setState: setCreateEstadoQuery } = useQueryState(
@@ -503,15 +539,18 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		return rows;
 	}, [novedadesRows, novEstadoSelect?.selected?.value, novFechaDesde, novFechaHasta]);
 
-	// Añade nombre de usuario resuelto a cada fila para mostrar en la grilla
 	const novedadesDisplayRows = useMemo(() => {
 		return (Array.isArray(novedadesFilteredRows) ? novedadesFilteredRows : []).map(r => {
-			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
-			return { ...r, usuarioNombre: id ? (usuariosCache[id] ?? id) : "" };
+			const estadoId = Number(r?.id ?? r?.Id ?? 0) || 0;
+			const doc = r?._doc;
+			const det = estadoDetailsCache[estadoId];
+			const createdBy = doc?.createdBy ?? r?.createdBy ?? (det ? det.createdBy : "");
+			const createdDate = doc?.createdDate ?? r?.createdDate ?? (det ? det.createdDate : null);
+			const usuarioNombre = createdBy ? (usuariosCache[createdBy] ?? createdBy) : "";
+			return { ...r, usuarioNombre, createdBy, createdDate };
 		});
-	}, [novedadesFilteredRows, usuariosCache]);
+	}, [novedadesFilteredRows, usuariosCache, estadoDetailsCache]);
 
-	// Efecto para disparar fetchs para ids que aún no están en cache
 	useEffect(() => {
 		if (!Array.isArray(novedadesFilteredRows)) return;
 		const faltantes = new Set();
@@ -519,8 +558,27 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			const id = r?._doc?.createdBy ?? r?.createdBy ?? "";
 			if (id && !usuariosCache[id] && !usuariosPending.current.has(id)) faltantes.add(id);
 		});
+		Object.values(estadoDetailsCache).forEach(det => {
+			if (det && det.createdBy) {
+				const id = det.createdBy;
+				if (id && !usuariosCache[id] && !usuariosPending.current.has(id)) faltantes.add(id);
+			}
+		});
 		faltantes.forEach(id => fetchUsuarioById(id));
-	}, [novedadesFilteredRows, usuariosCache, fetchUsuarioById]);
+	}, [novedadesFilteredRows, usuariosCache, estadoDetailsCache, fetchUsuarioById]);
+
+	useEffect(() => {
+		if (!Array.isArray(novedadesFilteredRows)) return;
+		const faltantesEstados = new Set();
+		novedadesFilteredRows.forEach(r => {
+			const estadoId = Number(r?.id ?? r?.Id ?? 0) || 0;
+			const doc = r?._doc;
+			if (!doc && estadoId && estadoDetailsCache[estadoId] === undefined && !estadosPending.current.has(estadoId)) {
+				faltantesEstados.add(estadoId);
+			}
+		});
+		faltantesEstados.forEach(id => fetchEstadoById(id));
+	}, [novedadesFilteredRows, estadoDetailsCache, fetchEstadoById]);
 
 	const selectedKeys = useMemo(() => {
 		if (!selectedEstado) return [];
