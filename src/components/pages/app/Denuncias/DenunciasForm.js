@@ -1062,6 +1062,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		setSeccionalSelect((o) => ({ ...o, options: opts, selected: nextSelected }));
 		if (opts.length === 1) {
 			const sel = opts[0];
+			console.log('[useEffect delegacionSelect.selected] auto-set form.seccional to', sel.record?.descripcion || sel.label);
 			setState((o) => ({ ...o, form: { ...o.form, seccional: sel.record?.descripcion || sel.label } }));
 		}
 	}, [delegacionSelect.selected, seccionalSelect.data, seccionalSelect.buscar, seccionalSelect.selected]);
@@ -2310,6 +2311,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									freeSolo={false}
 									inputReadOnly={true}
 									onChange={(selected) => {
+										console.log('[delegacion onChange] selected=', selected, 'prev seccionalSelected=', seccionalSelect.selected);
 										setDelegacionSelect((o) => ({ ...o, selected, error: null, loading: null }));
 										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
 										setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
@@ -2331,6 +2333,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									freeSolo={false}
 									inputReadOnly={true}
 									onChange={(selected) => {
+										console.log('[seccional onChange] selected=', selected, 'current delegacionSelected=', delegacionSelect.selected);
 										setSeccionalSelect((o) => ({ ...o, selected, error: null, loading: null }));
 										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
 									}}
