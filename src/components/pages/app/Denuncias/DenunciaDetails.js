@@ -37,17 +37,6 @@ const DenunciaDetails = (props) => {
     
     const resultado = esAdministrador || tieneTareaDenunciasDatos;
     
-    console.log(" Verificación de permisos para detalles (ACTUALIZADA):", {
-      timestamp: new Date().toLocaleTimeString(),
-      esAdministrador,
-      tieneTareaDenunciasDatos,
-      puedeVerTodos: resultado,
-      usuarioRoles: usuario.roles,
-      tareasUsuario: usuario.modulosTareas?.map(t => t.nombreTarea),
-      usuarioId: usuario.id || usuario.userId,
-      cambioDetectado: "Recalcular permisos para detalles"
-    });
-    
     return resultado;
   }, [usuario, tareasManager]);    const _ = require('lodash');
  

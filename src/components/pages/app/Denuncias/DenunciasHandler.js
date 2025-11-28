@@ -12,7 +12,7 @@ import Grid from "components/ui/Grid/Grid";
 import Button from "components/ui/Button/Button";
 import SearchSelectMaterial, { mapOptions, includeSearch } from "components/ui/Select/SearchSelectMaterial";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
-import useDenuncias, { onLoadSelectKeepOrFirst } from "./useDenuncias";
+import useDenuncias, { onLoadSelectKeepOrFirst, onLoadSelectFirst } from "./useDenuncias";
 import { applyAmbitoFilter } from "./filtroAmbitoDenuncias";
 import DenunciasForm from "./DenunciasForm";
 import Action from "components/helpers/Action";
@@ -244,9 +244,16 @@ const DenunciasHandler = () => {
         razonSocial: r.empleadorNombre || "",
         detalleDenuncia: r.texto || "",
         ubicacion: r.ubicacion || "",
-        derivadaA: r.derivadoATipo || "Sin derivacion",
-        derivadaADescripcion: r.derivadoATipo || "Sin derivacion",
-        derivadoAId: r.derivadoAId ?? r.derivadoAId ?? 0,
+
+  // Derivación: tomar SIEMPRE lo que viene de BD como fuente principal
+  derivadaA: r.derivadoATipo || r.derivadaA || "Sin derivacion",
+  derivadaADescripcion:
+    r.derivadaADescripcion ||
+    r.derivadoATipo ||
+    r.derivadaA ||
+    "Sin derivacion",
+  derivadoAId: r.derivadoAId ?? r.derivacionId ?? 0,
+
         estado: r.estado || "Registrada",
         observacionesRegistro: r.observaciones || "",
       });
@@ -744,7 +751,7 @@ const DenunciasHandler = () => {
         ...x,
       });
 
-    const desc = denunciasSelected?.nombre || denunciasSelected?.id || "";
+    const desc = denunciasSelected?.id || "";
 
     const isFinalizada = (denunciasSelected?.estado || "").toLowerCase() === "finalizada";
 
@@ -759,7 +766,7 @@ const DenunciasHandler = () => {
         underlineindex: 0,
       }),
       createAction({
-        action: `Consulta Denuncia ${desc}`,
+        action: `Consulta Denuncia nro. ${desc}`,
         onExecute: () => (denunciasSelected ? openForm("C", denunciasSelected) : null),
         tarea: "AdminApp_DenunciaConsulta",
         ...(denunciasSelected ? { disabled: false, keys: "o", underlineindex: 1 } : { disabled: true }),
@@ -767,7 +774,7 @@ const DenunciasHandler = () => {
       ...(!denunciasSelected || !isFinalizada
         ? [
           createAction({
-            action: `Modifica Denuncia ${desc}`,
+            action: `Modifica Denuncia nro. ${desc}`,
             onExecute: () => (denunciasSelected ? openForm("M", denunciasSelected) : null),
             tarea: "AdminApp_DenunciaModifica",
             ...(denunciasSelected ? { disabled: false, keys: "m", underlineindex: 0 } : { disabled: true }),
@@ -1190,7 +1197,7 @@ const DenunciasHandler = () => {
               denunciaRequest("list", {
                 params,
                 pagination: { size: 10 },
-                onLoadSelect: onLoadSelectKeepOrFirst,
+                onLoadSelect: onLoadSelectFirst,
               });
             }
           }}

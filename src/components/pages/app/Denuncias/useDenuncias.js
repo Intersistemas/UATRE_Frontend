@@ -137,7 +137,6 @@ const useDenuncias = ({
         action: "GetList",
         params: paramsFiltered,
         onOk: (response) => {
-          console.log(" Respuesta recibida de /AppDenuncias:", response);
           
           let data = [];
           let paginationInfo = {};
@@ -145,19 +144,6 @@ const useDenuncias = ({
           if (response && typeof response === "object") {
             data = response.data || [];
             
-            //  Log para ver la estructura de los primeros registros
-            if (Array.isArray(data) && data.length > 0) {
-              console.log(" Estructura de datos de denuncia (primeros 2 registros):", {
-                primerRegistro: data[0],
-                segundoRegistro: data[1] || "No hay segundo registro",
-                camposTelefono: {
-                  telefono: data[0]?.telefono,
-                  telefonoContacto: data[0]?.telefonoContacto,
-                  telContacto: data[0]?.telContacto,
-                  tel: data[0]?.tel
-                }
-              });
-            }
             
             paginationInfo = {
               index: list.pagination.index, //  Mantener nuestro índice
@@ -168,19 +154,6 @@ const useDenuncias = ({
           } else if (Array.isArray(response)) {
             data = response;
             
-            //  Log para ver la estructura cuando es array directo
-            if (data.length > 0) {
-              console.log(" Estructura de datos de denuncia (array directo - primeros 2 registros):", {
-                primerRegistro: data[0],
-                segundoRegistro: data[1] || "No hay segundo registro",
-                camposTelefono: {
-                  telefono: data[0]?.telefono,
-                  telefonoContacto: data[0]?.telefonoContacto,
-                  telContacto: data[0]?.telContacto,
-                  tel: data[0]?.tel
-                }
-              });
-            }
             
             paginationInfo = {
               index: list.pagination.index,
@@ -208,16 +181,6 @@ const useDenuncias = ({
             }));
             return;
           }
-
-
-
-          //  APLICAR FILTRO POR ÁMBITO SOLO SI HAY ÁMBITO ESPECÍFICO
-          console.log(" VERIFICANDO FILTRO DE ÁMBITO:", {
-            usuarioAmbito,
-            tieneUsuarioAmbito: !!usuarioAmbito,
-            tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function",
-            totalDenunciasOriginales: data.length
-          });
           
           if (usuarioAmbito && usuarioAmbito.tipo && usuarioAmbito.id && applyAmbitoFilter && typeof applyAmbitoFilter === "function") {
             console.log(" Aplicando filtro por ámbito específico (flujo normal)...", {
@@ -249,23 +212,13 @@ const useDenuncias = ({
               cargarEstadosParaDenuncias(data, paginationInfo);
             }
           } else {
-            console.log(" Sin filtro por ámbito - mostrando todas las denuncias (flujo normal):", {
-              tieneUsuarioAmbito: !!usuarioAmbito,
-              usuarioAmbitoTipo: usuarioAmbito?.tipo,
-              usuarioAmbitoId: usuarioAmbito?.id,
-              tieneApplyAmbitoFilter: typeof applyAmbitoFilter === "function",
-              razonNoFiltrar: !usuarioAmbito ? "Sin usuarioAmbito" : 
-                             !usuarioAmbito.tipo ? "Sin tipo" :
-                             !usuarioAmbito.id ? "Sin id" :
-                             typeof applyAmbitoFilter !== "function" ? "Sin función de filtro" : "Desconocida"
-            });
             // Cargar estados para todas las denuncias
             cargarEstadosParaDenuncias(data, paginationInfo);
           }
 
           // 🔧 FUNCIÓN PARA CARGAR ESTADOS DE LAS DENUNCIAS
           function cargarEstadosParaDenuncias(denunciasData, paginationInfo) {
-            console.log("Cargando estados para el flujo normal...");
+
             
             pushQuery({
               action: "GetEstados",
@@ -292,34 +245,10 @@ const useDenuncias = ({
                 // Crear un mapa: appDenunciasId -> último estado (más reciente)
                 const estadosMap = {};
                 
-                console.log("🔍 DEBUG ESTADOS - Estructura de primeros estados recibidos:", {
-                  totalEstados: estados.length,
-                  primerosEstados: estados.slice(0, 3).map(item => ({
-                    appDenunciasId: item.appDenunciasId,
-                    appDenuncia_Id: item.appDenuncia_Id,
-                    denunciaId: item.denunciaId,
-                    id: item.id,
-                    estado: item.estado,
-                    fecha: item.fecha,
-                    fechaAsociada: item.fechaAsociada,
-                    fechaEstado: item.fechaEstado,
-                    itemCompleto: item
-                  }))
-                });
                 
                 estados.forEach(item => {
                   const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId || item.id;
                   const fechaEstado = item.fechaAsociada || item.fecha || item.fechaEstado || "";
-                  
-                  console.log("🔍 DEBUG ESTADOS - Procesando estado:", {
-                    denunciaId,
-                    idOriginal: item.appDenunciasId,
-                    idAlternativo1: item.appDenuncia_Id,
-                    idAlternativo2: item.denunciaId,
-                    idGeneral: item.id,
-                    estado: item.estado,
-                    fechaEstado
-                  });
                   
                   if (denunciaId) {
                     if (!estadosMap[denunciaId] || fechaEstado > (estadosMap[denunciaId].fecha || "")) {
@@ -332,35 +261,11 @@ const useDenuncias = ({
                   }
                 });
 
-                console.log("🔍 DEBUG ESTADOS - Mapa de estados creado:", {
-                  totalEstados: estados.length,
-                  denunciasConEstado: Object.keys(estadosMap).length,
-                  mapaCompleto: estadosMap,
-                  primerEstado: Object.values(estadosMap)[0]
-                });
-
-                console.log("🔍 DEBUG DENUNCIAS - Estructura de primeras denuncias:", {
-                  totalDenuncias: denunciasData.length,
-                  primerasDenuncias: denunciasData.slice(0, 3).map(denuncia => ({
-                    id: denuncia.id,
-                    Id: denuncia.Id,
-                    estadoOriginal: denuncia.estado,
-                    denunciaCompleta: denuncia
-                  }))
-                });
 
                 //  COMBINAR ESTADOS CON DENUNCIAS
                 let dataConEstados = denunciasData.map(denuncia => {
                   const denunciaId = denuncia.id || denuncia.Id;
                   const estadoInfo = estadosMap[denunciaId];
-                  
-                  console.log("🔍 DEBUG MAPEO - Combinando denuncia con estado:", {
-                    denunciaId,
-                    tieneEstadoInfo: !!estadoInfo,
-                    estadoInfo,
-                    estadoOriginalDenuncia: denuncia.estado,
-                    estadoFinal: estadoInfo ? estadoInfo.estado : (denuncia.estado || "Sin datos")
-                  });
                   
                   return {
                     ...denuncia,
@@ -388,30 +293,12 @@ const useDenuncias = ({
                   });
                 }
 
-                console.log("🔍 DEBUG FINAL - Datos combinados con estados (flujo normal):", {
-                  totalDenuncias: dataConEstados.length,
-                  muestraEstados: dataConEstados.slice(0, 5).map(d => ({
-                    id: d.id,
-                    estado: d.estado,
-                    fechaEstado: d.fechaEstado
-                  })),
-                  estadosSinDatos: dataConEstados.filter(d => d.estado === "Sin datos").length
-                });
 
                 // ✅ ORDENAR POR FECHA DESCENDENTE (más nueva primero)
                 const dataOrdenada = dataConEstados.sort((a, b) => {
                   const fechaA = new Date(a.fecha || a.fechaEstado || '1900-01-01');
                   const fechaB = new Date(b.fecha || b.fechaEstado || '1900-01-01');
                   return fechaB - fechaA; // Descendente
-                });
-
-                console.log("✅ Datos ordenados por fecha (más nueva primero):", {
-                  totalDenuncias: dataOrdenada.length,
-                  primerasFechas: dataOrdenada.slice(0, 3).map(d => ({
-                    id: d.id,
-                    fecha: d.fecha,
-                    fechaFormatted: new Date(d.fecha).toLocaleDateString()
-                  }))
                 });
 
                 //  ACTUALIZAR ESTADO FINAL
@@ -470,7 +357,6 @@ const useDenuncias = ({
    if (filtroDerivadoATipo) queryParams.derivadoATipo = filtroDerivadoATipo;
    if (filtroDerivadoAId) queryParams.derivadoAId = filtroDerivadoAId;
 
-   console.log("📤 Parámetros enviados al API (flujo único):", queryParams);
    cargarDenunciasConParametros(queryParams, null);
    return;
 
@@ -491,11 +377,6 @@ const useDenuncias = ({
 
   //  ACTIVAR LOADING CUANDO CAMBIEN LOS FILTROS
   useEffect(() => {
-    console.log("Filtros cambiaron, activando loading...", {
-      filtroEstado: filtroEstado || "Ninguno",
-      filtroFechaDesde: filtroFechaDesde || "Ninguna", 
-      filtroFechaHasta: filtroFechaHasta || "Ninguna"
-    });
     
     // Siempre activar loading y resetear a página 1 cuando cambien filtros
     setList((o) => ({

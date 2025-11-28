@@ -3015,7 +3015,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 
 
-
   const onImprimie = () => {
     // Validaciones simples primero
     const errors = {};
