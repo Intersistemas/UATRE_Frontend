@@ -12,7 +12,7 @@ import InputMaterial, {
 import CheckboxMaterial from "components/ui/Checkbox/CheckboxMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import useQueryState from "components/hooks/useQueryState";
-import Documentacion from "components/Documentacion/Documentacion";
+import Documentacion from "components/documentacion/Documentacion";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
