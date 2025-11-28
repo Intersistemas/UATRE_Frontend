@@ -1,3 +1,4 @@
+
 import React, { useEffect,useState } from "react";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Grid from "components/ui/Grid/Grid";
@@ -26,6 +27,15 @@ const TareaUsuarioForm = ({
 }) => {
 	data ??= {}; 
 	loading ??= false
+
+	//condicion que avanza hasta encontrar la palabra "Usuario", luego de terminar la longitud de esa palabra mostrar el texto que sigue hasta el final
+	const usuarioIndex = title.indexOf("Usuario");
+	if (usuarioIndex !== -1) {
+		const textoSiguiente = title.slice(usuarioIndex + "Usuario".length);
+		console.log("texto_siguiente", textoSiguiente);
+	}
+	const textoUsuario = title.slice(usuarioIndex + "Usuario".length);
+	console.log("textoUsuario", textoUsuario);
 
 	console.log('Form_tarea_data:',data)
 	console.log("loading",loading)
@@ -64,7 +74,9 @@ const TareaUsuarioForm = ({
 		options: [],
 		selected: {value:data.tareasId, label:data.nombreTarea},
 	});
-	
+
+	//ahora usando "usuariosAll", quiero obtener el data.id ===  data.usuariosId
+
 	console.log("tareas_selected",tareas?.selected);
 	console.log("modulos_selected",modulos.selected)
 
@@ -91,6 +103,12 @@ const TareaUsuarioForm = ({
 		);
 	},[]);
 	//#endregion
+
+	//Funcion para mostrar la fecha actual
+	const FechaActual = () => {
+		const fecha = new Date();
+		return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+	};
 
 	 //#region Capturo errores
 	 useEffect(() => {
@@ -168,7 +186,7 @@ const TareaUsuarioForm = ({
 		<div>
 			<Modal
 			show
-			onHide={() => onClose()}
+			onHide={() => onClose()} 
 			size="lg"
 			centered
 			>
@@ -235,7 +253,8 @@ const TareaUsuarioForm = ({
 										label="Fecha Baja"
 										error={!!errors.deletedDate}
 										helperText={errors.deletedDate ?? ""}
-										value={data.deletedDate}
+										value={FechaActual()}
+										// value={data.deletedDate}
 										disabled={disabled.deletedDate ?? false}
 										onChange={(value, _id) => onChange({ deletedDate: value })}
 									/>
@@ -246,7 +265,7 @@ const TareaUsuarioForm = ({
 										label="Usuario Baja"
 										error={!!errors.deletedBy}
 										helperText={errors.deletedBy ?? ""}
-										value={data.deletedBy}
+										value={textoUsuario}
 										disabled={disabled.deletedBy ?? false}
 										onChange={(value, _id) => onChange({ deletedBy: value })}
 									/>

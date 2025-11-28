@@ -16,27 +16,27 @@ import FormatearFecha from "../../../helpers/FormatearFecha"
 //Agregado Mauro
 // Normaliza fechas a "YYYY-MM-DD" o null
 const toYMD = (raw) => {
-	if (raw == null || raw === "") return null;
+  if (raw == null || raw === "") return null;
 
-	// Date nativo
-	if (raw instanceof Date && !isNaN(raw)) {
-		const y = raw.getFullYear();
-		const m = String(raw.getMonth() + 1).padStart(2, "0");
-		const d = String(raw.getDate()).padStart(2, "0");
-		return `${y}-${m}-${d}`;
-	}
-	// String
-	const s = String(raw).trim();
+  // Date nativo
+  if (raw instanceof Date && !isNaN(raw)) {
+    const y = raw.getFullYear();
+    const m = String(raw.getMonth() + 1).padStart(2, "0");
+    const d = String(raw.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  // String
+  const s = String(raw).trim();
 
-	// "YYYY-MM-DD"
-	if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // "YYYY-MM-DD"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-	// ISO con tiempo → "YYYY-MM-DDTHH:mm:ss..." (me quedo con la parte de fecha)
-	const iso = s.match(/^(\d{4}-\d{2}-\d{2})[T\s].*$/);
-	if (iso) return iso[1];
+  // ISO con tiempo → "YYYY-MM-DDTHH:mm:ss..." (me quedo con la parte de fecha)
+  const iso = s.match(/^(\d{4}-\d{2}-\d{2})[T\s].*$/);
+  if (iso) return iso[1];
 
-	// No aceptamos otros formatos (dd/mm, mm/dd, etc.)
-	return null;
+  // No aceptamos otros formatos (dd/mm, mm/dd, etc.)
+  return null;
 };
 
 // Para comparar fácilmente fechas "YYYY-MM-DD"
