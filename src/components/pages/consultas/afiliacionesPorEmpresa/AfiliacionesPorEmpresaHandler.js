@@ -14,7 +14,7 @@ import Button from "components/ui/Button/Button";
 import useAfiliacionesPorEmpresaDetalle from "./afiliacionesPorEmpresaDetalle/useAfiliacionesPorEmpresaDetalle";
 import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import ExcelDatos from "./ExcelDatos";
 
 //#region seccionalSelect Options

@@ -14,6 +14,7 @@ import SearchSelectMaterial, {
   includeSearch,
   mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
+import useAmbitos from "components/hooks/useAmbitos";
 
 /* ================= columnas ================= */
 const columns = [
@@ -54,6 +55,7 @@ const estadoTodos = { value: 0, label: "Todos" };
 
 const ExcelDatos = ({ onClose = () => {} }) => {
   const { exportToExcel } = useGeneracionExcel();
+  const ambito = useAmbitos().ambitoUser();
 
   const pushQuery = useQueryQueue((action, params = {}) => {
     const build = ({ baseURL, endpoint, method, body }) => ({
@@ -100,6 +102,7 @@ const ExcelDatos = ({ onClose = () => {} }) => {
   /* Catálogos: Seccionales, Delegaciones, Estados y Usuarios */
   const [mapSeccional, setMapSeccional] = useState({});
   const [seccionalesAll, setSeccionalesAll] = useState([]);
+  const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
   const [delegaciones, setDelegaciones] = useState([]);
   const [ready, setReady] = useState({ secc: false, deleg: false, users: false, estados: false });
 
@@ -172,6 +175,20 @@ const ExcelDatos = ({ onClose = () => {} }) => {
       onError: () => setReady((o) => ({ ...o, deleg: true })),
     });
   }, [pushQuery]);
+
+  // Cargar seccionales de la delegación si el ámbito es Delegaciones
+  useEffect(() => {
+    if (ambito.tipo === 'Delegaciones' && ambito.ids && ambito.ids.length > 0) {
+      const delegacionId = ambito.ids[0];
+      const seccionalesFiltradas = (seccionalesAll || [])
+        .filter(s => s.refDelegacionId === delegacionId && s.id !== 99999)
+        .map(s => s.id);
+      setSeccionalesDelegacion(seccionalesFiltradas);
+    } else {
+      setSeccionalesDelegacion([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ambito.tipo, ambito.ids?.join(','), seccionalesAll.length]);
 
   // Usuarios (índices)
   const [usrIdx, setUsrIdx] = useState({ byId: {}, byUser: {}, byCuit: {} });
@@ -367,16 +384,42 @@ const ExcelDatos = ({ onClose = () => {} }) => {
   /*  descarga */
   useEffect(() => {
     if (!list.reload || !allReady) return;
+    
+    // Si el ámbito es Delegaciones y aún no se cargaron las seccionales, esperar
+    if (ambito.tipo === 'Delegaciones' && seccionalesDelegacion.length === 0) {
+      return;
+    }
+    
     setList((o) => ({ ...o, loading: "Cargando...", error: null }));
 
     const pageSize = 1000, MAX_PAGES = 10000, acumulado = [];
 
     const pedirPagina = (pageIndex) =>
       new Promise((resolve, reject) => {
+        // Preparar parámetros con filtrado por ámbito
+        let ambitoSeccionales = null;
+        if (ambito.tipo === "Seccionales") {
+          ambitoSeccionales = {
+            ids: ambito.ids,
+          };
+        } else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
+          ambitoSeccionales = {
+            ids: seccionalesDelegacion,
+          };
+        }
+
+        const bodyParams = { 
+          ...list.params, 
+          sort: "-Id", 
+          pageIndex, 
+          pageSize,
+          ...(ambitoSeccionales && { ambitoSeccionales })
+        };
+
         pushQuery({
           action: "GetSolicitudes",
           config: {
-            body: { ...list.params, sort: "-Id", pageIndex, pageSize },
+            body: bodyParams,
             errorType: "response",
           },
           onOk: ({ data }) => {
@@ -409,7 +452,8 @@ const ExcelDatos = ({ onClose = () => {} }) => {
         setList((o) => ({ ...o, loading: null, error: e?.toString?.() ?? String(e), reload: false }));
       }
     })();
-  }, [list.reload, allReady, enrich, pushQuery, list.params, list.pagination, list.sort]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.reload, allReady, enrich, pushQuery, list.params, list.pagination, list.sort, ambito.tipo, seccionalesDelegacion.length]);
 
   /* recálculo local */
   useEffect(() => {

@@ -114,30 +114,41 @@ const useAfiliacionesPorEmpresa = ({
 	
 	const { usuario } = useContext(AuthContext);
 	const ambito = useAmbitos().ambitoUser();
+	const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		console.log("useAfiliacionesPorEmpresa pushQuery", action, params);
 		switch (action) {
-			case "GetList": {
-				const { filtro2, ...otherParams } = params;
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-            			endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
-						method: "GET",
-					},
-					params: otherParams,
-				};
-			}
-			
-			case "GetEstados": {
+		case "GetList": {
+			return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
+					method: "POST",
+				},
+			};
+		}			case "GetEstados": {
 			return {
 				config: {
 					baseURL: "Afiliaciones",
 					endpoint: `/EstadoSolicitud`,
 					method: "GET",
 				},
+				};
+			}
+
+			case "GetSeccionalesSpecs": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional`,
+						method: "GET",
+					},
+					params: {
+						SoloActivos: true,
+						verSeccionalesLocalidades: false,
+					},
 				};
 			}
 
@@ -209,6 +220,35 @@ const useAfiliacionesPorEmpresa = ({
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
+	//#region Cargar seccionales de la delegación si el ámbito es Delegaciones
+	useEffect(() => {
+		if (ambito.tipo === 'Delegaciones' && ambito.ids && ambito.ids.length > 0) {
+			const delegacionId = ambito.ids[0];
+			
+			pushQuery({
+				action: "GetSeccionalesSpecs",
+				onOk: (response) => {
+					const seccionales = Array.isArray(response) ? response : (response?.data || []);
+					
+					if (Array.isArray(seccionales) && seccionales.length > 0) {
+						const seccionalesFiltradas = seccionales
+							.filter(s => s.refDelegacionId === delegacionId && s.id !== 99999)
+							.map(s => s.id);
+						
+						setSeccionalesDelegacion(seccionalesFiltradas);
+						
+						if (seccionalesFiltradas.length > 0) {
+							setList((o) => ({ ...o, loading: "Cargando..." }));
+						}
+					}
+				},
+				onError: (error) => {
+					console.error("Error al cargar seccionales de la delegación:", error);
+				}
+			});
+		}
+	}, [ambito.tipo, JSON.stringify(ambito.ids), pushQuery]);
+	//#endregion
 
 	//#region filtro estado
 	  const [estadoSelect, setEstadoSelect] = useState({
@@ -272,6 +312,12 @@ const useAfiliacionesPorEmpresa = ({
 	useEffect(() => {
 		console.log("list",list)
 		if (!list.loading) return;
+		
+		// Si el ámbito es Delegaciones y aún no se cargaron las seccionales, esperar
+		if (ambito.tipo === 'Delegaciones' && seccionalesDelegacion.length === 0) {
+			return;
+		}
+		
 		const changes = { loading: null, error: null };
 		/*if (!list.remote) {
 			const data = list.data;
@@ -294,15 +340,31 @@ const useAfiliacionesPorEmpresa = ({
 		}*/
 		changes.data = [];
 
+		// Preparar parámetros con filtrado por ámbito
+		let ambitoSeccionales = null;
+		if (ambito.tipo === "Seccionales") {
+			ambitoSeccionales = {
+				ids: ambito.ids,
+			};
+		} else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
+			ambitoSeccionales = {
+				ids: seccionalesDelegacion,
+			};
+		}
+
+		const paramsToSend = {
+			pageIndex: list.pagination.index,
+			pageSize: list.pagination.size,
+			orderBy: list.params?.orderBy ?? "IdDesc",
+			...mapGetListParams(list.params),
+			...(ambitoSeccionales && { ambitoSeccionales }),
+		};
 
    pushQuery({
      action: "GetList",
-   params: {
-      pageIndex: list.pagination.index,
-      pageSize: list.pagination.size,
-      orderBy: list.params?.orderBy ?? "IdDesc",
-      ...mapGetListParams(list.params), 
-    },
+     config: {
+       body: paramsToSend,
+     },
      onOk: async ({ index, size, count, data }) => {
        if (!Array.isArray(data)) {
          console.error("Se esperaba un arreglo", data);
@@ -334,7 +396,7 @@ const useAfiliacionesPorEmpresa = ({
        setList((o) => ({ ...o, ...changes }));
      }
    });
-	}, [pushQuery, list]);
+	}, [pushQuery, list, ambito.tipo, seccionalesDelegacion]);
 	//#endregion
 
 	const request = useCallback((type, payload = {}) => {
@@ -461,7 +523,8 @@ const useAfiliacionesPorEmpresa = ({
 								seccionalId: true,
 							}
 					
-					r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la secc=onalId
+					// Solo deshabilitar si es Seccionales. Todos y Delegaciones pueden cambiar
+					r.seccionalId = ambito.tipo === "Seccionales"; 
 					return r;
 				})()}
 				hide={
