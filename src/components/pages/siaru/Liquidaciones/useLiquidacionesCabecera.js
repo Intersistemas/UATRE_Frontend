@@ -376,7 +376,6 @@ const useLiquidacionesCabecera = ({
           }
 
           const record = list.selection.edit;
-          record.deletedObs ??= "";
 
           //Validaciones
           const errors = {};
