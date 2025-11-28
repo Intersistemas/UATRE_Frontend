@@ -26,28 +26,28 @@ import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 
 const styles = {
-    group: {
-        padding: "5px",
-        color: "#186090",
-        textAlign: "left",
-        border: "solid 1px",
-        borderRadius: "20px",
-    },
-    titulo: {
-        fontWeight: "bold",
-        textAlign: "left",
-        borderBottom: "dashed 1px",
-    },
+	group: {
+		padding: "5px",
+		color: "#186090",
+		textAlign: "left",
+		border: "solid 1px",
+		borderRadius: "20px",
+	},
+	titulo: {
+		fontWeight: "bold",
+		textAlign: "left",
+		borderBottom: "dashed 1px",
+	},
 };
 
 //#region options
 const toInputString = (v) => {
-    if (typeof v === "string" || typeof v === "number") return String(v);
-    if (v && typeof v === "object") {
-        if (v.value != null) return String(v.value);
-        if (v.target && v.target.value != null) return String(v.target.value);
-    }
-    return "";
+	if (typeof v === "string" || typeof v === "number") return String(v);
+	if (v && typeof v === "object") {
+		if (v.value != null) return String(v.value);
+		if (v.target && v.target.value != null) return String(v.target.value);
+	}
+	return "";
 };
 
 const onlyDigits = (v) => toInputString(v).replace(/\D+/g, "");
@@ -120,7 +120,7 @@ const ciiuSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
-const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initialTab = 0, mode = "A" }) => {
+const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onChange = () => { }, initialTab = 0, mode = "A" }) => {
 
 	// Permisos por tareas
 	const tareas = useTareasUsuario();
@@ -235,7 +235,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 	const fetchUsuarioById = useCallback((id) => {
 		if (!id) return;
-		if (usuariosPending.current.has(id)) return; 
+		if (usuariosPending.current.has(id)) return;
 		usuariosPending.current.add(id);
 		sendRequest(
 			{
@@ -265,41 +265,41 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		);
 	}, [sendRequest]);
 
-		// Caché y pending para detalles del estado (cuando no hay documentación asociada)
-		const [estadoDetailsCache, setEstadoDetailsCache] = useState({});
-		const estadosPending = useRef(new Set());
+	// Caché y pending para detalles del estado (cuando no hay documentación asociada)
+	const [estadoDetailsCache, setEstadoDetailsCache] = useState({});
+	const estadosPending = useRef(new Set());
 
-		const fetchEstadoById = useCallback((id) => {
-			if (!id) return;
-			if (estadosPending.current.has(id)) return;
-			estadosPending.current.add(id);
-			sendRequest(
-				{
-					baseURL: "App",
-					endpoint: `/DenunciasEstados/${encodeURIComponent(id)}`,
-					method: "GET",
-					errorType: "response",
-				},
-				(ok) => {
-					try {
-						let data = null;
-						if (ok && !Array.isArray(ok) && typeof ok === 'object') data = ok;
-						else if (Array.isArray(ok) && ok.length) data = ok[0];
-						else if (ok && Array.isArray(ok.data) && ok.data.length) data = ok.data[0];
-						else if (ok && Array.isArray(ok.items) && ok.items.length) data = ok.items[0];
-						const createdBy = data?.createdBy ?? data?.createdById ?? data?.creadoPor ?? data?.createdByUser ?? null;
-						const createdDate = data?.createdDate ?? data?.fecha ?? null;
-						setEstadoDetailsCache(prev => ({ ...prev, [id]: { createdBy, createdDate } }));
-					} finally {
-						estadosPending.current.delete(id);
-					}
-				},
-				() => {
-					setEstadoDetailsCache(prev => ({ ...prev, [id]: null }));
+	const fetchEstadoById = useCallback((id) => {
+		if (!id) return;
+		if (estadosPending.current.has(id)) return;
+		estadosPending.current.add(id);
+		sendRequest(
+			{
+				baseURL: "App",
+				endpoint: `/DenunciasEstados/${encodeURIComponent(id)}`,
+				method: "GET",
+				errorType: "response",
+			},
+			(ok) => {
+				try {
+					let data = null;
+					if (ok && !Array.isArray(ok) && typeof ok === 'object') data = ok;
+					else if (Array.isArray(ok) && ok.length) data = ok[0];
+					else if (ok && Array.isArray(ok.data) && ok.data.length) data = ok.data[0];
+					else if (ok && Array.isArray(ok.items) && ok.items.length) data = ok.items[0];
+					const createdBy = data?.createdBy ?? data?.createdById ?? data?.creadoPor ?? data?.createdByUser ?? null;
+					const createdDate = data?.createdDate ?? data?.fecha ?? null;
+					setEstadoDetailsCache(prev => ({ ...prev, [id]: { createdBy, createdDate } }));
+				} finally {
 					estadosPending.current.delete(id);
 				}
-			);
-		}, [sendRequest]);
+			},
+			() => {
+				setEstadoDetailsCache(prev => ({ ...prev, [id]: null }));
+				estadosPending.current.delete(id);
+			}
+		);
+	}, [sendRequest]);
 
 
 	// 3) Alta de Estado de la denuncia
@@ -815,6 +815,16 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
 	);
 
+	// Normaliza el value para Autocomplete
+	const safeSelectValue = (selected, options) => {
+		const opts = Array.isArray(options) ? options : [];
+		if (!selected) return null;
+		const selId = selected.value ?? selected.record?.id;
+		if (selId == null) return null;
+		const found = opts.find(o => (o.value ?? o.record?.id) === selId);
+		return found || null;
+	};
+
 	const mapDocToPayload = (item, entidadId, entidadTipo) => {
 
 		const refTipoDocumentacionId =
@@ -953,7 +963,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	});
 	// Buscador
@@ -974,8 +984,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		error: null,
 		optionsSrc: [],
 		options: [],
-		selected: {},
-		selectedDef: {},
+		selected: null,
+		selectedDef: null,
 		origen: "",
 	});
 
@@ -1014,8 +1024,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			loading: "Cargando...",
 			data: [],
 			optionsSrc: [],
-			selected: {},
-			selectedDef: {},
+			selected: null,
+			selectedDef: null,
 			buscar: "",
 		}));
 		setDelegacionesQuery((o) => ({
@@ -1031,7 +1041,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						error: error?.toString(),
 					};
 					n.optionsSrc = delegacionSelectOptions(n);
-					n.selectedDef = n.optionsSrc.length === 1 ? n.optionsSrc[0] : {};
+					n.selectedDef = n.optionsSrc.length === 1 ? n.optionsSrc[0] : null;
 					n.selected = n.selectedDef;
 					return n;
 				});
@@ -1058,7 +1068,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const filtered = seccionalSelect.data.filter((s) => Number(s.refDelegacionId) === Number(delegId));
 		const opts = seccionalesSelectOptions({ data: filtered, buscar: seccionalSelect.buscar });
-		const nextSelected = opts.length === 1 ? opts[0] : (seccionalSelect.selected?.value ? opts.find((p) => p.value === seccionalSelect.selected.value) ?? seccionalSelect.selected : seccionalSelect.selected);
+		const nextSelected = opts.length === 1 ? opts[0] : (seccionalSelect.selected?.value ? (opts.find((p) => p.value === seccionalSelect.selected.value) ?? seccionalSelect.selected) : seccionalSelect.selected);
 		setSeccionalSelect((o) => ({ ...o, options: opts, selected: nextSelected }));
 		if (opts.length === 1) {
 			const sel = opts[0];
@@ -1069,44 +1079,109 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 	//#region selects trabajad
 
-	//#region select tipo ingreso
+	// Select: Tipo de ingreso
 	const [tipoIngresoSelect, setTipoIngresoSelect] = useState({
 		loading: "Cargando...",
 		buscar: "",
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
-		origen: "",
-	});
-	useEffect(() => {
-		setTipoIngresoSelect(o => ({
-			...o,
-			options: (o.data || []).map(r => ({ value: r.id, label: r.descripcion, record: r }))
-				.filter(opt => includeSearch(opt, o.buscar)),
-		}));
-	}, [tipoIngresoSelect.buscar, tipoIngresoSelect.data]);
-
-	//#region select situacion tipo
-	const [situacionSelect, setSituacionSelect] = useState({
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		options: [],
-		selected: {},
+		// Al iniciar, guardo solo el id que viene del form en record.id
+		selected: {
+			record: {
+				id: state?.form?.denunciaTipoIngresoId ?? data?.denunciaTipoIngresoId ?? null,
+			},
+		},
 		origen: "",
 	});
 
-	// Opciones (map + filtro)
-	useEffect(() => {
-		setSituacionSelect(o => ({
-			...o,
-			options: (o.data || [])
-				.map(r => ({ value: r.id, label: r.descripcion, record: r }))
-				.filter(opt => includeSearch(opt, o.buscar)),
-		}));
-	}, [situacionSelect.buscar, situacionSelect.data]);
+useEffect(() => {
+  setTipoIngresoSelect(o => {
+    const options = (o.data || [])
+      .map(r => ({
+        value: r.id,
+        label: r.descripcion,
+        record: r,
+      }))
+      .filter(opt => includeSearch(opt, o.buscar));
+
+    let selected = o.selected;
+    let origen = o.origen;
+
+    // Si todavía no tengo selected.value pero sí tengo un record con id,
+    // lo busco dentro de options y uso ESA opción (mismo patrón que SeccionalesForm)
+    if (!selected?.value && selected?.record) {
+      const record = selected.record;
+      const findFn =
+        record.id != null
+          ? opt => opt.record.id === record.id
+          : record.descripcion != null
+          ? opt => includeSearch(opt, record.descripcion)
+          : null;
+
+      const found = findFn ? options.find(findFn) : null;
+      if (found) {
+        selected = found;
+        origen = "option";
+      } else {
+        selected = o.selected;
+      }
+    }
+
+    return { ...o, options, selected, origen };
+  });
+}, [tipoIngresoSelect.buscar, tipoIngresoSelect.data]);
+
+// Select: Situación
+const [situacionSelect, setSituacionSelect] = useState({
+  loading: "Cargando...",
+  buscar: "",
+  data: [],
+  error: null,
+  options: [],
+  selected: {
+    record: {
+      id: state?.form?.denunciaSituacionId ?? data?.denunciaSituacionId ?? null,
+    },
+  },
+  origen: "",
+});
+
+useEffect(() => {
+  setSituacionSelect(o => {
+    const options = (o.data || [])
+      .map(r => ({
+        value: r.id,
+        label: r.descripcion,
+        record: r,
+      }))
+      .filter(opt => includeSearch(opt, o.buscar));
+
+    let selected = o.selected;
+    let origen = o.origen;
+
+    if (!selected?.value && selected?.record) {
+      const record = selected.record;
+      const findFn =
+        record.id != null
+          ? opt => opt.record.id === record.id
+          : record.descripcion != null
+          ? opt => includeSearch(opt, record.descripcion)
+          : null;
+
+      const found = findFn ? options.find(findFn) : null;
+      if (found) {
+        selected = found;
+        origen = "option";
+      } else {
+        selected = o.selected;
+      }
+    }
+
+    return { ...o, options, selected, origen };
+  });
+}, [situacionSelect.buscar, situacionSelect.data]);
+
 
 	// Carga inicial del catálogo + preselect por id si viene en `data`
 	useEffect(() => {
@@ -1174,7 +1249,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	});
 	// Buscador
@@ -1193,7 +1268,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	}
 	);
@@ -1310,16 +1385,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
 			let origen = o.origen;
-			if (!selected.value && selected.record) {
+			if (selected && !selected.value && selected.record) {
 				const record = selected.record;
 				const findFn = record.codPostal
 					? (o) => o.record.codPostal === record.codPostal
 					: (o) => includeSearch(o, record.nombre);
-				selected = options.find(findFn);
-				if (selected) {
+				const hit = options.find(findFn);
+				selected = hit ? hit : o.selected;
+				if (hit) {
 					origen = "option";
-				} else {
-					selected = o.selected;
 				}
 			}
 			return { ...o, options, selected, origen };
@@ -1338,7 +1412,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	});
 	// Buscador
@@ -1357,7 +1431,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	});
 	// Buscador
@@ -1366,16 +1440,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
 			let origen = o.origen;
-			if (!selected.value && selected.record) {
+			if (selected && !selected.value && selected.record) {
 				const record = selected.record;
 				const findFn = record.codPostal
 					? (o) => o.record.codPostal === record.codPostal
 					: (o) => includeSearch(o, record.nombre);
-				selected = options.find(findFn);
-				if (selected) {
+				const hit = options.find(findFn);
+				selected = hit ? hit : o.selected;
+				if (hit) {
 					origen = "option";
-				} else {
-					selected = o.selected;
 				}
 			}
 			return { ...o, options, selected, origen };
@@ -1390,7 +1463,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		data: [],
 		error: null,
 		options: [],
-		selected: {},
+		selected: null,
 		origen: "",
 	});
 	// Buscador
@@ -1504,9 +1577,20 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			);
 		});
 	}, [setPadronAFIPQuery, sendRequest]);
-	// PREFILL (data  readOnly)
+	// PREFILL (data readOnly) - inicializar solo al montar o cuando cambia el id
+	const _prefillNewInitializedRef = useRef(false);
+	const _prefillLastIdRef = useRef(null);
 
 	useEffect(() => {
+		const currentId = data?.id ?? null;
+		if (currentId == null) {
+			if (_prefillNewInitializedRef.current) return; // ya inicializado en alta
+			_prefillNewInitializedRef.current = true;
+		} else {
+			if (_prefillLastIdRef.current === currentId) return; // mismo registro
+			_prefillLastIdRef.current = currentId;
+		}
+
 		if (!data || Object.keys(data).length === 0) return;
 		const hasCUITProp = Object.prototype.hasOwnProperty.call(data, "empleadorCUIT") || Object.prototype.hasOwnProperty.call(data, "cuitEmpresa");
 		const hasRazonProp = Object.prototype.hasOwnProperty.call(data, "empleadorNombre") || Object.prototype.hasOwnProperty.call(data, "razonSocial");
@@ -1522,7 +1606,6 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			form: {
 				...o.form,
 				...data,
-
 				derivadaA: data.derivadoATipo ?? data.derivadaATipo ?? data.derivadaA ?? o.form.derivadaA ?? "Sin derivacion",
 				derivadaADescripcion: data.derivadaADescripcion ?? data.derivadoATipo ?? o.form.derivadaADescripcion ?? "Sin derivacion",
 				cuitEmpresa: hasCUITProp ? cuitFromData : o.form.cuitEmpresa ?? "",
@@ -1534,7 +1617,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			},
 			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
 		}));
-	}, [data, readOnly, mode]);
+	}, [data?.id, readOnly, mode, data]);
 
 	// prefill y bloquear Delegación o Seccional según corresponda 
 	useEffect(() => {
@@ -1557,7 +1640,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					setDelegacionSelect((prev) => {
 						const n = { ...prev, loading: null, data: dataArr, error: error?.toString() };
 						n.optionsSrc = delegacionSelectOptions(n);
-						const sel = n.optionsSrc.find((p) => Number(p.value) === Number(destinoId)) || n.optionsSrc[0] || {};
+						const sel = n.optionsSrc.find((p) => Number(p.value) === Number(destinoId)) || n.optionsSrc[0] || null;
 						n.selected = sel;
 						n.selectedDef = sel;
 						return n;
@@ -1587,7 +1670,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					setSeccionalSelect((prev) => {
 						const n = { ...prev, loading: null, data: dataArr, error: null };
 						n.options = seccionalesSelectOptions({ data: dataArr, buscar: prev.buscar });
-						n.selected = n.options.find((p) => Number(p.value) === Number(destinoId)) || (n.options[0] || {});
+						n.selected = n.options.find((p) => Number(p.value) === Number(destinoId)) || (n.options[0] || null);
 						return n;
 					});
 					setState((s) => ({ ...s, form: { ...s.form, seccional: rec.descripcion || rec.seccional || s.form.seccional || "" } }));
@@ -1604,7 +1687,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								setDelegacionSelect((prev) => {
 									const n = { ...prev, loading: null, data: dataD, error: error?.toString() };
 									n.optionsSrc = delegacionSelectOptions(n);
-									const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || {};
+									const sel = n.optionsSrc.find((p) => Number(p.value) === Number(refDelegacionId)) || n.optionsSrc[0] || null;
 									n.selected = sel;
 									n.selectedDef = sel;
 									return n;
@@ -1779,7 +1862,6 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 	}, [setProvinciasQuery]);
 	//#endregion Carga inicial selects provincias
 
-
 	//#endregion inicializaciones
 
 	const prevDerivadaARef = useRef(state.form.derivadaA);
@@ -1799,18 +1881,17 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			lockDeleg = true;
 			lockSecc = true;
 		}
-
 		const derivadaCambio = prevDerivada !== derivada;
 		// Caso sin derivación explícita
 		if (!derivada || derivada === "Sin derivacion") {
 			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
 			if (!lockDeleg) {
-				setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "", error: null }));
+				setDelegacionSelect((o) => ({ ...o, selected: null, buscar: "", error: null }));
 				setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
 			}
 			if (!lockSecc) {
-				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "", error: null }));
+				setSeccionalSelect((o) => ({ ...o, selected: null, options: [], buscar: "", error: null }));
 				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			}
 			prevDerivadaARef.current = derivada;
@@ -1820,13 +1901,13 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		// Derivada a Delegacion: permitir elegir delegación solo si BD NO la fijó como Delegacion
 		if (derivada === "Delegacion") {
 			if (derivadaCambio && prevDerivada !== "Delegacion" && !lockSecc) {
-				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "" }));
+				setSeccionalSelect((o) => ({ ...o, selected: null, options: [], buscar: "" }));
 				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			}
 			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
 			if (!lockSecc) {
-				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [] }));
+				setSeccionalSelect((o) => ({ ...o, selected: null, options: [] }));
 				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			}
 			prevDerivadaARef.current = derivada;
@@ -1837,7 +1918,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			if (derivadaCambio && prevDerivada !== "Seccional" && !lockDeleg) {
 				const tieneDelegSeleccionada = !!(delegacionSelect && delegacionSelect.selected && delegacionSelect.selected.value);
 				if (!tieneDelegSeleccionada) {
-					setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "" }));
+					setDelegacionSelect((o) => ({ ...o, selected: null, buscar: "" }));
 					setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
 				}
 			}
@@ -1857,17 +1938,19 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 					setSeccionalSelect(o => ({ ...o, error: null, loading: null }));
 				}
 			}
+			
+			prevDerivadaARef.current = derivada;
 			return;
 		}
 
 		// Para cualquier otro destino (CTNA / Asesoria Letrada) limpiar ambos si cambió
 		if (derivadaCambio && !["Delegacion", "Seccional"].includes(derivada)) {
 			if (!lockDeleg) {
-				setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "" }));
+				setDelegacionSelect((o) => ({ ...o, selected: null, buscar: "" }));
 				setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
 			}
 			if (!lockSecc) {
-				setSeccionalSelect((o) => ({ ...o, selected: {}, options: [], buscar: "" }));
+				setSeccionalSelect((o) => ({ ...o, selected: null, options: [], buscar: "" }));
 				setState((o) => ({ ...o, form: { ...o.form, seccional: "" } }));
 			}
 		}
@@ -1922,9 +2005,11 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 
 		const estadoOptions = optionsFor(estadoPersistido).map(v => ({ value: v, label: v }));
 
-		const ESTADO_KEY = state.form?.estado || "Registrada";
-		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
-
+		// Objeto de estado, igual idea que en SeccionalesForm
+		const estadoSelect = {
+			options: estadoOptions,
+			selected: estadoOptions.find(o => o.value === (state.form?.estado || "Registrada")) || null,
+		};
 
 		const isRegistrada = estadoPersistido === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
@@ -1944,29 +2029,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		};
 		const derivadaAOptions = derivadaOptionsFor(derivadaPersistida).map(v => ({ value: v, label: v }));
 
-		const DERIVADA_A_KEY = state.form?.derivadaA || "Sin derivacion";
-		const DERIVADA_A_VALUE = derivadaAOptions.find(o => o.value === DERIVADA_A_KEY) || null;
-
-		// Tipo Ingreso / Situación
-		const TIPO_INGRESO_KEY = state.form?.denunciaTipoIngresoId || null;
-		const TIPO_INGRESO_VALUE = (tipoIngresoSelect?.options || []).find(o => o.value === TIPO_INGRESO_KEY) || null;
-
-		const SITUACION_KEY = state.form?.denunciaSituacionId || null;
-		const SITUACION_VALUE = (situacionSelect?.options || []).find(o => o.value === SITUACION_KEY) || null;
-
-		// Provincia / Localidad (Trabajador)
-		const TRAB_PCIA_KEY = state.form?.provinciaId || null;
-		const TRAB_PCIA_VALUE = (trabPciaSelect?.options || []).find(o => o.value === TRAB_PCIA_KEY) || null;
-
-		const TRAB_LOCA_KEY = state.form?.refLocalidadIdAfiliado || null;
-		const TRAB_LOCA_VALUE = (trabLocaSelect?.options || []).find(o => o.value === TRAB_LOCA_KEY) || null;
-
-		// Delegación / Seccional (derivación)
-		const DELEGACION_KEY = (delegacionSelect?.selected?.value != null) ? delegacionSelect.selected.value : null;
-		const DELEGACION_VALUE = (delegacionSelect?.options || []).find(o => o.value === DELEGACION_KEY) || null;
-
-		const SECCIONAL_KEY = (seccionalSelect?.selected?.value != null) ? seccionalSelect.selected.value : null;
-		const SECCIONAL_VALUE = (seccionalSelect?.options || []).find(o => o.value === SECCIONAL_KEY) || null;
+		const derivadaSelect = {
+			options: derivadaAOptions,
+			selected: derivadaAOptions.find(o => o.value === (state.form?.derivadaA || "Sin derivacion")) || null,
+		};
 
 		const lockDerivadaSelectByServer = ["Seccional", "CNTA", "Asesoria Letrada"].includes(derivadaPersistida);
 
@@ -1994,13 +2060,13 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabPciaSelect.error || state.errors.provincia)}
 								helperText={trabPciaSelect.loading ?? trabPciaSelect.error ?? state.errors.provincia}
-								value={TRAB_PCIA_VALUE}
+								value={safeSelectValue(trabPciaSelect.selected, trabPciaSelect.options)}
 								onChange={(selected = {}) => {
 									setTrabPciaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setLocalidadesQuery((o) => ({
 										...o,
 										query: { ...o.query, params: { ...o.query.params, provinciaId: selected.value } },
-										onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, selected: {}, loading: "Cargando..." })),
+										onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, selected: null, loading: "Cargando..." })),
 										onLoad: ({ ok, error }) =>
 											setTrabLocaSelect((s) => ({
 												...s,
@@ -2016,6 +2082,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										form: { ...o.form, provinciaNombre: selected.record?.nombre, provinciaId: selected.value, refLocalidadIdAfiliado: 0, nombreLocalidadAfiliado: "" },
 										errors: { ...o.errors, provincia: selected?.value ? "" : "Dato requerido" },
 									}));
+									onChange({ provinciaId: selected.value, provinciaNombre: selected.record?.nombre });
 								}}
 								options={trabPciaSelect.options}
 								onTextChange={(buscar) => setTrabPciaSelect((o) => ({ ...o, buscar, origen: "text" }))}
@@ -2038,7 +2105,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								//onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!(trabLocaSelect.error || state.errors.localidad)}
 								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
-								value={TRAB_LOCA_VALUE}
+								value={safeSelectValue(trabLocaSelect.selected, trabLocaSelect.options)}
 								onChange={(selected = {}) => {
 									setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -2046,6 +2113,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										form: { ...o.form, refLocalidadIdAfiliado: selected.record?.id, nombreLocalidadAfiliado: selected.record?.nombre },
 										errors: { ...o.errors, localidad: selected?.record?.id ? "" : "Dato requerido" },
 									}));
+									onChange({ refLocalidadIdAfiliado: selected.record?.id, nombreLocalidadAfiliado: selected.record?.nombre });
 								}}
 								options={trabLocaSelect.options}
 								freeSolo={false}
@@ -2118,7 +2186,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!tipoIngresoSelect.error}
 								helperText={tipoIngresoSelect.loading ?? tipoIngresoSelect.error}
-								value={TIPO_INGRESO_VALUE}
+								value={safeSelectValue(tipoIngresoSelect.selected, tipoIngresoSelect.options)}
 								options={tipoIngresoSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2136,6 +2204,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										// si tenías errores previos:
 										errors: { ...o.errors, tipoIngreso: "" },
 									}));
+									onChange({ denunciaTipoIngresoId: Number(selected?.value || 0), tipoIngresoDescripcion: selected?.label || "" });
 								}}
 								onTextChange={(buscar) => setTipoIngresoSelect(o => ({ ...o, buscar, origen: "text" }))}
 							/>
@@ -2147,7 +2216,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								onKeyDown={(e) => { e.preventDefault(); }}
 								error={!!situacionSelect.error}
 								helperText={situacionSelect.loading ?? situacionSelect.error}
-								value={ocultarDatosSensibles ? null : SITUACION_VALUE}
+								value={ocultarDatosSensibles ? null : safeSelectValue(situacionSelect.selected, situacionSelect.options)}
 								options={situacionSelect.options}
 								freeSolo={false}
 								inputReadOnly={true}
@@ -2162,6 +2231,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										},
 										errors: { ...o.errors, situacion: "" },
 									}));
+									onChange({ denunciaSituacionId: Number(selected?.value || 0), situacionDescripcion: selected?.label || "" });
 								}}
 								onTextChange={(buscar) => setSituacionSelect(o => ({ ...o, buscar, origen: "text" }))}
 							/>
@@ -2253,7 +2323,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Estado"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || mode === "A")}
-									value={ESTADO_VALUE}
+									value={estadoSelect.selected}
 									options={estadoOptions}
 									onChange={(selected = {}) => {
 										const persisted = (getUltimoEstadoDesdeEndpoint?.() || "").toLowerCase();
@@ -2271,9 +2341,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 										});
 										// Limpiar selección visual SOLO bajo la misma condición
 										if (shouldResetDerivacion) {
-											if (!lockedDelegacion) setDelegacionSelect((o) => ({ ...o, selected: {}, error: null }));
-											if (!lockedSeccional) setSeccionalSelect((o) => ({ ...o, selected: {}, error: null }));
+											if (!lockedDelegacion) setDelegacionSelect((o) => ({ ...o, selected: null, error: null }));
+											if (!lockedSeccional) setSeccionalSelect((o) => ({ ...o, selected: null, error: null }));
 										}
+										onChange({ estado: selected?.value, estadoDescripcion: selected?.label });
 									}}
 									freeSolo={false}
 									inputReadOnly={true}
@@ -2288,10 +2359,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 									label="Derivada a"
 									onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(readOnly || state.form.estado !== "Derivada" || lockDerivadaSelectByServer)}
-									value={DERIVADA_A_VALUE}
-									options={derivadaAOptions}
-									onChange={(selected = {}) =>
-										setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } }))
+									value={derivadaSelect.selected} options={derivadaAOptions}
+									onChange={(selected = {}) => { setState((o) => ({ ...o, form: { ...o.form, derivadaA: selected?.value, derivadaADescripcion: selected?.label } })); onChange({ derivadaA: selected?.value, derivadaADescripcion: selected?.label }); }
 									}
 									freeSolo={false}
 									inputReadOnly={true}
@@ -2302,19 +2371,19 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								<SearchSelectMaterial
 									id="delegacionSelect"
 									label="Delegación"
-									//onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional"))}
 									error={!!delegacionSelect.error}
 									helperText={delegacionSelect.loading ?? (delegacionSelect.selected?.value ? null : delegacionSelect.error)}
-									value={DELEGACION_VALUE}
+									value={safeSelectValue(delegacionSelect.selected, delegacionSelect.options)}
 									readOnly={lockedDelegacion || !(state.form.derivadaA === "Delegacion" || state.form.derivadaA === "Seccional")}
 									freeSolo={false}
 									inputReadOnly={true}
 									onChange={(selected) => {
-										console.log('[delegacion onChange] selected=', selected, 'prev seccionalSelected=', seccionalSelect.selected);
 										setDelegacionSelect((o) => ({ ...o, selected, error: null, loading: null }));
-										// No tocar state.form.delegacion (ese campo lo controla el header via la lógica de provincia)
-										setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: selected.record?.nombre || selected.label } }));
+										// Propagar id solo si el destino es Delegación; en Seccional se define al elegir la seccional
+										if ((state.form?.derivadaA || "") === "Delegacion") {
+											onChange({ derivadoAId: selected?.value });
+										}
 									}}
 									options={delegacionSelect.options}
 									onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
@@ -2324,21 +2393,21 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 								<SearchSelectMaterial
 									id="seccionalSelect"
 									label="Seccional"
-									//onKeyDown={(e) => { e.preventDefault(); }}
 									style={roStyle(lockedSeccional || state.form.derivadaA !== "Seccional")}
 									error={!!seccionalSelect.error}
-									helperText={seccionalSelect.loading ?? (seccionalSelect.selected?.value ? null : seccionalSelect.error)}
-									value={SECCIONAL_VALUE}
+									helperText={
+										seccionalSelect.loading ??
+										(seccionalSelect.selected?.value ? null : seccionalSelect.error)}
+									value={safeSelectValue(seccionalSelect.selected, seccionalSelect.options)}
 									readOnly={lockedSeccional || state.form.derivadaA !== "Seccional"}
-									freeSolo={false}
-									inputReadOnly={true}
 									onChange={(selected) => {
-										console.log('[seccional onChange] selected=', selected, 'current delegacionSelected=', delegacionSelect.selected);
-										setSeccionalSelect((o) => ({ ...o, selected, error: null, loading: null }));
-										setState((o) => ({ ...o, form: { ...o.form, seccional: selected.record?.descripcion || selected.label } }));
+										setSeccionalSelect((o) => ({ ...o, selected, origen: "option" }));
+										if ((state.form?.derivadaA || "") === "Seccional") {
+											onChange({ derivadoAId: selected?.value });
+										}
 									}}
 									options={seccionalSelect.options}
-									onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
+									onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar, origen: "text" }))}
 								/>
 							</Grid>
 						</Grid>
@@ -2369,105 +2438,105 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		const DocumentacionPanel = (
 			<Grid full col gap="10px">
 				<Documentacion
-						data={documentacionList}
-							tipoDocumentacion={[
-								"Credencial",
-								"Documento de Identidad",
-								"Actas",
-								"Documentos",
-								"Recibos",
-								"Fotos",
-								"Otros",
-							]}
-							disabled={readOnly}
-							onChange={({ index, item }) => {
-								const prev = Array.isArray(documentacionList) ? documentacionList : [];
+					data={documentacionList}
+					tipoDocumentacion={[
+						"Credencial",
+						"Documento de Identidad",
+						"Actas",
+						"Documentos",
+						"Recibos",
+						"Fotos",
+						"Otros",
+					]}
+					disabled={readOnly}
+					onChange={({ index, item }) => {
+						const prev = Array.isArray(documentacionList) ? documentacionList : [];
 
-								// === ALTA (CREAR NUEVO ARCHIVO)
-								if (index == null && item != null) {
-									const temp = [...prev, { ...item }];
-									setDocumentacionList(temp);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
+						// === ALTA (CREAR NUEVO ARCHIVO)
+						if (index == null && item != null) {
+							const temp = [...prev, { ...item }];
+							setDocumentacionList(temp);
+							setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
 
-									// Persistencia diferida: se realiza luego vía persistirDocumentacion
-									return;
+							// Persistencia diferida: se realiza luego vía persistirDocumentacion
+							return;
+						}
+
+						//  BAJA
+						if (index != null && item == null) {
+							const current = prev[index];
+							const id = current?.id;
+
+							if (!id) {
+								// Si no hay id, solo eliminar localmente
+								const next = prev.filter((_, i) => i !== index);
+								setDocumentacionList(next);
+								setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+								return;
+							}
+
+							// Actualización optimista
+							const next = prev.filter((_, i) => i !== index);
+							setDocumentacionList(next);
+							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+
+							if (!entidadId) return;
+
+							// Eliminar del servidor
+							sendRequest(
+								{
+									baseURL: "Comunes",
+									endpoint: `/DocumentacionEntidad/${id}`,
+									method: "DELETE",
+									errorType: "response",
+								},
+								() => {
+								},
+								(err) => {
+									console.error(' Error al eliminar archivo:', err);
+									// Rollback
+									setDocumentacionList(prev);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
 								}
+							);
+							return;
+						}
 
-								//  BAJA
-								if (index != null && item == null) {
-									const current = prev[index];
-									const id = current?.id;
+						// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
+						if (index != null && item != null) {
+							const current = prev[index] || {};
+							const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
 
-									if (!id) {
-										// Si no hay id, solo eliminar localmente
-										const next = prev.filter((_, i) => i !== index);
-										setDocumentacionList(next);
-										setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-										return;
-									}
+							// Actualización optimista
+							const next = [...prev];
+							next.splice(index, 1, { ...current, ...item });
+							setDocumentacionList(next);
+							setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
 
-									// Actualización optimista
-									const next = prev.filter((_, i) => i !== index);
-									setDocumentacionList(next);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
+							if (!entidadId) return;
 
-									if (!entidadId) return;
-
-									// Eliminar del servidor
-									sendRequest(
-										{
-											baseURL: "Comunes",
-											endpoint: `/DocumentacionEntidad/${id}`,
-											method: "DELETE",
-											errorType: "response",
-										},
-										() => {
-										},
-										(err) => {
-											console.error(' Error al eliminar archivo:', err);
-											// Rollback
-											setDocumentacionList(prev);
-											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-										}
-									);
-									return;
+							// Actualizar en el servidor
+							sendRequest(
+								{
+									baseURL: "Comunes",
+									endpoint: `/DocumentacionEntidad/${payload.id}`,
+									method: "PUT",
+									body: payload,
+									errorType: "response",
+								},
+								() => {
+								},
+								(err) => {
+									console.error(' Error al actualizar archivo:', err);
+									// Rollback
+									setDocumentacionList(prev);
+									setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
 								}
-
-								// === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
-								if (index != null && item != null) {
-									const current = prev[index] || {};
-									const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
-
-									// Actualización optimista
-									const next = [...prev];
-									next.splice(index, 1, { ...current, ...item });
-									setDocumentacionList(next);
-									setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-
-									if (!entidadId) return;
-
-									// Actualizar en el servidor
-									sendRequest(
-										{
-											baseURL: "Comunes",
-											endpoint: `/DocumentacionEntidad/${payload.id}`,
-											method: "PUT",
-											body: payload,
-											errorType: "response",
-										},
-										() => {
-										},
-										(err) => {
-											console.error(' Error al actualizar archivo:', err);
-											// Rollback
-											setDocumentacionList(prev);
-											setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-										}
-									);
-									return;
-								}
-						}}
-					/>
+							);
+							return;
+						}
+					}}
+				/>
 				{!readOnly && (
 					<Button
 						className="botonAmarillo"
@@ -2641,6 +2710,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 		}
 
 		const derivadoAIdValue = (() => {
+			// Preferir el id proveniente del onChange externo (patrón SeccionalesForm)
+			const fromForm = Number(state.form?.derivadoAId || 0);
+			if (fromForm) return fromForm;
 			const selectedTipo = body.derivadaA || state.form?.derivadaA || "";
 			if (selectedTipo === "Delegacion") return Number(delegacionSelect.selected?.value || 0);
 			if (selectedTipo === "Seccional") return Number(seccionalSelect.selected?.value || 0);
@@ -2829,7 +2901,6 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 			headerTitle = `Consulta Denuncia`;
 		}
 	}
-
 	return (
 		<Modal size="xl" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
