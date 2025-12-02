@@ -1,12 +1,14 @@
-
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
@@ -14,85 +16,192 @@ import AsArray from "components/helpers/AsArray";
 import useAmbitosUsuario from "components/hooks/useAmbitos";
 import { useSelector } from "react-redux";
 
-/** Types */
+/** Imports
+ * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
+ * @typedef {import("./PDF").SeccionalAfiliados} SeccionalAfiliados
+ * @typedef {import("./PDF").Afiliado} Afiliado
+ **/
+
 const columns = [
-  { dataField: "nroAfiliado", text: "Nro. Afil.", sort: true, headerTitle: () => "Numero de Afiliado", headerStyle: { width: "6em", textAlign: "center" }, style: { textAlign: "center" } },
-  { dataField: "cuil", text: "CUIL", sort: true, headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)), style: { textAlign: "center" } },
-  { dataField: "cuilValidado", text: "Val.", headerTitle: true, headerStyle: { width: "3em", textAlign: "center" }, formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"), style: { textAlign: "center" } },
-  { dataField: "documento", text: "Doc. Nro.", sort: true, headerTitle: () => "Documento número", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.DNI(v), style: { textAlign: "center" } },
-  { dataField: "nombre", text: "Nombre", sort: true, headerTitle: true, headerStyle: { width: "10em", textAlign: "center" }, style: { textAlign: "left" } },
-  {
-    dataField: "estadoSolicitud",
-    text: "Sit. Afi.",
-    headerTitle: () => "Situación del Afiliado",
-    headerStyle: { width: "6em", textAlign: "center" },
-    style: (v) => {
-      const s = { textAlign: "center" };
-      if (v === "Pendiente") s.background = "#ffff64cc";
-      if (v === "No Activo") { s.background = "#ff6464cc"; s.color = "#FFF"; }
-      if (v === "Rechazado") { s.background = "#f08c32cc"; s.color = "#FFF"; }
-      return s;
-    },
-  },
-  { dataField: "seccional", text: "Seccional", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "refDelegacionDescripcion", text: "Delegación", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "provincia", text: "Provincia", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "fechaIngreso", text: "F. Ingreso", sort: true, headerTitle: () => "Fecha de Ingreso", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.Fecha(v), style: { textAlign: "center" } },
-  { dataField: "puesto", text: "Puesto", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-//   { dataField: "empresaCUIT", text: "CUIT", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v) => Formato.Cuit(v), style: { textAlign: "center" } },
-//   { dataField: "empresaDescripcion", text: "Empresa", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-  { dataField: "actividad", text: "Actividad", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-  { dataField: "ultimaDDJJPeriodo", text: "Período última DDJJ", headerTitle: true, headerStyle: { width: "12em", textAlign: "center" }, formatter: (v) => Formato.Periodo(v) },
+	{
+		dataField: "nroAfiliado",
+		text: "Nro. Afil.",
+		sort: true,
+		headerTitle: () => "Numero de Afiliado",
+		headerStyle: { width: "6em", textAlign: "center" },
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "cuil",
+		text: "CUIL",
+		sort: true,
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "cuilValidado",
+		text: "Val.",
+		headerTitle: true,
+		headerStyle: { width: "3em", textAlign: "center" },
+		formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "documento",
+		text: "Doc. Nro.",
+		sort: true,
+		headerTitle: () => "Documento número",
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => Formato.DNI(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "nombre",
+		text: "Nombre",
+		sort: true,
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+		style: { textAlign: "left" },
+	},
+	{
+		dataField: "estadoSolicitud",
+		text: "Sit. Afi.",
+		headerTitle: () => "Situación del Afiliado",
+		headerStyle: { width: "6em", textAlign: "center" },
+		style: (v) => {
+			const style = { textAlign: "center" };
+			switch (v) {
+				case "Pendiente": {
+					style.background = "#ffff64cc";
+					break;
+				}
+				case "No Activo": {
+					style.background = "#ff6464cc";
+					style.color = "#FFF";
+					break;
+				}
+				case "Rechazado": {
+					style.background = "#f08c32cc";
+					style.color = "#FFF";
+					break;
+				}
+				default:
+					break;
+			}
+			return style;
+		},
+	},
+	{
+		dataField: "seccional",
+		text: "Seccional",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "refDelegacionDescripcion",
+		text: "Delegación",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "provincia",
+		text: "Provincia",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "fechaIngreso",
+		text: "F. Ingreso",
+		sort: true,
+		headerTitle: () => "Fecha de Ingreso",
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => Formato.Fecha(v),
+		style: { textAlign: "center" },
+	},
+	// {
+	// 	dataField: "fechaEgreso",
+	// 	text: "F. Egreso",
+	// 	sort: true,
+	// 	headerTitle: () => "Fecha de Egreso",
+	// 	headerStyle: { width: "7em", textAlign: "center" },
+	// 	formatter: (v) => Formato.Fecha(v),
+	// 	style: { textAlign: "center" },
+	// },
+	{
+		dataField: "puesto",
+		text: "Puesto",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "empresaCUIT",
+		text: "CUIT",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+		formatter: (v) => Formato.Cuit(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "empresaDescripcion",
+		text: "Empresa",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "actividad",
+		text: "Actividad",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "ultimaDDJJPeriodo",
+		text: "Período última DDJJ",
+		headerTitle: true,
+		headerStyle: { width: "12em", textAlign: "center" },
+		formatter: (v) => Formato.Periodo(v),
+	},
 ];
 
-// --- options helpers
+//#region delegacionesSelect Options
 const delegacionSelectDef = { label: "Elige..." };
-const seccionalSelectDef = { label: "Todas" };
-
 const delegacionesSelectOptions = ({ data = [], ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: [r.codigoDelegacion, r.nombre].join(" - "), record: r }),
-    start: data.length === 1 ? [] : [delegacionSelectDef],
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: [r.codigoDelegacion, r.nombre].join(" - "),
+			record: r,
+		}),
+		start: data.length === 1 ? [] : [delegacionSelectDef],
+		...x,
+	});
+//#endregion delegacionesSelect Options
 
-const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) => {
-  const tipo = ambitoUsuario?.tipo ?? ambitoUsuario?.ambitoUsuario?.tipo;
-  return mapOptions({
-    data,
-    map: (r) => {
-      if (tipo === "Todos") return { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r };
-      return ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion)
-        ? { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }
-        : null;
-    },
-    start: data.length === 1 ? [] : [seccionalSelectDef],
-    ...x,
-  });
-};
-
-// --- normalizadores (defensivos)
-const normalizeDelegOption = (opt) => {
-  if (!opt) return delegacionSelectDef;
-  if (opt.value != null) return opt;
-  if (opt.id != null) return { value: opt.id, label: [opt.codigoDelegacion || opt.codigo, opt.nombre].filter(Boolean).join(" - "), record: opt };
-  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigoDelegacion || opt.record.codigo, opt.record.nombre || opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
-  return delegacionSelectDef;
-};
-const normalizeSeccionalOption = (opt) => {
-  if (!opt) return seccionalSelectDef;
-  if (opt.value != null) return opt;
-  if (opt.id != null) return { value: opt.id, label: [opt.codigo, opt.descripcion].filter(Boolean).join(" - "), record: opt };
-  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigo, opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
-  return seccionalSelectDef;
-};
-
-const normalizeFiltros = (f) => {
-  const g = { ...f };
-  if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
-  return g;
-};
+//#region seccionalesSelect Options
+const seccionalSelectDef = { label: "Todas" };
+const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
+	mapOptions({
+		data,
+		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+		map: (r) => (ambitoUsuario.ambitoUsuario.tipo == "Todos" ? 
+			{
+				value: r.id,
+				label: [r.codigo, r.descripcion].join(" - "),
+				record: r,
+			} :
+			["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ?
+			 	{
+					value: r.id,
+					label: [r.codigo, r.descripcion].join(" - "),
+					record: r,
+				} : null 
+		),
+		start: data.length === 1 ? [] : [seccionalSelectDef],
+		...x,
+	});
+//#endregion seccionalesSelect Options
 
 const Handler = ({ onClose = () => {} }) => {
 	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
@@ -435,7 +544,7 @@ const Handler = ({ onClose = () => {} }) => {
 				config: {
 					body: {
 						...list.filtros,
-						// estadoSolicitudId: 2,
+						estadoSolicitudId: 2,
 						sort: list.sort,
 						pageIndex: list.pagination.index,
 						pageSize: list.pagination.size,
@@ -511,6 +620,15 @@ const Handler = ({ onClose = () => {} }) => {
 				const data = ok.data;
 				if (Array.isArray(data)) {
 					data.forEach((afiliado) => {
+						// Priorizar cuilValidado si es distinto de 0 y tiene 11 dígitos
+						const CUIL_LENGTH = 11;
+						const val = afiliado?.cuilValidado;
+						if (val != null) {
+							const digits = String(val).replace(/\D/g, "");
+							if (Number(val) !== 0 && digits.length === CUIL_LENGTH) {
+								afiliado.cuil = val;
+							}
+						}
 						const seccional = padron.seccionales.find(
 							(s) => s.id === afiliado.seccionalId
 						);

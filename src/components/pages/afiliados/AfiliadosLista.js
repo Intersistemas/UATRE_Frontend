@@ -607,18 +607,19 @@ const AfiliadosLista = (props) => {
       loading: props.loading,
       data: afiliados.data,
       columns,
-      pagination: pagination,
+      pagination: props.noDataForCuil ? null : pagination,
       onTableChange: handleTableChange,
       filter: filterFactory(),
-      noDataIndication: indication,
+      noDataIndication: props.noDataMessage ?? indication,
       rowEvents: rowEvents,
       onSelected: rowEvents,
       error: props.errorRequest ? true : false,
       rowSelectedIndex: rowSelectedIndex,
       afiliadoSeleccionado: props.afiliadoSeleccionado,
-
-      entrySelected: props.entrySelected,
-      entryValue: props.entryValue,
+        entrySelected: props.entrySelected,
+        entryValue: props.entryValue,
+        onEntryChange: props.setEntryValue,
+        searchError: props.searchError,
   }
 
   return (
@@ -730,15 +731,17 @@ const AfiliadosLista = (props) => {
 							<AfiliadoHistorico afiliado={afiliadoSeleccionado} />
 						)}
 
-						<AfiliadoDetails
-							config={{
-								data: afiliadoSeleccionado,
-								ddjj: ddjjUatreSeleccionado,
-								empresa: empresaSeleccionada,
-								seccional: seccionalSeleccionada,
-								tab: selectedTab,
-							}}
-						/>
+            {!props.noDataForCuil && (
+              <AfiliadoDetails
+                config={{
+                  data: afiliadoSeleccionado,
+                  ddjj: ddjjUatreSeleccionado,
+                  empresa: empresaSeleccionada,
+                  seccional: seccionalSeleccionada,
+                  tab: selectedTab,
+                }}
+              />
+            )}
 					</Grid>
 				</Grid>
 			</Grid>

@@ -20,7 +20,7 @@ const InputMaterialDetail = (p) => (
 );
 
 const Localizar = ({ onClose = onCloseDef }) => {
-	const pushQuery = useQueryQueue((action) => {
+	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
 			case "GetAfiliados": {
 				return {
@@ -29,6 +29,17 @@ const Localizar = ({ onClose = onCloseDef }) => {
 						endpoint: "/Afiliado/GetAfiliadosWithSpec",
 						method: "POST",
 					},
+					params,
+				};
+			}
+			case "GetAfiliadoByCUILValidado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: "/Afiliado/GetAfiliadoByCUILValidado",
+						method: "GET",
+					},
+					params,
 				};
 			}
 			default:
@@ -59,6 +70,39 @@ const Localizar = ({ onClose = onCloseDef }) => {
 	
 	useEffect(() => {
 		if (!afiliados.loading) return;
+		// Si se está buscando por CUIL, usar el endpoint que devuelve por CUILValidado
+		if (afiliados.params?.cuil) {
+			pushQuery({
+				action: "GetAfiliadoByCUILValidado",
+				params: { CUIL: afiliados.params.cuil },
+				onOk: (data) => {
+					// El endpoint puede devolver un objeto o null; normalizamos a array
+					let arr = [];
+					if (Array.isArray(data)) arr = data;
+					else if (data) arr = [data];
+					// Filtrar solo registros donde cuilValidado != 0 y tenga 11 dígitos
+					const CUIL_LENGTH = 11;
+					const filtered = arr.filter((r) => {
+						const val = r?.cuilValidado;
+						if (val == null) return false;
+						const digits = String(val).replace(/\D/g, "");
+						return Number(val) !== 0 && digits.length === CUIL_LENGTH;
+					});
+					setAfiliados((o) => ({
+						...o,
+						loading: null,
+						pagination: { index: 1, size: filtered.length, count: filtered.length },
+						data: filtered,
+						selection: { selected: filtered.length ? [filtered[0].id] : [] },
+						selected: filtered.length ? filtered[0] : {},
+						error: null,
+					}));
+				},
+				onError: (e) => setAfiliados((o) => ({ ...o, loading: null, data: [], selected: {}, error: e })),
+			});
+			return;
+		}
+		// Default: listado con GetAfiliadosWithSpec (POST)
 		pushQuery({
 			action: "GetAfiliados",
 			config: {
@@ -88,7 +132,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 						selected: data.length ? data[0] : {},
 						error: null,
 					}));
-				},
+			},
 			onError: (e) =>
 					setAfiliados((o) => ({ ...o, loading: null, data: [], selected: {} ,error: e }))
 		});
