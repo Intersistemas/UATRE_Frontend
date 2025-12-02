@@ -39,6 +39,8 @@ const AfiliadosHandler = () => {
   
   const [entrySelected, setEntrySelected] = useState();
   const [entryValue, setEntryValue] = useState();
+  const [searchError, setSearchError] = useState(null);
+  const [tableMessage, setTableMessage] = useState(null);
    
   //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
@@ -65,7 +67,7 @@ const AfiliadosHandler = () => {
     };
 
     let endpoint = `/Afiliado/GetAfiliadosWithSpec`;
-    
+
     let body = {
           pageIndex: page,//estadoSolicitudId != estadoSolicitud ? 1 : page,
           pageSize: sizePerPage,
@@ -79,9 +81,86 @@ const AfiliadosHandler = () => {
           ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
 
+    // Si el filtro es por CUIL, primero intentar buscar por CUILValidado;
+    // si no devuelve resultados, realizar la búsqueda general por `cuil`.
+    if (filter && filterColumn && String(filterColumn).toUpperCase() === "CUIL") {
+      const cuilValue = filter;
+      const endpointByCuil = `/Afiliado/GetAfiliadoByCUILValidado?CUIL=${encodeURIComponent(
+        cuilValue
+      )}`;
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: endpointByCuil,
+          method: "GET",
+        },
+        async (data) => {
+          // Normalizar respuesta a arreglo
+          let arr = [];
+          if (Array.isArray(data)) arr = data;
+          else if (data) arr = [data];
+
+          // Preferir registros que tengan cuilValidado (si existe y distinto de 0)
+          const preferred = arr.filter((r) => {
+            const val = r?.cuilValidado;
+            return val != null && Number(val) !== 0;
+          });
+
+          if (preferred && preferred.length) {
+            // Usar los registros preferidos
+            setSearchError(null);
+            setTableMessage(null);
+            const afiliadosObj = {
+              data: preferred,
+              pages: preferred.length ? 1 : 0,
+              index: 1,
+              size: preferred.length,
+              count: preferred.length,
+            };
+            processAfiliados(afiliadosObj);
+            return;
+          }
+
+          // Si no hay registros con cuilValidado, hacemos la búsqueda general por cuil
+          // reasignamos el body con el filtro por CUIL
+          body[filterColumn] = filter;
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: endpoint,
+              method: "POST",
+              body: body,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            (resp) => {
+              // Determinar cantidad de registros en la respuesta
+              let count = 0;
+              if (Array.isArray(resp)) count = resp.length;
+              else if (resp && Array.isArray(resp.data)) count = resp.data.length;
+              else if (resp && typeof resp.count === 'number') count = resp.count;
+
+              if (count === 0) {
+                  setTableMessage("No hay información a mostrar");
+                  // Asegurar que no quede seleccionado un afiliado previo cuando no hay datos
+                  setAfiliadoSeleccionado({});
+              } else {
+                setTableMessage(null);
+              }
+              setSearchError(null);
+              processAfiliados(resp);
+            }
+          );
+        }
+      );
+      return;
+    }
+
     if (filter) {
       body[filterColumn] = filter;
     }
+
     request(
       {
         baseURL: "Afiliaciones",
@@ -90,9 +169,24 @@ const AfiliadosHandler = () => {
         body: body,
         headers: {
           "Content-Type": "application/json",
-        }
+        },
       },
-      processAfiliados
+      (resp) => {
+        // Determinar cantidad de registros en la respuesta
+        let count = 0;
+        if (Array.isArray(resp)) count = resp.length;
+        else if (resp && Array.isArray(resp.data)) count = resp.data.length;
+        else if (resp && typeof resp.count === 'number') count = resp.count;
+
+        if (count === 0) {
+          setTableMessage("No hay información a mostrar");
+          // Asegurar que no quede seleccionado un afiliado previo cuando no hay datos
+          setAfiliadoSeleccionado({});
+        } else {
+          setTableMessage(null);
+        }
+        processAfiliados(resp);
+      }
     );
   }, [
     request,
@@ -248,12 +342,31 @@ const AfiliadosHandler = () => {
 
   const handleFilter = (select, entry) => {
     if (filter != entry){
+      // Si la búsqueda es por CUIL, normalizamos a dígitos pero NO bloqueamos por longitud
+      if (select && String(select).toUpperCase() === "CUIL") {
+        const digits = String(entry ?? "").replace(/\D/g, "");
+        entry = digits;
+        // Si la longitud es menor a la prevista, mostrar el mensaje en la tabla y no ejecutar búsqueda
+        if (digits.length !== 11) {
+          setTableMessage("No hay información a mostrar");
+          // Vaciar resultados actuales en la grilla
+          setAfiliadosRespuesta({ data: [], pages: 0, index: 1, size: 0, count: 0 });
+            // Asegurar que no quede seleccionado un afiliado previo cuando el CUIL es inválido
+            setAfiliadoSeleccionado({});
+          // limpiar posibles errores locales
+          if (searchError) setSearchError(null);
+          return;
+        }
+      }
+      // limpiar posible error previo
+      if (searchError) setSearchError(null);
+      if (tableMessage) setTableMessage(null);
       handlePageChange(1,12)
       console.log("filter",filter);
 
       setFilter(entry)
       setFilterColumn(select)
-    } 
+    }
     //setAfiliadosRespuesta([]);
   };
 
@@ -277,6 +390,11 @@ const AfiliadosHandler = () => {
 
   const handleOnAfiliadoSeleccionado = (afiliado) => {
     setAfiliadoSeleccionado(afiliado);
+  };
+
+  const handleEntryChange = (v) => {
+    setEntryValue(v);
+    if (searchError) setSearchError(null);
   };
 
 	useEffect(() => {
@@ -388,10 +506,13 @@ const AfiliadosHandler = () => {
           afiliadoSeleccionado={afiliadoSeleccionado}
 
           setEntrySelected={setEntrySelected}
-          setEntryValue={setEntryValue}
+          setEntryValue={handleEntryChange}
 
           entrySelected={entrySelected}
           entryValue={entryValue}
+          searchError={searchError}
+          noDataMessage={tableMessage}
+          noDataForCuil={tableMessage && filterColumn && String(filterColumn).toUpperCase() === "CUIL"}
         />
       </Fragment>
     );

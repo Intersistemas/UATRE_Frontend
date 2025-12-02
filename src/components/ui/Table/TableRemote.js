@@ -59,6 +59,7 @@ const TableRemote = (props) => {
 
   const handleChangeSearchEntry = (event) => {
     setEntryValue(event.target.value);
+    if (props.onEntryChange) props.onEntryChange(event.target.value);
   };
 
   const accionLimpiarFiltros = () =>{
@@ -107,13 +108,8 @@ const TableRemote = (props) => {
                 ev.preventDefault();
               }
             }}
-
-            /*helperText={
-              props.error
-                ? "Error buscando datos"
-                : ""
-            }*/
-            error={props.error}
+            helperText={props.searchError ?? ""}
+            error={!!props.searchError || props.error}
         />
         <Button
               botonBorder

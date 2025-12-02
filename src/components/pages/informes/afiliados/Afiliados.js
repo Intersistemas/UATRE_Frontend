@@ -1,4 +1,3 @@
-// export default Afiliados;
 import React, { useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import downloadjs from "downloadjs";
@@ -11,187 +10,186 @@ import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
 import SearchSelectMaterial, {
-	includeSearch,
-	mapOptions,
+  includeSearch,
+  mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
 import AuthContext from "store/authContext";
-import useTareasUsuario from 'components/hooks/useTareasUsuario';
-import useAmbitos from 'components/hooks/useAmbitos';
+import useTareasUsuario from "components/hooks/useTareasUsuario";
+import useAmbitos from "components/hooks/useAmbitos";
 import { useSelector } from "react-redux";
 import useGeneracionExcel from "components/hooks/useGeneracionExcel";
-
 
 /** Imports
  * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
  **/
 
-const onCloseDef = () => { };
+const onCloseDef = () => {};
 
 const columns = [
-	{
-		dataField: "nroAfiliado",
-		text: "Nro. Afil.",
-		sort: true,
-		headerTitle: () => "Numero de Afiliado",
-		headerStyle: { width: "6em", textAlign: "center" },
-		csvFormat: (v) => v,
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "cuil",
-		text: "CUIL",
-		sort: true,
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v, row) => row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v),
-		//formatter: (v) => Formato.Cuit(v),
-		csvFormat: (v) => v,
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "cuilValidado",
-		text: "Val.",
-		headerTitle: true,
-		headerStyle: { width: "3em", textAlign: "center" },
-		formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
-		csvFormat: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "documento",
-		text: "Doc. Nro.",
-		sort: true,
-		headerTitle: () => "Documento número",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => Formato.DNI(v),
-		csvFormat: (v) => v,
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "nombre",
-		text: "Nombre",
-		sort: true,
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-		csvFormat: (v) => v,
-		style: { textAlign: "left" },
-	},
-	{
-		dataField: "estadoSolicitud",
-		text: "Sit. Afi.",
-		headerTitle: () => "Situación del Afiliado",
-		headerStyle: { width: "6em", textAlign: "center" },
-		csvFormat: (v) => v,
-		style: (v) => {
-			const style = { textAlign: "center" };
-			switch (v) {
-				case "Pendiente": {
-					style.background = "#ffff64cc";
-					break;
-				}
-				case "No Activo": {
-					style.background = "#ff6464cc";
-					style.color = "#FFF";
-					break;
-				}
-				case "Rechazado": {
-					style.background = "#f08c32cc";
-					style.color = "#FFF";
-					break;
-				}
-				default:
-					break;
-			}
-			return style;
-		},
-	},
-	{
-		dataField: "seccional",
-		text: "Seccional",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	{
-		dataField: "refDelegacionDescripcion",
-		text: "Delegación",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	{
-		dataField: "provincia",
-		text: "Provincia",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	{
-		dataField: "fechaIngreso",
-		text: "F. Ingreso",
-		sort: true,
-		headerTitle: () => "Fecha de Ingreso",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => Formato.Fecha(v),
-		csvFormat: (v) => Formato.Fecha(v),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "fechaEgreso",
-		text: "F. Egreso",
-		sort: true,
-		headerTitle: () => "Fecha de Egreso",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => Formato.Fecha(v),
-		csvFormat: (v) => Formato.Fecha(v),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "puesto",
-		text: "Puesto",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	// {
-	// 	dataField: "empresaCUIT",
-	// 	text: "CUIT",
-	// 	headerTitle: true,
-	// 	headerStyle: { width: "8em", textAlign: "center" },
-	// 	formatter: (v) => Formato.Cuit(v),
-	// 	csvFormat: (v) => v,
-	// 	style: { textAlign: "center" },
-	// },
-	// {
-	// 	dataField: "empresaDescripcion",
-	// 	text: "Empresa",
-	// 	headerTitle: true,
-	// 	headerStyle: { width: "10em", textAlign: "center" },
-	// 	csvFormat: (v) => v,
-	// },
-	{
-		dataField: "actividad",
-		text: "Actividad",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	{
-		dataField: "refMotivoBajaDescripcion",
-		text: "Motivo de baja",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-		csvFormat: (v) => v,
-	},
-	{
-		dataField: "ultimaDDJJPeriodo",
-		text: "Período última DDJJ",
-		headerTitle: true,
-		headerStyle: { width: "12em", textAlign: "center" },
-		formatter: (v) => Formato.Periodo(v),
-		csvFormat: (v) => v,
-	},
+  {
+    dataField: "nroAfiliado",
+    text: "Nro. Afil.",
+    sort: true,
+    headerTitle: () => "Numero de Afiliado",
+    headerStyle: { width: "6em", textAlign: "center" },
+    csvFormat: (v) => v,
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "cuil",
+    text: "CUIL",
+    sort: true,
+    headerTitle: true,
+    headerStyle: { width: "8em", textAlign: "center" },
+    formatter: (v, row) =>
+      row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v),
+    csvFormat: (v) => v,
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "cuilValidado",
+    text: "Val.",
+    headerTitle: true,
+    headerStyle: { width: "3em", textAlign: "center" },
+    formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
+    csvFormat: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "documento",
+    text: "Doc. Nro.",
+    sort: true,
+    headerTitle: () => "Documento número",
+    headerStyle: { width: "7em", textAlign: "center" },
+    formatter: (v) => Formato.DNI(v),
+    csvFormat: (v) => v,
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "nombre",
+    text: "Nombre",
+    sort: true,
+    headerTitle: true,
+    headerStyle: { width: "10em", textAlign: "center" },
+    csvFormat: (v) => v,
+    style: { textAlign: "left" },
+  },
+  {
+    dataField: "estadoSolicitud",
+    text: "Sit. Afi.",
+    headerTitle: () => "Situación del Afiliado",
+    headerStyle: { width: "6em", textAlign: "center" },
+    csvFormat: (v) => v,
+    style: (v) => {
+      const style = { textAlign: "center" };
+      switch (v) {
+        case "Pendiente": {
+          style.background = "#ffff64cc";
+          break;
+        }
+        case "No Activo": {
+          style.background = "#ff6464cc";
+          style.color = "#FFF";
+          break;
+        }
+        case "Rechazado": {
+          style.background = "#f08c32cc";
+          style.color = "#FFF";
+          break;
+        }
+        default:
+          break;
+      }
+      return style;
+    },
+  },
+  {
+    dataField: "seccional",
+    text: "Seccional",
+    headerTitle: true,
+    headerStyle: { width: "8em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  {
+    dataField: "refDelegacionDescripcion",
+    text: "Delegación",
+    headerTitle: true,
+    headerStyle: { width: "8em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  {
+    dataField: "provincia",
+    text: "Provincia",
+    headerTitle: true,
+    headerStyle: { width: "8em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  {
+    dataField: "fechaIngreso",
+    text: "F. Ingreso",
+    sort: true,
+    headerTitle: () => "Fecha de Ingreso",
+    headerStyle: { width: "7em", textAlign: "center" },
+    formatter: (v) => Formato.Fecha(v),
+    csvFormat: (v) => Formato.Fecha(v),
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "fechaEgreso",
+    text: "F. Egreso",
+    sort: true,
+    headerTitle: () => "Fecha de Egreso",
+    headerStyle: { width: "7em", textAlign: "center" },
+    formatter: (v) => Formato.Fecha(v),
+    csvFormat: (v) => Formato.Fecha(v),
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "puesto",
+    text: "Puesto",
+    headerTitle: true,
+    headerStyle: { width: "10em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  // {
+  //   dataField: "empresaCUIT",
+  //   text: "CUIT",
+  //   headerTitle: true,
+  //   headerStyle: { width: "8em", textAlign: "center" },
+  //   formatter: (v) => Formato.Cuit(v),
+  //   csvFormat: (v) => v,
+  //   style: { textAlign: "center" },
+  // },
+  // {
+  //   dataField: "empresaDescripcion",
+  //   text: "Empresa",
+  //   headerTitle: true,
+  //   headerStyle: { width: "10em", textAlign: "center" },
+  //   csvFormat: (v) => v,
+  // },
+  {
+    dataField: "actividad",
+    text: "Actividad",
+    headerTitle: true,
+    headerStyle: { width: "10em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  {
+    dataField: "refMotivoBajaDescripcion",
+    text: "Motivo de baja",
+    headerTitle: true,
+    headerStyle: { width: "10em", textAlign: "center" },
+    csvFormat: (v) => v,
+  },
+  {
+    dataField: "ultimaDDJJPeriodo",
+    text: "Período última DDJJ",
+    headerTitle: true,
+    headerStyle: { width: "12em", textAlign: "center" },
+    formatter: (v) => Formato.Periodo(v),
+    csvFormat: (v) => v,
+  },
 ];
 
 //#region delegacionSelectOptions
@@ -208,23 +206,21 @@ const delegacionSelectOptions = ({ data = [], ...x }) =>
 //#region seccionalSelectOptions
 const seccionalSelectTodos = { label: "Todas" };
 const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
-
-	mapOptions({
-		data,
-		//map: (r) => ({ value: r.id, label: r.descripcion }),
-		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
-		map: (r) =>
-			ambitoUsuario.tipo != "Todos"
-				? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(
-					r.seccionalEstadoDescripcion
-				)
-					? { value: r.id, label: r.descripcion }
-					: null
-				: { value: r.id, label: r.descripcion },
-		start: data.length === 1 ? [] : [seccionalSelectTodos],
-		...x,
-	})
-
+  mapOptions({
+    data,
+    // si el ámbito del usuario es seccional o delegacion, filtro por las seccionales
+    // en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
+    map: (r) =>
+      ambitoUsuario.tipo != "Todos"
+        ? ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(
+            r.seccionalEstadoDescripcion
+          )
+          ? { value: r.id, label: r.descripcion }
+          : null
+        : { value: r.id, label: r.descripcion },
+    start: data.length === 1 ? [] : [seccionalSelectTodos],
+    ...x,
+  });
 //#endregion seccionalSelectOptions
 
 //#region motivosBajaSelectOptions
@@ -261,6 +257,349 @@ const provinciaSelectOptions = ({ data = [], ...x }) =>
 //#endregion provinciaSelectOptions
 
 const Afiliados = ({ onClose = onCloseDef }) => {
+  const tareas = useTareasUsuario();
+  const ambitoUsuario = useAmbitos().ambitoUser();
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  const usuarioConSeccionalInactiva =
+    usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado &&
+    !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(
+      usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado
+    );
+
+  //#region Trato queries a APIs
+  const { setState: setAfiliadosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado/GetAfiliadosWithSpec`,
+        method: "POST",
+      },
+    }),
+    {
+      query: {
+        config: { errorType: "response" },
+      },
+    }
+  );
+  const { setState: setDelegacionesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Comunes",
+        endpoint: `/RefDelegacion/GetAll`,
+        method: "GET",
+      },
+    }),
+    {
+      query: {
+        params: { soloActivos: true },
+        config: { errorType: "response" },
+      },
+    }
+  );
+  const { setState: setSeccionalesQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional/GetSeccionalesSpecs`,
+        method: "POST",
+      },
+    }),
+    {
+      query: {
+        params: { soloActivos: true },
+        config: { errorType: "response" },
+      },
+    }
+  );
+  const { setState: setSeccionalQuery } = useQueryState(
+    (_, { id, ...params }) => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional/${id}`,
+        method: "GET",
+      },
+      params,
+    }),
+    {
+      query: { config: { errorType: "response" } },
+    }
+  );
+  const { setState: setMotivosBajaQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Comunes",
+        endpoint: `/RefMotivoBaja/GetByTipo`,
+        method: "GET",
+      },
+    }),
+    { query: { params: { tipo: "A" }, config: { errorType: "response" } } }
+  );
+  const { setState: setEstadosQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/EstadoSolicitud`,
+        method: "GET",
+      },
+    }),
+    {
+      query: {
+        params: { soloActivos: true },
+        config: { errorType: "response" },
+      },
+    }
+  );
+  const { setState: setProvinciasQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Provincia`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+
+  const { setState: setSeccionalesAllQuery } = useQueryState(
+    () => ({
+      config: {
+        baseURL: "Afiliaciones",
+        endpoint: `/Seccional`,
+        method: "GET",
+      },
+    }),
+    { query: { config: { errorType: "response" } } }
+  );
+  //#endregion
+
+  const { usuario } = useContext(AuthContext);
+
+  const ambitoMemo = React.useMemo(
+    () => ({
+      delegaciones: AsArray(usuario?.ambitoDelegaciones?.ids),
+      seccionales: AsArray(usuario?.ambitoSeccionales?.ids),
+      provincias: AsArray(usuario?.ambitoProvincias?.ids),
+    }),
+    [usuario]
+  );
+
+  const [init, setInit] = useState({
+    pending: true,
+    filtros: {
+      ambitoTodos: usuario.ambitoTodos, // SIEMPRE envío todos los ámbitos habilitados/deshabilitados del usuario
+      ambitoDelegaciones: usuario.ambitoDelegaciones,
+      ambitoSeccionales: usuario.ambitoSeccionales,
+      ambitoProvincias: usuario.ambitoProvincias,
+    },
+    wait: { delegaciones: true, seccionales: true, provincias: true },
+    usuario,
+  });
+
+  //#region filtros
+  const [filtros, setFiltros] = useState({ ...init.filtros });
+
+  //#region filtro delegacion
+  const [delegacionSelect, setDelegacionSelect] = useState({
+    reload: false,
+    loading: "Cargando...",
+    buscar: "",
+    params: { soloActivos: true },
+    data: [],
+    error: null,
+    optionsSrc: [],
+    options: [],
+    selected: delegacionSelectTodos,
+    selectedDef: delegacionSelectTodos,
+    origen: "",
+    /** @type array */
+    ambito: null,
+  });
+  // Buscador
+  useEffect(() => {
+    setDelegacionSelect((o) => ({
+      ...o,
+      options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+    }));
+  }, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
+  //#endregion filtro delegacion
+
+  //#region filtro seccional
+  const [seccionalSelect, setSeccionalSelect] = useState({
+    reload: false,
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    optionsSrc: [],
+    options: [],
+    selected: seccionalSelectTodos,
+    selectedDef: seccionalSelectTodos,
+    origen: "",
+    refDelegacionId: 0,
+    /** @type array */
+    ambito: null,
+  });
+  // Buscador
+  useEffect(() => {
+    setSeccionalSelect((o) => ({
+      ...o,
+      options: o.optionsSrc.filter((r) =>
+        includeSearch(r, seccionalSelect.buscar)
+      ),
+    }));
+  }, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
+  //#endregion filtro seccional
+
+  //#region filtro motivosBaja
+  const [motivosBajaSelect, setMotivosBajaSelect] = useState({
+    reload: true,
+    loading: "Cargando...",
+    buscar: "",
+    params: { tipo: "A" },
+    data: [],
+    error: null,
+    optionsSrc: [],
+    options: [],
+    selected: motivosBajaSelectTodos,
+    selectedDef: motivosBajaSelectTodos,
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setMotivosBajaSelect((o) => ({
+      ...o,
+      options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+    }));
+  }, [motivosBajaSelect.buscar, motivosBajaSelect.optionsSrc]);
+  //#endregion filtro motivos baja
+
+  //#region filtro estado
+  const [estadoSelect, setEstadoSelect] = useState({
+    reload: true,
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    optionsSrc: [],
+    options: [],
+    selected: estadoSelectTodos,
+    selectedDef: estadoSelectTodos,
+    origen: "",
+  });
+  // Buscador
+  useEffect(() => {
+    setEstadoSelect((o) => ({
+      ...o,
+      options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+    }));
+  }, [estadoSelect.buscar, estadoSelect.optionsSrc]);
+  //#endregion filtro estado
+
+  //#region filtro provincia
+  const [provinciaSelect, setProvinciaSelect] = useState({
+    reload: false,
+    loading: "Cargando...",
+    buscar: "",
+    data: [],
+    error: null,
+    optionsSrc: [],
+    options: [],
+    selected: provinciaSelectTodos,
+    selectedDef: provinciaSelectTodos,
+    origen: "",
+    /** @type array */
+    ambito: null,
+  });
+  // Buscador
+  useEffect(() => {
+    setProvinciaSelect((o) => ({
+      ...o,
+      options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)),
+    }));
+  }, [provinciaSelect.buscar, provinciaSelect.optionsSrc]);
+  //#endregion filtro provincia
+
+  // todas las seccionales
+  const [seccionalesAll, setSeccionalesAll] = useState([]);
+
+  // mapa delegacionId -> provinciaId
+  const [mapDelegProv, setMapDelegProv] = useState(new Map());
+  //#endregion filtros
+
+  const fixedDelegId =
+    ambitoMemo.delegaciones.length === 1
+      ? Number(ambitoMemo.delegaciones[0])
+      : null;
+
+  const fixedSeccId =
+    ambitoMemo.seccionales.length === 1
+      ? Number(ambitoMemo.seccionales[0])
+      : null;
+
+  const lockSeccional = fixedSeccId !== null;
+
+  // Si tengo seccional fija, derivo delegación cuando ya conozco las seccionales
+  const effectiveDelegId = React.useMemo(() => {
+    if (fixedDelegId != null) return fixedDelegId;
+    if (fixedSeccId != null && seccionalesAll.length) {
+      const sec = seccionalesAll.find((s) => Number(s.id) === fixedSeccId);
+      return sec?.refDelegacionId != null ? Number(sec.refDelegacionId) : null;
+    }
+    return null;
+  }, [fixedDelegId, fixedSeccId, seccionalesAll]);
+
+  const lockDelegacion = effectiveDelegId != null;
+  const lockProvincia = lockDelegacion || lockSeccional;
+  const lockSeccionalPorJerarquia = lockSeccional;
+
+  const [seccionalesAllReady, setSeccionalesAllReady] = useState(false);
+  useEffect(() => {
+    setSeccionalesAllReady(
+      mapDelegProv.size > 0 && seccionalesAll.length > 0
+    );
+  }, [mapDelegProv.size, seccionalesAll.length]);
+
+  const prevProvSelRef = React.useRef(null);
+
+  //#region list
+  const [list, setList] = useState({
+    reload: false,
+    loading: null,
+    pagination: { index: 1, size: 10 },
+    sort: "nroAfiliadoDesc",
+    params: {},
+    data: [],
+    error: null,
+  });
+  //#endregion
+
+  //#region CSV
+  const [csv, setCSV] = useState({
+    reload: false,
+    loading: null,
+    sort: list.sort,
+    params: list.params,
+    data: [columns.map((r) => r.text)],
+    formatters: columns.map(({ dataField, csvFormat }) => ({
+      dataField,
+      csvFormat,
+    })),
+    error: null,
+  });
+  //#endregion
+
+  //#region Carga inicial
+
+  // ===== EXCEL =====
+  const { exportToExcel } = useGeneracionExcel();
+  const [xls, setXls] = useState({
+    reload: false,
+    loading: null,
+    sort: list.sort,
+    params: list.params,
+    data: [],
+    error: null,
+  });
 
 	const tareas = useTareasUsuario();
 	const ambitoUsuario = useAmbitos().ambitoUser();

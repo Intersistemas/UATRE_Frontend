@@ -7,7 +7,10 @@ import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
