@@ -1,6 +1,6 @@
 // OPCION DE CARGA
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useContext } from "react";
 import dayjs from "dayjs";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
@@ -12,6 +12,8 @@ import InputMaterial from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import Table from "components/ui/Table/Table";
 import useGeneracionExcel from "components/hooks/useGeneracionExcel";
+import useAmbitos from "components/hooks/useAmbitos";
+import AuthContext from "store/authContext";
 
 /* ================= columnas de la tabla ================= */
 const columns = [
@@ -61,11 +63,14 @@ const filtrosDef = {};
 const normGuid = (v) => String(v ?? "").toLowerCase().replace(/[{}]/g, "").trim();
 const onlyDigits = (v) => String(v ?? "").replace(/\D/g, "");
 const asUser = (v) => String(v ?? "").trim();
-const isGuid = (s) => typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-const antiGuid = (v) => (isGuid(v) ? "" : (v ?? ""));
 
-const ExcelDatos = ({ onClose = () => { } }) => {
+const ExcelDatos = ({ onClose = () => { }, paramsFiltrados = {} }) => {
   const { exportToExcel } = useGeneracionExcel();
+  const ambito = useAmbitos().ambitoUser();
+  const usuario = useContext(AuthContext)?.usuario;
+  
+  // Estado para almacenar los IDs de las seccionales de la delegación
+  const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
 
   /* ====== API builder ====== */
   const pushQuery = useQueryQueue((action, params = {}) => {
@@ -97,6 +102,34 @@ const ExcelDatos = ({ onClose = () => { } }) => {
         return null;
     }
   });
+
+  //#region Cargar seccionales de la delegación si el ámbito es Delegaciones
+  useEffect(() => {
+    if (ambito.tipo === 'Delegaciones' && ambito.ids && ambito.ids.length > 0) {
+      const delegacionId = ambito.ids[0];
+      
+      pushQuery({
+        action: "GetSeccionales",
+        onOk: (response) => {
+          // La respuesta es directamente el array o puede venir en response.data
+          const seccionales = Array.isArray(response) ? response : (response?.data || []);
+          
+          if (Array.isArray(seccionales) && seccionales.length > 0) {
+            // Filtrar seccionales por la delegación actual
+            const seccionalesFiltradas = seccionales
+              .filter(s => s.refDelegacionId === delegacionId && s.id !== 99999)
+              .map(s => s.id);
+            
+            setSeccionalesDelegacion(seccionalesFiltradas);
+          }
+        },
+        onError: (error) => {
+          console.error("Error al cargar seccionales de la delegación:", error);
+        }
+      });
+    }
+  }, [ambito.tipo, ambito.ids, pushQuery]);
+  //#endregion
 
   /* ===== Filtros UI ===== */
   const [filtros, setFiltros] = useState({ ...filtrosDef });
@@ -227,7 +260,7 @@ const ExcelDatos = ({ onClose = () => { } }) => {
     rawAll: [],
     data: [],
     sort: "FechaDesc,IdDesc",
-    params: { ...filtrosDef },
+    params: { ...filtrosDef, ...paramsFiltrados },
     pagination: { index: 1, size: 10, count: 0 },
   });
 
@@ -251,7 +284,7 @@ const ExcelDatos = ({ onClose = () => { } }) => {
     return cp;
   };
 
-  const runLocalFilterPaginate = (all, params, pagination, sort) => {
+  const runLocalFilterPaginate = useCallback((all, params, pagination, sort) => {
     let res = [...all];
 
     const d = parseFecha(params.fechaIngreso);
@@ -273,14 +306,29 @@ const ExcelDatos = ({ onClose = () => { } }) => {
     const page = res.slice(start, end);
 
     return { page, count, filteredAll: res };
-  };
+  }, []);
 
   const enrich = useCallbackEnricher(mapSeccional, mapTipoDoc, mapSexo, usrIdx);
+
+  //#region Actualizar parámetros cuando cambien los filtros pasados desde el padre
+  useEffect(() => {
+    setList((o) => ({
+      ...o,
+      params: { ...filtrosDef, ...paramsFiltrados },
+      reload: true,
+    }));
+  }, [paramsFiltrados]);
+  //#endregion
 
   /* ===== Descarga TODAS las páginas de gestiones (espera allReady) ===== */
   useEffect(() => {
     if (!list.reload) return;
     if (!allReady) return;
+    
+    // Si el ámbito es Delegaciones y aún no se cargaron las seccionales, esperar
+    if (ambito.tipo === 'Delegaciones' && seccionalesDelegacion.length === 0) {
+      return;
+    }
 
     setList((o) => ({ ...o, loading: "Cargando...", error: null }));
 
@@ -290,15 +338,99 @@ const ExcelDatos = ({ onClose = () => { } }) => {
 
     const pedirPagina = (idx) =>
       new Promise((resolve, reject) => {
+        // Extraer valores de los filtros (pueden venir como objetos con { value, label })
+        const filtroSeccional = list.params?.filtroSeccional?.value || list.params?.filtroSeccional || 0;
+        const filtroTipoEstado = list.params?.filtroTipoEstado?.value || list.params?.filtroTipoEstado || 0;
+        const filtroTipoGestion = list.params?.filtroTipoGestion?.value || list.params?.filtroTipoGestion || 0;
+        const filtroDetalleTipoGestion = list.params?.filtroDetalleTipoGestion?.value || list.params?.filtroDetalleTipoGestion || 0;
+        const filtroMedioGestion = list.params?.filtroMedioGestion?.value || list.params?.filtroMedioGestion || "";
+        const filtroPaciente = list.params?.filtroPaciente || "";
+        const filtro = list.params?.filtro || "";
+        const filtroTipoSituacion = list.params?.filtroTipoSituacion?.value || list.params?.filtroTipoSituacion || 0;
+
+        // Aplicar la misma lógica que useGestionOS para manejar el ambitoDelegacion
+        let bodyToSend = {
+          pageIndex: idx,
+          pageSize,
+          sort: list.sort,
+          apellidoTitular: filtro,
+          apellidoPaciente: filtroPaciente,
+        };
+
+        // Agregar filtros opcionales solo si tienen valor
+        if (filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS") {
+          bodyToSend.medioGestion = filtroMedioGestion;
+        }
+        if (filtroTipoEstado && filtroTipoEstado !== 0) {
+          bodyToSend.gestionEstadoId = filtroTipoEstado;
+        }
+        if (filtroTipoSituacion && filtroTipoSituacion !== 0) {
+          bodyToSend.gestionSituacionId = filtroTipoSituacion;
+        }
+        if (filtroTipoGestion && filtroTipoGestion !== 0) {
+          bodyToSend.gestionRubroId = filtroTipoGestion;
+        }
+        if (filtroDetalleTipoGestion && filtroDetalleTipoGestion !== 0) {
+          bodyToSend.gestionSubRubroId = filtroDetalleTipoGestion;
+        }
+
+        // Agregar filtros de fecha si existen
+        if (list.params?.fechaIngreso) {
+          bodyToSend.fechaIngreso = list.params.fechaIngreso;
+        }
+        if (list.params?.fechaIngresoHasta) {
+          bodyToSend.fechaIngresoHasta = list.params.fechaIngresoHasta;
+        }
+
+        // Manejo del ámbito de delegación - replicar la lógica de useGestionOS
+        var usuarioAdulterado = {};
+        if (ambito.tipo === "Seccionales") {
+          usuarioAdulterado = {
+            ambitoSeccionales: {
+              ids: [ambito?.ids[0]],
+            },
+            ambitoTodos: null,
+          };
+        } else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
+          // Si es delegación y ya tenemos las seccionales cargadas, filtrar por ellas
+          usuarioAdulterado = {
+            ambitoSeccionales: {
+              ids: seccionalesDelegacion,
+            },
+            ambitoTodos: null,
+          };
+        } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
+          usuarioAdulterado = {
+            ambitoSeccionales: {
+              ids: [filtroSeccional],
+            },
+            ambitoTodos: null,
+          };
+        }
+
+        // Construir el body con la lógica correcta para los ámbitos
+        bodyToSend = {
+          ...bodyToSend,
+          ambitoTodos:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoTodos
+              : ambito.tipo === "Delegaciones"
+              ? null  // No usar ambitoTodos si es delegación
+              : usuario?.ambitoTodos,
+          ambitoProvincias: usuario?.ambitoProvincias,
+          ambitoDelegaciones: ambito.tipo === "Delegaciones" ? null : usuario?.ambitoDelegaciones,
+          ambitoSeccionales:
+            filtroSeccional !== undefined && filtroSeccional !== 0
+              ? usuarioAdulterado.ambitoSeccionales
+              : ambito.tipo === "Delegaciones" && usuarioAdulterado.ambitoSeccionales
+              ? usuarioAdulterado.ambitoSeccionales
+              : usuario?.ambitoSeccionales,
+        };
+
         pushQuery({
           action: "GetList",
           config: {
-            body: {
-              ...list.params,
-              sort: list.sort,
-              pageIndex: idx,
-              pageSize,
-            },
+            body: bodyToSend,
             errorType: "response",
           },
           onOk: ({ data }) => {
@@ -336,7 +468,7 @@ const ExcelDatos = ({ onClose = () => { } }) => {
         setList((o) => ({ ...o, loading: null, error: e?.toString?.() ?? String(e), reload: false }));
       }
     })();
-  }, [list.reload, allReady, enrich, pushQuery, list.params, list.pagination, list.sort]);
+  }, [list.reload, allReady, enrich, pushQuery, runLocalFilterPaginate, list.params, list.pagination, list.sort, ambito.tipo, ambito.ids, seccionalesDelegacion]);
 
   /* ===== Recalcular vista ===== */
   useEffect(() => {
@@ -352,7 +484,7 @@ const ExcelDatos = ({ onClose = () => { } }) => {
       data: page,
       pagination: { ...o.pagination, count },
     }));
-  }, [list.params, list.sort, list.pagination.index, list.pagination.size, enrich, list.loading, allReady]);
+  }, [list.params, list.sort, list.pagination, list.rawAll, enrich, list.loading, allReady, runLocalFilterPaginate]);
 
   /* ===== Exporta lo filtrado ===== */
   const [exportLoading, setExportLoading] = useState(false);
@@ -566,10 +698,11 @@ const ExcelDatos = ({ onClose = () => { } }) => {
 /* ====== Enriquecedor: usuarios + finalización ====== */
 /* ====== Enriquecedor (solo GUID: createdBy/lastModifiedBy/deletedBy) ====== */
 function useCallbackEnricher(mapSeccional, mapTipoDoc, mapSexo, usrIdx) {
-  const normGuid = (v) => String(v ?? "").toLowerCase().replace(/[{}]/g, "").trim();
-
   // 👇 Solo busca por GUID en el índice byId
-  const resolveUser = (val) => usrIdx?.byId?.[normGuid(val)] || null;
+  const resolveUser = useCallback((val) => {
+    const normGuid = (v) => String(v ?? "").toLowerCase().replace(/[{}]/g, "").trim();
+    return usrIdx?.byId?.[normGuid(val)] || null;
+  }, [usrIdx]);
 
   return useMemo(() => {
     return (raw = []) =>
@@ -620,7 +753,7 @@ function useCallbackEnricher(mapSeccional, mapTipoDoc, mapSexo, usrIdx) {
           gestionObraSocialDescripcion: r.gestionObraSocialDescripcion || "",
         };
       });
-  }, [mapSeccional, mapTipoDoc, mapSexo, usrIdx]);
+  }, [mapSeccional, mapTipoDoc, mapSexo, resolveUser]);
 }
 
 

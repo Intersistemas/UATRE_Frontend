@@ -966,21 +966,7 @@ const Handler = ({ periodo, tentativas = [] }) => {
           >
             {isSelectAll ? `Deselecciona todos` : `Selecciona todos`}
           </Button>
-          <Button
-            width="200px"
-            // disabled={!liqNomData?.length}
-            className="botonAmarillo"
-            tarea="Siaru_EmpresaLiquidacionNominaEdita"
-            onClick={() => {
-              liqNomChanger("selectPage", {
-                isSelectPage: !isSelectPage,
-                pagination: liqNomPage,
-              });
-              setIsSelectPage(!isSelectPage);
-            }}
-          >
-            {isSelectPage ? `Deselecciona página` : `Selecciona página`}
-          </Button>
+          
         </Grid>
         {leyendas}
         <Grid col full="width" gap="inherit">

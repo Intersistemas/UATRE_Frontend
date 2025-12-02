@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+
+
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import useQueryState from "components/hooks/useQueryState";
@@ -16,967 +18,808 @@ import AsArray from "components/helpers/AsArray";
 import useAmbitosUsuario from "components/hooks/useAmbitos";
 import { useSelector } from "react-redux";
 
-/** Imports
- * @typedef {import("components/hooks/useQueryState").onLoad} onLoad
- * @typedef {import("./PDF").SeccionalAfiliados} SeccionalAfiliados
- * @typedef {import("./PDF").Afiliado} Afiliado
- **/
-
+/** Columns */
 const columns = [
-	{
-		dataField: "nroAfiliado",
-		text: "Nro. Afil.",
-		sort: true,
-		headerTitle: () => "Numero de Afiliado",
-		headerStyle: { width: "6em", textAlign: "center" },
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "cuil",
-		text: "CUIL",
-		sort: true,
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "cuilValidado",
-		text: "Val.",
-		headerTitle: true,
-		headerStyle: { width: "3em", textAlign: "center" },
-		formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "documento",
-		text: "Doc. Nro.",
-		sort: true,
-		headerTitle: () => "Documento número",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => Formato.DNI(v),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "nombre",
-		text: "Nombre",
-		sort: true,
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-		style: { textAlign: "left" },
-	},
-	{
-		dataField: "estadoSolicitud",
-		text: "Sit. Afi.",
-		headerTitle: () => "Situación del Afiliado",
-		headerStyle: { width: "6em", textAlign: "center" },
-		style: (v) => {
-			const style = { textAlign: "center" };
-			switch (v) {
-				case "Pendiente": {
-					style.background = "#ffff64cc";
-					break;
-				}
-				case "No Activo": {
-					style.background = "#ff6464cc";
-					style.color = "#FFF";
-					break;
-				}
-				case "Rechazado": {
-					style.background = "#f08c32cc";
-					style.color = "#FFF";
-					break;
-				}
-				default:
-					break;
-			}
-			return style;
-		},
-	},
-	{
-		dataField: "seccional",
-		text: "Seccional",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-	},
-	{
-		dataField: "refDelegacionDescripcion",
-		text: "Delegación",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-	},
-	{
-		dataField: "provincia",
-		text: "Provincia",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-	},
-	{
-		dataField: "fechaIngreso",
-		text: "F. Ingreso",
-		sort: true,
-		headerTitle: () => "Fecha de Ingreso",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => Formato.Fecha(v),
-		style: { textAlign: "center" },
-	},
-	// {
-	// 	dataField: "fechaEgreso",
-	// 	text: "F. Egreso",
-	// 	sort: true,
-	// 	headerTitle: () => "Fecha de Egreso",
-	// 	headerStyle: { width: "7em", textAlign: "center" },
-	// 	formatter: (v) => Formato.Fecha(v),
-	// 	style: { textAlign: "center" },
-	// },
-	{
-		dataField: "puesto",
-		text: "Puesto",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-	},
-	{
-		dataField: "empresaCUIT",
-		text: "CUIT",
-		headerTitle: true,
-		headerStyle: { width: "8em", textAlign: "center" },
-		formatter: (v) => Formato.Cuit(v),
-		style: { textAlign: "center" },
-	},
-	{
-		dataField: "empresaDescripcion",
-		text: "Empresa",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-	},
-	{
-		dataField: "actividad",
-		text: "Actividad",
-		headerTitle: true,
-		headerStyle: { width: "10em", textAlign: "center" },
-	},
-	{
-		dataField: "ultimaDDJJPeriodo",
-		text: "Período última DDJJ",
-		headerTitle: true,
-		headerStyle: { width: "12em", textAlign: "center" },
-		formatter: (v) => Formato.Periodo(v),
-	},
+  { dataField: "nroAfiliado", text: "Nro. Afil.", sort: true, headerTitle: () => "Numero de Afiliado", headerStyle: { width: "6em", textAlign: "center" }, style: { textAlign: "center" } },
+  {
+    dataField: "cuil",
+    text: "CUIL",
+    sort: true,
+    headerTitle: true,
+    headerStyle: { width: "8em", textAlign: "center" },
+    formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "cuilValidado",
+    text: "Val.",
+    headerTitle: true,
+    headerStyle: { width: "3em", textAlign: "center" },
+    formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
+    style: { textAlign: "center" },
+  },
+  {
+    dataField: "documento",
+    text: "Doc. Nro.",
+    sort: true,
+    headerTitle: () => "Documento número",
+    headerStyle: { width: "7em", textAlign: "center" },
+    formatter: (v) => Formato.DNI(v),
+    style: { textAlign: "center" },
+  },
+  { dataField: "nombre", text: "Nombre", sort: true, headerTitle: true, headerStyle: { width: "10em", textAlign: "center" }, style: { textAlign: "left" } },
+  {
+    dataField: "estadoSolicitud",
+    text: "Sit. Afi.",
+    headerTitle: () => "Situación del Afiliado",
+    headerStyle: { width: "6em", textAlign: "center" },
+    style: (v) => {
+      const s = { textAlign: "center" };
+      if (v === "Pendiente") s.background = "#ffff64cc";
+      if (v === "No Activo") { s.background = "#ff6464cc"; s.color = "#FFF"; }
+      if (v === "Rechazado") { s.background = "#f08c32cc"; s.color = "#FFF"; }
+      return s;
+    },
+  },
+  { dataField: "seccional", text: "Seccional", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
+  { dataField: "refDelegacionDescripcion", text: "Delegación", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
+  { dataField: "provincia", text: "Provincia", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
+  { dataField: "fechaIngreso", text: "F. Ingreso", sort: true, headerTitle: () => "Fecha de Ingreso", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.Fecha(v), style: { textAlign: "center" } },
+  { dataField: "puesto", text: "Puesto", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
+//   { dataField: "empresaCUIT", text: "CUIT", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v) => Formato.Cuit(v), style: { textAlign: "center" } },
+//   { dataField: "empresaDescripcion", text: "Empresa", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
+  { dataField: "actividad", text: "Actividad", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
+  { dataField: "ultimaDDJJPeriodo", text: "Período última DDJJ", headerTitle: true, headerStyle: { width: "12em", textAlign: "center" }, formatter: (v) => Formato.Periodo(v) },
 ];
 
-//#region delegacionesSelect Options
-const delegacionSelectDef = { label: "Elige..." };
-const delegacionesSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({
-			value: r.id,
-			label: [r.codigoDelegacion, r.nombre].join(" - "),
-			record: r,
-		}),
-		start: data.length === 1 ? [] : [delegacionSelectDef],
-		...x,
-	});
-//#endregion delegacionesSelect Options
+/** Options helpers - CONFIGURACIÓN DE FILTROS POR DEFECTO */
+const delegacionSelectDef = { label: "Elige..." }; // Filtro: Delegación por defecto
+const seccionalSelectDef = { label: "Todas" }; // Filtro: Seccional por defecto  
+const estadoSelectTodos = { value: 0, label: "Todos" }; // Filtro: Estado por defecto
 
-//#region seccionalesSelect Options
-const seccionalSelectDef = { label: "Todas" };
-const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
-	mapOptions({
-		data,
-		//si el ambiente del usuario es seccional o delegacion, filtro por las seccionales o delegaciones en estado: "NORMALIZADA, TRANSITORIA o SIN COMISION"
-		map: (r) => (ambitoUsuario.ambitoUsuario.tipo == "Todos" ? 
-			{
-				value: r.id,
-				label: [r.codigo, r.descripcion].join(" - "),
-				record: r,
-			} :
-			["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ?
-			 	{
-					value: r.id,
-					label: [r.codigo, r.descripcion].join(" - "),
-					record: r,
-				} : null 
-		),
-		start: data.length === 1 ? [] : [seccionalSelectDef],
-		...x,
-	});
-//#endregion seccionalesSelect Options
+// ========== OPCIONES DE FILTROS ==========
+const delegacionesSelectOptions = ({ data = [], ...x }) =>
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: [r.codigoDelegacion, r.nombre].join(" - "), record: r }),
+    start: data.length === 1 ? [] : [delegacionSelectDef],
+    ...x,
+  });
+
+const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) => {
+  const tipo = ambitoUsuario?.tipo ?? ambitoUsuario?.ambitoUsuario?.tipo;
+  return mapOptions({
+    data,
+    map: (r) => {
+      if (tipo === "Todos") return { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r };
+      return ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion)
+        ? { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }
+        : null;
+    },
+    start: data.length === 1 ? [] : [seccionalSelectDef],
+    ...x,
+  });
+};
+
+const estadoSelectOptions = ({ ...x }) =>
+  mapOptions({
+    data: [
+      { value: 1, label: "Activos" },
+      { value: 2, label: "No Activos" },
+    ],
+    map: (r) => ({ value: r.value, label: r.label }),
+    start: [estadoSelectTodos],
+    ...x,
+  });
+
+/** Normalizadores defensivos */
+const normalizeDelegOption = (opt) => {
+  if (!opt) return delegacionSelectDef;
+  if (opt.value != null) return opt;
+  if (opt.id != null) return { value: opt.id, label: [opt.codigoDelegacion || opt.codigo, opt.nombre].filter(Boolean).join(" - "), record: opt };
+  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigoDelegacion || opt.record.codigo, opt.record.nombre || opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
+  return delegacionSelectDef;
+};
+const normalizeSeccionalOption = (opt) => {
+  if (!opt) return seccionalSelectDef;
+  if (opt.value != null) return opt;
+  if (opt.id != null) return { value: opt.id, label: [opt.codigo, opt.descripcion].filter(Boolean).join(" - "), record: opt };
+  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigo, opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
+  return seccionalSelectDef;
+};
+const normalizeFiltros = (f) => {
+  const g = { ...f };
+  if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
+  return g;
+};
+
+/** LÓGICA DE FILTRO DE ESTADO → params para backend (server-side) */
+const buildEstadoParams = (f = {}) => {
+  const out = {};
+  if (f.estadoSolicitudFiltro === "Activo" || f.soloActivos) {
+    out.soloActivos = true;
+    out.soloNoActivos = false;
+    out.estadoSolicitudId = 2; // Activo
+  } else if (f.estadoSolicitudFiltro === "No Activo" || f.soloNoActivos) {
+    out.soloActivos = false;
+    out.soloNoActivos = true;
+  } else {
+    out.soloActivos = false;
+    out.soloNoActivos = false;
+    delete out.estadoSolicitudId;
+  }
+  return out;
+};
+
+/** Normalizador de paginado del backend -> {index, size, count(pages)} */
+const normalizeServerPaging = (ok, fallbackIndex, fallbackSize) => {
+  const size = Number(ok?.pageSize ?? fallbackSize) || fallbackSize || 10;
+  const indexRaw = Number(ok?.pageIndex ?? ok?.page ?? fallbackIndex) || fallbackIndex || 1;
+  let pagesCount = ok?.pages != null ? Number(ok.pages) : null;
+
+  if (pagesCount == null) {
+    const totalRowsRaw = ok?.totalCount ?? ok?.total ?? ok?.count ?? ok?.itemsCount ?? null;
+    if (totalRowsRaw != null) {
+      const totalRows = Number(totalRowsRaw);
+      pagesCount = Math.max(1, Math.ceil(totalRows / size));
+    }
+  }
+  if (pagesCount == null) pagesCount = 0;
+
+  const index = indexRaw < 1 ? 1 : indexRaw;
+  return { index, size, count: pagesCount };
+};
+
+/** Util: aplicar filtro de estado a un arreglo de afiliados */
+const aplicarFiltroEstado = (rows = [], filtros = {}) => {
+
+  if (filtros.estadoSolicitudFiltro === "Activo" || filtros.soloActivos) {
+
+    const filtered = rows.filter(a => {
+      const e = a.estadoSolicitud;
+      return e && !["No Activo", "Rechazado", "Pendiente"].includes(e);
+    });
+
+    return filtered;
+  }
+  if (filtros.estadoSolicitudFiltro === "No Activo" || filtros.soloNoActivos) {
+
+    const filtered = rows.filter(a => {
+      const e = a.estadoSolicitud;
+      return e && ["No Activo", "Rechazado", "Pendiente"].includes(e);
+    });
+
+    return filtered;
+  }
+  return rows; // “Todos”
+};
 
 const Handler = ({ onClose = () => {} }) => {
-	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
-	//console.log("ambitoUser_handler",ambitoUser)
-	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
-	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
-	
-	//#region APIs
-	const { setState: setDelegacionesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Comunes",
-				endpoint: `/RefDelegacion/GetAll`,
-				method: "GET",
-			},
-		}),
-		{
-			query: {
-				config: { errorType: "response" },
-				params: { soloActivos: true },
-			},
-		}
-	);
-	const { setState: setSeccionalesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Seccional/GetSeccionalesSpecs`,
-				method: "POST",
-			},
-		}),
-		{
-			query: { config: { errorType: "response" }, body: { soloActivos: true } },
-		}
-	);
-	const { setState: setSeccionalQuery } = useQueryState(
-		(_, { id, ...params }) => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Seccional/${id}`,
-				method: "GET",
-			},
-			params,
-		}),
-		{
-			query: { config: { errorType: "response" } },
-		}
-	);
-	const { setState: setAfiliacionesQuery } = useQueryState(
-		() => ({
-			config: {
-				baseURL: "Afiliaciones",
-				endpoint: `/Afiliado/GetAfiliadosWithSpec`,
-				method: "POST",
-			},
-		}),
-		{ query: { config: { errorType: "response" } } }
-	);
-	//#endregion APIs
+  const ambitoUsuario = useAmbitosUsuario().ambitoUser();
+  const { usuario } = useContext(AuthContext);
+  const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
+  const usuarioConSeccionalInactiva =
+    usuarioLogueado?.ambitosDescripciones?.[0]?.seccionalEstado &&
+    !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones?.[0]?.seccionalEstado);
 
-	const { usuario } = useContext(AuthContext);
-	const [init, setInit] = useState({
-		pending: true,
-		filtros: {
-			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
-            ambitoProvincias: usuario.ambitoProvincias, //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
-		}, 
-		wait: { delegaciones: true, seccionales: true },
-		usuario,
-	});
+  /** APIs */
+  const { setState: setDelegacionesQuery } = useQueryState(
+    () => ({ config: { baseURL: "Comunes", endpoint: `/RefDelegacion/GetAll`, method: "GET" } }),
+    { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
+  );
+  const { setState: setSeccionalesQuery } = useQueryState(
+    () => ({ config: { baseURL: "Afiliaciones", endpoint: `/Seccional/GetSeccionalesSpecs`, method: "POST" } }),
+    { query: { config: { errorType: "response" }, body: { soloActivos: true } } }
+  );
+  const { setState: setSeccionalQuery } = useQueryState(
+    (_, { id, ...params }) => ({ config: { baseURL: "Afiliaciones", endpoint: `/Seccional/${id}`, method: "GET" }, params }),
+    { query: { config: { errorType: "response" } } }
+  );
+  const { setState: setAfiliacionesQuery } = useQueryState(
+    () => ({ config: { baseURL: "Afiliaciones", endpoint: `/Afiliado/GetAfiliadosWithSpec`, method: "POST" } }),
+    { query: { config: { errorType: "response" } } }
+  );
 
-	//#region selects
-	const [filtros, setFiltros] = useState({ ...init.filtros });
+  /** Init */
+  const [init, setInit] = useState({
+    pending: true,
+    filtros: { ambitoTodos: usuario.ambitoTodos, ambitoProvincias: usuario.ambitoProvincias },
+    wait: { delegaciones: true, seccionales: true },
+    usuario,
+  });
+  const [filtros, setFiltros] = useState({ ...init.filtros }); // <<<< ESTADO PRINCIPAL DE FILTROS
 
-	//#region select delegacion
-	const [delegacionSelect, setDelegacionSelect] = useState({
-		reload: false,
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		optionsSrc: [],
-		options: [],
-		selected: delegacionSelectDef,
-		selectedDef: delegacionSelectDef,
-		/** @type array */
-		ambito: null,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setDelegacionSelect((o) => ({
-			...o,
-			options: o.optionsSrc.filter((r) =>
-				includeSearch(r, delegacionSelect.buscar)
-			),
-		}));
-	}, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
-	//#endregion select delegacion
+  /** ========== ESTADOS DE LOS COMPONENTES DE FILTRO ========== */
+  // FILTRO 1: Delegación
+  const [delegacionSelect, setDelegacionSelect] = useState({
+    reload: false, loading: "Cargando...", buscar: "", data: [], error: null,
+    optionsSrc: [], options: [], selected: delegacionSelectDef, selectedDef: delegacionSelectDef, ambito: null, origen: "",
+  });
+  useEffect(() => {
+    setDelegacionSelect((o) => ({ ...o, options: o.optionsSrc.filter((r) => includeSearch(r, delegacionSelect.buscar)) }));
+  }, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
 
-	//#region select seccional
-	const [seccionalSelect, setSeccionalSelect] = useState({
-		reload: false,
-		loading: "Cargando...",
-		buscar: "",
-		data: [],
-		error: null,
-		optionsSrc: [],
-		options: [],
-		selected: seccionalSelectDef,
-		selectedDef: seccionalSelectDef,
-		/** @type array */
-		ambito: null,
-		refDelegacionId: 0,
-		origen: "",
-	});
-	// Buscador
-	useEffect(() => {
-		setSeccionalSelect((o) => ({
-			...o,
-			options: o.optionsSrc.filter((r) =>
-				includeSearch(r, seccionalSelect.buscar)
-			),
-		}));
-	}, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
-	//#endregion select seccional
+  // FILTRO 2: Seccional
+  const [seccionalSelect, setSeccionalSelect] = useState({
+    reload: false, loading: "Cargando...", buscar: "", data: [], error: null,
+    optionsSrc: [], options: [], selected: seccionalSelectDef, selectedDef: seccionalSelectDef, ambito: null, refDelegacionId: 0, origen: "",
+  });
+  useEffect(() => {
+    setSeccionalSelect((o) => ({ ...o, options: o.optionsSrc.filter((r) => includeSearch(r, seccionalSelect.buscar)) }));
+  }, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
 
-	//#endregion selects
+  // FILTRO 3: Estado de Afiliación (Sit. Afi.)
+  const [estadoSelect, setEstadoSelect] = useState({
+    reload: true, loading: null, buscar: "", data: [], error: null,
+    optionsSrc: [], options: [], selected: estadoSelectTodos, selectedDef: estadoSelectTodos, origen: "",
+  });
+  useEffect(() => {
+    setEstadoSelect((o) => ({ ...o, options: o.optionsSrc.filter((r) => includeSearch(r, o.buscar)) }));
+  }, [estadoSelect.buscar, estadoSelect.optionsSrc]);
 
-	//#region list
-	const [list, setList] = useState({
-		reload: false,
-		loading: null,
-		pagination: { index: 1, size: 10 },
-		filtros: {},
-		sort: "seccionalId,nombre",
-		data: [],
-		error: null,
-	});
-	//#endregion list
+  /** Cache seccionales por delegación */
+  const seccCacheRef = useRef(new Map());
+  const initialAutoSelectRef = useRef(false);
 
-	//#region Carga inicial select delegacion
-	useEffect(() => {
-		if (!delegacionSelect.reload) return;
-		setDelegacionSelect((o) => ({
-			...o,
-			reload: false,
-			loading: "Cargando...",
-			data: [],
-			options: [],
-			optionsSrc: [],
-			selected: delegacionSelectDef,
-			selectedDef: delegacionSelectDef,
-			buscar: "",
-		}));
-		setDelegacionesQuery((o) => ({
-			...o,
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				if (Array.isArray(ok)) data = ok;
-				setDelegacionSelect((o) => {
-					const n = {
-						...o,
-						loading: null,
-						data: o.ambito ? data.filter((r) => o.ambito.includes(r.id)) : data,
-						error: error?.toString(),
-					};
-					n.optionsSrc = delegacionesSelectOptions(n);
-					n.selectedDef =
-						n.optionsSrc.length === 1 ? n.optionsSrc[0] : delegacionSelectDef;
-					n.selected = n.selectedDef;
-					return n;
-				});
-			},
-		}));
-	}, [delegacionSelect, setDelegacionesQuery]);
-	//#endregion Carga inicial select delegacion
+  /** Carga inicial: Delegación */
+  useEffect(() => {
+    if (!delegacionSelect.reload) return;
+    setDelegacionSelect((o) => ({
+      ...o, reload: false, loading: "Cargando...", data: [], options: [], optionsSrc: [], selected: delegacionSelectDef, selectedDef: delegacionSelectDef, buscar: "",
+    }));
+    setDelegacionesQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let data = Array.isArray(ok) ? ok : [];
+        setDelegacionSelect((prev) => {
+          const n = {
+            ...prev,
+            loading: null,
+            data: prev.ambito ? data.filter((r) => prev.ambito.includes(r.id)) : data,
+            error: error?.toString(),
+          };
+          n.optionsSrc = delegacionesSelectOptions(n);
+          if (!initialAutoSelectRef.current && n.optionsSrc[0]?.value != null) {
+            n.selectedDef = n.optionsSrc[0];
+            n.selected = n.optionsSrc[0];
+          } else {
+            n.selectedDef = n.optionsSrc.length === 1 ? n.optionsSrc[0] : delegacionSelectDef;
+            n.selected = n.selectedDef;
+          }
+          return n;
+        });
+      },
+    }));
+  }, [delegacionSelect.reload, setDelegacionesQuery]);
 
-	//#region Carga inicial select seccional
-	useEffect(() => {
-		if (!seccionalSelect.reload) return;
-		const changes = {
-			reload: false,
-			loading: "Cargando...",
-			error: null,
-			options: [],
-			optionsSrc: [],
-			selected: seccionalSelectDef,
-			selectedDef: seccionalSelectDef,
-			buscar: "",
-			ambitoUsuario: {ambitoUsuario},
-		};
-		const data = [];
-		if (seccionalSelect.refDelegacionId) {
-			setSeccionalSelect((o) => ({ ...o, ...changes }));
-		} else {
-			changes.loading = null;
-			changes.data = data;
-			setSeccionalSelect((o) => ({ ...o, ...changes }));
-			return;
-		}
-		/** @type {onLoad} */
-		const onLoad = ({ query, ok, error }) => {
-			let pages = 0;
-			let pageIndex = query.config.body.pageIndex;
-			if (ok) {
-				pages = ok.pages;
-				if (Array.isArray(ok.data)) {
-					data.push(...ok.data);
-				} else {
-					console.error("Se esperaba un arreglo", ok.data);
-				}
-			}
-			if (error) changes.error = error.toString();
-			if (pageIndex < pages) {
-				pageIndex += 1;
-				changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
-				setSeccionalesQuery((o) => ({
-					...o,
-					query: {
-						...o.query,
-						config: {
-							...o.query.config,
-							body: {
-								...o.query.config.body,
-								pageIndex,
-							},
-						},
-					},
-					onLoad,
-				}));
-			} else {
-				changes.loading = null;
-				const ambito = seccionalSelect.ambito;
-				changes.data = ambito
-					? data.filter((r) => ambito.includes(r.id))
-					: data;
-					console.log("ambitoUsuario")
-				changes.optionsSrc = seccionalesSelectOptions(changes, ambitoUsuario);
-				changes.selectedDef = changes.optionsSrc.length === 1
-					? changes.optionsSrc[0]
-					: seccionalSelectDef;
-				changes.selected = changes.selectedDef;
-			}
-			setSeccionalSelect((o) => ({ ...o, ...changes }));
-		};
-		setSeccionalesQuery((o) => ({
-			...o,
-			query: {
-				...o.query,
-				config: {
-					...o.query.config,
-					body: {
-						...o.query.params,
-						refDelegacionId: seccionalSelect.refDelegacionId,
-						pageIndex: 1,
-					},
-				},
-			},
-			onLoad,
-		}));
-	}, [seccionalSelect, setSeccionalesQuery]);
-	//#endregion Carga inicial select seccional
+  /** Carga seccionales por delegación */
+  useEffect(() => {
+    if (!seccionalSelect.reload) return;
+    const delegId = seccionalSelect.refDelegacionId;
 
-	//#region Cambia select delegación
-	useEffect(() => {
-		if (delegacionSelect.loading) return;
-		const finalizaInit = () =>
-			setInit((o) => {
-				if (!o.wait || !("delegaciones" in o.wait)) return o;
-				const init = { ...o };
-				const wait = { ...init.wait };
-				delete wait.delegaciones;
-				init.wait = wait;
-				return init;
-			});
-		const selected = delegacionSelect.selected;
-		setSeccionalSelect((o) => {
-			const n = {
-				...o,
-				reload: true,
-				refDelegacionId: selected === delegacionSelectDef ? 0 : selected?.value,
-				selected: o.selectedDef,
-			};
-			if (!n.refDelegacionId) {
-				setFiltros((o) => {
-					const filtros = { ...o };
-					delete filtros.ambitoDelegaciones;
-					return filtros;
-				});
-			} else {
-				setFiltros((o) => ({
-					...o,
-					ambitoDelegaciones: { ids: [selected?.value] },
-				}));
-			}
-			finalizaInit();
-			return n;
-		});
-	}, [delegacionSelect.loading, delegacionSelect.selected]);
-	//#endregion Cambia select delegación
+    setSeccionalSelect((o) => ({
+      ...o,
+      loading: "Cargando...",
+      error: null,
+      options: [],
+      optionsSrc: [],
+      data: [],
+      selected: seccionalSelectDef,
+      selectedDef: seccionalSelectDef,
+      buscar: "",
+      reload: false,
+    }));
 
-	//#region Cambia select seccional
-	useEffect(() => {
-		if (seccionalSelect.loading) return;
-		const finalizaInit = () =>{
-			setInit((o) => {
-				if (!o.wait || !("seccionales" in o.wait)) return o;
-				const init = { ...o };
-				const wait = { ...init.wait };
-				delete wait.seccionales;
-				init.wait = wait;
-				return init;
-			});}
-		const selected = seccionalSelect.selected;
-		if (selected === seccionalSelectDef) {
-			setFiltros((o) => {
-				const filtros = { ...o };
-				delete filtros.ambitoSeccionales;
-				return filtros;
-			});
-			finalizaInit();
-			return;
-		}
-		setFiltros((o) => ({
-			...o,
-			ambitoSeccionales: { ids: [selected?.value] },
-		}));
-		finalizaInit();
-	}, [seccionalSelect.loading, seccionalSelect.selected]);
-	//#endregion Cambia select seccional
+    if (!delegId) { setSeccionalSelect((o) => ({ ...o, loading: null })); return; }
 
-	//#region Carga list
-	useEffect(() => {
-		if (!list.reload) return;
-		setAfiliacionesQuery((o) => ({
-			...o,
-			query: {
-				...o.query,
-				config: {
-					body: {
-						...list.filtros,
-						estadoSolicitudId: 2,
-						sort: list.sort,
-						pageIndex: list.pagination.index,
-						pageSize: list.pagination.size,
-					},
-				},
-			},
-			onPreLoad: () =>
-				setList((o) => ({
-					...o,
-					reload: false,
-					loading: "Cargando...",
-					data: [],
-				})),
-			onLoad: ({ ok, error }) => {
-				let data = [];
-				let pagination = { ...list.pagination, count: data.length };
-				if (Array.isArray(ok?.data)) {
-					//({ data, ...pagination } = ok);
-					console.log("usuarioConSeccionalInactiva", usuarioConSeccionalInactiva);
-					 //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
-						({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
-					} else {
-					console.error("Se esperaba un arreglo", ok?.data);
-				}
-				setList((o) => ({
-					...o,
-					loading: null,
-					pagination,
-					data,
-					error: error?.toString(),
-				}));
-			},
-		}));
-	}, [setAfiliacionesQuery, list]);
-	//#endregion Carga list
+    const cached = seccCacheRef.current.get(delegId);
+    if (cached) {
+      setSeccionalSelect((o) => ({
+        ...o,
+        loading: null,
+        optionsSrc: cached.optionsSrc,
+        options: cached.optionsSrc,
+        data: cached.data,
+        selectedDef: cached.optionsSrc.length === 1 ? cached.optionsSrc[0] : seccionalSelectDef,
+        selected: seccionalSelectDef,
+      }));
+      return;
+    }
 
-	//#region padron
-	const [padron, setPadron] = useState({
-		reload: null,
-		loading: null,
-		filtros: {},
-		/** @type {SeccionalAfiliados[]} */
+    const gathered = [];
+    const changes = { loading: "Cargando...", error: null };
+    const onLoad = ({ query, ok, error }) => {
+      let pages = 0; let pageIndex = query?.config?.body?.pageIndex;
+      if (ok) {
+        pages = ok.pages;
+        if (Array.isArray(ok.data)) gathered.push(...ok.data);
+      }
+      if (error) changes.error = error.toString();
+      if (pageIndex < pages) {
+        pageIndex += 1;
+        setSeccionalesQuery((o) => ({
+          ...o,
+          query: { ...o.query, config: { ...o.query.config, body: { ...o.query.config.body, pageIndex } } },
+          onLoad,
+        }));
+      } else {
+        const finalData = seccionalSelect.ambito ? gathered.filter((r) => seccionalSelect.ambito.includes(r.id)) : gathered;
+        const optionsSrc = seccionalesSelectOptions({ data: finalData, ambitoUsuario });
+        seccCacheRef.current.set(delegId, { optionsSrc, data: finalData });
 
+        setSeccionalSelect((o) => ({
+          ...o,
+          loading: null,
+          error: changes.error ?? null,
+          optionsSrc,
+          options: optionsSrc,
+          data: finalData,
+          selectedDef: optionsSrc.length === 1 ? optionsSrc[0] : seccionalSelectDef,
+          selected: seccionalSelectDef,
+        }));
 
-		//Aqui se guarda todos los datos de los afiliados
-		data: [],
-		error: null,
-		seccionales: [],
+        if (!initialAutoSelectRef.current && optionsSrc[0]?.value != null) {
+          const firstSec = optionsSrc.find((opt) => opt.value != null);
+          if (firstSec) {
+            setSeccionalSelect((o) => ({ ...o, selected: firstSec }));
+            setFiltros((o) => ({ ...o, ambitoDelegaciones: { ids: [delegId] }, ambitoSeccionales: { ids: [firstSec.value] } }));
+            setList((o) => ({ 
+              ...o, 
+              filtros: { ...o.filtros, ambitoDelegaciones: { ids: [delegId] }, ambitoSeccionales: { ids: [firstSec.value] } }, 
+              reload: true, 
+              error: null,
+              data: [],
+              pagination: { ...o.pagination, index: 1, count: 0 }
+            }));
+            initialAutoSelectRef.current = true;
+          }
+        }
+      }
+    };
 
-		//Al momento de que se me carga mi data, se setea a true (padron.despliega = true)
-		//y se despliega el pdf
-		despliega: false,
-	});
-	//#endregion padron
+    setSeccionalesQuery((o) => ({
+      ...o,
+      query: { ...o.query, config: { ...o.query.config, body: { ...o.query.params, refDelegacionId: delegId, pageIndex: 1 } } },
+      onLoad,
+    }));
+  }, [seccionalSelect.reload, seccionalSelect.refDelegacionId, seccionalSelect.ambito, setSeccionalesQuery, ambitoUsuario]);
 
-	//#region Carga padron
-	useEffect(() => {
-		if (!padron.reload) return;
-		const changes = {
-			reload: false,
-			loading: "Cargando...",
-			/** @type {SeccionalAfiliados[]} */
-			data: [],
-			error: null,
-			despliega: false,
-		};
-		/** @type {onLoad} */
-		const onLoad = ({ query, ok, error }) => {
-			let pages = 0;
-			let pageIndex = query.config.body.pageIndex;
-			if (ok) {
-				pages = ok.pages;
-				const data = ok.data;
-				if (Array.isArray(data)) {
-					data.forEach((afiliado) => {
-						// Priorizar cuilValidado si es distinto de 0 y tiene 11 dígitos
-						const CUIL_LENGTH = 11;
-						const val = afiliado?.cuilValidado;
-						if (val != null) {
-							const digits = String(val).replace(/\D/g, "");
-							if (Number(val) !== 0 && digits.length === CUIL_LENGTH) {
-								afiliado.cuil = val;
-							}
-						}
-						const seccional = padron.seccionales.find(
-							(s) => s.id === afiliado.seccionalId
-						);
-						if (seccional) {
-							let seccionalAfiliados = changes.data.find(
-								(a) => a.seccional === seccional
-							);
-							if (seccionalAfiliados == null) {
-								seccionalAfiliados = { seccional, afiliados: [] };
-								changes.data.push(seccionalAfiliados);
-							}
-							seccionalAfiliados.afiliados.push(afiliado);
-						}
-					});
-				} else {
-					console.error("Se esperaba un arreglo", data);
-				}
-			}
-			if (error) changes.error = error.toString();
-			if (pageIndex < pages) {
-				pageIndex += 1;
-				changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
-				setAfiliacionesQuery((o) => ({
-					...o,
-					query: {
-						...o.query,
-						config: {
-							...o.query.config,
-							body: {
-								...o.query.config.body,
-								pageIndex,
-							},
-						},
-					},
-					onLoad,
-				}));
-			} else {
-				changes.loading = null;
-				changes.despliega = true;
-			}
-			setPadron((o) => ({ ...o, ...changes }));
-		};
-		setAfiliacionesQuery((o) => ({
-			...o,
-			query: {
-				...o.query,
-				config: {
-					...o.query.config,
-					body: {
-						...padron.filtros,
-						estadoSolicitudId: 2,
-						sort: "seccionalId,nombre",
-						pageIndex: 1,
-					},
-				},
-			},
-			onPreLoad: () => setPadron((o) => ({ ...o, ...changes })),
-			onLoad,
-		}));
-	}, [setAfiliacionesQuery, padron]);
-	//#endregion Carga padron
+  /** ========== LÓGICA DE FILTROS ========== */
+  
+  /** FILTRO: Cambio delegación → dispara carga de seccionales y actualiza filtros */
+  useEffect(() => {
+    if (delegacionSelect.loading) return;
+    const refDelegacionId = delegacionSelect.selected === delegacionSelectDef ? 0 : delegacionSelect.selected?.value;
 
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-	//Se ejecuta dicha funcion cuando selecciono imprimir
-	//y se encarga de validar si la delegacion fue seleccionada
-	//y si no fue seleccionada, muestra un mensaje de error
-	//si fue seleccionada, se carga el padron
-	//y se despliega el pdf
-	//si no hay error, se carga el padron
-	//y se despliega el pdf
+    if (!refDelegacionId) {
+      setFiltros((o) => { const f = { ...o }; delete f.ambitoDelegaciones; return f; });
+    } else {
+      setFiltros((o) => ({ ...o, ambitoDelegaciones: { ids: [refDelegacionId] } }));
+    }
+    setSeccionalSelect((o) => ({ ...o, reload: true, refDelegacionId }));
+  }, [delegacionSelect.loading, delegacionSelect.selected]);
 
-	const onCargaPadron = () => {
-		if (!filtros.ambitoDelegaciones) {
-			setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
-			return;
-		} else {
-			setDelegacionSelect((o) => ({ ...o, error: null }));
-		}
-		setPadron((o) => ({
-			...o,
-			//Me cambia mi estado a "true" para que se cargue el padron
-			reload: true,
-			seccionales: seccionalSelect.data
-				.map((s) => ({
-					id: s.id,
-					codigo: s.codigo,
-					nombre: s.descripcion,
-					provincia: s.provinciaDescripcion,
-				}))
-				.filter((s) => s?.id),
-		}));
-	};
+  /** FILTRO: Cambio seccional → actualiza filtros */
+  useEffect(() => {
+    if (seccionalSelect.loading) return;
+    const selected = seccionalSelect.selected;
+    if (!selected || selected.value == null) {
+      setFiltros((o) => { const f = { ...o }; delete f.ambitoSeccionales; return f; });
+      return;
+    }
+    setFiltros((o) => ({ ...o, ambitoSeccionales: { ids: [Number(selected.value)] } }));
+  }, [seccionalSelect.loading, seccionalSelect.selected]);
+
+  /** Inicializa estado (Sit. Afi.) */
+  useEffect(() => {
+    if (!estadoSelect.reload) return;
+    setEstadoSelect((o) => ({
+      ...o,
+      reload: false,
+      loading: null,
+      optionsSrc: estadoSelectOptions({}),
+      options: estadoSelectOptions({}),
+      selected: estadoSelectTodos,
+      selectedDef: estadoSelectTodos,
+    }));
+  }, [estadoSelect.reload]);
+
+  /** FILTRO: Cambio estado (Sit. Afi.) → actualiza filtros */
+  useEffect(() => {
+    if (estadoSelect.loading) return;
+    const selected = estadoSelect.selected;
+
+    setFiltros((prev) => {
+      const f = { ...prev };
+      delete f.estadoSolicitudFiltro;
+      delete f.soloActivos;
+      delete f.soloNoActivos;
+
+      if (selected?.value === 1) {
+        // FILTRO: Solo Activos
+        f.estadoSolicitudFiltro = "Activo";
+        f.soloActivos = true;
+      } else if (selected?.value === 2) {
+        // FILTRO: Solo No Activos
+        f.estadoSolicitudFiltro = "No Activo";
+        f.soloNoActivos = true;
+      } else {
+        // FILTRO: Todos (sin restricción de estado)
+      }
+
+      return f; // Todos => sin flags
+    });
+  }, [estadoSelect.loading, estadoSelect.selected]);
+
+  /** LIST (tabla) */
+  const [list, setList] = useState({
+    reload: false, loading: null,
+    pagination: { index: 1, size: 10 }, // Paginación remota
+    filtros: {}, sort: "seccionalId,nombre",
+    data: [],
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!list.reload) return;
+
+    const filtrosNorm = normalizeFiltros(list.filtros);
+    const body = {
+      ...filtrosNorm,
+      ...buildEstadoParams(filtrosNorm), // backend filtra y pagina
+      sort: list.sort,
+      pageIndex: list.pagination.index,
+      pageSize: list.pagination.size,
+    };
+
+    setAfiliacionesQuery((o) => ({
+      ...o,
+      query: { ...o.query, config: { ...o.query.config, body } },
+      onPreLoad: () => setList((o) => ({ ...o, reload: false, loading: "Cargando...", data: [] })),
+      onLoad: ({ ok, error }) => {
+        let data = [];
+        let pagination = { ...list.pagination };
+
+        if (Array.isArray(ok?.data)) {
+          data = !usuarioConSeccionalInactiva ? ok.data : [];
+
+          // Reforzar filtro client-side
+          const filtrosActuales = normalizeFiltros(list.filtros);
+          data = aplicarFiltroEstado(data, filtrosActuales);
+
+          const norm = normalizeServerPaging(ok, list.pagination.index, list.pagination.size);
+          pagination = { ...pagination, ...norm };
+        } else {
+          pagination = { ...pagination, count: 0 };
+        }
+
+        setList((o) => ({ ...o, loading: null, pagination, data, error: error?.toString() }));
+      },
+    }));
+  }, [setAfiliacionesQuery, list.reload, list.filtros, list.sort, list.pagination, usuarioConSeccionalInactiva]);
+
+  /** PADRÓN (PDF) */
+  const [padron, setPadron] = useState({
+    reload: null,
+    loading: null,
+    filtros: {},
+    sort: "seccionalId,nombre",
+    data: [],
+    error: null,
+    seccionales: [],
+    despliega: false
+  });
+
+  // Carga paginada para el PDF con mensaje “Cargando bloque X de Y…”
+  useEffect(() => {
+    if (!padron.reload) return;
+
+    const filtrosNorm = normalizeFiltros(padron.filtros);
+    const baseBody = {
+      ...filtrosNorm,
+      ...buildEstadoParams(filtrosNorm), // backend filtra exactamente igual que la tabla
+      sort: padron.sort || "seccionalId,nombre",
+      pageIndex: 1,
+      pageSize: 1000, // Usar pageSize grande para obtener más datos por página y menos requests
+    };
 
 
 
-	///////////////////////////////////////////////////////////
-	//Cuando (padron.despliega) es true, se despliega el pdf
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
+    const acumulado = [];
+    const changes = { reload: false, loading: "Cargando...", data: [], error: null, despliega: false };
 
-	const padronRender = !padron.despliega ? null : (
-		<PDFViewer
-			data={padron.data}
-			onClose={() => setPadron((o) => ({ ...o, despliega: false }))}
-			ambitoUser={ambitoUsuario}
-		/>
-	);
+    const onLoad = ({ query, ok, error }) => {
+      let pages = 0;
+      let pageIndex = query?.config?.body?.pageIndex;
 
-	const onAplicaFiltros = () => {
-		if (!filtros.ambitoDelegaciones) {
-			setDelegacionSelect((o) => ({
-				...o,
-				error: "Dato requerido.",
-			}));
-		} else {
-			setDelegacionSelect((o) => ({ ...o, error: null }));
-		}
-		setList((o) => ({
-			...o,
-			filtros,
-			reload: true,
-			error: null,
-			pagination: { ...o.pagination, index: 1 },
-		}));
-		setPadron((o) => ({
-			...o,
-			filtros,
-			seccionales: seccionalSelect.data
-				.map((s) => ({
-					id: s.id,
-					codigo: s.codigo,
-					nombre: s.descripcion,
-					provincia: s.provinciaDescripcion,
-				}))
-				.filter((s) => s?.id),
-		}));
-	};
+      if (ok) {
+        pages = ok.pages || 1;
+        let data = Array.isArray(ok.data) ? ok.data : [];
+        
+        console.log(` Página ${pageIndex} - Datos recibidos del servidor:`, data.length, "registros");
+        
+        // Aplicar el mismo filtro de usuario inactivo que en la tabla
+        data = !usuarioConSeccionalInactiva ? data : [];
+        console.log(` Después filtro usuario inactivo:`, data.length, "registros");
+        
+        // Aplicar filtro de estado (TODOS/ACTIVOS/NO ACTIVOS)
+        const dataAntesFiltro = data.length;
+        data = aplicarFiltroEstado(data, filtrosNorm);
+        console.log(` Después filtro estado (${filtrosNorm.estadoSolicitudFiltro || 'Todos'}):`, data.length, "registros (era", dataAntesFiltro, ")");
+        
+        acumulado.push(...data);
+        console.log(` Total acumulado hasta ahora:`, acumulado.length, "registros");
+      }
+      if (error) changes.error = error.toString();
 
-	const onLimpiaFiltros = () => {
-		const filtros = { ...init.filtros };
-		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
-		setFiltros(filtros);
-		if (JSON.stringify(list.filtros) === JSON.stringify(filtros)) return;
-		setList((o) => ({
-			...o,
-			filtros,
-			error: null,
-			reload: true,
-		}));
-		setPadron((o) => ({ ...o, filtros, seccionales: [] }));
-	};
+      if (pageIndex < pages) {
+        pageIndex += 1;
+        changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
+        setPadron((o) => ({ ...o, ...changes }));
+        setAfiliacionesQuery((o) => ({
+          ...o,
+          query: { ...o.query, config: { ...o.query.config, body: { ...o.query.config.body, pageIndex } } },
+          onLoad,
+        }));
+      } else {
+        // Agrupar por seccional cuando termina
+        const grupos = [];
+        acumulado.forEach((a) => {
+          const seccional =
+            padron.seccionales.find((s) => s.id === a.seccionalId) ||
+            { id: a.seccionalId, codigo: a.codigoSeccional, nombre: a.seccional, provincia: a.provincia };
+          if (!seccional?.id) return;
+          let g = grupos.find((x) => x.seccional.id === seccional.id);
+          if (!g) { g = { seccional, afiliados: [] }; grupos.push(g); }
+          g.afiliados.push(a);
+        });
 
-	//#region activa init
-	useEffect(() => {
-		if (!init.pending) return;
-		setInit((o) => ({ ...o, pending: false }));
-		const ambito = {
-			delegaciones: [...AsArray(init.usuario.ambitoDelegaciones?.ids)],
-			seccionales: [...AsArray(init.usuario.ambitoSeccionales?.ids)],
-		};
-		const finalizaCarga = () => {
-			setInit((o) => {
-				const init = { ...o };
-				const filtros = init.filtros;
-				if (ambito.seccionales.length)
-					filtros.ambitoSeccionales = { ids: [...ambito.seccionales] };
-				if (ambito.delegaciones.length)
-					filtros.ambitoDelegaciones = { ids: [...ambito.delegaciones] };
-				return init;
-			});
-			if (ambito.seccionales.length)
-				setSeccionalSelect((o) => ({ ...o, ambito: ambito.seccionales }));
-			const delegaciones = {};
-			if (ambito.delegaciones.length) delegaciones.ambito = ambito.delegaciones;
-			setDelegacionSelect((o) => ({
-				...o,
-				reload: true,
-				loading: "Cargando...",
-				...delegaciones,
-			}));
-		};
-		if (ambito.seccionales.length && !ambito.delegaciones.length) {
-			const seccionales = [...ambito.seccionales].filter((r) => r);
-			/** @type {onLoad} */
-			const onLoad = ({ ok }) => {
-				const refDelegacionId = ok?.refDelegacionId;
-				if (refDelegacionId && !ambito.delegaciones.includes(refDelegacionId))
-					ambito.delegaciones.push(refDelegacionId);
-				let seccional = seccionales.shift();
-				if (seccional) {
-					setSeccionalQuery((o) => ({
-						...o,
-						query: {
-							...o.query,
-							params: { id: seccional },
-						},
-						onLoad,
-					}));
-				} else {
-					finalizaCarga();
-				}
-			};
-			onLoad({});
-		} else {
-			finalizaCarga();
-		}
-	}, [init, setSeccionalQuery]);
+        changes.data = grupos;
+        changes.loading = null;
+        changes.despliega = true;
+        setPadron((o) => ({ ...o, ...changes }));
+      }
+    };
 
-	useEffect(() => {
-		if (init.pending) return;
-		if (init.wait == null) return;
-		if (Object.keys(init.wait).length) return;
-		setInit((o) => ({ ...o, wait: null }));
-		onLimpiaFiltros();
-	}, [init, onLimpiaFiltros]);
-	//#endregion activa init
+    setAfiliacionesQuery((o) => ({
+      ...o,
+      query: { ...o.query, config: { ...o.query.config, body: baseBody } },
+      onPreLoad: () => setPadron((o) => ({ ...o, ...changes, data: [] })), // reset visual + “Cargando…”
+      onLoad,
+    }));
+  }, [padron.reload, padron.filtros, padron.sort, padron.seccionales, setAfiliacionesQuery, usuarioConSeccionalInactiva]);
 
-	return (
-		<Modal size="xl" centered show>
-			<Modal.Header className={modalCss.modalCabecera}>
-				Afiliados por seccional
-			</Modal.Header>
-			<Modal.Body>
-				<Grid col full gap="15px">
-					<Grid grid="auto / 1fr 1fr 200px 200px" gap="inherit">
-						<SearchSelectMaterial
-							id="delegacionSelect"
-							label="Delegacion"
-							error={!!delegacionSelect.error}
-							helperText={delegacionSelect.loading ?? delegacionSelect?.error}
-							value={delegacionSelect.selected}
-							onChange={(selected) =>
-								setDelegacionSelect((o) => ({ ...o, selected }))
-							}
-							options={delegacionSelect.options}
-							onTextChange={(buscar) =>
-								setDelegacionSelect((o) => ({ ...o, buscar }))
-							}
-						/>
-						<SearchSelectMaterial
-							id="seccionalSelect"
-							label="Seccional"
-							error={!!seccionalSelect.error}
-							helperText={seccionalSelect.loading ?? seccionalSelect?.error}
-							value={seccionalSelect.selected}
-							onChange={(selected) =>
-								setSeccionalSelect((o) => ({ ...o, selected }))
-							}
-							options={seccionalSelect.options}
-							onTextChange={(buscar) =>
-								setSeccionalSelect((o) => ({ ...o, buscar }))
-							}
-						/>
-						<Button
-							className="botonAzul"
-							disabled={
-								JSON.stringify(list.filtros) === JSON.stringify(filtros)
-							}
-							onClick={() => onAplicaFiltros()}
-						>
-							Aplica filtros
-						</Button>
-						<Button
-							className="botonAzul"
-							disabled={
-								JSON.stringify(filtros) === JSON.stringify(init.filtros)
-							}
-							onClick={() => onLimpiaFiltros()}
-						>
-							Limpia filtros
-						</Button>
-					</Grid>
-					<Table
-						remote
-						keyField="id"
-						data={list.data}
-						mostrarBuscar={false}
-						baseProps={{ style: { overflowX: "scroll" } }}
-						pagination={{
-							...list.pagination,
-							onChange: (pagination) =>
-								setList((o) => ({
-									...o,
-									reload: true,
-									pagination: { ...o.pagination, ...pagination },
-									data: [],
-									error: null,
-								})),
-						}}
-						noDataIndication={
-							list.loading || list.error || "No existen datos para mostrar "
-						}
-						columns={columns}
-						onTableChange={(type, { sortOrder, sortField }) => {
-							switch (type) {
-								case "sort": {
-									sortField = { cuil: "CUIL" }[sortField] ?? sortField;
-									const sort = `${sortField}${
-										sortOrder === "desc" ? "Desc" : ""
-									}`;
-									setList((o) => ({
-										...o,
-										reload: true,
-										sort,
-										data: [],
-										error: null,
-										pagination: { ...o.pagination, count: 0 },
-									}));
-									return;
-								}
-								default:
-									return;
-							}
-						}}
-					/>
-					{padronRender}
-				</Grid>
-			</Modal.Body>
-			<Modal.Footer>
-				<Grid grid="auto / 1fr 150px 150px" width col gap="15px">
-					<Grid width col>
-						{padron.loading == null ? null : (
-							<text style={{ color: "green" }}>{padron.loading}</text>
-						)}
-						{padron.error == null ? null : (
-							<text style={{ color: "red" }}>{padron.error}</text>
-						)}
-					</Grid>
-					<Button
-						className="botonAmarillo"
-						loading={!!padron.loading}
-						onClick={() => onCargaPadron()}
-						tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
-						disabled={list.data.length === 0}
-					>
-						IMPRIME
-					</Button>
-					<Button className="botonAmarillo" onClick={() => onClose()}>
-						FINALIZA
-					</Button>
-				</Grid>
-			</Modal.Footer>
-		</Modal>
-	);
+  /** ========== ACCIONES DE FILTROS ========== */
+  const onCargaPadron = useCallback(() => {
+    // Usa EXACTAMENTE los mismos filtros que están aplicados en la tabla
+    if (!list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0) {
+      console.log("❌ No hay filtros aplicados en la tabla o no hay datos. Haz clic en 'Aplica filtros' primero.");
+      return;
+    }
+
+    const filtrosEfectivos = normalizeFiltros(list.filtros);
+    
+    console.log(" onCargaPadron - Filtros de la tabla para PDF:", list.filtros);
+    console.log(" onCargaPadron - Filtros normalizados:", filtrosEfectivos);
+
+    // Limitar a seccionales elegidas (si hay)
+    const idsSel = filtrosEfectivos?.ambitoSeccionales?.ids || [];
+    const seccionalesElegidas = (idsSel.length
+      ? seccionalSelect.data.filter((s) => idsSel.includes(s.id))
+      : seccionalSelect.data
+    )
+      .map((s) => ({ id: s.id, codigo: s.codigo, nombre: s.descripcion, provincia: s.provinciaDescripcion }))
+      .filter((s) => s?.id);
+
+    setPadron((o) => ({
+      ...o,
+      reload: true, // Activar la carga paginada para obtener TODAS las páginas
+      loading: "Cargando datos para PDF...",
+      error: null,
+      filtros: filtrosEfectivos,  //  usa EXACTAMENTE los filtros aplicados en la tabla
+      sort: list.sort, //  usa EXACTAMENTE el ordenamiento de la tabla
+      data: [],
+      despliega: false,
+      seccionales: seccionalesElegidas,
+    }));
+  }, [list.filtros, list.sort, list.data.length, seccionalSelect.data]);
+
+  /** ACCIÓN: Aplicar filtros - Toma los filtros configurados y los aplica a la tabla */
+  const onAplicaFiltros = useCallback(() => {
+    const filtrosNorm = normalizeFiltros(filtros);
+    if (!filtrosNorm.ambitoDelegaciones) {
+      setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
+    } else {
+      setDelegacionSelect((o) => ({ ...o, error: null }));
+    }
+    setList((o) => ({ 
+      ...o, 
+      filtros: filtrosNorm, 
+      reload: true, 
+      error: null,
+      data: [],
+      pagination: { ...o.pagination, index: 1, count: 0 }
+    }));
+  }, [filtros]);
+
+  /** ACCIÓN: Limpiar filtros - Resetea todos los filtros a su estado inicial */
+  const onLimpiaFiltros = useCallback(() => {
+    const filtrosReset = { ...init.filtros };
+    delete filtrosReset.estadoSolicitudFiltro;
+    delete filtrosReset.soloActivos;
+    delete filtrosReset.soloNoActivos;
+
+    // Resetear selects a valores por defecto
+    setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
+    setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
+    setEstadoSelect((o) => ({ ...o, selected: estadoSelectTodos }));
+
+    setFiltros(filtrosReset);
+    if (JSON.stringify(list.filtros) === JSON.stringify(filtrosReset)) return;
+
+    setList((o) => ({ 
+      ...o, 
+      filtros: filtrosReset, 
+      error: null, 
+      reload: true,
+      data: [],
+      pagination: { ...o.pagination, index: 1, count: 0 }
+    }));
+    setPadron((o) => ({ ...o, filtros: filtrosReset, seccionales: [], data: [], despliega: false }));
+  }, [init.filtros, list.filtros]);
+
+  /** Init */
+  useEffect(() => {
+    if (!init.pending) return;
+    setInit((o) => ({ ...o, pending: false }));
+    const ambito = { delegaciones: [...AsArray(init.usuario?.ambitoDelegaciones?.ids)], seccionales: [...AsArray(init.usuario?.ambitoSeccionales?.ids)] };
+    const finalizaCarga = () => {
+      setInit((o) => { const n = { ...o }; const f = n.filtros; if (ambito.seccionales.length) f.ambitoSeccionales = { ids: [...ambito.seccionales] }; if (ambito.delegaciones.length) f.ambitoDelegaciones = { ids: [...ambito.delegaciones] }; return n; });
+      if (ambito.seccionales.length) setSeccionalSelect((o) => ({ ...o, ambito: ambito.seccionales }));
+      const delegaciones = {}; if (ambito.delegaciones.length) delegaciones.ambito = ambito.delegaciones;
+      setDelegacionSelect((o) => ({ ...o, reload: true, loading: "Cargando...", ...delegaciones }));
+    };
+    if (ambito.seccionales.length && !ambito.delegaciones.length) {
+      const seccionales = [...ambito.seccionales].filter((r) => r);
+      const onLoad = ({ ok }) => {
+        const refDelegacionId = ok?.refDelegacionId;
+        if (refDelegacionId && !ambito.delegaciones.includes(refDelegacionId)) ambito.delegaciones.push(refDelegacionId);
+        let seccional = seccionales.shift();
+        if (seccional) setSeccionalQuery((o) => ({ ...o, query: { ...o.query, params: { id: seccional } }, onLoad }));
+        else finalizaCarga();
+      };
+      onLoad({});
+    } else {
+      finalizaCarga();
+    }
+  }, [init, setSeccionalQuery]);
+
+  useEffect(() => {
+    if (init.pending) return;
+    if (init.wait == null) return;
+    if (Object.keys(init.wait).length) return;
+    setInit((o) => ({ ...o, wait: null }));
+    onLimpiaFiltros();
+  }, [init, onLimpiaFiltros]);
+
+  /** Render */
+  const padronRender = !padron.despliega ? null : (
+    <PDFViewer data={padron.data} onClose={() => setPadron((o) => ({ ...o, despliega: false }))} ambitoUser={ambitoUsuario} />
+  );
+
+  return (
+    <Modal size="xl" centered show>
+      <Modal.Header className={modalCss.modalCabecera}>Afiliados por seccional</Modal.Header>
+      <Modal.Body>
+        <Grid col full gap="15px">
+          {/* ========== INTERFAZ DE FILTROS ========== */}
+          <Grid grid="auto / 1fr 1fr 1fr 200px 200px" gap="inherit">
+            {/* FILTRO 1: Delegación */}
+            <SearchSelectMaterial
+              id="delegacionSelect"
+              label="Delegacion"
+              error={!!delegacionSelect.error}
+              helperText={delegacionSelect.loading ?? delegacionSelect?.error}
+              value={delegacionSelect.selected}
+              onChange={(selected) => setDelegacionSelect((o) => ({ ...o, selected: normalizeDelegOption(selected) }))}
+              options={delegacionSelect.options}
+              onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
+            />
+            {/* FILTRO 2: Seccional */}
+            <SearchSelectMaterial
+              id="seccionalSelect"
+              label="Seccional"
+              error={!!seccionalSelect.error}
+              helperText={seccionalSelect.loading ?? seccionalSelect?.error}
+              value={seccionalSelect.selected}
+              onChange={(selected) => setSeccionalSelect((o) => ({ ...o, selected: normalizeSeccionalOption(selected) }))}
+              options={seccionalSelect.options}
+              onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
+            />
+            {/* FILTRO 3: Estado de Afiliación */}
+            <SearchSelectMaterial
+              id="estadoSelect"
+              label="Estado"
+              error={!!estadoSelect.error}
+              helperText={estadoSelect.loading ?? estadoSelect?.error}
+              value={estadoSelect.selected}
+              onChange={(selected) => setEstadoSelect((o) => ({ ...o, selected }))}
+              options={estadoSelect.options}
+              onTextChange={(buscar) => setEstadoSelect((o) => ({ ...o, buscar }))}
+            />
+            {/* BOTÓN: Aplicar filtros */}
+            <Button className="botonAzul" disabled={JSON.stringify(list.filtros) === JSON.stringify(filtros)} onClick={onAplicaFiltros}>
+              Aplica filtros
+            </Button>
+            {/* BOTÓN: Limpiar filtros */}
+            <Button className="botonAzul" disabled={JSON.stringify(filtros) === JSON.stringify(init.filtros)} onClick={onLimpiaFiltros}>
+              Limpia filtros
+            </Button>
+          </Grid>
+
+          <Table
+            remote
+            keyField="id"
+            data={list.data}
+            mostrarBuscar={false}
+            baseProps={{ style: { overflowX: "scroll" } }}
+            pagination={{
+              ...list.pagination,
+              onChange: (pagination) =>
+                setList((o) => ({
+                  ...o,
+                  reload: true,
+                  pagination: { ...o.pagination, ...pagination },
+                  data: [],
+                  error: null,
+                })),
+            }}
+            noDataIndication={list.loading || list.error || "No existen datos para mostrar "}
+            columns={columns}
+            onTableChange={(type, { sortOrder, sortField }) => {
+              if (type === "sort") {
+                sortField = { cuil: "CUIL" }[sortField] ?? sortField;
+                const sort = `${sortField}${sortOrder === "desc" ? "Desc" : ""}`;
+                setList((o) => ({ 
+                  ...o, 
+                  reload: true, 
+                  sort, 
+                  data: [], 
+                  error: null, 
+                  pagination: { ...o.pagination, count: 0, index: 1 } 
+                }));
+              }
+            }}
+          />
+
+          {padronRender}
+        </Grid>
+      </Modal.Body>
+      <Modal.Footer>
+        <Grid grid="auto / 1fr 150px 150px" width col gap="15px">
+          <Grid width col>
+            {padron.loading == null ? null : <text style={{ color: "green" }}>{padron.loading}</text>}
+            {padron.error == null ? null : <text style={{ color: "red" }}>{padron.error}</text>}
+          </Grid>
+          <Button
+            className="botonAmarillo"
+            loading={!!padron.loading}
+            onClick={onCargaPadron}
+            tarea="Informes_Afiliados_AfiliadosSeccional_Imprime"
+            disabled={!list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0}
+            title={
+              !list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0
+                ? "Aplica filtros primero para generar el PDF con los datos filtrados"
+                : `Generar PDF con TODOS los registros que coinciden con los filtros aplicados (página actual: ${list.pagination.index} de ${list.pagination.count})`
+            }
+          >
+            IMPRIME
+          </Button>
+          <Button className="botonAmarillo" onClick={() => onClose()}>FINALIZA</Button>
+        </Grid>
+      </Modal.Footer>
+    </Modal>
+  );
 };
 
 export default Handler;

@@ -294,7 +294,7 @@ const LiquidacionesCabeceraForm = ({
 								label="Observaciones de baja"
 								value={data.deletedObs}
 								disabled={!!disabled.deletedObs}
-								error={!!errors.deletedObs}
+								// error={!!errors.deletedObs}
 								helperText={errors.deletedObs}
 								onChange={(deletedObs) => onChange({ deletedObs })}
 							/>
