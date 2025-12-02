@@ -19,6 +19,7 @@ import Action from "components/helpers/Action";
 import dayjs from "dayjs";
 import useGeneracionExcel from "components/hooks/useGeneracionExcel";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import useAmbitosUsuario from "components/hooks/useAmbitos";
 import ExportModal from "./ExportModal";
 // import InputMaterial from "components/ui/Input/InputMaterial";
 
@@ -60,19 +61,21 @@ const DenunciasHandler = () => {
   }, [usuario]);
 
   // IDs de delegación/seccional del usuario (si aplica)
+  // IDs de delegación/seccional del usuario (si aplica) - ahora usando hook `useAmbitos`.
+  const ambitosManager = useAmbitosUsuario();
+  const ambitoInfo = ambitosManager?.ambitoUser ? ambitosManager.ambitoUser() : { tipo: null, ids: [] };
+
   const usuarioDelegacionId = useMemo(() => {
-    const delegacionesIds = usuario?.ambitoDelegaciones?.ids || usuario?.ambitoDelegaciones;
-    return Array.isArray(delegacionesIds) && delegacionesIds.length > 0
-      ? Number(delegacionesIds[0])
+    return ambitoInfo?.tipo === "Delegaciones" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+      ? Number(ambitoInfo.ids[0])
       : null;
-  }, [usuario]);
+  }, [ambitoInfo]);
 
   const usuarioSeccionalId = useMemo(() => {
-    const seccionalesIds = usuario?.ambitoSeccionales?.ids || usuario?.ambitoSeccionales;
-    return Array.isArray(seccionalesIds) && seccionalesIds.length > 0
-      ? Number(seccionalesIds[0])
+    return ambitoInfo?.tipo === "Seccionales" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+      ? Number(ambitoInfo.ids[0])
       : null;
-  }, [usuario]);
+  }, [ambitoInfo]);
 
   const tabs = [];
   const [tab, setTab] = useState(0);
@@ -611,18 +614,26 @@ const DenunciasHandler = () => {
   const puedeVerTodosLosDatos = useMemo(() => {
     if (!usuario) return false;
 
-    const esAdministrador = usuario.roles?.includes("Administrador");
+    // Considerar ambito 'Todos' como equivalente a administrador
+    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
+    const esAdministrador = usuario.roles?.includes("Administrador") || ambitoEsTodos;
     const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
 
+    // Si el usuario tiene ámbito de Delegación o Seccional, aplicamos restricción adicional:
+    // solo podrá ver todos los datos si es administrador (o ambito Todos) o tiene la tarea Denuncias_Datos.
+    const ambitoReducido = ambitoInfo?.tipo === 'Delegaciones' || ambitoInfo?.tipo === 'Seccionales' || !!usuarioSeccionalId || !!usuarioDelegacionId;
+
     return esAdministrador || tieneTareaDenunciasDatos;
-  }, [usuario, tareasManager]);
+  }, [usuario, tareasManager, usuarioSeccionalId, usuarioDelegacionId]);
 
   // Verificar permisos para exportar
   const puedeExportar = useMemo(() => {
-    const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+    // Usuarios con ambito 'Todos' o rol Administrador pueden exportar sin tareas.
+    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
+    const esAdministrador = usuario?.roles?.includes("Administrador") || ambitoEsTodos;
     const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
-    return esAdministrador || tieneTareaExcel;
-  }, [usuario, tareasManager]);
+    return !!(esAdministrador || tieneTareaExcel);
+  }, [usuario, tareasManager, ambitoInfo]);
 
   const exportarAExcel = useCallback(() => {
     if (exportLoading || !puedeExportar) return;
@@ -646,8 +657,9 @@ const DenunciasHandler = () => {
         if (puedeVerTodosLosDatos) {
           // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
           return {
+            "Nro. Denuncia": row["Nro. Denuncia"] ?? row["id"] ?? "",
             "Fecha": row["Fecha"] || "",
-            "Nombre": row["Nombre"] || "",
+            "Denunciante": row["Denunciante"] || row["Nombre"] || "",
             "Correo": row["Correo"] || "",
             "Teléfono": row["Teléfono"] || "",
             "Provincia": row["Provincia"] || "",
@@ -727,6 +739,7 @@ const DenunciasHandler = () => {
     render: denunciaRender,
     request: denunciaRequest,
     selected: denunciasSelected,
+    data: denunciasData,
   } = useDenuncias({
     filtroEstado: appliedFilters.estado || null,
     filtroFechaDesde: appliedFilters.fechaDesde || null,
@@ -1213,6 +1226,7 @@ const DenunciasHandler = () => {
               handleExportFromModal(exportData, estadoSeleccionado);
             }
           }}
+          initialData={denunciasData}
           currentFilters={{
             ...(appliedFilters.estado && { estado: appliedFilters.estado }),
             ...(appliedFilters.fechaDesde && { fechaDesde: appliedFilters.fechaDesde }),

@@ -3,6 +3,7 @@ import { Modal } from "react-bootstrap";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AuthContext from "store/authContext";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
+import useAmbitos from "components/hooks/useAmbitos";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
@@ -19,8 +20,8 @@ import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
-// Columnas para la tabla de denuncias con filtro de novedades
-const columns = [
+// Columnas base para la tabla de denuncias con filtro de novedades
+const baseColumns = [
 	{
 		dataField: "fecha",
 		text: "Fecha",
@@ -33,7 +34,7 @@ const columns = [
 	},
 	{
 		dataField: "nombre",
-		text: "Nombre",
+		text: "Denunciante",
 		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "10em", textAlign: "center" },
@@ -129,10 +130,45 @@ const ExportModal = ({
 	onClose = onCloseDef, 
 	currentFilters = {}, 
 	usuarioAmbito = null,
-	applyAmbitoFilter = null 
+	applyAmbitoFilter = null,
+	initialData = null,
 }) => {
 	const { usuario } = useContext(AuthContext);
 	const tareasManager = useTareasUsuario();
+	const ambitosManager = useAmbitos();
+	const ambitoInfoGlobal = useMemo(() => ambitosManager.ambitoUser(), [ambitosManager]);
+
+	// Determina si el usuario puede ver todos los datos (incluye Nro. Denuncia y Denunciante completo)
+	const puedeVerTodosLosDatos = useMemo(() => {
+		try {
+			const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+				const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
+			if (esAdministrador || ambitoName === "Todos") return true;
+			return tareasManager.hasTarea("Denuncias_Datos");
+		} catch (error) {
+			console.error("Error verificando permiso Denuncias_Datos en ExportModal:", error);
+			return false;
+		}
+	}, [usuario, ambitoInfoGlobal, tareasManager]);
+
+	// Columnas dinámicas en función del permiso para ver todos los datos
+	const columns = useMemo(() => {
+		const idColumn = {
+			dataField: "id",
+			text: "Nro. Denuncia",
+			headerTitle: true,
+			headerStyle: { width: "6em", textAlign: "center" },
+			csvFormat: (v) => v,
+			style: { textAlign: "center" },
+		};
+
+		if (puedeVerTodosLosDatos) {
+			return [idColumn, ...baseColumns];
+		}
+
+		// Columnas reducidas: fecha, telefono, localidad, estado
+		return baseColumns.filter((c) => ["fecha", "telefono", "localidad", "estado"].includes(c.dataField));
+	}, [puedeVerTodosLosDatos]);
 	
 	// Verificar permisos para mostrar el modal de exportación
 	const tienePermisoExportar = useMemo(() => {
@@ -142,13 +178,15 @@ const ExportModal = ({
 		
 		try {
 			const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+				const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
 			const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
-			return esAdministrador || tieneTareaExcel;
+			// Administrador o ambito 'Todos' pueden exportar sin la tarea; otros necesitan la tarea
+			return esAdministrador || ambitoName === "Todos" || tieneTareaExcel;
 		} catch (error) {
 			console.error("Error verificando permisos en ExportModal:", error);
 			return false;
 		}
-	}, [usuario, tareasManager]);
+	}, [usuario, tareasManager, ambitoInfoGlobal]);
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
@@ -306,12 +344,12 @@ const ExportModal = ({
 
 	//#region list denuncias
 	const [list, setList] = useState({
-		reload: true,
+		reload: initialData ? false : true,
 		loading: null,
 		pagination: { index: 1, size: 100 }, // Cargar más registros del servidor
 		sort: "+fecha",
 		params: { ...currentFilters },
-		data: [],
+		data: initialData || [],
 		selected: [],
 		error: null,
 	});
@@ -503,6 +541,56 @@ const ExportModal = ({
 			}
 		}
 	}, [estadosDenuncias.loaded, estadosDenuncias.data, list.data, estadoSelect.selected, aplicarFiltroFechas]);
+
+	// Si recibimos `initialData`, aplicar filtros (estado y fechas) y enriquecer con estados
+	useEffect(() => {
+		if (!initialData) return;
+
+		let data = Array.isArray(initialData) ? [...initialData] : [];
+
+		try {
+			// Enriquecer con estados si ya están cargados
+			if (estadosDenuncias.data && estadosDenuncias.data.length > 0) {
+				data = data.map(denuncia => {
+					const estadosDeDenuncia = estadosDenuncias.data.filter(
+						estado => estado.appDenunciasId === denuncia.id
+					);
+					let estadoActual = "Sin estado";
+					let fechaUltimaNovedad = null;
+					let ultimaNovedad = "Sin novedad";
+					if (estadosDeDenuncia.length > 0) {
+						const ultimoEstado = estadosDeDenuncia.sort((a, b) =>
+							new Date(b.fecha || b.fechaAsociada) - new Date(a.fecha || a.fechaAsociada)
+						)[0];
+						estadoActual = ultimoEstado.estado || "Sin estado";
+						fechaUltimaNovedad = ultimoEstado.fecha || ultimoEstado.fechaAsociada;
+						ultimaNovedad = ultimoEstado.observaciones || "Sin observaciones";
+					}
+					return {
+						...denuncia,
+						estado: estadoActual,
+						fechaUltimaNovedad,
+						ultimaNovedad
+					};
+				});
+			}
+
+			// Aplicar filtro por estado si está seleccionado
+			if (estadoSelect.selected && estadoSelect.selected.value && estadoSelect.selected.value !== "") {
+				data = data.filter(denuncia => denuncia.estado === estadoSelect.selected.value);
+			}
+
+			// Aplicar filtro por fechas
+			data = aplicarFiltroFechas(data);
+
+			// Ordenar por fecha descendente
+			data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+			setList(prev => ({ ...prev, data, selected: [] }));
+		} catch (error) {
+			console.error("Error aplicando filtros/enriquecimiento a initialData:", error);
+		}
+	}, [initialData, estadoSelect.selected, fechaDesde, fechaHasta, estadosDenuncias.loaded, estadosDenuncias.data, aplicarFiltroFechas]);
 	//#endregion
 
 	//#region nueva seleccion
@@ -627,10 +715,10 @@ const ExportModal = ({
 			// Preparar datos para exportar usando los datos ya enriquecidos de la tabla
 			const exportData = list.selected.map((denuncia) => {
 				const fechaUltimaNovedadFormatted = denuncia.fechaUltimaNovedad ? FormatearFecha(denuncia.fechaUltimaNovedad) : "Sin fecha";
-				
-				return {
+
+				const item = {
 					"Fecha": denuncia.fecha ? FormatearFecha(denuncia.fecha) : "",
-					"Nombre": denuncia.nombre || "",
+					"Denunciante": denuncia.nombre || "",
 					"Correo": denuncia.correo || "",
 					"Teléfono": denuncia.telefono || denuncia.telefonoContacto || "",
 					"Provincia": denuncia.provincia || "",
@@ -644,6 +732,13 @@ const ExportModal = ({
 					"Detalle de la Denuncia": denuncia.texto || "",
 					"Derivado A Tipo": denuncia.derivadoATipo || ""
 				};
+
+				if (puedeVerTodosLosDatos) {
+					// Incluir Nro. Denuncia solo si el usuario tiene permiso para ver todos los datos
+					item["Nro. Denuncia"] = denuncia.id;
+				}
+
+				return item;
 			});
 			
 			// Cerrar modal y proceder con la exportación
@@ -716,14 +811,18 @@ const ExportModal = ({
 							value={estadoSelect.selected}
 							onChange={(selected) => {
 								setEstadoSelect((o) => ({ ...o, selected }));
-								// Recargar la lista con el nuevo filtro
-								setList((o) => ({
-									...o,
-									reload: true,
-									data: [],
-									selected: [],
-									pagination: { ...o.pagination, index: 1 },
-								}));
+								// Si recibimos initialData, aplicamos filtros en cliente sin recargar
+								if (initialData) {
+									setList((o) => ({ ...o, data: initialData, selected: [] , pagination: { ...o.pagination, index: 1 } }));
+								} else {
+									setList((o) => ({
+										...o,
+										reload: true,
+										data: [],
+										selected: [],
+										pagination: { ...o.pagination, index: 1 },
+									}));
+								}
 							}}
 							options={estadoSelect.options}
 							onTextChange={(buscar) =>
@@ -740,8 +839,12 @@ const ExportModal = ({
 							value={fechaDesde}
 							onChange={(value) => {
 								setFechaDesde(value);
-								// Recargar la lista cuando cambie la fecha
-								setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								// Recargar la lista cuando cambie la fecha (si no usamos initialData)
+								if (initialData) {
+									setList(prev => ({ ...prev, data: initialData, selected: [] }));
+								} else {
+									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								}
 							}}
 							format="YYYY-MM-DD"
 						/>
@@ -752,8 +855,12 @@ const ExportModal = ({
 							value={fechaHasta}
 							onChange={(value) => {
 								setFechaHasta(value);
-								// Recargar la lista cuando cambie la fecha
-								setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								// Recargar la lista cuando cambie la fecha (si no usamos initialData)
+								if (initialData) {
+									setList(prev => ({ ...prev, data: initialData, selected: [] }));
+								} else {
+									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								}
 							}}
 							format="YYYY-MM-DD"
 						/>
@@ -765,7 +872,11 @@ const ExportModal = ({
 								setFechaDesde(null);
 								setFechaHasta(null);
 								// Recargar la lista al limpiar filtros
-								setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								if (initialData) {
+									setList(prev => ({ ...prev, data: initialData, selected: [] }));
+								} else {
+									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								}
 							}}
 						>
 							Limpiar Fechas
@@ -834,21 +945,26 @@ const ExportModal = ({
 							<Button
 								className="botonAmarillo"
 								onClick={() => {
-									let params = {
-										...list.params,
-										sortBy: list.sort
-									};
-									
-									// Aplicar filtro por estado si está seleccionado
-									if (estadoSelect.selected && estadoSelect.selected.value) {
-										params.estado = estadoSelect.selected.value;
-									}
-									
-									setNewSelection((o) => ({
-										...o,
-										params: params,
-										reload: true,
-									}));
+								if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+									// Si nos pasaron initialData, seleccionar todo desde la data actualmente filtrada
+									setList((o) => ({ ...o, selected: [...o.data] }));
+									return;
+								}
+								let params = {
+									...list.params,
+									sortBy: list.sort
+								};
+						
+								// Aplicar filtro por estado si está seleccionado
+								if (estadoSelect.selected && estadoSelect.selected.value) {
+									params.estado = estadoSelect.selected.value;
+								}
+						
+								setNewSelection((o) => ({
+									...o,
+									params: params,
+									reload: true,
+								}));
 								}}
 							>
 								SELECCIONA TODO

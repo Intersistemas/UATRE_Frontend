@@ -6,6 +6,7 @@ import FormatearFecha from "../../../helpers/FormatearFecha";
 import AuthContext from "store/authContext";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import useAmbitosUsuario from "components/hooks/useAmbitos";
 
 const DenunciasTable = ({ columns, ...x } = {}) => {
   const { usuario } = useContext(AuthContext);
@@ -23,6 +24,10 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     return null;
   });
 
+  // Obtener info de ámbitos desde el hook (llamar en el tope del componente)
+  const ambitosManager = useAmbitosUsuario();
+  const ambitoInfoGlobal = ambitosManager?.ambitoUser ? ambitosManager.ambitoUser() : { tipo: null, ids: [] };
+
   // Estado para cachear los tipos de denuncia
   const [tiposDenuncia, setTiposDenuncia] = useState({});
   const [cargandoTipos, setCargandoTipos] = useState(false);
@@ -37,12 +42,17 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     }
     
     // Verificar si es Administrador
-    const esAdministrador = usuario.roles?.includes("Administrador");
+    // Tratar ambito 'Todos' como administrador
+    const esAdministrador = usuario.roles?.includes("Administrador") || ambitoInfoGlobal?.tipo === 'Todos';
     
     // Verificar si tiene la tarea "Denuncias_Datos"
     const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
     
-    const resultado = esAdministrador || tieneTareaDenunciasDatos;
+    // Determinar ámbito usando info ya obtenida en el tope del componente
+    const ambitoInfo = ambitoInfoGlobal;
+    const ambitoReducido = ambitoInfo?.tipo === 'Delegaciones' || ambitoInfo?.tipo === 'Seccionales';
+
+    const resultado = ambitoReducido ? (esAdministrador || tieneTareaDenunciasDatos) : (esAdministrador || tieneTareaDenunciasDatos);
     
     if (process.env.NODE_ENV !== "production") {
       console.debug(" Verificación de permisos para tabla (ACTUALIZADA):", {
@@ -61,7 +71,7 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     }
     
     return resultado;
-  }, [usuario, tareasManager]);
+  }, [usuario, tareasManager, ambitoInfoGlobal]);
 
   // Función para obtener el tipo de denuncia
   const obtenerTipoDenuncia = React.useCallback((tipoId) => {
@@ -257,7 +267,7 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
       return [
         {
           dataField: "id",
-          text: "Nro Denuncia",
+          text: "Nro. Denuncia",
           sort: true,
           headerStyle: { width: "120px" },
           formatter: (cell, row) => {

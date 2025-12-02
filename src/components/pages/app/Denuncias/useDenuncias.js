@@ -501,7 +501,9 @@ const useDenuncias = ({
     );
   };
 
-  return { render, request, selected: list.selection.record };
+  return { render, request, selected: list.selection.record, data: list.data, loading: list.loading };
 };
+
+export const useDenunciasData = (opts) => useDenuncias(opts);
 
 export default useDenuncias;
