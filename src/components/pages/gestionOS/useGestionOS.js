@@ -98,6 +98,9 @@ const useGestionOS = ({
 } = {}) => {
   const { usuario } = useContext(AuthContext);
   const ambito = useAmbitos().ambitoUser();
+  
+  // Estado para almacenar los IDs de las seccionales de la delegación
+  const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
 
   //#region Trato queries a APIs
   const pushQuery = useQueryQueue((action, params) => {
@@ -216,8 +219,47 @@ const useGestionOS = ({
     onDataChange: onDataChangeInit ?? onDataChangeDef,
   });
 
+  //#region Cargar seccionales de la delegación si el ámbito es Delegaciones
+  useEffect(() => {
+    if (ambito.tipo === 'Delegaciones' && ambito.ids && ambito.ids.length > 0) {
+      const delegacionId = ambito.ids[0];
+      
+      pushQuery({
+        action: "GetSeccionalesSpecs",
+        onOk: (response) => {
+          // La respuesta es directamente el array o puede venir en response.data
+          const seccionales = Array.isArray(response) ? response : (response?.data || []);
+          
+          if (Array.isArray(seccionales) && seccionales.length > 0) {
+            // Filtrar seccionales por la delegación actual
+            const seccionalesFiltradas = seccionales
+              .filter(s => s.refDelegacionId === delegacionId && s.id !== 99999)
+              .map(s => s.id);
+            
+            setSeccionalesDelegacion(seccionalesFiltradas);
+            
+            // Forzar recarga de la lista después de cargar las seccionales
+            if (seccionalesFiltradas.length > 0) {
+              setList((o) => ({ ...o, loading: "Cargando..." }));
+            }
+          }
+        },
+        onError: (error) => {
+          console.error("Error al cargar seccionales de la delegación:", error);
+        }
+      });
+    }
+  }, [ambito.tipo, JSON.stringify(ambito.ids)]);
+  //#endregion
+
   useEffect(() => {
     if (!list.loading) return;
+    
+    // Si el ámbito es Delegaciones y aún no se cargaron las seccionales, esperar
+    if (ambito.tipo === 'Delegaciones' && seccionalesDelegacion.length === 0) {
+      return;
+    }
+    
     const changes = { loading: null, error: null };
     if (!list.remote) {
       const data = list.data;
@@ -258,6 +300,14 @@ const useGestionOS = ({
         },
         ambitoTodos: null,
       };
+    } else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
+      // Si es delegación y ya tenemos las seccionales cargadas, filtrar por ellas
+      usuarioAdulterado = {
+        ambitoSeccionales: {
+          ids: seccionalesDelegacion,
+        },
+        ambitoTodos: null,
+      };
     } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
       usuarioAdulterado = {
         ambitoSeccionales: {
@@ -267,46 +317,52 @@ const useGestionOS = ({
       };
     }
 
+    const bodyToSend = {
+      ...list.params,
+      pageIndex: list.pagination.index,
+      pageSize: list.pagination.size,
+      ambitoTodos:
+        filtroSeccional !== undefined && filtroSeccional !== 0
+          ? usuarioAdulterado.ambitoTodos
+          : ambito.tipo === "Delegaciones"
+          ? null  // No usar ambitoTodos si es delegación
+          : usuario.ambitoTodos,
+      ambitoProvincias: usuario.ambitoProvincias,
+      ambitoDelegaciones: ambito.tipo === "Delegaciones" ? null : usuario.ambitoDelegaciones,
+      ambitoSeccionales:
+        filtroSeccional !== undefined && filtroSeccional !== 0
+          ? usuarioAdulterado.ambitoSeccionales
+          : ambito.tipo === "Delegaciones" && usuarioAdulterado.ambitoSeccionales
+          ? usuarioAdulterado.ambitoSeccionales
+          : usuario.ambitoSeccionales,
+      sort: "FechaDesc,IdDesc",
+      ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
+        ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
+        : { apellidoTitular: filtro }),
+      ...(!soloLetras.test(filtroPaciente)
+        ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
+        : { apellidoPaciente: filtroPaciente }),
+      ...(filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS"
+        ? { medioGestion: filtroMedioGestion }
+        : null),
+      ...(filtroTipoEstado && filtroTipoEstado !== 0
+        ? { gestionEstadoId: filtroTipoEstado }
+        : null),
+      ...(filtroTipoSituacion && filtroTipoSituacion !== 0
+        ? { gestionSituacionId: filtroTipoSituacion }
+        : null),
+      ...(filtroTipoGestion && filtroTipoGestion !== 0
+        ? { gestionRubroId: filtroTipoGestion }
+        : null),
+      ...(filtroDetalleTipoGestion && filtroDetalleTipoGestion !== 0
+        ? { gestionSubRubroId: filtroDetalleTipoGestion }
+        : null),
+    };
+
     pushQuery({
       action: "GetList",
       config: {
-        body: {
-          ...list.params,
-          pageIndex: list.pagination.index,
-          pageSize: list.pagination.size,
-          ambitoTodos:
-            filtroSeccional !== undefined && filtroSeccional !== 0
-              ? usuarioAdulterado.ambitoTodos
-              : usuario.ambitoTodos,
-          ambitoProvincias: usuario.ambitoProvincias,
-          ambitoDelegaciones: usuario.ambitoDelegaciones,
-          ambitoSeccionales:
-            filtroSeccional !== undefined && filtroSeccional !== 0
-              ? usuarioAdulterado.ambitoSeccionales
-              : usuario.ambitoSeccionales,
-          sort: "FechaDesc,IdDesc",
-          ...(!soloLetras.test(filtro) && ValidarCUIT(filtro)
-            ? { cuitTitular: filtro.replace(/[.\-\s]/g, "") }
-            : { apellidoTitular: filtro }),
-          ...(!soloLetras.test(filtroPaciente)
-            ? { dniPaciente: filtroPaciente?.replace(/[.\-\s]/g, "") }
-            : { apellidoPaciente: filtroPaciente }),
-          ...(filtroMedioGestion && filtroMedioGestion !== "" && filtroMedioGestion?.toUpperCase() !== "TODOS"
-            ? { medioGestion: filtroMedioGestion }
-            : null),
-          ...(filtroTipoEstado && filtroTipoEstado !== 0
-            ? { gestionEstadoId: filtroTipoEstado }
-            : null),
-          ...(filtroTipoSituacion && filtroTipoSituacion !== 0
-            ? { gestionSituacionId: filtroTipoSituacion }
-            : null),
-          ...(filtroTipoGestion && filtroTipoGestion !== 0
-            ? { gestionRubroId: filtroTipoGestion }
-            : null),
-          ...(filtroDetalleTipoGestion && filtroDetalleTipoGestion !== 0
-            ? { gestionSubRubroId: filtroDetalleTipoGestion }
-            : null),
-        },
+        body: bodyToSend,
       },
 
       onOk: async ({ index, size, count, data }) => {
@@ -541,7 +597,8 @@ const useGestionOS = ({
             r.deletedDate = true;
           }
 
-          r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la secc=onalId
+          // Permitir selección de seccional si el ámbito es "Todos" o "Delegaciones"
+          r.seccionalId = (ambito.tipo === "Todos" || ambito.tipo === "Delegaciones") ? false : true;
           return r;
         })()}
         hide={

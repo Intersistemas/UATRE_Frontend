@@ -83,7 +83,7 @@ const LiquidacionesTable = ({ columns, ...x } = {}) => {
     {
       dataField: "liquidacionTipoPago_Descripcion",
       text: "Tipo de Pago",
-      sort: false,
+      sort: true,
       hidden: !!disableColTipoPago,
       headerStyle: { width: "120px" },
       style: { textAlign: "center" },

@@ -312,6 +312,7 @@ const LiquidacionesHandler = () => {
               onExecute: (_) => navigate("Establecimientos"),
               keys: "e",
               underlineindex: 0,
+              combination: "AltKey",
               hide: true,
               tarea: "Siaru_EmpresaEstablecimiento",
             }),

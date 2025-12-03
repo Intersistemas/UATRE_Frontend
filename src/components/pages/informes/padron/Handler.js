@@ -183,6 +183,67 @@ const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 		...x,
 	});
 
+/** LÓGICA DE FILTRO DE ESTADO → params para backend (server-side) */
+const buildEstadoParams = (f = {}) => {
+  const out = {};
+  if (f.estadoSolicitudFiltro === "Activo" || f.soloActivos) {
+    out.soloActivos = true;
+    out.soloNoActivos = false;
+    out.estadoSolicitudId = 2; // Activo
+  } else if (f.estadoSolicitudFiltro === "No Activo" || f.soloNoActivos) {
+    out.soloActivos = false;
+    out.soloNoActivos = true;
+  } else {
+    out.soloActivos = false;
+    out.soloNoActivos = false;
+    delete out.estadoSolicitudId;
+  }
+  return out;
+};
+
+/** Normalizador de paginado del backend -> {index, size, count(pages)} */
+const normalizeServerPaging = (ok, fallbackIndex, fallbackSize) => {
+  const size = Number(ok?.pageSize ?? fallbackSize) || fallbackSize || 10;
+  const indexRaw = Number(ok?.pageIndex ?? ok?.page ?? fallbackIndex) || fallbackIndex || 1;
+  let pagesCount = ok?.pages != null ? Number(ok.pages) : null;
+
+  if (pagesCount == null) {
+    const totalRowsRaw = ok?.totalCount ?? ok?.total ?? ok?.count ?? ok?.itemsCount ?? null;
+    if (totalRowsRaw != null) {
+      const totalRows = Number(totalRowsRaw);
+      pagesCount = Math.max(1, Math.ceil(totalRows / size));
+    }
+  }
+  if (pagesCount == null) pagesCount = 0;
+
+  const index = indexRaw < 1 ? 1 : indexRaw;
+  return { index, size, count: pagesCount };
+};
+
+/** Util: aplicar filtro de estado a un arreglo de afiliados */
+const aplicarFiltroEstado = (rows = [], filtros = {}) => {
+
+  if (filtros.estadoSolicitudFiltro === "Activo" || filtros.soloActivos) {
+
+    const filtered = rows.filter(a => {
+      const e = a.estadoSolicitud;
+      return e && !["No Activo", "Rechazado", "Pendiente"].includes(e);
+    });
+
+    return filtered;
+  }
+  if (filtros.estadoSolicitudFiltro === "No Activo" || filtros.soloNoActivos) {
+
+    const filtered = rows.filter(a => {
+      const e = a.estadoSolicitud;
+      return e && ["No Activo", "Rechazado", "Pendiente"].includes(e);
+    });
+
+    return filtered;
+  }
+  return rows; // “Todos”
+};
+
 const Handler = ({ onClose = () => {} }) => {
 	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
 	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
