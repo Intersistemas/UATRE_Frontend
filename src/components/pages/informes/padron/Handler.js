@@ -1,12 +1,14 @@
-
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
@@ -14,93 +16,178 @@ import AsArray from "components/helpers/AsArray";
 import useAmbitosUsuario from "components/hooks/useAmbitos";
 import { useSelector } from "react-redux";
 
-/** Types */
 const columns = [
-  { dataField: "nroAfiliado", text: "Nro. Afil.", sort: true, headerTitle: () => "Numero de Afiliado", headerStyle: { width: "6em", textAlign: "center" }, style: { textAlign: "center" } },
-  { dataField: "cuil", text: "CUIL", sort: true, headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v, row) => (row.cuilValidado != 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)), style: { textAlign: "center" } },
-  { dataField: "cuilValidado", text: "Val.", headerTitle: true, headerStyle: { width: "3em", textAlign: "center" }, formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"), style: { textAlign: "center" } },
-  { dataField: "documento", text: "Doc. Nro.", sort: true, headerTitle: () => "Documento número", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.DNI(v), style: { textAlign: "center" } },
-  { dataField: "nombre", text: "Nombre", sort: true, headerTitle: true, headerStyle: { width: "10em", textAlign: "center" }, style: { textAlign: "left" } },
-  {
-    dataField: "estadoSolicitud",
-    text: "Sit. Afi.",
-    headerTitle: () => "Situación del Afiliado",
-    headerStyle: { width: "6em", textAlign: "center" },
-    style: (v) => {
-      const s = { textAlign: "center" };
-      if (v === "Pendiente") s.background = "#ffff64cc";
-      if (v === "No Activo") { s.background = "#ff6464cc"; s.color = "#FFF"; }
-      if (v === "Rechazado") { s.background = "#f08c32cc"; s.color = "#FFF"; }
-      return s;
-    },
-  },
-  { dataField: "seccional", text: "Seccional", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "refDelegacionDescripcion", text: "Delegación", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "provincia", text: "Provincia", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
-  { dataField: "fechaIngreso", text: "F. Ingreso", sort: true, headerTitle: () => "Fecha de Ingreso", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.Fecha(v), style: { textAlign: "center" } },
-  { dataField: "puesto", text: "Puesto", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-//   { dataField: "empresaCUIT", text: "CUIT", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v) => Formato.Cuit(v), style: { textAlign: "center" } },
-//   { dataField: "empresaDescripcion", text: "Empresa", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-  { dataField: "actividad", text: "Actividad", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-  { dataField: "ultimaDDJJPeriodo", text: "Período última DDJJ", headerTitle: true, headerStyle: { width: "12em", textAlign: "center" }, formatter: (v) => Formato.Periodo(v) },
+	{
+		dataField: "nroAfiliado",
+		text: "Nro. Afil.",
+		sort: true,
+		headerTitle: () => "Numero de Afiliado",
+		headerStyle: { width: "6em", textAlign: "center" },
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "cuil",
+		text: "CUIL",
+		sort: true,
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+		formatter: (v, row) => (row.cuilValidado !== 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v)),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "cuilValidado",
+		text: "Val.",
+		headerTitle: true,
+		headerStyle: { width: "3em", textAlign: "center" },
+		formatter: (v, { cuil }) => (v === 0 ? "N" : v === cuil ? "V" : "D"),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "documento",
+		text: "Doc. Nro.",
+		sort: true,
+		headerTitle: () => "Documento número",
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => Formato.DNI(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "nombre",
+		text: "Nombre",
+		sort: true,
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+		style: { textAlign: "left" },
+	},
+	{
+		dataField: "estadoSolicitud",
+		text: "Sit. Afi.",
+		headerTitle: () => "Situación del Afiliado",
+		headerStyle: { width: "6em", textAlign: "center" },
+		style: (v) => {
+			const style = { textAlign: "center" };
+			switch (v) {
+				case "Pendiente": {
+					style.background = "#ffff64cc";
+					break;
+				}
+				case "No Activo": {
+					style.background = "#ff6464cc";
+					style.color = "#FFF";
+					break;
+				}
+				case "Rechazado": {
+					style.background = "#f08c32cc";
+					style.color = "#FFF";
+					break;
+				}
+				default:
+					break;
+			}
+			return style;
+		},
+	},
+	{
+		dataField: "seccional",
+		text: "Seccional",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "refDelegacionDescripcion",
+		text: "Delegación",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "provincia",
+		text: "Provincia",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+	},
+	{
+		dataField: "fechaIngreso",
+		text: "F. Ingreso",
+		sort: true,
+		headerTitle: () => "Fecha de Ingreso",
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => Formato.Fecha(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "puesto",
+		text: "Puesto",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "empresaCUIT",
+		text: "CUIT",
+		headerTitle: true,
+		headerStyle: { width: "8em", textAlign: "center" },
+		formatter: (v) => Formato.Cuit(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "empresaDescripcion",
+		text: "Empresa",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "actividad",
+		text: "Actividad",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+	},
+	{
+		dataField: "ultimaDDJJPeriodo",
+		text: "Período última DDJJ",
+		headerTitle: true,
+		headerStyle: { width: "12em", textAlign: "center" },
+		formatter: (v) => Formato.Periodo(v),
+	},
 ];
 
-// --- options helpers
 const delegacionSelectDef = { label: "Elige..." };
-const seccionalSelectDef = { label: "Todas" };
-
 const delegacionesSelectOptions = ({ data = [], ...x }) =>
-  mapOptions({
-    data,
-    map: (r) => ({ value: r.id, label: [r.codigoDelegacion, r.nombre].join(" - "), record: r }),
-    start: data.length === 1 ? [] : [delegacionSelectDef],
-    ...x,
-  });
+	mapOptions({
+		data,
+		map: (r) => ({
+			value: r.id,
+			label: [r.codigoDelegacion, r.nombre].join(" - "),
+			record: r,
+		}),
+		start: data.length === 1 ? [] : [delegacionSelectDef],
+		...x,
+	});
 
-const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) => {
-  const tipo = ambitoUsuario?.tipo ?? ambitoUsuario?.ambitoUsuario?.tipo;
-  return mapOptions({
-    data,
-    map: (r) => {
-      if (tipo === "Todos") return { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r };
-      return ["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion)
-        ? { value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }
-        : null;
-    },
-    start: data.length === 1 ? [] : [seccionalSelectDef],
-    ...x,
-  });
-};
-
-// --- normalizadores (defensivos)
-const normalizeDelegOption = (opt) => {
-  if (!opt) return delegacionSelectDef;
-  if (opt.value != null) return opt;
-  if (opt.id != null) return { value: opt.id, label: [opt.codigoDelegacion || opt.codigo, opt.nombre].filter(Boolean).join(" - "), record: opt };
-  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigoDelegacion || opt.record.codigo, opt.record.nombre || opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
-  return delegacionSelectDef;
-};
-const normalizeSeccionalOption = (opt) => {
-  if (!opt) return seccionalSelectDef;
-  if (opt.value != null) return opt;
-  if (opt.id != null) return { value: opt.id, label: [opt.codigo, opt.descripcion].filter(Boolean).join(" - "), record: opt };
-  if (opt.record?.id != null) return { value: opt.record.id, label: opt.label ?? [opt.record.codigo, opt.record.descripcion].filter(Boolean).join(" - "), record: opt.record };
-  return seccionalSelectDef;
-};
-
-const normalizeFiltros = (f) => {
-  const g = { ...f };
-  if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
-  return g;
-};
+const seccionalSelectDef = { label: "Todas" };
+const seccionalesSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
+	mapOptions({
+		data,
+		map: (r) => (ambitoUsuario.ambitoUsuario.tipo === "Todos" ? 
+			{
+				value: r.id,
+				label: [r.codigo, r.descripcion].join(" - "),
+				record: r,
+			} :
+			["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(r.seccionalEstadoDescripcion) ?
+			 	{
+					value: r.id,
+					label: [r.codigo, r.descripcion].join(" - "),
+					record: r,
+				} : null 
+		),
+		start: data.length === 1 ? [] : [seccionalSelectDef],
+		...x,
+	});
 
 const Handler = ({ onClose = () => {} }) => {
 	const ambitoUsuario = useAmbitosUsuario().ambitoUser();
-	//console.log("ambitoUser_handler",ambitoUser)
 	const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
 	const usuarioConSeccionalInactiva = usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado && !["NORMALIZADA", "TRANSITORIA", "SIN COMISION"].includes(usuarioLogueado.ambitosDescripciones[0]?.seccionalEstado);
-	
-	//#region APIs
+
 	const { setState: setDelegacionesQuery } = useQueryState(
 		() => ({
 			config: {
@@ -151,23 +238,20 @@ const Handler = ({ onClose = () => {} }) => {
 		}),
 		{ query: { config: { errorType: "response" } } }
 	);
-	//#endregion APIs
 
 	const { usuario } = useContext(AuthContext);
 	const [init, setInit] = useState({
 		pending: true,
 		filtros: {
-			ambitoTodos: usuario.ambitoTodos,  //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
-            ambitoProvincias: usuario.ambitoProvincias, //Se agrega ya que SIEMPRE debo enviar TODOS los ambitos que tiene habilitados y deshabilitados el USUARIO
+			ambitoTodos: usuario.ambitoTodos,
+			ambitoProvincias: usuario.ambitoProvincias,
 		}, 
 		wait: { delegaciones: true, seccionales: true },
 		usuario,
 	});
 
-	//#region selects
 	const [filtros, setFiltros] = useState({ ...init.filtros });
 
-	//#region select delegacion
 	const [delegacionSelect, setDelegacionSelect] = useState({
 		reload: false,
 		loading: "Cargando...",
@@ -178,11 +262,10 @@ const Handler = ({ onClose = () => {} }) => {
 		options: [],
 		selected: delegacionSelectDef,
 		selectedDef: delegacionSelectDef,
-		/** @type array */
 		ambito: null,
 		origen: "",
 	});
-	// Buscador
+
 	useEffect(() => {
 		setDelegacionSelect((o) => ({
 			...o,
@@ -191,9 +274,7 @@ const Handler = ({ onClose = () => {} }) => {
 			),
 		}));
 	}, [delegacionSelect.buscar, delegacionSelect.optionsSrc]);
-	//#endregion select delegacion
 
-	//#region select seccional
 	const [seccionalSelect, setSeccionalSelect] = useState({
 		reload: false,
 		loading: "Cargando...",
@@ -204,12 +285,11 @@ const Handler = ({ onClose = () => {} }) => {
 		options: [],
 		selected: seccionalSelectDef,
 		selectedDef: seccionalSelectDef,
-		/** @type array */
 		ambito: null,
 		refDelegacionId: 0,
 		origen: "",
 	});
-	// Buscador
+
 	useEffect(() => {
 		setSeccionalSelect((o) => ({
 			...o,
@@ -218,11 +298,7 @@ const Handler = ({ onClose = () => {} }) => {
 			),
 		}));
 	}, [seccionalSelect.buscar, seccionalSelect.optionsSrc]);
-	//#endregion select seccional
 
-	//#endregion selects
-
-	//#region list
 	const [list, setList] = useState({
 		reload: false,
 		loading: null,
@@ -232,9 +308,7 @@ const Handler = ({ onClose = () => {} }) => {
 		data: [],
 		error: null,
 	});
-	//#endregion list
 
-	//#region Carga inicial select delegacion
 	useEffect(() => {
 		if (!delegacionSelect.reload) return;
 		setDelegacionSelect((o) => ({
@@ -269,9 +343,7 @@ const Handler = ({ onClose = () => {} }) => {
 			},
 		}));
 	}, [delegacionSelect, setDelegacionesQuery]);
-	//#endregion Carga inicial select delegacion
 
-	//#region Carga inicial select seccional
 	useEffect(() => {
 		if (!seccionalSelect.reload) return;
 		const changes = {
@@ -294,7 +366,7 @@ const Handler = ({ onClose = () => {} }) => {
 			setSeccionalSelect((o) => ({ ...o, ...changes }));
 			return;
 		}
-		/** @type {onLoad} */
+
 		const onLoad = ({ query, ok, error }) => {
 			let pages = 0;
 			let pageIndex = query.config.body.pageIndex;
@@ -330,7 +402,6 @@ const Handler = ({ onClose = () => {} }) => {
 				changes.data = ambito
 					? data.filter((r) => ambito.includes(r.id))
 					: data;
-					console.log("ambitoUsuario")
 				changes.optionsSrc = seccionalesSelectOptions(changes, ambitoUsuario);
 				changes.selectedDef = changes.optionsSrc.length === 1
 					? changes.optionsSrc[0]
@@ -354,10 +425,8 @@ const Handler = ({ onClose = () => {} }) => {
 			},
 			onLoad,
 		}));
-	}, [seccionalSelect, setSeccionalesQuery]);
-	//#endregion Carga inicial select seccional
+	}, [seccionalSelect, setSeccionalesQuery, ambitoUsuario]);
 
-	//#region Cambia select delegación
 	useEffect(() => {
 		if (delegacionSelect.loading) return;
 		const finalizaInit = () =>
@@ -393,9 +462,7 @@ const Handler = ({ onClose = () => {} }) => {
 			return n;
 		});
 	}, [delegacionSelect.loading, delegacionSelect.selected]);
-	//#endregion Cambia select delegación
 
-	//#region Cambia select seccional
 	useEffect(() => {
 		if (seccionalSelect.loading) return;
 		const finalizaInit = () =>{
@@ -423,9 +490,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}));
 		finalizaInit();
 	}, [seccionalSelect.loading, seccionalSelect.selected]);
-	//#endregion Cambia select seccional
 
-	//#region Carga list
 	useEffect(() => {
 		if (!list.reload) return;
 		setAfiliacionesQuery((o) => ({
@@ -435,7 +500,7 @@ const Handler = ({ onClose = () => {} }) => {
 				config: {
 					body: {
 						...list.filtros,
-						// estadoSolicitudId: 2,
+						estadoSolicitudId: 2,
 						sort: list.sort,
 						pageIndex: list.pagination.index,
 						pageSize: list.pagination.size,
@@ -453,10 +518,7 @@ const Handler = ({ onClose = () => {} }) => {
 				let data = [];
 				let pagination = { ...list.pagination, count: data.length };
 				if (Array.isArray(ok?.data)) {
-					//({ data, ...pagination } = ok);
-					console.log("usuarioConSeccionalInactiva", usuarioConSeccionalInactiva);
-					 //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
-						({ data, ...pagination } = !usuarioConSeccionalInactiva ?  ok : {data:[], pagination:{}}); //fix para corregir el tema del ambito de un usuario que corresponde a una secciona NO ACTIVA
+					({ data, ...pagination } = !usuarioConSeccionalInactiva ? ok : {data:[], pagination:{}});
 					} else {
 					console.error("Se esperaba un arreglo", ok?.data);
 				}
@@ -469,56 +531,52 @@ const Handler = ({ onClose = () => {} }) => {
 				}));
 			},
 		}));
-	}, [setAfiliacionesQuery, list]);
-	//#endregion Carga list
+	}, [setAfiliacionesQuery, list, usuarioConSeccionalInactiva]);
 
-	//#region padron
 	const [padron, setPadron] = useState({
 		reload: null,
 		loading: null,
 		filtros: {},
-		/** @type {SeccionalAfiliados[]} */
-
-
-		//Aqui se guarda todos los datos de los afiliados
 		data: [],
 		error: null,
 		seccionales: [],
-
-		//Al momento de que se me carga mi data, se setea a true (padron.despliega = true)
-		//y se despliega el pdf
 		despliega: false,
 	});
-	//#endregion padron
 
-	//#region Carga padron
 	useEffect(() => {
 		if (!padron.reload) return;
 		const changes = {
 			reload: false,
 			loading: "Cargando...",
-			/** @type {SeccionalAfiliados[]} */
 			data: [],
 			error: null,
 			despliega: false,
 		};
-		/** @type {onLoad} */
+
 		const onLoad = ({ query, ok, error }) => {
 			let pages = 0;
 			let pageIndex = query.config.body.pageIndex;
 			if (ok) {
 				pages = ok.pages;
 				const data = ok.data;
-				if (Array.isArray(data)) {
-					data.forEach((afiliado) => {
+			if (Array.isArray(data)) {
+				data.forEach((afiliado) => {
+					const CUIL_LENGTH = 11;
+						const val = afiliado?.cuilValidado;
+						if (val != null) {
+							const digits = String(val).replace(/\D/g, "");
+							if (Number(val) !== 0 && digits.length === CUIL_LENGTH) {
+								afiliado.cuil = val;
+							}
+						}
 						const seccional = padron.seccionales.find(
 							(s) => s.id === afiliado.seccionalId
 						);
-						if (seccional) {
-							let seccionalAfiliados = changes.data.find(
-								(a) => a.seccional === seccional
-							);
-							if (seccionalAfiliados == null) {
+					if (seccional) {
+						let seccionalAfiliados = changes.data.find(
+							(a) => a.seccional === seccional
+						);
+						if (seccionalAfiliados === null) {
 								seccionalAfiliados = { seccional, afiliados: [] };
 								changes.data.push(seccionalAfiliados);
 							}
@@ -571,17 +629,6 @@ const Handler = ({ onClose = () => {} }) => {
 			onLoad,
 		}));
 	}, [setAfiliacionesQuery, padron]);
-	//#endregion Carga padron
-
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-	//Se ejecuta dicha funcion cuando selecciono imprimir
-	//y se encarga de validar si la delegacion fue seleccionada
-	//y si no fue seleccionada, muestra un mensaje de error
-	//si fue seleccionada, se carga el padron
-	//y se despliega el pdf
-	//si no hay error, se carga el padron
-	//y se despliega el pdf
 
 	const onCargaPadron = () => {
 		if (!filtros.ambitoDelegaciones) {
@@ -592,7 +639,6 @@ const Handler = ({ onClose = () => {} }) => {
 		}
 		setPadron((o) => ({
 			...o,
-			//Me cambia mi estado a "true" para que se cargue el padron
 			reload: true,
 			seccionales: seccionalSelect.data
 				.map((s) => ({
@@ -604,15 +650,6 @@ const Handler = ({ onClose = () => {} }) => {
 				.filter((s) => s?.id),
 		}));
 	};
-
-
-
-	///////////////////////////////////////////////////////////
-	//Cuando (padron.despliega) es true, se despliega el pdf
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////
 
 	const padronRender = !padron.despliega ? null : (
 		<PDFViewer
@@ -652,7 +689,7 @@ const Handler = ({ onClose = () => {} }) => {
 		}));
 	};
 
-	const onLimpiaFiltros = () => {
+	const onLimpiaFiltros = useCallback(() => {
 		const filtros = { ...init.filtros };
 		setDelegacionSelect((o) => ({ ...o, selected: o.selectedDef }));
 		setSeccionalSelect((o) => ({ ...o, selected: o.selectedDef }));
@@ -665,9 +702,8 @@ const Handler = ({ onClose = () => {} }) => {
 			reload: true,
 		}));
 		setPadron((o) => ({ ...o, filtros, seccionales: [] }));
-	};
+	}, [init.filtros, list.filtros]);
 
-	//#region activa init
 	useEffect(() => {
 		if (!init.pending) return;
 		setInit((o) => ({ ...o, pending: false }));
@@ -698,7 +734,7 @@ const Handler = ({ onClose = () => {} }) => {
 		};
 		if (ambito.seccionales.length && !ambito.delegaciones.length) {
 			const seccionales = [...ambito.seccionales].filter((r) => r);
-			/** @type {onLoad} */
+
 			const onLoad = ({ ok }) => {
 				const refDelegacionId = ok?.refDelegacionId;
 				if (refDelegacionId && !ambito.delegaciones.includes(refDelegacionId))
@@ -725,12 +761,11 @@ const Handler = ({ onClose = () => {} }) => {
 
 	useEffect(() => {
 		if (init.pending) return;
-		if (init.wait == null) return;
+		if (init.wait === null) return;
 		if (Object.keys(init.wait).length) return;
 		setInit((o) => ({ ...o, wait: null }));
 		onLimpiaFiltros();
 	}, [init, onLimpiaFiltros]);
-	//#endregion activa init
 
 	return (
 		<Modal size="xl" centered show>
