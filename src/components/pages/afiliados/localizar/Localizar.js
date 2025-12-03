@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
-// import Modal from "components/ui/Modal/Modal";
+import React, { useEffect, useState } from "react";
 import modalCss from "components/ui/Modal/Modal.module.css";
 import { Modal } from "react-bootstrap";
 import Grid from "components/ui/Grid/Grid";
@@ -9,9 +8,7 @@ import useQueryQueue from "components/hooks/useQueryQueue";
 import Table from "components/ui/Table/Table";
 import Formato from "components/helpers/Formato";
 import styles from "./Localizar.module.css";
-import moment from "moment";
-import useAmbitos from 'components/hooks/useAmbitos';
-import AuthContext from "../../../../store/authContext"; 
+import moment from "moment"; 
 
 const onCloseDef = () => {};
 
@@ -47,9 +44,6 @@ const Localizar = ({ onClose = onCloseDef }) => {
 		}
 	});
 
-	const ambito = useAmbitos().ambitoUser();
-	const Usuario = useContext(AuthContext).usuario;
-
 	const [state, setState] = useState({
 		nroAfiliado: 0,
 		documento: 0,
@@ -65,23 +59,20 @@ const Localizar = ({ onClose = onCloseDef }) => {
 		error: null,
 		selected: {}
 	});
-	
-	//const selected2 = afiliados.data.find((r) => afiliados.selection.selected.includes(r.id)) ?? {};
-	
+
 	useEffect(() => {
 		if (!afiliados.loading) return;
-		// Si se está buscando por CUIL, usar el endpoint que devuelve por CUILValidado
+
 		if (afiliados.params?.cuil) {
 			pushQuery({
 				action: "GetAfiliadoByCUILValidado",
 				params: { CUIL: afiliados.params.cuil },
-				onOk: (data) => {
-					// El endpoint puede devolver un objeto o null; normalizamos a array
-					let arr = [];
-					if (Array.isArray(data)) arr = data;
-					else if (data) arr = [data];
-					// Filtrar solo registros donde cuilValidado != 0 y tenga 11 dígitos
-					const CUIL_LENGTH = 11;
+			onOk: (data) => {
+				let arr = [];
+				if (Array.isArray(data)) arr = data;
+				else if (data) arr = [data];
+
+				const CUIL_LENGTH = 11;
 					const filtered = arr.filter((r) => {
 						const val = r?.cuilValidado;
 						if (val == null) return false;
@@ -102,7 +93,7 @@ const Localizar = ({ onClose = onCloseDef }) => {
 			});
 			return;
 		}
-		// Default: listado con GetAfiliadosWithSpec (POST)
+
 		pushQuery({
 			action: "GetAfiliados",
 			config: {
@@ -111,13 +102,11 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					soloActivos: true,
 					pageIndex: afiliados.pagination.index,
 					pageSize: afiliados.pagination.size,
-					ambitoTodos: {ids: [0]}  //NO TOCAR, LOCALIZA debe consultar los afiliados de TODOS los ambitos sin importar el usaurio logeado
+					ambitoTodos: {ids: [0]}
 				},
 			},
-			onOk: ({ index, size, count, data }) =>
-				{
-					console.log("data afiliado selected",data);
-					setAfiliados((o) => ({
+			onOk: ({ index, size, count, data }) => {
+				setAfiliados((o) => ({
 						...o,
 						loading: null,
 						pagination: { index, size, count },
@@ -134,12 +123,12 @@ const Localizar = ({ onClose = onCloseDef }) => {
 					}));
 			},
 			onError: (e) =>
-					setAfiliados((o) => ({ ...o, loading: null, data: [], selected: {} ,error: e }))
+				setAfiliados((o) => ({ ...o, loading: null, data: [], selected: {}, error: e }))
 		});
 	}, [pushQuery, afiliados]);
 
 	return (
-		<Modal size="lg" centered show /*onHide={onClose}*/> 
+		<Modal size="lg" centered show>
 			<Modal.Header className={modalCss.modalCabecera}>
 				<Grid width="full" justify="center">
 					<h4>Localiza Afiliado</h4>
@@ -262,11 +251,10 @@ const Localizar = ({ onClose = onCloseDef }) => {
 									label="Nro. afiliado"
 									value={afiliados.selected.nroAfiliado}
 								/>
-								<InputMaterialDetail
-									label="CUIL"
-									//mask="99-99.999.999-9"
-									mask={CUITMask}
-									value={afiliados.selected.cuilValidado != 0 ? afiliados.selected.cuilValidado : afiliados.selected.cuil}
+							<InputMaterialDetail
+								label="CUIL"
+								mask={CUITMask}
+								value={afiliados.selected.cuilValidado != 0 ? afiliados.selected.cuilValidado : afiliados.selected.cuil}
 								/>
 								<InputMaterialDetail
 									label="Documento"
@@ -282,14 +270,27 @@ const Localizar = ({ onClose = onCloseDef }) => {
 								<InputMaterialDetail  style={{"-webkit-text-stroke": "medium"}} label="Nombre" value={afiliados.selected?.nombre}/>
 								<InputMaterialDetail label="Seccional" value={!!afiliados.selected?.seccionalCodigo && !!afiliados.selected?.seccional ? `${afiliados.selected?.seccionalCodigo} ${afiliados.selected?.seccional}` : ""} />
 							</Grid>
-							<Grid width="full" gap="inherit">
-								<InputMaterialDetail label="Estado" value={afiliados.selected?.estadoSolicitud} />
-								<InputMaterialDetail label="Fecha Ingreso" value={afiliados.selected?.fechaIngreso ? moment(afiliados.selected?.fechaIngreso).format("yyyy-MM-DD"): ""} />
-								{!!afiliados.selected?.fechaEgreso && <InputMaterialDetail label="Fecha Egreso" value={moment(afiliados.selected?.fechaEgreso).format("yyyy-MM-DD")} />}
-							</Grid>
-							{!!afiliados.selected?.estadoSolicitudObservaciones && <InputMaterialDetail label="Observación" value={afiliados.selected?.estadoSolicitudObservaciones} />}
-							
-							
+					<Grid width="full" gap="inherit">
+						<InputMaterialDetail label="Estado" value={afiliados.selected?.estadoSolicitud} />
+						<InputMaterialDetail
+							label="Fecha Ingreso"
+							value={afiliados.selected?.fechaIngreso
+								? moment(afiliados.selected.fechaIngreso).format("yyyy-MM-DD")
+								: ""}
+						/>
+						{afiliados.selected?.fechaEgreso && (
+							<InputMaterialDetail
+								label="Fecha Egreso"
+								value={moment(afiliados.selected.fechaEgreso).format("yyyy-MM-DD")}
+							/>
+						)}
+					</Grid>
+					{afiliados.selected?.estadoSolicitudObservaciones && (
+						<InputMaterialDetail
+							label="Observación"
+							value={afiliados.selected.estadoSolicitudObservaciones}
+						/>
+					)}							
 						</Grid>
 					</Grid>
 				</Grid>

@@ -42,23 +42,17 @@ const AfiliadosHandler = () => {
   const [searchError, setSearchError] = useState(null);
   const [tableMessage, setTableMessage] = useState(null);
    
-  //#region Tablas para el form
   const [estadosSolicitudes, setEstadosSolicitudes] = useState([
     { value: 0, label: " Todos" },
   ]);
-  //#endregion
 
-  //#region despachar Informar Modulo
   const dispatch = useDispatch();
 
-  //#endregion
 
-
-  //#region Cargar Tablas
   useEffect(() => {
     const processAfiliados = async (afiliadosObj) => {
       console.log("afiliadosObj", afiliadosObj);
-      const index = (page == totalPageIndex ? afiliadosObj.data.length-1 : 0); //Esta variable me define que registor quedará seleccionado
+      const index = (page === totalPageIndex ? afiliadosObj.data.length-1 : 0);
       setAfiliadoSeleccionado(afiliadoModificado ? afiliadoModificado : afiliadosObj.data[index]);
 
       setTotalPageIndex(afiliadosObj.pages);
@@ -78,7 +72,7 @@ const AfiliadosHandler = () => {
           ambitoDelegaciones: Usuario.ambitoDelegaciones,
           ambitoProvincias: Usuario.ambitoProvincias,
           ...(estadoSolicitud > 0 && {estadoSolicitudId:estadoSolicitud}),
-          ...(sortColumn && {sort: (sortOrder == "desc") ? `${sortColumn}Desc` : sortColumn}),
+          ...(sortColumn && {sort: (sortOrder === "desc") ? `${sortColumn}Desc` : sortColumn}),
     };
 
     // Si el filtro es por CUIL, primero intentar buscar por CUILValidado;
@@ -107,7 +101,6 @@ const AfiliadosHandler = () => {
           });
 
           if (preferred && preferred.length) {
-            // Usar los registros preferidos
             setSearchError(null);
             setTableMessage(null);
             const afiliadosObj = {
@@ -121,8 +114,6 @@ const AfiliadosHandler = () => {
             return;
           }
 
-          // Si no hay registros con cuilValidado, hacemos la búsqueda general por cuil
-          // reasignamos el body con el filtro por CUIL
           body[filterColumn] = filter;
           request(
             {
@@ -135,7 +126,6 @@ const AfiliadosHandler = () => {
               },
             },
             (resp) => {
-              // Determinar cantidad de registros en la respuesta
               let count = 0;
               if (Array.isArray(resp)) count = resp.length;
               else if (resp && Array.isArray(resp.data)) count = resp.data.length;
@@ -143,7 +133,6 @@ const AfiliadosHandler = () => {
 
               if (count === 0) {
                   setTableMessage("No hay información a mostrar");
-                  // Asegurar que no quede seleccionado un afiliado previo cuando no hay datos
                   setAfiliadoSeleccionado({});
               } else {
                 setTableMessage(null);
@@ -172,7 +161,6 @@ const AfiliadosHandler = () => {
         },
       },
       (resp) => {
-        // Determinar cantidad de registros en la respuesta
         let count = 0;
         if (Array.isArray(resp)) count = resp.length;
         else if (resp && Array.isArray(resp.data)) count = resp.data.length;
@@ -180,7 +168,6 @@ const AfiliadosHandler = () => {
 
         if (count === 0) {
           setTableMessage("No hay información a mostrar");
-          // Asegurar que no quede seleccionado un afiliado previo cuando no hay datos
           setAfiliadoSeleccionado({});
         } else {
           setTableMessage(null);
@@ -199,9 +186,13 @@ const AfiliadosHandler = () => {
     filterColumn,
     sortColumn,
     sortOrder,
+    Usuario.ambitoDelegaciones,
+    Usuario.ambitoProvincias,
+    Usuario.ambitoSeccionales,
+    Usuario.ambitoTodos,
+    totalPageIndex,
   ]);
 
- 
   useEffect(() => {
     const processEstadosSolicitudes = async (estadosSolicitudesObj) => {
       const estadosSolicitudesTable = estadosSolicitudesObj
@@ -216,12 +207,10 @@ const AfiliadosHandler = () => {
       );
       const estadosSolicitudesOptions =  estadosSolicitudesTable.filter((estado) => estado.label !== "Sin Asignar" & estado.label !== "Observado");
       estadosSolicitudesOptions.push({ value: 0, label: "Todos" })
-       
-     
+
       setEstadosSolicitudes(
         estadosSolicitudesOptions.sort((a, b) => (a.value > b.value ? 1 : -1))
       );
-      //setEstadosSolicitudes(estadosSolicitudes);
     };
 
     request(
@@ -234,13 +223,9 @@ const AfiliadosHandler = () => {
     );
   }, [request]);
 
-  //#endregion
-
   const moduloAccion = useSelector((state) => state.moduloAccion);
 
-  //UseEffect para capturar el estado global con la Accion que se intenta realizar en el SideBar
   useEffect(() => {
-    //segun el valor  que contenga el estado global "moduloAccion", ejecuto alguna accion
     console.log('modulo Accion:',moduloAccion);
     switch (moduloAccion) {
       case "A":
@@ -256,14 +241,8 @@ const AfiliadosHandler = () => {
         setAccionSeleccionada("Resuelve");
         break;
       case "I":
-        //navigate(`/afiliaciones/${id}`);
-        // setPantallaEnDesarrolloShow(true);
         setAccionSeleccionada("Imprime");
         break;
-      /*case "Consulta Afiliado":
-        //alert('Funcionalidad de Consulta En desarrollo ');
-        setPantallaEnDesarrolloShow(true);
-        break;*/
       case "B":
         setPantallaBajaReactivacion(true);
         setAccionSeleccionada("Baja");
@@ -276,9 +255,6 @@ const AfiliadosHandler = () => {
 			case "L":
 				setAccionSeleccionada("Localiza");
 				break;
-				
-      // alert('Funcionalidad de Imprimir En desarrollo ');
-      // <Link style={{color:"white"}} to={`/afiliaciones/${id}`}imprimir></Link>;
 
 			case "E":
 				setAccionSeleccionada("Lote");
@@ -286,30 +262,26 @@ const AfiliadosHandler = () => {
       default:
         break;
     }
-    dispatch(handleModuloEjecutarAccion("")); //Dejo el estado de ejecutar Accion LIMPIO!
-  }, [moduloAccion]);
+    dispatch(handleModuloEjecutarAccion(""));
+  }, [moduloAccion, dispatch]);
 
-  const handleResolverEstadoSolicitud = () => {
-    alert("Funcionalidad en desarrollo");
-  };
-
-  const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => { //ESTA FUNCION CIERRA EL MODAL DE ALTA/MODIFICACION/RESUELVE.SOLICIT.
+  const onCloseAfiliadoAgregarHandler = (regUpdated, accion) => {
       setAfiliadoAgregarShow(false);
 
       console.log('onCloseAfiliadoAgregarHandler: ',regUpdated, accion);
       
-      if(regUpdated){ //SI SE HIZO UNA ALTA // MODIFICACION ACTUALIZO EL OBJETO CON EL NUEVO ESTADO ...
-          setRefresh(true); //Agrego el refresh para que se actualice el registro 
+      if(regUpdated){
+          setRefresh(true);
           setAfiliadoModificado(regUpdated)
 
           if (accion === "Resuelve"){
-            regUpdated.estadoSolicitud == "Activo" && setPage(1); //Si fue resuelto (tiene NroAfiliado) y no hay filtro, el registro va a parar a la primer pagina, entonces lo busco allí
+            regUpdated.estadoSolicitud === "Activo" && setPage(1);
           }else{
             accion === "Agrega" ? 
-            (regUpdated.estadoSolicitud == "Activo") ? 
-              setPage(1)//El afiliado insertado tiene NroAfiliado y se agregó con estado ATIVO, Voy a la pagina 1
+            (regUpdated.estadoSolicitud === "Activo") ?
+              setPage(1)
               :
-              setPage(totalPageIndex)//El afiliado insertado no tiene NroAfiliado, voy a la ultima pagina de la grilla) 
+              setPage(totalPageIndex)
             :
             console.log('No es Agrega');
           }
@@ -341,24 +313,18 @@ const AfiliadosHandler = () => {
   };
 
   const handleFilter = (select, entry) => {
-    if (filter != entry){
-      // Si la búsqueda es por CUIL, normalizamos a dígitos pero NO bloqueamos por longitud
+    if (filter !== entry){
       if (select && String(select).toUpperCase() === "CUIL") {
         const digits = String(entry ?? "").replace(/\D/g, "");
         entry = digits;
-        // Si la longitud es menor a la prevista, mostrar el mensaje en la tabla y no ejecutar búsqueda
         if (digits.length !== 11) {
           setTableMessage("No hay información a mostrar");
-          // Vaciar resultados actuales en la grilla
           setAfiliadosRespuesta({ data: [], pages: 0, index: 1, size: 0, count: 0 });
-            // Asegurar que no quede seleccionado un afiliado previo cuando el CUIL es inválido
-            setAfiliadoSeleccionado({});
-          // limpiar posibles errores locales
+          setAfiliadoSeleccionado({});
           if (searchError) setSearchError(null);
           return;
         }
       }
-      // limpiar posible error previo
       if (searchError) setSearchError(null);
       if (tableMessage) setTableMessage(null);
       handlePageChange(1,12)
@@ -367,13 +333,11 @@ const AfiliadosHandler = () => {
       setFilter(entry)
       setFilterColumn(select)
     }
-    //setAfiliadosRespuesta([]);
   };
 
   const handleSort = (sortColumn, sortOrder) => {
-    setSortColumn(sortColumn == "cuil" ? "CUIL" : sortColumn);
+    setSortColumn(sortColumn === "cuil" ? "CUIL" : sortColumn);
     setSortOrder(sortOrder);
-    //setOrder(sortOrder); TODO
   };
 
   const handleSizePerPageChange = (page, sizePerPage) => {
@@ -384,7 +348,7 @@ const AfiliadosHandler = () => {
 
   const handleFilterChange = (filters) => {
     console.log("filtro de estado de solicitud", filters);
-    estadoSolicitud != parseInt(filters.estadoSolicitud?.filterVal) && setPage(1); //Si el filtro de estado de solicitud cambia, voy a la primer pagina
+    estadoSolicitud !== parseInt(filters.estadoSolicitud?.filterVal) && setPage(1);
     setEstadoSolcitud(parseInt(filters.estadoSolicitud?.filterVal));
   };
 
@@ -423,7 +387,6 @@ const AfiliadosHandler = () => {
 				return;
 			}
 			case "Imprime": {
-				//ToDo imprime credencial
 				setModal(<LotePDFViewer data={[afiliadoSeleccionado]} onClose={() => {
 					setAccionSeleccionada("");
 					setModal(<ListadoImpresos data={[afiliadoSeleccionado]} onClose={() => setModal(null)}/>);
@@ -431,7 +394,6 @@ const AfiliadosHandler = () => {
 				return;
 			} 
 			case "Lote": {
-				//Imprime lote de credenciales
 				setModal(
 					<LoteSeleccion
 						onClose={() => {
@@ -460,9 +422,6 @@ const AfiliadosHandler = () => {
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
-  /*if (error) {
-    return <h1>{error}</h1>;
-  }*/
   if (afiliadosRespuesta.length !== 0)
     return (
       <Fragment>

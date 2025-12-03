@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import classes from "./TableRemote.module.css";
 import BootstrapTable from "react-bootstrap-table-next";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
@@ -15,7 +15,6 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Button from "../Button/Button";
-import zIndex from "@mui/material/styles/zIndex";
 
 const TableRemote = (props) => {
 
@@ -36,18 +35,15 @@ const TableRemote = (props) => {
       fontWeight: "bold",
     },
     onSelect: (row, isSelect, rowIndex, e) => props.onSelected(row, isSelect, rowIndex, e),
-	  //onSelectAll: (isSelect, rows, e) => {},
   };
 
   const rowStyle = (row, cell) => {
-    //esta pensado como funcion para que cada componente envie su estilo, pensando en colores segun registros de una columna
     const rowStyle = {
       backgroundColor: "#ffffff99",
       border: "1.5px solid #3595D2",
-      color: '#000080', //color: '#727272',
+      color: '#000080',
     };
     return rowStyle;
-
   };
 
   const handleChangeSearchSelect = (event) => {
@@ -145,9 +141,7 @@ const TableRemote = (props) => {
           noDataIndication={
             props.noDataIndication ?? "No existen datos para mostrar"
           }
-          //rowEvents = {rowEvents} //No es necesario a menos que se declare algo especial en rowEvents
           defaultSorted={props.defaultSorted ?? false}
-          //defaultSortDirection={props.defaultSortDirection}
           overlay = {props.overlay}
           selectRow={selectRow}
           rowStyle={props.rowStyle ? props.rowStyle : rowStyle}
