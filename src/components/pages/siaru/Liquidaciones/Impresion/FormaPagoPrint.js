@@ -11,6 +11,8 @@ import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import FormaPagoViewerUnion from "./unionSindicalSolidario/FormaPagoViewer";
 import dayjs from "dayjs";
 import Formato from "components/helpers/Formato";
+import FormaPagoViewer0 from "./0/FormaPagoViewer";
+import FormaPagoViewer1 from "./1/FormaPagoViewer";
 
 const onCloseDef = () => {};
 /**
@@ -176,20 +178,22 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 		const changes = { loading: "Cargando...", data: null, error: null };
 		setFormaPago((o) => ({ ...o, ...changes }));
 		pushQuery({
-			action: "CreateLiquidacionFormasPago",
-			config: {
-				body: {
-					liquidacionCabeceraId: liquidacionCabecera.id,
-					refFormasPagoId: formaPagoSelect.selected.value,
-				}
-			},
-			onOk: async (data) => (changes.data = [data]),
-			onError: async (error) => (changes.error = error.toString()),
-			onFinally: async () => {
-				changes.loading = null;
-				setFormaPago((o) => ({ ...o, ...changes }));
-			},
-		});
+      action: "CreateLiquidacionFormasPago",
+      config: {
+        body: {
+          liquidacionCabeceraId: liquidacionCabecera.id,
+          refFormasPagoId: formaPagoSelect.selected.value,
+        },
+      },
+      onOk: async (data) => {
+        (changes.data = Array.isArray(data) ? data : [data])
+	  },
+      onError: async (error) => (changes.error = error.toString()),
+      onFinally: async () => {
+        changes.loading = null;
+        setFormaPago((o) => ({ ...o, ...changes }));
+      },
+    });
 	};
 
 	let contenido = null;
@@ -230,15 +234,14 @@ const FormaPagoPrint = ({ liquidacionCabecera, onClose = onCloseDef }) => {
 			</Grid>
 		);
 	} else {
-		const Viewer = FormaPagoViewerUnion
-			// { 1: FormaPagoViewer1 }[
-			// 	formaPagoSelect.selected.data.modeloImpresionLiquidacion
-			// ] ?? FormaPagoViewer0;
+		// Ver aca como llamar al Discriminado o Unificado
+		const Viewer = { 1: FormaPagoViewer1 }[
+			 	formaPagoSelect.selected.data.modeloImpresionLiquidacion
+			 ] ?? FormaPagoViewer0;
 		contenido = (
 			<Viewer
 				cabecera={liquidacionCabecera}
 				formasPago={formaPago.data}
-				modelo={formaPagoSelect.selected.data.modeloImpresionLiquidacion}
 			/>
 		);
 	}

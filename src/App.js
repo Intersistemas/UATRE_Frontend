@@ -59,6 +59,7 @@ import LocalidadesHandler from "components/pages/administracion/localidades/Loca
 import InformesHandler from "components/pages/informes/InformesHandler";
 
 import ConsultasHandler from "components/pages/consultas/ConsultasHandler";
+import AfiliadoFormulariosAfiliacionHandler from "components/pages/consultas/solicitudAfiliacion/AfiliadoFormulariosAfiliacionHandler";
 import AfiliacionesPorEmpresaHandler from 'components/pages/consultas/afiliacionesPorEmpresa/AfiliacionesPorEmpresaHandler';
 import GestionOSHandler from "components/pages/gestionOS/GestionOSHandler";
 
@@ -207,6 +208,8 @@ const App = () => {
               path="Inicio/Consultas/Afiliaciones"
               element={<AfiliacionesPorEmpresaHandler />}
             />
+            <Route path="Inicio/Consultas/SolicitudesAfiliacion" element={<AfiliadoFormulariosAfiliacionHandler />} />
+            
 
             <Route path="Inicio/Auditorias" element={<AuditoriasHandler />} />
 
@@ -218,7 +221,7 @@ const App = () => {
               path="Inicio/App/EncuestaRespuestas"
               element={<EncuestasHandler />}
             />
-            <Route path="Inicio/App/Denuncias" element={<DenunciasHandler />} />
+            <Route path="Inicio/Denuncias" element={<DenunciasHandler />} />
             <Route path="Inicio/App/Metrica" element={<MetricaHandler />} />
 
             <Route path="/*" element={<PantallaEnDesarrollo />} />

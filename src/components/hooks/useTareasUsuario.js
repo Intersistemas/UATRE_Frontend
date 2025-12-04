@@ -28,11 +28,22 @@ export class TareasManager {
 	 */
 	hasTarea(tarea, rol) {
 
+
 		if (this.#esAdmin) return true;
 
 		if (rol && this.#rolesAdmin.find((t) => t.toUpperCase() === rol.toUpperCase())) return true;
 
-		return this.#tareas.find((t) => t.nombreTarea.trim() === tarea) != null;
+		// Buscar la tarea por nombre (comparación robusta) y verificar que no esté marcada como eliminada
+		return (
+			this.#tareas.find((t) => {
+				if (!t || !t.nombreTarea) return false;
+				const nombre = String(t.nombreTarea).trim();
+				const buscado = String(tarea).trim();
+				const coincide = nombre.toLowerCase() === buscado.toLowerCase();
+				const noEliminada = !t.deletedDate && !t.deletedBy && (t.deleted === undefined || t.deleted === false);
+				return coincide && noEliminada;
+			}) != null
+		);
 	}
 }
 
