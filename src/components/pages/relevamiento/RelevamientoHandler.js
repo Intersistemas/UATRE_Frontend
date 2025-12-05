@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
 import { Tabs, Tab } from "@mui/material";
@@ -16,8 +15,9 @@ import SearchSelectMaterial, {
   mapOptions,
 } from "components/ui/Select/SearchSelectMaterial";
 import useQueryState from "components/hooks/useQueryState";
+import PDFViewer from "./PDFViewer";
 
-/* ================= Helpers ================= */
+/* ================= Helpers ================= */ 
 const norm = (v) => 
   String(v ?? "")
     .toLowerCase()
@@ -341,8 +341,9 @@ const RelevamientoHandler = () => {
     seccionalesLoading,
     seccionalesError,
     cargarSeccionales,
+    list: relevamientoList,
   } = useRelevamiento({
-    filtroEstado: filtroClient, // <- garantizamos filtrado exacto en cliente
+    filtroEstado: filtroClient,
     onEditComplete: ({ request, response }) => {
       if (request === "A" && response?.id) {
         relevamientoChanger("list", {
@@ -351,6 +352,26 @@ const RelevamientoHandler = () => {
         });
       }
     },
+    renderExtraActions: () => (
+      <>
+        <Button
+          className="botonAmarillo"
+          loading={!!pdf.loading}
+          onClick={onCargaPDF}
+          disabled={!relevamientoList?.data || relevamientoList.data.length === 0}
+          title={
+            !relevamientoList?.data || relevamientoList.data.length === 0
+              ? "Aplica filtros primero para generar el PDF"
+              : "Generar PDF con todos los datos visibles y detalles"
+          }
+          style={{ width: "200px", height: "45px", fontSize: "14px" }}
+        >
+          IMPRIME
+        </Button>
+        {pdf.loading && <div style={{ color: "green", marginTop: "10px" }}>{pdf.loading}</div>}
+        {pdf.error && <div style={{ color: "red", marginTop: "10px" }}>{pdf.error}</div>}
+      </>
+    ),
   });
 
   // Carga seccionales del hook si hiciera falta (independiente de los selects)
@@ -359,6 +380,75 @@ const RelevamientoHandler = () => {
       cargarSeccionales?.();
     }
   }, [seccionalesLoading, seccionalesDatos, cargarSeccionales]);
+
+  /* ---------- PDF ---------- */
+  const [pdf, setPdf] = useState({
+    reload: null,
+    loading: null,
+    data: [],
+    error: null,
+    despliega: false,
+  });
+
+  // Cargar datos para PDF aplicando los mismos filtros
+  useEffect(() => {
+    if (!pdf.reload) return;
+
+    const changes = { reload: false, loading: "Cargando datos para PDF...", data: [], error: null, despliega: false };
+
+    // Usar los datos ya filtrados del relevamientoList
+    const datosCompletos = relevamientoList?.data || [];
+    
+    console.log("Datos disponibles en relevamientoList:", datosCompletos);
+    console.log("Cantidad de registros:", datosCompletos.length);
+    
+    // Aplicar el mismo filtro client-side
+    const datosFiltrados = filtroClient(datosCompletos);
+
+    console.log("Datos después del filtro:", datosFiltrados);
+    console.log("Cantidad después del filtro:", datosFiltrados.length);
+
+    if (datosFiltrados.length === 0) {
+      changes.loading = null;
+      changes.error = "No hay datos para generar el PDF";
+      setPdf((o) => ({ ...o, ...changes }));
+      return;
+    }
+
+    changes.data = datosFiltrados;
+    changes.loading = null;
+    changes.despliega = true;
+    setPdf((o) => ({ ...o, ...changes }));
+  }, [pdf.reload, relevamientoList?.data, filtroClient]);
+
+  const onCargaPDF = useCallback(() => {
+    console.log("=== onCargaPDF INICIADO ===");
+    console.log("Registro seleccionado:", relevamientoSelected);
+
+    if (!relevamientoSelected) {
+      setPdf((o) => ({ ...o, error: "Selecciona un registro para imprimir.", despliega: false }));
+      return;
+    }
+
+    // Imprimir solo el registro seleccionado
+    const registroParaPDF = [relevamientoSelected];
+
+    console.log("=== ESTRUCTURA COMPLETA DEL REGISTRO SELECCIONADO ===");
+    Object.keys(relevamientoSelected).sort().forEach(key => {
+      console.log(`  ${key}: ${relevamientoSelected[key]}`);
+    });
+    console.log("=== FIN ESTRUCTURA ===");
+
+    // Abrir el PDF directamente
+    setPdf((o) => ({
+      ...o,
+      data: registroParaPDF,
+      despliega: true,
+      reload: false,
+      loading: null,
+      error: null,
+    }));
+  }, [relevamientoSelected]);
 
   /* ---------- Tabs ---------- */
   const [encuestaActions] = useState([]);
@@ -505,6 +595,20 @@ const RelevamientoHandler = () => {
   };
 
   /* ------------------- UI ------------------- */
+  const pdfRender = !pdf.despliega ? null : (
+    <PDFViewer
+      data={pdf.data}
+      filtros={{
+        delegacion: delegacionSelect.selected?.label,
+        seccional: seccionalSelect.selected?.label,
+        empleador: empleadorAplicado,
+        fechaDesde,
+        fechaHasta,
+      }}
+      onClose={() => setPdf((o) => ({ ...o, despliega: false }))}
+    />
+  );
+
   return (
     <Grid full col gap="10px">
       <Grid className="titulo">
@@ -592,6 +696,7 @@ const RelevamientoHandler = () => {
         ))}
       </Grid>
 
+      {pdfRender}
       <KeyPress items={acciones} />
     </Grid>
   );
