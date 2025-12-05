@@ -1,47 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Modal } from "react-bootstrap";
 import dayjs from "dayjs";
-import { isPossiblePhoneNumber } from "libphonenumber-js";
-import Formato from "components/helpers/Formato";
 import { and } from "components/helpers/Utils";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
-import InputMaterial, {
-  CUITMask,
-  DNIMask,
-} from "components/ui/Input/InputMaterial";
+import InputMaterial, { CUITMask, DNIMask, } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, {
-  mapOptions,
-  includeSearch,
-} from "components/ui/Select/SearchSelectMaterial";
-import ValidarCUIT from "components/validators/ValidarCUIT";
-import ValidarEmail from "components/validators/ValidarEmail";
-import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
-import Table from "components/ui/Table/Table";
-
+import SearchSelectMaterial, { mapOptions, includeSearch, } from "components/ui/Select/SearchSelectMaterial";
 import { Tabs, Tab } from "@mui/material";
-import Documentacion from "components/documentacion/Documentacion";
 import AuthContext from "store/authContext";
 import useAmbitos from "components/hooks/useAmbitos";
 import useHttp from "components/hooks/useHttp";
+import { useAfiliadoPdfUrl, imprimirAfiliadoFormulario, } from "./AfiliadoFormularioImpresion";
+import classes from "./SolicitudAfiliacionForm.module.css";
+import { useSolicitudAfiliacionFormDoc } from "./SolicitudAfiliacionFormDoc";
 
-const styles = {
-  group: {
-    padding: "5px",
-    color: "#186090",
-    textAlign: "left",
-    border: "solid 1px",
-    borderRadius: "20px",
-  },
-  titulo: {
-    fontWeight: "bold",
-    textAlign: "left",
-    borderBottom: "dashed 1px",
-  },
-};
 
 //#region options
 const toInputString = (v) => {
@@ -181,39 +156,32 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 //#endregion options
 
- const SolicitudAfiliacionForm = ({
-   title = "Solicitud previa de afiliación",
-   data = {},
-   readOnly = false,
-   hidePrint = false,
-   onClose = () => { },
-   initialTab = 0,
-   request = "A", // "A" = Alta (nuevo formulario)
- }) => {
+const SolicitudAfiliacionForm = ({
+  title = "Solicitud previa de afiliación",
+  data = {},
+  readOnly = false,
+  hidePrint = false,
+  onClose = () => { },
+  initialTab = 0,
+  request = "A",
+}) => {
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const handleChangeTab = (_e, v) => setSelectedTab(v);
-
   const { usuario = {} } = useContext(AuthContext);
   const seccIdsUsuario = usuario?.ambitoSeccionales?.ids;
   const seccIdUsuario = Array.isArray(seccIdsUsuario) && seccIdsUsuario.length === 1 ? seccIdsUsuario[0] : null;
-
   const cuilUsuario = usuario?.cuit ?? null;
-  
-
- const ambitos = useAmbitos();
- const ambito = ambitos?.ambitoUser ? ambitos.ambitoUser() : { tipo: null, ids: [] };
+  const ambitos = useAmbitos();
+  const ambitoUser = ambitos?.ambitoUser ? ambitos.ambitoUser() : { tipo: null, ids: [] };
+  const ambitoTipo = ambitoUser.tipo ?? null;
+  const ambitoDelegacionId = Array.isArray(ambitoUser.ids) ? ambitoUser.ids[0] : null;
   const { sendRequest } = useHttp();
-  useEffect(() => {
-    console.log("SolicitudAfiliacionForm mounted - auth/usuario:", { usuario });
-  }, [usuario]);
 
   //#region APIs
   const { setState: setSeccionalesQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Seccional`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Seccional`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" }, params: { soloActivos: true } } }
@@ -222,9 +190,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setTiposDocumentosQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/TipoDocumento`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/TipoDocumento`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -232,9 +198,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setNacionalidadesQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Nacionalidad`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Nacionalidad`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -242,9 +206,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setEstadosCivilesQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/EstadoCivil`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/EstadoCivil`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -252,9 +214,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setSexosQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Sexo`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Sexo`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -262,9 +222,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setProvinciasQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Provincia`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Provincia`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -272,9 +230,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setLocalidadesQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/RefLocalidad`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/RefLocalidad`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -282,24 +238,19 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setOficiosQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Puesto`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Puesto`, method: "GET",
       },
     }),
     {
       query: {
-        params: { soloActivos: true },
-        config: { errorType: "response" },
+        params: { soloActivos: true }, config: { errorType: "response" },
       },
     }
   );
   const { setState: setActividadesQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Afiliaciones",
-        endpoint: `/Actividad`,
-        method: "GET",
+        baseURL: "Afiliaciones", endpoint: `/Actividad`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -308,15 +259,12 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     useQueryState(
       () => ({
         config: {
-          baseURL: "Comunes",
-          endpoint: `/AFIPConsulta`,
-          method: "GET",
+          baseURL: "Comunes", endpoint: `/AFIPConsulta`, method: "GET",
         },
       }),
       {
         query: {
-          params: { verificarHistorico: false },
-          config: { errorType: "response" },
+          params: { verificarHistorico: false }, config: { errorType: "response" },
         },
       }
     );
@@ -324,9 +272,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     useQueryState(
       () => ({
         config: {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadoByCUIL`,
-          method: "GET",
+          baseURL: "Afiliaciones", endpoint: `/Afiliado/GetAfiliadoByCUIL`, method: "GET",
         },
       }),
       { query: { config: { errorType: "response" } } }
@@ -334,9 +280,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   const { setState: setCIIUsQuery } = useQueryState(
     () => ({
       config: {
-        baseURL: "Comunes",
-        endpoint: `/RefCIIU`,
-        method: "GET",
+        baseURL: "Comunes", endpoint: `/RefCIIU`, method: "GET",
       },
     }),
     { query: { config: { errorType: "response" } } }
@@ -345,52 +289,17 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     useQueryState(
       () => ({
         config: {
-          baseURL: "Afiliaciones",
-          endpoint: `/AfiliadoFormulariosAfiliacion`,
-          method: "POST",
+          baseURL: "Afiliaciones", endpoint: `/AfiliadoFormulariosAfiliacion`, method: "POST",
         },
       }),
       { query: { config: { errorType: "response" } } }
     );
-
-  const { setState: setDocumentosQuery } = useQueryState(
-    () => ({
-      config: {
-        baseURL: "Comunes",
-        endpoint: `/DocumentacionEntidad/GetBySpec`,
-        method: "GET",
-      },
-    }),
-    { query: { config: { errorType: "response" } } }
-  );
-
-  const { setState: createDocQuery } = useQueryState(
-    () => ({
-      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "POST" },
-    }),
-    { query: { config: { errorType: "response" } } }
-  );
-
-  const { setState: updateDocQuery } = useQueryState(
-    () => ({
-      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "PUT" },
-    }),
-    { query: { config: { errorType: "response" } } }
-  );
-
-  const { setState: deleteDocQuery } = useQueryState(
-    () => ({
-      config: { baseURL: "Comunes", endpoint: `/DocumentacionEntidad`, method: "DELETE" },
-    }),
-    { query: { config: { errorType: "response" } } }
-  );
   //#endregion APIs
-  const [documentacionList, setDocumentacionList] = useState([]);
+
 
   const [state, setState] = useState({
     form: {
       fecha: dayjs().format("YYYY-MM-DD"),
-      // flags para control de habilitación de impresión
       trabajadorExisteEnBD: false,
       trabajadorExisteEnAFIP: false,
       empleadorExisteEnAFIP: false,
@@ -405,211 +314,16 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     loading: null,
     base64: null,
   });
-
-  const [pdfUrl, setPdfUrl] = useState(null);
-
-  useEffect(() => {
-    let url = null;
-    if (state.base64) {
-      try {
-        // state.base64 is expected to be the raw base64 string (no data: prefix)
-        const raw = state.base64.replace(/^data:.*;base64,/, "");
-        const byteCharacters = atob(raw);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: state.contentType || "application/pdf" });
-        url = URL.createObjectURL(blob);
-        setPdfUrl(url);
-      } catch (e) {
-        console.error("Error creando Blob URL desde base64:", e);
-        setPdfUrl(null);
-      }
-    } else {
-      setPdfUrl(null);
-    }
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [state.base64, state.contentType]);
-
+  const pdfUrl = useAfiliadoPdfUrl(state.base64, state.contentType);
   const { audit } = useAuditoriaProceso();
 
-  useEffect(() => {
-    const entidadId = data?.id ?? 0;
-    if (!entidadId) {
-      setDocumentacionList([]);
-      return;
-    }
-
-    setDocumentosQuery(o => ({
-      ...o,
-      query: { ...o.query, params: { EntidadId: entidadId, EntidadTipo: "F" } },
-      onLoad: ({ ok, error }) => {
-        const arr = Array.isArray(ok) ? ok : [];
-        console.log(' DOCUMENTACIÓN CARGADA:', {
-          archivosEncontrados: arr.length,
-          archivos: arr.map(doc => ({
-            id: doc.id,
-            nombre: doc.nombreArchivo,
-            tipo: doc.refTipoDocumentacionDescripcion
-          }))
-        });
-        setDocumentacionList(arr);
-        if (error) console.error("DocumentacionEntidad/GetBySpec error:", error);
-      }
-    }));
-  }, [data?.id, setDocumentosQuery]);
-
-  // === MAPEO DE DOCUMENTACIÓN: Convierte item del form al formato del API
-  const compact = (obj) => Object.fromEntries(
-    Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
-  );
-
-  const mapDocToPayload = (item, entidadId, entidadTipo) => {
-    console.log(' MAPEANDO DOCUMENTO para API:', {
-      itemOriginal: {
-        id: item?.id,
-        nombreArchivo: item?.nombreArchivo,
-        tieneArchivo: !!(item?.archivo || item?.archivoBase64),
-      },
-      destino: { entidadId, entidadTipo }
+  const { renderDocumentacionPanel, persistirDocumentacion } =
+    useSolicitudAfiliacionFormDoc({
+      data,
+      readOnly,
+      setState,
+      setSelectedTab,
     });
-
-    const refTipoDocumentacionId =
-      item?.refTipoDocumentacionId ??
-      item?.tipoDocumentacionId ??
-      item?.tipoId;
-
-    const rawBase64 = (
-      item?.archivo ??
-      item?.archivoBase64 ??
-      item?.base64 ??
-      item?.contenido ??
-      ""
-    ).toString().replace(/^data:.*;base64,/, "");
-
-    const payload = {
-      id: item?.id,
-      entidadId,
-      entidadTipo,
-      refTipoDocumentacionId,
-      refTipoDocumentacionDescripcion: item?.refTipoDocumentacionDescripcion,
-      descripcion: item?.descripcion || item?.observaciones,
-      observaciones: item?.observaciones,
-      fechaVencimiento: item?.fechaVencimiento,
-      nombreArchivo: item?.nombreArchivo ?? item?.fileName,
-      archivo: rawBase64,
-      contentType: item?.contentType || "application/octet-stream",
-      url: item?.url,
-    };
-
-    const result = compact(payload);
-
-    console.log(' DOCUMENTO MAPEADO:', {
-      id: result.id,
-      nombreArchivo: result.nombreArchivo,
-      tipoDoc: result.refTipoDocumentacionId,
-      tieneArchivo: !!result.archivo,
-      tamañoBase64: result.archivo ? result.archivo.length + ' chars' : '0'
-    });
-
-    return result;
-  };
-
-  //#region selects
-
-  const persistirDocumentacion = async (entidadId) => {
-    const entidadTipo = "F";
-    const lista = Array.isArray(documentacionList) ? documentacionList : [];
-
-    console.log(' PERSISTIENDO DOCUMENTACIÓN:', {
-      entidadId: entidadId,
-      entidadTipo: entidadTipo,
-      totalArchivos: lista.length,
-      archivos: lista.map(doc => ({
-        id: doc.id,
-        nombre: doc.nombreArchivo,
-        tipo: doc.refTipoDocumentacionDescripcion,
-        tieneArchivo: !!doc.archivo
-      }))
-    });
-
-    if (lista.length === 0) {
-      console.log(' No hay documentación para persistir');
-      return;
-    }
-
-    for (let i = 0; i < lista.length; i++) {
-      const item = lista[i];
-      const payload = mapDocToPayload(item, entidadId, entidadTipo);
-
-      console.log(` Procesando archivo ${i + 1}/${lista.length}:`, {
-        nombre: item.nombreArchivo,
-        operacion: payload.id ? 'ACTUALIZAR' : 'CREAR',
-        payloadId: payload.id
-      });
-
-      try {
-        if (payload.id) {
-          // ACTUALIZAR archivo existente
-          await sendRequest(
-            {
-              baseURL: "Comunes",
-              endpoint: `/DocumentacionEntidad`,
-              method: "PUT",
-              headers: { 'Content-Type': 'application/json' },
-              body: payload,
-            },
-            (ok) => {
-              console.log(`✅ Archivo actualizado: ${item.nombreArchivo}`, ok);
-            },
-            (error) => {
-              console.error(`❌ Error al actualizar archivo ${item.nombreArchivo}:`, error);
-            }
-          );
-        } else {
-          // CREAR nuevo archivo
-          await sendRequest(
-            {
-              baseURL: "Comunes",
-              endpoint: `/DocumentacionEntidad`,
-              method: "POST",
-              headers: { 'Content-Type': 'application/json' },
-              body: payload,
-            },
-            (ok) => {
-              console.log(`✅ Archivo creado: ${item.nombreArchivo}`, ok);
-              if (ok?.id || ok?.Id) {
-                const newId = ok.id ?? ok.Id;
-                setDocumentacionList((prev) => {
-                  const next = Array.isArray(prev) ? [...prev] : [];
-                  if (i < next.length) {
-                    next[i] = { ...next[i], id: newId };
-                  } else {
-                    next.push({ ...item, id: newId });
-                  }
-                  setState((s) => ({ ...s, form: { ...s.form, documentacion: next } }));
-                  return next;
-                });
-              }
-            },
-            (error) => {
-              console.error(`❌ Error al crear archivo ${item.nombreArchivo}:`, error);
-            }
-          );
-        }
-      } catch (e) {
-        console.error(`❌ Excepción procesando archivo ${item.nombreArchivo}:`, e);
-      }
-    }
-
-    console.log('✅ Proceso de persistencia de documentación completado');
-  };
-
-
   //#region select seccional
   const [seccionalSelect, setSeccionalSelect] = useState({
     loading: seccIdUsuario ? null : "Cargando...",
@@ -620,6 +334,9 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     selected: {},
     origen: "",
   });
+  const seccionalLockedRef = useRef(false);
+  const [seccionalIdDelegacion, setSeccionalIdDelegacion] = useState(null);
+
   // Buscador
   useEffect(() => {
     setSeccionalSelect((o) => ({
@@ -629,111 +346,135 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [seccionalSelect.buscar, seccionalSelect.data]);
   //#endregion select seccional
 
- useEffect(() => {
-   setSeccionalesQuery((o) => ({
-     ...o,
-     onLoad: ({ ok, error }) => {
-       let allData = [];
-       let seccionalesFiltered = [];
-       let seccionalPredeterminada = null;
+  // Calcula la seccional predeterminada cuando el usuario tiene Ámbito Delegaciones
+  useEffect(() => {
+    if (readOnly) return;
+    if (request !== "A") return;
+    if (seccionalIdDelegacion) return;
+    if (seccIdUsuario) return;
+    //Delegación
+    const delegacionId =
+      ambitoTipo === "Delegaciones"
+        ? ambitoDelegacionId || usuario?.ambitoDelegaciones?.ids?.[0]
+        : null;
+    if (!delegacionId) return;
 
-       if (Array.isArray(ok)) {
-         // 1) Traemos todas las seccionales
-         allData = ok.filter((r) => r.id !== 99999);
-         seccionalesFiltered = allData;
+    sendRequest(
+      {
+        baseURL: "Comunes",
+        endpoint: `/RefDelegacion/GetById?Id=${delegacionId}`,
+        method: "GET",
+      },
+      (delegacion) => {
+        const refLocalidadId = delegacion?.refLocalidadId;
+        if (!refLocalidadId) return;
 
-         // 2) Si el usuario tiene ámbito Delegaciones y estamos en Alta ("A"),
-         //    filtramos solo las seccionales de su Delegación (refDelegacionId).
-         if (ambito?.tipo === "Delegaciones" && request === "A") {
-           const delegacionId = ambito.ids?.[0];
-           if (delegacionId) {
-             seccionalesFiltered = allData.filter(
-               (r) => r.refDelegacionId === delegacionId
-             );
-           }
-         }
-
-         // 3) Si el usuario tiene exactamente una Seccional asignada
-         //    (ámbito por seccional), priorizamos esa.
-         if (seccIdUsuario) {
-           const rec =
-             seccionalesFiltered.find((r) => r.id === seccIdUsuario) ||
-             allData.find((r) => r.id === seccIdUsuario);
-           if (rec) {
-             seccionalesFiltered = [rec];
-             seccionalPredeterminada = rec;
-           }
-         }
-
-         // 4) Si estamos en Alta (nuevo formulario) y no hay seccional fija aún,
-         //    preseleccionamos la primera visible.
-         if (!seccionalPredeterminada && !readOnly && !data?.id && seccionalesFiltered.length) {
-           seccionalPredeterminada = seccionalesFiltered[0];
-         }
-       }
-
-       // 5) Actualizamos el select de Seccional
-      setSeccionalSelect((prev) => {
-        const shouldSetSelected = Boolean(
-          seccionalPredeterminada && !prev.selected?.value && !state?.form?.seccionalId
+        sendRequest(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/Seccional?soloActivos=true&LocalidadId=${refLocalidadId}`,
+            method: "GET",
+          },
+          (lista) => {
+            const arr = Array.isArray(lista) ? lista : [];
+            if (!arr.length) return;
+            const padre =
+              arr.find(
+                (s) => Number(s.refDelegacionId) === Number(delegacionId)
+              ) || arr[0];
+            if (padre?.id) {
+              setSeccionalIdDelegacion(padre.id);
+            }
+          },
         );
-        return {
-          ...prev,
-          loading: null,
-          data: seccionalesFiltered,
-          error: error?.toString(),
-          options: seccionalesSelectOptions({
+      },
+    );
+  },[ambitoTipo, ambitoDelegacionId, request, readOnly, seccionalIdDelegacion, seccIdUsuario, sendRequest, usuario,]);
+
+  useEffect(() => {
+    setSeccionalesQuery((o) => ({
+      ...o,
+      onLoad: ({ ok, error }) => {
+        let allData = [];
+        let seccionalesFiltered = [];
+        let seccionalPredeterminada = null;
+        if (Array.isArray(ok)) {
+          allData = ok.filter((r) => r.id !== 99999);
+          seccionalesFiltered = allData;
+
+          // Si el usuario es Administrador no asignamos ninguna seccional por defecto
+          const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+
+          // Usuario ambito delegacion
+          if (ambitoTipo === "Delegaciones" && request === "A") {
+            const delegacionId = ambitoDelegacionId;
+            if (delegacionId) {
+              seccionalesFiltered = allData.filter(
+                (r) => r.refDelegacionId === delegacionId
+              );
+            }
+          }
+
+          if (!esAdministrador) {
+            if (seccIdUsuario) {
+              const rec =
+                seccionalesFiltered.find((r) => r.id === seccIdUsuario) ||
+                allData.find((r) => r.id === seccIdUsuario);
+              if (rec) {
+                seccionalesFiltered = [rec];
+                seccionalPredeterminada = rec;
+              }
+            }
+
+            if (!seccIdUsuario && !seccionalPredeterminada && seccionalIdDelegacion) {
+              const rec =
+                seccionalesFiltered.find((r) => r.id === seccionalIdDelegacion) ||
+                allData.find((r) => r.id === seccionalIdDelegacion);
+              if (rec) {
+                seccionalPredeterminada = rec;
+              }
+            }
+
+            if (!seccionalPredeterminada && !readOnly && !data?.id && seccionalesFiltered.length) {
+              seccionalPredeterminada = seccionalesFiltered[0];
+            }
+          }
+        }
+        setSeccionalSelect((prev) => {
+          const shouldSetSelected = Boolean(
+            seccionalPredeterminada && !prev.selected?.value && !state?.form?.seccionalId && !seccionalLockedRef.current
+          );
+          return {
             ...prev,
+            loading: null,
             data: seccionalesFiltered,
-          }),
-          ...(shouldSetSelected
-            ? {
+            error: error?.toString(),
+            options: seccionalesSelectOptions({
+              ...prev,
+              data: seccionalesFiltered,
+            }),
+            ...(shouldSetSelected
+              ? {
                 selected: {
                   value: seccionalPredeterminada.id,
                   label: [
                     seccionalPredeterminada.seccionalCodigo ??
-                      seccionalPredeterminada.codigo,
+                    seccionalPredeterminada.codigo,
                     seccionalPredeterminada.nombre ??
-                      seccionalPredeterminada.descripcion,
+                    seccionalPredeterminada.descripcion,
                   ]
                     .filter((v) => v != null && v !== "")
                     .join(" - "),
                   record: seccionalPredeterminada,
                 },
               }
-            : {}),
-        };
-      });
-
-      // 6) También actualizamos el form (seccionalId  nombre) y el validado
-      if (seccionalPredeterminada && !state?.form?.seccionalId && !seccionalSelect?.selected?.value) {
-        setState((s) => ({
-          ...s,
-          form: {
-            ...s.form,
-            seccionalId: seccionalPredeterminada.id,
-            seccional:
-              seccionalPredeterminada.nombre ??
-              seccionalPredeterminada.descripcion,
-          },
-          validado: {
-            ...s.validado,
-            seccionalId: true,
-          },
-          errors: {
-            ...s.errors,
-            seccionalId: "",
-          },
-        }));
-      }
-     },
-   }));
- }, [setSeccionalesQuery, ambito, request, readOnly, data?.id, seccIdUsuario, seccionalSelect?.selected?.value, state?.form?.seccionalId]);
+              : {}),
+          };
+        });
+      },
+    }));
+  }, [setSeccionalesQuery, ambitoTipo, ambitoDelegacionId, request, readOnly, data?.id, seccIdUsuario, seccionalIdDelegacion]);
   //#endregion select seccional
-
-
-
-  //#region selects trabajador
 
   //#region select tipo documento
   const [tipoDocumentoSelect, setTipoDocumentoSelect] = useState({
@@ -842,7 +583,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
   // Buscador
   useEffect(() => {
-    if (readOnly) return; // en Consulta no re-procesar opciones/selected de localidades
+    if (readOnly) return;
     setTrabLocaSelect((o) => {
       const options = localidadSelectOptions(o);
       let selected = o.selected;
@@ -902,7 +643,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [actividadSelect.buscar, actividadSelect.data]);
   //#endregion select actividad
 
-
   //#region select provincia
   const [emplPciaSelect, setEmplPciaSelect] = useState({
     buscar: "",
@@ -933,7 +673,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   });
   // Buscador
   useEffect(() => {
-    if (readOnly) return; // en Consulta no re-procesar opciones/selected de localidades
+    if (readOnly) return;
     setEmplLocaSelect((o) => {
       const options = localidadSelectOptions(o);
       let selected = o.selected;
@@ -974,7 +714,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [ciiuSelect.buscar, ciiuSelect.data]);
   //#endregion select ciiu
 
-  //#endregion selects empleador
   // PREFILL (data  readOnly)
   useEffect(() => {
     if (!data || Object.keys(data).length === 0) return;
@@ -984,18 +723,14 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
         ...o.form,
         ...data,
         fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
-        // asegurar que los campos de localidad usados por el formulario queden llenos
         refLocalidadIdAfiliado: data?.refLocalidadIdAfiliado ?? o.form.refLocalidadIdAfiliado,
         refLocalidadNombreAfiliado: data?.nombreLocalidadAfiliado ?? data?.localidadDescripcion ?? o.form.refLocalidadNombreAfiliado,
-        // mantener compatibilidad con typo histórico si existiera
         reflocalidadNombreAfiliado: data?.nombreLocalidadAfiliado ?? data?.localidadDescripcion ?? o.form.reflocalidadNombreAfiliado,
         refLocalidadIdEmpresa: data?.refLocalidadIdEmpresa ?? o.form.refLocalidadIdEmpresa,
         nombreLocalidadEmpresa: data?.nombreLocalidadEmpresa ?? data?.localidadDescripcion ?? o.form.nombreLocalidadEmpresa,
       },
       validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
     }));
-    // Forzar también el selected en los select de localidades para que muestren
-    // el texto aunque la lista de opciones no incluya el registro.
     if (data?.refLocalidadIdAfiliado || data?.nombreLocalidadAfiliado) {
       const sel = {
         value: data?.refLocalidadIdAfiliado || null,
@@ -1024,20 +759,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     }
   }, [data, readOnly]);
 
-
-  useEffect(() => {
-    try {
-      if (data && Object.keys(data).length) {
-        // eslint-disable-next-line no-console
-        console.log("[DBG] SolicitudAfiliacionForm - data:", data);
-      }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("[DBG] Error al imprimir data:", e);
-    }
-  }, [data]);
-
-
   // Prefill selects
   useEffect(() => { if (tipoDocumentoSelect.options?.length) setSelectedById(setTipoDocumentoSelect, tipoDocumentoSelect, data?.tipoDocumentoId); }, [tipoDocumentoSelect.options, data?.tipoDocumentoId]);
   useEffect(() => { if (nacionalidadSelect.options?.length) setSelectedById(setNacionalidadSelect, nacionalidadSelect, data?.nacionalidadId); }, [nacionalidadSelect.options, data?.nacionalidadId]);
@@ -1048,7 +769,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     setSelectedById(setTrabPciaSelect, trabPciaSelect, data?.provinciaId);
   }, [trabPciaSelect.options, data?.provinciaId]);
   useEffect(() => {
-    if (readOnly) return; 
+    if (readOnly) return;
     if (!trabPciaSelect.selected?.value || !data?.refLocalidadIdAfiliado) return;
     setLocalidadesQuery((o) => ({
       ...o,
@@ -1074,18 +795,18 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     }));
   }, [trabPciaSelect.selected?.value, data?.refLocalidadIdAfiliado, setLocalidadesQuery]);
 
- useEffect(() => {
-   if (readOnly) return; 
-   if (!data || Object.keys(data).length === 0) return;
-   if (!trabPciaSelect.selected?.value) return;
-   if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+  useEffect(() => {
+    if (readOnly) return;
+    if (!data || Object.keys(data).length === 0) return;
+    if (!trabPciaSelect.selected?.value) return;
+    if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: trabPciaSelect.selected.value } },
       onPreLoad: () => setTrabLocaSelect((s) => ({ ...s, loading: "Cargando..." })),
       onLoad: ({ ok, error }) => {
         const dataArr = Array.isArray(ok) ? ok : [];
- 
+
         const nombre = data?.localidadDescripcionAfiliado ?? data?.localidadDescripcion ?? data?.localidadNombre ?? data?.localidad;
         let selected = {};
         if (data?.refLocalidadIdAfiliado) {
@@ -1112,7 +833,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     setSelectedById(setEmplPciaSelect, emplPciaSelect, data?.provinciaidEmpresa);
   }, [emplPciaSelect.options, data?.provinciaidEmpresa]);
   useEffect(() => {
-    if (readOnly) return; 
+    if (readOnly) return;
     if (!emplPciaSelect.selected?.value || !data?.refLocalidadIdEmpresa) return;
     setLocalidadesQuery((o) => ({
       ...o,
@@ -1139,12 +860,10 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
 
   useEffect(() => {
-  if (readOnly) return; 
-
-  if (!data || Object.keys(data).length === 0) return;
-  if (!trabPciaSelect.selected?.value) return;
-  // si ya tenemos datos no volvemos a pedir
-  if (trabLocaSelect.data && trabLocaSelect.data.length) return;
+    if (readOnly) return;
+    if (!data || Object.keys(data).length === 0) return;
+    if (!trabPciaSelect.selected?.value) return;
+    if (trabLocaSelect.data && trabLocaSelect.data.length) return;
     setLocalidadesQuery((o) => ({
       ...o,
       query: { ...o.query, params: { ...o.query.params, provinciaId: emplPciaSelect.selected.value } },
@@ -1186,7 +905,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
 
 
   useEffect(() => {
-
     if (!oficioSelect.options?.length) return;
     if (oficioSelect.selected && oficioSelect.selected.value) return;
     const nombreOficio = data?.oficioDescripcion ?? data?.oficio ?? data?.oficioNombre ?? data?.oficioDescripcionAfiliado;
@@ -1203,7 +921,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [oficioSelect.options, oficioSelect.selected, data?.oficioDescripcion, data?.oficio, data?.oficioNombre]);
 
   useEffect(() => {
-
     if (!actividadSelect.options?.length) return;
     if (actividadSelect.selected && actividadSelect.selected.value) return;
     const nombreActTrab = data?.actividadIdAfiliadoDescripcion ?? data?.actividadPrincipalDescripcion ?? data?.actividadDescripcionAfiliado ?? data?.actividadDescripcion ?? data?.actividad;
@@ -1220,7 +937,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
   }, [actividadSelect.options, actividadSelect.selected, data?.actividadIdAfiliadoDescripcion, data?.actividadPrincipalDescripcion, data?.actividadDescripcionAfiliado, data?.actividadDescripcion]);
 
   useEffect(() => {
-
     if (!ciiuSelect.options?.length) return;
     if (ciiuSelect.selected && ciiuSelect.selected.value) return;
     const nombreActEmp = data?.actividadIdEmpresaDescripcion ?? data?.actividadDescripcionEmpresa ?? data?.actividadEmpresa ?? data?.actividadDescripcion ?? data?.actividad;
@@ -1236,22 +952,10 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     }
   }, [ciiuSelect.options, ciiuSelect.selected, data?.actividadIdEmpresaDescripcion, data?.actividadDescripcionEmpresa, data?.actividadEmpresa, data?.actividadDescripcion]);
 
-  // READONLY banderas
+  //banderas
   const isRO = !!readOnly;
   const disTrab = isRO || !state.validado.trabajador;
   const disEmpl = isRO || !state.validado.empleador;
-
-
-  // PREFILL (data  readOnly)
-  useEffect(() => {
-    if (!data || Object.keys(data).length === 0) return;
-    setState((o) => ({
-      ...o,
-      form: { ...o.form, ...data, fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha },
-      validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
-    }));
-  }, [data, readOnly]);
-
   const setSelectedById = (setter, optionsState, id, match = (opt) => opt.value === id) => {
     if (!id) return;
     setter((o) => {
@@ -1277,118 +981,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
         })),
     }));
   }, [emplPciaSelect.selected?.value, data?.refLocalidadIdEmpresa, setLocalidadesQuery]);
- 
-
-  //#endregion selects
-
-  //#region inicializaciones
-
-  //#region Carga inicial select seccional
-  useEffect(() => {
-    if (seccIdUsuario) return;
-    const cargarPorAfiliado = !!cuilUsuario;
-
-    if (cargarPorAfiliado) {
-      setAfiliadoByCuilQuery((o) => ({
-        ...o,
-        query: {
-          ...o.query,
-          params: { CUIL: String(cuilUsuario).replace(/\D+/g, "") },
-        },
-        onLoad: ({ ok }) => {
-          const refLocalidadId = ok?.refLocalidadId ?? ok?.refLocalidadIdAfiliado ?? 0;
-          if (!refLocalidadId) {
-            // Fallback a listado general de seccionales activas
-            setSeccionalesQuery((p) => ({
-              ...p,
-              query: {
-                ...p.query,
-                params: { ...(p.query?.params || {}), soloActivos: true },
-              },
-              onLoad: ({ ok: seccOk, error }) => {
-                let data = [];
-                if (Array.isArray(seccOk)) data = seccOk;
-                
-                const hijas = [];
-                data.forEach((s) => {
-                  if (Array.isArray(s.seccionalLocalidad)) {
-                    hijas.push(...s.seccionalLocalidad);
-                  }
-                });
-                if (hijas.length) {
-
-                  const porId = new Map();
-                  [...data, ...hijas].forEach((s) => {
-                    if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
-                  });
-                  data = Array.from(porId.values());
-                }
-                setSeccionalSelect((s) => ({
-                  ...s,
-                  loading: null,
-                  data,
-                  error: error?.toString(),
-                }));
-              },
-            }));
-            return;
-          }
-
-          setSeccionalesQuery((p) => ({
-            ...p,
-            query: {
-              ...p.query,
-              params: { ...(p.query?.params || {}), soloActivos: true, LocalidadId: refLocalidadId },
-            },
-            onLoad: ({ ok: seccOk, error }) => {
-              let data = [];
-              if (Array.isArray(seccOk)) data = seccOk;
-
-              const hijas = [];
-              data.forEach((s) => {
-                if (Array.isArray(s.seccionalLocalidad)) {
-                  hijas.push(...s.seccionalLocalidad);
-                }
-              });
-              if (hijas.length) {
-                const porId = new Map();
-                [...data, ...hijas].forEach((s) => {
-                  if (s && s.id != null && !porId.has(s.id)) porId.set(s.id, s);
-                });
-                data = Array.from(porId.values());
-              }
-              setSeccionalSelect((s) => ({
-                ...s,
-                loading: null,
-                data,
-                error: error?.toString(),
-              }));
-            },
-          }));
-        },
-      }));
-    } else {
-
-      setSeccionalesQuery((o) => ({
-        ...o,
-        query: {
-          ...o.query,
-          params: { ...(o.query?.params || {}), soloActivos: true },
-        },
-        onLoad: ({ ok, error }) => {
-          let data = [];
-          if (Array.isArray(ok)) data = ok;
-          setSeccionalSelect((s) => ({
-            ...s,
-            loading: null,
-            data,
-            error: error?.toString(),
-          }));
-        },
-      }));
-    }
-  }, [setSeccionalesQuery, setAfiliadoByCuilQuery, seccIdUsuario, cuilUsuario]);
-  //#endregion Carga inicial select seccional
 
   // Prefill seccional cuando la lista de seccionales fue cargada y el registro trae info
   useEffect(() => {
@@ -1411,6 +1003,58 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
       setState((o) => ({ ...o, form: { ...o.form, seccionalId: selected.record?.id, seccional: selected.record?.nombre } }));
     }
   }, [seccionalSelect.data, data?.seccionalId, data?.seccional, data?.seccionalDescripcion]);
+
+  // Seccional por delegacion
+  useEffect(() => {
+    if (readOnly) return;
+    if (request !== "A") return;
+    if (seccIdUsuario) return;
+    if (!seccionalIdDelegacion) return;
+    if (!Array.isArray(seccionalSelect.data) || !seccionalSelect.data.length) return;
+    if (seccionalLockedRef.current) return;
+    if (
+      state.form?.seccionalId &&
+      Number(state.form.seccionalId) === Number(seccionalIdDelegacion)
+    ) {
+      return;
+    }
+    const rec =
+      seccionalSelect.data.find(
+        (r) => Number(r.id) === Number(seccionalIdDelegacion)
+      ) || null;
+    if (!rec) return;
+    const selected = {
+      value: rec.id,
+      label: [
+        rec.seccionalCodigo ?? rec.codigo,
+        rec.nombre ?? rec.descripcion,
+      ]
+        .filter((v) => v != null && v !== "")
+        .join(" - "),
+      record: rec,
+    };
+    setSeccionalSelect((o) => ({
+      ...o,
+      selected,
+      origen: "option",
+    }));
+    setState((o) => ({
+      ...o,
+      form: {
+        ...o.form,
+        seccionalId: rec.id,
+        seccional: rec.nombre ?? rec.descripcion,
+      },
+      validado: {
+        ...o.validado,
+        seccionalId: true,
+      },
+      errors: {
+        ...o.errors,
+        seccionalId: "",
+      },
+    }));
+  }, [readOnly, request, seccIdUsuario, seccionalIdDelegacion, seccionalSelect.data, state.form?.seccionalId,]);
 
   //#region Carga inicial select tipo documento
   useEffect(() => {
@@ -1555,19 +1199,17 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
       },
     }));
   }, [setCIIUsQuery]);
-  //#endregion Carga inicial select ciiu
 
   //#endregion inicializaciones
-
   let content = null;
   if (state.base64) {
     content = (
-      <Grid full style={{ minHeight: "70vh" }}>
+      <Grid full className={classes.pdfWrapper}>
         {pdfUrl ? (
           <iframe
             title="SolicitudAfiliacion.pdf"
             src={pdfUrl}
-            style={{ width: "100%", height: "70vh", border: 0 }}
+            className={classes.pdfIframe}
           />
         ) : (
           <div>Generando vista previa...</div>
@@ -1578,7 +1220,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     const FormularioPanel = (
       <Grid full col gap="10px">
         <Grid width gap="inherit">
-          <Grid width style={seccIdUsuario ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
+          <Grid width className={seccIdUsuario ? classes.seccionalLocked : undefined}>
             <SearchSelectMaterial
               id="seccionalId"
               readOnly={isRO || !!seccIdUsuario}
@@ -1596,6 +1238,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
               }
               value={seccionalSelect.selected}
               onChange={(selected = {}) => {
+                seccionalLockedRef.current = true;
                 setSeccionalSelect((o) => ({
                   ...o,
                   selected,
@@ -1665,8 +1308,8 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
             />
           </Grid>
         </Grid>
-        <Grid col width gap="inherit" style={styles.group}>
-          <Grid width style={styles.titulo}>
+        <Grid col width gap="inherit" className={classes.group}>
+          <Grid width className={classes.titulo}>
             Trabajador
           </Grid>
           <Grid col gap="inherit">
@@ -1718,7 +1361,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                         };
                         state.validado = {
                           ...o.validado,
-                          trabajador: true//!state.errors.cuil,
+                          trabajador: true
                         };
                         return state;
                       });
@@ -1732,7 +1375,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                           params: { ...o.query.params, CUIL: cuit, IncludeRelatedTables: false },
                         },
                         onLoad: ({ query, ok, error }) => {
-
                           if (ok && Object.keys(ok || {}).length) {
 
                             changes.errors.cuil = "Este cuil es de un afiliado existente";
@@ -1743,8 +1385,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                             setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
                             return;
                           }
-
-
                           if (error && error.code && error.code !== 404) {
                             changes.errors.cuil = error.toString();
                             audit({
@@ -1753,13 +1393,11 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                               parametros: { ...query.params, ingreso: "trabajador" },
                               observaciones: `Error consulta Afiliado/GetAfiliadoByCUIL: ${error.toString()}`,
                             });
-
                             changes.form.trabajadorExisteEnBD = false;
                             apply();
                             setAfiliadoByCuilQuery((s) => ({ ...s, loading: null }));
                             return;
                           }
-
                           setPadronAFIPQuery((o) => ({
                             ...o,
                             loading: "Trabajador",
@@ -1768,26 +1406,25 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                               params: { ...o.query.params, cuit },
                             },
                             onLoad: ({ query: q2, ok, error }) => {
-                                  if (error) {
-                                    if (error.code === 404) {
-                                      changes.errors.cuil = "No existe en ARCA";
+                              if (error) {
+                                if (error.code === 404) {
+                                  changes.errors.cuil = "No existe en ARCA";
 
-                                      changes.form.trabajadorExisteEnAFIP = false;
-                                    } else {
-                                      changes.errors.cuil = error.toString();
-                                      changes.form.trabajadorExisteEnAFIP = false;
-                                      audit({
-                                        modulo: "Consultas",
-                                        proceso: "SolicitudPreviaAfiliacion",
-                                        parametros: { ...q2.params, ingreso: "trabajador" },
-                                        observaciones: `Error consulta AFIP: ${error.toString()}`,
-                                      });
-                                    }
+                                  changes.form.trabajadorExisteEnAFIP = false;
+                                } else {
+                                  changes.errors.cuil = error.toString();
+                                  changes.form.trabajadorExisteEnAFIP = false;
+                                  audit({
+                                    modulo: "Consultas",
+                                    proceso: "SolicitudPreviaAfiliacion",
+                                    parametros: { ...q2.params, ingreso: "trabajador" },
+                                    observaciones: `Error consulta AFIP: ${error.toString()}`,
+                                  });
+                                }
                               } else {
-
-                                  changes.form.trabajadorExisteEnAFIP = true;
-                                  changes.form.trabajadorExisteEnBD = false;
-                                  changes.form.apellido = ok.apellido;
+                                changes.form.trabajadorExisteEnAFIP = true;
+                                changes.form.trabajadorExisteEnBD = false;
+                                changes.form.apellido = ok.apellido;
                                 changes.form.nombre = ok.nombre;
                                 changes.form.fechaNacimiento =
                                   `${ok.fechaNacimiento}`.slice(0, 10);
@@ -1815,7 +1452,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                     selected: pcia,
                                     origen: "option",
                                   }));
-
                                   setLocalidadesQuery((o) => ({
                                     ...o,
                                     query: {
@@ -1828,36 +1464,33 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                     onPreLoad: () =>
                                       setTrabLocaSelect((s) => ({
                                         ...s,
-                          
+
                                         selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                         loading: "Cargando...",
                                       })),
                                     onLoad: ({ ok, error }) => {
                                       const dataArr = Array.isArray(ok) ? ok : [];
                                       const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
-                                      const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
-                                        .replace(/\D+/g, "");
+                                      const cpTarget = onlyDigits(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "");
                                       const hit = dataArr.find((r) => {
                                         const nombre = String(r?.nombre || "").toLowerCase();
-                                        const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                        const cp = onlyDigits(r?.codPostal ?? r?.codigoPostal ?? "");
                                         if (cpTarget && cp) return cp === cpTarget;
                                         return nombreTarget && nombre === nombreTarget;
                                       });
-
                                       const selectedTrab = hit
                                         ? {
-                                            value: hit.id,
-                                            label: [hit.codPostal, hit.nombre].join(" - "),
-                                            record: hit,
-                                          }
+                                          value: hit.id,
+                                          label: [hit.codPostal, hit.nombre].join(" - "),
+                                          record: hit,
+                                        }
                                         : domicilio?.localidad
                                           ? {
-                                              value: null,
-                                              label: domicilio.localidad,
-                                              record: { id: 0, nombre: domicilio.localidad },
-                                            }
+                                            value: null,
+                                            label: domicilio.localidad,
+                                            record: { id: 0, nombre: domicilio.localidad },
+                                          }
                                           : {};
-
                                       setTrabLocaSelect((s) => ({
                                         ...s,
                                         data: dataArr,
@@ -1867,7 +1500,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                         selected: selectedTrab,
                                         origen: hit ? "option" : 'afip',
                                       }));
-
                                       if (hit) {
                                         setState((prev) => ({
                                           ...prev,
@@ -1883,12 +1515,12 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                           ...prev,
                                           form: {
                                             ...prev.form,
-        
+
                                             refLocalidadNombreAfiliado:
                                               prev.form.refLocalidadNombreAfiliado || domicilio.localidad,
                                             reflocalidadNombreAfiliado:
                                               prev.form.reflocalidadNombreAfiliado || domicilio.localidad,
-                                            
+
                                             refLocalidadIdAfiliado: prev.form.refLocalidadIdAfiliado || 0,
                                           },
                                         }));
@@ -2065,7 +1697,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                 readOnly={isRO}
                 value={state.form.fechaNacimiento}
                 error={state.errors.fechaNacimiento}
-                disabled={!state.validado.trabajador}
+                disabled={isRO || !state.validado.trabajador}
                 onChange={(v) =>
                   setState((o) => ({
                     ...o,
@@ -2177,7 +1809,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                     selected,
                     origen: "option",
                   }));
-
                   setLocalidadesQuery((o) => ({
                     ...o,
                     query: {
@@ -2203,7 +1834,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                         origen: "option",
                       })),
                   }));
-
                   setState((o) => ({
                     ...o,
                     form: {
@@ -2374,8 +2004,8 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
             </Grid>
           </Grid>
         </Grid>
-        <Grid col width gap="inherit" style={styles.group}>
-          <Grid width style={styles.titulo}>
+        <Grid col width gap="inherit" className={classes.group}>
+          <Grid width className={classes.titulo}>
             Empleador
           </Grid>
           <Grid col gap="inherit">
@@ -2401,7 +2031,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                 />
               </Grid>
               <Grid col width="100px">
-
                 <Button
                   className="botonAzul"
                   disabled={isRO}
@@ -2454,20 +2083,17 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                 ) ?? ok.domicilios[0];
                               changes.form.domicilioEmpresa =
                                 domicilio.direccion;
-                              //Modificado Mauro
                               const provinciaAFIP = Number(domicilio?.idProvincia ?? 0);
                               const pcia =
                                 (emplPciaSelect.options || []).find(
                                   (r) => Number(r?.record?.idProvinciaAFIP) === provinciaAFIP
                                 ) || null;
-
                               if (pcia) {
                                 setEmplPciaSelect((o) => ({
                                   ...o,
                                   selected: pcia,
                                   origen: "option",
                                 }));
-
                                 setLocalidadesQuery((o) => ({
                                   ...o,
                                   query: {
@@ -2477,64 +2103,61 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
                                   onPreLoad: () =>
                                     setEmplLocaSelect((s) => ({
                                       ...s,
-                                     
+
                                       selected: s && s.origen === 'afip' ? s.selected : s.selected,
                                       loading: "Cargando...",
                                     })),
                                   onLoad: ({ ok, error }) => {
                                     const dataArr = Array.isArray(ok) ? ok : [];
                                     const nombreTarget = String(domicilio?.localidad || "").toLowerCase();
-                                    const cpTarget = String(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "")
-                                      .replace(/\D+/g, "");
+                                    const cpTarget = onlyDigits(domicilio?.codigoPostal ?? domicilio?.codPostal ?? "");
                                     const hit = dataArr.find((r) => {
                                       const nombre = String(r?.nombre || "").toLowerCase();
-                                      const cp = String(r?.codPostal ?? r?.codigoPostal ?? "").replace(/\D+/g, "");
+                                      const cp = onlyDigits(r?.codPostal ?? r?.codigoPostal ?? "");
                                       if (cpTarget && cp) return cp === cpTarget;
                                       return nombreTarget && nombre === nombreTarget;
                                     });
-
                                     setEmplLocaSelect((s) => ({
-                                        ...s,
-                                        data: dataArr,
-                                        loading: null,
-                                        error: error?.toString(),
-                                        buscar: "",
-                                        selected: hit
+                                      ...s,
+                                      data: dataArr,
+                                      loading: null,
+                                      error: error?.toString(),
+                                      buscar: "",
+                                      selected: hit
+                                        ? {
+                                          value: hit.id,
+                                          label: [hit.codPostal, hit.nombre].join(" - "),
+                                          record: hit,
+                                        }
+                                        : domicilio?.localidad
                                           ? {
-                                              value: hit.id,
-                                              label: [hit.codPostal, hit.nombre].join(" - "),
-                                              record: hit,
-                                            }
-                                          : domicilio?.localidad
-                                            ? {
-                                                value: null,
-                                                label: domicilio.localidad,
-                                                record: { id: 0, nombre: domicilio.localidad },
-                                              }
-                                            : {},
-                                        origen: hit ? "option" : 'afip',
+                                            value: null,
+                                            label: domicilio.localidad,
+                                            record: { id: 0, nombre: domicilio.localidad },
+                                          }
+                                          : {},
+                                      origen: hit ? "option" : 'afip',
+                                    }));
+                                    if (hit) {
+                                      setState((prev) => ({
+                                        ...prev,
+                                        form: {
+                                          ...prev.form,
+                                          refLocalidadIdEmpresa: hit.id,
+                                          nombreLocalidadEmpresa: hit.nombre,
+                                        },
                                       }));
-
-                                      if (hit) {
-                                        setState((prev) => ({
-                                          ...prev,
-                                          form: {
-                                            ...prev.form,
-                                            refLocalidadIdEmpresa: hit.id,
-                                            nombreLocalidadEmpresa: hit.nombre,
-                                          },
-                                        }));
-                                      } else if (domicilio?.localidad) {
-                                        setState((prev) => ({
-                                          ...prev,
-                                          form: {
-                                            ...prev.form,
-                                            nombreLocalidadEmpresa:
-                                              prev.form.nombreLocalidadEmpresa || domicilio.localidad,
-                                            refLocalidadIdEmpresa: prev.form.refLocalidadIdEmpresa || 0,
-                                          },
-                                        }));
-                                      }
+                                    } else if (domicilio?.localidad) {
+                                      setState((prev) => ({
+                                        ...prev,
+                                        form: {
+                                          ...prev.form,
+                                          nombreLocalidadEmpresa:
+                                            prev.form.nombreLocalidadEmpresa || domicilio.localidad,
+                                          refLocalidadIdEmpresa: prev.form.refLocalidadIdEmpresa || 0,
+                                        },
+                                      }));
+                                    }
                                   },
                                 }));
                               } else {
@@ -2806,487 +2429,40 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
       </Grid>
     );
 
-    const entidadId = data?.id ?? 0;
-    const entidadTipo = "F";
-
-    const DocumentacionPanel = (
-      <Grid full col gap="10px">
-
-
-
-        <Documentacion
-          data={documentacionList}
-          tipoDocumentacion={[
-            "Credencial",
-            "Documento de Identidad",
-            "Formulario",
-            "Otros",
-          ]}
-          disabled={readOnly}
-          onChange={({ index, item }) => {
-            // MANEJO DE ARCHIVOS: Esta función se ejecuta cuando se suben, modifican o eliminan archivos
-            console.log(' Operación en documentación:', {
-              tipo: index == null ? 'CREAR' : item == null ? 'ELIMINAR' : 'ACTUALIZAR',
-              index: index,
-              nombreArchivo: item?.nombreArchivo || 'N/A',
-              tipoDocumento: item?.refTipoDocumentacionDescripcion || 'N/A',
-              entidadId: entidadId,
-              entidadTipo: entidadTipo
-            });
-
-            const prev = [...documentacionList];
-
-            // === ALTA (CREAR NUEVO ARCHIVO)
-            if (index == null && item != null) {
-              console.log('CREANDO nuevo archivo:', item?.nombreArchivo);
-              const payload = mapDocToPayload(item, entidadId, entidadTipo);
-
-              // Actualización optimista (se ve inmediatamente en la UI)
-              const temp = [...prev, { ...payload, id: item.id ?? 0 }];
-              setDocumentacionList(temp);
-              setState(s => ({ ...s, form: { ...s.form, documentacion: temp } }));
-
-              // Si no hay EntidadId todavía, solo guardamos localmente
-              if (!entidadId) {
-                console.log('⏳ Guardado local - se enviará al servidor cuando se confirme el formulario');
-                return;
-              }
-
-              // Enviar al servidor
-              createDocQuery(o => ({
-                ...o,
-                query: { ...o.query, config: { ...o.query?.config, body: payload } },
-                onLoad: ({ ok, error }) => {
-                  if (error) {
-                    console.error('❌ Error al crear archivo:', error);
-                    // Rollback
-                    setDocumentacionList(prev);
-                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-                  } else {
-                    console.log('✅ Archivo creado exitosamente:', ok);
-                    // Actualizar con el ID real del servidor
-                    const newId = ok?.id ?? item.id;
-                    const next = [...temp];
-                    next[next.length - 1] = { ...next[next.length - 1], id: newId };
-                    setDocumentacionList(next);
-                    setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-                  }
-                }
-              }));
-              return;
-            }
-
-            // === BAJA (ELIMINAR ARCHIVO)
-            if (index != null && item == null) {
-              const current = prev[index];
-              console.log(' ELIMINANDO archivo:', current?.nombreArchivo);
-              const id = current?.id;
-
-              if (!id) {
-                // Si no hay id, solo eliminar localmente
-                const next = prev.filter((_, i) => i !== index);
-                setDocumentacionList(next);
-                setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-                console.log(' Archivo eliminado localmente');
-                return;
-              }
-
-              // Actualización optimista
-              const next = prev.filter((_, i) => i !== index);
-              setDocumentacionList(next);
-              setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-
-              if (!entidadId) return;
-
-              // Eliminar del servidor
-              deleteDocQuery(o => ({
-                ...o,
-                query: {
-                  ...o.query,
-                  params: { ...(o.query?.params || {}), id },
-                  config: {
-                    ...o.query?.config,
-                    headers: { 'Content-Type': 'application/json', ...(o.query?.config?.headers || {}) },
-                  }
-                },
-                onLoad: ({ error }) => {
-                  if (error) {
-                    console.error('❌ Error al eliminar archivo:', error);
-                    // Rollback
-                    setDocumentacionList(prev);
-                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-                  } else {
-                    console.log('✅ Archivo eliminado del servidor exitosamente');
-                  }
-                }
-              }));
-              return;
-            }
-
-            // === MODIFICACIÓN (ACTUALIZAR ARCHIVO)
-            if (index != null && item != null) {
-              const current = prev[index] || {};
-              console.log(' ACTUALIZANDO archivo:', current?.nombreArchivo);
-              const payload = mapDocToPayload({ ...current, ...item }, entidadId, entidadTipo);
-
-              // Actualización optimista
-              const next = [...prev];
-              next.splice(index, 1, { ...current, ...item });
-              setDocumentacionList(next);
-              setState(s => ({ ...s, form: { ...s.form, documentacion: next } }));
-
-              if (!entidadId) return;
-
-              // Actualizar en el servidor
-              updateDocQuery(o => ({
-                ...o,
-                query: { ...o.query, config: { ...o.query?.config, body: payload } },
-                onLoad: ({ error }) => {
-                  if (error) {
-                    console.error('❌ Error al actualizar archivo:', error);
-                    // Rollback
-                    setDocumentacionList(prev);
-                    setState(s => ({ ...s, form: { ...s.form, documentacion: prev } }));
-                  } else {
-                    console.log('✅ Archivo actualizado exitosamente');
-                  }
-                }
-              }));
-              return;
-            }
-          }}
-        />
-        {!readOnly && (
-          <Button
-            className="botonAmarillo"
-            marginTop={3}
-            width={50}
-            onClick={() => setSelectedTab(0)}
-          >
-            CONFIRMA DOCUMENTACIÓN
-          </Button>
-        )}
-      </Grid>
-    );
-
-    const MostrarDocumentacion = (
-      <Grid full col gap="10px">
-        <Table
-          keyField="id"
-          data={Array.isArray(documentacionList) ? documentacionList : []}
-          columns={[
-            {
-              dataField: "refTipoDocumentacionDescripcion",
-              text: "Tipo Documentación",
-              style: { textAlign: "left" },
-            },
-            {
-              dataField: "nombreArchivo",
-              text: "Nombre del Archivo",
-              style: { textAlign: "left" },
-              formatter: (cell, row) =>
-                row?.url ? (
-                  <a href={row.url} target="_blank" rel="noreferrer">
-                    {cell || "(sin nombre)"}
-                  </a>
-                ) : (
-                  cell || "(sin nombre)"
-                ),
-            },
-          ]}
-          mostrarBuscar={true}
-          pagination={false}
-        />
-      </Grid>
-    );
-
+    const DocumentacionPanel = renderDocumentacionPanel();
     content = (
       <>
         <Tabs value={selectedTab} onChange={handleChangeTab}>
           <Tab label="Formulario" />
           <Tab label="Documentación" />
         </Tabs>
-        <div style={{ marginTop: 10 }}>
+        <div className={classes.tabsContent}>
           {selectedTab === 0 ? FormularioPanel : DocumentacionPanel}
         </div>
       </>
     );
   }
-
-
-
-  const onImprimie = () => {
-    // Validaciones simples primero
-    const errors = {};
-    const body = state.form;
-
-    //#region general
-    if (seccionalSelect.origen === "text") {
-      body.seccionalId = 0;
-      body.seccional = seccionalSelect.buscar;
-      errors.seccionalId = "Debe elegir una seccional"
-    } else {
-      body.seccionalId = seccionalSelect.selected.record?.id;
-      body.seccional = seccionalSelect.selected.record?.descripcion;
-      body.seccionalCodigo = seccionalSelect.selected.record?.codigo;
-    }
-    if (!body.seccional) errors.seccionalId = "Dato requerido";
-
-    if (!body.fecha) errors.fecha = "Dato requerido";
-    //#endregion general
-
-    //#region trabajador
-    if (!body.cuil) {
-      errors.cuil = "Dato requerido";
-    } else if (!ValidarCUIT(body.cuil)) {
-      errors.cuil = "Dato inválido";
-    }
-
-    if (tipoDocumentoSelect.origen === "text") {
-      body.tipoDocumentoId = 0;
-      body.tipoDocumentoDescripcion = tipoDocumentoSelect.buscar;
-    } else {
-      body.tipoDocumentoId = tipoDocumentoSelect.selected.record?.id;
-      body.tipoDocumentoDescripcion =
-        tipoDocumentoSelect.selected.record?.descripcion;
-    }
-    if (!body.tipoDocumentoDescripcion)
-      errors.tipoDocumentoId = "Dato requerido";
-
-    if (!body.documento) errors.documento = "Dato requerido";
-
-    if (nacionalidadSelect.origen === "text") {
-      body.nacionalidadId = 0;
-      body.nacionalidad = nacionalidadSelect.buscar;
-    } else {
-      body.nacionalidadId = nacionalidadSelect.selected.record?.id;
-      body.nacionalidad = nacionalidadSelect.selected.record?.descripcion;
-    }
-    if (!body.nacionalidad) errors.nacionalidadId = "Dato requerido";
-
-    if (!(body.apellido || body.nombre)) errors.nombre = "Dato requerido";
-    if (!body.fechaNacimiento) errors.fechaNacimiento = "Dato requerido";
-
-    if (estadoCivilSelect.origen === "text") {
-      body.estadoCivilId = 0;
-      body.estadoCivil = estadoCivilSelect.buscar;
-    } else {
-      body.estadoCivilId = estadoCivilSelect.selected.record?.id;
-      body.estadoCivil = estadoCivilSelect.selected.record?.descripcion;
-    }
-    if (!body.estadoCivil) errors.estadoCivilId = "Dato requerido";
-
-    if (sexoSelect.origen === "text") {
-      body.sexoId = 0;
-      body.sexoDescripcion = sexoSelect.buscar;
-    } else {
-      body.sexoId = sexoSelect.selected.record?.id;
-      body.sexoDescripcion = sexoSelect.selected.record?.descripcion;
-    }
-    if (!body.sexoDescripcion) errors.sexoId = "Dato requerido";
-
-    if (!body.domicilio) errors.domicilio = "Dato requerido";
-
-    if (trabPciaSelect.origen === "text") {
-      body.provinciaId = 0;
-      body.provinciaNombre = trabPciaSelect.buscar;
-    } else {
-      body.provinciaId = trabPciaSelect.selected.record?.id;
-      body.provinciaNombre = trabPciaSelect.selected.record?.nombre;
-    }
-    if (!body.provinciaNombre) errors.provinciaId = "Dato requerido";
-
-    if (trabLocaSelect.origen === "text") {
-      body.refLocalidadIdAfiliado = 0;
-      body.nombreLocalidadAfiliado = trabLocaSelect.buscar;
-    } else {
-      body.refLocalidadIdAfiliado = trabLocaSelect.selected.record?.id;
-      body.nombreLocalidadAfiliado = trabLocaSelect.selected.record?.nombre;
-    }
-    if (!body.nombreLocalidadAfiliado)
-      errors.refLocalidadIdAfiliado = "Dato requerido";
-
-    if (oficioSelect.origen === "text") {
-      body.oficioId = 0;
-      body.oficio = oficioSelect.buscar;
-    } else {
-      body.oficioId = oficioSelect.selected.record?.id;
-      body.oficio = oficioSelect.selected.record?.descripcion;
-    }
-    if (!body.oficio) errors.oficioId = "Dato requerido";
-
-    if (actividadSelect.origen === "text") {
-      body.actividadIdAfiliado = 0;
-      body.actividadAfiliado = actividadSelect.buscar;
-    } else {
-      body.actividadIdAfiliado = actividadSelect.selected.record?.id;
-      body.actividadAfiliado = actividadSelect.selected.record?.descripcion;
-    }
-    if (!body.actividadAfiliado) errors.actividadIdAfiliado = "Dato requerido";
-    if (body.telefono && !isPossiblePhoneNumber(body.telefono))
-      errors.telefono = "Dato inválido";
-    if (body.celular && !isPossiblePhoneNumber(body.celular))
-      errors.celular = "Dato inválido";
-    if (body.email && !ValidarEmail(body.email)) errors.email = "Dato inválido";
-
-    //#endregion trabajador
-
-    //#region empleador
-
-    if (!body.cuitEmpresa) {
-      errors.cuitEmpresa = "Dato requerido";
-    } else if (!ValidarCUIT(body.cuitEmpresa)) {
-      errors.cuitEmpresa = "Dato inválido";
-    }
-
-    if (!body.razonSocial) errors.razonSocial = "Dato requerido";
-
-    if (!body.domicilioEmpresa) errors.domicilioEmpresa = "Dato requerido";
-
-    if (emplPciaSelect.origen === "text") {
-      body.provinciaidEmpresa = 0;
-      body.provinciaNombreEmpresa = emplPciaSelect.buscar;
-    } else {
-      body.provinciaidEmpresa = emplPciaSelect.selected.record?.id;
-      body.provinciaNombreEmpresa = emplPciaSelect.selected.record?.nombre;
-    }
-    if (!body.provinciaNombreEmpresa)
-      errors.provinciaidEmpresa = "Dato requerido";
-
-    if (emplLocaSelect.origen === "text") {
-      body.refLocalidadIdEmpresa = 0;
-      body.nombreLocalidadEmpresa = emplLocaSelect.buscar;
-    } else {
-      body.refLocalidadIdEmpresa = emplLocaSelect.selected.record?.id;
-      body.nombreLocalidadEmpresa = emplLocaSelect.selected.record?.nombre;
-    }
-    if (!body.nombreLocalidadEmpresa)
-      errors.refLocalidadIdEmpresa = "Dato requerido";
-
-    if (ciiuSelect.origen === "text") {
-      body.actividadIdEmpresa = 0;
-      body.actividadEmpresa = ciiuSelect.buscar;
-    } else {
-      body.actividadIdEmpresa = ciiuSelect.selected.record?.id;
-      body.actividadEmpresa = ciiuSelect.selected.record?.descripcion;
-    }
-    if (!body.actividadEmpresa) errors.actividadIdEmpresa = "Dato requerido";
-    if (body.telefonoEmpresa && !isPossiblePhoneNumber(body.telefonoEmpresa))
-      errors.telefonoEmpresa = "Dato inválido";
-    if (body.celularEmpresa && !isPossiblePhoneNumber(body.celularEmpresa))
-      errors.celularEmpresa = "Dato inválido";
-    if (body.emailEmpresa && !ValidarEmail(body.emailEmpresa))
-      errors.emailEmpresa = "Dato inválido";
-
-    //#endregion empleador
-
-    if (Object.values(errors).filter((r) => r).length) {
-      setState((o) => ({ ...o, errors }));
-      return;
-    }
-
-    const despliega = async () => {
-      const datos = [{
-        fecha: Formato.Fecha(body.fecha),
-        seccional_nro: body.seccionalCodigo || "",
-        afiliado_nro: "",
-        trabajador: {
-          cuil: Formato.Cuit(body.cuil),
-          tipo_doc: body.tipoDocumentoDescripcion,
-          nro_doc: body.documento,
-          nacionalidad: body.nacionalidad,
-          apellidos: body.apellido,
-          nombres: body.nombre,
-          fecha_nacimiento: Formato.Fecha(body.fechaNacimiento),
-          estado_civil: body.estadoCivil,
-          sexo: body.sexoDescripcion,
-          domicilio: body.domicilio,
-          localidad: body.nombreLocalidadAfiliado,
-          provincia: body.provinciaNombre,
-          oficio: body.oficio,
-          actividad: body.actividadAfiliado,
-          telefono: body.telefono,
-          email: body.email,
-        },
-        empleador: {
-          cuit: Formato.Cuit(body.cuitEmpresa),
-          razon_social: body.razonSocial,
-          domicilio: body.domicilioEmpresa,
-          localidad: body.nombreLocalidadEmpresa,
-          provincia: body.provinciaNombreEmpresa,
-          actividad: body.actividadEmpresa,
-          telefono: [body.telefonoEmpresa, body.celularEmpresa].filter(Boolean).join(", "),
-          email: body.emailEmpresa,
-        },
-      }];
-      audit({
-        modulo: "Consultas",
-        proceso: "SolicitudPreviaAfiliacion",
-        parametros: datos[0],
-        observaciones: "Emite PDF con generador PDF-LIB",
-      });
-
-      const base64 = await generarPDFLibSolicitudAfiliacion({
-        datos,
-        descargar: false,
-        onBase64: () => { },
-        setPaginaActual: () => { },
-        setTotalPaginas: () => { },
-      });
-
-      setState((o) => ({
-        ...o,
-        // Guardamos solo el base64 puro y el contentType; el iframe usará un blob URL
-        base64: base64,
-        contentType: "application/pdf",
-      }));
-    };
-
-    // permie carga manual
-    setCreateFormQuery((o) => ({
-      ...o,
-      query: { ...o.query, config: { ...o.query.config, body } },
-      onPreLoad: () =>
-        setState((s) => ({ ...s, loading: "Enviando formulario..." })),
-      onLoad: ({ ok, error }) => {
-        const changes = { loading: null };
-
-        if (error) {
-          console.error('❌ Error al crear formulario:', error);
-          changes.errors = { create: error.toString() };
-        } else {
-          console.log('✅ Formulario creado exitosamente:', ok);
-
-          // Soporta { id }, { Id } o el id plano
-          const nuevoId = (ok && (ok.id ?? ok.Id)) ?? (Number.isFinite(ok) ? ok : null);
-
-          console.log(' ID del formulario creado:', nuevoId);
-
-          if (nuevoId) {
-            setState(s => ({ ...s, form: { ...s.form, id: nuevoId } }));
-
-            // PERSISTIR DOCUMENTACIÓN con el ID real
-            console.log(' Iniciando persistencia de documentación con ID:', nuevoId);
-            persistirDocumentacion(nuevoId);
-          } else {
-            console.warn(' No se pudo obtener el ID del formulario creado');
-          }
-
-          // Generar vista previa en PDF
-          console.log(' Generando vista previa PDF');
-          despliega();
-        }
-
-
-
-
-
-        setState((s) => ({ ...s, ...changes }));
-      },
-    }));
-  };
-
-
+  const onImprimie = () =>
+    imprimirAfiliadoFormulario({
+      state,
+      setState,
+      seccionalSelect,
+      tipoDocumentoSelect,
+      nacionalidadSelect,
+      estadoCivilSelect,
+      sexoSelect,
+      trabPciaSelect,
+      trabLocaSelect,
+      oficioSelect,
+      actividadSelect,
+      emplPciaSelect,
+      emplLocaSelect,
+      ciiuSelect,
+      data,
+      setCreateFormQuery,
+      persistirDocumentacion,
+      audit,
+    });
   return (
     <Modal size="xl" centered show>
       <Modal.Header className={modalCss.modalCabecera}>
@@ -3295,7 +2471,7 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
       <Modal.Body>{content}</Modal.Body>
       <Modal.Footer>
         <Grid grid="auto / 1fr 150px 150px" width col gap="20px">
-          <Grid width style={{ color: "red" }}>{state.errors.create}</Grid>
+          <Grid width className={classes.errorCreate}>{state.errors.create}</Grid>
           {state.base64 ? (
             <div />
           ) : (
@@ -3310,7 +2486,6 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
               </Button>
             )
           )}
-
           <Button className="botonAmarillo" onClick={() => onClose(true)}>
             FINALIZA
           </Button>
@@ -3319,5 +2494,4 @@ const actividadSelectOptions = ({ data = [], buscar = "", ...x }) =>
     </Modal>
   );
 };
-
 export default SolicitudAfiliacionForm;
