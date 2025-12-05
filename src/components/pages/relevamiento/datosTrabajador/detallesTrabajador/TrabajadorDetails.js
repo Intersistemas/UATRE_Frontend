@@ -9,7 +9,6 @@ const InputMaterial = (p) => <IM variant="standard" size="small" {...p} />;
 
 const TrabajadorDetails = (props) => {
 
-	console.log("config",props.config)
 	const config = props.config;
 	const data = config.data ?? {};
 	const tab = config.tab ?? 0;
@@ -71,28 +70,108 @@ const TrabajadorDetails = (props) => {
 							
 						</Grid>
 						<Grid className={styles.grupo} col full>
+							{/* Primera fila */}
 							<Grid className={styles.contenido} gap="1rem"> 
-							
 								<Grid width> 
-									
 									<InputMaterial label="EstadoVivienda"  value={validar(data.estadoVivienda === "B" ? "BUENA" : data.estadoVivienda === "M" ? "MALA" : "ACEPTABLE")}/>
 									<InputMaterial label="CantidadIntegrantes"  value={validar(data.cantidadIntegrantesVivienda === "S" ? "SI" : "NO" === "S" ? "SI" : "NO")}/>
 									<InputMaterial label="Electricidad"  value={validar(data.serviciosElectricidad === "S" ? "SI" : "NO")}/>
 									<InputMaterial label="Gas"  value={validar(data.serviciosGas === "S" ? "SI" : "NO")}/> 
-									{/* <InputMaterial label="Fecha de carga" width="8rem" value={validar(data.createdDate)}/> */}
 									<InputMaterial label="Agua Potable"  value={validar(data.serviciosAguaPotable === "S" ? "SI" : "NO")}/>
 									<InputMaterial label="Internet"   value={validar(data.serviciosInternet === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Hijos"   value={validar(data.hijos === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Mayores"   value={validar(data.hijosMayores === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Trabaja"   value={validar(data.hijosMayoresTrabaja === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="IdentificarCondicionLaboral"   value={validar(data.hijosMayoresTrabajanIr === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Obserbaciones"   value={validar(!data.observacionesCondicionHabitacional ? "-" : data.observacionesCondicionHabitacional)}/>
+								</Grid>
+							</Grid>
 
-								</Grid>		
+							{/* Segunda fila */}
+							<Grid className={styles.contenido} gap="1rem">
+							<Grid width>
+							<InputMaterial 
+								label="Pareja" 
+								value={
+									(() => {
+										if (data.pareja === "s") {
+											if (data.parejaTrabaja === "s") {
+												return validar("SI - Trabaja (SI) - Permite(Si)");
+											} else {
+												return validar("SI - Trabaja (NO)");
+											}
+										} else {
+											return validar("NO");
+										}
+									})()
+								}
+								title={`${data.pareja === "s" ? "SI" : "NO"} - ${data.pareja === "s" ? (data.parejaTrabaja === "s" ? "Trabaja (SI) - Permite la opción de ir a identificar y condición laboral de pareja" : "Trabaja (NO)") : ""}`}
+							/>
+									<InputMaterial 
+										label="Hijos" 
+										value={
+											(() => {
+												let texto = "";
+												
+												if (data.hijos === "s") {
+													texto = "SI - Mayores (";
+													
+													// Verificar HijosMayores
+													if (data.hijosMayores === "s") {
+														texto += "SI) - Trabajan (";
+														
+												// Verificar HijosMayoresTrabajan
+												if (data.hijosMayoresTrabajan === "s") {
+													texto += "SI) - Permite(Si)";
+												} else {
+													texto += "NO)";
+												}
+											} else if (data.hijosMayores === "n") {
+											texto += "NO) - Escolarizados (";														// Verificar HijosMenoresEscolarizados
+													if (data.hijosMenoresEscolarizados === "s") {
+														texto += "SI)";
+													} else {
+														texto += "NO)";
+													}
+												}
+											} else {
+												texto = "NO";
+											}
+											
+										return validar(texto);
+										})()
+									}
+									title={
+											(() => {
+												let texto = "";
+												
+												if (data.hijos === "s") {
+													texto = "SI - Mayores (";
+													
+												if (data.hijosMayores === "s") {
+													texto += "SI) - Trabajan (";
+													
+													if (data.hijosMayoresTrabajan === "s") {
+														texto += "SI) - Permite la opción de ir a identificar y condición laboral de los hijos";
+													} else {
+														texto += "NO)";
+													}
+												} else if (data.hijosMayores === "n") {
+													texto += "NO) - Escolarizados (";
+													
+													if (data.hijosMenoresEscolarizados === "s") {
+														texto += "SI)";
+													} else {
+														texto += "NO)";
+													}
+												}
+												} else {
+													texto = "NO";
+												}
+												
+												return texto;
+										})()
+								}
+							/>
+							<InputMaterial label="Obserbaciones"   value={validar(!data.observacionesCondicionHabitacional ? "-" : data.observacionesCondicionHabitacional)}/>
 							</Grid>
 						</Grid>
-						
-					</Grid>
+					</Grid>					</Grid>
 				);
 				//#endregion
 				break;

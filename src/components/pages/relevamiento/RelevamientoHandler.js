@@ -18,7 +18,7 @@ import SearchSelectMaterial, {
 import useQueryState from "components/hooks/useQueryState";
 
 /* ================= Helpers ================= */
-const norm = (v) =>
+const norm = (v) => 
   String(v ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -97,6 +97,10 @@ const RelevamientoHandler = () => {
   // IDs aplicados (para filtrar client-side exacto)
   const [delegacionIdAplicado, setDelegacionIdAplicado] = useState(null);
   const [seccionalIdAplicado, setSeccionalIdAplicado] = useState(null);
+
+  // Filtro de fecha
+  const [fechaDesde, setFechaDesde] = useState(null);
+  const [fechaHasta, setFechaHasta] = useState(null);
 
   /* ---------- Buscador interno de selects ---------- */
   useEffect(() => {
@@ -301,9 +305,32 @@ const RelevamientoHandler = () => {
         data = data.filter((r) => idsSeccionales.has(String(r.seccionalId ?? "")));
       }
 
+      // Filtro por rango de fechas
+      if (fechaDesde || fechaHasta) {
+        data = data.filter((r) => {
+          if (!r.fecha) return false;
+          
+          const fechaRegistro = new Date(r.fecha);
+          
+          if (fechaDesde && fechaHasta) {
+            const desde = new Date(fechaDesde);
+            const hasta = new Date(fechaHasta);
+            return fechaRegistro >= desde && fechaRegistro <= hasta;
+          } else if (fechaDesde) {
+            const desde = new Date(fechaDesde);
+            return fechaRegistro >= desde;
+          } else if (fechaHasta) {
+            const hasta = new Date(fechaHasta);
+            return fechaRegistro <= hasta;
+          }
+          
+          return true;
+        });
+      }
+
       return data;
     },
-    [empleadorAplicado, seccionalIdAplicado, delegacionIdAplicado, seccionalSelect.data]
+    [empleadorAplicado, seccionalIdAplicado, delegacionIdAplicado, seccionalSelect.data, fechaDesde, fechaHasta]
   );
 
   const {
@@ -467,6 +494,8 @@ const RelevamientoHandler = () => {
     setEmpleadorAplicado("");
     setDelegacionIdAplicado(null);
     setSeccionalIdAplicado(null);
+    setFechaDesde(null);
+    setFechaHasta(null);
 
     relevamientoChanger("list", {
       params: {},
@@ -489,7 +518,7 @@ const RelevamientoHandler = () => {
       </Grid>
 
       {tab === 0 && (
-        <Grid grid="auto / 1fr 1fr 1fr 160px 140px" gap="10px" align="center">
+        <Grid grid="auto / 1fr 1fr 1fr 1fr 1fr 160px 140px" gap="10px" align="center">
           {/* Delegación */}
           <SearchSelectMaterial
             id="delegacionSelect"
@@ -519,6 +548,30 @@ const RelevamientoHandler = () => {
             label="Empleador"
             value={empleadorUI}
             onChange={(v) => setEmpleadorUI(v && v.target ? v.target.value : v)}
+          />
+
+          {/* Desde fecha */}
+          <InputMaterial
+            type="date"
+            label="Desde fecha"
+            value={fechaDesde}
+            maxDate={fechaHasta}
+            onChange={(v) => {
+              const fecha = v?.format("YYYY-MM-DD");
+              setFechaDesde(fecha);
+            }}
+          />
+
+          {/* Hasta fecha */}
+          <InputMaterial
+            type="date"
+            label="Hasta fecha"
+            value={fechaHasta}
+            minDate={fechaDesde}
+            onChange={(v) => {
+              const fecha = v?.format("YYYY-MM-DD");
+              setFechaHasta(fecha);
+            }}
           />
 
           <Button className="botonAzul" onClick={onAplicaFiltros}>
