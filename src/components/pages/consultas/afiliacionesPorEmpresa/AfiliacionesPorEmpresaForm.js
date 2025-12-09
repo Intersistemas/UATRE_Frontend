@@ -91,13 +91,6 @@ const AfiliacionesPorEmpresaForm = ({
   const usuarioLogueado = useSelector((state) => state.usuarioLogueado);
   const ambito = useAmbitos().ambitoUser();
   const seccionalPredeterminadaSet = useRef(false);
-  console.log("usuarioLogueado", usuarioLogueado);
-  console.log("useAmbitos",ambito)
-
-  // Resetear el flag cuando cambia el request (nuevo formulario)
-  useEffect(() => {
-    seccionalPredeterminadaSet.current = false;
-  }, [request]);
   const [totalesTrabajadores, setTotalesTrabajadores] = useState({
     loading: false,
     totales: null,
@@ -398,6 +391,17 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
           },
         };
       }
+      case "GetAfiliado": {
+        const { CUIL } = params;
+        return {
+          config: {
+            baseURL: "Afiliaciones",
+            endpoint: `/Afiliado/GetAfiliadoByCUILValidado`,
+            method: "GET",
+          },
+          params: { CUIL },
+        };
+      }
       case "ConsultaAFIP":{
 	      return {
 					config: {
@@ -424,18 +428,15 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
     selectedRecord: null,
     origen: "",
   });
-  // Filtrado por delegación y carga de opciones
+  // Filtrado de opciones por delegación
   useEffect(() => {
-    if (seccionalSelect.data.length === 0) {
-      return;
-    }
+    if (seccionalSelect.data.length === 0) return;
     
     let dataFiltrada = seccionalSelect.data.filter((r) => r.id !== 99999);
     
-    // Si el ámbito es Delegaciones, filtrar seccionales por la delegación
+    // Filtrar por delegación si corresponde
     if (ambito.tipo === 'Delegaciones') {
       const delegacionId = ambito.ids?.[0];
-      
       if (delegacionId) {
         dataFiltrada = dataFiltrada.filter(s => s.refDelegacionId === delegacionId);
       }
@@ -443,116 +444,183 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
     
     const options = seccionalSelectOptions({ data: dataFiltrada, buscar: seccionalSelect.buscar });
     
-    setSeccionalSelect((o) => ({
-      ...o,
-      options: options,
-    }));
+    setSeccionalSelect((o) => ({ ...o, options }));
   }, [seccionalSelect.buscar, seccionalSelect.data, ambito.tipo, ambito.ids?.[0]]);
   //#endregion select seccionales
 
   // Actualizar selectedRecord cuando cambia selected
   useEffect(() => {
-    console.log("seccionalSelect!!",seccionalSelect)
-    setSeccionalSelect((o) => ({
-      ...o,
-      selectedRecord: seccionalSelect.selected?.value 
-        ? seccionalSelect.data.find((s)=> s?.id === seccionalSelect.selected.value)
-        : null
-    }));
-  }, [seccionalSelect.selected, seccionalSelect.data]);
-  //#endregion select seccionales
-
-  // Establecer seccional predeterminada según el ámbito (solo una vez por request)
-  useEffect(() => {
-    if (seccionalPredeterminadaSet.current) {
-      return;
-    }
-    if (seccionalSelect.options.length === 0) {
-      return;
-    }
-    if (seccionalSelect.data.length === 0) {
-      return;
-    }
+    const selectedValue = seccionalSelect.selected?.value;
     
-    // Si ya hay una sección seleccionada, no hacer nada
-    if (seccionalSelect.selected && seccionalSelect.selected.value) {
-      seccionalPredeterminadaSet.current = true;
-      return;
-    }
-    
-    let defaultSeccional = null;
-    
-    if (ambito.tipo === "Seccionales") {
-      // Si es Seccionales, usar la seccional del usuario
-      const seccionalId = ambito.ids?.[0];
-      if (seccionalId) {
-        const option = seccionalSelect.options.find((r) => r.value === seccionalId);
-        if (option) {
-          defaultSeccional = option;
-          console.log("✅ [PREDETERMINADA] Opción encontrada para Seccionales:", option);
-        }
-      }
-    } else if (ambito.tipo === "Delegaciones") {
-      // Si es Delegaciones, usar la primera seccional de la delegación filtrada
-      const delegacionId = ambito.ids?.[0];
-      console.log("🔵 [PREDETERMINADA] Es Delegaciones, delegacionId:", delegacionId);
+    if (selectedValue) {
+      const record = seccionalSelect.data.find((s) => s?.id === selectedValue);
       
-      if (delegacionId) {
-        const seccionalesDelegacion = seccionalSelect.data.filter(
-          s => s.refDelegacionId === delegacionId && s.id !== 99999
-        );
-        console.log("🔵 [PREDETERMINADA] Seccionales de delegación encontradas:", seccionalesDelegacion.length);
-        console.log("🔵 [PREDETERMINADA] Seccionales:", seccionalesDelegacion.map(s => `${s.id} - ${s.descripcion}`));
-        
-        if (seccionalesDelegacion.length > 0) {
-          // Ordenar por id para que siempre sea la misma
-          seccionalesDelegacion.sort((a, b) => a.id - b.id);
-          const primeraSecional = seccionalesDelegacion[0];
-          console.log("🔵 [PREDETERMINADA] Primera seccional:", primeraSecional.id, primeraSecional.descripcion);
-          
-          const option = seccionalSelect.options.find((r) => r.value === primeraSecional.id);
-          if (option) {
-            defaultSeccional = option;
-            console.log("✅ [PREDETERMINADA] Opción encontrada para Delegaciones:", option);
-          } else {
-            console.log("❌ [PREDETERMINADA] NO se encontró la opción en options para ID:", primeraSecional.id);
-            console.log("❌ [PREDETERMINADA] Options disponibles:", seccionalSelect.options);
-          }
+      setSeccionalSelect((o) => {
+        if (o.selectedRecord?.id !== record?.id) {
+          return { ...o, selectedRecord: record };
         }
-      }
-    }
-    
-    if (defaultSeccional) {
-      console.log("✅ [PREDETERMINADA] Estableciendo seccional predeterminada:", defaultSeccional);
-      setSeccionalSelect((o) => ({
-        ...o,
-        selected: defaultSeccional,
-        selectedRecord: seccionalSelect.data.find((s) => s.id === defaultSeccional.value)
-      }));
-      seccionalPredeterminadaSet.current = true;
+        return o;
+      });
     } else {
-      console.log("❌ [PREDETERMINADA] No se pudo establecer seccional predeterminada");
+      setSeccionalSelect((o) => {
+        if (o.selectedRecord !== null) {
+          return { ...o, selectedRecord: null };
+        }
+        return o;
+      });
     }
-  }, [seccionalSelect.options.length, seccionalSelect.data.length, ambito.tipo, ambito.ids?.[0]]);
+  }, [seccionalSelect.selected?.value, seccionalSelect.data]);
   //#endregion select seccionales
 
   //#region Carga inicial select seccionales
   useEffect(() => {
+    // Solo ejecutar cuando no se ha establecido una seccional predeterminada
+    if (seccionalPredeterminadaSet.current) {
+      return;
+    }
+    
     setSeccionalesQuery((o) => ({
       ...o,
       onLoad: ({ ok, error }) => {
-        let data = [];
-        if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+        let allData = [];
+        let seccionalesFiltered = [];
+        let seccionalPredeterminada = null;
+
+        if (Array.isArray(ok)) {
+          allData = ok.filter((r) => r.id !== 99999);
+          seccionalesFiltered = allData;
+
+          // Si el ámbito es Delegaciones
+          if (ambito.tipo === 'Delegaciones') {
+            const delegacionId = ambito.ids[0];
+            // Filtrar seccionales por la delegación actual
+            seccionalesFiltered = allData.filter((r) => r.refDelegacionId === delegacionId);
+
+            // Intentar obtener la seccional del usuario mediante Afiliado (por CUIL/CUIT)
+            // Si no se encuentra o no pertenece a la delegación, se usará la primera seccional
+            if (usuarioLogueado?.cuit && !seccionalPredeterminadaSet.current) {
+              // Verificar si el usuario tiene una seccionalId directamente
+              if (usuarioLogueado.seccionalId) {
+                const seccionalUsuario = seccionalesFiltered.find(s => s.id === usuarioLogueado.seccionalId);
+                if (seccionalUsuario) {
+                  seccionalPredeterminada = seccionalUsuario;
+                  seccionalPredeterminadaSet.current = true;
+                  
+                  setSeccionalSelect((o) => ({
+                    ...o,
+                    loading: null,
+                    data: seccionalesFiltered,
+                    error: error?.toString(),
+                    selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion }
+                  }));
+                  return;
+                }
+              }
+              
+              pushQuery({
+                action: "GetAfiliado",
+                params: { CUIL: usuarioLogueado.cuit },
+                onOk: async (afiliado) => {
+                  try {
+                    const seccionalIdUsuario = afiliado?.seccionalId;
+                    const seccionalUsuario = seccionalesFiltered.find(s => s.id === seccionalIdUsuario);
+                    
+                    if (seccionalUsuario && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalUsuario;
+                      seccionalPredeterminadaSet.current = true;
+                    } else if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalesFiltered[0];
+                      seccionalPredeterminadaSet.current = true;
+                    }
+
+                    setSeccionalSelect((o) => ({
+                      ...o,
+                      loading: null,
+                      data: seccionalesFiltered,
+                      error: error?.toString(),
+                      ...(seccionalPredeterminada
+                        ? { selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion } }
+                        : {}),
+                    }));
+                  } catch (e) {
+                    // En caso de error, fallback a primera seccional disponible
+                    if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                      seccionalPredeterminada = seccionalesFiltered[0];
+                      seccionalPredeterminadaSet.current = true;
+                      setSeccionalSelect((o) => ({
+                        ...o,
+                        loading: null,
+                        data: seccionalesFiltered,
+                        error: error?.toString(),
+                        selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion },
+                      }));
+                    } else {
+                      setSeccionalSelect((o) => ({ ...o, loading: null, data: seccionalesFiltered, error: error?.toString() }));
+                    }
+                  }
+                },
+                onError: async (err) => {
+                  // No se encontró afiliado: fallback a primera seccional
+                  if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                    seccionalPredeterminada = seccionalesFiltered[0];
+                    seccionalPredeterminadaSet.current = true;
+                    setSeccionalSelect((o) => ({
+                      ...o,
+                      loading: null,
+                      data: seccionalesFiltered,
+                      error: error?.toString(),
+                      selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion },
+                    }));
+                  } else {
+                    setSeccionalSelect((o) => ({ ...o, loading: null, data: seccionalesFiltered, error: error?.toString() }));
+                  }
+                },
+              });
+              // Salimos porque la actualización del estado se hará en los callbacks
+              return;
+            } else {
+              // No hay CUIT del usuario: usar la primera seccional si aplica
+              if (seccionalesFiltered.length > 0 && !seccionalPredeterminadaSet.current) {
+                seccionalPredeterminada = seccionalesFiltered[0];
+                seccionalPredeterminadaSet.current = true;
+              }
+            }
+          } else if (ambito.tipo === 'Seccionales') {
+            // Si es Seccionales, usar directamente la seccional del usuario
+            const seccionalId = ambito.ids?.[0];
+            
+            if (seccionalId) {
+              const seccionalUsuario = allData.find(s => s.id === seccionalId);
+              if (seccionalUsuario && !seccionalPredeterminadaSet.current) {
+                seccionalPredeterminada = seccionalUsuario;
+                seccionalPredeterminadaSet.current = true;
+              }
+            }
+          }
+        }
+
+        // Si no se necesitó consultar afiliado o ya no quedó mejor opción, actualizar estado normalmente
         setSeccionalSelect((o) => ({
           ...o,
           loading: null,
-          data,
+          data: seccionalesFiltered,
           error: error?.toString(),
+          ...(seccionalPredeterminada
+            ? { selected: { value: seccionalPredeterminada.id, label: seccionalPredeterminada.descripcion } }
+            : {}),
         }));
       },
     }));
-  }, [setSeccionalesQuery]);
+  }, [setSeccionalesQuery, ambito.tipo, ambito.ids, usuarioLogueado?.cuit]);
   //#endregion Carga inicial select seccionales
+  
+  //#region Resetear referencia al desmontar
+  useEffect(() => {
+    return () => {
+      seccionalPredeterminadaSet.current = false;
+    };
+  }, []);
+  //#endregion
 
 
    //Carga de lista según parametros
