@@ -2,6 +2,7 @@ import React from "react";
 import TableHook from "components/ui/Table/TableHook";
 import Table from "./TasasARCATable";
 import Form from "./TasasARCAForm";
+import FormatearFecha from "../../../helpers/FormatearFecha"
 
 /** imports: TableHookConfig y TableHookReturn
  * @typedef {import('components/ui/Table/TableHook').TableHookConfig} TableHookConfig
@@ -43,6 +44,7 @@ const ymdToNum = (ymd) => (ymd ? Number(ymd.replace(/-/g, "")) : NaN);
 
 
 export default function useTasasARCA(config = {}) {
+	const lastRowsRef = React.useRef([]);
 	return TableHook({
 		requests: ["A", "B", "M"],
 		config: {

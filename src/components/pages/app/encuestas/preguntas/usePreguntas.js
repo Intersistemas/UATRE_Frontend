@@ -1,5 +1,4 @@
 
-
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import PreguntasTable from "./PreguntasTable";
@@ -10,7 +9,7 @@ import dayjs from "dayjs";
 // import FormatearFecha from "components/helpers/FormatearFecha";
 // import { FormControlLabel, List, Switch } from "@mui/material";
 import { id } from "components/helpers/Utils";
-import { Fecha } from "components/helpers/Formato";
+// import { Fecha } from "components/helpers/Formato"; // (no utilizado)
 
 // const vigenteHasta = new Date(2099, 11, 31);
 // const vigenteDesde = new Date();
@@ -125,6 +124,19 @@ const usePreguntas = ({
       onOk: async (data) => {
         setList((prev) => {
           console.log("data_UsePreguntas:", data);
+          // ||||||||||||||||||||||||||||||||||||MODIFICADO||||||||||||||||||||||||||||||||||
+          // Si estamos en alta (request === 'A'), preservamos la selección para mantener el modal abierto.
+          if (prev.selection?.request === "A") {
+            return {
+              ...prev,
+              loading: null,
+              data: data.preguntas,
+              error: null,
+              selection: { ...prev.selection },
+            };
+          }
+          // ||||||||||||||||||||||||||||||||||||FIN MODIFICADO||||||||||||||||||||||||||||||||||
+
           const record =
             data.preguntas?.find((r) => r.encuestaId === prev.selection.record?.id) ||
             data.preguntas?.[0];
@@ -151,6 +163,26 @@ const usePreguntas = ({
         })),
     });
   }, [list.loading, pushQuery, list.params]);
+
+  // Auto-oculta el mensaje informativo (infoMessage) a los 5 segundos desde el hook padre
+  // (refuerzo adicional por si re-renders del formulario impiden que se elimine allí)
+  useEffect(() => {
+    const msg = list.selection?.edit?.infoMessage;
+    if (!msg) return;
+    const timer = setTimeout(() => {
+      setList((prev) => {
+        if (!prev.selection?.edit?.infoMessage) return prev; // Ya fue limpiado
+        return {
+          ...prev,
+          selection: {
+            ...prev.selection,
+            edit: { ...prev.selection.edit, infoMessage: undefined },
+          },
+        };
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [list.selection?.edit?.infoMessage]);
   
 
   // Función para solicitar cambios en la selección o en la lista
@@ -322,26 +354,7 @@ const usePreguntas = ({
 
           }
 
-          //  if (list.selection.request === "A" || list.selection.request === "M") {
-          //   if (!record.enunciado) errors.enunciado = "Dato requerido";
-          //   if (!record.tipoPregunta) errors.tipoPregunta = "Dato requerido";
-          //   //verifico que el orden no sea igual al de otra pregunta
-          //   if (list.data.some(p => p.ordenPregunta === record.ordenPregunta && p.id !== record.id)) {
-          //     errors.ordenPregunta = "No se puede ingresar un orden ya utilizado";
-          //   }
-          //   //El ordenPregunta no puede ser menor a 1
-          //   if (record.ordenPregunta < 1) errors.ordenPregunta = "El orden de la pregunta no puede ser menor a 1";
-          //   if (record.tipoPregunta === "MC" && !record.detalles) errors.detalles = "Dato requerido";
-          //   if (record.tipoPregunta === "OP" && !record.enunciado) errors.enunciado = "Dato requerido";
-          //   if (record.tipoPregunta === "TX" && !record.textoLibre) errors.textoLibre = "Dato requerido";
-          //   if (Array.isArray(record.detalles)) {
-          //     record.detalles.forEach((detalle, index) => {
-          //       if (!detalle.texto) errors[`detalles[${index}].texto`] = "Dato requerido";
-          //     });
-          //   }
 
-            
-          // }
           if (list.selection.request === "A" || list.selection.request === "M") {
             if (!record.enunciado || record.enunciado.trim() === "") errors.enunciado = "Dato requerido";
             if (!record.tipoPregunta || record.tipoPregunta.trim() === "") errors.tipoPregunta = "Dato requerido";

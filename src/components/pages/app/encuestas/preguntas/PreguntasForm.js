@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal, Dropdown, Form, ListGroup, Row, Col } from "react-bootstrap";
+import { Modal, Dropdown, Form, ListGroup, Row, Col, Alert } from "react-bootstrap";
 import moment from "moment";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
@@ -125,6 +125,19 @@ useEffect(() => {
           <h3>{title}</h3>
         </Modal.Header>
         <Modal.Body>
+          {showInfo && data.infoMessage ? (
+            <Alert
+              variant="success"
+              style={{ marginBottom: 12 }}
+              dismissible
+              onClose={() => {
+                setShowInfo(false);
+                onChange({ infoMessage: undefined });
+              }}
+            >
+              {data.infoMessage}
+            </Alert>
+          ) : null}
           
           {/* Mensaje de éxito */}
           {successMessage && (
