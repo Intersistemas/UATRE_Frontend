@@ -83,12 +83,6 @@ export const includeSearch = (option, search, ignoreCase = true) =>
 		getCase(search ?? "", ignoreCase)
 	);
 
-const normalizeOption = (option, fallback = null) => {
-	if (option == null) return fallback ?? { value: "", label: "" };
-	if (typeof option === "string") return { value: option, label: option };
-	return option;
-};
-
 // const ITEM_HEIGHT = 48;
 // const ITEM_PADDING_TOP = 8;
 
@@ -105,11 +99,6 @@ const normalizeOption = (option, fallback = null) => {
  */
 
 /**
- * @callback SearchSelectOnInputChange
- * @param {string} newValue
- */
-
-/**
  * @param {object} [props] Propiedades
  * @param {string} [props.name]
  * @param {string} [props.label]
@@ -123,14 +112,12 @@ const normalizeOption = (option, fallback = null) => {
  * @param {object} [props.style]
  * @param {SearchSelectOnChange} [props.onChange]
  * @param {SearchSelectOnTextChange} [props.onTextChange]
- * @param {SearchSelectOnInputChange} [props.onInputChange]
- * @param {string} [props.inputValue]
  * @param {object} [props.autocompleteProps]
  */
 const SearchSelectMaterial = ({
 	name = "",
 	label = "",
-	value = {},
+	value = null,
 	options = [],
 	defaultOption = null,
 	width = "100%",
@@ -140,16 +127,10 @@ const SearchSelectMaterial = ({
 	style: styleInit = {},
 	onChange = () => {},
 	onTextChange = () => {},
-	onInputChange,
-	inputValue,
 	autocompleteProps = {},
 	freeSolo = true,
-	autoSelect = false,
 	...x
 }) => {
-	const clearOption = defaultOption ?? { value: "", label: "" };
-	const currentValue = value ?? defaultOption ?? null;
-
 	const formControlProps = {
 		size,
 		style: {
@@ -158,6 +139,14 @@ const SearchSelectMaterial = ({
 			...styleInit,
 		},
 	};
+	defaultOption ??= options.length > 0 ? options[0] : value;
+	
+	// Normalizar el valor: si es null, undefined, {} o tiene value/label undefined, usar null
+	const normalizedValue = (!value || 
+		(typeof value === 'object' && Object.keys(value).length === 0) ||
+		(typeof value === 'object' && value.value === undefined && value.label === undefined)) 
+		? null 
+		: value;
 	
 	return (
 		<FormControl {...formControlProps}>
@@ -166,10 +155,9 @@ const SearchSelectMaterial = ({
 				className={styles.select}
 				disablePortal
 				freeSolo={freeSolo}
-				autoSelect={autoSelect}
 				renderOption={(props, option, state) => (
 					<li {...props} key={state.index}>
-						{typeof option === "string" ? option : option.label}
+						{option.label}
 					</li>
 				)}
 				disabled={disabled}
@@ -178,22 +166,17 @@ const SearchSelectMaterial = ({
 				options={options}
 				//MenuProps={MenuProps}
 				size="small"
-				value={currentValue}
-				inputValue={inputValue}
-				onInputChange={(event, newInputValue, reason) => {
-					if (onInputChange) onInputChange(newInputValue);
-					else onTextChange(newInputValue);
+				value={normalizedValue}
+				onChange={(_, newValue) => onChange(newValue ?? defaultOption, name)}
+				getOptionLabel={(option) => option?.label || ""}
+				isOptionEqualToValue={(option, value) => {
+					// Si value es null/undefined, retornar true si option también lo es
+					if (!value) return !option;
+					// Si option es null/undefined, no son iguales
+					if (!option) return false;
+					// Comparar por value
+					return option.value === value.value;
 				}}
-				onChange={(event, newValue, reason) => {
-					if (reason === 'selectOption' || reason === 'clear' || reason === 'removeOption') {
-						const normalizedValue = normalizeOption(newValue, clearOption);
-						onChange(normalizedValue, name);
-						if (onInputChange) onInputChange(normalizedValue.label || '');
-					}
-				}}
-				getOptionLabel={(option) =>
-					typeof option === "string" ? option : option?.label || ""
-				}
 				//defaultValue={props.defaultValue}
 				{...autocompleteProps}
 				renderInput={(params) => (
@@ -201,6 +184,7 @@ const SearchSelectMaterial = ({
 						label={label}
 						{...x}
 						{...params}
+						onChange={onTextChange}
 					/>
 				)}
 			/>
