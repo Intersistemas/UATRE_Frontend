@@ -165,7 +165,7 @@ const FormaPagoPDF = ({
 									<Text style={styles.titulo}>VENCIMIENTO:</Text>
 								</Grid>
 								<Grid justify="center">
-									<Text>{Formato.Fecha(cabecera.fechaVencimiento)}</Text>
+									<Text>{Formato.Fecha(cabecera.fechaPagoEstimada)}</Text>
 								</Grid>
 							</Grid>
 							<Grid

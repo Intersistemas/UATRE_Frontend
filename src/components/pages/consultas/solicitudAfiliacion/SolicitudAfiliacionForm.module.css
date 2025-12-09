@@ -1,0 +1,43 @@
+/* Contenedor general de bloques (Trabajador / Empleador) */
+.group {
+  padding: 5px;
+  color: #186090;
+  text-align: left;
+  border: 1px solid;
+  border-radius: 20px;
+}
+
+/* Título de cada bloque */
+.titulo {
+  font-weight: bold;
+  text-align: left;
+  border-bottom: 1px dashed;
+}
+
+/* Wrapper para la vista previa del PDF */
+.pdfWrapper {
+  min-height: 70vh;
+}
+
+/* Iframe del PDF */
+.pdfIframe {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+}
+
+/* Cuando la seccional está bloqueada por tener seccIdUsuario */
+.seccionalLocked {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Separación entre tabs y contenido */
+.tabsContent {
+  margin-top: 10px;
+}
+
+/* Mensaje de error en el footer */
+.errorCreate {
+  color: red;
+}

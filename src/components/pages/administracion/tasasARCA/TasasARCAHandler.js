@@ -29,7 +29,7 @@ export default function Handler () {
 		request: tasasRequest,
 		selected: tasaSelected,
 	} = useTasasARCA({
-		params: { sort: "id" },
+		params: { sort: "-id" },
 		onLoadSelect: onLoadSelectKeepOrFirst,
 	});
 	const [tasasActions, setTasasActions] = useState([]);

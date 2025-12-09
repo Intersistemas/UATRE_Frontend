@@ -1,6 +1,4 @@
 
-
-
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import RespuestasTable from "./RespuestasTable";

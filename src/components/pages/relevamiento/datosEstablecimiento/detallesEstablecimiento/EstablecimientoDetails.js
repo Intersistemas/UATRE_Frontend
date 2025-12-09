@@ -55,9 +55,20 @@ const EstablecimientoDetails = (props) => {
 								<Grid width>
 									
 									<InputMaterial label="Botiquin"  value={validar(data.establecimientoBotiquin === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Baño"  value={validar(data.establecimientoBanos === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Baño"  value={validar(
+										data.establecimientoBanos === "S" 
+											? `SI - ${data.establecimientoBanosUbicacion === "A" ? "Afuera" : data.establecimientoBanosUbicacion === "D" ? "Adentro" : ""}` 
+											: "NO"
+									)}/>
 									<InputMaterial label="Accesibilidad"  value={validar(data.establecimientoAreaDescansoEquipada === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Gas"  value={validar(data.establecimientoServiciosGas === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Electricidad"  value={validar(
+										data.establecimientoServiciosElectricidad === "S" 
+											? `SI - ${data.establecimientoServiciosElectricidadTipo === "S" ? "Genset" : data.establecimientoServiciosElectricidadTipo === "N" ? "De red" : ""}` 
+											: "NO"
+									)}/>
+									<InputMaterial label="Gas"  value={validar(
+										`${data.establecimientoServiciosGas === "S" ? "SI" : "NO"} - ${data.establecimientoServiciosGasTipo === "X" ? "Garrafa" : "De red"}`
+									)}/>
 									{/* <InputMaterial label="Fecha de carga" width="8rem" value={validar(data.createdDate)}/> */}
 									<InputMaterial label="Agua Potable"  value={validar(data.establecimientoServiciosAguaPotable === "S" ? "SI" : "NO")}/>
 									<InputMaterial label="Internet"   value={validar(data.establecimientoServiciosInternet === "S" ? "SI" : "NO")}/>
