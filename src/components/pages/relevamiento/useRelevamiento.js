@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import dayjs from "dayjs";
 import AsArray from "components/helpers/AsArray";
@@ -63,6 +62,7 @@ const useRelevamiento = ({
   hideSelectColumn = true,
   mostrarBuscar = false,
   filtroEstado = null,
+  renderExtraActions = null,
 } = {}) => {
   const Usuario = useContext(AuthContext).usuario;
 
@@ -566,6 +566,11 @@ const useRelevamiento = ({
             }}
             loading={!!list.loading}
           />
+          {renderExtraActions && (
+            <div style={{ padding: "15px", textAlign: "center", borderTop: "1px solid #e0e0e0" }}>
+              {renderExtraActions()}
+            </div>
+          )}
         </div>
       )}
 
@@ -585,6 +590,7 @@ const useRelevamiento = ({
     seccionalesLoading: seccionales.loading,
     seccionalesError: seccionales.error,
     cargarSeccionales,
+    list,
   };
 };
 
