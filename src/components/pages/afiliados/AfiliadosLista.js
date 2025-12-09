@@ -30,7 +30,6 @@ import AfiliadoHistorico from "./AfiliadoHistorico";
 import AfiliadosDocumentaciones from "./AfiliadosDocumentaciones";
 import AfiliadoSeccional from "./AfiliadosSeccionales";
 import DeclaracionesJuradas from "./declaracionesJuradas/DeclaracionesJuradas";
-import useAmbitos from 'components/hooks/useAmbitos';
 
 const AfiliadosLista = (props) => {
 
@@ -43,8 +42,6 @@ const AfiliadosLista = (props) => {
   const [afiliadosActions, setAfiliadosActions] = useState();
   const { sendRequest: request } = useHttp();
   const [rowSelectedIndex, setRowSelectedIndex] = useState([props.afiliadoSeleccionado?.id]);
-  const [openImpresiones, setOpenImpresiones] = useState(false);
-  const ambito = useAmbitos().ambitoUser();
 
   const onLinkToGuiaAfiliaciones = () => {
 		const link = document.createElement("a");
@@ -57,7 +54,6 @@ const AfiliadosLista = (props) => {
 
   const handleSelectFilter = async (select,entry,obj) => {
     console.log('evento select y entry: ',select,entry,obj);
-    //BUSQUEDA Y FILTRO
 
     props.setEntrySelected(obj);
     props.setEntryValue(entry);
@@ -77,12 +73,11 @@ const AfiliadosLista = (props) => {
     console.log('selectedTab:',selectedTab);
     let actions = [];
 
-    if (selectedTab == 0) {
+    if (selectedTab === 0) {
       const createAction = ({ action, request, onExecute, ...x }) =>
         new Action({
           name: action,
-          //request: request,
-          onExecute: onExecute,//() =>  dispatch(handleModuloEjecutarAccion(request)),
+          onExecute: onExecute,
           combination: "AltKey",
           ...x,
         });
@@ -90,19 +85,19 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Agrega Afiliado`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("A")),//request: "A",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("A")),
           tarea: "Afiliaciones_AfiliadoAgrega",
           keys: "a",
           underlineindex: 0,
         }),
       );
 
-      const desc = "";//afiliadoSeleccionado?.nombre ;
+      const desc = "";
 
       actions.push(
         createAction({
           action: `Modifica Afiliado ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("M")),//request: "M",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("M")),
           tarea: "Afiliaciones_AfiliadoModifica",
           ...(afiliadoSeleccionado?.estadoSolicitud === "No Activo" ? 
             {disabled:  true}
@@ -119,7 +114,7 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Resuelve Solicitud ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("S")),//request: "S",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("S")),
           tarea: "Afiliaciones_AfiliadoResuelve",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Pendiente" ? 
             {disabled:  true}
@@ -136,7 +131,7 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Baja Afiliado ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("B")),//request: "B",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("B")),
           tarea: "Afiliaciones_AfiliadoBaja",
 
           ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
@@ -154,10 +149,10 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Reactiva Afiliado ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("R")),//request: "R",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("R")),
           tarea: "Afiliaciones_AfiliadoReactiva",
           ...(afiliadoSeleccionado?.estadoSolicitud !== "No Activo" || (afiliadoSeleccionado?.refMotivoBajaNoPermitirReactivarAfiliado &&
-             !tareas.hasTarea("Afiliaciones_ReactivaBajaEspecial")) ? //SI RefMotivosBajaNoPermitirReactivarAfiliado = 1 no habilito el boton
+             !tareas.hasTarea("Afiliaciones_ReactivaBajaEspecial")) ?
             {disabled:  true}
             :
             {
@@ -172,7 +167,7 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Localiza Afiliado ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("L")),//request: "L",
+          onExecute: () => dispatch(handleModuloEjecutarAccion("L")),
           tarea: "Afiliaciones_AfiliadoLocaliza",
           disabled:  false,
           keys: "l",
@@ -180,41 +175,9 @@ const AfiliadosLista = (props) => {
         })
       );
 
-      /*
-      actions.push(
-        createAction({
-          action: `Imprime Carnet de Afiliación ${desc}`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("I")),//request: "I",
-          tarea: "Afiliaciones_AfiliadoCarnet",
-
-          ...(afiliadoSeleccionado?.estadoSolicitud !== "Activo" ? 
-            {disabled:  true}
-            :
-            {
-            disabled:  false,
-            keys: "p",
-            underlineindex: 2,
-            }
-          )
-        })
-      );
-
-			actions.push(
-				createAction({
-					action: `Imprime Carnet de Afiliación en Lote`,
-          onExecute: () => dispatch(handleModuloEjecutarAccion("E")),//request: "E",
-					tarea: "Afiliaciones_AfiliadoCarnet",
-					disabled: false,
-					keys: "e",
-					underlineindex: 6,
-				})
-			);
-*/
-
       actions.push(
         createAction({
           action: `Impresiones`,
-          //onExecute: (e) => handleClickBtn(e),//request: "X",
           tarea: "Afiliaciones_Impresiones",
           keys: "p",
           underlineindex: 2,
@@ -248,7 +211,6 @@ const AfiliadosLista = (props) => {
       actions.push(
         createAction({
           action: `Instructivos`,
-          //onExecute: (e) => handleClickBtn(e),//request: "X",
           tarea: "Afiliaciones_Instructvos",
           keys: "n",
           underlineindex: 1,
@@ -262,7 +224,6 @@ const AfiliadosLista = (props) => {
               disabled: !tareas.hasTarea("Afiliaciones_AfiliadoGuia"),
               keys: "g",
               underlineindex: 0,
-              //disabled: !tareas.hasTarea("Afiliaciones_Instrictivo1")
             }
           ]
         }),
@@ -273,12 +234,8 @@ const AfiliadosLista = (props) => {
     const acciones = actions;
 		dispatch(handleModuloSeleccionar({ nombre: "Afiliados", acciones }));
     setAfiliadosActions(actions);
-		 //cargo todas las acciones / botones
 	}, [selectedTab, afiliadoSeleccionado]);
 
-
-
-  //llamo para que se refresquen los datos del primer registro seleccionado
   useEffect(() => {
     console.log('props.afiliadoSeleccionado',props.afiliadoSeleccionado);
     rowEvents(props.afiliadoSeleccionado);
@@ -338,9 +295,6 @@ const AfiliadosLista = (props) => {
 		{
 			headerTitle: () => (`Situación del Afiliado`),
 			dataField: "estadoSolicitud",
-			//text: "Situación",
-			//sort: true,
-			//title: "Estado Solicitud",
 			headerStyle: { width: "8%", textAlign: "center" },
 			formatter: (cell) => {
 				switch (cell){
@@ -352,10 +306,6 @@ const AfiliadosLista = (props) => {
 						return (<div
 							style={{backgroundColor: '#ff6464cc', color: '#FFF'}}
 							>{cell}</div>)
-					/*case "Observado":
-						return (<div
-							style={{backgroundColor: '#6464ffcc',  color: '#FFF'}}
-							>{cell}</div>)*/
 					case "Rechazado":
 						return (<div
 							style={{backgroundColor: '#f08c32cc', color: '#FFF' }}
@@ -380,28 +330,24 @@ const AfiliadosLista = (props) => {
 			headerTitle: true,
 			dataField: "seccionalCodigo",
 			text: "Cod.Seccional",
-			//sort: true,
 			headerStyle: { width: "6%", textAlign: "center" },
 		},
 		{
 			headerTitle: true,
 			dataField: "seccional",
 			text: "Seccional",
-			//sort: true,
 			headerStyle: { width: "10%", textAlign: "center" },
 		},
 		{
 			headerTitle: true,
 			dataField: "refDelegacionDescripcion",
 			text: "Delegación",
-			//sort: true,
 			headerStyle: { width: "10%", textAlign: "center" },
 		},
 		{
 			headerTitle: true,
 			dataField: "provincia",
 			text: "Provincia",
-			//sort: true,
 			headerStyle: { width: "10%", textAlign: "center" },
 		},
 		{
@@ -424,7 +370,6 @@ const AfiliadosLista = (props) => {
 			headerTitle: true,
 			dataField: "empresaCUIT",
 			text: "CUIT",
-			//sort: true,
 			headerStyle: { width: "10rem", textAlign: "center" },
 			formatter: (v) => Formato.Cuit(v),
 		},
@@ -432,7 +377,6 @@ const AfiliadosLista = (props) => {
 			headerTitle: true,
 			dataField: "empresaDescripcion",
 			text: "Empresa",
-			//sort: true,
 			headerStyle: { width: "20%", textAlign: "center" },
 		},
 		 /*{
@@ -453,7 +397,7 @@ const AfiliadosLista = (props) => {
 		const ogStyle = column.style;
 		column.style = (cell, row, ...p) => {
 			const base = {};
-			const periodo = row.ultimaDDJJPeriodo || 101;	//0001-01
+			const periodo = row.ultimaDDJJPeriodo || 101;
 			const fecha = dayjs(Formato.Mascara(periodo, "####-##-01"));
 			if (dayjs().diff(fecha, "months") > 9) base.backgroundColor = "#bfbfbf";
 			const style = typeof ogStyle === "function" ? ogStyle(cell, row, ...p) : ogStyle;
@@ -513,14 +457,13 @@ const AfiliadosLista = (props) => {
    switch(selectedTab){
      case 0:
         setAfiliadoSeleccionado(row);
-        setddjjUatreSeleccionado({}); //dejo vacia las ddjj al seleccionar un nuevo afiliado
-        setEmpresaSeleccionada({}) //dejo vacia la empresa al seleccional el afiliado
+        setddjjUatreSeleccionado({});
+        setEmpresaSeleccionada({})
         props.onAfiliadoSeleccionado(row);
         break;
      case 1:
          setddjjUatreSeleccionado(row);
          console.log('ddjj_UatreSeleccionado',row);
-         //consulto los datos de la empresa seleccionada
          fetchEmpresa(row.cuit, 'DDJJ')
          break;
      case 3:
@@ -559,16 +502,11 @@ const AfiliadosLista = (props) => {
     type,
     { page, sizePerPage, filters, sortField, sortOrder, cellEdit}
   ) => {
-    //console.log('SORT_TABLE_handleTableChange: ',page, sizePerPage, filters,sortField, sortOrder);
-    //console.log('filters:',filters);
-    //setAfiliadoSeleccionado(null);
     sortField&&props.onSort(sortField,sortOrder);
     props.onFilterChange(filters);
   };
 
-  //#region  la paginacion la maneja el componente Table
   const pagination = paginationFactory({
-    //custom: true,
     page: afiliados.page,
     sizePerPage: afiliados.sizePerPage,
     paginationShowsTotal: false,
@@ -577,8 +515,6 @@ const AfiliadosLista = (props) => {
     firstPageText: "<<",
     nextPageText: ">",
     prePageText: "<",
-    //showTotal: true,
-    //alwaysShowAllBtns: true,
     hideSizePerPage: true,
     onPageChange: function (page, sizePerPage) {
       props.onPageChange(page, sizePerPage);
@@ -587,7 +523,6 @@ const AfiliadosLista = (props) => {
     props.onSizePerPageChange(sizePerPage, page);
     },
   });
-//#endregion 
 
   const indication = <h4>No hay información a mostrar</h4>
       
@@ -601,7 +536,6 @@ const AfiliadosLista = (props) => {
       promptBuscar:"Buscar en Afiliados:",
       selectoresBuscar: selectores,
       accionBuscar: handleSelectFilter,
-      //defaultSorted: defaultSorted,
       remote: true,
       keyField: "id",
       loading: props.loading,
@@ -664,10 +598,10 @@ const AfiliadosLista = (props) => {
 								disabled={afiliadoSeleccionado?.cuil ? false : true}
 							/>
 
-							<Tab
-								style={{ backgroundColor: "#186090" }}
-								label="Datos de la Seccional" //{ afiliadoSeleccionado?.nombre ? `Datos de la Seccional de ${Formato.Cuit(afiliadoSeleccionado?.cuil) ?? ""} ${afiliadoSeleccionado?.nombre}` : "Datos de la Seccional"}
-								disabled={afiliadoSeleccionado?.cuil ? false : true}
+						<Tab
+							style={{ backgroundColor: "#186090" }}
+							label="Datos de la Seccional"
+							disabled={afiliadoSeleccionado?.cuil ? false : true}
 							/>
 
 							<Tab
@@ -699,14 +633,13 @@ const AfiliadosLista = (props) => {
 							</>
 						)}
 
-						{selectedTab === 1 && ( //DDJJ
+						{selectedTab === 1 && (
 							<DeclaracionesJuradas
 								cuil={
 									afiliadoSeleccionado.cuilValidado
 										? afiliadoSeleccionado.cuilValidado
 										: afiliadoSeleccionado.cuil
 								}
-								//cuit={afiliadoSeleccionado.empresaCUIT} // se comenta ya que debe mostrar todas las DDJJ del afiliado sin filtrar por CUIT.
 								infoCompleta={true}
 								onSeleccionRegistro={rowEvents}
 								onDeclaracionesGeneradas={null}

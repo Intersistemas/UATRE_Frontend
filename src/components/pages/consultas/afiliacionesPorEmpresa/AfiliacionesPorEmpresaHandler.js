@@ -154,11 +154,36 @@ const AfiliacionesPorEmpresaHandler = () => {
 			...o,
 			onLoad: ({ ok, error }) => {
 				let data = [];
+				let seccionalesFiltered = [];
 				if (Array.isArray(ok)) data = ok.filter((r) => r.id !== 99999);
+				seccionalesFiltered = data;
+
+				// Si el usuario pertenece a una delegación, filtrar listados por esa delegación
+				const delegacionId = Usuario?.ambitoDelegaciones?.ids && Usuario.ambitoDelegaciones.ids.length
+					? Usuario.ambitoDelegaciones.ids[0]
+					: null;
+				if (delegacionId != null) {
+					seccionalesFiltered = data.filter((r) => r.refDelegacionId === delegacionId);
+				}
+
+				// Si el usuario tiene exactamente una seccional asignada, preseleccionarla
+				const userSeccionalId = Usuario?.ambitoSeccionales?.ids && Usuario.ambitoSeccionales.ids.length === 1
+					? Usuario.ambitoSeccionales.ids[0]
+					: null;
+				let selected = {};
+				if (userSeccionalId != null) {
+					const hit = seccionalesFiltered.find((r) => r.id === userSeccionalId) || data.find((r) => r.id === userSeccionalId);
+					if (hit) {
+						selected = { value: hit.id, label: hit.descripcion, record: hit };
+						setParamsEdit((o) => ({ ...o, seccionalId: userSeccionalId }));
+					}
+				}
+
 				setSeccionalSelect((o) => ({
 					...o,
 					loading: null,
-					data,
+					data: seccionalesFiltered,
+					selected: Object.keys(selected).length ? selected : (o.selected || seccionalTodos),
 					error: error?.toString(),
 				}));
 			},
@@ -517,7 +542,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 				<Grid />
 
 				<Grid gap="inherit" justify="end" >
-					<Grid grid="auto / 200px 200px 220px 220px 180px 180px" gap="inherit" >
+					<Grid grid="auto / 300px 300px 300px 260px 230px 230px" gap="inherit" >
 						<InputMaterial
 							label="CUIT Empresa"
 							value={paramsEdit.empresaCUIT ?? ""}
@@ -538,6 +563,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 							error={!!seccionalSelect.error}
 							helperText={seccionalSelect.loading ?? seccionalSelect.error}
 							value={seccionalSelect.selected}
+							disabled={!!(Usuario?.ambitoSeccionales?.ids && Usuario.ambitoSeccionales.ids.length === 1)}
 							onChange={(selected = {}) => {
 								setSeccionalSelect((o) => ({ ...o, selected, origen: "option" }));
 								setParamsEdit((o) => {
