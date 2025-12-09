@@ -40,7 +40,6 @@ import SearchSelectMaterial from "components/ui/Select/SearchSelectMaterial";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 const validarTelefono = (part, value) => {
-  console.log("validarTelefono", part, value);
   if (value === null || value === undefined) return true;
 
   if (part === "pais") {
@@ -105,7 +104,6 @@ const numeroDocumentoReducer = (state, action) => {
 };
 
 const nombreReducer = (state, action) => {
-  //console.log("reducer");
   if (action.type === "USER_INPUT") {
     return { value: action.value, isValid: action?.value.trim().length > 0 };
   }
@@ -117,7 +115,6 @@ const nombreReducer = (state, action) => {
 
 const cuitReducer = (state, action) => {
   if (action.type === "USER_INPUT") {
-    //console.log("action.value", action.value);
     return { value: action.value, isValid: ValidarCUIT(action.value) };
   }
   if (action.type === "USER_BLUR") {
@@ -362,29 +359,25 @@ const seccionalSolicitudAfiliacionReducer = (state, action) => {
   return { value: "", isValid: false };
 };
 
-const onLoadedDef = ({ data, error }) => { };
-//#endregion
+const onLoadedDef = ({ data, error }) => {};
 
 const AfiliadoAgregar = (props) => {
-  const { isLoading, error, sendRequest: request } = useHttp();
+  const { error, sendRequest: request } = useHttp();
   const [errorAFIP, setErrorAFIP] = useState(false);
-  const [consultaPadronCUILOk, setConsultaPadronCUILOk] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
   const accion = props?.accion;
 
-  //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTexto, setDialogTexto] = useState("");
-  //#endregion
 
   const tarea = useTareasUsuario();
 
   const usuarioTareaValidacionAutomatica = tarea.hasTarea(
     "Afiliaciones_AfiliadoAutoValida"
   );
-  //#region manejo de validaciones
+
   const [fechaIngresoState, dispatchFechaIngreso] = useReducer(
     fechaIngresoReducer,
     {
@@ -524,7 +517,6 @@ const AfiliadoAgregar = (props) => {
     value: "",
     isValid: false,
   });
-  //#ENDREGION
 
   UseKeyPress(["Escape"], () => handleCerrarModal());
   UseKeyPress(["Enter"], () => afiliadoAgregarHandler(), "AltKey");
@@ -544,9 +536,7 @@ const AfiliadoAgregar = (props) => {
     "AltKey"
   );
 
-  //#region Texto completar campos
   const TextCompletarCampos = () => {
-    //console.log("texto dialog estadocivil", estadoCivilState.isValid);
     setDialogTexto(`Se deben completar todos los campos:\n
       ${!cuilState.isValid ? "*CUIL\n" : ""}
       ${!nombreState.isValid ? "*Nombre\n" : ""}
@@ -566,15 +556,11 @@ const AfiliadoAgregar = (props) => {
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
   };
-  //#endregion
 
-  //#region Variables de estado para ButtonLoadingCustom
   const [cuilLoading, setCUILLoading] = useState(false);
   const [cuitLoading, setCUITLoading] = useState(false);
   const [afiliadoProcesando, setAfiliadoProcesando] = useState(false);
-  //#endregion
 
-  //#region Capturo errores
   useEffect(() => {
     if (error) {
       setAfiliadoProcesando(false);
@@ -643,22 +629,15 @@ const AfiliadoAgregar = (props) => {
 
       return;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
-  //#endregion
 
-  //#region estados para validaciones
   const [formularioIsValid, setFormularioIsValid] = useState(false);
   const [formularioEmpleadorIsValid, setFormularioEmpleadorIsValid] =
     useState(false);
   const [cuilValidado, setCuilValidado] = useState(false);
   const [cuitValidado, setCuitValidado] = useState(false);
- 
-  const autoVerificaCUILRef = useRef(false); 
-  const autoValidaCUILRef = useRef(false); 
-  const autoVerificaCUITEmpresaRef = useRef(false); 
-  //#endregion
 
-  //#region variables para respuestas de servicios
   const [nuevoAfiliadoResponse, setNuevoAfiliadoResponse] = useState(null);
   const [afiliadoModificado, setAfiliadoModificado] = useState(null);
   const [padronRespuesta, setPadronRespuesta] = useState(null);
@@ -671,7 +650,6 @@ const AfiliadoAgregar = (props) => {
     error: null,
     onLoaded: onLoadedDef,
   });
-
 
   const [localidades, setLocalidades] = useState({
     loading: null,
@@ -694,21 +672,12 @@ const AfiliadoAgregar = (props) => {
 
   const [seccionalSolicitaAfiliacion, setSeccionalSolicitaAfiliacion] =
     useState([]);
-  //#endregion
 
-  //#region Documentación
   const [documentacionList, setDocumentacionList] = useState([]);
-  // Bandera para evitar doble carga de documentación desde la solicitud
-  const docFromSolicitudLoadedRef = useRef(false);
-  //#endregion
 
-  //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
   const afiliadoRef = useRef(null);
 
-  //#endregion
-
-  //#region Datos Empleador
   const [cuitEmpresa, setCUITEmpresa] = useState("");
   const [razonSocialEmpresa, setRazonSocialEmpresa] = useState("");
   const [actividadEmpresa, setActividadEmpresa] = useState("");
@@ -717,10 +686,7 @@ const AfiliadoAgregar = (props) => {
   const [telefonoEmpresa, setTelefonoEmpresa] = useState("");
   const [correoEmpresa, setCorreoEmpresa] = useState("");
   const [lugarTrabajoEmpresa, setLugarTrabajoEmpresa] = useState("");
-  //const [empresaId, setEmpresaId] = useState(0);
-  //#endregion
 
-  //checking
   useEffect(() => {
     const identifier = setTimeout(() => {
       if (
@@ -775,13 +741,9 @@ const AfiliadoAgregar = (props) => {
       clearTimeout(identifier);
     };
   }, [cuitState.isValid]);
-  //#endregion
 
-  //#region variables de estado por touched
   const [inputsTouched, setInputsTouched] = useState(false);
-  //#endregion
 
-  //#region manejo si el afiliado existe
   const [afiliadoExiste, setAfiliadoExiste] = useState(false);
   const [empresaIdExiste, setEmpresaIdExiste] = useState(0);
 
@@ -804,48 +766,31 @@ const AfiliadoAgregar = (props) => {
 
   // Carga inicial de documentación proveniente de la Solicitud Previa de Afiliación
   useEffect(() => {
-    const solicitudId = props?.documentacionSolicitudId;
-    if (!solicitudId) return;               
-    if (docFromSolicitudLoadedRef.current) return;
+    if (cuilState.value) {
+      const processGetAfiliado = async (afiliadoObj) => {
 
-    if (documentacionList && documentacionList.length > 0) return;
+        setAfiliado(afiliadoObj);
+        setCuilValidado(afiliadoObj.cuilValidado ? true : false);
+        setNuevoAfiliadoResponse(afiliadoObj);
+        setAfiliadoExiste(true);
 
-    const processDocs = (ok) => {
-      const arr = Array.isArray(ok) ? ok : [];
-
-      const mapped = arr.map(doc => ({
-        id: 0, 
-        entidadId: 0,
-        entidadTipo: 'A',
-        refTipoDocumentacionId: doc.refTipoDocumentacionId ?? doc.tipoDocumentacionId ?? doc.tipoId,
-        refTipoDocumentacionDescripcion: doc.refTipoDocumentacionDescripcion,
-        nombreArchivo: doc.nombreArchivo,
-        descripcion: doc.descripcion,
-        observaciones: doc.observaciones,
-        fechaVencimiento: doc.fechaVencimiento,
-        archivo: doc.archivo,
-        contentType: doc.contentType || 'application/octet-stream',
-        url: doc.url,
-      }));
-      if (mapped.length) {
-        setDocumentacionList(mapped);
-        docFromSolicitudLoadedRef.current = true;
-        console.log('[AfiliadoAgregar] Documentación importada desde Solicitud', { solicitudId, cantidad: mapped.length });
-      }
-    };
-    const processDocsError = (err) => {
-      console.warn('[AfiliadoAgregar] Error cargando documentación de la solicitud', err);
-    };
-    request(
-      {
-        baseURL: 'Comunes',
-        endpoint: `/DocumentacionEntidad/GetBySpec?EntidadId=${solicitudId}&EntidadTipo=F`,
-        method: 'GET'
-      },
-      processDocs,
-      processDocsError
-    );
-  }, [props?.documentacionSolicitudId, request, documentacionList]);
+        //dispatches para validar los campos
+        dispatchFechaNacimiento({
+          type: "USER_INPUT",
+          value:
+            afiliadoObj.fechaIngreso !== null
+              ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+              : "",
+        });
+        dispatchCUIL({
+          type: "USER_INPUT",
+          value: afiliadoObj.cuil,
+          isValid: ["30", "33", "34"].includes(
+            afiliadoObj.cuil.toString().slice(0, 2)
+          )
+            ? false
+            : ValidarCUIT(afiliadoObj.cuil),
+        });
 
   // Auto consulta AFIP apenas el CUIL es válido y todavía no se consultó (solo en alta, no modificación existente)
   useEffect(() => {
@@ -908,107 +853,37 @@ const AfiliadoAgregar = (props) => {
         value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
       });
 
-      dispatchSeccionalSolicitudAfiliacion({
-        type: "USER_INPUT",
-        value: afiliadoObj?.seccionalIdSolicitudAfiliacion
-          ? {
-              value: afiliadoObj?.seccionalIdSolicitudAfiliacion,
-              label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`,
-            }
-          : {},
-      });
+                //const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+                const myLocalidadId =
+                  data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {
+                    value: provinciaSelected?.localidadIdPorDefecto,
+                    label: provinciaSelected?.localidadDescripcionPorDefecto,
+                  } ??
+                  {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
+                //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
+                const sinAsignar =
+                  myLocalidadId?.value ===
+                  provinciaSelected?.localidadIdPorDefecto
+                    ? { provinciaId: provinciaSelected?.value }
+                    : { localidadId: myLocalidadId.value };
+                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
 
-      dispatchPuesto({
-        type: "USER_INPUT",
-        value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
-      });
-      dispatchNacionalidad({
-        type: "USER_INPUT",
-        value:
-          afiliadoObj.nacionalidadId === 0 ? "" : afiliadoObj.nacionalidadId,
-      });
-      dispatchSexo({
-        type: "USER_INPUT",
-        value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
-      });
-      dispatchEstadoCivil({
-        type: "USER_INPUT",
-        value:
-          afiliadoObj.estadoCivilId === 0 ? "" : afiliadoObj.estadoCivilId,
-      });
-      dispatchTipoDocumento({
-        type: "USER_INPUT",
-        value:
-          afiliadoObj.tipoDocumentoId === 0
-            ? ""
-            : afiliadoObj.tipoDocumentoId,
-      });
+                //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
 
-      dispatchLocalidad({
-        type: "USER_INPUT",
-        value: {
-          value: afiliadoObj?.refLocalidadId,
-          label: afiliadoObj?.localidad,
-        },
-      });
-      dispatchSeccional({
-        type: "USER_INPUT",
-        value: {
-          value: afiliadoObj?.seccionalId,
-          label: afiliadoObj?.seccional,
-        },
-      });
+                const fechaIngres = moment(afiliadoObj?.fechaIngreso).format(
+                  "yyyy-MM-DD"
+                );
+                const esAnterior =
+                  moment(fechaIngres).isSameOrBefore("2024-02-05");
 
-      setProvincias((o) => ({
-        ...o,
-        loading: "Cargando...",
-        onLoaded: ({ data }) => {
-          const provinciaSelected =
-            data.find((prov) => prov.value === afiliadoObj.provinciaId) ?? "";
-
-          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-
-          setLocalidades((o) => ({
-            ...o,
-            loading: "Cargando...",
-            params: provinciaSelected
-              ? { provinciaId: provinciaSelected?.value }
-              : {},
-            onLoaded: ({ data }) => {
-              if (!Array.isArray(data)) return;
-
-              //const myLocalidadId = data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {value: provinciaSelected?.localidadIdPorDefecto, label: provinciaSelected?.localidadDescripcionPorDefecto} ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-              const myLocalidadId =
-                data.find((r) => r.value === afiliadoObj?.refLocalidadId) ?? {
-                  value: provinciaSelected?.localidadIdPorDefecto,
-                  label: provinciaSelected?.localidadDescripcionPorDefecto,
-                } ??
-                {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-              //console.log("afiliadoObj_myRefLocalidadId",myLocalidadId)
-              const sinAsignar =
-                myLocalidadId?.value ===
-                provinciaSelected?.localidadIdPorDefecto
-                  ? { provinciaId: provinciaSelected?.value }
-                  : { localidadId: myLocalidadId.value };
-              dispatchLocalidad({ type: "USER_INPUT", value: myLocalidadId });
-
-              //05/02/2024 las personas afiliadas antes del 05/02/2024, respeto la seccional sin importar localidad
-
-              const fechaIngres = moment(afiliadoObj?.fechaIngreso).format(
-                "yyyy-MM-DD"
-              );
-              const esAnterior =
-                moment(fechaIngres).isSameOrBefore("2024-02-05");
-              console.log("esAnterior", esAnterior);
-
-              setSeccionales((o) => ({
-                ...o,
-                loading: "Cargando...",
-                //params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
-                params:
-                  esAnterior && afiliadoObj?.seccionalId
-                    ? { seccionalId: afiliadoObj?.seccionalId }
-                    : myLocalidadId
+                setSeccionales((o) => ({
+                  ...o,
+                  loading: "Cargando...",
+                  //params: esAnterior && afiliadoObj?.seccionalId ? {seccionalId: afiliadoObj?.seccionalId} :  provinciaSelected?.value ? {provinciaId:  provinciaSelected?.value} : sinAsignar ?? null, //AQUI DEBO DETERMINAR CUANTOS REG CARGAR EN EL COMBO
+                  params:
+                    esAnterior && afiliadoObj?.seccionalId
+                      ? { seccionalId: afiliadoObj?.seccionalId }
+                      : myLocalidadId
                       ? { localidadId: myLocalidadId.value }
                       : provinciaSelected?.value
                         ? { provinciaId: provinciaSelected?.value }
@@ -1116,14 +991,12 @@ const AfiliadoAgregar = (props) => {
       console.warn("Auto validación CUIL falló:", e);
       autoValidaCUILRef.current = false; 
     }
-
-  }, [cuilValidado, padronRespuesta, afiliadoExiste]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request, cuilState.value, cuilState.isValid]);
 
   useEffect(() => {
     if (afiliadoExiste && empresaIdExiste > 0) {
       const processGetEmpresa = async (empresaObj) => {
-        //console.log('empresaObj',empresaObj)
-
         setPadronEmpresaRespuesta(empresaObj);
         setRazonSocialEmpresa(empresaObj.razonSocial);
         setActividadEmpresa(empresaObj.actividadPrincipalDescripcion);
@@ -1187,7 +1060,6 @@ const AfiliadoAgregar = (props) => {
     };
     if (ultimaDDJJ.cuil === cuil && ultimaDDJJ.cuit === cuit) return;
 
-    console.log("cuil para DDJJ", cuil);
     request(
       {
         baseURL: "DDJJ",
@@ -1195,7 +1067,6 @@ const AfiliadoAgregar = (props) => {
         method: "GET",
       },
       async (ok) => {
-        console.log("ok_data:", ok);
         ok.forEach((ddjj) => {
           if (!data) {
             data = {};
@@ -1212,14 +1083,12 @@ const AfiliadoAgregar = (props) => {
       },
       async (_) => (data = {}),
       async () => {
-        console.log("setUltimaDDJJ", data);
         setUltimaDDJJ({ cuil, cuit, data });
       }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request, ultimaDDJJ, cuilValidado, cuitState]);
-  //#endregion
 
-  //#region Tablas para crear afiliado
   useEffect(() => {
     const processActividades = async (actividadesObj) => {
       const actividadesSelect = actividadesObj
@@ -1248,8 +1117,6 @@ const AfiliadoAgregar = (props) => {
 
   useEffect(() => {
     const processGetSeccionales = async (seccionalesObj) => {
-      console.log("seccionales_todas", seccionalesObj);
-
       const seccionalesOptions = seccionalesObj
         .sort((a, b) => (a.codigo > b.codigo ? 1 : -1))
         .map((sec) => {
@@ -1260,15 +1127,13 @@ const AfiliadoAgregar = (props) => {
         });
 
       const seccionalSelected = seccionalesObj.find(
-        (s) => s.id == afiliado?.seccionalIdSolicitudAfiliacion
+        (s) => s.id === afiliado?.seccionalIdSolicitudAfiliacion
       );
       const seccionalPorDefecto = seccionalesObj.find(
-        (s) => s.codigo == "S9925"
+        (s) => s.codigo === "S9925"
       );
 
       setSeccionalSolicitaAfiliacion(seccionalesOptions);
-      console.log("afiliado?", afiliado);
-      console.log("seccionalPorDefecto", seccionalPorDefecto);
 
       dispatchSeccionalSolicitudAfiliacion({
         type: "USER_INPUT",
@@ -1283,7 +1148,7 @@ const AfiliadoAgregar = (props) => {
           },
       });
     };
-    //#region consulto todas las seccionales las cuales mostraré en el combo de SeccionalSolicitaAfiliacion
+
     request(
       {
         baseURL: "Afiliaciones",
@@ -1464,96 +1329,96 @@ const AfiliadoAgregar = (props) => {
 
     seccionales.params.seccionalId // si busco solo la seccional ID
       ? request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Seccional/${seccionales.params.seccionalId}`,
-          method: "GET",
-        },
-        async (ok) => {
-          console.log("GetSeccionalesSpecs_ok", ok);
-          changes.data.push({
-            value: provinciaState?.value?.seccionalIdPorDefecto,
-            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          });
-          const item = ok.localidadCodPostal !== 99999 && {
-            value: ok.id,
-            label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
-          };
-          if (item) changes.data.push(item);
-        },
-        async (error) => {
-          console.log("GetSeccionalesSpecs_error", error);
-          changes.error = error;
-        },
-        async () => applyChanges()
-      )
-      : //NO BUSCO EXACTAMENTE UNA SECCIONAL
-      console.log("seccionales.params", seccionales.params);
-    seccionales.params.localidadId
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/Seccional/${seccionales.params.seccionalId}`,
+            method: "GET",
+          },
+          async (ok) => {
+            console.log("GetSeccionalesSpecs_ok", ok);
+            changes.data.push({
+              value: provinciaState?.value?.seccionalIdPorDefecto,
+              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+            });
+            changes.data.push(
+              ok.localidadCodPostal !== 99999 && {
+                value: ok.id,
+                label: `${ok.codigo} ${ok.descripcion} (Deleg: ${ok.refDelegacionDescripcion})`,
+              }
+            );
+          },
+          async (error) => {
+            console.log("GetSeccionalesSpecs_error", error);
+            changes.error = error;
+          },
+          async () => applyChanges()
+        )
+      : seccionales.params.localidadId
       ? request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
-          method: "GET",
-        },
-        async (ok) => {
-          console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok);
-          changes.data.push({
-            value: provinciaState?.value?.seccionalIdPorDefecto,
-            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          });
-          changes.data.push(
-            ...ok
-              .sort((a, b) =>
-                a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1
-              )
-              .map(
-                (r) =>
-                  !r.seccionalDescripcion.includes("SIN ASIGNACION") && {
-                    value: r.seccionalId,
-                    label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-                  }
-              )
-          );
-        },
-        async (error) => {
-          console.log("GetSeccionalLocalidadByRefLocalidadId_error", error);
-          changes.error = error;
-        },
-        async () => applyChanges()
-      )
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/SeccionalLocalidad/GetSeccionalLocalidadByRefLocalidadId?RefLocalidadId=${seccionales.params.localidadId}&SoloActivos=true`,
+            method: "GET",
+          },
+          async (ok) => {
+            console.log("GetSeccionalLocalidadByRefLocalidadId_ok", ok);
+            changes.data.push({
+              value: provinciaState?.value?.seccionalIdPorDefecto,
+              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+            });
+            changes.data.push(
+              ...ok
+                .sort((a, b) =>
+                  a.seccionalDescripcion > b.seccionalDescripcion ? 1 : -1
+                )
+                .map(
+                  (r) =>
+                    !r.seccionalDescripcion.includes("SIN ASIGNACION") && {
+                      value: r.seccionalId,
+                      label: `${r.seccionalCodigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`,
+                    } //`${r.codigo} ${r.seccionalDescripcion} (Deleg: ${r.refDelegacionDescripcion})`}
+                )
+            );
+          },
+          async (error) => {
+            console.log("GetSeccionalLocalidadByRefLocalidadId_error", error);
+            changes.error = error;
+          },
+          async () => applyChanges()
+        )
       : request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: "/Seccional/GetSeccionalesSpecs",
-          body: seccionales.params,
-          method: "POST",
-        },
-        async (ok) => {
-          console.log("GetSeccionalesSpecs_ok", ok);
-          changes.data.push({
-            value: provinciaState?.value?.seccionalIdPorDefecto,
-            label: provinciaState?.value?.seccionalDescripcionPorDefecto,
-          });
-          changes.data.push(
-            ...ok.data
-              .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
-              .map(
-                (r) =>
-                  r.localidadCodPostal !== 99999 && {
-                    value: r.id,
-                    label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
-                  }
-              )
-          );
-        },
-        async (error) => {
-          console.log("GetSeccionalesSpecs_error", error);
-          changes.error = error;
-        },
-        async () => applyChanges()
-      );
-  }, [request, seccionales, provincias, provinciaState.value]);
+          {
+            baseURL: "Afiliaciones",
+            endpoint: "/Seccional/GetSeccionalesSpecs",
+            body: seccionales.params,
+            method: "POST",
+          },
+          async (ok) => {
+            console.log("GetSeccionalesSpecs_ok", ok);
+            changes.data.push({
+              value: provinciaState?.value?.seccionalIdPorDefecto,
+              label: provinciaState?.value?.seccionalDescripcionPorDefecto,
+            });
+            changes.data.push(
+              ...ok.data
+                .sort((a, b) => (a.descripcion > b.descripcion ? 1 : -1))
+                .map(
+                  (r) =>
+                    r.localidadCodPostal !== 99999 && {
+                      value: r.id,
+                      label: `${r.codigo} ${r.descripcion} (Deleg: ${r.refDelegacionDescripcion})`,
+                    }
+                )
+            );
+          },
+          async (error) => {
+            console.log("GetSeccionalesSpecs_error", error);
+            changes.error = error;
+          },
+          async () => applyChanges()
+        );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request, seccionales, provincias]);
 
   useEffect(() => {
     const processEstadosCiviles = async (estadosCivilesObj) => {
@@ -1591,148 +1456,6 @@ const AfiliadoAgregar = (props) => {
     );
   }, [request]);
 
-  //modificado Mauro
-  useEffect(() => {
-    const d = props?.data || {};
-    if (d.cuil != null && d.cuil !== "") {
-      dispatchCUIL({ type: "USER_INPUT", value: String(d.cuil) });
-    }
-    // Prefill CUIT Empleador desde Solicitud
-    const cuitEmpresaInicial = d.cuitEmpresa ?? d.empresaCUIT ?? d.cuitEmpleador;
-    if (cuitEmpresaInicial != null && String(cuitEmpresaInicial) !== "") {
-      const limpio = String(cuitEmpresaInicial).replace(/[^\d]/g, "");
-      dispatchCUIT({ type: "USER_INPUT", value: limpio });
-      setCUITEmpresa(limpio);
-    }
-    if (d.estadoCivilId != null && d.estadoCivilId > 0) {
-      dispatchEstadoCivil({ type: "USER_INPUT", value: d.estadoCivilId });
-    }
-    if (d.sexoId != null && d.sexoId > 0) {
-      dispatchSexo({ type: "USER_INPUT", value: d.sexoId });
-    }
-    if (d.oficioId != null && d.oficioId > 0) {
-      dispatchPuesto({ type: "USER_INPUT", value: d.oficioId });
-    }
-    if (d.actividadIdAfiliado != null && d.actividadIdAfiliado > 0) {
-      dispatchActividad({ type: "USER_INPUT", value: d.actividadIdAfiliado });
-    }
-    if (d.email != null) {
-      dispatchEmail({ type: "USER_INPUT", value: String(d.email) });
-    }
-    if (d.telefonoPais != null) {
-      dispatchTelefonoPais({ type: "USER_INPUT", value: String(d.telefonoPais) });
-    }
-    if (d.telefonoArea != null) {
-      dispatchTelefonoArea({ type: "USER_INPUT", value: String(d.telefonoArea) });
-    }
-    if (d.telefonoNumero != null) {
-      dispatchTelefonoNumero({ type: "USER_INPUT", value: String(d.telefonoNumero) });
-    }
-    const provinciaIdFromSolicitud = d.provinciaId ?? d.provinciaIdSolicitudAfiliacion ?? null;
-    const localidadValueFromSolicitud = d.localidadPrefill?.value ?? d.refLocalidadId ?? d.localidadId ?? null;
-    const seccionalValueFromSolicitud = d.seccionalPrefill?.value ?? d.seccionalId ?? d.seccionalIdSolicitudAfiliacion ?? null;
-
-    if (provinciaIdFromSolicitud) {
-      setProvincias((o) => ({
-        ...o,
-        loading: "Cargando...",
-        params: {},
-        onLoaded: ({ data }) => {
-          if (!Array.isArray(data)) return;
-          
-          let provinciaSelected = data.find((prov) => {
-            if (!prov) return false;
-            const provVal = prov.value;
-            if (provVal != null && String(provVal) === String(provinciaIdFromSolicitud)) return true;
-            if (prov.idProvinciaAFIP != null && String(prov.idProvinciaAFIP) === String(provinciaIdFromSolicitud)) return true;
-            return false;
-          }) ?? { value: provinciaIdFromSolicitud, label: d.provinciaDescripcion ?? d.provincia ?? "" };
-          dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-
-          // cargar localidades para la provincia indicada y seleccionar la correcta
-          setLocalidades((o) => ({
-            ...o,
-            loading: "Cargando...",
-            params: { provinciaId: provinciaSelected.value },
-            onLoaded: ({ data }) => {
-              if (!Array.isArray(data)) return;
-
-
-   let localidadSelected = data.find((l) => l.value === localidadValueFromSolicitud);
-
-   if (!localidadSelected) {
-     const nombreDesdeSolicitud = (
-       d.localidadPrefill?.label ||
-       d.localidad ||
-       d.localidadDescripcion ||
-       ""
-     )
-       .toString()
-       .trim()
-       .toUpperCase();
-
-     if (nombreDesdeSolicitud) {
-       localidadSelected = data.find((l) => {
-         const labelSinCP = String(l.label || "")
-           .replace(/^\d+\s+/, "")
-           .toUpperCase()
-           .trim();
-         return labelSinCP === nombreDesdeSolicitud;
-       });
-     }
-   }
-
-   if (!localidadSelected && localidadValueFromSolicitud) {
-     const createdLocalidad = {
-       value: localidadValueFromSolicitud,
-       label:
-         d.localidad ||
-         d.localidadDescripcion ||
-         String(localidadValueFromSolicitud),
-     };
-     setLocalidades((prev) => ({
-       ...prev,
-       data: [createdLocalidad, ...(Array.isArray(prev.data) ? prev.data : data)],
-     }));
-     localidadSelected = createdLocalidad;
-   }
-
-    if (!localidadSelected) {
-      localidadSelected =
-        data.find((l) => l.value === provinciaSelected?.localidadIdPorDefecto) ??
-        data.at(0) ??
-        {};
-    }
-            
-              dispatchLocalidad({ type: "USER_INPUT", value: localidadSelected });
-
-              setSeccionales((o) => ({
-                ...o,
-                loading: "Cargando...",
-                params: localidadSelected?.value && localidadSelected?.value !== provinciaSelected?.localidadIdPorDefecto ? { localidadId: localidadSelected.value } : { provinciaId: provinciaSelected.value },
-                onLoaded: ({ data }) => {
-                  if (!Array.isArray(data)) return;
-                  const seccionalSelected = data.find((s) => s.value === seccionalValueFromSolicitud) ?? data.at(0) ?? {};
-                  dispatchSeccional({ type: "USER_INPUT", value: seccionalSelected });
-                },
-              }));
-            },
-          }));
-        },
-      }));
-    } else {
-      if (d.localidadPrefill) {
-        dispatchLocalidad({ type: "USER_INPUT", value: d.localidadPrefill });
-      }
-      if (d.seccionalPrefill) {
-        dispatchSeccional({ type: "USER_INPUT", value: d.seccionalPrefill });
-      }
-    }
-  }, [props.data]);
-
-  //#endregion
-
-  //#region submit afiliado
   const afiliadoAgregarHandler = async () => {
     //event.preventDefault();
 
@@ -1743,17 +1466,19 @@ const AfiliadoAgregar = (props) => {
       !actividadState.isValid ||
       !seccionalSolicitudAfiliacionState.isValid
     ) {
-      //console.log("formularioIsValid", formularioIsValid);
       setOpenDialog(true);
       TextCompletarCampos();
       return;
     }
     setAfiliadoProcesando(true);
-    //#region Insertar Sol
+
     if (props.accion === "Agrega" && !afiliadoExiste) {
       // ::::::::::::::::::::::::::::::::: MODIFICADO :::::::::::::::::::::::::::::::::
+  // Preferir domicilio 'FISCAL', si no existe usar 'LEGAL/REAL', sino el primero
   const domicilioAFIPEmpresa =
         padronEmpresaRespuesta?.domicilios?.find(
+          (d) => d?.tipoDomicilio === "FISCAL"
+        ) || padronEmpresaRespuesta?.domicilios?.find(
           (d) => d?.tipoDomicilio === "LEGAL/REAL"
         ) || padronEmpresaRespuesta?.domicilios?.[0];
   const cpIntEmpresaAlta = parseInt(domicilioAFIPEmpresa?.codigoPostal);
@@ -1776,7 +1501,7 @@ const AfiliadoAgregar = (props) => {
         cierreMes: padronEmpresaRespuesta.mesCierre,
         email: correoEmpresa,
         telefono: telefonoEmpresa,
-        domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "sin dato",
+        domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "SIN DATO",
         domicilioNumero: parseInt(domicilioAFIPEmpresa?.numero) || 0,
         domicilioPiso: "SIN DATO",
         domicilioDpto: "SIN DATO",
@@ -1788,12 +1513,12 @@ const AfiliadoAgregar = (props) => {
   // Guardar CP con dos ceros al final
   domicilioCodigoPostal: isNaN(cpIntEmpresaAlta) ? 0 : cpIntEmpresaAlta * 100,
         domicilioCPA: "SIN DATO",
-        domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "sin dato",
-        domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "sin dato",
-        domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "sin dato",
+        domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "SIN DATO",
+        domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "SIN DATO",
+        domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "SIN DATO",
         domicilioDatoAdicionalTipo:
           (domicilioAFIPEmpresa?.tipoDatoAdicional ?? domicilioAFIPEmpresa?.datoAdicionalTipo)?.toString() ||
-          "sin dato",
+          "SIN DATO",
         ciiU1: padronEmpresaRespuesta.ciiU1,
         ciiU2: padronEmpresaRespuesta.ciiU2,
         ciiU3: padronEmpresaRespuesta.ciiU3,
@@ -1813,15 +1538,12 @@ const AfiliadoAgregar = (props) => {
       const domicilioRealAFIP = padronRespuesta?.domicilios?.find(
         (domicilio) => domicilio?.tipoDomicilio === "LEGAL/REAL"
       );
-      console.log("fechaIngresoState**", fechaIngresoState);
+
       const nuevoAfiliado = {
         cuil: +cuilState.value,
         nombre:
           nombreState.value ??
           `${padronRespuesta?.apellido ?? ""} ${padronRespuesta?.nombre ?? ""}`,
-        /*nombre: `${padronRespuesta?.apellido ?? ""} ${
-          padronRespuesta?.nombre ?? "" 
-        }`,*/
         puestoId: +puestoState.value,
         fechaIngreso: fechaIngresoState?.value,
         fechaEgreso: null,
@@ -1934,18 +1656,77 @@ const AfiliadoAgregar = (props) => {
         }
       };
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado`,
-          method: "POST",
-          body: nuevoAfiliado,
-          headers: {
-            "Content-Type": "application/json",
+      // Si tenemos un codigo postal valido para la empresa, consultamos RefLocalidad
+      const cpEmpresa = empresa.domicilioCodigoPostal || 0;
+      const doPost = () => {
+        // Asegurar variantes plural y PascalCase que el backend puede esperar
+        try {
+          empresa.domicilioProvinciasId = empresa.domicilioProvinciasId || empresa.domicilioProvinciaId || 0;
+          empresa.domicilioProvinciaId = empresa.domicilioProvinciaId || empresa.domicilioProvinciasId || 0;
+          empresa.domicilioLocalidadesId = empresa.domicilioLocalidadesId || 0;
+
+          // PascalCase en el objeto empresa
+          empresa.DomicilioProvinciasId = empresa.domicilioProvinciasId;
+          empresa.DomicilioProvinciaId = empresa.domicilioProvinciaId;
+          empresa.DomicilioLocalidadesId = empresa.domicilioLocalidadesId;
+
+          // También setear en el body principal por si el backend lo espera allí
+          nuevoAfiliado.domicilioProvinciaId = empresa.domicilioProvinciaId;
+          nuevoAfiliado.domicilioProvinciasId = empresa.domicilioProvinciasId;
+          nuevoAfiliado.domicilioLocalidadesId = empresa.domicilioLocalidadesId;
+
+          nuevoAfiliado.DomicilioProvinciaId = empresa.domicilioProvinciaId;
+          nuevoAfiliado.DomicilioProvinciasId = empresa.domicilioProvinciasId;
+          nuevoAfiliado.DomicilioLocalidadesId = empresa.domicilioLocalidadesId;
+        } catch (e) {
+          console.warn("Error preparando campos de domicilio para el POST", e);
+        }
+
+        request(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: `/Afiliado`,
+            method: "POST",
+            body: nuevoAfiliado,
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        },
-        afiliadoAgregar
-      );
+          afiliadoAgregar
+        );
+      };
+
+      if (cpEmpresa && cpEmpresa > 0) {
+        const endpointRefLocalidad = `/RefLocalidad/GetRefLocalidadesPaginationSpecs?sortBy=%2Bnombre&filterByCPNombre=${cpEmpresa}&pageIndex=1&pageSize=15`;
+        request(
+          {
+            baseURL: "Afiliaciones",
+            endpoint: endpointRefLocalidad,
+            method: "GET",
+          },
+          async (refLocalidadResp) => {
+            try {
+              const item = refLocalidadResp?.data?.[0] || refLocalidadResp?.data?.at?.(0);
+              if (item) {
+                empresa.domicilioProvinciaId = item.provinciaId ?? empresa.domicilioProvinciaId;
+                empresa.domicilioProvinciasId = item.provinciaId ?? empresa.domicilioProvinciasId;
+                empresa.domicilioLocalidadesId = item.seccionalId ?? empresa.domicilioLocalidadesId;
+              }
+              console.log("RefLocalidad (create) item:", item);
+            } catch (e) {
+              console.log("Error procesando RefLocalidad (create)", e);
+            }
+            doPost();
+          },
+          async (err) => {
+            console.log("RefLocalidad (create) error", err);
+            // enviar igual si falla la consulta
+            doPost();
+          }
+        );
+      } else {
+        doPost();
+      }
       //#endregion
 
       //#region Update Solicitud
@@ -1956,9 +1737,7 @@ const AfiliadoAgregar = (props) => {
       ActualizaDatosAfiliado();
     }
     setAfiliadoProcesando(false);
-    //#endregion
   };
-  //#endregion
 
   const { audit } = useAuditoriaProceso();
 
@@ -1988,7 +1767,6 @@ const AfiliadoAgregar = (props) => {
     });
   };
 
-  //#region Operacions validar CUIT/CUIL
   const validarAfiliadoCUILHandler = () => {
     setCUILLoading(true);
 
@@ -2019,10 +1797,7 @@ const AfiliadoAgregar = (props) => {
     };
 
     const processConsultaPadron = async (padronObj) => {
-
-      console.log("padronObj", padronObj);
       setErrorAFIP(false);
-      //moment(padronRespuesta?.fechaFallecimiento).includes("0001-01-01") ? null : padronRespuesta?.fechaFallecimiento,
       setCUILLoading(false);
       if (
         padronObj?.fechaFallecimiento &&
@@ -2041,9 +1816,6 @@ const AfiliadoAgregar = (props) => {
         setCuilValidado(true); //SOLO DEBE VALIDAR EL CUIL Cuando el afiliado tiene un CUIL NO VALIDADO y la respuesta de AFIP es positiva
       setPadronRespuesta(padronObj);
 
-      //Solo actualizo los datos principales si estoy agregando solicitud
-      // fecha ingreso
-      console.log("fechaIngresoState-*-", fechaIngresoState);
       if (!fechaIngresoState.isValid) {
         const today = new Date();
         const month = today.getMonth() + 1;
@@ -2054,10 +1826,6 @@ const AfiliadoAgregar = (props) => {
           type: "USER_INPUT",
           value: moment(fechaIngreso).format("yyyy-MM-DD"),
         });
-        console.log(
-          "fecha ingreso:",
-          moment(fechaIngreso).format("yyyy-MM-DD")
-        );
       }
       let domicilioReal = "";
 
@@ -2119,75 +1887,75 @@ const AfiliadoAgregar = (props) => {
           });
         //provincia
 
-        // Selección robusta de provincia
-        if (!props.autoValidaDesdeSolicitud) {
-          let provinciaSelected = null;
-          if (domicilioReal) {
-            const sinDescripcion =
-              domicilioReal.idProvincia === 0 &&
-              (domicilioReal.descripcionProvincia === null ||
-                domicilioReal.descripcionProvincia === "");
-            provinciaSelected = sinDescripcion
-              ? provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999)
-              : provincias?.data?.find(
-                  (p) => p?.idProvinciaAFIP === domicilioReal?.idProvincia
-                );
-          }
-          if (!provinciaSelected) {
-            provinciaSelected =
-              provincias?.data?.find((p) => p?.idProvinciaAFIP === 99999) ||
-              provincias?.data?.at?.(0) ||
-              null;
-          }
+        const provinciaSelected =
+          domicilioReal.idProvincia === 0 &&
+          (domicilioReal.descripcionProvincia === null ||
+            domicilioReal.descripcionProvincia === "") // SI NO ENCUENTRO, va prov sin asignar
+            ? provincias.data.find(
+                (provincia) => provincia.idProvinciaAFIP === 99999
+              ) // BUSCO EL ID de Provincia "Sin Asignar" mediante el IdProvinciaAFIP 99999
+            : provincias.data.find(
+                (provincia) =>
+                  provincia.idProvinciaAFIP === domicilioReal.idProvincia
+              ); // IDPROVINCIAAFIP = 0 PARA CABA SEGUN AFIP
 
-          if (provinciaSelected) {
-            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
-          }
-          if (provinciaSelected?.idProvinciaAFIP === 99999) {
-            dispatchLocalidad({
-              type: "USER_INPUT",
-              value: {
-                value: provinciaSelected.localidadIdPorDefecto,
-                label: provinciaSelected.localidadDescripcionPorDefecto,
-              },
-            });
-            dispatchSeccional({
-              type: "USER_INPUT",
-              value: {
-                value: provinciaSelected.seccionalIdPorDefecto,
-                label: provinciaSelected.seccionalDescripcionPorDefecto,
-              },
-            });
-          } else {
-            const localidadCodPostal =
-              domicilioReal.codigoPostal !== "0000"
-                ? domicilioReal.codigoPostal
-                : null;
-            const processLocalidades = async (localidadesObj) => {
-              let localidad;
-              if (!localidad) {
-                localidad = localidadesObj?.find((localidad) => {
-                  if (
-                    localidad.nombre === domicilioReal.localidad &&
-                    localidad.codPostal
-                      .toString()
-                      .includes(domicilioReal.codigoPostal)
-                  )
-                    return localidad;
-                });
-              }
+        dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+        if (provinciaSelected.idProvinciaAFIP === 99999) {
+          //SI LA PROVINCIA ES POR DEFECTO (SIN ASIGNAR), TODO POR DEFECTO(SIN ASIGNAR)!
+          dispatchLocalidad({
+            type: "USER_INPUT",
+            value: provinciaSelected.localidadIdPorDefecto,
+            label: provinciaSelected.localidadDescripcionPorDefecto,
+          });
+          dispatchSeccional({
+            type: "USER_INPUT",
+            value: provinciaSelected.seccionalIdPorDefecto,
+            label: provinciaSelected.seccionalDescripcionPorDefecto,
+          });
+        } else {
+          //SELECCIONÓ UNA PROVINCIA QUE NO ES POR DEFECTO
+          //localidad
+          const processLocalidades = async (localidadesObj) => {
+            let localidad;
+            if (!localidad) {
+              localidad = localidadesObj?.find((localidad) => {
+                if (
+                  localidad.nombre === domicilioReal.localidad &&
+                  localidad.codPostal
+                    .toString()
+                    .includes(domicilioReal.codigoPostal)
+                ) {
+                  return true;
+                }
+                return false;
+              });
+            }
 
-              if (!localidad) {
-                localidad = localidadesObj?.find((localidad) => {
-                  if (
-                    localidad.nombre.includes(domicilioReal.localidad) &&
-                    localidad.codPostal
-                      .toString()
-                      .includes(domicilioReal.codigoPostal)
-                  )
-                    return localidad;
-                });
-              }
+            if (!localidad) {
+              localidad = localidadesObj?.find((localidad) => {
+                if (
+                  localidad.nombre.includes(domicilioReal.localidad) &&
+                  localidad.codPostal
+                    .toString()
+                    .includes(domicilioReal.codigoPostal)
+                ) {
+                  return true;
+                }
+                return false;
+              });
+            }
+
+            if (!localidad) {
+              localidad = localidadesObj?.find((localidad) => {
+                if (localidad.id === provinciaSelected?.localidadIdPorDefecto) {
+                  return true;
+                }
+                return false;
+              });
+            }
+            if (!localidad) {
+              localidad = { id: provinciaSelected?.localidadIdPorDefecto };
+            }
 
               if (!localidad) {
                 localidad = localidadesObj?.find((localidad) => {
@@ -2199,58 +1967,14 @@ const AfiliadoAgregar = (props) => {
                 localidad = { id: provinciaSelected?.localidadIdPorDefecto };
               }
 
-              setLocalidades((o) => ({
-                ...o,
-                loading: "Cargando...",
-                params: provinciaSelected
-                  ? { provinciaId: provinciaSelected?.id }
-                  : {},
-                onLoaded: ({ data }) => {
-                  if (!Array.isArray(data)) return;
-
-                  const myLocalidad =
-                    data.find((l) => l.value === localidad?.id) ??
-                    data.at(0) ??
-                    {};
-
-                  dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
-
-                  setSeccionales((o) => ({
-                    ...o,
-                    loading: "Cargando...",
-                    params:
-                      myLocalidad?.value !==
-                        provinciaSelected?.localidadIdPorDefecto
-                        ? { localidadId: myLocalidad?.value }
-                        : { provinciaId: provinciaSelected?.id } ?? {},
-                    onLoaded: ({ data }) => {
-                      const mySeccionalId =
-                        myLocalidad?.value ===
-                          provinciaSelected?.localidadIdPorDefecto
-                          ? data.at(0)
-                          : data.at(1)
-                            ? data.at(1)
-                            : data.at(0);
-
-                      dispatchSeccional({
-                        type: "USER_INPUT",
-                        value: mySeccionalId,
-                      });
-                    },
-                  }));
-                },
-              }));
-            };
-
-            request(
-              {
-                baseURL: "Afiliaciones",
-                endpoint: `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
-                method: "GET",
-              },
-              processLocalidades
-            );
-          }
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: `/RefLocalidad?ProvinciaId=${provinciaSelected.id}`,
+              method: "GET",
+            },
+            processLocalidades
+          );
         }
       }
 
@@ -2298,7 +2022,6 @@ const AfiliadoAgregar = (props) => {
       },
       async (response) => {
         processConsultaPadron(response);
-        setConsultaPadronCUILOk(true);
       }
     );
   };
@@ -2306,7 +2029,6 @@ const AfiliadoAgregar = (props) => {
   const validarEmpresaCUITHandler = () => {
     setCUITLoading(true);
     const processConsultaPadron = async (padronObj) => {
-      console.log("validarEmpresaCUITHandler_padronObj", padronObj);
       setCuitValidado(true);
       setPadronEmpresaRespuesta(padronObj);
       setCUITEmpresa(padronObj.cuit);
@@ -2339,29 +2061,7 @@ const AfiliadoAgregar = (props) => {
   };
   //#endregion
 
-  // Auto consulta AFIP para CUIT empleador cuando viene prellenado desde Solicitud
-  useEffect(() => {
-    if (autoVerificaCUITEmpresaRef.current) return;
-    if (props.accion !== "Agrega") return;
-    if (!props.autoValidaDesdeSolicitud) return;
-    if (!cuitState?.isValid) return;
-    if (padronEmpresaRespuesta) return;
-    if (cuitLoading) return;
-    autoVerificaCUITEmpresaRef.current = true;
-    try {
-      validarEmpresaCUITHandler();
-    } catch (e) {
-      console.warn("Auto verificación CUIT empleador falló:", e);
-      autoVerificaCUITEmpresaRef.current = false; 
-    }
-
-  }, [cuitState.isValid, padronEmpresaRespuesta, cuitLoading, props.accion, props.autoValidaDesdeSolicitud]);
-
-  //#region handlers change select
   const handleChangeSelect = (value, name) => {
-    console.log("handleChangeSelect_value", value);
-    console.log("handleChangeSelect_name", name);
-
     switch (name) {
       case "actividadSelect":
         dispatchActividad({ type: "USER_INPUT", value: value });
@@ -2410,12 +2110,8 @@ const AfiliadoAgregar = (props) => {
           loading: "Cargando...",
           params: value ? { provinciaId: value?.value } : {}, //CARGO EN EL COMBO DE LOCALIDADES, TODAS LAS LOCALIDADDES DE LA PROV
           onLoaded: ({ data }) => {
-            //
             if (!Array.isArray(data)) return;
 
-            //const myLocalidad = data.find((l) => l.value === localidad?.id) ?? data.at(0) ?? {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-
-            console.log("data_localidades_change", data);
             dispatchLocalidad({ type: "USER_INPUT", value: data.at(0) ?? {} });
 
             setSeccionales((o) => ({
@@ -2423,7 +2119,6 @@ const AfiliadoAgregar = (props) => {
               loading: "Cargando...",
               params: value ? { provinciaId: value?.value } : {},
               onLoaded: ({ data }) => {
-                //console.log('provinciaSelect_SeccionalesData:',data)
                 if (!Array.isArray(data)) return;
                 dispatchSeccional({
                   type: "USER_INPUT",
@@ -2464,9 +2159,7 @@ const AfiliadoAgregar = (props) => {
         break;
     }
   };
-  //#endregion
 
-  //#region handles Inputs
   const handleInputChange = (value, id) => {
 
     switch (id) {
@@ -2524,7 +2217,6 @@ const AfiliadoAgregar = (props) => {
             value: "",
           });
         }
-        setConsultaPadronCUILOk(false);
 
         break;
 
@@ -2608,49 +2300,22 @@ const AfiliadoAgregar = (props) => {
         break;
     }
   };
-  //#endregion
 
-  //#region handle Focus
   const handleOnFocus = (id) => {
-    //console.log("foco en", id);
-    // switch (id) {
-    //   case "cuil":
-    //     setCuilTouched(true);
-    //     break;
-    //   case "numeroDocumento":
-    //     setNumeroDocumentoTouched(true);
-    //     break;
-    //   case "cuit":
-    //     setCuitTouched(true);
-    //     break;
-    //   default:
-    //     break;
-    // }
   };
-  //#endregion
 
-  //#region handle Close
   const handleCerrarModal = (refresh) => {
-    console.log("dialogTexto", dialogTexto);
-    console.log("props.accion", props.accion);
-
     if (dialogTexto === "") props?.onClose(false, "Cancela");
     else {
-      props.accion == "Modifica"
+      props.accion === "Modifica"
         ? props?.onClose(afiliadoModificado, props.accion) //SI  MODIFICA AFIL, ENVIO EL AFILIADO MODIFICADO
         : props?.onClose(nuevoAfiliadoResponse, props.accion); //SI RESUELVE SOLICIT O AFILIADO ES NUEVO "Agrega", DEVUELVO nuevoAfiliadoResponse, EL COMPONENT PADRE SABRÁ QUE HACER SEGÚN EL ESTADO DEL AFILIADO.
     }
   };
-  //#endregion
 
-  //#region handle DDJJ
   const handleSeleccionDDJJ = (row) => {
-    // setCUITEmpresa(row.cuit);
-    // dispatchCUIT({ type: "USER_INPUT", value: row.cuit });
   };
-  //#endregion
 
-  //#region Handle tab change
   const handleChangeTab = (event, newValue) => {
     setSelectedTab(newValue);
     if (newValue === 2 && afiliado?.cuilValidado === 0 && !cuilValidado) {
@@ -2659,9 +2324,7 @@ const AfiliadoAgregar = (props) => {
       setOpenDialog(true);
     }
   };
-  //#endregion
 
-  //#region Functions
   const deshabilitarBotonValidarCUIL = () => {
     if (afiliadoExiste && afiliado?.estadoSolicitudId === 3) {
       return true;
@@ -2675,7 +2338,6 @@ const AfiliadoAgregar = (props) => {
   };
 
   const InputDisabled = (input) => {
-    //VALIDO PRIMERO EL CAMPO CUIL
     if (input === "cuil") {
       if (/*props.accion === "Modifica" && */ afiliadoExiste && cuilValidado) {
         return true;
@@ -2707,7 +2369,7 @@ const AfiliadoAgregar = (props) => {
 
     if (errorAFIP) disable = true;
 
-    if (padronRespuesta?.tipoPersona == "JURIDICA") disable = true;
+    if (padronRespuesta?.tipoPersona === "JURIDICA") disable = true;
 
     if (afiliadoExiste && afiliado?.estadoSolicitudId === 3) disable = true; //si el afiliado está dado de baja, deshabilito el boton de confirmar
 
@@ -2734,15 +2396,17 @@ const AfiliadoAgregar = (props) => {
     return "AGREGA SOLICITUD";
   };
 
-  //#endregion
-
-  //#region Funciones actualizacion
   const ActualizaDatosAfiliado = () => {
     // ::::::::::::::::::::::::::::::::: MODIFICADO :::::::::::::::::::::::::::::::::
+  const domiciliosEmpresa = padronEmpresaRespuesta?.domicilios ?? [];
   const domicilioAFIPEmpresa =
-      padronEmpresaRespuesta?.domicilios?.find(
-        (d) => d?.tipoDomicilio === "LEGAL/REAL"
-      ) || padronEmpresaRespuesta?.domicilios?.[0];
+    domiciliosEmpresa.find(
+      (d) => d?.tipoDomicilio?.toString()?.toUpperCase() === "FISCAL"
+    ) ||
+    domiciliosEmpresa.find(
+      (d) => d?.tipoDomicilio?.toString()?.toUpperCase() === "LEGAL/REAL"
+    ) ||
+    domiciliosEmpresa[0];
   const cpIntEmpresaMod = parseInt(domicilioAFIPEmpresa?.codigoPostal);
 
     const empresa = {
@@ -2763,7 +2427,7 @@ const AfiliadoAgregar = (props) => {
       cierreMes: padronEmpresaRespuesta.mesCierre,
       email: correoEmpresa,
       telefono: telefonoEmpresa,
-      domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "sin dato",
+      domicilioCalle: domicilioAFIPEmpresa?.calle?.toString()?.trim() || "SIN DATO",
       domicilioNumero: parseInt(domicilioAFIPEmpresa?.numero) || 0,
       domicilioPiso: "string",
       domicilioDpto: "string",
@@ -2771,16 +2435,17 @@ const AfiliadoAgregar = (props) => {
       domicilioTorre: "string",
       domicilioManzana: "string",
       domicilioProvinciaId: domicilioAFIPEmpresa?.idProvincia ?? 0,
+      domicilioProvinciasId: domicilioAFIPEmpresa?.idProvincia ?? 0,
       domicilioLocalidadesId: 0,
   // Guardar CP con dos ceros al final
   domicilioCodigoPostal: isNaN(cpIntEmpresaMod) ? 0 : cpIntEmpresaMod * 100,
       domicilioCPA: "string",
-      domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "sin dato",
-      domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "sin dato",
-      domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "sin dato",
+      domicilioTipo: domicilioAFIPEmpresa?.tipoDomicilio?.toString() || "SIN DATO",
+      domicilioEstado: domicilioAFIPEmpresa?.estadoDomicilio?.toString() || "SIN DATO",
+      domicilioDatoAdicional: domicilioAFIPEmpresa?.datoAdicional?.toString() || "SIN DATO",
       domicilioDatoAdicionalTipo:
         (domicilioAFIPEmpresa?.tipoDatoAdicional ?? domicilioAFIPEmpresa?.datoAdicionalTipo)?.toString() ||
-        "sin dato",
+        "SIN DATO",
       ciiU1: padronEmpresaRespuesta.ciiU1,
       ciiU2: padronEmpresaRespuesta.ciiU2,
       ciiU3: padronEmpresaRespuesta.ciiU3,
@@ -2967,23 +2632,115 @@ const AfiliadoAgregar = (props) => {
       setOpenDialog(true);
     };
 
-    request(
-      {
-        baseURL: "Afiliaciones",
-        endpoint: `/Afiliado`,
-        method: "PUT",
-        body: afiliadoModificado,
-        headers: {
-          "Content-Type": "application/json",
+    // Si tenemos un codigo postal valido, consultamos RefLocalidad en Afiliaciones
+    const cp = isNaN(cpIntEmpresaMod) ? 0 : cpIntEmpresaMod * 100;
+    if (cp && cp > 0) {
+      const endpointRefLocalidad = `/RefLocalidad/GetRefLocalidadesPaginationSpecs?sortBy=%2Bnombre&filterByCPNombre=${cp}&pageIndex=1&pageSize=15`;
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: endpointRefLocalidad,
+          method: "GET",
         },
-      },
-      afiliadoModificar
-    );
+        async (refLocalidadResp) => {
+          try {
+            const item = refLocalidadResp?.data?.[0];
+            if (item) {
+              // completar provincia y localidad desde respuesta de RefLocalidad
+              // Guardar 'provinciaId' en domicilioProvinciaId y 'seccionalId' en domicilioLocalidadesId
+              empresa.domicilioProvinciaId = item.provinciaId ?? empresa.domicilioProvinciaId;
+              empresa.domicilioProvinciasId = item.provinciaId ?? empresa.domicilioProvinciasId;
+              empresa.domicilioLocalidadesId = item.seccionalId ?? empresa.domicilioLocalidadesId;
+              // Asegurar que también se refleje en el objeto principal a guardar
+              afiliadoModificado.domicilioProvinciaId = empresa.domicilioProvinciaId;
+              afiliadoModificado.domicilioProvinciasId = empresa.domicilioProvinciasId;
+              // Usar el nombre plural correcto para que coincida con la base de datos
+              afiliadoModificado.domicilioLocalidadesId = empresa.domicilioLocalidadesId;
+            }
+            console.log("RefLocalidad item:", item);
+            console.log("empresa después RefLocalidad:", empresa);
+            console.log("afiliadoModificado antes PUT:", afiliadoModificado);
+          } catch (e) {
+            console.log("Error procesando RefLocalidad", e);
+          }
+          // ahora ejecutamos el PUT con empresa actualizada
+          // Añadir variantes PascalCase por compatibilidad con backend
+          afiliadoModificado.DomicilioProvinciaId = afiliadoModificado.domicilioProvinciaId;
+          afiliadoModificado.DomicilioProvinciasId = afiliadoModificado.domicilioProvinciasId;
+          afiliadoModificado.DomicilioLocalidadesId = afiliadoModificado.domicilioLocalidadesId;
+
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: `/Afiliado`,
+              method: "PUT",
+              body: afiliadoModificado,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            afiliadoModificar
+          );
+        },
+        async (err) => {
+          // Si falla la consulta de RefLocalidad, igual intentamos guardar sin esos datos
+          console.log("RefLocalidad error", err);
+          // Asegurar que los campos top-level estén sincronizados con `empresa`
+          afiliadoModificado.domicilioProvinciaId = empresa.domicilioProvinciaId;
+          afiliadoModificado.domicilioProvinciasId = empresa.domicilioProvinciasId;
+          afiliadoModificado.domicilioLocalidadesId = empresa.domicilioLocalidadesId;
+          console.log("empresa en error RefLocalidad:", empresa);
+          console.log("afiliadoModificado en error antes PUT:", afiliadoModificado);
+          // Añadir variantes PascalCase por compatibilidad con backend
+          afiliadoModificado.DomicilioProvinciaId = afiliadoModificado.domicilioProvinciaId;
+          afiliadoModificado.DomicilioProvinciasId = afiliadoModificado.domicilioProvinciasId;
+          afiliadoModificado.DomicilioLocalidadesId = afiliadoModificado.domicilioLocalidadesId;
+
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: `/Afiliado`,
+              method: "PUT",
+              body: afiliadoModificado,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            afiliadoModificar
+          );
+        }
+      );
+    } else {
+      // sin CP valido, guardamos tal cual
+      // Asegurar sincronía de campos top-level con valores calculados
+      afiliadoModificado.domicilioProvinciaId = empresa.domicilioProvinciaId;
+      afiliadoModificado.domicilioProvinciasId = empresa.domicilioProvinciasId;
+      afiliadoModificado.domicilioLocalidadesId = empresa.domicilioLocalidadesId;
+      console.log("CP no valido, empresa:", empresa);
+      console.log("afiliadoModificado sin RefLocalidad:", afiliadoModificado);
+      // Añadir variantes PascalCase por compatibilidad con backend
+      afiliadoModificado.DomicilioProvinciaId = afiliadoModificado.domicilioProvinciaId;
+      afiliadoModificado.DomicilioProvinciasId = afiliadoModificado.domicilioProvinciasId;
+      afiliadoModificado.DomicilioLocalidadesId = afiliadoModificado.domicilioLocalidadesId;
+
+      request(
+        {
+          baseURL: "Afiliaciones",
+          endpoint: `/Afiliado`,
+          method: "PUT",
+          body: afiliadoModificado,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+        afiliadoModificar
+      );
+    }
   };
 
   const ActualizaDatosAfip = (padronObj) => {
     const patchModelo = ActualizarDatosAfip(padronObj);
-    console.log("patchModelo", patchModelo);
+
     const actualizarDatosAfip = async () => {
       setDialogTexto(AFILIADO_DATOSAFIPACTUALIZADO);
       setOpenDialog(true);
@@ -3002,9 +2759,7 @@ const AfiliadoAgregar = (props) => {
       actualizarDatosAfip
     );
   };
-  //#endregion
 
-  //#region Dialog or alert
   const handleCloseDialog = () => {
     setOpenDialog(false);
     if (
@@ -3018,13 +2773,15 @@ const AfiliadoAgregar = (props) => {
       handleCerrarModal(true);
     }
   };
-  //#endregion
 
   return (
     <>
       <div>
         <Dialog
-          onClose={() => (setDialogTexto(""), handleCloseDialog())}
+          onClose={() => {
+            setDialogTexto("");
+            handleCloseDialog();
+          }}
           open={openDialog}
         >
           <DialogContent dividers>
@@ -3067,7 +2824,10 @@ const AfiliadoAgregar = (props) => {
           <DialogActions>
             <Button
               className="botonAmarillo"
-              onClick={() => (setDialogTexto(""), handleCloseDialog())}
+              onClick={() => {
+                setDialogTexto("");
+                handleCloseDialog();
+              }}
             >
               Cierra
             </Button>
@@ -3129,12 +2889,12 @@ const AfiliadoAgregar = (props) => {
                       disabled={InputDisabled("cuil")}
                       onChange={handleInputChange}
                       error={
-                        !cuilState.isValid && cuilState.value.length != ""
+                        !cuilState.isValid && cuilState.value.length !== ""
                           ? true
                           : false
                       }
                       helperText={
-                        !cuilState.isValid && cuilState.value != ""
+                        !cuilState.isValid && cuilState.value !== ""
                           ? "CUIL Inválido"
                           : ""
                       }
@@ -3159,9 +2919,9 @@ const AfiliadoAgregar = (props) => {
                       heigth={70}
                       //disabled={afiliadoExiste ? !!cuilValidado || !cuilState.isValid : true}
                       disabled={
-                        cuilValidado == false &&
-                          padronRespuesta?.cuit &&
-                          afiliadoExiste
+                        cuilValidado === false &&
+                        padronRespuesta?.cuit &&
+                        afiliadoExiste
                           ? false
                           : true
                       }
