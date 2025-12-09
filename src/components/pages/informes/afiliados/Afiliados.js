@@ -174,12 +174,12 @@ const columns = [
 
 const delegacionSelectTodos = { value: 0, label: "Todas" };
 const delegacionSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre }),
-		start: data.length === 1 ? [] : [delegacionSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.nombre }),
+    start: data.length === 1 ? [] : [delegacionSelectTodos],
+    ...x,
+  });
 
 const seccionalSelectTodos = { label: "Todas" };
 const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
@@ -199,30 +199,30 @@ const seccionalSelectOptions = ({ data = [], ambitoUsuario = {}, ...x }) =>
 
 const motivosBajaSelectTodos = { value: 0, label: "Todos" };
 const motivosBajaSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
-		start: data.length === 1 ? [] : [motivosBajaSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion }),
+    start: data.length === 1 ? [] : [motivosBajaSelectTodos],
+    ...x,
+  });
 
 const estadoSelectTodos = { value: 0, label: "Todos" };
 const estadoSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.descripcion }),
-		start: data.length === 1 ? [] : [estadoSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.descripcion }),
+    start: data.length === 1 ? [] : [estadoSelectTodos],
+    ...x,
+  });
 
 const provinciaSelectTodos = { value: null, label: "Todas" };
 const provinciaSelectOptions = ({ data = [], ...x }) =>
-	mapOptions({
-		data,
-		map: (r) => ({ value: r.id, label: r.nombre }),
-		start: data.length === 1 ? [] : [provinciaSelectTodos],
-		...x,
-	});
+  mapOptions({
+    data,
+    map: (r) => ({ value: r.id, label: r.nombre }),
+    start: data.length === 1 ? [] : [provinciaSelectTodos],
+    ...x,
+  });
 
 const Afiliados = ({ onClose = onCloseDef }) => {
   const ambitoUsuario = useAmbitos().ambitoUser();
@@ -670,6 +670,7 @@ const Afiliados = ({ onClose = onCloseDef }) => {
         if (!lockDelegacion && !lockSeccional) delete n.ambitoProvincias;
       } else {
         n.ambitoProvincias = { ids: [provIdSel] };
+        if (!lockDelegacion && !lockSeccional) delete n.ambitoTodos;
       }
       if (lockSeccional) {
         n.ambitoSeccionales = { ids: [fixedSeccId] };
@@ -1307,13 +1308,12 @@ const Afiliados = ({ onClose = onCloseDef }) => {
       );
     }
 
-		// Si el usuario lo tiene, lo mantenemos aunque haya filtros específicos.
-		if (usuario?.ambitoTodos) {
-			filtrosDepurados.ambitoTodos = usuario.ambitoTodos; // true
-		} else {
-			delete filtrosDepurados.ambitoTodos;
-		}
+    const hayFiltroEspecifico =
+      (filtrosDepurados.ambitoSeccionales?.ids?.length ?? 0) > 0 ||
+      (filtrosDepurados.ambitoDelegaciones?.ids?.length ?? 0) > 0 ||
+      (filtrosDepurados.ambitoProvincias?.ids?.length ?? 0) > 0;
 
+    if (hayFiltroEspecifico) delete filtrosDepurados.ambitoTodos;
 
     if (lockSeccional) {
       filtrosDepurados.ambitoSeccionales = { ids: [fixedSeccId] };
