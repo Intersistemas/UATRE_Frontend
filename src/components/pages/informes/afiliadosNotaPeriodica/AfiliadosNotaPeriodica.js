@@ -404,7 +404,21 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
       hastaFecha: filtros.fechaIngresoHasta,
       seccionales: [],
     };
-    list.selected.forEach((afiliado) => {
+    
+    // Usar cuilValidado para el PDF (si es válido, pisa el campo cuil)
+    const CUIL_LENGTH = 11;
+    const afiliadosConCuilValidado = list.selected.map((afiliado) => {
+      const val = afiliado?.cuilValidado;
+      if (val != null) {
+        const digits = String(val).replace(/\D/g, "");
+        if (Number(val) !== 0 && digits.length === CUIL_LENGTH) {
+          return { ...afiliado, cuil: val };
+        }
+      }
+      return afiliado;
+    });
+    
+    afiliadosConCuilValidado.forEach((afiliado) => {
       let seccional = delegacion.seccionales.find(
 		(s) => s.codigo === afiliado.seccionalCodigo
 	);

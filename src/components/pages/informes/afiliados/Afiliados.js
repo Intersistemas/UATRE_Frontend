@@ -39,7 +39,8 @@ const columns = [
     headerStyle: { width: "8em", textAlign: "center" },
     formatter: (v, row) =>
       row.cuilValidado !== 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v),
-    csvFormat: (v) => v,
+    csvFormat: (v, row) =>
+      row.cuilValidado !== 0 ? Formato.Cuit(row.cuilValidado) : Formato.Cuit(v),
     style: { textAlign: "center" },
   },
   {
