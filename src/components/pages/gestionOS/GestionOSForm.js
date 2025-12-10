@@ -786,39 +786,37 @@ const GestionOSForm = ({
     selectedAditionalData: {},
     origen: "",
   });
-  // Buscador - Solo actualiza las opciones filtradas sin modificar selected
+  // Buscador
   useEffect(() => {
     setSeccionalSelect((o) => ({
       ...o,
       options: seccionalSelectOptions(o),
+      // Solo establecer selected si hay valores válidos
+      ...(data.seccionalId && data.seccionalDescripcion ? {
+        selected: { value: data.seccionalId, label: data.seccionalDescripcion }
+      } : {})
     }));
   }, [seccionalSelect.buscar, seccionalSelect.data]);
+  //#endregion select seccionales
 
-  // Actualizar selected solo cuando cambia data.seccionalId desde fuera
+  // Buscador
   useEffect(() => {
-    if (data.seccionalId && data.seccionalDescripcion) {
-      setSeccionalSelect((o) => {
-        const selectedOption = o.options.find((r) => r.value === data.seccionalId);
-        return {
-          ...o,
-          selected: {
-            value: data.seccionalId,
-            label: selectedOption?.label || data.seccionalDescripcion,
-          },
-          selectedAditionalData: selectedOption?.record,
-        };
-      });
-    }
-  }, [data.seccionalId, data.seccionalDescripcion]);
+    setSeccionalSelect((o) => ({
+      ...o,
+      selected: {
+        value: data.seccionalId,
+        label: seccionalSelect.options.find((r) => r.value === data.seccionalId)
+          ?.label,
+      },
+      selectedAditionalData: seccionalSelect?.options.find(
+        (r) => r.value === data?.seccionalId
+      )?.record,
+    }));
+  }, [seccionalSelect.options]);
   //#endregion select seccionales
 
   //#region Carga inicial select seccionales
   useEffect(() => {
-    // Solo ejecutar cuando no se ha establecido una seccional predeterminada
-    if (seccionalPredeterminadaSet.current && request === 'A') {
-      return;
-    }
-
     setSeccionalesQuery((o) => ({
       ...o,
       onLoad: ({ ok, error }) => {
@@ -838,7 +836,7 @@ const GestionOSForm = ({
 
             // Intentar obtener la seccional del usuario mediante Afiliado (por CUIL/CUIT)
             // Si no se encuentra o no pertenece a la delegación, se usará la primera seccional
-            if (Usuario?.cuit && !seccionalPredeterminadaSet.current) {
+            if (Usuario?.cuit) {
               pushQuery({
                 action: "GetAfiliado",
                 params: { CUIL: Usuario.cuit },
@@ -846,7 +844,6 @@ const GestionOSForm = ({
                   try {
                     const seccionalIdUsuario = afiliado?.seccionalId;
                     const seccionalUsuario = seccionalesFiltered.find(s => s.id === seccionalIdUsuario);
-                    
                     if (seccionalUsuario && !seccionalPredeterminadaSet.current) {
                       seccionalPredeterminada = seccionalUsuario;
                       seccionalPredeterminadaSet.current = true;
@@ -935,7 +932,7 @@ const GestionOSForm = ({
         }
       },
     }));
-  }, [setSeccionalesQuery, ambito.tipo, ambito.ids, request, Usuario?.cuit]);
+  }, [setSeccionalesQuery, ambito, request, onChange]);
   //#endregion Carga inicial select seccionales
 
   //#region Resetear referencia de seccional predeterminada cuando cambia el request

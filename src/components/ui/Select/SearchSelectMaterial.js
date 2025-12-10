@@ -117,7 +117,7 @@ export const includeSearch = (option, search, ignoreCase = true) =>
 const SearchSelectMaterial = ({
 	name = "",
 	label = "",
-	value = null,
+	value = {},
 	options = [],
 	defaultOption = null,
 	width = "100%",
@@ -141,13 +141,6 @@ const SearchSelectMaterial = ({
 	};
 	defaultOption ??= options.length > 0 ? options[0] : value;
 	
-	// Normalizar el valor: si es null, undefined, {} o tiene value/label undefined, usar null
-	const normalizedValue = (!value || 
-		(typeof value === 'object' && Object.keys(value).length === 0) ||
-		(typeof value === 'object' && value.value === undefined && value.label === undefined)) 
-		? null 
-		: value;
-	
 	return (
 		<FormControl {...formControlProps}>
 			<Autocomplete
@@ -166,17 +159,9 @@ const SearchSelectMaterial = ({
 				options={options}
 				//MenuProps={MenuProps}
 				size="small"
-				value={normalizedValue}
+				value={value}
 				onChange={(_, newValue) => onChange(newValue ?? defaultOption, name)}
-				getOptionLabel={(option) => option?.label || ""}
-				isOptionEqualToValue={(option, value) => {
-					// Si value es null/undefined, retornar true si option también lo es
-					if (!value) return !option;
-					// Si option es null/undefined, no son iguales
-					if (!option) return false;
-					// Comparar por value
-					return option.value === value.value;
-				}}
+				getOptionLabel={(option) => option.label || ""}
 				//defaultValue={props.defaultValue}
 				{...autocompleteProps}
 				renderInput={(params) => (
