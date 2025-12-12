@@ -35,6 +35,7 @@ const AfiliadoFormulariosAfiliacionTable = ({ columns, ...x } = {}) => {
 			dataField: "afiliadoIdAsignado",
 			text: "Estado",
 			headerStyle: { width: "8rem" },
+			sort: false,
 
 			formatter: (cell,row) => {
 				if (row.deletedDate){
@@ -102,6 +103,7 @@ const AfiliadoFormulariosAfiliacionTable = ({ columns, ...x } = {}) => {
 			dataField: "observaciones",
 			text: "Observaciones",
 			style: { textAlign: "left" },
+			formatter: (_cell, row) => row?.deletedObs ?? row?.observaciones ?? "",
 		},
 	];
 

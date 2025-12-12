@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useState } from "react";
 import useQueryQueue from "components/hooks/useQueryQueue";
 import AmbitosTable from "./AmbitosTable";
@@ -15,7 +16,6 @@ const selectionDef = {
 const useAmbitos = () => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
-		console.log('useAmbitos_action',action," & ",params);
 		switch (action) {
 			case "GetList": {
 				return {
@@ -38,35 +38,46 @@ const useAmbitos = () => {
 					params: otherParams,
 				};
 			}
+			
 			case "CreateUA": {
+				//  Enviar body como data (axios) y header JSON
 				return {
 					config: {
 						baseURL: "Seguridad",
 						endpoint: `/UsuariosAmbitos`,
 						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						data: params ?? {}, // <- ANTES no enviaba nada del body
 					},
 				};
 			}
 			case "UpdateUA": {
+				//  Tomar todo lo que venga excepto id y enviarlo como data
 				const { id, ...otherParams } = params;
 				return {
 					config: {
 						baseURL: "Seguridad",
 						endpoint: `/UsuariosAmbitos`,
 						method: "PUT",
+						headers: { "Content-Type": "application/json" },
+						data: otherParams ?? {}, // <- ANTES no enviaba nada del body
 					},
-					params: otherParams,
+					params: { id },
 				};
 			}
 			case "DeleteUA": {
-				const { id, ...otherParams } = params;
+				// PATCH para baja lógica: construir endpoint con id y devolver params vacío
+				const { id } = params || {};
 				return {
 					config: {
 						baseURL: "Seguridad",
-						endpoint: `/UsuariosAmbitos/${id}`,
-						method: "DELETE",
+						endpoint: `/UsuariosAmbitos/DarDeBaja/${id}`,
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						// body must be provided by caller in query.config.body to avoid duplication
 					},
-					params: otherParams,
+					// devolver params vacío para que useQueryQueue no agregue query string
+					params: {},
 				};
 			}
 			default:
@@ -74,7 +85,6 @@ const useAmbitos = () => {
 		}
 	});
 	//#endregion
-
 
 	//#region declaracion y carga list y selected
 	const [list, setList] = useState({
@@ -87,31 +97,32 @@ const useAmbitos = () => {
 
 	useEffect(() => {
 		if (!list.loading) return;
-		console.log("useAmbitos_list",list)
+		const action = list.params.usuarioId ? "GetListByUsuarioId" : "GetList";
 		pushQuery({
-			action: list.params.usuarioId ? "GetListByUsuarioId" : "GetList",
+			action: action,
 			params: { ...list.params },
 
-			onOk: async (data) =>
-				(
-					console.log('ambitos_data',data),
-					setList((o) => {
-						const selection = {
-							...selectionDef,
-							record:
-								data.find((r) => r.id === o.selection.record?.id) ?? data.at(0),
-						};
-						if (selection.record)
-							selection.index = data.indexOf(selection.record);
-						return {
-							...o,
-							loading: null,
-							data: data,
-							error: null,
-							selection,
-						};
-					})
-				),
+			onOk: async (data) => {
+				// Filtrar solo los datos que tengan deletedDate = null,
+				// esto asegura que solo se muestren los ambitos activos
+				// y no los que han sido eliminados.
+				const filteredData = data.filter((item) => item.deletedDate === null);
+				setList((o) => {
+					const selection = {
+						...selectionDef,
+						record:
+							filteredData.find((r) => r.id === o.selection.record?.id) ?? filteredData.at(0),
+					};
+					if (selection.record) selection.index = filteredData.indexOf(selection.record);
+					return {
+						...o,
+						loading: null,
+						data: filteredData,
+						error: null,
+						selection,
+					};
+				});
+			},
 			onError: async (err) =>
 				setList((o) => ({
 					...o,
@@ -121,11 +132,9 @@ const useAmbitos = () => {
 					selection: { ...selectionDef },
 				})),
 		});
-	}, [pushQuery, list.loading, list.params]);
-	//#endregion
+	}, [pushQuery, list]);
 
 	const requestChanges = useCallback((type, payload = {}) => {
-		console.log('useAmbitos_requestChanges',type,' & ',payload)
 		switch (type) {
 			case "selected": {
 				return setList((o) => ({
@@ -140,7 +149,7 @@ const useAmbitos = () => {
 						},
 					},
 				}));
-			} 
+			}
 			case "list": {
 				if (payload.clear)
 					return setList((o) => ({
@@ -179,7 +188,7 @@ const useAmbitos = () => {
 								deletedDate: true,
 								deletedBy: true
 						  };
-					if (list.selection.request !== "B") r.deletedObs = true;
+					if (list.selection.request !== "B") r.deletedBy = true;
 
 					return r;
 				})()}
@@ -188,104 +197,110 @@ const useAmbitos = () => {
 						? { deletedObs: true }
 						: {}
 				}
-				onChange={(changes) =>
-					{
-						const errors = {};
-						setList((old) => ({ ...old, loading: null }));
-						if (list?.data?.find((t)=> t.ambitoId === changes?.ambitoId && t.ambitoTipo === list.selection?.edit?.ambitoTipo) != null && list.selection?.edit?.ambitoTipo != "T")
-						{ 
-							 errors.ambitoId = "El Usuario ya posee este Ambito"
-							 errors.ambitoExiste = true
-						};
-
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
-								edit: {
-									...o.selection.edit,
-									...changes,
-								},
-							},
-						}))
-					}
-				}
-				onClose={(confirm) => {
-					if (!["A", "B", "M"].includes(list.selection.request))
-						confirm = false;
-					if (!confirm) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index: o.selection.index,
-								record: o.data.at(o.selection.index),
-							},
-						}));
-						return;
-					}
-
-					const record = list.selection.edit;
-					//Validaciones
-					console.log("useAmbitos,Record",record)
+				onChange={(changes) => {
 					const errors = {};
-
-					if (!record.ambitoId && record.ambitoTipo != "T" ) errors.ambitoId = "Dato requerido";
-					if (!record.ambitoTipo) errors.ambitoTipo = "Dato requerido";
-
-					if (list.selection.request === "B") {
-						if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+					setList((old) => ({ ...old, loading: null }));
+					// Validación de duplicados
+					const existingItem = list?.data?.find((t) => t.ambitoId === changes?.ambitoId && t.ambitoTipo === list.selection?.edit?.ambitoTipo);
+					if (existingItem != null && list.selection?.edit?.ambitoTipo !== "T") {
+						errors.ambitoId = "El Usuario ya posee este Ambito";
+						errors.ambitoExiste = true;
 					}
-					
 
-					console.log('useAmbitos_onChange',list.selection.edit.ambitoTipo)
-					console.log('useAmbitos_onChange2',list.data)
-
-					if (list?.data?.find((t)=> t.ambitoTipo === "T" ) != null && list.selection.edit.ambitoTipo == "T")
-						{ 
-							 errors.ambitoTipo = "El Usuario ya posee este Ambito"
-							 errors.ambitoExiste = true
-						};
-
-					if (Object.keys(errors).length) {
-						setList((o) => ({
-							...o,
-							selection: {
-								...o.selection,
-								errors,
+					setList((o) => ({
+						...o,
+						selection: {
+							...o.selection,
+							errors,
+							edit: {
+								...o.selection.edit,
+								...changes,
 							},
-						}));
-						return;
-					}
-
-					const query = {
-						config: {},
-						onOk: async (res) =>
-							setList((old) => ({ ...old, loading: "Cargando..." })),
-						onError: async (err) => alert(err.message),
-					};
-
-					switch (list.selection.request) {
-						case "A":
-							query.action = "CreateUA";
-							query.config.body = record;
-							break;
-						case "M":
-							query.action = "UpdateUA";
-							query.params = { id: record.id };
-							query.config.body = record;
-							break;
-						case "B":
-							query.action = "DeleteUA";
-							query.params = { id: record.id };
-							//query.config.body = record.bajaObservacion;
-							break;
-						default:
-							break;
-					}
-					pushQuery(query);
+						},
+					}));
 				}}
+				
+
+
+				
+	onClose={(confirm) => {
+		if (!["A", "B", "M"].includes(list.selection.request)) confirm = false;
+		if (!confirm) {
+			setList((o) => ({
+				...o,
+				selection: {
+					...selectionDef,
+					index: o.selection.index,
+					record: o.data.at(o.selection.index),
+				},
+			}));
+			return;
+		}
+
+		const record = list.selection.edit;
+		const errors = {};
+
+		// Solo validar campos requeridos si NO es una eliminación
+		if (list.selection.request !== "B") {
+			if (!record.ambitoId && record.ambitoTipo !== "T") errors.ambitoId = "Dato requerido";
+			if (!record.ambitoTipo) errors.ambitoTipo = "Dato requerido";
+			// Solo validar duplicados en caso de agregar o modificar
+			const duplicateT = list?.data?.find((t) => t.ambitoTipo === "T");
+			if (duplicateT != null && list.selection.edit.ambitoTipo === "T") {
+				errors.ambitoTipo = "El Usuario ya posee este Ambito";
+				errors.ambitoExiste = true;
+			}
+		}
+
+		// Validación específica para eliminación
+		if (list.selection.request === "B") {
+			if (!record.deletedObs) errors.deletedObs = "Dato requerido";
+		}
+
+		if (Object.keys(errors).length) {
+			setList((o) => ({
+				...o,
+				selection: {
+					...o.selection,
+					errors,
+				},
+			}));
+			return;
+		}
+
+		const query = {
+			config: {},
+			onOk: async (res) => setList((old) => ({ ...old, loading: "Cargando..." })),
+			onError: async (err) => alert(err.message),
+		};
+
+		switch (list.selection.request) {
+			case "A":
+				query.action = "CreateUA";
+				query.config.body = record;
+				break;
+			case "M":
+				query.action = "UpdateUA";
+				query.params = { id: record.id };
+				query.config.body = record;
+				break;
+			case "B":
+				query.action = "DeleteUA";
+				query.params = { id: record.id };
+				query.config.body = {
+					id: record.id,
+					deletedDate: new Date().toISOString(),
+					deletedBy: record.deletedBy,
+					deletedObs: record.deletedObs,
+				};
+				break;
+			default:
+				break;
+		}
+
+		pushQuery(query);
+	}}
+
 			/>
 		);
 	}
@@ -299,16 +314,16 @@ const useAmbitos = () => {
 					list.loading ?? list.error?.message ?? "No existen datos para mostrar"
 				}
 				selection={{
-					selected: [list.selection.record?.id].filter((r) => r),
-					onSelect: (record, isSelect, index, e) =>
-						setList((o) => ({
-							...o,
-							selection: {
-								...selectionDef,
-								index,
-								record,
-							},
-						})),
+						selected: [list.selection.record?.id].filter((r) => r),
+						onSelect: (record, isSelect, index, e) =>
+							setList((o) => ({
+								...o,
+								selection: {
+									...selectionDef,
+									index,
+									record,
+								},
+							})),
 				}}
 			/>
 			{form}

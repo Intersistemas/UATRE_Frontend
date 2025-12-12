@@ -27,6 +27,26 @@ const selectionDef = {
 	errors: null,
 };
 
+const toLocalDateTimeString = (d, { endOfDay = false } = {}) => {
+  if (!d) return undefined;
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return undefined;
+  if (endOfDay) {
+    date.setHours(23, 59, 59, 999);
+  } else {
+    date.setHours(0, 0, 0, 0);
+  }
+  const pad = (n, s = 2) => String(n).padStart(s, "0");
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const HH = pad(date.getHours());
+  const MM = pad(date.getMinutes());
+  const SS = pad(date.getSeconds());
+  const mmm = String(date.getMilliseconds()).padStart(3, "0");
+  return `${yyyy}-${mm}-${dd}T${HH}:${MM}:${SS}.${mmm}`;
+};
+
 export const onLoadSelectFirst = ({ data, multi, record }) => {
 	const dataArray = AsArray(data);
 	if (multi) {
@@ -51,6 +71,17 @@ export const onLoadSelectSame = ({ data, multi, record }) => {
 export const onLoadSelectKeep = ({ record }) => record;
 
 export const onLoadSelectKeepOrFirst = ({ data, multi, record }) => record ?? onLoadSelectFirst({ data, multi, record });
+
+const mapGetListParams = (p = {}) => {
+  const out = {};
+  if (p.estadoSolicitudId != null) out.EstadoSolicitudId = p.estadoSolicitudId;
+  if (p.seccionalId != null) out.SeccionalId = p.seccionalId;
+  if (p.empresaCUIT) out.EmpresaCUIT = String(p.empresaCUIT);
+  if (p.fechaDesde) out.FechaDesde = toLocalDateTimeString(p.fechaDesde, { endOfDay: false });
+  if (p.fechaHasta) out.FechaHasta = toLocalDateTimeString(p.fechaHasta, { endOfDay: true });
+
+  return out;
+};
 
 export const onDataChangeDef = (data = []) => {};
 
@@ -83,30 +114,41 @@ const useAfiliacionesPorEmpresa = ({
 	
 	const { usuario } = useContext(AuthContext);
 	const ambito = useAmbitos().ambitoUser();
+	const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
 
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
 		console.log("useAfiliacionesPorEmpresa pushQuery", action, params);
 		switch (action) {
-			case "GetList": {
-				const { filtro2, ...otherParams } = params;
-				return {
-					config: {
-						baseURL: "Afiliaciones",
-            			endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
-						method: "POST",
-					},
-				//-	params: otherParams,
-				};
-			}
-			
-			case "GetEstados": {
+		case "GetList": {
+			return {
+				config: {
+					baseURL: "Afiliaciones",
+					endpoint: `/SolicitudAfiliacionEmpresas/GetSolicitudAfiliacionEmpresasSpecs`,
+					method: "POST",
+				},
+			};
+		}			case "GetEstados": {
 			return {
 				config: {
 					baseURL: "Afiliaciones",
 					endpoint: `/EstadoSolicitud`,
 					method: "GET",
 				},
+				};
+			}
+
+			case "GetSeccionalesSpecs": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional`,
+						method: "GET",
+					},
+					params: {
+						SoloActivos: true,
+						verSeccionalesLocalidades: false,
+					},
 				};
 			}
 
@@ -178,6 +220,35 @@ const useAfiliacionesPorEmpresa = ({
 		onDataChange: onDataChangeInit ?? onDataChangeDef,
 	});
 
+	//#region Cargar seccionales de la delegación si el ámbito es Delegaciones
+	useEffect(() => {
+		if (ambito.tipo === 'Delegaciones' && ambito.ids && ambito.ids.length > 0) {
+			const delegacionId = ambito.ids[0];
+			
+			pushQuery({
+				action: "GetSeccionalesSpecs",
+				onOk: (response) => {
+					const seccionales = Array.isArray(response) ? response : (response?.data || []);
+					
+					if (Array.isArray(seccionales) && seccionales.length > 0) {
+						const seccionalesFiltradas = seccionales
+							.filter(s => s.refDelegacionId === delegacionId && s.id !== 99999)
+							.map(s => s.id);
+						
+						setSeccionalesDelegacion(seccionalesFiltradas);
+						
+						if (seccionalesFiltradas.length > 0) {
+							setList((o) => ({ ...o, loading: "Cargando..." }));
+						}
+					}
+				},
+				onError: (error) => {
+					console.error("Error al cargar seccionales de la delegación:", error);
+				}
+			});
+		}
+	}, [ambito.tipo, JSON.stringify(ambito.ids), pushQuery]);
+	//#endregion
 
 	//#region filtro estado
 	  const [estadoSelect, setEstadoSelect] = useState({
@@ -241,6 +312,12 @@ const useAfiliacionesPorEmpresa = ({
 	useEffect(() => {
 		console.log("list",list)
 		if (!list.loading) return;
+		
+		// Si el ámbito es Delegaciones y aún no se cargaron las seccionales, esperar
+		if (ambito.tipo === 'Delegaciones' && seccionalesDelegacion.length === 0) {
+			return;
+		}
+		
 		const changes = { loading: null, error: null };
 		/*if (!list.remote) {
 			const data = list.data;
@@ -262,54 +339,64 @@ const useAfiliacionesPorEmpresa = ({
 			return;
 		}*/
 		changes.data = [];
-		const soloLetras = /^[A-Za-z]+$/;
-		const filtro = list?.params?.filtro
 
-		
-		pushQuery({
-			action: "GetList",
-			config: {
-				body: {
-					...list.params,
-					pageIndex: list.pagination.index,
-					pageSize: list.pagination.size,
-					ambitoTodos: usuario.ambitoTodos,
-					ambitoSeccionales: usuario.ambitoSeccionales,
-					ambitoDelegaciones: usuario.ambitoDelegaciones,
-					ambitoProvincias: usuario.ambitoProvincias,
-					sort: "-Id",
-					...(!soloLetras.test(filtro) && ValidarCUIT(filtro) ?  {cuitTitular: filtro.replace(/[.\-\s]/g, '')} : { apellidoTitular: filtro })
-				},
-			},
-			
-			onOk: async ({ index, size, count, data }) => {
-				if (!Array.isArray(data))
-					return console.error("Se esperaba un arreglo", data);
-				console.log("data de la solicitud modificada:",data)
-				changes.data = data;
-				const multi = list.selection.multi;
-				const record = list.selection.record;
-				changes.pagination = { index, size, count };
-				changes.selection = {
-					...list.selection,
-					...selectionDef,
-					record: list.onLoadSelect({ data, multi, record }),
-				};
+		// Preparar parámetros con filtrado por ámbito
+		let ambitoSeccionales = null;
+		if (ambito.tipo === "Seccionales") {
+			ambitoSeccionales = {
+				ids: ambito.ids,
+			};
+		} else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
+			ambitoSeccionales = {
+				ids: seccionalesDelegacion,
+			};
+		}
 
-				changes.selection.index = multi
-					? changes.selection.record?.map((r) => changes.data.indexOf(r))
-					: changes.data.indexOf(changes.selection.record);
+		const paramsToSend = {
+			pageIndex: list.pagination.index,
+			pageSize: list.pagination.size,
+			orderBy: list.params?.orderBy ?? "IdDesc",
+			...mapGetListParams(list.params),
+			...(ambitoSeccionales && { ambitoSeccionales }),
+		};
 
-				list.onDataChange(changes.data);
-			},
-			onError: async (error) => {
-				if (error.code === 404) return;
-				changes.error = error;
-				changes.selection = { ...list.selection, ...selectionDef };
-			},
-			onFinally: async () => setList((o) => ({ ...o, ...changes })),
-		});
-	}, [pushQuery, list]);
+   pushQuery({
+     action: "GetList",
+     config: {
+       body: paramsToSend,
+     },
+     onOk: async ({ index, size, count, data }) => {
+       if (!Array.isArray(data)) {
+         console.error("Se esperaba un arreglo", data);
+         return;
+       }
+       console.log("data de la solicitud modificada:", data);
+       changes.data = data;
+       const multi = list.selection.multi;
+       const record = list.selection.record;
+       changes.pagination = { index, size, count };
+       changes.selection = {
+         ...list.selection,
+         ...selectionDef,
+         record: list.onLoadSelect({ data, multi, record })
+       };
+       changes.selection.index = multi
+         ? changes.selection.record?.map((r) => changes.data.indexOf(r))
+         : changes.data.indexOf(changes.selection.record);
+       list.onDataChange(changes.data);
+     },
+     onError: async (error) => {
+       if (error.code === 404) {
+         return;
+       }
+       changes.error = error;
+       changes.selection = { ...list.selection, ...selectionDef };
+     },
+     onFinally: async () => {
+       setList((o) => ({ ...o, ...changes }));
+     }
+   });
+	}, [pushQuery, list, ambito.tipo, seccionalesDelegacion]);
 	//#endregion
 
 	const request = useCallback((type, payload = {}) => {
@@ -436,7 +523,8 @@ const useAfiliacionesPorEmpresa = ({
 								seccionalId: true,
 							}
 					
-					r.seccionalId = ambito.tipo == "Todos" ? false : true; //si el ambito es todos, no se puede modificar la secc=onalId
+					// Solo deshabilitar si es Seccionales. Todos y Delegaciones pueden cambiar
+					r.seccionalId = ambito.tipo === "Seccionales"; 
 					return r;
 				})()}
 				hide={
