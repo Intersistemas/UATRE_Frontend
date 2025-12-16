@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal, Dropdown, Form, ListGroup, Row, Col } from "react-bootstrap";
+import { Modal, Dropdown, Form, ListGroup, Row, Col, Alert } from "react-bootstrap";
 import moment from "moment";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import Button from "components/ui/Button/Button";
@@ -25,7 +24,6 @@ const PreguntasForm = ({
   onClose = onCloseDef,
   loading = {},
   request = {},
-  successMessage = null,
 }) => {
   data ??= {};
   disabled ??= {};
@@ -34,7 +32,6 @@ const PreguntasForm = ({
   onChange ??= onChangeDef;
   onClose ??= onCloseDef;
   request ??= {};
-  successMessage ??= null;
 
   console.log(
     "Este console, es de HIDE, en el archivo PREGUNTAªªª_FORM@@@@@@@@@@@@@@@@@|||||||||",
@@ -52,7 +49,6 @@ const PreguntasForm = ({
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
-  const [showInfo, setShowInfo] = useState(!!data.infoMessage);
   const [selectedOption, setSelectedOption] = useState(data.tipoPregunta || "Selecciona una opción");
   const [valorOrden, setValorOrden] = useState(data.ordenPregunta || "");
   // const [textoLibre, setTextoLibre] = useState(data.textoLibre || "");
@@ -60,10 +56,43 @@ const PreguntasForm = ({
   const [opciones, setOpciones] = useState(data.detalles || []);
   const [nuevoValor, setNuevoValor] = useState("");
   const [fecha, setFecha] = useState(moment().format("YYYY-MM-DD"));
-  const [openDialog, setOpenDialog] = useState(false);
+  // const [dialogTexto, setDialogTexto] = useState("");
+  const [showInfo, setShowInfo] = useState(!!data.infoMessage);
 
 
-  // Auto-ocultar el mensaje informativo a los 5 segundos
+  // useEffect(() => {
+  //   setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  //   setValorOrden(data.ordenPregunta || "");
+  //   // setTextoLibre(data.textoLibre || "");
+  //   setEnunciado(data.enunciado || "");
+  //   setOpciones([...new Map((data.detalles || []).map((o) => [o.id, o])).values()]); // Eliminar duplicados
+  //   setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+  // }, [data]);
+  
+useEffect(() => {
+   console.log("ID:", data.id);
+  console.log("preguntasList:", data.preguntasList);
+  console.log("ordenes encontradas:", data.preguntasList?.map((p) => p.ordenPregunta));
+  setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  setEnunciado(data.enunciado || "");
+  setOpciones([
+    ...new Map((data.detalles || []).map((o) => [o.id, o])).values(),
+  ]);
+  setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+
+  if (!data.id && Array.isArray(data.preguntasList)) {
+    const ordenes = data.preguntasList
+      .map((p) => Number(p.ordenPregunta))
+      .filter(Boolean);
+    const siguienteOrden = ordenes.length ? Math.max(...ordenes) + 1 : 1;
+    setValorOrden(siguienteOrden);
+    onChange({ ordenPregunta: siguienteOrden });
+  } else {
+    setValorOrden(data.ordenPregunta || "");
+  }
+}, [data, onChange]);
+
+// Auto-ocultar el mensaje informativo a los 5 segundos
 useEffect(() => {
   if (data.infoMessage) {
     setShowInfo(true);
@@ -75,22 +104,6 @@ useEffect(() => {
   }
   setShowInfo(false);
 }, [data.infoMessage, onChange]);
-  
-useEffect(() => {
-   console.log("ID:", data.id);
-  console.log("preguntasList:", data.preguntasList);
-  console.log("ordenes encontradas:", data.preguntasList?.map((p) => p.ordenPregunta));
-  
-  setSelectedOption(data.tipoPregunta || "Selecciona una opción");
-  setEnunciado(data.enunciado || "");
-  setOpciones([
-    ...new Map((data.detalles || []).map((o) => [o.id, o])).values(),
-  ]);
-  setFecha(data.fecha || moment().format("YYYY-MM-DD"));
-  setValorOrden(data.ordenPregunta || "");
-  setNuevoValor(""); // Limpiar el campo de nueva opción
-
-}, [data]);
 
   const handleSelect = (option) => {
     setSelectedOption(option);
@@ -98,6 +111,10 @@ useEffect(() => {
     console.log("Opción seleccionada:", option);
   };
 
+  // const handleChangeTextoLibre = (value) => {
+  //   setTextoLibre(value);
+  //   onChange({ textoLibre: value });
+  // };
 
   const handleChangeEnunciado = (value) => {
     setEnunciado(value);
@@ -133,28 +150,34 @@ useEffect(() => {
 
   return (
     <>
-
+      {/* <div>
+        <Dialog onClose={() => setOpenDialog(false)} open={openDialog}>
+          <DialogContent dividers>
+            <Typography gutterBottom style={{ whiteSpace: "pre-line" }}>
+              {dialogTexto}
+            </Typography>
+          </DialogContent>
+        </Dialog>
+      </div> */}
       <Modal show onHide={() => onClose()} size="lg" centered>
         <Modal.Header className={modalCss.modalCabecera}>
           <h3>{title}</h3>
         </Modal.Header>
         <Modal.Body>
+          {showInfo && data.infoMessage ? (
+            <Alert
+              variant="success"
+              style={{ marginBottom: 12 }}
+              dismissible
+              onClose={() => {
+                setShowInfo(false);
+                onChange({ infoMessage: undefined });
+              }}
+            >
+              {data.infoMessage}
+            </Alert>
+          ) : null}
           
-          {/* Mensaje de éxito */}
-          {successMessage && (
-            <div style={{
-              backgroundColor: "#d4edda",
-              color: "#155724",
-              padding: "12px",
-              borderRadius: "4px",
-              marginBottom: "15px",
-              border: "1px solid #c3e6cb",
-              fontWeight: "500"
-            }}>
-              {successMessage}
-            </div>
-          )}
-
           <Grid col full gap="15px">
             {/* --------------AQUI EMPIEZA MI FORM--------------------------------- */}
             <Grid gap="inherit">
