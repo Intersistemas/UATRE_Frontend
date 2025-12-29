@@ -104,6 +104,42 @@ useEffect(() => {
   }
   setShowInfo(false);
 }, [data.infoMessage, onChange]);
+  
+useEffect(() => {
+   console.log("ID:", data.id);
+  console.log("preguntasList:", data.preguntasList);
+  console.log("ordenes encontradas:", data.preguntasList?.map((p) => p.ordenPregunta));
+  setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  setEnunciado(data.enunciado || "");
+  setOpciones([
+    ...new Map((data.detalles || []).map((o) => [o.id, o])).values(),
+  ]);
+  setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+
+  if (!data.id && Array.isArray(data.preguntasList)) {
+    const ordenes = data.preguntasList
+      .map((p) => Number(p.ordenPregunta))
+      .filter(Boolean);
+    const siguienteOrden = ordenes.length ? Math.max(...ordenes) + 1 : 1;
+    setValorOrden(siguienteOrden);
+    onChange({ ordenPregunta: siguienteOrden });
+  } else {
+    setValorOrden(data.ordenPregunta || "");
+  }
+}, [data, onChange]);
+
+// Auto-ocultar el mensaje informativo a los 5 segundos
+useEffect(() => {
+  if (data.infoMessage) {
+    setShowInfo(true);
+    const timer = setTimeout(() => {
+      setShowInfo(false);
+      onChange({ infoMessage: undefined });
+    }, 5000);
+    return () => clearTimeout(timer);
+  }
+  setShowInfo(false);
+}, [data.infoMessage, onChange]);
 
   const handleSelect = (option) => {
     setSelectedOption(option);
