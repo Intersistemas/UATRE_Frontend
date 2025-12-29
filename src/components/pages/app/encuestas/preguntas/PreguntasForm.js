@@ -49,6 +49,7 @@ const PreguntasForm = ({
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+  const [showInfo, setShowInfo] = useState(!!data.infoMessage);
   const [selectedOption, setSelectedOption] = useState(data.tipoPregunta || "Selecciona una opción");
   const [valorOrden, setValorOrden] = useState(data.ordenPregunta || "");
   // const [textoLibre, setTextoLibre] = useState(data.textoLibre || "");
@@ -60,14 +61,18 @@ const PreguntasForm = ({
   const [showInfo, setShowInfo] = useState(!!data.infoMessage);
 
 
-  // useEffect(() => {
-  //   setSelectedOption(data.tipoPregunta || "Selecciona una opción");
-  //   setValorOrden(data.ordenPregunta || "");
-  //   // setTextoLibre(data.textoLibre || "");
-  //   setEnunciado(data.enunciado || "");
-  //   setOpciones([...new Map((data.detalles || []).map((o) => [o.id, o])).values()]); // Eliminar duplicados
-  //   setFecha(data.fecha || moment().format("YYYY-MM-DD"));
-  // }, [data]);
+  // Auto-ocultar el mensaje informativo a los 5 segundos
+useEffect(() => {
+  if (data.infoMessage) {
+    setShowInfo(true);
+    const timer = setTimeout(() => {
+      setShowInfo(false);
+      onChange({ infoMessage: undefined });
+    }, 5000);
+    return () => clearTimeout(timer);
+  }
+  setShowInfo(false);
+}, [data.infoMessage, onChange]);
   
 useEffect(() => {
    console.log("ID:", data.id);
