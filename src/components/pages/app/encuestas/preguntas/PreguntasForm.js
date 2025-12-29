@@ -49,7 +49,6 @@ const PreguntasForm = ({
   UseKeyPress(["Escape"], () => onClose());
   UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
-  const [showInfo, setShowInfo] = useState(!!data.infoMessage);
   const [selectedOption, setSelectedOption] = useState(data.tipoPregunta || "Selecciona una opción");
   const [valorOrden, setValorOrden] = useState(data.ordenPregunta || "");
   // const [textoLibre, setTextoLibre] = useState(data.textoLibre || "");
@@ -61,7 +60,39 @@ const PreguntasForm = ({
   const [showInfo, setShowInfo] = useState(!!data.infoMessage);
 
 
-  // Auto-ocultar el mensaje informativo a los 5 segundos
+  // useEffect(() => {
+  //   setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  //   setValorOrden(data.ordenPregunta || "");
+  //   // setTextoLibre(data.textoLibre || "");
+  //   setEnunciado(data.enunciado || "");
+  //   setOpciones([...new Map((data.detalles || []).map((o) => [o.id, o])).values()]); // Eliminar duplicados
+  //   setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+  // }, [data]);
+  
+useEffect(() => {
+   console.log("ID:", data.id);
+  console.log("preguntasList:", data.preguntasList);
+  console.log("ordenes encontradas:", data.preguntasList?.map((p) => p.ordenPregunta));
+  setSelectedOption(data.tipoPregunta || "Selecciona una opción");
+  setEnunciado(data.enunciado || "");
+  setOpciones([
+    ...new Map((data.detalles || []).map((o) => [o.id, o])).values(),
+  ]);
+  setFecha(data.fecha || moment().format("YYYY-MM-DD"));
+
+  if (!data.id && Array.isArray(data.preguntasList)) {
+    const ordenes = data.preguntasList
+      .map((p) => Number(p.ordenPregunta))
+      .filter(Boolean);
+    const siguienteOrden = ordenes.length ? Math.max(...ordenes) + 1 : 1;
+    setValorOrden(siguienteOrden);
+    onChange({ ordenPregunta: siguienteOrden });
+  } else {
+    setValorOrden(data.ordenPregunta || "");
+  }
+}, [data, onChange]);
+
+// Auto-ocultar el mensaje informativo a los 5 segundos
 useEffect(() => {
   if (data.infoMessage) {
     setShowInfo(true);
