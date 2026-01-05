@@ -106,7 +106,7 @@ const ConsultasHandler = () => {
 						width="32"
 						tarea="Consultas_SolicitudPreviaAfiliacion"
 					>
-						Solicitudes de Afiliación
+						Solicitudes Previas de Afiliación
 					</Button>
 				</Grid>)}				
 				

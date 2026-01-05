@@ -1,5 +1,3 @@
-
-
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
@@ -7,7 +5,10 @@ import useQueryState from "components/hooks/useQueryState";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import modalCss from "components/ui/Modal/Modal.module.css";
-import SearchSelectMaterial, { includeSearch, mapOptions } from "components/ui/Select/SearchSelectMaterial";
+import SearchSelectMaterial, {
+	includeSearch,
+	mapOptions,
+} from "components/ui/Select/SearchSelectMaterial";
 import Table from "components/ui/Table/Table";
 import PDFViewer from "./PDFViewer";
 import AuthContext from "store/authContext";
@@ -63,8 +64,8 @@ const columns = [
   { dataField: "provincia", text: "Provincia", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" } },
   { dataField: "fechaIngreso", text: "F. Ingreso", sort: true, headerTitle: () => "Fecha de Ingreso", headerStyle: { width: "7em", textAlign: "center" }, formatter: (v) => Formato.Fecha(v), style: { textAlign: "center" } },
   { dataField: "puesto", text: "Puesto", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
-  { dataField: "empresaCUIT", text: "CUIT", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v) => Formato.Cuit(v), style: { textAlign: "center" } },
-  { dataField: "empresaDescripcion", text: "Empresa", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
+  //{ dataField: "empresaCUIT", text: "CUIT", headerTitle: true, headerStyle: { width: "8em", textAlign: "center" }, formatter: (v) => Formato.Cuit(v), style: { textAlign: "center" } },
+  //{ dataField: "empresaDescripcion", text: "Empresa", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
   { dataField: "actividad", text: "Actividad", headerTitle: true, headerStyle: { width: "10em", textAlign: "center" } },
   { dataField: "ultimaDDJJPeriodo", text: "Período última DDJJ", headerTitle: true, headerStyle: { width: "12em", textAlign: "center" }, formatter: (v) => Formato.Periodo(v) },
 ];
@@ -127,6 +128,8 @@ const normalizeSeccionalOption = (opt) => {
 const normalizeFiltros = (f) => {
   const g = { ...f };
   if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
+  // Limpiar campos que son solo para el frontend y no deben enviarse al backend
+  delete g.estadoSolicitudFiltro; // Este campo es solo para el frontend
   return g;
 };
 
@@ -150,12 +153,18 @@ const buildEstadoParams = (f = {}) => {
 
 /** Normalizador de paginado del backend -> {index, size, count(pages)} */
 const normalizeServerPaging = (ok, fallbackIndex, fallbackSize) => {
-  const size = Number(ok?.pageSize ?? fallbackSize) || fallbackSize || 10;
-  const indexRaw = Number(ok?.pageIndex ?? ok?.page ?? fallbackIndex) || fallbackIndex || 1;
+  // El backend devuelve: {index, size, pages, count, data}
+  // donde 'count' es el total de registros y 'pages' es el número de páginas
+  const size = Number(ok?.size ?? ok?.pageSize ?? fallbackSize) || fallbackSize || 10;
+  const indexRaw = Number(ok?.index ?? ok?.pageIndex ?? ok?.page ?? fallbackIndex) || fallbackIndex || 1;
+  
+  // IMPORTANTE: El backend devuelve 'pages' (número de páginas) y 'count' (total registros)
+  // Necesitamos usar 'pages' directamente, NO recalcular
   let pagesCount = ok?.pages != null ? Number(ok.pages) : null;
 
+  // Solo recalcular si el backend NO devuelve 'pages'
   if (pagesCount == null) {
-    const totalRowsRaw = ok?.totalCount ?? ok?.total ?? ok?.count ?? ok?.itemsCount ?? null;
+    const totalRowsRaw = ok?.count ?? ok?.totalCount ?? ok?.total ?? ok?.itemsCount ?? null;
     if (totalRowsRaw != null) {
       const totalRows = Number(totalRowsRaw);
       pagesCount = Math.max(1, Math.ceil(totalRows / size));
@@ -164,7 +173,11 @@ const normalizeServerPaging = (ok, fallbackIndex, fallbackSize) => {
   if (pagesCount == null) pagesCount = 0;
 
   const index = indexRaw < 1 ? 1 : indexRaw;
-  return { index, size, count: pagesCount };
+  
+  // Extraer también el totalCount para mostrarlo en logs
+  const totalCount = Number(ok?.count ?? ok?.totalCount ?? ok?.total ?? 0);
+  
+  return { index, size, count: pagesCount, totalCount };
 };
 
 /** Util: aplicar filtro de estado a un arreglo de afiliados */
@@ -180,12 +193,10 @@ const aplicarFiltroEstado = (rows = [], filtros = {}) => {
     return filtered;
   }
   if (filtros.estadoSolicitudFiltro === "No Activo" || filtros.soloNoActivos) {
-
     const filtered = rows.filter(a => {
       const e = a.estadoSolicitud;
       return e && ["No Activo", "Rechazado", "Pendiente"].includes(e);
     });
-
     return filtered;
   }
   return rows; // “Todos”
@@ -451,8 +462,9 @@ const Handler = ({ onClose = () => {} }) => {
   /** LIST (tabla) */
   const [list, setList] = useState({
     reload: false, loading: null,
-    pagination: { index: 1, size: 10 }, // Paginación remota
-    filtros: {}, sort: "seccionalId,nombre",
+    pagination: { index: 1, size: 10 }, // Paginación remota - 10 registros por página
+    filtros: {},
+    sort: "seccionalId,nombre",
     data: [],
     error: null,
   });
@@ -461,9 +473,10 @@ const Handler = ({ onClose = () => {} }) => {
     if (!list.reload) return;
 
     const filtrosNorm = normalizeFiltros(list.filtros);
+    const estadoParams = buildEstadoParams(filtrosNorm);
     const body = {
       ...filtrosNorm,
-      ...buildEstadoParams(filtrosNorm), // backend filtra y pagina
+      ...estadoParams, // backend filtra y pagina
       sort: list.sort,
       pageIndex: list.pagination.index,
       pageSize: list.pagination.size,
@@ -480,12 +493,20 @@ const Handler = ({ onClose = () => {} }) => {
         if (Array.isArray(ok?.data)) {
           data = !usuarioConSeccionalInactiva ? ok.data : [];
 
-          // Reforzar filtro client-side
+          // FILTRO CLIENT-SIDE TEMPORAL: El backend NO filtra correctamente
+          // Esto solo filtra la página actual, no es ideal pero funciona
           const filtrosActuales = normalizeFiltros(list.filtros);
           data = aplicarFiltroEstado(data, filtrosActuales);
 
           const norm = normalizeServerPaging(ok, list.pagination.index, list.pagination.size);
-          pagination = { ...pagination, ...norm };
+          
+          // IMPORTANTE: Mantener el size original de list.pagination, usar count de norm
+          pagination = { 
+            index: norm.index, 
+            size: list.pagination.size,  // Usar el size que ya teníamos (10)
+            count: norm.count,           // Usar el count (páginas) del backend
+            totalCount: norm.totalCount  // Total de registros
+          };
         } else {
           pagination = { ...pagination, count: 0 };
         }
@@ -520,8 +541,6 @@ const Handler = ({ onClose = () => {} }) => {
       pageSize: 1000, // Usar pageSize grande para obtener más datos por página y menos requests
     };
 
-
-
     const acumulado = [];
     const changes = { reload: false, loading: "Cargando...", data: [], error: null, despliega: false };
 
@@ -533,19 +552,27 @@ const Handler = ({ onClose = () => {} }) => {
         pages = ok.pages || 1;
         let data = Array.isArray(ok.data) ? ok.data : [];
         
-        console.log(` Página ${pageIndex} - Datos recibidos del servidor:`, data.length, "registros");
-        
+        // >>> NUEVO: Usar cuilValidado para el PDF (si es válido, pisa el campo cuil)
+        const CUIL_LENGTH = 11;
+        data = data.map((afiliado) => {
+          const val = afiliado?.cuilValidado;
+          if (val != null) {
+            const digits = String(val).replace(/\D/g, "");
+            if (Number(val) !== 0 && digits.length === CUIL_LENGTH) {
+              return { ...afiliado, cuil: val };
+            }
+          }
+          return afiliado;
+        });
+        // <<< FIN NUEVO
+
         // Aplicar el mismo filtro de usuario inactivo que en la tabla
         data = !usuarioConSeccionalInactiva ? data : [];
-        console.log(` Después filtro usuario inactivo:`, data.length, "registros");
         
-        // Aplicar filtro de estado (TODOS/ACTIVOS/NO ACTIVOS)
-        const dataAntesFiltro = data.length;
+        // FILTRO CLIENT-SIDE TEMPORAL: El backend NO filtra correctamente
         data = aplicarFiltroEstado(data, filtrosNorm);
-        console.log(` Después filtro estado (${filtrosNorm.estadoSolicitudFiltro || 'Todos'}):`, data.length, "registros (era", dataAntesFiltro, ")");
         
         acumulado.push(...data);
-        console.log(` Total acumulado hasta ahora:`, acumulado.length, "registros");
       }
       if (error) changes.error = error.toString();
 
@@ -553,9 +580,13 @@ const Handler = ({ onClose = () => {} }) => {
         pageIndex += 1;
         changes.loading = `Cargando bloque ${pageIndex} de ${pages}...`;
         setPadron((o) => ({ ...o, ...changes }));
+        
+        // IMPORTANTE: Mantener TODOS los filtros en la siguiente llamada, solo cambiar pageIndex
+        const nextBody = { ...baseBody, pageIndex };
+        
         setAfiliacionesQuery((o) => ({
           ...o,
-          query: { ...o.query, config: { ...o.query.config, body: { ...o.query.config.body, pageIndex } } },
+          query: { ...o.query, config: { ...o.query.config, body: nextBody } },
           onLoad,
         }));
       } else {
@@ -590,14 +621,10 @@ const Handler = ({ onClose = () => {} }) => {
   const onCargaPadron = useCallback(() => {
     // Usa EXACTAMENTE los mismos filtros que están aplicados en la tabla
     if (!list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0) {
-      console.log("❌ No hay filtros aplicados en la tabla o no hay datos. Haz clic en 'Aplica filtros' primero.");
       return;
     }
 
     const filtrosEfectivos = normalizeFiltros(list.filtros);
-    
-    console.log(" onCargaPadron - Filtros de la tabla para PDF:", list.filtros);
-    console.log(" onCargaPadron - Filtros normalizados:", filtrosEfectivos);
 
     // Limitar a seccionales elegidas (si hay)
     const idsSel = filtrosEfectivos?.ambitoSeccionales?.ids || [];
@@ -771,7 +798,7 @@ const Handler = ({ onClose = () => {} }) => {
                   error: null,
                 })),
             }}
-            noDataIndication={list.loading || list.error || "No existen datos para mostrar "}
+            noDataIndication={list.loading || list.error || "No existen datos para mostrar"}
             columns={columns}
             onTableChange={(type, { sortOrder, sortField }) => {
               if (type === "sort") {
@@ -807,7 +834,7 @@ const Handler = ({ onClose = () => {} }) => {
             title={
               !list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0
                 ? "Aplica filtros primero para generar el PDF con los datos filtrados"
-                : `Generar PDF con TODOS los registros que coinciden con los filtros aplicados (página actual: ${list.pagination.index} de ${list.pagination.count})`
+                : `Generar PDF con ${list.pagination.totalCount || 'TODOS los'} registros que coinciden con los filtros aplicados (mostrando página ${list.pagination.index} de ${list.pagination.count})`
             }
           >
             IMPRIME
@@ -820,7 +847,3 @@ const Handler = ({ onClose = () => {} }) => {
 };
 
 export default Handler;
-
-
-
-

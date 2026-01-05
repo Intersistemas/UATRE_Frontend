@@ -159,9 +159,9 @@ const Hoja = ({ seccional, page, ambitoUser }) => (
 						<Td justify="center" width="140px">
 							<P>AFI. Nº</P>
 						</Td>
-						<Td justify="center" width>
+						{/* <Td justify="center" width>
 							<P>RAZON SOCIAL</P>
-						</Td>
+						</Td> */}
 						<Td justify="center" width="140px">
 							<P>ALTA</P>
 						</Td>
@@ -197,9 +197,9 @@ const Hoja = ({ seccional, page, ambitoUser }) => (
 							<Td justify="end" width="140px">
 								<P>{afiliado.nroAfiliado}</P>
 							</Td>
-							<Td justify="start" width>
+							{/* <Td justify="start" width>
 								<P>{afiliado.empresaDescripcion}</P>
-							</Td>
+							</Td> */}
 							<Td justify="end" width="140px">
 								<P>{Formato.Fecha(afiliado.fechaIngreso)}</P>
 							</Td>
