@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState, useRef, useContext } from "react";
 import moment from "moment";
 import {
   Dialog,
@@ -20,6 +20,7 @@ import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import { flatten } from "components/helpers/Utils";
+import AuthContext from "../../../store/authContext";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
@@ -341,7 +342,7 @@ const telefonoNumeroReducer = (state, action) => {
     return { value: action.value, isValid: validarTelefono("numero", action.value) };
   }
   if (action.type === "USER_BLUR") {
-    return { value: state.value, isValid: validarTelefono("numero", state.value)};
+    return { value: state.value, isValid: validarTelefono("numero", state.value) };
   }
   return { value: "", isValid: false };
 };
@@ -369,9 +370,11 @@ const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [errorAFIP, setErrorAFIP] = useState(false);
   const [consultaPadronCUILOk, setConsultaPadronCUILOk] = useState(false);
+  const Usuario = useContext(AuthContext).usuario;
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
+  const accion = props?.accion;
 
   //#region Alert
   const [openDialog, setOpenDialog] = useState(false);
@@ -558,10 +561,9 @@ const AfiliadoAgregar = (props) => {
       ${!localidadState.isValid ? "*Localidad\n" : ""}
       ${!seccionalState.isValid ? "*Seccional\n" : ""}      
       ${!actividadState.isValid ? "*Actividad\n" : ""}
-      ${
-        !seccionalSolicitudAfiliacionState.isValid
-          ? "*Seccional Solicita Afiliación\n"
-          : ""
+      ${!seccionalSolicitudAfiliacionState.isValid
+        ? "*Seccional Solicita Afiliación\n"
+        : ""
       }      
       ${!cuitState.isValid ? "*CUIT Empleador\n" : ""}
       `);
@@ -602,12 +604,11 @@ const AfiliadoAgregar = (props) => {
         setCUILLoading(false);
         setDialogTexto(
           //`Error - No existe el CUIL ${cuilState.value} en el Padron de AFIP`
-          `${
-            error?.message
-              ? error?.message.includes("objeto")
-                ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)`
-                : error?.message
-              : "Error consultando ARCA"
+          `${error?.message
+            ? error?.message.includes("objeto")
+              ? `Error AFIP Conectividad (${cuilState.value}: Persona no encontrada)`
+              : error?.message
+            : "Error consultando ARCA"
           }`
         );
         setOpenDialog(true);
@@ -631,12 +632,11 @@ const AfiliadoAgregar = (props) => {
         setCUITLoading(false);
         setDialogTexto(
           //`Error - No existe el CUIT ${cuitEmpresa} en el Padron de AFIP`
-          `${
-            error?.message
-              ? error?.message.includes("objeto")
-                ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)`
-                : error?.message
-              : "Error consultando ARCA"
+          `${error?.message
+            ? error?.message.includes("objeto")
+              ? `Error AFIP Conectividad (${cuitEmpresa}: Empleador no encontrado)`
+              : error?.message
+            : "Error consultando ARCA"
           }`
         );
         setOpenDialog(true);
@@ -706,6 +706,7 @@ const AfiliadoAgregar = (props) => {
 
   //#region Datos Personales Formulario
   const [afiliado, setAfiliado] = useState(null);
+  const afiliadoRef = useRef(null);
 
   //#endregion
 
@@ -803,6 +804,7 @@ const AfiliadoAgregar = (props) => {
     }
   }, [cuilParam, props.accion]);
 
+  // Carga inicial de documentación proveniente de la Solicitud Previa de Afiliación
   useEffect(() => {
     const solicitudId = props?.documentacionSolicitudId;
     if (!solicitudId) return;               
@@ -847,84 +849,66 @@ const AfiliadoAgregar = (props) => {
     );
   }, [props?.documentacionSolicitudId, request, documentacionList]);
 
-        dispatchFechaIngreso({
-          type: "USER_INPUT",
-          value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
-        });
+  // Auto consulta AFIP apenas el CUIL es válido y todavía no se consultó (solo en alta, no modificación existente)
+  useEffect(() => {
+    if (autoVerificaCUILRef.current) return; 
+    if (props.accion !== "Agrega") return; 
+    if (!props.autoValidaDesdeSolicitud) return; 
+    if (!cuilState?.isValid) return; 
+    if (padronRespuesta) return; 
+    if (cuilLoading) return; 
+    if (!Array.isArray(provincias?.data) || provincias.data.length === 0) return;
+    autoVerificaCUILRef.current = true;
+    try {
+      validarAfiliadoCUILHandler();
+    } catch (e) {
+      console.warn("Auto verificación CUIL falló:", e);
+      autoVerificaCUILRef.current = false; 
+    }
 
-        dispatchActividad({
-          type: "USER_INPUT",
-          value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
-        });
+  }, [cuilState.isValid, padronRespuesta, cuilLoading, props.accion, provincias]);
 
-        dispatchSeccionalSolicitudAfiliacion({
-          type: "USER_INPUT",
-          value: afiliadoObj?.seccionalIdSolicitudAfiliacion
-            ? {
-                value: afiliadoObj?.seccionalIdSolicitudAfiliacion,
-                label: `${afiliadoObj?.seccionalCodigoSolicitudAfiliacion}-${afiliadoObj?.seccionalDescripcionSolicitudAfiliacion}`,
-              }
-            : {},
-        });
+  useEffect(() => {
+    if (!cuilState.value) return;
+    if (afiliadoRef.current?.cuil === cuilState.value) return;
 
-        dispatchPuesto({
-          type: "USER_INPUT",
-          value: afiliadoObj.puestoId === 0 ? "" : afiliadoObj.puestoId,
-        });
-        dispatchNacionalidad({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.nacionalidadId === 0 ? "" : afiliadoObj.nacionalidadId,
-        });
-        dispatchSexo({
-          type: "USER_INPUT",
-          value: afiliadoObj.sexoId === 0 ? "" : afiliadoObj.sexoId,
-        });
-        dispatchEstadoCivil({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.estadoCivilId === 0 ? "" : afiliadoObj.estadoCivilId,
-        });
-        dispatchTipoDocumento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.tipoDocumentoId === 0
-              ? ""
-              : afiliadoObj.tipoDocumentoId,
-        });
+    const processGetAfiliado = async (afiliadoObj) => {
+      console.log("afiliadoObj", afiliadoObj);
+      const previousAfiliado = afiliadoRef.current;
 
-        dispatchLocalidad({
-          type: "USER_INPUT",
-          value: {
-            value: afiliadoObj?.refLocalidadId,
-            label: afiliadoObj?.localidad,
-          },
-        });
-        dispatchSeccional({
-          type: "USER_INPUT",
-          value: {
-            value: afiliadoObj?.seccionalId,
-            label: afiliadoObj?.seccional,
-          },
-        });
+      setAfiliado(afiliadoObj);
+      afiliadoRef.current = afiliadoObj;
+      setCuilValidado(afiliadoObj.cuilValidado ? true : false);
+      setNuevoAfiliadoResponse(afiliadoObj);
+      setAfiliadoExiste(true);
 
-        setProvincias((o) => ({
-          ...o,
-          loading: "Cargando...",
-          onLoaded: ({ data }) => {
-            const provinciaSelected =
-              data.find((prov) => prov.value === afiliadoObj.provinciaId) ?? "";
+      //dispatches para validar los campos
+      dispatchFechaNacimiento({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.fechaIngreso !== null
+            ? moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD")
+            : "",
+      });
+      dispatchCUIL({
+        type: "USER_INPUT",
+        value: afiliadoObj.cuil,
+        isValid: ["30", "33", "34"].includes(
+          afiliadoObj.cuil.toString().slice(0, 2)
+        )
+          ? false
+          : ValidarCUIT(afiliadoObj.cuil),
+      });
 
-            dispatchProvincia({ type: "USER_INPUT", value: provinciaSelected });
+      dispatchFechaIngreso({
+        type: "USER_INPUT",
+        value: moment(afiliadoObj.fechaIngreso).format("yyyy-MM-DD"),
+      });
 
-            setLocalidades((o) => ({
-              ...o,
-              loading: "Cargando...",
-              params: provinciaSelected
-                ? { provinciaId: provinciaSelected?.value }
-                : {},
-              onLoaded: ({ data }) => {
-                if (!Array.isArray(data)) return;
+      dispatchActividad({
+        type: "USER_INPUT",
+        value: afiliadoObj.actividadId === 0 ? "" : afiliadoObj.actividadId,
+      });
 
       dispatchSeccionalSolicitudAfiliacion({
         type: "USER_INPUT",
@@ -1029,93 +1013,110 @@ const AfiliadoAgregar = (props) => {
                     : myLocalidadId
                       ? { localidadId: myLocalidadId.value }
                       : provinciaSelected?.value
-                      ? { provinciaId: provinciaSelected?.value }
-                      : sinAsignar ?? null,
-                  onLoaded: ({ data }) => {
-                    //if (!Array.isArray(data)) return;
-                    const mySeccionalId =
-                      data.find((r) => r.value === afiliadoObj?.seccionalId) ??
-                      data.at(0) ??
-                      {};
-                    dispatchSeccional({
-                      type: "USER_INPUT",
-                      value: mySeccionalId,
-                    });
-                  },
-                }));
-              },
-            }));
-          },
-        }));
+                        ? { provinciaId: provinciaSelected?.value }
+                        : sinAsignar ?? null,
+                onLoaded: ({ data }) => {
+                  //if (!Array.isArray(data)) return;
+                  const mySeccionalId =
+                    data.find((r) => r.value === afiliadoObj?.seccionalId) ??
+                    data.at(0) ??
+                    {};
+                  dispatchSeccional({
+                    type: "USER_INPUT",
+                    value: mySeccionalId,
+                  });
+                },
+              }));
+            },
+          }));
+        },
+      }));
 
-        dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
-        dispatchFechaNacimiento({
-          type: "USER_INPUT",
-          value:
-            afiliadoObj.fechaNacimiento !== null
-              ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
-              : "",
-        });
-        dispatchNumeroDocumento({
-          type: "USER_INPUT",
-          value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
-        });
-        dispatchDomicilio({
-          type: "USER_INPUT",
-          value: afiliadoObj.domicilio ?? "",
-        });
-        dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
+      dispatchNombre({ type: "USER_INPUT", value: afiliadoObj.nombre });
+      dispatchFechaNacimiento({
+        type: "USER_INPUT",
+        value:
+          afiliadoObj.fechaNacimiento !== null
+            ? moment(afiliadoObj.fechaNacimiento).format("yyyy-MM-DD")
+            : "",
+      });
+      dispatchNumeroDocumento({
+        type: "USER_INPUT",
+        value: afiliadoObj.documento !== 0 ? afiliadoObj.documento : "",
+      });
+      dispatchDomicilio({
+        type: "USER_INPUT",
+        value: afiliadoObj.domicilio ?? "",
+      });
+      dispatchEmail({ type: "USER_INPUT", value: afiliadoObj.correo });
 
-        // dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
-        dispatchTelefonoPais({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoPais,
-        });
-        dispatchTelefonoArea({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoArea,
-        });
-        dispatchTelefonoNumero({
-          type: "USER_INPUT",
-          value: afiliadoObj.telefonoNumero,
-        });
+      // dispatchTelefono({ type: "USER_INPUT", value: afiliadoObj.telefono });
+      dispatchTelefonoPais({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoPais,
+      });
+      dispatchTelefonoArea({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoArea,
+      });
+      dispatchTelefonoNumero({
+        type: "USER_INPUT",
+        value: afiliadoObj.telefonoNumero,
+      });
 
-        //datos empleador
-        dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
-        setCuitValidado(true);
-        setCUITEmpresa(afiliadoObj.empresaCUIT);
-        setRazonSocialEmpresa(afiliadoObj.empresa);
-        setEmpresaIdExiste(afiliadoObj.empresaId);
-        setDocumentacionList(afiliadoObj.documentacion ?? []);
+      //datos empleador
+      dispatchCUIT({ type: "USER_INPUT", value: afiliadoObj.empresaCUIT });
+      setCuitValidado(true);
+      setCUITEmpresa(afiliadoObj.empresaCUIT);
+      setRazonSocialEmpresa(afiliadoObj.empresa);
+      setEmpresaIdExiste(afiliadoObj.empresaId);
+      setDocumentacionList(afiliadoObj.documentacion ?? []);
 
-        //alert
-        if (props.accion === "Agrega" || props.cuil !== afiliado.cuil) {
-          setDialogTexto(
-            `El Afiliado: ${
-              afiliadoObj?.nombre
-            } ya está cargado para la Seccional: ${
-              afiliadoObj?.seccionalCodigo
-            } ${afiliadoObj?.seccional}
+      //alert
+      if (
+        accion === "Agrega" ||
+        (previousAfiliado?.cuil && cuilParam !== previousAfiliado?.cuil)
+      ) {
+        console.log("no debe ingresar aqui**");
+        setDialogTexto(
+          `El Afiliado: ${afiliadoObj?.nombre
+          } ya está cargado para la Seccional: ${afiliadoObj?.seccionalCodigo
+          } ${afiliadoObj?.seccional}
             ${
-              afiliadoObj.estadoSolicitud.includes("No Activo")
+              afiliadoObj?.estadoSolicitud.includes("No Activo")
                 ? `El Afiliado se encuentra "${afiliadoObj?.estadoSolicitud}", NO podrá modificar los datos del Afiliado`
                 : ""
             }`
-          );
-          setOpenDialog(true);
+        );
+        setOpenDialog(true);
 
-          return;
-        }
-      };
+        return;
+      }
+    };
 
-      request(
-        {
-          baseURL: "Afiliaciones",
-          endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuilState.value}`,
-          method: "GET",
-        },
-        processGetAfiliado
-      );
+    request(
+      {
+        baseURL: "Afiliaciones",
+        endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${cuilState.value}`,
+        method: "GET",
+      },
+      processGetAfiliado
+    );
+  }, [request, cuilState.value, accion, cuilParam]);
+
+  // Auto validación 
+  useEffect(() => {
+    if (autoValidaCUILRef.current) return; 
+    if (!props.autoValidaDesdeSolicitud) return; 
+    if (cuilValidado) return; 
+    if (!padronRespuesta?.cuit) return; 
+    if (!afiliadoExiste) return; 
+    autoValidaCUILRef.current = true;
+    try {
+      validaCUILHandler();
+    } catch (e) {
+      console.warn("Auto validación CUIL falló:", e);
+      autoValidaCUILRef.current = false; 
     }
 
   }, [cuilValidado, padronRespuesta, afiliadoExiste]);
@@ -1229,9 +1230,11 @@ const AfiliadoAgregar = (props) => {
           return { value: actividad.id, label: actividad.descripcion };
         });
       setActividades(actividadesSelect);
+      const pre = props?.data?.actividadIdAfiliado;
+      const preferida = actividadesSelect.find((a) => a.value === pre)?.value ?? actividadesSelect[0]?.value;
       dispatchActividad({
         type: "USER_INPUT",
-        value: actividadesSelect[0].value,
+        value: preferida,
       });
     };
 
@@ -1243,7 +1246,7 @@ const AfiliadoAgregar = (props) => {
       },
       processActividades
     );
-  }, [request]);
+  }, [request, props?.data?.actividadIdAfiliado]);
 
   useEffect(() => {
     const processGetSeccionales = async (seccionalesObj) => {
@@ -1273,13 +1276,13 @@ const AfiliadoAgregar = (props) => {
         type: "USER_INPUT",
         value: seccionalSelected
           ? {
-              value: seccionalSelected?.id,
-              label: `${seccionalSelected?.codigo}-${seccionalSelected?.descripcion}-${seccionalSelected?.provinciaDescripcion}`,
-            }
+            value: seccionalSelected?.id,
+            label: `${seccionalSelected?.codigo}-${seccionalSelected?.descripcion}-${seccionalSelected?.provinciaDescripcion}`,
+          }
           : {
-              value: seccionalPorDefecto?.id,
-              label: `${seccionalPorDefecto?.codigo}-${seccionalPorDefecto?.descripcion}`,
-            },
+            value: seccionalPorDefecto?.id,
+            label: `${seccionalPorDefecto?.codigo}-${seccionalPorDefecto?.descripcion}`,
+          },
       });
     };
     //#region consulto todas las seccionales las cuales mostraré en el combo de SeccionalSolicitaAfiliacion
@@ -1301,7 +1304,9 @@ const AfiliadoAgregar = (props) => {
           return { value: puesto.id, label: puesto.descripcion };
         });
       setPuestos(puestosSelect);
-      dispatchPuesto({ type: "USER_INPUT", value: puestosSelect[0].value });
+      const prePuesto = props?.data?.oficioId;
+      const preferido = puestosSelect.find((p) => p.value === prePuesto)?.value ?? puestosSelect[0]?.value;
+      dispatchPuesto({ type: "USER_INPUT", value: preferido });
     };
 
     request(
@@ -1312,7 +1317,7 @@ const AfiliadoAgregar = (props) => {
       },
       processPuestos
     );
-  }, [request]);
+  }, [request, props?.data?.oficioId]);
 
   useEffect(() => {
     const processSexos = async (sexosObj) => {
@@ -1759,7 +1764,7 @@ const AfiliadoAgregar = (props) => {
         cuit: cuitEmpresa,
         razonSocial: padronEmpresaRespuesta
           ? padronEmpresaRespuesta?.razonSocial ??
-            `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
           : "",
         claveTipo: padronEmpresaRespuesta.tipoClave,
         claveEstado: padronEmpresaRespuesta.estadoClave,
@@ -1797,7 +1802,9 @@ const AfiliadoAgregar = (props) => {
   };
   // ::::::::::::::::::::::::::::::::: FIN MODIFICADO :::::::::::::::::::::::::::::::::
 
+      const forzarEstadoPendiente = !!props?.forzarEstadoPendiente;
       const validaAutomatica =
+        !forzarEstadoPendiente &&
         ultimaDDJJ.data?.actividadTipo === "D" &&
         ultimaDDJJ.data?.modalidadTipo === "D" &&
         (padronEmpresaRespuesta?.ciiU1EsRural ||
@@ -1891,15 +1898,32 @@ const AfiliadoAgregar = (props) => {
           entidadId: 0,
         })),
       };
+
+
+
+
+
+
       const afiliadoAgregar = async (afiliadoResponseObj) => {
+        const estados = Array.isArray(props?.estadosSolicitudes)
+          ? props.estadosSolicitudes
+          : [];
+        const estadoLabel = estados.find(
+          (r) => r?.value === nuevoAfiliado?.estadoSolicitudId
+        )?.label ?? ""; // fallback vacío para no romper
+
         setNuevoAfiliadoResponse({
           ...nuevoAfiliado,
           id: afiliadoResponseObj,
-          estadoSolicitud: props.estadosSolicitudes.find(
-            (r) => r.value === nuevoAfiliado.estadoSolicitudId
-          )?.label,
+          estadoSolicitud: estadoLabel,
           empresaCUIT: cuitEmpresa,
         });
+
+
+
+
+
+
         setOpenDialog(true);
         //Si se incorpora automaticamente
         if (nuevoAfiliado.estadoSolicitudId === 2) {
@@ -1983,6 +2007,19 @@ const AfiliadoAgregar = (props) => {
       });
     }
 
+    //NUEVO PARA ALEX
+    // Helper simple para descomponer teléfonos a País / Área / Número
+    const parseTelefonoAR = (raw = "") => {
+      const only = String(raw).replace(/[^\d+]/g, "");
+      let telefonoPais = /^\+?\d{1,3}/.test(only) ? only.match(/^\+?\d{1,3}/)[0] : "+54";
+      telefonoPais = telefonoPais.startsWith("+") ? telefonoPais : `+${telefonoPais}`;
+      const rest = only.replace(/^\+?\d{1,3}/, "");
+      const m = rest.match(/^0?(\d{2,4})(\d{5,8})$/) || [];
+      const telefonoArea = m[1] || "";
+      const telefonoNumero = m[2] || rest;
+      return { telefonoPais, telefonoArea, telefonoNumero };
+    };
+
     const processConsultaPadron = async (padronObj) => {
 
       console.log("padronObj", padronObj);
@@ -2065,10 +2102,12 @@ const AfiliadoAgregar = (props) => {
           value: argentina?.value,
         });
 
-        dispatchActividad({
-          type: "USER_INPUT",
-          value: 1,
-        });
+        if (!(props?.data?.actividadIdAfiliado > 0) && !actividadState?.value) {
+          dispatchActividad({
+            type: "USER_INPUT",
+            value: 1,
+          });
+        }
 
         dispatchSeccionalSolicitudAfiliacion({
           type: "USER_INPUT",
@@ -2152,49 +2191,15 @@ const AfiliadoAgregar = (props) => {
                 });
               }
 
-            setLocalidades((o) => ({
-              ...o,
-              loading: "Cargando...",
-              params: provinciaSelected
-                ? { provinciaId: provinciaSelected?.id }
-                : {}, //TRAIGO TODAS LAS LOCS de LA PROVINCIA
-              onLoaded: ({ data }) => {
-                if (!Array.isArray(data)) return;
-                //const myLocalidad = localidad?.id !==  provinciaSelected?.localidadIdPorDefecto ? data.find((r) => r.value === localidad?.id) : data.at(0);
-
-                const myLocalidad =
-                  data.find((l) => l.value === localidad?.id) ??
-                  data.at(0) ??
-                  {}; //si encuentra la localidad en las optiosn, la selecciona, sino selecciona por defecto.
-
-                dispatchLocalidad({ type: "USER_INPUT", value: myLocalidad });
-
-                setSeccionales((o) => ({
-                  ...o,
-                  loading: "Cargando...",
-                  params:
-                    myLocalidad?.value !==
-                    provinciaSelected?.localidadIdPorDefecto
-                      ? { localidadId: myLocalidad?.value }
-                      : { provinciaId: provinciaSelected?.id } ?? {},
-                  onLoaded: ({ data }) => {
-                    const mySeccionalId =
-                      myLocalidad?.value ===
-                      provinciaSelected?.localidadIdPorDefecto
-                        ? data.at(0)
-                        : data.at(1)
-                        ? data.at(1)
-                        : data.at(0);
-
-                    dispatchSeccional({
-                      type: "USER_INPUT",
-                      value: mySeccionalId,
-                    });
-                  },
-                }));
-              },
-            }));
-          };
+              if (!localidad) {
+                localidad = localidadesObj?.find((localidad) => {
+                  if (localidad.id === provinciaSelected?.localidadIdPorDefecto)
+                    return localidad;
+                });
+              }
+              if (!localidad) {
+                localidad = { id: provinciaSelected?.localidadIdPorDefecto };
+              }
 
               setLocalidades((o) => ({
                 ...o,
@@ -2262,6 +2267,26 @@ const AfiliadoAgregar = (props) => {
         ActualizaDatosAfip(padronObj);
       }
 
+      //Agregado Mauro
+      // Email (si AFIP trae algo)
+      if (padronObj?.email && typeof dispatchEmail === "function") {
+        dispatchEmail({ type: "USER_INPUT", value: String(padronObj.email) });
+      }
+
+      // Teléfono (si AFIP trae algo)
+      const telRaw = padronObj?.telefono || padronObj?.celular;
+      if (telRaw && typeof dispatchTelefonoNumero === "function") {
+        const { telefonoPais, telefonoArea, telefonoNumero } = parseTelefonoAR(telRaw);
+        if (typeof dispatchTelefonoPais === "function") {
+          dispatchTelefonoPais({ type: "USER_INPUT", value: telefonoPais });
+        }
+        if (typeof dispatchTelefonoArea === "function") {
+          dispatchTelefonoArea({ type: "USER_INPUT", value: telefonoArea });
+        }
+        dispatchTelefonoNumero({ type: "USER_INPUT", value: telefonoNumero });
+      }
+
+
       setCUILLoading(false);
       setInputsTouched(true);
     };
@@ -2269,9 +2294,8 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${
-          afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
-        }&VerificarHistorico=${false}`,
+        endpoint: `/AFIPConsulta?CUIT=${afiliado?.cuilValidado ? afiliado?.cuilValidado : cuilState.value
+          }&VerificarHistorico=${false}`,
         method: "GET",
       },
       async (response) => {
@@ -2298,7 +2322,7 @@ const AfiliadoAgregar = (props) => {
       setLocalidadEmpresa(
         padronObj
           ? padronObj?.domicilios[1]?.localidad ??
-              padronObj?.domicilios[1]?.descripcionProvincia
+          padronObj?.domicilios[1]?.descripcionProvincia
           : ""
       );
       //ciius
@@ -2308,9 +2332,8 @@ const AfiliadoAgregar = (props) => {
     request(
       {
         baseURL: "Comunes",
-        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${
-          ["30", "33", "34"].includes(cuitEmpresa.toString) ? true : false
-        }`,
+        endpoint: `/AFIPConsulta?CUIT=${cuitEmpresa}&VerificarHistorico=${["30", "33", "34"].includes(cuitEmpresa.toString) ? true : false
+          }`,
         method: "GET",
       },
       processConsultaPadron
@@ -2431,8 +2454,8 @@ const AfiliadoAgregar = (props) => {
               value === localidades?.data?.at(0)
                 ? data.at(0)
                 : data.at(1)
-                ? data.at(1)
-                : data.at(0);
+                  ? data.at(1)
+                  : data.at(0);
 
             dispatchSeccional({ type: "USER_INPUT", value: mySeccionalId });
           },
@@ -2467,6 +2490,7 @@ const AfiliadoAgregar = (props) => {
           setCuilValidado(false);
           setAfiliadoExiste(false);
           setAfiliado(null);
+          afiliadoRef.current = null;
           setNuevoAfiliadoResponse(null);
           setDialogTexto("");
           setPadronRespuesta(null);
@@ -2727,7 +2751,7 @@ const AfiliadoAgregar = (props) => {
       cuit: cuitEmpresa,
       razonSocial: padronEmpresaRespuesta
         ? padronEmpresaRespuesta?.razonSocial ??
-          `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
+        `${padronEmpresaRespuesta?.apellido} ${padronEmpresaRespuesta?.nombre}`
         : "",
       claveTipo: padronEmpresaRespuesta.tipoClave,
       claveEstado: padronEmpresaRespuesta.estadoClave,
@@ -2939,10 +2963,75 @@ const AfiliadoAgregar = (props) => {
       })),
     };
     console.log("afiliado modificado", afiliadoModificado);
+    
+    // Construir lista de cambios para auditoría
+    const cambiosTexto = [];
+    const mapearCampos = {
+      cuil: "CUIL",
+      CUILValidado: "CUIL Validado",
+      nombre: "Nombre",
+      puestoId: "Puesto",
+      fechaIngreso: "Fecha Ingreso",
+      nacionalidadId: "Nacionalidad",
+      seccionalId: "Seccional",
+      seccionalIdSolicitudAfiliacion: "Seccional Solicitud Afiliación",
+      sexoId: "Sexo",
+      tipoDocumentoId: "Tipo Documento",
+      documento: "Documento",
+      actividadId: "Actividad",
+      estadoCivilId: "Estado Civil",
+      refLocalidadId: "Localidad",
+      domicilio: "Domicilio",
+      telefonoPais: "Teléfono País",
+      telefonoArea: "Teléfono Área",
+      telefonoNumero: "Teléfono Número",
+      correo: "Correo",
+      fechaNacimiento: "Fecha Nacimiento"
+    };
+
+    Object.keys(mapearCampos).forEach(campo => {
+      const valorAnterior = afiliado?.[campo];
+      const valorNuevo = afiliadoModificado[campo];
+      
+      if (valorAnterior != valorNuevo) {
+        cambiosTexto.push(`${mapearCampos[campo]}: ${valorAnterior ?? 'vacío'} → ${valorNuevo ?? 'vacío'}`);
+      }
+    });
+
     const afiliadoModificar = async (afiliadoModificarResponseObj) => {
       setAfiliadoModificado(afiliadoModificado);
       setDialogTexto(AFILIADO_ACTUALIZADO);
       setOpenDialog(true);
+
+      // Registrar auditoría de cambios en AuditoriasDatos
+      if (cambiosTexto.length > 0 && afiliado?.guid) {
+        const auditoriaBody = {
+          Usuario: Usuario?.nombre || "Sistema",
+          Tabla: "Afiliado",
+          TablaIdentificador: afiliado.guid,
+          Accion: "Modificación",
+          Cambios: cambiosTexto.join("\r\n")
+        };
+        
+        request(
+          {
+            baseURL: "Auditoria",
+            endpoint: `/AuditoriasDatos/registrar`,
+            method: "POST",
+            body: auditoriaBody,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+          (response) => console.log("✅ Auditoría guardada exitosamente:", response),
+          (error) => console.error("❌ Error al guardar auditoría:", error)
+        );
+      } else {
+        console.warn("⚠️ No se guardó auditoría:", { 
+          tieneCambios: cambiosTexto.length > 0, 
+          tieneGuid: !!afiliado?.guid 
+        });
+      }
     };
 
     request(
@@ -3019,28 +3108,25 @@ const AfiliadoAgregar = (props) => {
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${
-                      ultimaDDJJ?.data?.actividadTipo === "D" &&
+                    {`El Afiliado debe tener, en sus DDJJ AFIP declaradas, Actividades y Modalidades de Contratación relacionadas al ámbito rural de la UATRE - ${ultimaDDJJ?.data?.actividadTipo === "D" &&
                       ultimaDDJJ?.data?.modalidadTipo === "D"
-                        ? "✔️"
-                        : "❌"
-                    }`}
+                      ? "✔️"
+                      : "❌"
+                      }`}
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${
-                      padronEmpresaRespuesta?.ciiU1EsRural ||
+                    {`El Empleador del Afiliado debe tener Actividades (CIIUs) de tipo rurales registradas en AFIP ${padronEmpresaRespuesta?.ciiU1EsRural ||
                       padronEmpresaRespuesta?.ciiU2EsRural ||
                       padronEmpresaRespuesta?.ciiU3EsRural
-                        ? "✔️"
-                        : "❌"
-                    }`}
+                      ? "✔️"
+                      : "❌"
+                      }`}
                   </Typography>
                   <Typography gutterBottom>
                     {" "}
-                    {`Operador con permisos de Autovalidación ${
-                      usuarioTareaValidacionAutomatica ? "✔️" : "❌"
-                    }`}
+                    {`Operador con permisos de Autovalidación ${usuarioTareaValidacionAutomatica ? "✔️" : "❌"
+                      }`}
                   </Typography>
                 </div>
               )}
@@ -3332,7 +3418,7 @@ const AfiliadoAgregar = (props) => {
                     error={
                       !localidadState.isValid && inputsTouched ? true : false
                     }
-                    //defaultValue={localidades[0]?.value ?? {}}
+                  //defaultValue={localidades[0]?.value ?? {}}
                   />
                 </div>
               </div>
@@ -3359,7 +3445,7 @@ const AfiliadoAgregar = (props) => {
                     value={puestoState.value}
                     onChange={handleChangeSelect}
                     disabled={InputDisabled()}
-                    //error={!puestoState.isValid && inputsTouched ? true : false}
+                  //error={!puestoState.isValid && inputsTouched ? true : false}
                   />
                 </div>
                 <div className={classes.input25}>
@@ -3422,15 +3508,15 @@ const AfiliadoAgregar = (props) => {
                     onChange={handleInputChange}
                     helperText={
                       !emailState.isValid &&
-                      emailState.value !== "" &&
-                      emailState.value !== null
+                        emailState.value !== "" &&
+                        emailState.value !== null
                         ? "Email inválido"
                         : ""
                     }
                     error={
                       !emailState.isValid &&
-                      emailState.value !== "" &&
-                      emailState.value !== null
+                        emailState.value !== "" &&
+                        emailState.value !== null
                         ? true
                         : false
                     }
@@ -3447,7 +3533,7 @@ const AfiliadoAgregar = (props) => {
                     disabled={InputDisabled()}
                     error={
                       !seccionalSolicitudAfiliacionState.isValid &&
-                      inputsTouched
+                        inputsTouched
                         ? true
                         : false
                     }
@@ -3488,8 +3574,8 @@ const AfiliadoAgregar = (props) => {
                 afiliado !== null
                   ? afiliado?.cuilValidado
                   : padronRespuesta?.cuit
-                  ? padronRespuesta?.cuit
-                  : 0
+                    ? padronRespuesta?.cuit
+                    : 0
               } //EL CUIL de AFIP SE GUARDA EN EL padronRespuesta.CUIT
               cuit={cuitEmpresa}
               onSeleccionRegistro={handleSeleccionDDJJ}
