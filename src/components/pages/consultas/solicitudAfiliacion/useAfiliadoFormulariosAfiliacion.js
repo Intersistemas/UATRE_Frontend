@@ -1,20 +1,19 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+ import React, { useCallback, useEffect, useState, useRef, useContext } from "react";
 import dayjs from "dayjs";
-import { matchIsValidTel } from "mui-tel-input";
 import AsArray from "components/helpers/AsArray";
 import Formato from "components/helpers/Formato";
 import JoinOjects from "components/helpers/JoinObjects";
 import { pick } from "components/helpers/Utils";
 import useQueryQueue from "components/hooks/useQueryQueue";
-import ValidarCUIT from "components/validators/ValidarCUIT";
-import ValidarEmail from "components/validators/ValidarEmail";
 import AfiliadoFormulariosAfiliacionTable from "./AfiliadoFormulariosAfiliacionTable";
-import AfiliadoFormulariosAfiliacionIncorporacion from "./AfiliadoFormulariosAfiliacionIncorporacion";
 import SolicitudAfiliacionForm from "./SolicitudAfiliacionForm";
 import AfiliadosAgregar from "components/pages/afiliados/AfiliadoAgregar";
 import { Modal } from "react-bootstrap";
 import Button from "components/ui/Button/Button";
 import InputMaterial from "components/ui/Input/InputMaterial";
+
+ import AuthContext from "store/authContext";
+ import useAmbitos from "components/hooks/useAmbitos";
 
 const selectionDef = {
 	action: "",
@@ -152,6 +151,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 	columns,
 	hideSelectColumn = true,
 	mostrarBuscar = false,
+	autoSyncOnLoad = true,
 } = {}) => {
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action, params) => {
@@ -203,22 +203,83 @@ const useAfiliadoFormulariosAfiliacion = ({
 					},
 				};
 			}
+
+     case "GetSeccionalesSpecs": {
+       return {
+         config: {
+           baseURL: "Afiliaciones",
+           endpoint: `/Seccional?SoloActivos=true&verSeccionalesLocalidades=false`,
+           method: "GET",
+         },
+       };
+     }
+
+
 			default:
 				return null;
 		}
 	});
 	//#endregion
 
-	// Helper: pide una página y devuelve { ok } o { error }
-	const fetchListPage = (pageIndex, pageSize, params) =>
-		new Promise((resolve) => {
-			pushQuery({
-				action: "GetList",
-				config: { body: { ...params, pageIndex, pageSize } },
-				onOk: async (ok) => resolve({ ok }),
-				onError: async (error) => resolve({ error }),
-			});
-		});
+
+  // === Usuario y ámbito para restringir por seccionales / delegaciones ===
+  const { usuario } = useContext(AuthContext);
+  const ambito = useAmbitos().ambitoUser(); // { tipo: "Seccionales" | "Delegaciones" | "Todos", ids: [...] }
+
+  // Seccionales asociadas a la delegación del usuario
+  const [seccionalesDelegacion, setSeccionalesDelegacion] = useState([]);
+
+
+ // Helper: pide una página y devuelve { ok } o { error }, respetando ámbito
+ const fetchListPage = (pageIndex, pageSize, params) =>
+   new Promise((resolve) => {
+     // quitamos ambitoSeccionales / ambitoDelegaciones que vengan desde afuera
+     const {
+       ambitoSeccionales: _ambS,
+       ambitoDelegaciones: _ambD,
+       ...restParams
+     } = params || {};
+
+     let usuarioAdulterado = {
+       ambitoSeccionales: usuario?.ambitoSeccionales,
+       ambitoTodos: usuario?.ambitoTodos,
+     };
+
+     if (ambito.tipo === "Seccionales" && ambito.ids && ambito.ids.length) {
+       usuarioAdulterado = {
+         ambitoSeccionales: { ids: [ambito.ids[0]] },
+         ambitoTodos: null,
+       };
+     } else if (
+       ambito.tipo === "Delegaciones" &&
+       seccionalesDelegacion &&
+       seccionalesDelegacion.length
+     ) {
+       // delegación → se filtra por las seccionales de ESA delegación
+       usuarioAdulterado = {
+         ambitoSeccionales: { ids: seccionalesDelegacion },
+         ambitoTodos: null,
+       };
+     }
+
+     const body = {
+       ...restParams,
+       pageIndex,
+       pageSize,
+       ambitoTodos: usuarioAdulterado.ambitoTodos,
+       ambitoProvincias: usuario?.ambitoProvincias,
+       ambitoDelegaciones:
+         ambito.tipo === "Delegaciones" ? null : usuario?.ambitoDelegaciones,
+       ambitoSeccionales: usuarioAdulterado.ambitoSeccionales,
+     };
+
+     pushQuery({
+       action: "GetList",
+       config: { body },
+       onOk: async (ok) => resolve({ ok }),
+       onError: async (error) => resolve({ error }),
+     });
+   });
 
 
 	// Para no resincronizar la misma fila múltiples veces
@@ -232,6 +293,38 @@ const useAfiliadoFormulariosAfiliacion = ({
 	const firstMountRef = useRef(true);
 	const [keepDataWhileLoading] = useState(true);
 	const [hydrating, setHydrating] = useState(false);
+
+
+  // === Cargar seccionales de la delegación si el ámbito es Delegaciones ===
+  useEffect(() => {
+    if (ambito.tipo !== "Delegaciones") return;
+    if (!ambito.ids || !ambito.ids.length) return;
+    // si ya las cargamos no volvemos a pedir
+    if (seccionalesDelegacion.length) return;
+
+    const delegacionId = ambito.ids[0];
+
+    pushQuery({
+      action: "GetSeccionalesSpecs",
+      onOk: (response) => {
+        const seccionales = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+        const filtradas = seccionales
+          .filter((s) => s.refDelegacionId === delegacionId && s.id !== 99999)
+          .map((s) => s.id);
+
+        setSeccionalesDelegacion(filtradas);
+      },
+      onError: (err) => {
+        console.error("[AFI-FA] Error al cargar seccionales delegación:", err);
+      },
+    });
+  }, [ambito.tipo, JSON.stringify(ambito.ids), seccionalesDelegacion.length, pushQuery]);
+
 
 
 	//#region declaracion y carga list y selected
@@ -255,6 +348,12 @@ const useAfiliadoFormulariosAfiliacion = ({
 	});
 	useEffect(() => {
 		if (!list.loading) return;
+
+  // Si el usuario es de Delegaciones, esperamos a tener las seccionales mapeadas
+  if (ambito.tipo === "Delegaciones" && !seccionalesDelegacion.length) {
+    return;
+  }
+
 		const changes = { loading: null, error: null };
 		if (!list.remote) {
 			const data = list.data;
@@ -351,7 +450,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 			setList((o) => ({ ...o, ...changes, remote: false }));
 			setHydrating(false);
 		})();
-	}, [pushQuery, list]);
+	}, [pushQuery, list, ambito.tipo, seccionalesDelegacion.length]);
 	//#endregion
 
 	const request = useCallback((type, payload = {}) => {
@@ -442,6 +541,7 @@ const useAfiliadoFormulariosAfiliacion = ({
 
 	// Auto-sincroniza estados al cargar/refrescar la lista
 	useEffect(() => {
+		if (!autoSyncOnLoad) return; // opción para desactivar este comportamiento desde el caller
 		if (!Array.isArray(list.data) || list.data.length === 0) return;
 		if (syncedOnceRef.current) return;
 
@@ -685,10 +785,6 @@ const useAfiliadoFormulariosAfiliacion = ({
 		}
 	}
 
-
-
-
-
 	const render = () => (
 		<>
 			<AfiliadoFormulariosAfiliacionTable
@@ -849,9 +945,6 @@ const useAfiliadoFormulariosAfiliacion = ({
 			};
 		});
 	}, [columns, wrapDateFormatter]);
-
-
 	return { render, request, selected: list.selection.record };
 };
-
 export default useAfiliadoFormulariosAfiliacion;

@@ -52,6 +52,7 @@ const AfiliadoFormulariosAfiliacionHandler = () => {
 	} = useAfiliadoFormulariosAfiliacion({
 		params: scopeParams,
 		onLoadSelect: onLoadSelectKeepOrFirst,
+		autoSyncOnLoad: false,
 	});
 	const [formularioActions, setFormularioActions] = useState([]);
 

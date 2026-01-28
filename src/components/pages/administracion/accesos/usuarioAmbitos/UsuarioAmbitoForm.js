@@ -323,7 +323,11 @@ const UsuarioAmbitoForm = ({
               setProcesando(true),
               onClose(true)
             )}
-            disabled ={errors?.ambitoExiste || procesando}
+            disabled ={
+              errors?.ambitoExiste || 
+              procesando || 
+              (!hide.deletedObs && !data.deletedObs)
+            }
             loading={procesando}
           >
             CONFIRMA
