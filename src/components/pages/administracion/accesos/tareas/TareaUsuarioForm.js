@@ -294,7 +294,11 @@ const TareaUsuarioForm = ({
 						setProcesandoTarea(true),
 						onClose(true)	
 					)}
-					disabled ={errors?.tareaExiste || procesandoTarea}
+					disabled ={
+						errors?.tareaExiste || 
+						procesandoTarea || 
+						(!hide.deletedObs && !data.deletedObs)
+					}
 					loading={procesandoTarea}
 				>
 					CONFIRMA
