@@ -3,6 +3,7 @@ import { Modal } from "react-bootstrap";
 import Formato from "components/helpers/Formato";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue from "components/hooks/useQueryQueue";
+import useGeneracionExcel from "components/hooks/useGeneracionExcel";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
@@ -68,6 +69,7 @@ const columns = [
 	{
 		dataField: "seccional",
 		text: "Seccional",
+		sort: true,
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
 		csvFormat: (v) => v,
@@ -320,6 +322,12 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
       onOk: async ({ data, ...pagination }) => {
         if (!Array.isArray(data)) 
 			return console.error("Se esperaba un arreglo", data);
+        // Ordenar alfabéticamente por seccional
+        data.sort((a, b) => {
+          const seccionalA = String(a.seccional || '').toLowerCase();
+          const seccionalB = String(b.seccional || '').toLowerCase();
+          return seccionalA.localeCompare(seccionalB);
+        });
         changes.data = data;
         changes.pagination = pagination;
       },
@@ -392,6 +400,159 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
   }, [newSelection, pushQuery]);
   //#endregion nueva seleccion
 
+  //#region Excel export
+  const { exportToExcel } = useGeneracionExcel();
+  const [excel, setExcel] = useState({
+    reload: false,
+    loading: null,
+    params: {},
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!excel.reload) return;
+    
+    const changes = {
+      reload: false,
+      loading: "Preparando datos para Excel...",
+      error: null,
+    };
+    
+    setExcel((o) => ({ ...o, ...changes }));
+
+    // Generar estructura de datos agrupados por delegación y seccional
+    const generarDatosExcel = () => {
+      const delegacion = {
+        codigo: delegacionSelect.selected.data?.codigoDelegacion,
+        descripcion: delegacionSelect.selected.data?.nombre,
+        desdeFecha: filtros.fechaIngreso,
+        hastaFecha: filtros.fechaIngresoHasta,
+        seccionales: [],
+      };
+
+      // Agrupar por seccional
+      list.selected.forEach((afiliado) => {
+        let seccional = delegacion.seccionales.find(
+          (s) => s.codigo === afiliado.seccionalCodigo
+        );
+        if (seccional == null) {
+          seccional = {
+            codigo: afiliado.seccionalCodigo,
+            descripcion: afiliado.seccional,
+            afiliados: [],
+          };
+          delegacion.seccionales.push(seccional);
+        }
+        seccional.afiliados.push(afiliado);
+      });
+
+      // Ordenar seccionales por código
+      delegacion.seccionales.sort((a, b) => {
+        const codigoA = String(a.codigo || '');
+        const codigoB = String(b.codigo || '');
+        return codigoA.localeCompare(codigoB);
+      });
+
+      // Ordenar afiliados dentro de cada seccional por nombre
+      delegacion.seccionales.forEach((seccional) => {
+        seccional.afiliados.sort((a, b) => {
+          const nombreA = String(a.nombre || '').toLowerCase();
+          const nombreB = String(b.nombre || '').toLowerCase();
+          return nombreA.localeCompare(nombreB);
+        });
+      });
+
+      return delegacion;
+    };
+
+    try {
+      const delegacion = generarDatosExcel();
+      const excelData = [];
+
+      // Título del informe
+      excelData.push([`INFORME DELEGACION: ${delegacion.descripcion || 'N/A'}`]);
+      excelData.push([
+        `AFILIADOS DEL ${Formato.Fecha(delegacion.desdeFecha)} AL ${Formato.Fecha(delegacion.hastaFecha)}`,
+      ]);
+      excelData.push([`AFILIADOS TOTALES DE DELEGACION: ${list.selected.length}`]);
+      excelData.push([]); // Línea en blanco
+
+      // Resumen por seccional
+      delegacion.seccionales.forEach((seccional) => {
+        excelData.push([
+          `AFILIADOS SECC ${seccional.codigo} - ${seccional.descripcion}: ${seccional.afiliados.length}`,
+        ]);
+      });
+
+      excelData.push([]); // Línea en blanco
+      excelData.push([]); // Línea en blanco
+
+      // Detalle por seccional
+      delegacion.seccionales.forEach((seccional) => {
+        excelData.push([
+          `SECCIONAL ${seccional.codigo} - ${seccional.descripcion}`,
+        ]);
+        excelData.push([
+          'Nro. Afil.',
+          'CUIL',
+          'Val.',
+          'Doc. Nro.',
+          'Nombre',
+          'F. Ingreso',
+          'Empresa CUIT',
+          'Empresa',
+        ]);
+
+        seccional.afiliados.forEach((afiliado) => {
+          excelData.push([
+            afiliado.nroAfiliado,
+            afiliado.cuilValidado != 0 ? afiliado.cuilValidado : afiliado.cuil,
+            afiliado.cuilValidado === 0 ? 'N' : afiliado.cuilValidado === afiliado.cuil ? 'V' : 'D',
+            afiliado.documento,
+            afiliado.nombre,
+            Formato.Fecha(afiliado.fechaIngreso),
+            afiliado.empresaCUIT,
+            afiliado.empresaDescripcion,
+          ]);
+        });
+
+        excelData.push([]); // Línea en blanco entre seccionales
+      });
+
+      // Exportar a Excel
+      exportToExcel(
+        [{ sheetName: 'Afiliados por Seccional', data: excelData }],
+        `Afiliados_${delegacion.descripcion}_${Formato.Fecha(delegacion.desdeFecha)}_${Formato.Fecha(delegacion.hastaFecha)}`
+      )
+        .then(() => {
+          setExcel((o) => ({ ...o, loading: null, error: null }));
+        })
+        .catch((error) => {
+          setExcel((o) => ({
+            ...o,
+            loading: null,
+            error: error?.message ?? String(error),
+          }));
+        });
+    } catch (error) {
+      setExcel((o) => ({
+        ...o,
+        loading: null,
+        error: error?.message ?? String(error),
+      }));
+    }
+  }, [excel.reload, list.selected, delegacionSelect.selected, filtros, exportToExcel]);
+
+  const onExcel = () => {
+    setExcel((o) => ({
+      ...o,
+      reload: true,
+      loading: "Generando Excel...",
+      error: null,
+    }));
+  };
+  //#endregion Excel export
+
   //#region print
   const [print, setPrint] = useState(null);
   //#endregion print
@@ -432,6 +593,23 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
       }
       seccional.afiliados.push(afiliado);
     });
+    
+    // Ordenar seccionales por código
+    delegacion.seccionales.sort((a, b) => {
+      const codigoA = String(a.codigo || '');
+      const codigoB = String(b.codigo || '');
+      return codigoA.localeCompare(codigoB);
+    });
+    
+    // Ordenar afiliados dentro de cada seccional por nombre
+    delegacion.seccionales.forEach((seccional) => {
+      seccional.afiliados.sort((a, b) => {
+        const nombreA = String(a.nombre || '').toLowerCase();
+        const nombreB = String(b.nombre || '').toLowerCase();
+        return nombreA.localeCompare(nombreB);
+      });
+    });
+    
     setPrint(
 	<Viewer 
 	data={delegacion} 
@@ -693,11 +871,22 @@ const AfiliadosNotaPeriodica = ({ onClose = onCloseDef }) => {
 					Afiliados seleccionados: {list.selected.length}
 					</Grid>
                 <Grid justify="center" style={{ color: "green" }}>
-                  {newSelection.loading}
+                  {newSelection.loading || excel.loading}
                 </Grid>
                 <Grid justify="center" style={{ color: "red" }}>
-                  {newSelection.error}
+                  {newSelection.error || excel.error}
                 </Grid>
+              </Grid>
+              <Grid width="150px">
+                <Button
+                  className="botonAmarillo"
+                  loading={!!excel.loading}
+                  disabled={list.selected.length === 0 || !filtros.ambitoDelegaciones || !filtros.fechaIngreso}
+                  onClick={() => onExcel()}
+                  tarea="Informes_Afiliados_NotificacionAfiliacionesDelegados_Excel"
+                >
+                  GENERA EXCEL
+                </Button>
               </Grid>
               <Grid width="150px">
                 <Button
