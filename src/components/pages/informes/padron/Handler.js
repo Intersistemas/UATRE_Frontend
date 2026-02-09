@@ -127,27 +127,44 @@ const normalizeSeccionalOption = (opt) => {
 };
 const normalizeFiltros = (f) => {
   const g = { ...f };
-  // Limpiar campos que son solo para el frontend y no deben enviarse al backend
-  delete g.estadoSolicitudFiltro; // Este campo es solo para el frontend
+  if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
+  // NO eliminamos estadoSolicitudFiltro ni soloNoActivos aquí
+  // Se usarán en buildEstadoParams y se limpiarán después
   return g;
 };
 
-/** LÓGICA DE FILTRO DE ESTADO → params para backend (server-side) */
+/** 
+ * LÓGICA DE FILTRO DE ESTADO → params para backend (server-side)
+ * 
+ * Estados conocidos del backend:
+ * - ACTIVO: estadoSolicitudId = 2
+ * - NO ACTIVO: estadoSolicitudId = 3
+ * - OTROS: Pendiente, Rechazado (no filtrados actualmente)
+ */
 const buildEstadoParams = (f = {}) => {
   const out = {};
+  
   if (f.estadoSolicitudFiltro === "Activo" || f.soloActivos) {
-    out.soloActivos = true;
-    out.soloNoActivos = false;
-    out.estadoSolicitudId = 2; // Activo
+    // ACTIVOS: estadoSolicitudId = 2 (el backend NO respeta soloActivos)
+    out.estadoSolicitudId = 2;
   } else if (f.estadoSolicitudFiltro === "No Activo" || f.soloNoActivos) {
-    out.soloActivos = false;
-    out.soloNoActivos = true;
+    // NO ACTIVOS: estadoSolicitudId = 3
+    out.estadoSolicitudId = 3;
   } else {
-    out.soloActivos = false;
-    out.soloNoActivos = false;
-    delete out.estadoSolicitudId;
+    // TODOS: No enviar estadoSolicitudId
+    // El backend traerá todos sin filtrar por estado
   }
+  
   return out;
+};
+
+/** Limpiar campos internos del frontend que no deben enviarse al backend */
+const limpiarCamposInternos = (obj) => {
+  const cleaned = { ...obj };
+  delete cleaned.estadoSolicitudFiltro;
+  delete cleaned.soloActivos;
+  delete cleaned.soloNoActivos;
+  return cleaned;
 };
 
 /** Normalizador de paginado del backend -> {index, size, count(pages)} */
@@ -179,27 +196,7 @@ const normalizeServerPaging = (ok, fallbackIndex, fallbackSize) => {
   return { index, size, count: pagesCount, totalCount };
 };
 
-/** Util: aplicar filtro de estado a un arreglo de afiliados */
-const aplicarFiltroEstado = (rows = [], filtros = {}) => {
 
-  if (filtros.estadoSolicitudFiltro === "Activo" || filtros.soloActivos) {
-
-    const filtered = rows.filter(a => {
-      const e = a.estadoSolicitud;
-      return e && !["No Activo", "Rechazado", "Pendiente"].includes(e);
-    });
-
-    return filtered;
-  }
-  if (filtros.estadoSolicitudFiltro === "No Activo" || filtros.soloNoActivos) {
-    const filtered = rows.filter(a => {
-      const e = a.estadoSolicitud;
-      return e && ["No Activo", "Rechazado", "Pendiente"].includes(e);
-    });
-    return filtered;
-  }
-  return rows; // “Todos”
-};
 
 const Handler = ({ onClose = () => {} }) => {
   const ambitoUsuario = useAmbitosUsuario().ambitoUser();
@@ -454,14 +451,14 @@ const Handler = ({ onClose = () => {} }) => {
         // FILTRO: Todos (sin restricción de estado)
       }
 
-      return f; // Todos => sin flags
+      return f;
     });
   }, [estadoSelect.loading, estadoSelect.selected]);
 
   /** LIST (tabla) */
   const [list, setList] = useState({
     reload: false, loading: null,
-    pagination: { index: 1, size: 10 }, // Paginación remota - 10 registros por página
+    pagination: { index: 1, size: 10, count: 0 }, // count = total de registros (para Table)
     filtros: {},
     sort: "seccionalId,nombre",
     data: [],
@@ -473,8 +470,12 @@ const Handler = ({ onClose = () => {} }) => {
 
     const filtrosNorm = normalizeFiltros(list.filtros);
     const estadoParams = buildEstadoParams(filtrosNorm);
+    
+    // Ahora sí limpiamos los campos internos del frontend
+    const filtrosLimpios = limpiarCamposInternos(filtrosNorm);
+    
     const body = {
-      ...filtrosNorm,
+      ...filtrosLimpios,
       ...estadoParams, // backend filtra y pagina
       sort: list.sort,
       pageIndex: list.pagination.index,
@@ -492,19 +493,16 @@ const Handler = ({ onClose = () => {} }) => {
         if (Array.isArray(ok?.data)) {
           data = !usuarioConSeccionalInactiva ? ok.data : [];
 
-          // FILTRO CLIENT-SIDE TEMPORAL: El backend NO filtra correctamente
-          // Esto solo filtra la página actual, no es ideal pero funciona
-          const filtrosActuales = normalizeFiltros(list.filtros);
-          data = aplicarFiltroEstado(data, filtrosActuales);
+          // El backend ya filtra correctamente con estadoSolicitudId
+          // No es necesario filtrar client-side
 
           const norm = normalizeServerPaging(ok, list.pagination.index, list.pagination.size);
           
-          // IMPORTANTE: Mantener el size original de list.pagination, usar count de norm
+          // Table espera que pagination.count sea el TOTAL DE REGISTROS (no páginas)
           pagination = { 
             index: norm.index, 
-            size: list.pagination.size,  // Usar el size que ya teníamos (10)
-            count: norm.count,           // Usar el count (páginas) del backend
-            totalCount: norm.totalCount  // Total de registros
+            size: list.pagination.size,  // Tamaño de página (10)
+            count: norm.totalCount       // Total de registros (para react-bootstrap-table)
           };
         } else {
           pagination = { ...pagination, count: 0 };
@@ -532,9 +530,12 @@ const Handler = ({ onClose = () => {} }) => {
     if (!padron.reload) return;
 
     const filtrosNorm = normalizeFiltros(padron.filtros);
+    const estadoParams = buildEstadoParams(filtrosNorm);
+    const filtrosLimpios = limpiarCamposInternos(filtrosNorm);
+    
     const baseBody = {
-      ...filtrosNorm,
-      ...buildEstadoParams(filtrosNorm), // backend filtra exactamente igual que la tabla
+      ...filtrosLimpios,
+      ...estadoParams, // backend filtra exactamente igual que la tabla
       sort: padron.sort || "seccionalId,nombre",
       pageIndex: 1,
       pageSize: 1000, // Usar pageSize grande para obtener más datos por página y menos requests
@@ -568,8 +569,7 @@ const Handler = ({ onClose = () => {} }) => {
         // Aplicar el mismo filtro de usuario inactivo que en la tabla
         data = !usuarioConSeccionalInactiva ? data : [];
         
-        // FILTRO CLIENT-SIDE TEMPORAL: El backend NO filtra correctamente
-        data = aplicarFiltroEstado(data, filtrosNorm);
+        // El backend ya filtra correctamente con soloActivos
         
         acumulado.push(...data);
       }
@@ -650,6 +650,7 @@ const Handler = ({ onClose = () => {} }) => {
   /** ACCIÓN: Aplicar filtros - Toma los filtros configurados y los aplica a la tabla */
   const onAplicaFiltros = useCallback(() => {
     const filtrosNorm = normalizeFiltros(filtros);
+    
     if (!filtrosNorm.ambitoDelegaciones) {
       setDelegacionSelect((o) => ({ ...o, error: "Dato requerido." }));
     } else {
@@ -833,7 +834,7 @@ const Handler = ({ onClose = () => {} }) => {
             title={
               !list.filtros || Object.keys(list.filtros).length === 0 || list.data.length === 0
                 ? "Aplica filtros primero para generar el PDF con los datos filtrados"
-                : `Generar PDF con ${list.pagination.totalCount || 'TODOS los'} registros que coinciden con los filtros aplicados (mostrando página ${list.pagination.index} de ${list.pagination.count})`
+                : `Generar PDF con ${list.pagination.count || 'TODOS los'} registros que coinciden con los filtros aplicados`
             }
           >
             IMPRIME
