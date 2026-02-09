@@ -127,8 +127,9 @@ const normalizeSeccionalOption = (opt) => {
 };
 const normalizeFiltros = (f) => {
   const g = { ...f };
-  // Limpiar campos que son solo para el frontend y no deben enviarse al backend
-  delete g.estadoSolicitudFiltro; // Este campo es solo para el frontend
+  if (g?.ambitoTodos?.ids && g.ambitoTodos.ids.length === 1 && Number(g.ambitoTodos.ids[0]) === 0) delete g.ambitoTodos;
+  // NO eliminamos estadoSolicitudFiltro ni soloNoActivos aquí
+  // Se usarán en buildEstadoParams y se limpiarán después
   return g;
 };
 
