@@ -17,7 +17,7 @@ import ListadoImpresos from "./Carnet/ListadoImpresos";
 const AfiliadosHandler = () => {
   const Usuario = useContext(AuthContext).usuario;
 
-  const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [] });
+  const [afiliadosRespuesta, setAfiliadosRespuesta] = useState({ data: [], pages: 0, index: 1, size: 12, count: 0 });
   const [page, setPage] = useState(1);
   const [sizePerPage, setSizePerPage] = useState(12);
   const [sortColumn, setSortColumn] = useState("nroAfiliado");
@@ -114,6 +114,36 @@ const AfiliadosHandler = () => {
             return;
           }
 
+          body[filterColumn] = filter;
+          request(
+            {
+              baseURL: "Afiliaciones",
+              endpoint: endpoint,
+              method: "POST",
+              body: body,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            (resp) => {
+              let count = 0;
+              if (Array.isArray(resp)) count = resp.length;
+              else if (resp && Array.isArray(resp.data)) count = resp.data.length;
+              else if (resp && typeof resp.count === 'number') count = resp.count;
+
+              if (count === 0) {
+                  setTableMessage("No hay información a mostrar");
+                  setAfiliadoSeleccionado({});
+              } else {
+                setTableMessage(null);
+              }
+              setSearchError(null);
+              processAfiliados(resp);
+            }
+          );
+        },
+        (error) => {
+          // Si hay error 404, hacer búsqueda general
           body[filterColumn] = filter;
           request(
             {
@@ -309,7 +339,6 @@ const AfiliadosHandler = () => {
   const handlePageChange = (page, sizePerPage) => {
     setPage(page);
     setSizePerPage(sizePerPage);
-    setAfiliadosRespuesta([]);
   };
 
   const handleFilter = (select, entry) => {
@@ -343,7 +372,6 @@ const AfiliadosHandler = () => {
   const handleSizePerPageChange = (page, sizePerPage) => {
     setPage(page);
     setSizePerPage(sizePerPage);
-    setAfiliadosRespuesta([]);
   };
 
   const handleFilterChange = (filters) => {
@@ -422,7 +450,11 @@ const AfiliadosHandler = () => {
   if (isLoading) {
     return <h1>Cargando...</h1>;
   }
-  if (afiliadosRespuesta.length !== 0)
+  
+  // Verificar que afiliadosRespuesta tenga la estructura correcta
+  const tieneEstructuraValida = afiliadosRespuesta && typeof afiliadosRespuesta === 'object' && 'data' in afiliadosRespuesta;
+  
+  if (tieneEstructuraValida)
     return (
       <Fragment>
         {pantallaEnDesarrolloShow && (
@@ -452,7 +484,7 @@ const AfiliadosHandler = () => {
         <AfiliadosLista
           afiliados={afiliadosRespuesta}
           errorRequest={error}
-          loading={afiliadosRespuesta?.length ? false : isLoading}
+          loading={afiliadosRespuesta?.data?.length > 0 ? false : isLoading}
           estadosSolicitudes={estadosSolicitudes}
           estadoSolicitudActual={estadoSolicitud}
           onFilter={handleFilter}
