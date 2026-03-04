@@ -104,6 +104,7 @@ const usePreguntas = ({
     selection: { ...selectionDef },
     onEditValidate: onEditValidateInit,
     onEditChange: onEditChangeInit,
+    successMessage: null, // Nuevo: mensaje de éxito
   });
   console.log("Este es mi -> list de usePreguntas:", list);
 
@@ -188,26 +189,35 @@ const usePreguntas = ({
   const requestChanges = useCallback((type, payload = {}) => {
     switch (type) {
       case "selected":
-        setList((prev) => ({
-          ...prev,
-          selection: {
-            ...prev.selection,
-            request: payload.request,
-            action: payload.action,
-            // edit: {
-            //   ...(payload.request === "A" ? {} : prev.selection.record),
-            //   ...payload.record,
-            // },
-            edit: {
+        setList((prev) => {
+          // Calcular el siguiente orden de pregunta para nuevas preguntas
+          let ordenCalculado = payload.record?.ordenPregunta;
+          if (payload.request === "A" && !ordenCalculado) {
+            const maxOrden = prev.data.length > 0 
+              ? Math.max(...prev.data.map(p => Number(p.ordenPregunta || 0)))
+              : 0;
+            ordenCalculado = maxOrden + 1;
+          }
+
+          return {
+            ...prev,
+            selection: {
+              ...prev.selection,
+              request: payload.request,
+              action: payload.action,
+              edit: {
                 ...(payload.request === "A" ? {} : prev.selection.record),
                 ...payload.record,
+                ordenPregunta: ordenCalculado,
+                preguntasList: prev.data, // Agregamos la lista para el formulario
                 textoLibre:
                   payload.record?.tipoPregunta === "TX"
                     ? payload.record.detalles?.[0]?.texto || ""
                     : "",
               },
-          },
-        }));
+            },
+          };
+        });
         break;
       case "list":
         if (payload.clear) {
@@ -289,6 +299,7 @@ const usePreguntas = ({
               deletedObs: false, deletedBy: false, deletedDate: false, tema: false, enunciado: false, ordenPregunta: false, tipoPregunta: false, textoLibre: false, detalles: false, texto: false
             } : {}
         }
+        successMessage={list.successMessage}
         onChange={(edit) => {
           if (
             !list.onEditChange({
@@ -305,6 +316,7 @@ const usePreguntas = ({
               edit: { ...prev.selection.edit, ...edit },
               errors: { ...prev.selection.errors },
             },
+            successMessage: null,
           }));
         }}
         onClose={(confirm) => {
@@ -420,55 +432,44 @@ const usePreguntas = ({
                 fechaFinalizacion: record.fechaFinalizacion,
                 preguntas: [...list.data, nuevaPregunta] // Mantenemos las preguntas previas y agregamos la nueva
               };
-            
-              // ||||||||||||||||||||||||||||||||||||MODIFICADO||||||||||||||||||||||||||||||||||
-              // Actualizamos el estado local agregando la nueva pregunta y reabrimos el modal en modo Alta
-              setList((prev) => {
-                const nuevas = [...prev.data, nuevaPregunta];
-                const maxOrden = nuevas.reduce((acc, p) => {
-                  const n = Number(p?.ordenPregunta) || 0;
-                  return n > acc ? n : acc;
-                }, 0);
-                const siguienteOrden = maxOrden + 1;
-                // Campos de contexto que deben persistir entre altas
-                const contexto = {
-                  seccionalId: prev.selection?.edit?.seccionalId ?? record?.seccionalId,
-                  encuestaId: prev.selection?.edit?.encuestaId ?? record?.encuestaId,
-                  fecha: prev.selection?.edit?.fecha ?? record?.fecha,
-                  tema: prev.selection?.edit?.tema ?? record?.tema,
-                  fechaFinalizacion: prev.selection?.edit?.fechaFinalizacion ?? record?.fechaFinalizacion,
-                };
 
-                return {
-                  ...prev,
-                  data: nuevas,
-                  // Reabrimos el modal para permitir cargar otra pregunta
-                  selection: {
-                    ...prev.selection,
-                    request: "A",
-                    action: prev.selection?.action || "Agregar",
-                    edit: {
-                      ...contexto,
-                      // Prefijamos el siguiente orden como ayuda
-                      ordenPregunta: siguienteOrden,
-                      // Limpiamos campos del formulario
-                      tipoPregunta: "",
-                      enunciado: "",
-                      textoLibre: "",
-                      detalles: [],
-                      // Mensaje informativo para el usuario
-                      infoMessage: "Se cargó correctamente la pregunta. Podés ingresar una nueva.",
-                    },
-                    errors: null,
-                  },
-                };
-              });
-              // ||||||||||||||||||||||||||||||||||||FIN MODIFICADO||||||||||||||||||||||||||||||||||
-            
-           
-              
-            
+              // Actualizamos el estado local y preparamos para nueva pregunta
+              query.onOk = async (response) => {
+                setList((prev) => {
+                  // Calculamos el siguiente orden basándonos en la lista actualizada
+                  const datosActualizados = [...prev.data, nuevaPregunta];
+                  const maxOrden = datosActualizados.length > 0 
+                    ? Math.max(...datosActualizados.map(p => Number(p.ordenPregunta || 0)))
+                    : 0;
+                  const siguienteOrden = maxOrden + 1;
 
+                  return {
+                    ...prev,
+                    loading: null, // NO recargamos la lista, mantenemos el modal abierto
+                    data: datosActualizados, // Agregamos la nueva pregunta a la lista actual
+                    successMessage: "Se cargó correctamente la pregunta. Podés ingresar una nueva.",
+                    selection: {
+                      ...prev.selection,
+                      request: "A",
+                      action: "AGREGAR",
+                      edit: {
+                        seccionalId: record.seccionalId,
+                        fecha: record.fecha,
+                        tema: record.tema,
+                        fechaFinalizacion: record.fechaFinalizacion,
+                        ordenPregunta: siguienteOrden,
+                        tipoPregunta: "",
+                        enunciado: "",
+                        detalles: [],
+                        textoLibre: "",
+                        preguntasList: datosActualizados
+                      },
+                      errors: null
+                    }
+                  };
+                });
+              };
+            
               break;
                 
                 case "M":
@@ -565,6 +566,14 @@ const usePreguntas = ({
             default:
               break;
           }
+          
+          // Para el caso "A" (agregar), no cerramos el modal
+          if (list.selection.request === "A") {
+            pushQuery(query);
+            return; // Importante: evita que se cierre el modal
+          }
+          
+          // Para los demás casos (M, B), ejecutamos query y cerramos
           pushQuery(query);
         }}
       />

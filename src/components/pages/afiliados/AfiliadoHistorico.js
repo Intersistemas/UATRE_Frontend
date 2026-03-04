@@ -29,9 +29,20 @@ const columns = [
 ];
 
 const AfiliadoHistorico = ({ afiliado = {} }) => {
+	const [afiliadoCompleto, setAfiliadoCompleto] = useState(null);
+	
 	//#region Trato queries a APIs
 	const pushQuery = useQueryQueue((action) => {
 		switch (action) {
+			case "GetAfiliado": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Afiliado/GetAfiliadoByCUIL?CUIL=${afiliado.cuil}`,
+						method: "GET",
+					},
+				};
+			}
 			case "GetData": {
 				return {
 					config: {
@@ -47,16 +58,54 @@ const AfiliadoHistorico = ({ afiliado = {} }) => {
 	});
 	//#endregion
 
+	//#region Obtener GUID del afiliado si no está disponible
+	useEffect(() => {
+		if (!afiliado.cuil) return;
+		
+		// Si ya tiene guid, usar directamente
+		if (afiliado.guid) {
+			setAfiliadoCompleto(afiliado);
+			return;
+		}
+		
+		// Si no tiene guid, obtener objeto completo del afiliado
+		pushQuery({
+			action: "GetAfiliado",
+			config: {
+				errorType: "response",
+			},
+			onOk: async (data) => {
+				setAfiliadoCompleto(data);
+			},
+			onError: async (error) => {
+				console.error("Error obteniendo afiliado:", error);
+			},
+		});
+	}, [afiliado.cuil, afiliado.guid, pushQuery]);
+	//#endregion
+
 	//#region list
 	const [list, setList] = useState({
-		reload: !!afiliado.guid,
+		reload: false,
 		loading: null,
 		pagination: { index: 1, size: 12 },
-		params: { GUIDRegistro: afiliado.guid, sort: "-fechaHoraAuditoria" },
+		params: {},
 		data: [],
 		error: null,
 		selected: [],
 	});
+
+	// Detectar cuando el afiliadoCompleto tiene GUID y cargar auditorías
+	useEffect(() => {
+		if (!afiliadoCompleto?.guid) return;
+		
+		setList((o) => ({
+			...o,
+			reload: true,
+			pagination: { index: 1, size: 12 },
+			params: { GUIDRegistro: afiliadoCompleto.guid, sort: "-fechaHoraAuditoria" },
+		}));
+	}, [afiliadoCompleto?.guid]);
 
 	useEffect(() => {
 		if (!list.reload) return;
@@ -72,9 +121,10 @@ const AfiliadoHistorico = ({ afiliado = {} }) => {
 		pushQuery({
 			action: "GetData",
 			params: {
-				pageNumber: list.pagination.index,
-				pageSize: list.pagination.size,
-				...list.params,
+				PageNumber: list.pagination.index,
+				PageSize: list.pagination.size,
+				GUIDRegistro: afiliadoCompleto.guid,
+				sort: "-fechaHoraAuditoria",
 			},
 			config: {
 				errorType: "response",
@@ -90,11 +140,13 @@ const AfiliadoHistorico = ({ afiliado = {} }) => {
 				if (changes.selected.length === 0 && changes.data.length)
 					changes.selected = [changes.data[0]];
 			},
-			onError: async (error) => (changes.error = error.toString()),
+			onError: async (error) => {
+				changes.error = error.toString();
+			},
 			onFinally: async () =>
 				setList((o) => ({ ...o, ...changes, loading: null })),
 		});
-	}, [list, pushQuery]);
+	}, [list, pushQuery, afiliadoCompleto?.guid]);
 	//#endregion
 
 	return (

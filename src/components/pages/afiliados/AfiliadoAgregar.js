@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState, useRef } from "react";
+import React, { useEffect, useReducer, useState, useRef, useContext } from "react";
 import moment from "moment";
 import {
   Dialog,
@@ -20,6 +20,7 @@ import ValidarCUIT from "components/validators/ValidarCUIT";
 import ValidarEmail from "components/validators/ValidarEmail";
 import useAuditoriaProceso from "components/hooks/useAuditoriaProceso";
 import { flatten } from "components/helpers/Utils";
+import AuthContext from "../../../store/authContext";
 import {
   AFILIADO_AGREGADO,
   AFILIADO_ACTUALIZADO,
@@ -369,6 +370,7 @@ const AfiliadoAgregar = (props) => {
   const { isLoading, error, sendRequest: request } = useHttp();
   const [errorAFIP, setErrorAFIP] = useState(false);
   const [consultaPadronCUILOk, setConsultaPadronCUILOk] = useState(false);
+  const Usuario = useContext(AuthContext).usuario;
 
   const [selectedTab, setSelectedTab] = useState(0);
   const { cuil: cuilParam } = props;
@@ -2961,10 +2963,75 @@ const AfiliadoAgregar = (props) => {
       })),
     };
     console.log("afiliado modificado", afiliadoModificado);
+    
+    // Construir lista de cambios para auditoría
+    const cambiosTexto = [];
+    const mapearCampos = {
+      cuil: "CUIL",
+      CUILValidado: "CUIL Validado",
+      nombre: "Nombre",
+      puestoId: "Puesto",
+      fechaIngreso: "Fecha Ingreso",
+      nacionalidadId: "Nacionalidad",
+      seccionalId: "Seccional",
+      seccionalIdSolicitudAfiliacion: "Seccional Solicitud Afiliación",
+      sexoId: "Sexo",
+      tipoDocumentoId: "Tipo Documento",
+      documento: "Documento",
+      actividadId: "Actividad",
+      estadoCivilId: "Estado Civil",
+      refLocalidadId: "Localidad",
+      domicilio: "Domicilio",
+      telefonoPais: "Teléfono País",
+      telefonoArea: "Teléfono Área",
+      telefonoNumero: "Teléfono Número",
+      correo: "Correo",
+      fechaNacimiento: "Fecha Nacimiento"
+    };
+
+    Object.keys(mapearCampos).forEach(campo => {
+      const valorAnterior = afiliado?.[campo];
+      const valorNuevo = afiliadoModificado[campo];
+      
+      if (valorAnterior != valorNuevo) {
+        cambiosTexto.push(`${mapearCampos[campo]}: ${valorAnterior ?? 'vacío'} → ${valorNuevo ?? 'vacío'}`);
+      }
+    });
+
     const afiliadoModificar = async (afiliadoModificarResponseObj) => {
       setAfiliadoModificado(afiliadoModificado);
       setDialogTexto(AFILIADO_ACTUALIZADO);
       setOpenDialog(true);
+
+      // Registrar auditoría de cambios en AuditoriasDatos
+      if (cambiosTexto.length > 0 && afiliado?.guid) {
+        const auditoriaBody = {
+          Usuario: Usuario?.nombre || "Sistema",
+          Tabla: "Afiliado",
+          TablaIdentificador: afiliado.guid,
+          Accion: "Modificación",
+          Cambios: cambiosTexto.join("\r\n")
+        };
+        
+        request(
+          {
+            baseURL: "Auditoria",
+            endpoint: `/AuditoriasDatos/registrar`,
+            method: "POST",
+            body: auditoriaBody,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+          (response) => console.log("✅ Auditoría guardada exitosamente:", response),
+          (error) => console.error("❌ Error al guardar auditoría:", error)
+        );
+      } else {
+        console.warn("⚠️ No se guardó auditoría:", { 
+          tieneCambios: cambiosTexto.length > 0, 
+          tieneGuid: !!afiliado?.guid 
+        });
+      }
     };
 
     request(
