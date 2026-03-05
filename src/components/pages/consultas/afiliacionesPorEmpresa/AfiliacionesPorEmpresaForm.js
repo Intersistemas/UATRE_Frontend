@@ -25,7 +25,7 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const onChangeDef = (changes = {}) => {};
@@ -492,9 +492,11 @@ const onDownloadSolicitudAfiliacion = async (trabajadoresNoAfiliados, afiliacion
 
           // Si el ámbito es Delegaciones
           if (ambito.tipo === 'Delegaciones') {
-            const delegacionId = ambito.ids[0];
-            // Filtrar seccionales por la delegación actual
-            seccionalesFiltered = allData.filter((r) => r.refDelegacionId === delegacionId);
+                        const delegacionId = ambito.ids?.[0];
+                        // Filtrar seccionales por la delegación actual (solo si hay delegación seleccionada)
+                        if (delegacionId != null) {
+                                       seccionalesFiltered = allData.filter((r) => r.refDelegacionId === delegacionId);
+                        } 
 
             // Intentar obtener la seccional del usuario mediante Afiliado (por CUIL/CUIT)
             // Si no se encuentra o no pertenece a la delegación, se usará la primera seccional
