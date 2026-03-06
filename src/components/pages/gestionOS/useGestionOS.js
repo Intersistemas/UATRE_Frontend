@@ -20,6 +20,8 @@ import filterFactory, {
   Comparator,
 } from "react-bootstrap-table2-filter";
 
+//ultimo modificado
+
 const selectionDef = {
   action: "",
   request: "",
