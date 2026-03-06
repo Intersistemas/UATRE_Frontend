@@ -11,7 +11,7 @@ import Grid from "components/ui/Grid/Grid";
 import InputMaterial from "components/ui/Input/InputMaterial";
 import useGestionOS, { onLoadSelectKeepOrFirst } from "./useGestionOS";
 import Button from "components/ui/Button/Button";
-import useDocumentaciones from "components/documentacion/useDocumentaciones";
+import useDocumentaciones from "components/Documentacion/useDocumentaciones";
 import SearchSelectMaterial, {
   includeSearch,
   mapOptions,
@@ -26,12 +26,12 @@ const GestionOSHandler = () => {
   const Usuario = useSelector((state) => state.usuarioLogueado);
 
   const defaultFiltroSeccional =
-  Usuario.ambitoTodos !== null
-    ? { value: 0, label: "TODAS" }
-    : {
-        value: Usuario.ambitoSeccionales?.ids[0],
-        label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
-      };
+    Usuario.ambitoTodos !== null || Usuario.ambitoDelegaciones !== null
+      ? { value: 0, label: "TODAS" }
+      : {
+          value: Usuario.ambitoSeccionales?.ids[0],
+          label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
+        };
 
   const defaultParams = { filtroSeccional: defaultFiltroSeccional };
 
@@ -152,8 +152,8 @@ const GestionOSHandler = () => {
     loading: null,
     data: [],
     error: null,
-    options: [{ value: 0, label: "TODOS" }],
-    selected: { value: 0, label: "TODOS" },
+    options: [{ value: 0, label: "TODAS" }],
+    selected: { value: 0, label: "TODAS" },
   });
 
   const [tiposGestionSelect, setTiposGestionSelect] = useState({
@@ -225,38 +225,47 @@ const GestionOSHandler = () => {
       onOk: (data) => {
         if (!Array.isArray(data))
           return console.error("Se esperaba un arreglo", data);
-        changesSeccional.data = data.map((r) => ({
+        // Para ambitoDelegaciones: filtrar el listado a las seccionales de esa delegación
+        let filteredData = data;
+        if (Usuario.ambitoTodos === null && Usuario.ambitoDelegaciones !== null) {
+          const delegacionId = Usuario.ambitoDelegaciones.ids[0];
+          filteredData = data.filter(
+            (r) => r.refDelegacionId === delegacionId && r.id !== 99999
+          );
+        }
+
+        changesSeccional.data = filteredData.map((r) => ({
           value: r.id,
           label: r.descripcion,
         }));
-        changesSeccional.options = data.map((r) => ({
+        changesSeccional.options = filteredData.map((r) => ({
           value: r.id,
           label: r.descripcion,
         }));
         changesSeccional.options.unshift({ value: 0, label: "TODAS" });
 
-        if (Usuario.ambitoTodos !== null) {
-          changesSeccional.filtroSeccional = {
-            value: 0,
-            label: "TODAS",
-          };
-        } else {
-          changesSeccional.filtroSeccional = {
-            value: Usuario.ambitoSeccionales?.ids[0],
-            label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
-          };
-        }
-        setParamsEdit((o) => ({ ...o, ...changesSeccional }));
+        const filtroSeccional =
+          Usuario.ambitoTodos !== null || Usuario.ambitoDelegaciones !== null
+            ? { value: 0, label: "TODAS" }
+            : {
+                value: Usuario.ambitoSeccionales?.ids[0],
+                label: Usuario.ambitosDescripciones[0]?.seccionalDescripcion,
+              };
+
+        changesSeccional.selected = filtroSeccional;
+        setParamsEdit((o) => ({ ...o, filtroSeccional }));
       },
       onError: (error) => (changesSeccional.error = error.toString()),
       onFinally: () => {
         setSeccionalSelect((o) => ({
           ...o,
-          ...changesSeccional,
+          reload: changesSeccional.reload,
           loading: null,
+          data: changesSeccional.data,
+          error: changesSeccional.error,
+          options: changesSeccional.options ?? o.options,
+          selected: changesSeccional.selected ?? o.selected,
         }));
-
-        setParamsEdit((o) => ({ ...o, ...changesSeccional }));
       },
     });
   }, [pushQuery, Usuario.ambitoTodos, Usuario.ambitoSeccionales?.ids, Usuario.ambitosDescripciones]);
@@ -505,7 +514,7 @@ const GestionOSHandler = () => {
             <Grid gap="inherit">
               <Grid grow>
                 <SearchSelectMaterial
-                  disabled={Usuario.ambitoTodos === null}
+                  disabled={Usuario.ambitoTodos === null && Usuario.ambitoDelegaciones === null}
                   label="Seccional"
                   value={paramsEdit.filtroSeccional}
                   onChange={(filtroSeccional) =>
