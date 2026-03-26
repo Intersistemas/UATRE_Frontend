@@ -25,7 +25,7 @@ import {
   DialogContent,
   Typography,
 } from "@mui/material";
-import useDocumentaciones from "components/Documentacion/useDocumentaciones";
+import useDocumentaciones from "components/documentacion/useDocumentaciones";
 import { generarPDFLibSolicitudAfiliacion } from "components/pages/afiliados/PDFLibSolicitudAfiliacion/generarPDFLibSolicitudAfiliacion";
 
 const onChangeDef = (changes = {}) => {};
