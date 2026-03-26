@@ -192,7 +192,7 @@ const SeccionalesForm = ({
 		// Validar Horario 1: Desde < Hasta
 		if (horaDesde1 && horaHasta1) {
 			const diferencia1 = calcularDiferenciaMinutos(horaDesde1, horaHasta1);
-			if (diferencia1 <= 0) {
+			if (diferencia1 < 0) {
 				newErrors.horarioAtencion1Desde = "El Horario 1 Desde debe ser anterior al Horario 1 Hasta";
 			}
 		}
@@ -200,16 +200,8 @@ const SeccionalesForm = ({
 		// Validar Horario 2: Desde < Hasta
 		if (horaDesde2 && horaHasta2) {
 			const diferencia2 = calcularDiferenciaMinutos(horaDesde2, horaHasta2);
-			if (diferencia2 <= 0) {
+			if (diferencia2 < 0) {
 				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser anterior al Horario 2 Hasta";
-			}
-		}
-		
-		// Validar diferencia entre Horario 1 Hasta y Horario 2 Desde
-		if (horaHasta1 && horaDesde2) {
-			const diferencia = calcularDiferenciaMinutos(horaHasta1, horaDesde2);
-			if (diferencia < 0) {
-				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser posterior al Horario 1 Hasta";
 			}
 		}
 		
@@ -924,6 +916,7 @@ const SeccionalesForm = ({
 								value={inputHorario1Desde}
 								disabled={disabled.horarioAtencion1Desde ?? false}
 								onChange={(value, _id) => setInputHorario1Desde(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
 								onBlur={(e) => {
 									const normalized = normalizeTimeInput(e?.target?.value);
 									setInputHorario1Desde(normalized);
@@ -941,6 +934,7 @@ const SeccionalesForm = ({
 								value={inputHorario1Hasta}
 								disabled={disabled.horarioAtencion1Hasta ?? false}
 								onChange={(value, _id) => setInputHorario1Hasta(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
 								onBlur={(e) => {
 									const normalized = normalizeTimeInput(e?.target?.value);
 									setInputHorario1Hasta(normalized);
@@ -960,6 +954,7 @@ const SeccionalesForm = ({
 								value={inputHorario2Desde}
 								disabled={disabled.horarioAtencion2Desde ?? false}
 								onChange={(value, _id) => setInputHorario2Desde(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
 								onBlur={(e) => {
 									const normalized = normalizeTimeInput(e?.target?.value);
 									setInputHorario2Desde(normalized);
@@ -977,6 +972,7 @@ const SeccionalesForm = ({
 								value={inputHorario2Hasta}
 								disabled={disabled.horarioAtencion2Hasta ?? false}
 								onChange={(value, _id) => setInputHorario2Hasta(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
 								onBlur={(e) => {
 									const normalized = normalizeTimeInput(e?.target?.value);
 									setInputHorario2Hasta(normalized);
