@@ -155,6 +155,29 @@ const SeccionalesForm = ({
 	const [procesando, setProcesando] = useState(loading);
 	const [validationErrors, setValidationErrors] = useState({});
 
+	// Estados locales para los inputs de horario para permitir edición libre
+	const [inputHorario1Desde, setInputHorario1Desde] = useState(toHHMM(data.horarioAtencion1Desde));
+	const [inputHorario1Hasta, setInputHorario1Hasta] = useState(toHHMM(data.horarioAtencion1Hasta));
+	const [inputHorario2Desde, setInputHorario2Desde] = useState(toHHMM(data.horarioAtencion2Desde));
+	const [inputHorario2Hasta, setInputHorario2Hasta] = useState(toHHMM(data.horarioAtencion2Hasta));
+
+	// Sincronizar estados locales cuando data cambia
+	useEffect(() => {
+		setInputHorario1Desde(toHHMM(data.horarioAtencion1Desde));
+	}, [data.horarioAtencion1Desde]);
+
+	useEffect(() => {
+		setInputHorario1Hasta(toHHMM(data.horarioAtencion1Hasta));
+	}, [data.horarioAtencion1Hasta]);
+
+	useEffect(() => {
+		setInputHorario2Desde(toHHMM(data.horarioAtencion2Desde));
+	}, [data.horarioAtencion2Desde]);
+
+	useEffect(() => {
+		setInputHorario2Hasta(toHHMM(data.horarioAtencion2Hasta));
+	}, [data.horarioAtencion2Hasta]);
+
 	// Validar horarios de atención
 	useEffect(() => {
 		const horaDesde1 = data?.horarioAtencion1Desde || "";
@@ -185,9 +208,7 @@ const SeccionalesForm = ({
 		// Validar diferencia entre Horario 1 Hasta y Horario 2 Desde
 		if (horaHasta1 && horaDesde2) {
 			const diferencia = calcularDiferenciaMinutos(horaHasta1, horaDesde2);
-			if (diferencia > 30) {
-				newErrors.horarioAtencion2Desde = `No debe haber más de 30 minutos entre el Horario 1 Hasta (${horaHasta1}) y el Horario 2 Desde (${horaDesde2}). Diferencia: ${diferencia} minutos`;
-			} else if (diferencia < 0) {
+			if (diferencia < 0) {
 				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser posterior al Horario 1 Hasta";
 			}
 		}
@@ -900,11 +921,15 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde)}
 								helperText={(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde) ?? ""}
-								value={toHHMM(data.horarioAtencion1Desde)}
+								value={inputHorario1Desde}
 								disabled={disabled.horarioAtencion1Desde ?? false}
-								onChange={(value, _id) => onChange({ horarioAtencion1Desde: formatTimeInput(value) })}
-								onBlur={(e) => onChange({ horarioAtencion1Desde: normalizeTimeInput(e?.target?.value) })}
-								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+								onChange={(value, _id) => setInputHorario1Desde(formatTimeInput(value))}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario1Desde(normalized);
+									onChange({ horarioAtencion1Desde: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
 							/>
 							<InputMaterial
 								id="horarioAtencion1Hasta"
@@ -913,12 +938,18 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion1Hasta}
 								helperText={errors.horarioAtencion1Hasta ?? ""}
-								value={toHHMM(data.horarioAtencion1Hasta)}
+								value={inputHorario1Hasta}
 								disabled={disabled.horarioAtencion1Hasta ?? false}
-								onChange={(value, _id) => onChange({ horarioAtencion1Hasta: formatTimeInput(value) })}
-								onBlur={(e) => onChange({ horarioAtencion1Hasta: normalizeTimeInput(e?.target?.value) })}
-								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+								onChange={(value, _id) => setInputHorario1Hasta(formatTimeInput(value))}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario1Hasta(normalized);
+									onChange({ horarioAtencion1Hasta: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
 							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
 							<InputMaterial
 								id="horarioAtencion2Desde"
 								type="text"
@@ -926,11 +957,15 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde)}
 								helperText={(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde) ?? ""}
-								value={toHHMM(data.horarioAtencion2Desde)}
+								value={inputHorario2Desde}
 								disabled={disabled.horarioAtencion2Desde ?? false}
-								onChange={(value, _id) => onChange({ horarioAtencion2Desde: formatTimeInput(value) })}
-								onBlur={(e) => onChange({ horarioAtencion2Desde: normalizeTimeInput(e?.target?.value) })}
-								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+								onChange={(value, _id) => setInputHorario2Desde(formatTimeInput(value))}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario2Desde(normalized);
+									onChange({ horarioAtencion2Desde: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
 							/>
 							<InputMaterial
 								id="horarioAtencion2Hasta"
@@ -939,11 +974,15 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion2Hasta}
 								helperText={errors.horarioAtencion2Hasta ?? ""}
-								value={toHHMM(data.horarioAtencion2Hasta)}
+								value={inputHorario2Hasta}
 								disabled={disabled.horarioAtencion2Hasta ?? false}
-								onChange={(value, _id) => onChange({ horarioAtencion2Hasta: formatTimeInput(value) })}
-								onBlur={(e) => onChange({ horarioAtencion2Hasta: normalizeTimeInput(e?.target?.value) })}
-								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+								onChange={(value, _id) => setInputHorario2Hasta(formatTimeInput(value))}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario2Hasta(normalized);
+									onChange({ horarioAtencion2Hasta: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
 							/>
 						</Grid>
 						
