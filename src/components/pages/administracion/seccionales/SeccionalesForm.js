@@ -90,15 +90,34 @@ const calcularDiferenciaMinutos = (horaInicio, horaFin) => {
 	}
 };
 
-// Función para formatear automáticamente el horario HH:MM
+// Función para formatear automáticamente el horario HH:MM mientras se escribe
 const formatTimeInput = (value) => {
-	const digits = value.replace(/\D/g, ''); // Solo dígitos
-	if (digits.length >= 3) {
-		return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
-	} else if (digits.length >= 2) {
-		return `${digits.slice(0, 2)}:`;
-	}
-	return digits;
+	if (!value) return "";
+	const digits = String(value).replace(/\D/g, ''); // Solo dígitos
+	if (digits.length === 0) return "";
+	if (digits.length === 1) return digits;
+	if (digits.length === 2) return `${digits.slice(0, 2)}:`;
+	if (digits.length <= 4) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+	return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+};
+
+// Función para normalizar el horario a HH:MM con ceros
+const normalizeTimeInput = (value) => {
+	const raw = String(value || '').replace(/[^\d:]/g, '');
+	const parts = raw.split(':');
+	let horas = (parts[0] || '').replace(/\D/g, '').slice(0, 2);
+	let minutos = (parts[1] || '').replace(/\D/g, '').slice(0, 2);
+	if (horas.length === 0) horas = '00';
+	if (horas.length === 1) horas = `0${horas}`;
+	if (minutos.length === 0) minutos = '00';
+	if (minutos.length === 1) minutos = `${minutos}0`;
+	return `${horas}:${minutos}`;
+};
+
+// Convierte HH:MM:SS ó HH:MM en HH:MM (texto visible en el input)
+const toHHMM = (value) => {
+	const normalized = normalizeTimeInput(value);
+	return /^[0-2]\d:[0-5]\d$/.test(normalized) ? normalized : '00:00';
 };
 
 const SeccionalesForm = ({
@@ -881,9 +900,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde)}
 								helperText={(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde) ?? ""}
-								value={data.horarioAtencion1Desde ?? ""}
+								value={toHHMM(data.horarioAtencion1Desde)}
 								disabled={disabled.horarioAtencion1Desde ?? false}
 								onChange={(value, _id) => onChange({ horarioAtencion1Desde: formatTimeInput(value) })}
+								onBlur={(e) => onChange({ horarioAtencion1Desde: normalizeTimeInput(e?.target?.value) })}
 								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 							<InputMaterial
@@ -893,9 +913,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion1Hasta}
 								helperText={errors.horarioAtencion1Hasta ?? ""}
-								value={data.horarioAtencion1Hasta ?? ""}
+								value={toHHMM(data.horarioAtencion1Hasta)}
 								disabled={disabled.horarioAtencion1Hasta ?? false}
 								onChange={(value, _id) => onChange({ horarioAtencion1Hasta: formatTimeInput(value) })}
+								onBlur={(e) => onChange({ horarioAtencion1Hasta: normalizeTimeInput(e?.target?.value) })}
 								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 							<InputMaterial
@@ -905,9 +926,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde)}
 								helperText={(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde) ?? ""}
-								value={data.horarioAtencion2Desde ?? ""}
+								value={toHHMM(data.horarioAtencion2Desde)}
 								disabled={disabled.horarioAtencion2Desde ?? false}
 								onChange={(value, _id) => onChange({ horarioAtencion2Desde: formatTimeInput(value) })}
+								onBlur={(e) => onChange({ horarioAtencion2Desde: normalizeTimeInput(e?.target?.value) })}
 								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 							<InputMaterial
@@ -917,9 +939,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion2Hasta}
 								helperText={errors.horarioAtencion2Hasta ?? ""}
-								value={data.horarioAtencion2Hasta ?? ""}
+								value={toHHMM(data.horarioAtencion2Hasta)}
 								disabled={disabled.horarioAtencion2Hasta ?? false}
 								onChange={(value, _id) => onChange({ horarioAtencion2Hasta: formatTimeInput(value) })}
+								onBlur={(e) => onChange({ horarioAtencion2Hasta: normalizeTimeInput(e?.target?.value) })}
 								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 						</Grid>
