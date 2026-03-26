@@ -90,34 +90,15 @@ const calcularDiferenciaMinutos = (horaInicio, horaFin) => {
 	}
 };
 
-// Función para formatear automáticamente el horario HH:MM mientras se escribe
+// Función para formatear automáticamente el horario HH:MM
 const formatTimeInput = (value) => {
-	if (!value) return "";
-	const digits = String(value).replace(/\D/g, ''); // Solo dígitos
-	if (digits.length === 0) return "";
-	if (digits.length === 1) return digits;
-	if (digits.length === 2) return `${digits.slice(0, 2)}:`;
-	if (digits.length <= 4) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-	return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
-};
-
-// Función para normalizar el horario a HH:MM con ceros
-const normalizeTimeInput = (value) => {
-	const raw = String(value || '').replace(/[^\d:]/g, '');
-	const parts = raw.split(':');
-	let horas = (parts[0] || '').replace(/\D/g, '').slice(0, 2);
-	let minutos = (parts[1] || '').replace(/\D/g, '').slice(0, 2);
-	if (horas.length === 0) horas = '00';
-	if (horas.length === 1) horas = `0${horas}`;
-	if (minutos.length === 0) minutos = '00';
-	if (minutos.length === 1) minutos = `${minutos}0`;
-	return `${horas}:${minutos}`;
-};
-
-// Convierte HH:MM:SS ó HH:MM en HH:MM (texto visible en el input)
-const toHHMM = (value) => {
-	const normalized = normalizeTimeInput(value);
-	return /^[0-2]\d:[0-5]\d$/.test(normalized) ? normalized : '00:00';
+	const digits = value.replace(/\D/g, ''); // Solo dígitos
+	if (digits.length >= 3) {
+		return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+	} else if (digits.length >= 2) {
+		return `${digits.slice(0, 2)}:`;
+	}
+	return digits;
 };
 
 const SeccionalesForm = ({
@@ -155,29 +136,6 @@ const SeccionalesForm = ({
 	const [procesando, setProcesando] = useState(loading);
 	const [validationErrors, setValidationErrors] = useState({});
 
-	// Estados locales para los inputs de horario para permitir edición libre
-	const [inputHorario1Desde, setInputHorario1Desde] = useState(toHHMM(data.horarioAtencion1Desde));
-	const [inputHorario1Hasta, setInputHorario1Hasta] = useState(toHHMM(data.horarioAtencion1Hasta));
-	const [inputHorario2Desde, setInputHorario2Desde] = useState(toHHMM(data.horarioAtencion2Desde));
-	const [inputHorario2Hasta, setInputHorario2Hasta] = useState(toHHMM(data.horarioAtencion2Hasta));
-
-	// Sincronizar estados locales cuando data cambia
-	useEffect(() => {
-		setInputHorario1Desde(toHHMM(data.horarioAtencion1Desde));
-	}, [data.horarioAtencion1Desde]);
-
-	useEffect(() => {
-		setInputHorario1Hasta(toHHMM(data.horarioAtencion1Hasta));
-	}, [data.horarioAtencion1Hasta]);
-
-	useEffect(() => {
-		setInputHorario2Desde(toHHMM(data.horarioAtencion2Desde));
-	}, [data.horarioAtencion2Desde]);
-
-	useEffect(() => {
-		setInputHorario2Hasta(toHHMM(data.horarioAtencion2Hasta));
-	}, [data.horarioAtencion2Hasta]);
-
 	// Validar horarios de atención
 	useEffect(() => {
 		const horaDesde1 = data?.horarioAtencion1Desde || "";
@@ -192,7 +150,7 @@ const SeccionalesForm = ({
 		// Validar Horario 1: Desde < Hasta
 		if (horaDesde1 && horaHasta1) {
 			const diferencia1 = calcularDiferenciaMinutos(horaDesde1, horaHasta1);
-			if (diferencia1 < 0) {
+			if (diferencia1 <= 0) {
 				newErrors.horarioAtencion1Desde = "El Horario 1 Desde debe ser anterior al Horario 1 Hasta";
 			}
 		}
@@ -200,8 +158,18 @@ const SeccionalesForm = ({
 		// Validar Horario 2: Desde < Hasta
 		if (horaDesde2 && horaHasta2) {
 			const diferencia2 = calcularDiferenciaMinutos(horaDesde2, horaHasta2);
-			if (diferencia2 < 0) {
+			if (diferencia2 <= 0) {
 				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser anterior al Horario 2 Hasta";
+			}
+		}
+		
+		// Validar diferencia entre Horario 1 Hasta y Horario 2 Desde
+		if (horaHasta1 && horaDesde2) {
+			const diferencia = calcularDiferenciaMinutos(horaHasta1, horaDesde2);
+			if (diferencia > 30) {
+				newErrors.horarioAtencion2Desde = `No debe haber más de 30 minutos entre el Horario 1 Hasta (${horaHasta1}) y el Horario 2 Desde (${horaDesde2}). Diferencia: ${diferencia} minutos`;
+			} else if (diferencia < 0) {
+				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser posterior al Horario 1 Hasta";
 			}
 		}
 		
@@ -294,16 +262,25 @@ const SeccionalesForm = ({
 		setEstadoSelect((o) => {
 			const options = estadoSelectOptions(o);
 			let selected = o.selected;
-			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
-			if (!selected.value && selected.record?.id && options.length > 0) {
-				const foundOption = options.find(opt => opt.value === selected.record.id);
-				if (foundOption) {
-					selected = foundOption;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.descripcion != null
+						? (o) => includeSearch(o, record.descripcion)
+						: null;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
 				}
 			}
-			return { ...o, options, selected };
+			return { ...o, options, selected, origen };
 		});
-	}, [estadoSelect.data]);
+	}, [estadoSelect.buscar, estadoSelect.data]);
 	//#endregion Select estadoSeccional
 
 	//#region Select provincia
@@ -322,16 +299,25 @@ const SeccionalesForm = ({
 		setProvinciaSelect((o) => {
 			const options = provinciaSelectOptions(o);
 			let selected = o.selected;
-			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
-			if (!selected.value && selected.record?.id && options.length > 0) {
-				const foundOption = options.find(opt => opt.value === selected.record.id);
-				if (foundOption) {
-					selected = foundOption;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.nombre != null
+						? (o) => includeSearch(o, record.nombre)
+						: null ;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
 				}
 			}
-			return { ...o, options, selected };
+			return { ...o, options, selected, origen };
 		});
-	}, [provinciaSelect.data]);
+	}, [provinciaSelect.buscar, provinciaSelect.data]);
 	//#endregion Select provincia
 
 	//#region Select localidad
@@ -341,7 +327,7 @@ const SeccionalesForm = ({
 		data: [],
 		error: null,
 		options: [],
-		selected: { record: { id: data.refLocalidadesId } },
+		selected: localidadDefOption,
 		origen: "",
 	});
 	// Buscador
@@ -349,16 +335,27 @@ const SeccionalesForm = ({
 		setLocalidadSelect((o) => {
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
-			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
-			if (!selected.value && selected.record?.id && options.length > 0) {
-				const foundOption = options.find(opt => opt.value === selected.record.id);
-				if (foundOption) {
-					selected = foundOption;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.codPostal != null
+						? (o) => o.record.codPostal === record.codPostal
+						: record.nombre != null
+						? (o) => includeSearch(o, record.nombre)
+						: null;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
 				}
 			}
-			return { ...o, options, selected };
+			return { ...o, options, selected, origen };
 		});
-	}, [localidadSelect.data]);
+	}, [localidadSelect.buscar, localidadSelect.data]);
 	//#endregion Select localidad
 
 	//#region Select delegacionSelect
@@ -377,16 +374,25 @@ const SeccionalesForm = ({
 		setDelegacionSelect((o) => {
 			const options = delegacionSelectOptions(o);
 			let selected = o.selected;
-			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
-			if (!selected.value && selected.record?.id && options.length > 0) {
-				const foundOption = options.find(opt => opt.value === selected.record.id);
-				if (foundOption) {
-					selected = foundOption;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.nombre != null
+						? (o) => includeSearch(o, record.nombre)
+						: null;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
 				}
 			}
-			return { ...o, options, selected };
+			return { ...o, options, selected, origen };
 		});
-	}, [delegacionSelect.data]);
+	}, [delegacionSelect.buscar, delegacionSelect.data]);
 	//#endregion Select delegacionSelect
 
 	//#region Select seccional
@@ -407,16 +413,25 @@ const SeccionalesForm = ({
 		setSeccionalSelect((o) => {
 			const options = seccionalSelectOptions(o);
 			let selected = o.selected;
-			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
-			if (!selected.value && selected.record?.id && options.length > 0) {
-				const foundOption = options.find(opt => opt.value === selected.record.id);
-				if (foundOption) {
-					selected = foundOption;
+			let origen = o.origen;
+			if (!selected.value && selected.record) {
+				const record = selected.record;
+				const findFn =
+					record.id != null
+						? (o) => o.record.id === record.id
+						: record.descripcion != null
+						? (o) => includeSearch(o, `${record.codigo}-${record.descripcion}`)
+						: null ;
+				selected = findFn ? options.find(findFn) : null;
+				if (selected) {
+					origen = "option";
+				} else {
+					selected = o.selected;
 				}
 			}
-			return { ...o, options, selected };
+			return { ...o, options, selected, origen };
 		});
-	}, [seccionalSelect.data, request]);
+	}, [seccionalSelect.buscar, seccionalSelect.data]);
 	//#endregion Select seccional
 
 	//#endregion Selects
@@ -644,9 +659,7 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									if (selected?.value) {
-										onChange({ seccionalIdAbsorbente: selected.value });
-									}
+									onChange({ seccionalIdAbsorbente: selected.value });
 								}}
 								options={seccionalSelect.options}
 								onTextChange={(buscar) =>
@@ -702,9 +715,7 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									if (selected?.value) {
-										onChange({ seccionalEstadoId: selected.value });
-									}
+									onChange({ seccionalEstadoId: selected.value });
 								}}
 								options={estadoSelect.options}
 								onTextChange={(buscar) =>
@@ -740,7 +751,7 @@ const SeccionalesForm = ({
 										buscar: "",
 									}));
 									onChange({ refLocalidadesId: 0 });
-									if (!selected || !selected.value || selected === provinciaDefOption) return;
+									if (selected === provinciaDefOption) return;
 									setLocalidadesQuery((o) => ({
 										...o,
 										query: {
@@ -786,9 +797,7 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									if (selected?.value) {
-										onChange({ refLocalidadesId: selected.value });
-									}
+									onChange({ refLocalidadesId: selected.value });
 								}}
 								options={localidadSelect.options}
 								onTextChange={(buscar) =>
@@ -824,9 +833,7 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									if (selected?.value) {
-										onChange({ refDelegacionId: selected.value });
-									}
+									onChange({ refDelegacionId: selected.value });
 								}}
 								options={delegacionSelect.options}
 								onTextChange={(buscar) =>
@@ -874,16 +881,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde)}
 								helperText={(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde) ?? ""}
-								value={inputHorario1Desde}
+								value={data.horarioAtencion1Desde ?? ""}
 								disabled={disabled.horarioAtencion1Desde ?? false}
-								onChange={(value, _id) => setInputHorario1Desde(formatTimeInput(value))}
-								onFocus={(e) => e.target.select()}
-								onBlur={(e) => {
-									const normalized = normalizeTimeInput(e?.target?.value);
-									setInputHorario1Desde(normalized);
-									onChange({ horarioAtencion1Desde: normalized });
-								}}
-								inputProps={{ maxLength: 5 }}
+								onChange={(value, _id) => onChange({ horarioAtencion1Desde: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 							<InputMaterial
 								id="horarioAtencion1Hasta"
@@ -892,19 +893,11 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion1Hasta}
 								helperText={errors.horarioAtencion1Hasta ?? ""}
-								value={inputHorario1Hasta}
+								value={data.horarioAtencion1Hasta ?? ""}
 								disabled={disabled.horarioAtencion1Hasta ?? false}
-								onChange={(value, _id) => setInputHorario1Hasta(formatTimeInput(value))}
-								onFocus={(e) => e.target.select()}
-								onBlur={(e) => {
-									const normalized = normalizeTimeInput(e?.target?.value);
-									setInputHorario1Hasta(normalized);
-									onChange({ horarioAtencion1Hasta: normalized });
-								}}
-								inputProps={{ maxLength: 5 }}
+								onChange={(value, _id) => onChange({ horarioAtencion1Hasta: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
-						</Grid>
-						<Grid width="full" gap="inherit">
 							<InputMaterial
 								id="horarioAtencion2Desde"
 								type="text"
@@ -912,16 +905,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde)}
 								helperText={(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde) ?? ""}
-								value={inputHorario2Desde}
+								value={data.horarioAtencion2Desde ?? ""}
 								disabled={disabled.horarioAtencion2Desde ?? false}
-								onChange={(value, _id) => setInputHorario2Desde(formatTimeInput(value))}
-								onFocus={(e) => e.target.select()}
-								onBlur={(e) => {
-									const normalized = normalizeTimeInput(e?.target?.value);
-									setInputHorario2Desde(normalized);
-									onChange({ horarioAtencion2Desde: normalized });
-								}}
-								inputProps={{ maxLength: 5 }}
+								onChange={(value, _id) => onChange({ horarioAtencion2Desde: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 							<InputMaterial
 								id="horarioAtencion2Hasta"
@@ -930,16 +917,10 @@ const SeccionalesForm = ({
 								placeholder="HH:MM"
 								error={!!errors.horarioAtencion2Hasta}
 								helperText={errors.horarioAtencion2Hasta ?? ""}
-								value={inputHorario2Hasta}
+								value={data.horarioAtencion2Hasta ?? ""}
 								disabled={disabled.horarioAtencion2Hasta ?? false}
-								onChange={(value, _id) => setInputHorario2Hasta(formatTimeInput(value))}
-								onFocus={(e) => e.target.select()}
-								onBlur={(e) => {
-									const normalized = normalizeTimeInput(e?.target?.value);
-									setInputHorario2Hasta(normalized);
-									onChange({ horarioAtencion2Hasta: normalized });
-								}}
-								inputProps={{ maxLength: 5 }}
+								onChange={(value, _id) => onChange({ horarioAtencion2Hasta: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
 							/>
 						</Grid>
 						
