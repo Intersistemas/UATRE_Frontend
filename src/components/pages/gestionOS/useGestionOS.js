@@ -20,6 +20,8 @@ import filterFactory, {
   Comparator,
 } from "react-bootstrap-table2-filter";
 
+//ultimo modificado
+
 const selectionDef = {
   action: "",
   request: "",
@@ -300,14 +302,20 @@ const useGestionOS = ({
         },
         ambitoTodos: null,
       };
-    } else if (ambito.tipo === "Delegaciones" && seccionalesDelegacion.length > 0) {
-      // Si es delegación y ya tenemos las seccionales cargadas, filtrar por ellas
-      usuarioAdulterado = {
-        ambitoSeccionales: {
-          ids: seccionalesDelegacion,
-        },
-        ambitoTodos: null,
-      };
+    } else if (ambito.tipo === "Delegaciones") {
+      if (filtroSeccional !== 0 && filtroSeccional !== undefined) {
+        // Seccional específica seleccionada dentro de la delegación
+        usuarioAdulterado = {
+          ambitoSeccionales: { ids: [filtroSeccional] },
+          ambitoTodos: null,
+        };
+      } else if (seccionalesDelegacion.length > 0) {
+        // Todas las seccionales de la delegación
+        usuarioAdulterado = {
+          ambitoSeccionales: { ids: seccionalesDelegacion },
+          ambitoTodos: null,
+        };
+      }
     } else if (ambito.tipo === "Todos" && filtroSeccional !== 0 && filtroSeccional !== undefined) {
       usuarioAdulterado = {
         ambitoSeccionales: {
