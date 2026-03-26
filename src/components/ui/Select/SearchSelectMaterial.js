@@ -99,6 +99,11 @@ export const includeSearch = (option, search, ignoreCase = true) =>
  */
 
 /**
+ * @callback SearchSelectOnInputChange
+ * @param {string} newValue
+ */
+
+/**
  * @param {object} [props] Propiedades
  * @param {string} [props.name]
  * @param {string} [props.label]
@@ -112,6 +117,8 @@ export const includeSearch = (option, search, ignoreCase = true) =>
  * @param {object} [props.style]
  * @param {SearchSelectOnChange} [props.onChange]
  * @param {SearchSelectOnTextChange} [props.onTextChange]
+ * @param {SearchSelectOnInputChange} [props.onInputChange]
+ * @param {string} [props.inputValue]
  * @param {object} [props.autocompleteProps]
  */
 const SearchSelectMaterial = ({
@@ -127,8 +134,11 @@ const SearchSelectMaterial = ({
 	style: styleInit = {},
 	onChange = () => {},
 	onTextChange = () => {},
+	onInputChange,
+	inputValue,
 	autocompleteProps = {},
 	freeSolo = true,
+	autoSelect = false,
 	...x
 }) => {
 	const formControlProps = {
@@ -148,6 +158,7 @@ const SearchSelectMaterial = ({
 				className={styles.select}
 				disablePortal
 				freeSolo={freeSolo}
+				autoSelect={autoSelect}
 				renderOption={(props, option, state) => (
 					<li {...props} key={state.index}>
 						{option.label}
@@ -160,7 +171,17 @@ const SearchSelectMaterial = ({
 				//MenuProps={MenuProps}
 				size="small"
 				value={value}
-				onChange={(_, newValue) => onChange(newValue ?? defaultOption, name)}
+				inputValue={inputValue}
+				onInputChange={(event, newInputValue, reason) => {
+					if (onInputChange) onInputChange(newInputValue);
+					else onTextChange(newInputValue);
+				}}
+				onChange={(event, newValue, reason) => {
+					if (reason === 'selectOption' || reason === 'clear') {
+						onChange(newValue ?? defaultOption, name);
+						if (onInputChange) onInputChange(newValue?.label || '');
+					}
+				}}
 				getOptionLabel={(option) => option.label || ""}
 				//defaultValue={props.defaultValue}
 				{...autocompleteProps}
@@ -169,7 +190,6 @@ const SearchSelectMaterial = ({
 						label={label}
 						{...x}
 						{...params}
-						onChange={onTextChange}
 					/>
 				)}
 			/>
