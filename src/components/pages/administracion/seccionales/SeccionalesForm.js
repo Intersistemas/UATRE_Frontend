@@ -76,6 +76,31 @@ const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
+// Función auxiliar para validar diferencia de horarios
+const calcularDiferenciaMinutos = (horaInicio, horaFin) => {
+	if (!horaInicio || !horaFin) return 0;
+	try {
+		const [hInicio, mInicio] = horaInicio.split(':').map(Number);
+		const [hFin, mFin] = horaFin.split(':').map(Number);
+		const minInicio = hInicio * 60 + mInicio;
+		const minFin = hFin * 60 + mFin;
+		return minFin - minInicio;
+	} catch {
+		return 0;
+	}
+};
+
+// Función para formatear automáticamente el horario HH:MM
+const formatTimeInput = (value) => {
+	const digits = value.replace(/\D/g, ''); // Solo dígitos
+	if (digits.length >= 3) {
+		return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+	} else if (digits.length >= 2) {
+		return `${digits.slice(0, 2)}:`;
+	}
+	return digits;
+};
+
 const SeccionalesForm = ({
 	data = {},
 	title = "",
@@ -109,18 +134,47 @@ const SeccionalesForm = ({
 	//#endregion
 
 	const [procesando, setProcesando] = useState(loading);
+	const [validationErrors, setValidationErrors] = useState({});
 
-		 //#region Capturo errores
-		 useEffect(() => {
-
-			setProcesando(loading);
-
-			if (errors) {
-			  setProcesando(null);
-			  return;
-			}    
-		  }, [errors, loading]);
-		//#endregion
+	// Validar horarios de atención
+	useEffect(() => {
+		const horaDesde1 = data?.horarioAtencion1Desde || "";
+		const horaHasta1 = data?.horarioAtencion1Hasta || "";
+		const horaDesde2 = data?.horarioAtencion2Desde || "";
+		const horaHasta2 = data?.horarioAtencion2Hasta || "";
+		
+		let newErrors = { ...validationErrors };
+		delete newErrors.horarioAtencion1Desde; // Limpiar error previo
+		delete newErrors.horarioAtencion2Desde; // Limpiar error previo
+		
+		// Validar Horario 1: Desde < Hasta
+		if (horaDesde1 && horaHasta1) {
+			const diferencia1 = calcularDiferenciaMinutos(horaDesde1, horaHasta1);
+			if (diferencia1 <= 0) {
+				newErrors.horarioAtencion1Desde = "El Horario 1 Desde debe ser anterior al Horario 1 Hasta";
+			}
+		}
+		
+		// Validar Horario 2: Desde < Hasta
+		if (horaDesde2 && horaHasta2) {
+			const diferencia2 = calcularDiferenciaMinutos(horaDesde2, horaHasta2);
+			if (diferencia2 <= 0) {
+				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser anterior al Horario 2 Hasta";
+			}
+		}
+		
+		// Validar diferencia entre Horario 1 Hasta y Horario 2 Desde
+		if (horaHasta1 && horaDesde2) {
+			const diferencia = calcularDiferenciaMinutos(horaHasta1, horaDesde2);
+			if (diferencia > 30) {
+				newErrors.horarioAtencion2Desde = `No debe haber más de 30 minutos entre el Horario 1 Hasta (${horaHasta1}) y el Horario 2 Desde (${horaDesde2}). Diferencia: ${diferencia} minutos`;
+			} else if (diferencia < 0) {
+				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser posterior al Horario 1 Hasta";
+			}
+		}
+		
+		setValidationErrors(newErrors);
+	}, [data?.horarioAtencion1Desde, data?.horarioAtencion1Hasta, data?.horarioAtencion2Desde, data?.horarioAtencion2Hasta]);
 	
 
 	const { setState: setEstadosQuery } = useQueryState(
@@ -797,15 +851,79 @@ const SeccionalesForm = ({
 								onChange={(value, _id) => onChange({ email: value })}
 							/>
 						</Grid>
-						<InputMaterial
-							id="observaciones"
-							label="Observaciones"
-							error={!!errors.observaciones}
-							helperText={errors.observaciones ?? ""}
-							value={data.observaciones}
-							disabled={disabled.observaciones ?? false}
-							onChange={(value, _id) => onChange({ observaciones: value })}
-						/>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="telefono"
+								type="tel"
+								label="Teléfono"
+								error={!!errors.telefono}
+								helperText={errors.telefono ?? ""}
+								value={data.telefono ?? ""}
+								disabled={disabled.telefono ?? false}
+								onChange={(value, _id) => onChange({ telefono: value })}
+							/>
+							<InputMaterial
+								id="telefonoSecretarioGeneral"
+								type="tel"
+								label="Teléfono Secretario General"
+								error={!!errors.telefonoSecretarioGeneral}
+								helperText={errors.telefonoSecretarioGeneral ?? ""}
+								value={data.telefonoSecretarioGeneral ?? ""}
+								disabled={disabled.telefonoSecretarioGeneral ?? false}
+								onChange={(value, _id) => onChange({ telefonoSecretarioGeneral: value })}
+							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="horarioAtencion1Desde"
+								type="text"
+								label="Horario Atención 1 - Desde (HH:MM)"
+								placeholder="HH:MM"
+								error={!!(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde)}
+								helperText={(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde) ?? ""}
+								value={data.horarioAtencion1Desde ?? ""}
+								disabled={disabled.horarioAtencion1Desde ?? false}
+								onChange={(value, _id) => onChange({ horarioAtencion1Desde: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+							/>
+							<InputMaterial
+								id="horarioAtencion1Hasta"
+								type="text"
+								label="Horario Atención 1 - Hasta (HH:MM)"
+								placeholder="HH:MM"
+								error={!!errors.horarioAtencion1Hasta}
+								helperText={errors.horarioAtencion1Hasta ?? ""}
+								value={data.horarioAtencion1Hasta ?? ""}
+								disabled={disabled.horarioAtencion1Hasta ?? false}
+								onChange={(value, _id) => onChange({ horarioAtencion1Hasta: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+							/>
+							<InputMaterial
+								id="horarioAtencion2Desde"
+								type="text"
+								label="Horario Atención 2 - Desde (HH:MM)"
+								placeholder="HH:MM"
+								error={!!(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde)}
+								helperText={(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde) ?? ""}
+								value={data.horarioAtencion2Desde ?? ""}
+								disabled={disabled.horarioAtencion2Desde ?? false}
+								onChange={(value, _id) => onChange({ horarioAtencion2Desde: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+							/>
+							<InputMaterial
+								id="horarioAtencion2Hasta"
+								type="text"
+								label="Horario Atención 2 - Hasta (HH:MM)"
+								placeholder="HH:MM"
+								error={!!errors.horarioAtencion2Hasta}
+								helperText={errors.horarioAtencion2Hasta ?? ""}
+								value={data.horarioAtencion2Hasta ?? ""}
+								disabled={disabled.horarioAtencion2Hasta ?? false}
+								onChange={(value, _id) => onChange({ horarioAtencion2Hasta: formatTimeInput(value) })}
+								inputProps={{ maxLength: 5, pattern: "[0-2][0-9]:[0-5][0-9]" }}
+							/>
+						</Grid>
+						
 						{!hide.deletedObs && (
 							<>
 								<div className={classes.item7}>
@@ -820,6 +938,8 @@ const SeccionalesForm = ({
 									/>
 								</div>
 								<div className={classes.item8}>
+
+									{/* Mauricio pidio no ver mas este campo 26-03-26
 									<InputMaterial
 										id="deletedBy"
 										label="Usuario Baja"
@@ -829,7 +949,21 @@ const SeccionalesForm = ({
 										disabled={disabled.deletedBy ?? false}
 										onChange={(value, _id) => onChange({ deletedBy: value })}
 									/>
+									*/}
 								</div>
+
+								<InputMaterial
+									id="observaciones"
+									label="Observaciones"
+									error={!!errors.observaciones}
+									helperText={errors.observaciones ?? ""}
+									value={data.observaciones}
+									disabled={disabled.observaciones ?? false}
+									onChange={(value, _id) => onChange({ observaciones: value })}
+								/>
+								
+								{/* Mauricio pidio no ver mas este campo 26-03-26
+								
 								<div className={classes.item9}>
 									<InputMaterial
 										id="deletedObs"
@@ -841,6 +975,8 @@ const SeccionalesForm = ({
 										onChange={(value, _id) => onChange({ deletedObs: value })}
 									/>
 								</div>
+								*/}
+								
 							</>
 						)}
 					</Grid>

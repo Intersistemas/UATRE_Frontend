@@ -353,14 +353,20 @@ const useSeccionales = ({
 					const r = ["A", "M"].includes(list.selection.request)
 						? { }
 						: {
-								codigo: true,
-								seccionalEstadoId: true,
-								descripcion: true,
-								refDelegacionId: true,
-								refLocalidadesId: true,
-								domicilio: true,
-								email: true,
-								observaciones: true,
+							codigo: true,
+							seccionalEstadoId: true,
+							descripcion: true,
+							refDelegacionId: true,
+							refLocalidadesId: true,
+							domicilio: true,
+							email: true,
+							observaciones: true,
+							horarioAtencion1Desde: true,
+							horarioAtencion1Hasta: true,
+							horarioAtencion2Desde: true,
+							horarioAtencion2Hasta: true,
+							telefono: true,
+							telefonoSecretarioGeneral: true,
 						  };
 					if (list.selection.request !== "B")
 					 r.deletedObs = true;
