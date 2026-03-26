@@ -170,7 +170,7 @@ const columnsDef = [
 	{ 
 		dataField: "telefono",
 		text: "Teléfono",
-		headerStyle: { width: "3rem" },
+		headerStyle: { width: "5rem" },
 	},
 	{
 		dataField: "localidadNombre",
