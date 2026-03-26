@@ -896,7 +896,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
 			let origen = o.origen;
-			if (selected && !selected.value && selected.record) {
+			if (selected && !selected.value && selected.record && origen !== "text") {
 				const record = selected.record;
 				const findFn = record.codPostal
 					? (o) => o.record.codPostal === record.codPostal
@@ -946,7 +946,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
 			let origen = o.origen;
-			if (selected && !selected.value && selected.record) {
+			if (selected && !selected.value && selected.record && origen !== "text") {
 				const record = selected.record;
 				const findFn = record.codPostal
 					? (o) => o.record.codPostal === record.codPostal
@@ -1608,7 +1608,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 								label="Localidad"
 								error={!!(trabLocaSelect.error || state.errors.localidad)}
 								helperText={trabLocaSelect.loading ?? trabLocaSelect.error ?? state.errors.localidad}
-								value={safeSelectValue(trabLocaSelect.selected, trabLocaSelect.options)}
+								value={null}
+								inputValue={trabLocaSelect.buscar}
+								onInputChange={(value) => setTrabLocaSelect((o) => ({ ...o, buscar: value, origen: "text" }))}
 								onChange={(selected = {}) => {
 									setTrabLocaSelect((o) => ({ ...o, selected, origen: "option" }));
 									setState((o) => ({
@@ -1619,9 +1621,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 									onChange({ refLocalidadIdAfiliado: selected.record?.id, nombreLocalidadAfiliado: selected.record?.nombre });
 								}}
 								options={trabLocaSelect.options}
-								freeSolo={false}
-								inputReadOnly={true}
-								onTextChange={(buscar) => setTrabLocaSelect((o) => ({ ...o, buscar, origen: "text" }))}
+								freeSolo={true}
 							/>
 						)
 					}
