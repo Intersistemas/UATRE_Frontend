@@ -76,6 +76,50 @@ const delegacionSelectOptions = ({ data = [], buscar = "", ...x }) =>
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
 
+// Función auxiliar para validar diferencia de horarios
+const calcularDiferenciaMinutos = (horaInicio, horaFin) => {
+	if (!horaInicio || !horaFin) return 0;
+	try {
+		const [hInicio, mInicio] = horaInicio.split(':').map(Number);
+		const [hFin, mFin] = horaFin.split(':').map(Number);
+		const minInicio = hInicio * 60 + mInicio;
+		const minFin = hFin * 60 + mFin;
+		return minFin - minInicio;
+	} catch {
+		return 0;
+	}
+};
+
+// Función para formatear automáticamente el horario HH:MM mientras se escribe
+const formatTimeInput = (value) => {
+	if (!value) return "";
+	const digits = String(value).replace(/\D/g, ''); // Solo dígitos
+	if (digits.length === 0) return "";
+	if (digits.length === 1) return digits;
+	if (digits.length === 2) return `${digits.slice(0, 2)}:`;
+	if (digits.length <= 4) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+	return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+};
+
+// Función para normalizar el horario a HH:MM con ceros
+const normalizeTimeInput = (value) => {
+	const raw = String(value || '').replace(/[^\d:]/g, '');
+	const parts = raw.split(':');
+	let horas = (parts[0] || '').replace(/\D/g, '').slice(0, 2);
+	let minutos = (parts[1] || '').replace(/\D/g, '').slice(0, 2);
+	if (horas.length === 0) horas = '00';
+	if (horas.length === 1) horas = `0${horas}`;
+	if (minutos.length === 0) minutos = '00';
+	if (minutos.length === 1) minutos = `${minutos}0`;
+	return `${horas}:${minutos}`;
+};
+
+// Convierte HH:MM:SS ó HH:MM en HH:MM (texto visible en el input)
+const toHHMM = (value) => {
+	const normalized = normalizeTimeInput(value);
+	return /^[0-2]\d:[0-5]\d$/.test(normalized) ? normalized : '00:00';
+};
+
 const SeccionalesForm = ({
 	data = {},
 	title = "",
@@ -109,18 +153,60 @@ const SeccionalesForm = ({
 	//#endregion
 
 	const [procesando, setProcesando] = useState(loading);
+	const [validationErrors, setValidationErrors] = useState({});
 
-		 //#region Capturo errores
-		 useEffect(() => {
+	// Estados locales para los inputs de horario para permitir edición libre
+	const [inputHorario1Desde, setInputHorario1Desde] = useState(toHHMM(data.horarioAtencion1Desde));
+	const [inputHorario1Hasta, setInputHorario1Hasta] = useState(toHHMM(data.horarioAtencion1Hasta));
+	const [inputHorario2Desde, setInputHorario2Desde] = useState(toHHMM(data.horarioAtencion2Desde));
+	const [inputHorario2Hasta, setInputHorario2Hasta] = useState(toHHMM(data.horarioAtencion2Hasta));
 
-			setProcesando(loading);
+	// Sincronizar estados locales cuando data cambia
+	useEffect(() => {
+		setInputHorario1Desde(toHHMM(data.horarioAtencion1Desde));
+	}, [data.horarioAtencion1Desde]);
 
-			if (errors) {
-			  setProcesando(null);
-			  return;
-			}    
-		  }, [errors, loading]);
-		//#endregion
+	useEffect(() => {
+		setInputHorario1Hasta(toHHMM(data.horarioAtencion1Hasta));
+	}, [data.horarioAtencion1Hasta]);
+
+	useEffect(() => {
+		setInputHorario2Desde(toHHMM(data.horarioAtencion2Desde));
+	}, [data.horarioAtencion2Desde]);
+
+	useEffect(() => {
+		setInputHorario2Hasta(toHHMM(data.horarioAtencion2Hasta));
+	}, [data.horarioAtencion2Hasta]);
+
+	// Validar horarios de atención
+	useEffect(() => {
+		const horaDesde1 = data?.horarioAtencion1Desde || "";
+		const horaHasta1 = data?.horarioAtencion1Hasta || "";
+		const horaDesde2 = data?.horarioAtencion2Desde || "";
+		const horaHasta2 = data?.horarioAtencion2Hasta || "";
+		
+		let newErrors = { ...validationErrors };
+		delete newErrors.horarioAtencion1Desde; // Limpiar error previo
+		delete newErrors.horarioAtencion2Desde; // Limpiar error previo
+		
+		// Validar Horario 1: Desde < Hasta
+		if (horaDesde1 && horaHasta1) {
+			const diferencia1 = calcularDiferenciaMinutos(horaDesde1, horaHasta1);
+			if (diferencia1 < 0) {
+				newErrors.horarioAtencion1Desde = "El Horario 1 Desde debe ser anterior al Horario 1 Hasta";
+			}
+		}
+		
+		// Validar Horario 2: Desde < Hasta
+		if (horaDesde2 && horaHasta2) {
+			const diferencia2 = calcularDiferenciaMinutos(horaDesde2, horaHasta2);
+			if (diferencia2 < 0) {
+				newErrors.horarioAtencion2Desde = "El Horario 2 Desde debe ser anterior al Horario 2 Hasta";
+			}
+		}
+		
+		setValidationErrors(newErrors);
+	}, [data?.horarioAtencion1Desde, data?.horarioAtencion1Hasta, data?.horarioAtencion2Desde, data?.horarioAtencion2Hasta]);
 	
 
 	const { setState: setEstadosQuery } = useQueryState(
@@ -797,15 +883,105 @@ const SeccionalesForm = ({
 								onChange={(value, _id) => onChange({ email: value })}
 							/>
 						</Grid>
-						<InputMaterial
-							id="observaciones"
-							label="Observaciones"
-							error={!!errors.observaciones}
-							helperText={errors.observaciones ?? ""}
-							value={data.observaciones}
-							disabled={disabled.observaciones ?? false}
-							onChange={(value, _id) => onChange({ observaciones: value })}
-						/>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="telefono"
+								type="tel"
+								label="Teléfono"
+								error={!!errors.telefono}
+								helperText={errors.telefono ?? ""}
+								value={data.telefono ?? ""}
+								disabled={disabled.telefono ?? false}
+								onChange={(value, _id) => onChange({ telefono: value })}
+							/>
+							<InputMaterial
+								id="telefonoSecretarioGeneral"
+								type="tel"
+								label="Teléfono Secretario General"
+								error={!!errors.telefonoSecretarioGeneral}
+								helperText={errors.telefonoSecretarioGeneral ?? ""}
+								value={data.telefonoSecretarioGeneral ?? ""}
+								disabled={disabled.telefonoSecretarioGeneral ?? false}
+								onChange={(value, _id) => onChange({ telefonoSecretarioGeneral: value })}
+							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="horarioAtencion1Desde"
+								type="text"
+								label="Horario Atención 1 - Desde (HH:MM)"
+								placeholder="HH:MM"
+								error={!!(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde)}
+								helperText={(errors.horarioAtencion1Desde || validationErrors.horarioAtencion1Desde) ?? ""}
+								value={inputHorario1Desde}
+								disabled={disabled.horarioAtencion1Desde ?? false}
+								onChange={(value, _id) => setInputHorario1Desde(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario1Desde(normalized);
+									onChange({ horarioAtencion1Desde: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
+							/>
+							<InputMaterial
+								id="horarioAtencion1Hasta"
+								type="text"
+								label="Horario Atención 1 - Hasta (HH:MM)"
+								placeholder="HH:MM"
+								error={!!errors.horarioAtencion1Hasta}
+								helperText={errors.horarioAtencion1Hasta ?? ""}
+								value={inputHorario1Hasta}
+								disabled={disabled.horarioAtencion1Hasta ?? false}
+								onChange={(value, _id) => setInputHorario1Hasta(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario1Hasta(normalized);
+									onChange({ horarioAtencion1Hasta: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
+							/>
+						</Grid>
+						<Grid width="full" gap="inherit">
+							<InputMaterial
+								id="horarioAtencion2Desde"
+								type="text"
+								label="Horario Atención 2 - Desde (HH:MM)"
+								placeholder="HH:MM"
+								error={!!(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde)}
+								helperText={(errors.horarioAtencion2Desde || validationErrors.horarioAtencion2Desde) ?? ""}
+								value={inputHorario2Desde}
+								disabled={disabled.horarioAtencion2Desde ?? false}
+								onChange={(value, _id) => setInputHorario2Desde(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario2Desde(normalized);
+									onChange({ horarioAtencion2Desde: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
+							/>
+							<InputMaterial
+								id="horarioAtencion2Hasta"
+								type="text"
+								label="Horario Atención 2 - Hasta (HH:MM)"
+								placeholder="HH:MM"
+								error={!!errors.horarioAtencion2Hasta}
+								helperText={errors.horarioAtencion2Hasta ?? ""}
+								value={inputHorario2Hasta}
+								disabled={disabled.horarioAtencion2Hasta ?? false}
+								onChange={(value, _id) => setInputHorario2Hasta(formatTimeInput(value))}
+								onFocus={(e) => e.target.select()}
+								onBlur={(e) => {
+									const normalized = normalizeTimeInput(e?.target?.value);
+									setInputHorario2Hasta(normalized);
+									onChange({ horarioAtencion2Hasta: normalized });
+								}}
+								inputProps={{ maxLength: 5 }}
+							/>
+						</Grid>
+						
 						{!hide.deletedObs && (
 							<>
 								<div className={classes.item7}>
@@ -820,6 +996,8 @@ const SeccionalesForm = ({
 									/>
 								</div>
 								<div className={classes.item8}>
+
+									{/* Mauricio pidio no ver mas este campo 26-03-26
 									<InputMaterial
 										id="deletedBy"
 										label="Usuario Baja"
@@ -829,7 +1007,21 @@ const SeccionalesForm = ({
 										disabled={disabled.deletedBy ?? false}
 										onChange={(value, _id) => onChange({ deletedBy: value })}
 									/>
+									*/}
 								</div>
+
+								<InputMaterial
+									id="observaciones"
+									label="Observaciones"
+									error={!!errors.observaciones}
+									helperText={errors.observaciones ?? ""}
+									value={data.observaciones}
+									disabled={disabled.observaciones ?? false}
+									onChange={(value, _id) => onChange({ observaciones: value })}
+								/>
+								
+								{/* Mauricio pidio no ver mas este campo 26-03-26
+								
 								<div className={classes.item9}>
 									<InputMaterial
 										id="deletedObs"
@@ -841,6 +1033,8 @@ const SeccionalesForm = ({
 										onChange={(value, _id) => onChange({ deletedObs: value })}
 									/>
 								</div>
+								*/}
+								
 							</>
 						)}
 					</Grid>

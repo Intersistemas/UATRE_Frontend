@@ -168,9 +168,9 @@ const columnsDef = [
 		text: "Dirección",
 	},
 	{ 
-		dataField: "email",
-		text: "Email",
-		headerStyle: { width: "4rem" },
+		dataField: "telefono",
+		text: "Teléfono",
+		headerStyle: { width: "5rem" },
 	},
 	{
 		dataField: "localidadNombre",
