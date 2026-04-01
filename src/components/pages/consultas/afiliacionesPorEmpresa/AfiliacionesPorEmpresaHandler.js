@@ -39,7 +39,11 @@ const estadosSelectOptions = ({ data = [], buscar = "", ...x }) =>
 		filter: (r) => includeSearch(r, buscar),
 		...x,
 	});
-//#endregion estadosSelect Options
+//endregion estadosSelect Options
+
+const findEstadoSolicitudId = (estadoSelect, descripcion) =>
+	estadoSelect?.data?.find((o) => o?.descripcion === descripcion)?.id ??
+	estadoSelect?.options?.find((o) => o?.label === descripcion)?.value;
 
 const AfiliacionesPorEmpresaHandler = () => {
 	const dispatch = useDispatch();
@@ -241,7 +245,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Autorizada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
@@ -286,7 +290,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Rechazada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
@@ -338,7 +342,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Autorizada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
@@ -383,7 +387,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Rechazada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
@@ -438,7 +442,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Autorizada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Autorizada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
@@ -495,7 +499,7 @@ const AfiliacionesPorEmpresaHandler = () => {
 						}, // Parámetros para la consulta
 						config: {
 							body: {
-								estadoSolicitudId: estadoSelect?.options.find((o) => o?.label === "Rechazada")?.value,
+								estadoSolicitudId: findEstadoSolicitudId(estadoSelect, "Rechazada"),
 								estadoSolicitudObservaciones: "sin observaciones",
 								estadoSolicitudUsuario: Usuario?.id,
 								estadoFecha: new Date().toISOString()
