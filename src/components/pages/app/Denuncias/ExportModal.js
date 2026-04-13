@@ -23,15 +23,25 @@ const onCloseDef = () => {};
 // Columnas base para la tabla de denuncias con filtro de novedades
 const baseColumns = [
 	{
-		dataField: "fecha",
-		text: "Fecha",
-		sort: true,
-		headerTitle: () => "Fecha de la denuncia",
-		headerStyle: { width: "7em", textAlign: "center" },
-		formatter: (v) => FormatearFecha(v),
-		csvFormat: (v) => FormatearFecha(v),
-		style: { textAlign: "center" },
-	},
+			dataField: "fecha",
+			text: "Fecha de carga",
+			sort: true,
+			headerTitle: () => "Fecha de la denuncia",
+			headerStyle: { width: "7em", textAlign: "center" },
+			formatter: (v) => FormatearFecha(v),
+			csvFormat: (v) => FormatearFecha(v),
+			style: { textAlign: "center" },
+		},
+		{
+			dataField: "fechaIngreso",
+			text: "Fecha de ingreso",
+			sort: false,
+			headerTitle: true,
+			headerStyle: { width: "7em", textAlign: "center" },
+			formatter: (v) => (v ? FormatearFecha(v) : ""),
+			csvFormat: (v) => (v ? FormatearFecha(v) : ""),
+			style: { textAlign: "center" },
+		},
 	{
 		dataField: "nombre",
 		text: "Denunciante",
@@ -62,6 +72,14 @@ const baseColumns = [
 		text: "Localidad",
 		headerTitle: true,
 		headerStyle: { width: "8em", textAlign: "center" },
+		csvFormat: (v) => v,
+		style: { textAlign: "left" },
+	},
+	{
+		dataField: "seccional",
+		text: "Seccional",
+		headerTitle: true,
+		headerStyle: { width: "9em", textAlign: "center" },
 		csvFormat: (v) => v,
 		style: { textAlign: "left" },
 	},
@@ -111,6 +129,22 @@ const baseColumns = [
 		formatter: (v) => v ? Formato.Cuit(v) : "",
 		csvFormat: (v) => v,
 		style: { textAlign: "center" },
+	},
+	{
+		dataField: "derivadoDelegacion",
+		text: "Derivado a Delegación",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+		csvFormat: (v) => v,
+		style: { textAlign: "left" },
+	},
+	{
+		dataField: "derivadoSeccional",
+		text: "Derivado a Seccional",
+		headerTitle: true,
+		headerStyle: { width: "10em", textAlign: "center" },
+		csvFormat: (v) => v,
+		style: { textAlign: "left" },
 	},
 ];
 
@@ -162,8 +196,17 @@ const ExportModal = ({
 			style: { textAlign: "center" },
 		};
 
+		const numeroSeguimientoColumn = {
+			dataField: "numeroSeguimiento",
+			text: "numeroSeguimiento",
+			headerTitle: true,
+			headerStyle: { width: "8em", textAlign: "center" },
+			csvFormat: (v) => v,
+			style: { textAlign: "center" },
+		};
+
 		if (puedeVerTodosLosDatos) {
-			return [idColumn, ...baseColumns];
+			return [idColumn, numeroSeguimientoColumn, ...baseColumns];
 		}
 
 		// Columnas reducidas: fecha, telefono, localidad, estado
@@ -716,27 +759,40 @@ const ExportModal = ({
 			const exportData = list.selected.map((denuncia) => {
 				const fechaUltimaNovedadFormatted = denuncia.fechaUltimaNovedad ? FormatearFecha(denuncia.fechaUltimaNovedad) : "Sin fecha";
 
-				const item = {
-					"Fecha": denuncia.fecha ? FormatearFecha(denuncia.fecha) : "",
-					"Denunciante": denuncia.nombre || "",
-					"Correo": denuncia.correo || "",
-					"Teléfono": denuncia.telefono || denuncia.telefonoContacto || "",
-					"Provincia": denuncia.provincia || "",
-					"Localidad": denuncia.localidad || "",
-					"Estado": denuncia.estado || "Sin estado",
-					"Fecha Ultima Novedad": fechaUltimaNovedadFormatted,
-					"Ultima Novedad": denuncia.ultimaNovedad || "Sin novedad",
-					"Empresa": denuncia.empleadorNombre || "",
-					"CUIT": denuncia.empleadorCUIT ? Formato.Cuit(denuncia.empleadorCUIT) : "",
-					"Ubicación": denuncia.ubicacion || "",
-					"Detalle de la Denuncia": denuncia.texto || "",
-					"Derivado A Tipo": denuncia.derivadoATipo || ""
-				};
+				const item = {};
 
 				if (puedeVerTodosLosDatos) {
-					// Incluir Nro. Denuncia solo si el usuario tiene permiso para ver todos los datos
+					// Incluir Nro. Denuncia en primer lugar si corresponde
 					item["Nro. Denuncia"] = denuncia.id;
 				}
+
+				// Incluir numeroSeguimiento inmediatamente después de Nro. Denuncia
+				item["numeroSeguimiento"] = denuncia.numeroSeguimiento;
+
+				// Fecha de carga
+				item["Fecha de carga"] = denuncia.fecha ? FormatearFecha(denuncia.fecha) : "";
+
+				// Nueva columna: Fecha de ingreso (viene en la API como fechaIngreso)
+				item["Fecha de ingreso"] = denuncia.fechaIngreso ? FormatearFecha(denuncia.fechaIngreso) : "";
+
+				// Resto de columnas
+				item["Denunciante"] = denuncia.nombre || "";
+				item["Correo"] = denuncia.correo || "";
+				item["Teléfono"] = denuncia.telefono || denuncia.telefonoContacto || "";
+				item["Provincia"] = denuncia.provincia || "";
+				item["Localidad"] = denuncia.localidad || "";
+				// Seccional (campo exacto en la BD: seccional)
+				item["Seccional"] = denuncia.seccional;
+				item["Estado"] = denuncia.estado || "Sin estado";
+				item["Fecha Ultima Novedad"] = fechaUltimaNovedadFormatted;
+				item["Ultima Novedad"] = denuncia.ultimaNovedad || "Sin novedad";
+				item["Empresa"] = denuncia.empleadorNombre || "";
+				item["CUIT"] = denuncia.empleadorCUIT ? Formato.Cuit(denuncia.empleadorCUIT) : "";
+				item["Ubicación"] = denuncia.ubicacion || "";
+				item["Detalle de la Denuncia"] = denuncia.texto || "";
+				item["Derivado A Tipo"] = denuncia.derivadoATipo || "";
+				item["Derivado a Delegación"] = denuncia.derivadoDelegacion;
+				item["Derivado a Seccional"] = denuncia.derivadoSeccional;
 
 				return item;
 			});
