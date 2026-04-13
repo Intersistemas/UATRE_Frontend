@@ -1,3 +1,5 @@
+
+
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
@@ -58,20 +60,19 @@ const DenunciasHandler = () => {
     return null; // Sin filtro por defecto
   }, [usuario]);
 
-  const ambitosManager = useAmbitosUsuario();
-  const ambitoInfo = useMemo(() => ambitosManager.ambitoUser(), [ambitosManager]);
-
   // IDs de delegación/seccional del usuario (si aplica)
+  // IDs de delegación/seccional del usuario (si aplica) - ahora usando hook `useAmbitos`.
+  const ambitosManager = useAmbitosUsuario();
+  const ambitoInfo = ambitosManager?.ambitoUser ? ambitosManager.ambitoUser() : { tipo: null, ids: [] };
+
   const usuarioDelegacionId = useMemo(() => {
-    if (ambitoInfo?.tipo !== "Delegaciones") return null;
-    return Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+    return ambitoInfo?.tipo === "Delegaciones" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
       ? Number(ambitoInfo.ids[0])
       : null;
   }, [ambitoInfo]);
 
   const usuarioSeccionalId = useMemo(() => {
-    if (ambitoInfo?.tipo !== "Seccionales") return null;
-    return Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+    return ambitoInfo?.tipo === "Seccionales" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
       ? Number(ambitoInfo.ids[0])
       : null;
   }, [ambitoInfo]);
@@ -94,7 +95,7 @@ const DenunciasHandler = () => {
   // ==============================
   // QUERIES API
   // ==============================
-  const pushQuery = useQueryQueue((action, params) => {
+  const pushQuery = useQueryQueue((action) => {
     if (action === "GetDenuncia") {
       // Mantengo este recurso porque ya lo tenías (sirve para combos/auxiliares)
       return {
@@ -146,16 +147,6 @@ const DenunciasHandler = () => {
       };
     }
 
-    if (action === "GetDelegacionById") {
-      return {
-        config: {
-          baseURL: "Comunes",
-          method: "GET",
-          endpoint: "/RefDelegacion/GetById",
-        },
-      };
-    }
-
     if (action === "GetSeccionales") {
       return {
         config: {
@@ -163,17 +154,6 @@ const DenunciasHandler = () => {
           method: "GET",
           endpoint: "/Seccional",
         },
-      };
-    }
-
-    if (action === "GetSeccionalById") {
-      return {
-        config: {
-          baseURL: "Afiliaciones",
-          method: "GET",
-          endpoint: `/Seccional/${params?.id ?? ""}`,
-        },
-        params: {},
       };
     }
 
@@ -252,29 +232,25 @@ const DenunciasHandler = () => {
     if ((mode === "M" || mode === "C") && record?.id) {
       const mapApiToForm = (r = {}) => ({
         id: r.id,
-        numeroSeguimiento: r.numeroSeguimiento || "",
-        fechaIngreso: r.fechaIngreso || "",
+        fecha: r.fecha || "",
+        fechaIngreso: r.fechaIngreso ? `${r.fechaIngreso}`.slice(0, 10) : "",
+        numeroSeguimiento: r.numeroSeguimiento ?? "",
         provinciaNombre: r.provincia || "",
         provinciaId: r.provinciaId || 0,
         refLocalidadIdAfiliado: r.localidadId || 0,
         nombreLocalidadAfiliado: r.localidad || "",
         delegacion: r.delegacion || "",
         seccional: r.seccional || "",
-        nombreDenunciante: r.nombreDenunciante || r.nombre || "",
-        nombre: r.nombre || r.nombreDenunciante || "",
-        telefonoContacto: r.telefonoContacto || r.telefono || "",
-        telefono: r.telefono || r.telefonoContacto || "",
-        correoElectronico: r.correoElectronico || r.correo || "",
-        correo: r.correo || r.correoElectronico || "",
+        nombre: r.nombre || "",
+        telefono: r.telefonoContacto || r.telefono || "",
+        correo: r.correo || "",
         denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
-        denunciaSituacionId: r.denunciaSituacionId || r.situacionId || 0,
-        situacionDescripcion: r.situacionDescripcion || r.denunciaSituacionDescripcion || "",
+        denunciaSituacionId: r.denunciaSituacionId || 0,
         cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
         razonSocial: r.empleadorNombre || "",
-        detalleDenuncia: r.detalleDenuncia || r.texto || "",
-        texto: r.texto || r.detalleDenuncia || "",
+        texto: r.texto || "",
         ubicacion: r.ubicacion || "",
-        derivadoATipo: r.derivadoATipo || r.derivadoA_Tipo || "",
+        derivadoATipo: r.derivadoATipo || r.derivadaA || "Sin derivacion",
         derivadoDelegacion: r.derivadoDelegacion || "",
         derivadoSeccional: r.derivadoSeccional || "",
 
@@ -326,20 +302,6 @@ const DenunciasHandler = () => {
     () => ({ value: null, label: "Todas las situaciones" }),
     []
   );
-
-  const situacionFallbackOptions = useMemo(() => [
-    { value: 1,  label: "Consultas Salariales" },
-    { value: 2,  label: "Reclamos/Diferencias Salariales" },
-    { value: 3,  label: "Trabajo NO Registrado" },
-    { value: 4,  label: "Maltrato laboral" },
-    { value: 5,  label: "Condiciones laborales inaceptables" },
-    { value: 6,  label: "Falta de Ropa de Trabajo" },
-    { value: 7,  label: "Otras" },
-    { value: 8,  label: "Seguridad, higiene y salud en el trabajo." },
-    { value: 9,  label: "Condiciones de vivienda, alimentación y traslado." },
-    { value: 10, label: "Indicios de explotación laboral." },
-    { value: 11, label: "Trabajo infantil y adolescente." },
-  ], []);
 
   const derivadoATipoTodos = useMemo(
     () => ({ value: null, label: "Todas las derivaciones" }),
@@ -475,11 +437,11 @@ const DenunciasHandler = () => {
           ...o,
           loading: null,
           error: error?.toString() || "Error al cargar situaciones",
-          options: [situacionTodos, ...situacionFallbackOptions],
+          options: [situacionTodos],
         }));
       },
     });
-  }, [pushQuery, situacionTodos, situacionFallbackOptions]);
+  }, [pushQuery, situacionTodos]);
 
   // Búsqueda en los combos
   useEffect(() => {
@@ -538,12 +500,6 @@ const DenunciasHandler = () => {
   const [fechaDesde, setFechaDesde] = useState(null);
   const [fechaHasta, setFechaHasta] = useState(null);
 
-  const ambitoFiltrosIniciales = useMemo(() => {
-    if (usuarioSeccionalId) return { derivadoATipo: 'Seccional', derivadoAId: usuarioSeccionalId };
-    if (usuarioDelegacionId) return { derivadoATipo: 'Delegacion', derivadoAId: usuarioDelegacionId };
-    return { derivadoATipo: null, derivadoAId: null };
-  }, [usuarioSeccionalId, usuarioDelegacionId]);
-
   // Estado con los filtros actualmente aplicados (no se actualiza automáticamente)
   const [appliedFilters, setAppliedFilters] = useState(() => ({
     estado: null,
@@ -553,7 +509,6 @@ const DenunciasHandler = () => {
     situacionId: null,
     derivadoATipo: null,
     derivadoAId: null,
-    delegacionId: null,
   }));
 
   const delegacionTodos = useMemo(() => ({ value: null, label: "Todas las delegaciones" }), []);
@@ -576,90 +531,65 @@ const DenunciasHandler = () => {
     selected: seccionalTodos,
   });
 
-  const [ambitoFiltroAplicado, setAmbitoFiltroAplicado] = useState(false);
-
-  // carga uno o todos según si hay un id de ámbito específico
-  const cargarSelect = useCallback((
-    { loading, skip, actionSingle, actionAll, paramsSingle, paramsAll, mapFn, todosOption, setFn }
-  ) => {
-    if (loading !== "Cargando...") return;
-    if (skip) { setFn(o => ({ ...o, loading: null })); return; }
-    const normalizar = (resp) => Array.isArray(resp) ? resp : resp?.data || [];
-    const onOk = (resp) => {
-      const arr = actionSingle
-        ? (() => { const raw = Array.isArray(resp) ? resp[0] : resp; return raw ? [raw] : []; })()
-        : normalizar(resp);
-      const mapped = arr.map(mapFn);
-      setFn(o => ({ ...o, loading: null, data: mapped, options: [todosOption, ...mapped] }));
-    };
-    const onError = (err) => setFn(o => ({ ...o, loading: null, error: err?.toString(), options: [todosOption] }));
-    pushQuery({ action: actionSingle ?? actionAll, params: actionSingle ? paramsSingle : paramsAll, onOk, onError });
-  }, [pushQuery]);
-
-  // Cargar delegaciones
+  // Autocompletar filtros según ámbito del usuario y bloquear cambios
   useEffect(() => {
-    cargarSelect({
-      loading: delegacionSelect.loading,
-      // Para ámbito Seccional la delegación se resuelve desde el record de la seccional
-      skip: !!usuarioSeccionalId,
-      actionSingle: usuarioDelegacionId ? "GetDelegacionById" : null,
-      paramsSingle: { Id: Number(usuarioDelegacionId) },
-      actionAll: "GetDelegaciones",
-      paramsAll: { soloActivos: true },
-      mapFn: (r) => ({ value: r.id, label: r.nombre, record: r }),
-      todosOption: delegacionTodos,
-      setFn: setDelegacionSelect,
-    });
-  }, [cargarSelect, delegacionSelect.loading, delegacionTodos, usuarioDelegacionId, usuarioSeccionalId]);
 
-  // Cargar seccionales
-  useEffect(() => {
-    const mapSeccional = (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r });
-    cargarSelect({
-      loading: seccionalSelect.loading,
-      skip: false,
-      actionSingle: usuarioSeccionalId ? "GetSeccionalById" : null,
-      paramsSingle: { id: Number(usuarioSeccionalId) },
-      actionAll: "GetSeccionales",
-      // Si es ámbito delegación, filtrar seccionales solo de esa delegación
-      paramsAll: usuarioDelegacionId ? { soloActivos: true, delegacionId: usuarioDelegacionId } : { soloActivos: true },
-      mapFn: mapSeccional,
-      todosOption: seccionalTodos,
-      setFn: setSeccionalSelect,
-    });
-  }, [cargarSelect, seccionalSelect.loading, seccionalTodos, usuarioSeccionalId, usuarioDelegacionId]);
+    const delegacionesListas = delegacionSelect.loading === null || delegacionSelect.loading === undefined;
+    const seccionalesListas = seccionalSelect.loading === null || seccionalSelect.loading === undefined;
+    if (!delegacionesListas || !seccionalesListas) return;
 
-  // Autocompletar selects según ámbito del usuario (una sola vez al cargar los datos)
-  useEffect(() => {
-    if (ambitoFiltroAplicado) return;
-    if (!seccionalSelect.data.length && !delegacionSelect.data.length) return;
 
     if (usuarioSeccionalId) {
       const secOption = seccionalSelect.data.find(o => Number(o.value) === Number(usuarioSeccionalId));
-      if (!secOption) return;
-      const delegId = Number(secOption.record?.refDelegacionId ?? 0);
-      const delegNombre = secOption.record?.refDelegacionDescripcion || secOption.record?.delegacionNombre || "";
-      const delOption = delegId
-        ? (delegacionSelect.data.find(o => Number(o.value) === Number(delegId))
-          || (delegNombre ? { value: delegId, label: delegNombre, record: { id: delegId, nombre: delegNombre } } : null))
-        : null;
+      if (secOption) {
+        setSeccionalSelect(o => ({ ...o, selected: secOption }));
+        const delegId = Number(secOption.record?.refDelegacionId);
+        const delOption = delegacionSelect.data.find(o => Number(o.value) === Number(delegId));
+        if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption }));
+      }
       const derivSec = derivadoATipoSelect.data.find(o => o.value === 'Seccional');
-      setSeccionalSelect(o => ({ ...o, selected: secOption }));
-      if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption, data: o.data.length ? o.data : [delOption], options: [delegacionTodos, delOption] }));
       if (derivSec) setDerivadoATipoSelect(o => ({ ...o, selected: derivSec }));
-      setAmbitoFiltroAplicado(true);
-      setAppliedFilters(prev => ({ ...prev, derivadoATipo: 'Seccional', derivadoAId: Number(usuarioSeccionalId) }));
-      return;
+      return; // Seccional tiene prioridad
     }
+
 
     if (usuarioDelegacionId) {
       const delOption = delegacionSelect.data.find(o => Number(o.value) === Number(usuarioDelegacionId));
-      if (!delOption) return;
-      setDelegacionSelect(o => ({ ...o, selected: delOption }));
-      setAmbitoFiltroAplicado(true);
-      // Para delegación NO se setea derivadoATipo en appliedFilters: se usa DelegacionId directo en la query
+      if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption }));
+
     }
-  }, [ambitoFiltroAplicado, usuarioSeccionalId, usuarioDelegacionId, delegacionSelect.data, seccionalSelect.data, derivadoATipoSelect.data, delegacionTodos]);
+  }, [usuarioSeccionalId, usuarioDelegacionId, delegacionSelect.loading, seccionalSelect.loading, delegacionSelect.data, seccionalSelect.data, derivadoATipoSelect.data, setSeccionalSelect, setDelegacionSelect, setDerivadoATipoSelect]);
+
+  // Cargar delegaciones
+  useEffect(() => {
+    if (delegacionSelect.loading !== "Cargando...") return;
+    pushQuery({
+      action: "GetDelegaciones",
+      params: { soloActivos: true },
+      onOk: (resp) => {
+        const arr = Array.isArray(resp) ? resp : resp?.data || [];
+        const mapped = arr.map(r => ({ value: r.id, label: r.nombre, record: r }));
+        setDelegacionSelect(o => ({ ...o, loading: null, data: mapped, options: [delegacionTodos, ...mapped] }));
+      },
+      onError: (err) => setDelegacionSelect(o => ({ ...o, loading: null, error: err?.toString(), options: [delegacionTodos] })),
+    });
+  }, [pushQuery, delegacionSelect.loading, delegacionTodos]);
+
+  // Cargar seccionales
+  useEffect(() => {
+    if (seccionalSelect.loading !== "Cargando...") return;
+    pushQuery({
+      action: "GetSeccionales",
+      params: { soloActivos: true },
+      onOk: (resp) => {
+        const arr = Array.isArray(resp) ? resp : resp?.data || [];
+        // Guardamos crudo en data para poder filtrar luego por delegación
+        const mapped = arr.map(r => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }));
+        setSeccionalSelect(o => ({ ...o, loading: null, data: mapped, options: [seccionalTodos, ...mapped] }));
+      },
+      onError: (err) => setSeccionalSelect(o => ({ ...o, loading: null, error: err?.toString(), options: [seccionalTodos] })),
+    });
+  }, [pushQuery, seccionalSelect.loading, seccionalTodos]);
 
   // Búsqueda delegaciones
   useEffect(() => {
@@ -672,16 +602,11 @@ const DenunciasHandler = () => {
     let base = seccionalSelect.data;
     const delegId = delegacionSelect.selected?.value;
     if (delegId) base = base.filter(opt => Number(opt.record?.refDelegacionId) === Number(delegId));
-    const filtered = base.filter(opt => includeSearch(opt, seccionalSelect.buscar));
-    const options = [seccionalTodos, ...filtered];
-    // La lógica de reset se hace dentro del setter para leer el estado actual en el momento del update
-    setSeccionalSelect(o => {
-      const currentValue = o.selected?.value;
-      // Solo resetear si hay una selección concreta que ya no existe en las opciones filtradas
-      const stillExists = currentValue != null && options.some(opt => opt.value === currentValue);
-      return { ...o, options, selected: stillExists ? o.selected : seccionalTodos };
-    });
-  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalTodos]);
+    const options = [seccionalTodos, ...base.filter(opt => includeSearch(opt, seccionalSelect.buscar))];
+    // Mantener selección si todavía existe; si no, reset a Todos
+    const stillExists = options.find(o => o.value === seccionalSelect.selected?.value);
+    setSeccionalSelect(o => ({ ...o, options, selected: stillExists ? o.selected : seccionalTodos }));
+  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalSelect.selected?.value, seccionalTodos]);
 
 
   // ==============================
@@ -694,18 +619,26 @@ const DenunciasHandler = () => {
   // Verificar permisos del usuario para determinar qué columnas exportar
   const puedeVerTodosLosDatos = useMemo(() => {
     if (!usuario) return false;
-    const esAdministrador = usuario.roles?.includes("Administrador");
+
+    // Considerar ambito 'Todos' como equivalente a administrador
+    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
+    const esAdministrador = usuario.roles?.includes("Administrador") || ambitoEsTodos;
     const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
-    const ambitoEsTodos = ambitoInfo?.tipo === "Todos";
-    return esAdministrador || tieneTareaDenunciasDatos || ambitoEsTodos;
-  }, [usuario, tareasManager, ambitoInfo]);
+
+    // Si el usuario tiene ámbito de Delegación o Seccional, aplicamos restricción adicional:
+    // solo podrá ver todos los datos si es administrador (o ambito Todos) o tiene la tarea Denuncias_Datos.
+    const ambitoReducido = ambitoInfo?.tipo === 'Delegaciones' || ambitoInfo?.tipo === 'Seccionales' || !!usuarioSeccionalId || !!usuarioDelegacionId;
+
+    return esAdministrador || tieneTareaDenunciasDatos;
+  }, [usuario, tareasManager, usuarioSeccionalId, usuarioDelegacionId]);
 
   // Verificar permisos para exportar
   const puedeExportar = useMemo(() => {
-    const esAdministrador = usuario?.roles?.includes("Administrador") || false;
+    // Usuarios con ambito 'Todos' o rol Administrador pueden exportar sin tareas.
+    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
+    const esAdministrador = usuario?.roles?.includes("Administrador") || ambitoEsTodos;
     const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
-    const ambitoEsTodos = ambitoInfo?.tipo === "Todos";
-    return esAdministrador || tieneTareaExcel || ambitoEsTodos;
+    return !!(esAdministrador || tieneTareaExcel);
   }, [usuario, tareasManager, ambitoInfo]);
 
   const exportarAExcel = useCallback(() => {
@@ -723,17 +656,61 @@ const DenunciasHandler = () => {
 
     setExportLoading(true);
 
-    try {
-      // Los datos ya vienen formateados y con todas las columnas desde ExportModal.
-      // No re-mapear: cualquier re-mapeo descartaría los campos nuevos.
-      const estadoFiltro = estadoSeleccionado?.value ? `_${estadoSeleccionado.value}` : "";
-      const nombreArchivo = `Denuncias_${puedeVerTodosLosDatos ? "Completo" : "Limitado"}${estadoFiltro}_con_Novedades`;
-      await exportToExcel(
-        [{ sheetName: "Denuncias", data: selectedData }],
-        nombreArchivo
-      );
+        try {
+      // Los datos ya vienen formateados desde el modal con la "Ultima Novedad"
+      // Solo necesitamos procesarlos según los permisos del usuario
+      const datosExcel = selectedData.map((row) => {
+        if (puedeVerTodosLosDatos) {
+          // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
+          return {
+            "Nro. Denuncia": row["Nro. Denuncia"],
+            "numeroSeguimiento": row["numeroSeguimiento"],
+            "Fecha de carga": row["Fecha de carga"],
+            "Fecha de ingreso": row["Fecha de ingreso"],
+            "Denunciante": row["Denunciante"],
+            "Correo": row["Correo"],
+            "Teléfono": row["Teléfono"],
+            "Provincia": row["Provincia"],
+              "Localidad": row["Localidad"],
+              "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Derivado A Tipo": row["Derivado A Tipo"],
+            "Derivado a Delegación": row["Derivado a Delegación"],
+            "Derivado a Seccional": row["Derivado a Seccional"],
+            "Ultima Novedad": row["Ultima Novedad"]
+          };
+        } else {
+          //  USUARIOS CON PERMISOS LIMITADOS - Solo columnas básicas + Ultima Novedad
+          return {
+            "Fecha": row["Fecha"],
+            "Teléfono": row["Teléfono"],
+            "Localidad": row["Localidad"],
+            "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Ultima Novedad": row["Ultima Novedad"]
+          };
+        }
+      });
 
-      setExportModalOpen(false);
+      //  Generar el archivo Excel
+      const estadoFiltro = estadoSeleccionado?.value ? `_${estadoSeleccionado.value}` : "";
+      const nombreArchivo = `Denuncias_${puedeVerTodosLosDatos ? 'Completo' : 'Limitado'}${estadoFiltro}_con_Novedades`;
+      await exportToExcel([
+        {
+          sheetName: "Denuncias",
+          data: datosExcel
+        }
+      ], nombreArchivo);
+
+      setExportModalOpen(false); // Cerrar el modal
     } catch (error) {
       console.error("Error en exportación a Excel:", error);
       alert(`Error al generar Excel: ${error?.message || error}`);
@@ -744,7 +721,7 @@ const DenunciasHandler = () => {
     puedeVerTodosLosDatos,
     exportToExcel,
     setExportModalOpen,
-    setExportLoading,
+    setExportLoading
   ]);
 
   // ==============================
@@ -753,12 +730,10 @@ const DenunciasHandler = () => {
 
   // Calcular DerivadoAId según selección
   const filtroDerivadoATipoValue = derivadoATipoSelect.selected?.value || null;
-  const filtroDelegacionValue = delegacionSelect.selected?.value || null;
-  const filtroSeccionalValue = seccionalSelect.selected?.value || null;
   const filtroDerivadoAIdValue = filtroDerivadoATipoValue === 'Delegacion'
-    ? filtroDelegacionValue
+    ? (delegacionSelect.selected?.value || null)
     : filtroDerivadoATipoValue === 'Seccional'
-      ? filtroSeccionalValue
+      ? (seccionalSelect.selected?.value || null)
       : null;
 
   // Bloqueo por ámbito del usuario
@@ -769,64 +744,24 @@ const DenunciasHandler = () => {
 
   // Estados de disabled para aplicar opacidad visual
   const disabledDerivadoA = bloquearDerivadoA;
-  const disabledDelegacion = bloquearDelegacion;
-  const disabledSeccional = bloquearSeccional;
-
-  const handleDelegacionChange = useCallback((selected = delegacionTodos) => {
-    setDelegacionSelect((o) => ({ ...o, selected }));
-
-    if (selected?.value) {
-      const derivadoDelegacion = derivadoATipoSelect.data.find((r) => r.value === "Delegacion") || derivadoATipoTodos;
-      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoDelegacion }));
-      setSeccionalSelect((o) => ({ ...o, selected: seccionalTodos }));
-    } else if (derivadoATipoSelect.selected?.value === "Delegacion") {
-      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
-    }
-  }, [delegacionTodos, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
-
-  const handleSeccionalChange = useCallback((selected = seccionalTodos) => {
-    setSeccionalSelect((o) => ({ ...o, selected }));
-
-    if (selected?.value) {
-      const derivadoSeccional = derivadoATipoSelect.data.find((r) => r.value === "Seccional") || derivadoATipoTodos;
-      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoSeccional }));
-
-      const delegacionId = Number(selected.record?.refDelegacionId);
-      if (delegacionId) {
-        const delegacionRelacionada = delegacionSelect.data.find((r) => Number(r.value) === delegacionId);
-        if (delegacionRelacionada) {
-          setDelegacionSelect((o) => ({ ...o, selected: delegacionRelacionada }));
-        }
-      }
-    } else if (derivadoATipoSelect.selected?.value === "Seccional") {
-      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
-    }
-  }, [delegacionSelect.data, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
+  const disabledDelegacion = bloquearDelegacion || (filtroDerivadoATipoValue !== 'Delegacion' && filtroDerivadoATipoValue !== 'Seccional');
+  const disabledSeccional = bloquearSeccional || (filtroDerivadoATipoValue !== 'Seccional');
 
   const {
     render: denunciaRender,
     request: denunciaRequest,
     selected: denunciasSelected,
     data: denunciasData,
-    loading: denunciasLoading,
   } = useDenuncias({
     filtroEstado: appliedFilters.estado || null,
     filtroFechaDesde: appliedFilters.fechaDesde || null,
     filtroFechaHasta: appliedFilters.fechaHasta || null,
     filtroTipoIngresoId: appliedFilters.tipoIngresoId || null,
     filtroSituacionId: appliedFilters.situacionId || null,
-    filtroDerivadoATipo: appliedFilters.derivadoATipo || (usuarioSeccionalId ? ambitoFiltrosIniciales.derivadoATipo : null),
-    filtroDerivadoAId: appliedFilters.derivadoAId || (usuarioSeccionalId ? ambitoFiltrosIniciales.derivadoAId : null),
-    filtroDelegacionId: (() => {
-      if (usuarioDelegacionId && !appliedFilters.derivadoATipo) return usuarioDelegacionId;
-      if (appliedFilters.derivadoATipo === 'Seccional' && !appliedFilters.derivadoAId) {
-        return usuarioDelegacionId || appliedFilters.delegacionId || null;
-      }
-      return null;
-    })(),
-    usuarioAmbito: usuarioAmbito,
+    filtroDerivadoATipo: appliedFilters.derivadoATipo || null,
+    filtroDerivadoAId: appliedFilters.derivadoAId || null,
+    usuarioAmbito: usuarioAmbito, //  filtrado por ámbito del usuario
     applyAmbitoFilter: applyAmbitoFilter, //  función de filtrado por ámbito
-    bloqueado: false,
   });
 
   // Acciones con atajos de teclado
@@ -895,7 +830,6 @@ const DenunciasHandler = () => {
   // ==============================
   // Inicialización de la lista de denuncias
   useEffect(() => {
-    if (usuarioSeccionalId || usuarioDelegacionId) return;
     const params = { sortBy: "+fecha" };
 
     denunciaRequest("list", {
@@ -903,7 +837,7 @@ const DenunciasHandler = () => {
       pagination: { index: 1, size: 10 },
       onLoadSelect: onLoadSelectKeepOrFirst,
     });
-  }, [denunciaRequest, usuarioSeccionalId, usuarioDelegacionId]);
+  }, [denunciaRequest]);
 
   // ==============================
   // Tabs
@@ -962,13 +896,17 @@ const DenunciasHandler = () => {
             error={!!estadoSelect.error}
             helperText={estadoSelect.error || undefined}
             value={estadoSelect.selected}
-            onChange={(selected = estadoTodos) => {
-              setEstadoSelect((o) => ({ ...o, selected, origen: "option" }));
+            onChange={(selected = {}) => {
+              setEstadoSelect((o) => ({
+                ...o,
+                selected,
+                origen: "option",
+              }));
             }}
             options={estadoSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) =>
+              setEstadoSelect((o) => ({ ...o, buscar, origen: "text" }))
+            }
           />
 
           <SearchSelectMaterial
@@ -980,9 +918,9 @@ const DenunciasHandler = () => {
               setTipoIngresoSelect((o) => ({ ...o, selected }));
             }}
             options={tipoIngresoSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) =>
+              setTipoIngresoSelect((o) => ({ ...o, buscar }))
+            }
           />
           <SearchSelectMaterial
             label="Situación"
@@ -993,9 +931,9 @@ const DenunciasHandler = () => {
               setSituacionSelect((o) => ({ ...o, selected }));
             }}
             options={situacionSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) =>
+              setSituacionSelect((o) => ({ ...o, buscar }))
+            }
           />
 
         </Grid>
@@ -1010,20 +948,17 @@ const DenunciasHandler = () => {
             value={derivadoATipoSelect.selected}
             onChange={(selected = derivadoATipoTodos) => {
               setDerivadoATipoSelect((o) => ({ ...o, selected }));
+
               if (selected?.value !== 'Delegacion' && selected?.value !== 'Seccional') {
-                // No resetear delegación si el usuario tiene ámbito fijo de delegación
-                if (!usuarioDelegacionId) {
-                  setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
-                }
+                setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
               }
+
               if (selected?.value !== 'Seccional') {
                 setSeccionalSelect(o => ({ ...o, selected: seccionalTodos }));
               }
             }}
             options={derivadoATipoSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) => setDerivadoATipoSelect((o) => ({ ...o, buscar }))}
             disabled={disabledDerivadoA}
             style={{ opacity: disabledDerivadoA ? 0.6 : 1 }}
           />
@@ -1032,11 +967,9 @@ const DenunciasHandler = () => {
             error={!!delegacionSelect.error}
             helperText={delegacionSelect.error || undefined}
             value={delegacionSelect.selected}
-            onChange={handleDelegacionChange}
+            onChange={(selected = delegacionTodos) => setDelegacionSelect(o => ({ ...o, selected }))}
             options={delegacionSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) => setDelegacionSelect(o => ({ ...o, buscar }))}
             disabled={disabledDelegacion}
             style={{ opacity: disabledDelegacion ? 0.6 : 1 }}
           />
@@ -1045,11 +978,9 @@ const DenunciasHandler = () => {
             error={!!seccionalSelect.error}
             helperText={seccionalSelect.error || undefined}
             value={seccionalSelect.selected}
-            onChange={handleSeccionalChange}
+            onChange={(selected = seccionalTodos) => setSeccionalSelect(o => ({ ...o, selected }))}
             options={seccionalSelect.options}
-            onTextChange={() => {}}
-            freeSolo={false}
-            inputReadOnly={true}
+            onTextChange={(buscar) => setSeccionalSelect(o => ({ ...o, buscar }))}
             disabled={disabledSeccional}
             style={{ opacity: disabledSeccional ? 0.6 : 1 }}
           />
@@ -1081,17 +1012,13 @@ const DenunciasHandler = () => {
 
           <Button
             className="botonAzul"
-            disabled={denunciasLoading}
             onClick={() => {
-              const derivadoTipoSeleccionado = derivadoATipoSelect.selected?.value || null;
-              const derivadoTipo = filtroSeccionalValue
-                ? "Seccional"
-                : (usuarioDelegacionId && !derivadoTipoSeleccionado)
-                  ? null
-                  : derivadoTipoSeleccionado;
-              const derivadoId = filtroSeccionalValue
-                ? filtroSeccionalValue
-                : (derivadoTipo === 'Delegacion' ? filtroDelegacionValue : null);
+              const derivadoTipo = derivadoATipoSelect.selected?.value || null;
+              const derivadoId = derivadoTipo === 'Delegacion'
+                ? (delegacionSelect.selected?.value || null)
+                : derivadoTipo === 'Seccional'
+                  ? (seccionalSelect.selected?.value || null)
+                  : null;
 
               setAppliedFilters({
                 estado: estadoSelect.selected?.value || null,
@@ -1105,7 +1032,6 @@ const DenunciasHandler = () => {
                   : null,
                 derivadoATipo: derivadoTipo,
                 derivadoAId: derivadoId ? Number(derivadoId) : null,
-                delegacionId: filtroDelegacionValue ? Number(filtroDelegacionValue) : null,
               });
             }}
            >
@@ -1117,16 +1043,13 @@ const DenunciasHandler = () => {
           <Button
             className="botonAzul"
             disabled={
-              denunciasLoading ||
-              (!estadoSelect.selected?.value &&
+              !estadoSelect.selected?.value &&
               !fechaDesde &&
               !fechaHasta &&
               !tipoIngresoSelect.selected?.value &&
               !situacionSelect.selected?.value &&
               !filtroDerivadoATipoValue &&
-              !filtroDerivadoAIdValue &&
-              !filtroDelegacionValue &&
-              !filtroSeccionalValue)
+              !filtroDerivadoAIdValue
             }
             onClick={() => {
               let nextDerivadoTipo = null;
@@ -1315,6 +1238,7 @@ const DenunciasHandler = () => {
               handleExportFromModal(exportData, estadoSeleccionado);
             }
           }}
+          initialData={denunciasData}
           currentFilters={{
             ...(appliedFilters.estado && { estado: appliedFilters.estado }),
             ...(appliedFilters.fechaDesde && { fechaDesde: appliedFilters.fechaDesde }),
@@ -1329,7 +1253,6 @@ const DenunciasHandler = () => {
           }}
           usuarioAmbito={usuarioAmbito}
           applyAmbitoFilter={applyAmbitoFilter}
-          initialData={denunciasData}
         />
       )}
     </Grid>

@@ -1116,7 +1116,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 				empleadorNombre: hasRazonProp ? (razonFromData ?? "") : o.form?.empleadorNombre,
 				...(mode === "M" ? { observacionesRegistro: "" } : {}),
 				fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
-				fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}`.slice(0, 10) : (o.form.fechaIngreso || ""),
+				fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}`.slice(0, 10) : "",
 				numeroSeguimiento: data.numeroSeguimiento != null ? onlyDigits(data.numeroSeguimiento) : (o.form.numeroSeguimiento || ""),
 			},
 			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
@@ -1668,6 +1668,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 					<Grid col gap="inherit">
 						<Grid width gap="inherit">
 							<InputMaterial
+								id="fechaCarga"
+								type="date"
+								readOnly
+								disabled
+								className={roClass(true)}
+								label="Fecha de carga"
+								value={state.form.fecha || ""}
+							/>
+							<InputMaterial
 								id="fechaIngreso"
 								type="date"
 								readOnly={isConsulta || readOnly || lockAllExceptRouting}
@@ -1956,7 +1965,20 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 															const payload = { ...current };
 															payload.derivadoATipo = 'Seccional';
 															const selIdPut = Number(selected?.value ?? selected?.record?.id ?? 0) || 0;
+															const delegacionNombre = String(
+																delegacionSelect.selected?.record?.nombre ||
+																delegacionSelect.selected?.label ||
+																payload.derivadoDelegacion ||
+																""
+															).trim();
+															const seccionalNombre = String(
+																selected?.record?.descripcion ||
+																(selected?.label || "").split(" - ").slice(1).join(" - ") ||
+																""
+															).trim();
 															payload.derivadoAId = selIdPut;
+															payload.derivadoDelegacion = delegacionNombre;
+															payload.derivadoSeccional = seccionalNombre;
 															payload.id = Number(id);
 															putAppDenunciaById(
 																id,
@@ -2200,6 +2222,18 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 
 		const _derivadoATipoRaw = body.derivadaADescripcion || body.derivadaA || state.form?.derivadaADescripcion || state.form?.derivadaA || "";
 		const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
+		const delegacionNombreDerivada = String(
+			delegacionSelect.selected?.record?.nombre ||
+			delegacionSelect.selected?.label ||
+			data?.derivadoDelegacion ||
+			""
+		).trim();
+		const seccionalNombreDerivada = String(
+			seccionalSelect.selected?.record?.descripcion ||
+			(seccionalSelect.selected?.label || "").split(" - ").slice(1).join(" - ") ||
+			data?.derivadoSeccional ||
+			""
+		).trim();
 		const seccionalSource = String(body.seccionalCabecera || data?.seccional || "").trim();
 		const seccionalNombre = seccionalSource.includes(" - ")
 			? seccionalSource.split(" - ").slice(1).join(" - ").trim()
@@ -2221,6 +2255,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			denunciaTipoId: 0,
 			derivadoATipo: derivadoATipoValue,
 			derivadoAId: derivadoAIdValue,
+			derivadoDelegacion: ["Delegacion", "Seccional"].includes(derivadoATipoValue) ? delegacionNombreDerivada : "",
+			derivadoSeccional: derivadoATipoValue === "Seccional" ? seccionalNombreDerivada : "",
 			documentacionEntidadesId: 0,
 			denunciaSituacionId: Number(body.denunciaSituacionId || 0),
 			empleadorCUIT: body.cuitEmpresa ? Number(body.cuitEmpresa) : null,
