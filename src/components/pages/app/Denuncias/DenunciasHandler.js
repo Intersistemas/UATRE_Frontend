@@ -650,40 +650,46 @@ const DenunciasHandler = () => {
 
     setExportLoading(true);
 
-    try {
+        try {
       // Los datos ya vienen formateados desde el modal con la "Ultima Novedad"
       // Solo necesitamos procesarlos según los permisos del usuario
       const datosExcel = selectedData.map((row) => {
         if (puedeVerTodosLosDatos) {
           // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
           return {
-            "Nro. Denuncia": row["Nro. Denuncia"] ?? row["id"] ?? "",
-            "Fecha": row["Fecha"] || "",
-            "Denunciante": row["Denunciante"] || row["Nombre"] || "",
-            "Correo": row["Correo"] || "",
-            "Teléfono": row["Teléfono"] || "",
-            "Provincia": row["Provincia"] || "",
-            "Localidad": row["Localidad"] || "",
-            "Estado": row["Estado"] || "",
-            "Empresa": row["Empresa"] || "",
-            "CUIT": row["CUIT"] || "",
-            "Ubicación": row["Ubicación"] || "",
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
-            "Derivado A Tipo": row["Derivado A Tipo"] || "",
-            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+            "Nro. Denuncia": row["Nro. Denuncia"],
+            "numeroSeguimiento": row["numeroSeguimiento"],
+            "Fecha de carga": row["Fecha de carga"],
+            "Fecha de ingreso": row["Fecha de ingreso"],
+            "Denunciante": row["Denunciante"],
+            "Correo": row["Correo"],
+            "Teléfono": row["Teléfono"],
+            "Provincia": row["Provincia"],
+              "Localidad": row["Localidad"],
+              "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Derivado A Tipo": row["Derivado A Tipo"],
+            "Derivado a Delegación": row["Derivado a Delegación"],
+            "Derivado a Seccional": row["Derivado a Seccional"],
+            "Ultima Novedad": row["Ultima Novedad"]
           };
         } else {
           //  USUARIOS CON PERMISOS LIMITADOS - Solo columnas básicas + Ultima Novedad
           return {
-            "Fecha": row["Fecha"] || "",
-            "Teléfono": row["Teléfono"] || "",
-            "Localidad": row["Localidad"] || "",
-            "Estado": row["Estado"] || "",
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
-            "Empresa": row["Empresa"] || "",
-            "CUIT": row["CUIT"] || "",
-            "Ubicación": row["Ubicación"] || "",
-            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+            "Fecha": row["Fecha"],
+            "Teléfono": row["Teléfono"],
+            "Localidad": row["Localidad"],
+            "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Ultima Novedad": row["Ultima Novedad"]
           };
         }
       });
