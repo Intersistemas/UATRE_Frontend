@@ -38,8 +38,8 @@ const baseColumns = [
 			sort: false,
 			headerTitle: true,
 			headerStyle: { width: "7em", textAlign: "center" },
-			formatter: (v) => FormatearFecha(v),
-			csvFormat: (v) => FormatearFecha(v),
+			formatter: (v) => (v ? FormatearFecha(v) : ""),
+			csvFormat: (v) => (v ? FormatearFecha(v) : ""),
 			style: { textAlign: "center" },
 		},
 	{
@@ -773,7 +773,7 @@ const ExportModal = ({
 				item["Fecha de carga"] = denuncia.fecha ? FormatearFecha(denuncia.fecha) : "";
 
 				// Nueva columna: Fecha de ingreso (viene en la API como fechaIngreso)
-				item["Fecha de ingreso"] = FormatearFecha(denuncia.fechaIngreso);
+				item["Fecha de ingreso"] = denuncia.fechaIngreso ? FormatearFecha(denuncia.fechaIngreso) : "";
 
 				// Resto de columnas
 				item["Denunciante"] = denuncia.nombre || "";

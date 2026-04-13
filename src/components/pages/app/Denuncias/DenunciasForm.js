@@ -1116,7 +1116,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 				empleadorNombre: hasRazonProp ? (razonFromData ?? "") : o.form?.empleadorNombre,
 				...(mode === "M" ? { observacionesRegistro: "" } : {}),
 				fecha: data.fecha ? `${data.fecha}`.slice(0, 10) : o.form.fecha,
-				fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}`.slice(0, 10) : (o.form.fechaIngreso || ""),
+				fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}`.slice(0, 10) : "",
 				numeroSeguimiento: data.numeroSeguimiento != null ? onlyDigits(data.numeroSeguimiento) : (o.form.numeroSeguimiento || ""),
 			},
 			validado: readOnly ? { seccionalId: true, fecha: true, trabajador: true, empleador: true } : o.validado,
@@ -1667,6 +1667,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 					<Grid width className={classes.titulo}>Carga de Datos</Grid>
 					<Grid col gap="inherit">
 						<Grid width gap="inherit">
+							<InputMaterial
+								id="fechaCarga"
+								type="date"
+								readOnly
+								disabled
+								className={roClass(true)}
+								label="Fecha de carga"
+								value={state.form.fecha || ""}
+							/>
 							<InputMaterial
 								id="fechaIngreso"
 								type="date"
