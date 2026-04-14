@@ -83,6 +83,12 @@ export const includeSearch = (option, search, ignoreCase = true) =>
 		getCase(search ?? "", ignoreCase)
 	);
 
+const normalizeOption = (option, fallback = null) => {
+	if (option == null) return fallback ?? { value: "", label: "" };
+	if (typeof option === "string") return { value: option, label: option };
+	return option;
+};
+
 // const ITEM_HEIGHT = 48;
 // const ITEM_PADDING_TOP = 8;
 
@@ -141,6 +147,9 @@ const SearchSelectMaterial = ({
 	autoSelect = false,
 	...x
 }) => {
+	const clearOption = defaultOption ?? { value: "", label: "" };
+	const currentValue = value ?? defaultOption ?? null;
+
 	const formControlProps = {
 		size,
 		style: {
@@ -149,7 +158,6 @@ const SearchSelectMaterial = ({
 			...styleInit,
 		},
 	};
-	defaultOption ??= options.length > 0 ? options[0] : value;
 	
 	return (
 		<FormControl {...formControlProps}>
@@ -161,7 +169,7 @@ const SearchSelectMaterial = ({
 				autoSelect={autoSelect}
 				renderOption={(props, option, state) => (
 					<li {...props} key={state.index}>
-						{option.label}
+						{typeof option === "string" ? option : option.label}
 					</li>
 				)}
 				disabled={disabled}
@@ -170,19 +178,22 @@ const SearchSelectMaterial = ({
 				options={options}
 				//MenuProps={MenuProps}
 				size="small"
-				value={value}
+				value={currentValue}
 				inputValue={inputValue}
 				onInputChange={(event, newInputValue, reason) => {
 					if (onInputChange) onInputChange(newInputValue);
 					else onTextChange(newInputValue);
 				}}
 				onChange={(event, newValue, reason) => {
-					if (reason === 'selectOption' || reason === 'clear') {
-						onChange(newValue ?? defaultOption, name);
-						if (onInputChange) onInputChange(newValue?.label || '');
+					if (reason === 'selectOption' || reason === 'clear' || reason === 'removeOption') {
+						const normalizedValue = normalizeOption(newValue, clearOption);
+						onChange(normalizedValue, name);
+						if (onInputChange) onInputChange(normalizedValue.label || '');
 					}
 				}}
-				getOptionLabel={(option) => option.label || ""}
+				getOptionLabel={(option) =>
+					typeof option === "string" ? option : option?.label || ""
+				}
 				//defaultValue={props.defaultValue}
 				{...autocompleteProps}
 				renderInput={(params) => (
