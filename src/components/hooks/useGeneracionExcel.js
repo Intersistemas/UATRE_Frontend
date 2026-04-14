@@ -9,12 +9,11 @@ const useGeneracionExcel = () => {
       const sheet = workbook.addWorksheet(sheetName || 'Hoja');
  
       // Agregar encabezados
-      const headers = Object.keys(data[0] || {});
-      sheet.columns = headers.map((key) => ({
-        header: key,
-        key: key,
-        width: Math.max(15, key.length + 5),
-      }));
+      const headers = [];
+      data.forEach((row) => {
+        Object.keys(row).forEach((k) => { if (!headers.includes(k)) headers.push(k); });
+      });
+      sheet.columns = headers.map((key) => ({ header: key, key: key, width: Math.max(15, key.length + 5) }));
  
       // Estilos para encabezado
       sheet.getRow(1).eachCell((cell) => {
