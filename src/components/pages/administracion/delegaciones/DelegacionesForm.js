@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
-import { pick } from "components/helpers/Utils";
 import useQueryQueue, { QueryClass } from "components/hooks/useQueryQueue";
 import Button from "components/ui/Button/Button";
 import Grid from "components/ui/Grid/Grid";
@@ -14,8 +13,6 @@ import SearchSelectMaterial, {
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
-
-const onLoaded = ({}) => {};
 
 const provinciaSelectOptions = ({ data = [], ...x }) =>
 	mapOptions({
@@ -126,8 +123,7 @@ const DelegacionesForm = ({
 		buscar: "",
 		options: [],
 		filtered: [],
-		selected: {},
-		onLoaded,
+		selected: { record: { id: null } },
 	});
 
 	useEffect(() => {
@@ -139,7 +135,6 @@ const DelegacionesForm = ({
 			error: null,
 			buscar: "",
 			options: [],
-			onLoaded: provinciaSelect.onLoaded,
 		};
 		setProvinciaSelect((o) => ({ ...o, ...changes }));
 		pushQuery({
@@ -172,6 +167,28 @@ const DelegacionesForm = ({
 			),
 		}));
 	}, [provinciaSelect.reload, provinciaSelect.loading, provinciaSelect.buscar]);
+	// Initial value loading for provincia
+	useEffect(() => {
+		setProvinciaSelect((o) => {
+			const options = o.options;
+			let selected = o.selected;
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) { selected = foundOption; }
+			}
+			return { ...o, selected };
+		});
+	}, [provinciaSelect.data]);
+	// Trigger localidad load when provincia is selected
+	useEffect(() => {
+		if (provinciaSelect.selected?.value && !provinciaSelect.loading && !provinciaSelect.reload) {
+			setLocalidadSelect((o) => ({
+				...o,
+				reload: true,
+				params: { ...o.params, provinciaId: provinciaSelect.selected.value },
+			}));
+		}
+	}, [provinciaSelect.selected?.value, provinciaSelect.loading, provinciaSelect.reload]);
 	//#endregion select provincia
 
 	//#region select localidad
@@ -183,8 +200,7 @@ const DelegacionesForm = ({
 		error: null,
 		buscar: "",
 		options: [],
-		selected: {},
-		onLoaded,
+		selected: { record: { id: data.refLocalidadId } },
 	});
 
 	useEffect(() => {
@@ -196,7 +212,6 @@ const DelegacionesForm = ({
 			error: null,
 			buscar: "",
 			options: [],
-			onLoaded: localidadSelect.onLoaded,
 		};
 		setLocalidadSelect((o) => ({ ...o, ...changes }));
 		pushQuery({
@@ -229,6 +244,18 @@ const DelegacionesForm = ({
 			),
 		}));
 	}, [localidadSelect.reload, localidadSelect.loading, localidadSelect.buscar]);
+	// Initial value loading for localidad
+	useEffect(() => {
+		setLocalidadSelect((o) => {
+			const options = o.options;
+			let selected = o.selected;
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) { selected = foundOption; }
+			}
+			return { ...o, selected };
+		});
+	}, [localidadSelect.data]);
 	//#endregion select localidad
  
 	//#region localidadInit
@@ -241,28 +268,7 @@ const DelegacionesForm = ({
 			setProvinciaSelect((o) => ({
 				...o,
 				reload: true,
-				onLoaded: (changesProv) => {
-					changesProv.selected =
-						changesProv?.options?.find((r) => r?.value === ok?.provinciaId) ?? {};
-					setLocalidadSelect((o) => ({
-						...o,
-						reload: !!changesProv.selected.value,
-						params: { ...o.params, provinciaId: changesProv.selected.value },
-						data: [],
-						options: [],
-						filtered: [],
-						selected: {
-							id: 0,
-							label: changesProv?.selected?.data?.localidadDescripcionPorDefecto,
-						},
-						onLoaded: (changesLoc) => {
-							changesLoc.selected =
-								changesLoc.options.find(
-									(r) => r.value === data.refLocalidadId
-								) ?? {};
-						},
-					}));
-				},
+				selected: { record: { id: ok?.provinciaId } },
 			}));
 		},
 	});
@@ -297,7 +303,6 @@ const DelegacionesForm = ({
 		params: { id: data.delegadoId },
 		data: {},
 		error: null,
-		onLoaded,
 	});
 
 	useEffect(() => {
@@ -340,7 +345,6 @@ const DelegacionesForm = ({
 		params: { id: data.subDelegadoId },
 		data: {},
 		error: null,
-		onLoaded,
 	});
 
 	useEffect(() => {
@@ -536,20 +540,31 @@ const DelegacionesForm = ({
 							value={provinciaSelect.selected}
 							disabled={!!disabled.refLocalidadId}
 							onChange={(selected) => {
-								setProvinciaSelect((o) => ({ ...o, selected }));
-								onChange({ refLocalidadId: 0 });
-								setLocalidadSelect((o) => ({
-									...o,
-									reload: !!selected.value,
-									params: { ...o.params, provinciaId: selected.value },
-									data: [],
-									options: [],
-									filtered: [],
-									selected: {
-										id: 0,
-										label: selected.data.localidadDescripcionPorDefecto,
-									},
-								}));
+								if (selected?.value) {
+									setProvinciaSelect((o) => ({ ...o, selected }));
+									onChange({ refLocalidadId: 0 });
+									setLocalidadSelect((o) => ({
+										...o,
+										reload: !!selected.value,
+										params: { ...o.params, provinciaId: selected.value },
+										data: [],
+										options: [],
+										filtered: [],
+										selected: { record: { id: null } },
+									}));
+								} else {
+									setProvinciaSelect((o) => ({ ...o, selected }));
+									onChange({ refLocalidadId: 0 });
+									setLocalidadSelect((o) => ({
+										...o,
+										reload: false,
+										params: { ...o.params, provinciaId: null },
+										data: [],
+										options: [],
+										filtered: [],
+										selected: { record: { id: null } },
+									}));
+								}
 							}}
 							options={provinciaSelect.filtered}
 							onTextChange={(buscar) =>
@@ -570,7 +585,11 @@ const DelegacionesForm = ({
 							disabled={!!disabled.refLocalidadId}
 							onChange={(selected) => {
 								setLocalidadSelect((o) => ({ ...o, selected }));
-								onChange({ refLocalidadId: selected.value });
+								if (selected?.value) {
+									onChange({ refLocalidadId: selected.value });
+								} else {
+									onChange({ refLocalidadId: 0 });
+								}
 							}}
 							options={localidadSelect.options}
 							onTextChange={(buscar) =>
