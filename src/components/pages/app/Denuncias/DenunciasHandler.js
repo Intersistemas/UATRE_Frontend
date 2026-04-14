@@ -232,21 +232,27 @@ const DenunciasHandler = () => {
     if ((mode === "M" || mode === "C") && record?.id) {
       const mapApiToForm = (r = {}) => ({
         id: r.id,
+        fecha: r.fecha || "",
+        fechaIngreso: r.fechaIngreso ? `${r.fechaIngreso}`.slice(0, 10) : "",
+        numeroSeguimiento: r.numeroSeguimiento ?? "",
         provinciaNombre: r.provincia || "",
         provinciaId: r.provinciaId || 0,
         refLocalidadIdAfiliado: r.localidadId || 0,
         nombreLocalidadAfiliado: r.localidad || "",
         delegacion: r.delegacion || "",
         seccional: r.seccional || "",
-        nombreDenunciante: r.nombre || "",
-        telefonoContacto: r.telefonoContacto || r.telefono || "",
-        correoElectronico: r.correo || "",
+        nombre: r.nombre || "",
+        telefono: r.telefonoContacto || r.telefono || "",
+        correo: r.correo || "",
         denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
         denunciaSituacionId: r.denunciaSituacionId || 0,
         cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
         razonSocial: r.empleadorNombre || "",
-        detalleDenuncia: r.texto || "",
+        texto: r.texto || "",
         ubicacion: r.ubicacion || "",
+        derivadoATipo: r.derivadoATipo || r.derivadaA || "Sin derivacion",
+        derivadoDelegacion: r.derivadoDelegacion || "",
+        derivadoSeccional: r.derivadoSeccional || "",
 
   // Derivación: tomar SIEMPRE lo que viene de BD como fuente principal
   derivadaA: r.derivadoATipo || r.derivadaA || "Sin derivacion",
@@ -650,40 +656,46 @@ const DenunciasHandler = () => {
 
     setExportLoading(true);
 
-    try {
+        try {
       // Los datos ya vienen formateados desde el modal con la "Ultima Novedad"
       // Solo necesitamos procesarlos según los permisos del usuario
       const datosExcel = selectedData.map((row) => {
         if (puedeVerTodosLosDatos) {
           // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
           return {
-            "Nro. Denuncia": row["Nro. Denuncia"] ?? row["id"] ?? "",
-            "Fecha": row["Fecha"] || "",
-            "Denunciante": row["Denunciante"] || row["Nombre"] || "",
-            "Correo": row["Correo"] || "",
-            "Teléfono": row["Teléfono"] || "",
-            "Provincia": row["Provincia"] || "",
-            "Localidad": row["Localidad"] || "",
-            "Estado": row["Estado"] || "",
-            "Empresa": row["Empresa"] || "",
-            "CUIT": row["CUIT"] || "",
-            "Ubicación": row["Ubicación"] || "",
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
-            "Derivado A Tipo": row["Derivado A Tipo"] || "",
-            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+            "Nro. Denuncia": row["Nro. Denuncia"],
+            "numeroSeguimiento": row["numeroSeguimiento"],
+            "Fecha de carga": row["Fecha de carga"],
+            "Fecha de ingreso": row["Fecha de ingreso"],
+            "Denunciante": row["Denunciante"],
+            "Correo": row["Correo"],
+            "Teléfono": row["Teléfono"],
+            "Provincia": row["Provincia"],
+              "Localidad": row["Localidad"],
+              "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Derivado A Tipo": row["Derivado A Tipo"],
+            "Derivado a Delegación": row["Derivado a Delegación"],
+            "Derivado a Seccional": row["Derivado a Seccional"],
+            "Ultima Novedad": row["Ultima Novedad"]
           };
         } else {
           //  USUARIOS CON PERMISOS LIMITADOS - Solo columnas básicas + Ultima Novedad
           return {
-            "Fecha": row["Fecha"] || "",
-            "Teléfono": row["Teléfono"] || "",
-            "Localidad": row["Localidad"] || "",
-            "Estado": row["Estado"] || "",
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"] || "",
-            "Empresa": row["Empresa"] || "",
-            "CUIT": row["CUIT"] || "",
-            "Ubicación": row["Ubicación"] || "",
-            "Ultima Novedad": row["Ultima Novedad"] || "Sin novedad"
+            "Fecha": row["Fecha"],
+            "Teléfono": row["Teléfono"],
+            "Localidad": row["Localidad"],
+            "Seccional": row["Seccional"],
+            "Estado": row["Estado"],
+            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
+            "Empresa": row["Empresa"],
+            "CUIT": row["CUIT"],
+            "Ubicación": row["Ubicación"],
+            "Ultima Novedad": row["Ultima Novedad"]
           };
         }
       });
