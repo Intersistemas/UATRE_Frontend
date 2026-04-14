@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Modal } from "react-bootstrap";
 import UseKeyPress from "components/helpers/UseKeyPress";
 import useQueryQueue, { QueryClass } from "components/hooks/useQueryQueue";
@@ -10,6 +10,8 @@ import SearchSelectMaterial, {
 	mapOptions,
 	includeSearch,
 } from "components/ui/Select/SearchSelectMaterial";
+import AuthContext from "../../../../store/authContext";
+
 
 const onChangeDef = (changes = {}) => {};
 const onCloseDef = (confirm = false) => {};
@@ -55,6 +57,7 @@ const DelegacionesForm = ({
 	UseKeyPress(["Escape"], () => onClose());
 	UseKeyPress(["Enter"], () => onClose(true), "AltKey");
 
+	const Usuario = useContext(AuthContext).usuario;
 	//#region consultas API
 	const pushQuery = useQueryQueue((action, params) => {
 		switch (action) {
@@ -93,6 +96,13 @@ const DelegacionesForm = ({
 						baseURL: "Afiliaciones",
 						endpoint: `/Afiliado/GetAfiliadosWithSpec`,
 						method: "POST",
+						body: {
+							...params,
+							ambitoTodos: Usuario.ambitoTodos,
+							ambitoSeccionales: Usuario.ambitoSeccionales,
+							ambitoDelegaciones: Usuario.ambitoDelegaciones,
+							ambitoProvincias: Usuario.ambitoProvincias,
+						},
 					},
 				};
 			}
@@ -331,7 +341,8 @@ const DelegacionesForm = ({
 			query.onOk = async (data) => (changes.data = data ?? {});
 		} else {
 			query.action = "GetAfiliados"
-			query.config.body = { ...delegado.params };
+			query.params = { ...delegado.params };
+				query.config.body = { ...delegado.params };
 			query.onOk = async ({ data }) => (changes.data = data.at(0) ?? {});
 		}
 		pushQuery(query);
@@ -373,7 +384,8 @@ const DelegacionesForm = ({
 			query.onOk = async (data) => (changes.data = data ?? {});
 		} else {
 			query.action = "GetAfiliados"
-			query.config.body = { ...subdelegado.params };
+			query.params = { ...subdelegado.params };
+				query.config.body = { ...subdelegado.params };
 			query.onOk = async ({ data }) => (changes.data = data.at(0) ?? {});
 		}
 		pushQuery(query);
