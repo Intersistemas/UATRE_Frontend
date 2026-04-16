@@ -1,36 +1,19 @@
 
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext } from "react";
 import AsArray from "components/helpers/AsArray";
 import Table from "components/ui/Table/Table";
 import FormatearFecha from "../../../helpers/FormatearFecha";
 import AuthContext from "store/authContext";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
-import useQueryQueue from "components/hooks/useQueryQueue";
 import useAmbitosUsuario from "components/hooks/useAmbitos";
 
 const DenunciasTable = ({ columns, ...x } = {}) => {
   const { usuario } = useContext(AuthContext);
   const tareasManager = useTareasUsuario();
-  const pushQuery = useQueryQueue((action) => {
-    if (action === "GetTipoDenuncia") {
-      return {
-        config: {
-          baseURL: "App",
-          method: "GET",
-          endpoint: "/DenunciaTipo", // Base endpoint, el ID se añadirá dinámicamente
-        },
-      };
-    }
-    return null;
-  });
 
   // Obtener info de ámbitos desde el hook (llamar en el tope del componente)
   const ambitosManager = useAmbitosUsuario();
   const ambitoInfoGlobal = ambitosManager?.ambitoUser ? ambitosManager.ambitoUser() : { tipo: null, ids: [] };
-
-  // Estado para cachear los tipos de denuncia
-  const [tiposDenuncia, setTiposDenuncia] = useState({});
-  const [cargandoTipos, setCargandoTipos] = useState(false);
 
   // Verificar si el usuario puede ver todos los datos
   const puedeVerTodosLosDatos = React.useMemo(() => {
@@ -72,87 +55,6 @@ const DenunciasTable = ({ columns, ...x } = {}) => {
     
     return resultado;
   }, [usuario, tareasManager, ambitoInfoGlobal]);
-
-  // Función para obtener el tipo de denuncia
-  const obtenerTipoDenuncia = React.useCallback((tipoId) => {
-    if (!tipoId || tiposDenuncia[tipoId]) {
-      return;
-    }
-
-    if (cargandoTipos) return;
-
-    setCargandoTipos(true);
-    
-    if (process.env.NODE_ENV !== "production") {
-      console.debug("🔍 Obteniendo tipo de denuncia:", { tipoId });
-    }
-    
-    // 🔧 Crear configuración dinámica con el ID en el endpoint
-    const configDinamica = {
-      baseURL: "App",
-      method: "GET",
-      endpoint: `/DenunciaTipo/${tipoId}`, // Endpoint completo con ID
-    };
-    
-    pushQuery({
-      action: "GetTipoDenuncia",
-      config: configDinamica, // Usar configuración dinámica
-      onOk: (response) => {
-        if (process.env.NODE_ENV !== "production") {
-          console.debug(" Respuesta del tipo de denuncia:", { tipoId, response });
-        }
-        const descripcion = response?.descripcion || "Tipo desconocido";
-        setTiposDenuncia(prev => ({
-          ...prev,
-          [tipoId]: descripcion
-        }));
-        setCargandoTipos(false);
-      },
-      onError: (error) => {
-        console.error(" Error al obtener tipo de denuncia:", { tipoId, error });
-        
-        // Fallback: usar el ID como descripción si hay error
-        setTiposDenuncia(prev => ({
-          ...prev,
-          [tipoId]: `Tipo ${tipoId}`
-        }));
-        setCargandoTipos(false);
-      }
-    });
-  }, [tiposDenuncia, cargandoTipos, pushQuery]);
-
-  // Effect para precargar los tipos de denuncia cuando cambian las props
-  useEffect(() => {
-    if (x.data && Array.isArray(x.data)) {
-      if (process.env.NODE_ENV !== "production") {
-        console.debug(" Datos de denuncias recibidos para tipos:", {
-          totalRegistros: x.data.length,
-          primerosRegistros: x.data.slice(0, 2).map(item => ({
-            id: item.id,
-            denunciaTipoId: item.denunciaTipoId,
-            denunciaTipoIngresoId: item.denunciaTipoIngresoId,
-            tipoId: item.tipoId,
-            tipo: item.tipo
-          }))
-        });
-      }
-      
-      const tiposUnicos = [...new Set(x.data
-        .map(item => item.denunciaTipoId || item.denunciaTipoIngresoId || item.tipoId)
-        .filter(Boolean)
-      )];
-      
-      if (process.env.NODE_ENV !== "production") {
-        console.debug(" Tipos únicos encontrados:", tiposUnicos);
-      }
-      
-      tiposUnicos.forEach(tipoId => {
-        if (!tiposDenuncia[tipoId] && !cargandoTipos) {
-          obtenerTipoDenuncia(tipoId);
-        }
-      });
-    }
-  }, [x.data, tiposDenuncia, obtenerTipoDenuncia, cargandoTipos]);
 
   // Construir las columnas finales según los permisos del usuario
   const columnsDef = React.useMemo(() => {
