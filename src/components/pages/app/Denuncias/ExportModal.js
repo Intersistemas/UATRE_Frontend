@@ -789,7 +789,7 @@ const ExportModal = ({
 				item["Teléfono"] = denuncia.telefono || denuncia.telefonoContacto || "";
 				item["Provincia"] = denuncia.provincia || "";
 				item["Localidad"] = denuncia.localidad || "";
-				// Código Seccional (viene en el JSON como seccionalCodigo)
+	
 				item["Código Seccional"] = denuncia.seccionalCodigo || "";
 				// Seccional (campo exacto en la BD: seccional)
 				item["Seccional"] = denuncia.seccional;

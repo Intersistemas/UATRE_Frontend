@@ -294,25 +294,16 @@ const SeccionalesForm = ({
 		setEstadoSelect((o) => {
 			const options = estadoSelectOptions(o);
 			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn =
-					record.id != null
-						? (o) => o.record.id === record.id
-						: record.descripcion != null
-						? (o) => includeSearch(o, record.descripcion)
-						: null;
-				selected = findFn ? options.find(findFn) : null;
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
+			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) {
+					selected = foundOption;
 				}
 			}
-			return { ...o, options, selected, origen };
+			return { ...o, options, selected };
 		});
-	}, [estadoSelect.buscar, estadoSelect.data]);
+	}, [estadoSelect.data]);
 	//#endregion Select estadoSeccional
 
 	//#region Select provincia
@@ -331,25 +322,16 @@ const SeccionalesForm = ({
 		setProvinciaSelect((o) => {
 			const options = provinciaSelectOptions(o);
 			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn =
-					record.id != null
-						? (o) => o.record.id === record.id
-						: record.nombre != null
-						? (o) => includeSearch(o, record.nombre)
-						: null ;
-				selected = findFn ? options.find(findFn) : null;
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
+			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) {
+					selected = foundOption;
 				}
 			}
-			return { ...o, options, selected, origen };
+			return { ...o, options, selected };
 		});
-	}, [provinciaSelect.buscar, provinciaSelect.data]);
+	}, [provinciaSelect.data]);
 	//#endregion Select provincia
 
 	//#region Select localidad
@@ -359,7 +341,7 @@ const SeccionalesForm = ({
 		data: [],
 		error: null,
 		options: [],
-		selected: localidadDefOption,
+		selected: { record: { id: data.refLocalidadesId } },
 		origen: "",
 	});
 	// Buscador
@@ -367,27 +349,16 @@ const SeccionalesForm = ({
 		setLocalidadSelect((o) => {
 			const options = localidadSelectOptions(o);
 			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn =
-					record.id != null
-						? (o) => o.record.id === record.id
-						: record.codPostal != null
-						? (o) => o.record.codPostal === record.codPostal
-						: record.nombre != null
-						? (o) => includeSearch(o, record.nombre)
-						: null;
-				selected = findFn ? options.find(findFn) : null;
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
+			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) {
+					selected = foundOption;
 				}
 			}
-			return { ...o, options, selected, origen };
+			return { ...o, options, selected };
 		});
-	}, [localidadSelect.buscar, localidadSelect.data]);
+	}, [localidadSelect.data]);
 	//#endregion Select localidad
 
 	//#region Select delegacionSelect
@@ -406,25 +377,16 @@ const SeccionalesForm = ({
 		setDelegacionSelect((o) => {
 			const options = delegacionSelectOptions(o);
 			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn =
-					record.id != null
-						? (o) => o.record.id === record.id
-						: record.nombre != null
-						? (o) => includeSearch(o, record.nombre)
-						: null;
-				selected = findFn ? options.find(findFn) : null;
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
+			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) {
+					selected = foundOption;
 				}
 			}
-			return { ...o, options, selected, origen };
+			return { ...o, options, selected };
 		});
-	}, [delegacionSelect.buscar, delegacionSelect.data]);
+	}, [delegacionSelect.data]);
 	//#endregion Select delegacionSelect
 
 	//#region Select seccional
@@ -445,25 +407,16 @@ const SeccionalesForm = ({
 		setSeccionalSelect((o) => {
 			const options = seccionalSelectOptions(o);
 			let selected = o.selected;
-			let origen = o.origen;
-			if (!selected.value && selected.record) {
-				const record = selected.record;
-				const findFn =
-					record.id != null
-						? (o) => o.record.id === record.id
-						: record.descripcion != null
-						? (o) => includeSearch(o, `${record.codigo}-${record.descripcion}`)
-						: null ;
-				selected = findFn ? options.find(findFn) : null;
-				if (selected) {
-					origen = "option";
-				} else {
-					selected = o.selected;
+			// Si no hay valor seleccionado pero hay un ID en el record, buscar la opción correspondiente
+			if (!selected.value && selected.record?.id && options.length > 0) {
+				const foundOption = options.find(opt => opt.value === selected.record.id);
+				if (foundOption) {
+					selected = foundOption;
 				}
 			}
-			return { ...o, options, selected, origen };
+			return { ...o, options, selected };
 		});
-	}, [seccionalSelect.buscar, seccionalSelect.data]);
+	}, [seccionalSelect.data, request]);
 	//#endregion Select seccional
 
 	//#endregion Selects
@@ -691,7 +644,9 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									onChange({ seccionalIdAbsorbente: selected.value });
+									if (selected?.value) {
+										onChange({ seccionalIdAbsorbente: selected.value });
+									}
 								}}
 								options={seccionalSelect.options}
 								onTextChange={(buscar) =>
@@ -747,7 +702,9 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									onChange({ seccionalEstadoId: selected.value });
+									if (selected?.value) {
+										onChange({ seccionalEstadoId: selected.value });
+									}
 								}}
 								options={estadoSelect.options}
 								onTextChange={(buscar) =>
@@ -783,7 +740,7 @@ const SeccionalesForm = ({
 										buscar: "",
 									}));
 									onChange({ refLocalidadesId: 0 });
-									if (selected === provinciaDefOption) return;
+									if (!selected || !selected.value || selected === provinciaDefOption) return;
 									setLocalidadesQuery((o) => ({
 										...o,
 										query: {
@@ -829,7 +786,9 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									onChange({ refLocalidadesId: selected.value });
+									if (selected?.value) {
+										onChange({ refLocalidadesId: selected.value });
+									}
 								}}
 								options={localidadSelect.options}
 								onTextChange={(buscar) =>
@@ -865,7 +824,9 @@ const SeccionalesForm = ({
 										selected,
 										origen: "option",
 									}));
-									onChange({ refDelegacionId: selected.value });
+									if (selected?.value) {
+										onChange({ refDelegacionId: selected.value });
+									}
 								}}
 								options={delegacionSelect.options}
 								onTextChange={(buscar) =>
