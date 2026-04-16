@@ -664,7 +664,7 @@ const DenunciasHandler = () => {
           // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
           return {
             "Nro. Denuncia": row["Nro. Denuncia"],
-            "numeroSeguimiento": row["numeroSeguimiento"],
+            "Nro. Seguimiento": row["numeroSeguimiento"],
             "Fecha de carga": row["Fecha de carga"],
             "Fecha de ingreso": row["Fecha de ingreso"],
             "Denunciante": row["Denunciante"],
@@ -672,6 +672,7 @@ const DenunciasHandler = () => {
             "Teléfono": row["Teléfono"],
             "Provincia": row["Provincia"],
               "Localidad": row["Localidad"],
+              "Código Seccional": row["Código Seccional"],
               "Seccional": row["Seccional"],
             "Estado": row["Estado"],
             "Empresa": row["Empresa"],

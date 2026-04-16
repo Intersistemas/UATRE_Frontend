@@ -76,6 +76,14 @@ const baseColumns = [
 		style: { textAlign: "left" },
 	},
 	{
+		dataField: "seccionalCodigo",
+		text: "Código Seccional",
+		headerTitle: true,
+		headerStyle: { width: "6em", textAlign: "center" },
+		csvFormat: (v) => v,
+		style: { textAlign: "center" },
+	},
+	{
 		dataField: "seccional",
 		text: "Seccional",
 		headerTitle: true,
@@ -198,7 +206,7 @@ const ExportModal = ({
 
 		const numeroSeguimientoColumn = {
 			dataField: "numeroSeguimiento",
-			text: "numeroSeguimiento",
+			text: "Nro. Seguimiento",
 			headerTitle: true,
 			headerStyle: { width: "8em", textAlign: "center" },
 			csvFormat: (v) => v,
@@ -781,6 +789,8 @@ const ExportModal = ({
 				item["Teléfono"] = denuncia.telefono || denuncia.telefonoContacto || "";
 				item["Provincia"] = denuncia.provincia || "";
 				item["Localidad"] = denuncia.localidad || "";
+	
+				item["Código Seccional"] = denuncia.seccionalCodigo || "";
 				// Seccional (campo exacto en la BD: seccional)
 				item["Seccional"] = denuncia.seccional;
 				item["Estado"] = denuncia.estado || "Sin estado";

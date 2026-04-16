@@ -1533,7 +1533,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			selected: estadoOptions.find(o => o.value === (state.form?.estado || "Registrada")) || null,
 		};
 
-		const isRegistrada = estadoPersistido === "Registrada";
+		const isRegistrada = String((state.form?.estado || "")).trim() === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
 		const derivadaOptionsFor = (tipo) => {
 			if (tipo === "Asesoria Letrada") return ["Asesoria Letrada"];
@@ -1680,6 +1680,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 								id="fechaIngreso"
 								type="date"
 								readOnly={isConsulta || readOnly || lockAllExceptRouting}
+								disabled={isConsulta || readOnly || lockAllExceptRouting}
 								className={roClass(isConsulta || readOnly || lockAllExceptRouting)}
 								label="Fecha de Ingreso"
 								value={state.form.fechaIngreso || ""}
