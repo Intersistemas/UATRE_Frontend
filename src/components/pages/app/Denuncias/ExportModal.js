@@ -20,28 +20,28 @@ import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
-// Columnas base para la tabla de denuncias con filtro de novedades
+// Columnas base para la tabla de denuncias
 const baseColumns = [
 	{
-			dataField: "fecha",
-			text: "Fecha de carga",
-			sort: true,
-			headerTitle: () => "Fecha de la denuncia",
-			headerStyle: { width: "7em", textAlign: "center" },
-			formatter: (v) => FormatearFecha(v),
-			csvFormat: (v) => FormatearFecha(v),
-			style: { textAlign: "center" },
-		},
-		{
-			dataField: "fechaIngreso",
-			text: "Fecha de ingreso",
-			sort: false,
-			headerTitle: true,
-			headerStyle: { width: "7em", textAlign: "center" },
-			formatter: (v) => (v ? FormatearFecha(v) : ""),
-			csvFormat: (v) => (v ? FormatearFecha(v) : ""),
-			style: { textAlign: "center" },
-		},
+		dataField: "fecha",
+		text: "Fecha de carga",
+		sort: true,
+		headerTitle: () => "Fecha de la denuncia",
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => FormatearFecha(v),
+		csvFormat: (v) => FormatearFecha(v),
+		style: { textAlign: "center" },
+	},
+	{
+		dataField: "fechaIngreso",
+		text: "Fecha de ingreso",
+		sort: false,
+		headerTitle: true,
+		headerStyle: { width: "7em", textAlign: "center" },
+		formatter: (v) => (v ? FormatearFecha(v) : ""),
+		csvFormat: (v) => (v ? FormatearFecha(v) : ""),
+		style: { textAlign: "center" },
+	},
 	{
 		dataField: "nombre",
 		text: "Denunciante",
@@ -74,6 +74,14 @@ const baseColumns = [
 		headerStyle: { width: "8em", textAlign: "center" },
 		csvFormat: (v) => v,
 		style: { textAlign: "left" },
+	},
+	{
+		dataField: "seccionalCodigo",
+		text: "Código Seccional",
+		headerTitle: true,
+		headerStyle: { width: "6em", textAlign: "center" },
+		csvFormat: (v) => v,
+		style: { textAlign: "center" },
 	},
 	{
 		dataField: "seccional",
@@ -160,9 +168,9 @@ const estadosSelectOptions = ({ data = [], buscar = "", ...x }) =>
 	});
 //#endregion estadosSelectOptions
 
-const ExportModal = ({ 
-	onClose = onCloseDef, 
-	currentFilters = {}, 
+const ExportModal = ({
+	onClose = onCloseDef,
+	currentFilters = {},
 	usuarioAmbito = null,
 	applyAmbitoFilter = null,
 	initialData = null,
@@ -172,11 +180,11 @@ const ExportModal = ({
 	const ambitosManager = useAmbitos();
 	const ambitoInfoGlobal = useMemo(() => ambitosManager.ambitoUser(), [ambitosManager]);
 
-	// Determina si el usuario puede ver todos los datos (incluye Nro. Denuncia y Denunciante completo)
+	// Determina si el usuario puede ver todos los datos
 	const puedeVerTodosLosDatos = useMemo(() => {
 		try {
 			const esAdministrador = usuario?.roles?.includes("Administrador") || false;
-				const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
+			const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
 			if (esAdministrador || ambitoName === "Todos") return true;
 			return tareasManager.hasTarea("Denuncias_Datos");
 		} catch (error) {
@@ -185,7 +193,7 @@ const ExportModal = ({
 		}
 	}, [usuario, ambitoInfoGlobal, tareasManager]);
 
-	// Columnas dinámicas en función del permiso para ver todos los datos
+	// Columnas dinámicas según permisos
 	const columns = useMemo(() => {
 		const idColumn = {
 			dataField: "id",
@@ -195,35 +203,29 @@ const ExportModal = ({
 			csvFormat: (v) => v,
 			style: { textAlign: "center" },
 		};
-
 		const numeroSeguimientoColumn = {
 			dataField: "numeroSeguimiento",
-			text: "numeroSeguimiento",
+			text: "Nro. Seguimiento",
 			headerTitle: true,
 			headerStyle: { width: "8em", textAlign: "center" },
 			csvFormat: (v) => v,
 			style: { textAlign: "center" },
 		};
-
 		if (puedeVerTodosLosDatos) {
 			return [idColumn, numeroSeguimientoColumn, ...baseColumns];
 		}
-
-		// Columnas reducidas: fecha, telefono, localidad, estado
-		return baseColumns.filter((c) => ["fecha", "telefono", "localidad", "estado"].includes(c.dataField));
+		return baseColumns.filter((c) =>
+			["fecha", "telefono", "localidad", "estado"].includes(c.dataField)
+		);
 	}, [puedeVerTodosLosDatos]);
-	
+
 	// Verificar permisos para mostrar el modal de exportación
 	const tienePermisoExportar = useMemo(() => {
-		if (!usuario || !tareasManager) {
-			return false;
-		}
-		
+		if (!usuario || !tareasManager) return false;
 		try {
 			const esAdministrador = usuario?.roles?.includes("Administrador") || false;
-				const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
+			const ambitoName = ambitoInfoGlobal?.tipo || usuario?.ambito || null;
 			const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
-			// Administrador o ambito 'Todos' pueden exportar sin la tarea; otros necesitan la tarea
 			return esAdministrador || ambitoName === "Todos" || tieneTareaExcel;
 		} catch (error) {
 			console.error("Error verificando permisos en ExportModal:", error);
@@ -252,6 +254,15 @@ const ExportModal = ({
 					},
 				};
 			}
+			case "GetSeccionales": {
+				return {
+					config: {
+						baseURL: "Afiliaciones",
+						endpoint: `/Seccional`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
@@ -259,13 +270,16 @@ const ExportModal = ({
 	//#endregion
 
 	//#region filtro estados
+	const estadoInicialValue = currentFilters.estado || "";
 	const [estadoSelect, setEstadoSelect] = useState({
 		loading: null,
 		buscar: "",
 		data: [],
 		error: null,
 		options: [],
-		selected: estadosSelectTodos,
+		selected: estadoInicialValue
+			? { value: estadoInicialValue, label: estadoInicialValue }
+			: estadosSelectTodos,
 	});
 
 	useEffect(() => {
@@ -284,8 +298,8 @@ const ExportModal = ({
 	//#endregion filtro estados
 
 	//#region filtro fechas
-	const [fechaDesde, setFechaDesde] = useState(null);
-	const [fechaHasta, setFechaHasta] = useState(null);
+	const [fechaDesde, setFechaDesde] = useState(currentFilters.fechaDesde || null);
+	const [fechaHasta, setFechaHasta] = useState(currentFilters.fechaHasta || null);
 
 	// Función para aplicar filtro por fechas (similar al patrón del archivo principal)
 	const aplicarFiltroFechas = useCallback((data) => {
@@ -385,11 +399,65 @@ const ExportModal = ({
 
 	//#endregion
 
+	//#region seccionales
+	const [seccionales, setSeccionales] = useState({ loaded: false, data: [] });
+
+	useEffect(() => {
+		if (seccionales.loaded) return;
+		pushQuery({
+			action: "GetSeccionales",
+			params: {},
+			onOk: (data) => {
+				const arr = Array.isArray(data) ? data : data?.data || [];
+				setSeccionales({ loaded: true, data: arr });
+			},
+			onError: () => setSeccionales({ loaded: true, data: [] }),
+		});
+	}, [pushQuery, seccionales.loaded]);
+	//#endregion seccionales
+
+	// Enriquece un registro con info de seccional y nombres de derivación
+	const enrichWithSeccional = useCallback((denuncia) => {
+		const enriched = { ...denuncia };
+
+		if ((!enriched.seccional || !enriched.seccionalCodigo) && seccionales.data.length > 0) {
+			const seccionalId = denuncia.seccionalId || denuncia.seccional_id;
+			if (seccionalId) {
+				const sec = seccionales.data.find((s) => String(s.id) === String(seccionalId));
+				if (sec) {
+					enriched.seccional = enriched.seccional || sec.descripcion || "";
+					enriched.seccionalCodigo = enriched.seccionalCodigo || sec.codigo || "";
+				}
+			}
+		}
+
+		const tipo = (denuncia.derivadoATipo || denuncia.derivadoA_Tipo || "")
+			.toLowerCase()
+			.normalize("NFD")
+			.replace(/[̀-ͯ]/g, "")
+			.trim();
+		const idDerivacion = denuncia.derivadoAId || denuncia.derivadoA_Id;
+
+		if (tipo === "seccional" && idDerivacion) {
+			const sec = seccionales.data.find((s) => String(s.id) === String(idDerivacion));
+			enriched.derivadoSeccional = sec ? (sec.descripcion || sec.codigo || String(idDerivacion)) : String(idDerivacion);
+			enriched.derivadoDelegacion = "";
+		} else if (tipo === "delegacion" && idDerivacion) {
+			enriched.derivadoDelegacion = String(idDerivacion);
+			enriched.derivadoSeccional = "";
+		} else {
+			enriched.derivadoDelegacion = enriched.derivadoDelegacion || "";
+			enriched.derivadoSeccional = enriched.derivadoSeccional || "";
+		}
+
+		return enriched;
+	}, [seccionales.data]);
+
 	//#region list denuncias
 	const [list, setList] = useState({
 		reload: initialData ? false : true,
 		loading: null,
-		pagination: { index: 1, size: 100 }, // Cargar más registros del servidor
+		pagination: { index: 1, size: 100 },
 		sort: "+fecha",
 		params: { ...currentFilters },
 		data: initialData || [],
@@ -397,11 +465,28 @@ const ExportModal = ({
 		error: null,
 	});
 
+	// Cuando se pasan datos pre-cargados (initialData), aplicar filtros client-side
+	useEffect(() => {
+		if (!initialData) return;
+		let data = [...initialData];
+
+		if (estadoSelect.selected?.value) {
+			data = data.filter((d) => d.estado === estadoSelect.selected.value);
+		}
+
+		data = aplicarFiltroFechas(data);
+
+		data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+		setList((prev) => ({ ...prev, data }));
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialData, estadoSelect.selected, aplicarFiltroFechas]);
+
 	useEffect(() => {
 		if (!list.reload) return;
-		
-		// Esperar a que se carguen los estados de denuncias antes de cargar las denuncias
-		if (!estadosDenuncias.loaded) {
+
+		// Esperar a que se carguen los estados y las seccionales antes de cargar las denuncias
+		if (!estadosDenuncias.loaded || !seccionales.loaded) {
 			return;
 		}
 		
@@ -413,14 +498,16 @@ const ExportModal = ({
 		};
 		setList((o) => ({ ...o, ...changes }));
 
+		// Excluir estado de los params de la API: el backend no filtra por estado como string
+		// y para ciertos valores ("En Planificacion", "Gestion con Empleador") retorna error.
+		// El filtro de estado se aplica exclusivamente client-side.
+		const { estado: _estadoIgnored, pageSize: _psIgnored, pageIndex: _piIgnored, sortBy: _sbIgnored, ...apiBaseParams } = list.params;
 		let params = {
-			...list.params,
+			...apiBaseParams,
 			sortBy: list.sort,
-			pageIndex: list.pagination.index,
-			pageSize: list.pagination.size,
+			pageIndex: 1,
+			pageSize: 10000,
 		};
-
-		// Nota: El filtro por estado se aplica en el cliente después de obtener los datos
 
 		pushQuery({
 			action: "GetDenuncias",
@@ -461,9 +548,9 @@ const ExportModal = ({
 					// Enriquecer datos con el estado, fecha y observaciones de cada denuncia
 					if (estadosDenuncias.data.length > 0) {
 						data = data.map(denuncia => {
-							// Buscar todos los estados de esta denuncia
+							// Buscar todos los estados de esta denuncia (Number() evita mismatch string/number)
 							const estadosDeDenuncia = estadosDenuncias.data.filter(
-								estado => estado.appDenunciasId === denuncia.id
+								estado => Number(estado.appDenunciasId) === Number(denuncia.id)
 							);
 							
 							let estadoActual = "Sin estado";
@@ -489,6 +576,9 @@ const ExportModal = ({
 							};
 						});
 					}
+
+					// Enriquecer con seccional y nombres de derivación
+					data = data.map((d) => enrichWithSeccional(d));
 
 					// Aplicar filtro por estado si está seleccionado (cadena vacía = todos)
 					if (estadoSelect.selected && estadoSelect.selected.value && estadoSelect.selected.value !== "") {
@@ -516,7 +606,7 @@ const ExportModal = ({
 			onFinally: async () =>
 				setList((o) => ({ ...o, ...changes, loading: null })),
 		});
-	}, [list, pushQuery, usuarioAmbito, applyAmbitoFilter, estadoSelect.selected, estadosDenuncias.data, estadosDenuncias.loaded, aplicarFiltroFechas]);
+	}, [list, pushQuery, usuarioAmbito, applyAmbitoFilter, estadoSelect.selected, estadosDenuncias.data, estadosDenuncias.loaded, aplicarFiltroFechas, seccionales.loaded, enrichWithSeccional]);
 
 	// Enriquecer denuncias existentes cuando se cargan los estados por primera vez
 	useEffect(() => {
@@ -528,7 +618,7 @@ const ExportModal = ({
 			);
 			
 			if (denunciasSinDatos.length > 0) {
-				// Enriquecer datos existentes con estados, fecha y observaciones
+				// Enriquecer datos existentes con estados, fecha, observaciones y seccional
 				const datosEnriquecidos = list.data.map(denuncia => {
 					if (denuncia.estado && denuncia.estado !== "" && denuncia.estado !== "Sin estado" 
 						&& denuncia.fechaUltimaNovedad && denuncia.ultimaNovedad) {
@@ -536,18 +626,18 @@ const ExportModal = ({
 						return denuncia;
 					}
 					
-					// Buscar todos los estados de esta denuncia
+					// Buscar todos los estados de esta denuncia (Number() evita mismatch string/number)
 					const estadosDeDenuncia = estadosDenuncias.data.filter(
-						estado => estado.appDenunciasId === denuncia.id
+						estado => Number(estado.appDenunciasId) === Number(denuncia.id)
 					);
-					
+
 					let estadoActual = "Sin estado";
 					let fechaUltimaNovedad = null;
 					let ultimaNovedad = "Sin novedad";
-					
+
 					if (estadosDeDenuncia.length > 0) {
 						// Ordenar por fecha (más reciente primero) y tomar el primero
-						const ultimoEstado = estadosDeDenuncia.sort((a, b) => 
+						const ultimoEstado = estadosDeDenuncia.sort((a, b) =>
 							new Date(b.fecha || b.fechaAsociada) - new Date(a.fecha || a.fechaAsociada)
 						)[0];
 						
@@ -564,10 +654,13 @@ const ExportModal = ({
 					};
 				});
 				
+				// Aplicar enrichWithSeccional sobre cada registro
+				const datosConSeccional = datosEnriquecidos.map((d) => enrichWithSeccional(d));
+
 				// Aplicar filtro por estado si está seleccionado
-				let datosFiltrados = datosEnriquecidos;
+				let datosFiltrados = datosConSeccional;
 				if (estadoSelect.selected && estadoSelect.selected.value && estadoSelect.selected.value !== "") {
-					datosFiltrados = datosEnriquecidos.filter(denuncia => denuncia.estado === estadoSelect.selected.value);
+					datosFiltrados = datosConSeccional.filter(denuncia => denuncia.estado === estadoSelect.selected.value);
 				}
 
 				// Aplicar filtro por fechas
@@ -583,57 +676,7 @@ const ExportModal = ({
 				setList(prev => ({ ...prev, data: datosFiltrados }));
 			}
 		}
-	}, [estadosDenuncias.loaded, estadosDenuncias.data, list.data, estadoSelect.selected, aplicarFiltroFechas]);
-
-	// Si recibimos `initialData`, aplicar filtros (estado y fechas) y enriquecer con estados
-	useEffect(() => {
-		if (!initialData) return;
-
-		let data = Array.isArray(initialData) ? [...initialData] : [];
-
-		try {
-			// Enriquecer con estados si ya están cargados
-			if (estadosDenuncias.data && estadosDenuncias.data.length > 0) {
-				data = data.map(denuncia => {
-					const estadosDeDenuncia = estadosDenuncias.data.filter(
-						estado => estado.appDenunciasId === denuncia.id
-					);
-					let estadoActual = "Sin estado";
-					let fechaUltimaNovedad = null;
-					let ultimaNovedad = "Sin novedad";
-					if (estadosDeDenuncia.length > 0) {
-						const ultimoEstado = estadosDeDenuncia.sort((a, b) =>
-							new Date(b.fecha || b.fechaAsociada) - new Date(a.fecha || a.fechaAsociada)
-						)[0];
-						estadoActual = ultimoEstado.estado || "Sin estado";
-						fechaUltimaNovedad = ultimoEstado.fecha || ultimoEstado.fechaAsociada;
-						ultimaNovedad = ultimoEstado.observaciones || "Sin observaciones";
-					}
-					return {
-						...denuncia,
-						estado: estadoActual,
-						fechaUltimaNovedad,
-						ultimaNovedad
-					};
-				});
-			}
-
-			// Aplicar filtro por estado si está seleccionado
-			if (estadoSelect.selected && estadoSelect.selected.value && estadoSelect.selected.value !== "") {
-				data = data.filter(denuncia => denuncia.estado === estadoSelect.selected.value);
-			}
-
-			// Aplicar filtro por fechas
-			data = aplicarFiltroFechas(data);
-
-			// Ordenar por fecha descendente
-			data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-			setList(prev => ({ ...prev, data, selected: [] }));
-		} catch (error) {
-			console.error("Error aplicando filtros/enriquecimiento a initialData:", error);
-		}
-	}, [initialData, estadoSelect.selected, fechaDesde, fechaHasta, estadosDenuncias.loaded, estadosDenuncias.data, aplicarFiltroFechas]);
+	}, [estadosDenuncias.loaded, estadosDenuncias.data, list.data, estadoSelect.selected, aplicarFiltroFechas, enrichWithSeccional]);
 	//#endregion
 
 	//#region nueva seleccion
@@ -760,40 +803,26 @@ const ExportModal = ({
 				const fechaUltimaNovedadFormatted = denuncia.fechaUltimaNovedad ? FormatearFecha(denuncia.fechaUltimaNovedad) : "Sin fecha";
 
 				const item = {};
-
-				if (puedeVerTodosLosDatos) {
-					// Incluir Nro. Denuncia en primer lugar si corresponde
-					item["Nro. Denuncia"] = denuncia.id;
-				}
-
-				// Incluir numeroSeguimiento inmediatamente después de Nro. Denuncia
-				item["numeroSeguimiento"] = denuncia.numeroSeguimiento;
-
-				// Fecha de carga
+				if (puedeVerTodosLosDatos) item["Nro. Denuncia"] = denuncia.id;
+				item["Nro. Seguimiento"] = denuncia.numeroSeguimiento || "";
 				item["Fecha de carga"] = denuncia.fecha ? FormatearFecha(denuncia.fecha) : "";
-
-				// Nueva columna: Fecha de ingreso (viene en la API como fechaIngreso)
 				item["Fecha de ingreso"] = denuncia.fechaIngreso ? FormatearFecha(denuncia.fechaIngreso) : "";
-
-				// Resto de columnas
 				item["Denunciante"] = denuncia.nombre || "";
 				item["Correo"] = denuncia.correo || "";
 				item["Teléfono"] = denuncia.telefono || denuncia.telefonoContacto || "";
 				item["Provincia"] = denuncia.provincia || "";
 				item["Localidad"] = denuncia.localidad || "";
-				// Seccional (campo exacto en la BD: seccional)
-				item["Seccional"] = denuncia.seccional;
+				item["Código Seccional"] = denuncia.seccionalCodigo || "";
+				item["Seccional"] = denuncia.seccional || "";
 				item["Estado"] = denuncia.estado || "Sin estado";
 				item["Fecha Ultima Novedad"] = fechaUltimaNovedadFormatted;
 				item["Ultima Novedad"] = denuncia.ultimaNovedad || "Sin novedad";
 				item["Empresa"] = denuncia.empleadorNombre || "";
 				item["CUIT"] = denuncia.empleadorCUIT ? Formato.Cuit(denuncia.empleadorCUIT) : "";
+				item["Derivado a Delegación"] = denuncia.derivadoDelegacion || "";
+				item["Derivado a Seccional"] = denuncia.derivadoSeccional || "";
 				item["Ubicación"] = denuncia.ubicacion || "";
 				item["Detalle de la Denuncia"] = denuncia.texto || "";
-				item["Derivado A Tipo"] = denuncia.derivadoATipo || "";
-				item["Derivado a Delegación"] = denuncia.derivadoDelegacion;
-				item["Derivado a Seccional"] = denuncia.derivadoSeccional;
-
 				return item;
 			});
 			
@@ -867,9 +896,15 @@ const ExportModal = ({
 							value={estadoSelect.selected}
 							onChange={(selected) => {
 								setEstadoSelect((o) => ({ ...o, selected }));
-								// Si recibimos initialData, aplicamos filtros en cliente sin recargar
 								if (initialData) {
-									setList((o) => ({ ...o, data: initialData, selected: [] , pagination: { ...o.pagination, index: 1 } }));
+									// Filtrado client-side sobre datos pre-cargados
+									let data = [...initialData];
+									if (selected?.value) {
+										data = data.filter((d) => d.estado === selected.value);
+									}
+									data = aplicarFiltroFechas(data);
+									data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+									setList((o) => ({ ...o, data, selected: [] }));
 								} else {
 									setList((o) => ({
 										...o,
@@ -895,11 +930,19 @@ const ExportModal = ({
 							value={fechaDesde}
 							onChange={(value) => {
 								setFechaDesde(value);
-								// Recargar la lista cuando cambie la fecha (si no usamos initialData)
 								if (initialData) {
-									setList(prev => ({ ...prev, data: initialData, selected: [] }));
+									// Filtrado client-side — aplicarFiltroFechas usará el nuevo valor en el efecto
 								} else {
-									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+									setList((prev) => ({
+										...prev,
+										reload: true,
+										data: [],
+										selected: [],
+										params: {
+											...prev.params,
+											...(value ? { fechaDesde: dayjs(value).format("YYYY-MM-DD") } : { fechaDesde: undefined }),
+										},
+									}));
 								}
 							}}
 							format="YYYY-MM-DD"
@@ -911,11 +954,19 @@ const ExportModal = ({
 							value={fechaHasta}
 							onChange={(value) => {
 								setFechaHasta(value);
-								// Recargar la lista cuando cambie la fecha (si no usamos initialData)
 								if (initialData) {
-									setList(prev => ({ ...prev, data: initialData, selected: [] }));
+									// Filtrado client-side — aplicarFiltroFechas usará el nuevo valor en el efecto
 								} else {
-									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+									setList((prev) => ({
+										...prev,
+										reload: true,
+										data: [],
+										selected: [],
+										params: {
+											...prev.params,
+											...(value ? { fechaHasta: dayjs(value).format("YYYY-MM-DD") } : { fechaHasta: undefined }),
+										},
+									}));
 								}
 							}}
 							format="YYYY-MM-DD"
@@ -927,11 +978,18 @@ const ExportModal = ({
 							onClick={() => {
 								setFechaDesde(null);
 								setFechaHasta(null);
-								// Recargar la lista al limpiar filtros
-								if (initialData) {
-									setList(prev => ({ ...prev, data: initialData, selected: [] }));
-								} else {
-									setList(prev => ({ ...prev, reload: true, data: [], selected: [] }));
+								if (!initialData) {
+									setList((prev) => ({
+										...prev,
+										reload: true,
+										data: [],
+										selected: [],
+										params: {
+											...prev.params,
+											fechaDesde: undefined,
+											fechaHasta: undefined,
+										},
+									}));
 								}
 							}}
 						>
@@ -1001,26 +1059,9 @@ const ExportModal = ({
 							<Button
 								className="botonAmarillo"
 								onClick={() => {
-								if (initialData && Array.isArray(initialData) && initialData.length > 0) {
-									// Si nos pasaron initialData, seleccionar todo desde la data actualmente filtrada
+									// Seleccionar todos los datos ya cargados y filtrados en list.data
+									// (ya tienen estado enriquecido y filtros client-side aplicados)
 									setList((o) => ({ ...o, selected: [...o.data] }));
-									return;
-								}
-								let params = {
-									...list.params,
-									sortBy: list.sort
-								};
-						
-								// Aplicar filtro por estado si está seleccionado
-								if (estadoSelect.selected && estadoSelect.selected.value) {
-									params.estado = estadoSelect.selected.value;
-								}
-						
-								setNewSelection((o) => ({
-									...o,
-									params: params,
-									reload: true,
-								}));
 								}}
 							>
 								SELECCIONA TODO
