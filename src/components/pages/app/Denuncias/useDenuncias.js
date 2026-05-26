@@ -71,6 +71,15 @@ const useDenuncias = ({
         },
       };
     }
+    if (action === "GetEstados") {
+      return {
+        config: {
+          baseURL: "App",
+          method: "GET",
+          endpoint: "/DenunciasEstados",
+        },
+      };
+    }
     if (action === "GetTipoDenuncia") {
       return {
         config: {
@@ -120,12 +129,7 @@ const useDenuncias = ({
     // � FUNCIÓN AUXILIAR PARA CARGAR DENUNCIAS (FLUJO NORMAL - TODAS SIN PAGINACIÓN)
     function cargarDenunciasConParametros(queryParams, totalFilteredCount) {
       //  Cargar todas las denuncias sin paginación del servidor
-      const paramsFiltered = {
-        ...queryParams,
-        Page: list.pagination.index,
-        PageSize: list.pagination.size,
-        Sort: "-Fecha",
-      };
+      const paramsFiltered = { ...queryParams };
       
 
       
@@ -139,14 +143,13 @@ const useDenuncias = ({
 
           if (response && typeof response === "object") {
             data = response.data || [];
-            const totalCount = response.count || response.totalCount || response.total || 0;
             
             
             paginationInfo = {
               index: list.pagination.index, //  Mantener nuestro índice
               size: list.pagination.size,   //  Mantener nuestro tamaño (3)
-              count: totalFilteredCount || totalCount,
-              pages: Math.ceil((totalFilteredCount || totalCount) / list.pagination.size)
+              count: totalFilteredCount || response.count || 0,
+              pages: Math.ceil((totalFilteredCount || response.count || 0) / list.pagination.size)
             };
           } else if (Array.isArray(response)) {
             data = response;
@@ -215,10 +218,71 @@ const useDenuncias = ({
 
           // 🔧 FUNCIÓN PARA CARGAR ESTADOS DE LAS DENUNCIAS
           function cargarEstadosParaDenuncias(denunciasData, paginationInfo) {
-            let dataConEstados = denunciasData.map(denuncia => ({
+
+            
+            pushQuery({
+              action: "GetEstados",
+              params: {}, // Sin filtro - obtener todos los estados
+              onOk: (responseEstados) => {
+                console.log("📥 Estados recibidos para flujo normal:", { 
+                  tipo: typeof responseEstados, 
+                  esArray: Array.isArray(responseEstados),
+                  cantidad: Array.isArray(responseEstados) ? responseEstados.length : "N/A"
+                });
+
+                let estados = [];
+                if (Array.isArray(responseEstados)) {
+                  estados = responseEstados;
+                } else if (responseEstados && typeof responseEstados === "object") {
+                  estados = responseEstados.data || responseEstados.items || responseEstados.estados || [];
+                }
+
+                if (!Array.isArray(estados)) {
+                  console.warn(" No se pudieron obtener los estados correctamente");
+                  estados = [];
+                }
+
+                // Crear un mapa: appDenunciasId -> último estado (más reciente)
+                const estadosMap = {};
+                
+                
+                estados.forEach(item => {
+                  const denunciaId = item.appDenunciasId || item.appDenuncia_Id || item.denunciaId || item.id;
+                  const fechaEstado = item.fechaAsociada || item.fecha || item.fechaEstado || "";
+                  
+                  if (denunciaId) {
+                    if (!estadosMap[denunciaId] || fechaEstado > (estadosMap[denunciaId].fecha || "")) {
+                      estadosMap[denunciaId] = {
+                        estado: item.estado || "Sin datos",
+                        fecha: fechaEstado,
+                        observaciones: item.observaciones || "",
+                      };
+                    }
+                  }
+                });
+
+
+                //  COMBINAR ESTADOS CON DENUNCIAS
+                let dataConEstados = denunciasData.map(denuncia => {
+                  const denunciaId = denuncia.id || denuncia.Id;
+                  const estadoInfo = estadosMap[denunciaId];
+                  
+                  return {
                     ...denuncia,
-              estado: denuncia.ultimoEstado,
-            }));
+                    estado: estadoInfo ? estadoInfo.estado : (denuncia.estado || "Sin datos"),
+                    fechaEstado: estadoInfo ? estadoInfo.fecha : null,
+                    observacionesEstado: estadoInfo ? estadoInfo.observaciones : "",
+                  };
+                });
+
+
+                if (filtroEstado) {
+                  const filtroLower = String(filtroEstado).toLowerCase();
+                  dataConEstados = dataConEstados.filter((d) =>
+                    String(d.estado || "").toLowerCase() === filtroLower
+                  );
+                }
+
 
                 if (filtroDerivadoAId) {
                   const target = Number(filtroDerivadoAId);
@@ -229,13 +293,14 @@ const useDenuncias = ({
                   });
                 }
 
+
                 // ✅ ORDENAR POR FECHA DESCENDENTE (más nueva primero)
                 const dataOrdenada = dataConEstados.sort((a, b) => {
                   const fechaA = new Date(a.fecha || a.fechaEstado || '1900-01-01');
                   const fechaB = new Date(b.fecha || b.fechaEstado || '1900-01-01');
                   return fechaB - fechaA; // Descendente
                 });
-                
+
                 //  ACTUALIZAR ESTADO FINAL
                 setList((o) => ({ 
                   ...o, 
@@ -247,6 +312,29 @@ const useDenuncias = ({
                     record: o.onLoadSelect({ data: dataOrdenada, multi: false, record: o.selection.record })
                   }
                 }));
+              },
+              onError: (error) => {
+                console.error(" Error al cargar estados:", error);
+                
+                // Si falla la carga de estados, mostrar denuncias sin estados pero ordenadas
+                const denunciasOrdenadas = denunciasData.sort((a, b) => {
+                  const fechaA = new Date(a.fecha || '1900-01-01');
+                  const fechaB = new Date(b.fecha || '1900-01-01');
+                  return fechaB - fechaA; // Descendente
+                });
+                
+                setList((o) => ({ 
+                  ...o, 
+                  loading: null,
+                  data: denunciasOrdenadas,
+                  pagination: { ...o.pagination, ...paginationInfo },
+                  selection: { 
+                    ...selectionDef,
+                    record: o.onLoadSelect({ data: denunciasOrdenadas, multi: false, record: o.selection.record })
+                  }
+                }));
+              }
+            });
           }
         },
         onError: (error) => {
@@ -262,7 +350,6 @@ const useDenuncias = ({
     }
 
    const queryParams = {};
-  if (filtroEstado) queryParams.UltimoEstado = filtroEstado;
    if (filtroFechaDesde) queryParams.fechaDesde = filtroFechaDesde;
    if (filtroFechaHasta) queryParams.fechaHasta = filtroFechaHasta;
    if (filtroTipoIngresoId) queryParams.denunciaTipoIngresoId = filtroTipoIngresoId;
@@ -331,7 +418,11 @@ const useDenuncias = ({
           };
           changes.selection.index = data.indexOf(changes.selection.record);
         } else {
-          changes.loading = "Cargando...";
+          //  Para paginación frontend, solo recargar si no es un cambio de página
+          const isPaginationChange = payload.pagination && !payload.params && !payload.clear;
+          if (!isPaginationChange) {
+            changes.loading = "Cargando...";
+          }
         }
 
         return { ...o, ...changes };
@@ -345,7 +436,7 @@ const useDenuncias = ({
 
 
     const pagination = {
-      count: list.pagination.count || list.data.length,
+      count: list.data.length,
       index: list.pagination.index,
       size: list.pagination.size,
       onChange: ({ index, size }) => {
@@ -359,7 +450,7 @@ const useDenuncias = ({
     return (
       <>
         <DenunciasTable
-          remote={true}
+          remote={false}
           data={list.data}
           loading={!!list.loading}
           noDataIndication={
@@ -410,9 +501,7 @@ const useDenuncias = ({
     );
   };
 
-  return { render, request, selected: list.selection.record, data: list.data, loading: list.loading };
+  return { render, request, selected: list.selection.record, data: list.data };
 };
-
-export const useDenunciasData = (opts) => useDenuncias(opts);
 
 export default useDenuncias;
