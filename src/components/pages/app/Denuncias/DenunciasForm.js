@@ -11,6 +11,7 @@ import InputMaterial, {
 	CUITMask,
 } from "components/ui/Input/InputMaterial";
 import modalCss from "components/ui/Modal/Modal.module.css";
+import css from "./DenunciasForm.module.css";
 import SearchSelectMaterial, {
 	mapOptions,
 	includeSearch,
@@ -25,20 +26,6 @@ import Documentacion from "components/Documentacion/Documentacion";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 
-const styles = {
-    group: {
-        padding: "5px",
-        color: "#186090",
-        textAlign: "left",
-        border: "solid 1px",
-        borderRadius: "20px",
-    },
-    titulo: {
-        fontWeight: "bold",
-        textAlign: "left",
-        borderBottom: "dashed 1px",
-    },
-};
 
 //#region options
 const toInputString = (v) => {
@@ -2133,8 +2120,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				</Grid>
 
 				{/* ====== BLOQUE PRINCIPAL ====== */}
-				<Grid col width gap="inherit" style={styles.group}>
-					<Grid width style={styles.titulo}>Carga de Datos</Grid>
+				<Grid col width gap="inherit" className={css.group}>
+					<Grid width className={css.titulo}>Carga de Datos</Grid>
 					<Grid col gap="inherit">
 
 						{/* Nombre Denunciante / Teléfono de contacto / Correo electrónico */}
@@ -2623,7 +2610,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 						}}
 					/>
 				</Tabs>
-				<div style={{ marginTop: 10 }}>
+				<div className={css.tabsContent}>
 					{selectedTab === 0 ? FormularioPanel : selectedTab === 1 ? DocumentacionPanel : NovedadesPanel}
 				</div>
 			</>
@@ -2938,41 +2925,34 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, initi
 				{content}
 				{/* Panel de detalle FUERA del formulario, visible solo en pestaña Novedades */}
 				{selectedTab === 2 && selectedEstado && (
-					<div style={{
-						marginTop: 10,
-						border: '1px solid #186090',
-						borderRadius: 8,
-						padding: '10px 14px',
-						background: '#f9fcff',
-						boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-					}}>
+					<div className={css.novedadDetalle}>
 						<Grid col gap="6px">
-							<Grid style={{ fontWeight: 'bold', color: '#186090' }}>Detalle de la Novedad</Grid>
-							<Grid grid="auto / 7fr 1fr" gap="20px" style={{ alignItems: 'stretch' }}>
+							<Grid className={css.novedadTitulo}>Detalle de la Novedad</Grid>
+							<Grid grid="auto / 7fr 1fr" gap="20px" className={css.novedadGrid}>
 								{/* Observaciones a la izquierda */}
 								<Grid col gap="4px">
-									<div style={{ fontWeight: 'bold' }}>Observaciones:</div>
-									<div style={{ height: 200, overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 13 }}>
+									<div className={css.fieldLabel}>Observaciones:</div>
+									<div className={css.observacionesContenido}>
 										{selectedEstado?.observaciones ? String(selectedEstado.observaciones) : <i>Sin observaciones</i>}
 									</div>
 								</Grid>
 								{/* Documentos a la derecha */}
 								<Grid col gap="4px">
-									<div style={{ fontWeight: 'bold' }}>Documento:</div>
-									<div style={{ height: 200, overflow: 'auto', fontSize: 13 }}>
+									<div className={css.fieldLabel}>Documento:</div>
+									<div className={css.documentoContenido}>
 										{(() => {
 											const doc = selectedEstado?._doc;
 											const docs = doc ? [doc] : [];
 											if (!docs.length) return <i>Sin documentos</i>;
 											return (
-												<ul style={{ margin: 0, paddingLeft: 18 }}>
+												<ul className={css.documentoLista}>
 													{docs.map((d, i) => {
 														const nombre = d?.nombreArchivo ?? d?.fileName ?? `Documento ${i + 1}`;
 														const b64 = d?.archivo ?? d?.archivoBase64 ?? d?.contenido;
 														const contentType = d?.contentType || 'application/octet-stream';
 														const href = d?.url ? d.url : (b64 ? `data:${contentType};base64,${b64}` : null);
 														return (
-															<li key={i} style={{ marginBottom: 4 }}>
+															<li key={i} className={css.documentoItem}>
 																{href ? (
 																	<a href={href} target="_blank" rel="noreferrer" download={nombre}>{nombre}</a>
 																) : nombre}
