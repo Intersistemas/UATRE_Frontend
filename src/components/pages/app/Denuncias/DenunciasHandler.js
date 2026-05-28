@@ -241,14 +241,19 @@ const DenunciasHandler = () => {
         nombreLocalidadAfiliado: r.localidad || "",
         delegacion: r.delegacion || "",
         seccional: r.seccional || "",
-        nombreDenunciante: r.nombre || "",
+        nombreDenunciante: r.nombreDenunciante || r.nombre || "",
+        nombre: r.nombre || r.nombreDenunciante || "",
         telefonoContacto: r.telefonoContacto || r.telefono || "",
-        correoElectronico: r.correo || "",
+        telefono: r.telefono || r.telefonoContacto || "",
+        correoElectronico: r.correoElectronico || r.correo || "",
+        correo: r.correo || r.correoElectronico || "",
         denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
-        denunciaSituacionId: r.denunciaSituacionId || 0,
+        denunciaSituacionId: r.denunciaSituacionId || r.situacionId || 0,
+        situacionDescripcion: r.situacionDescripcion || r.denunciaSituacionDescripcion || "",
         cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
         razonSocial: r.empleadorNombre || "",
-        detalleDenuncia: r.texto || "",
+        detalleDenuncia: r.detalleDenuncia || r.texto || "",
+        texto: r.texto || r.detalleDenuncia || "",
         ubicacion: r.ubicacion || "",
         derivadoATipo: r.derivadoATipo || r.derivadoA_Tipo || "",
         derivadoDelegacion: r.derivadoDelegacion || "",
@@ -302,6 +307,20 @@ const DenunciasHandler = () => {
     () => ({ value: null, label: "Todas las situaciones" }),
     []
   );
+
+  const situacionFallbackOptions = useMemo(() => [
+    { value: 1,  label: "Consultas Salariales" },
+    { value: 2,  label: "Reclamos/Diferencias Salariales" },
+    { value: 3,  label: "Trabajo NO Registrado" },
+    { value: 4,  label: "Maltrato laboral" },
+    { value: 5,  label: "Condiciones laborales inaceptables" },
+    { value: 6,  label: "Falta de Ropa de Trabajo" },
+    { value: 7,  label: "Otras" },
+    { value: 8,  label: "Seguridad, higiene y salud en el trabajo." },
+    { value: 9,  label: "Condiciones de vivienda, alimentación y traslado." },
+    { value: 10, label: "Indicios de explotación laboral." },
+    { value: 11, label: "Trabajo infantil y adolescente." },
+  ], []);
 
   const derivadoATipoTodos = useMemo(
     () => ({ value: null, label: "Todas las derivaciones" }),
@@ -437,11 +456,11 @@ const DenunciasHandler = () => {
           ...o,
           loading: null,
           error: error?.toString() || "Error al cargar situaciones",
-          options: [situacionTodos],
+          options: [situacionTodos, ...situacionFallbackOptions],
         }));
       },
     });
-  }, [pushQuery, situacionTodos]);
+  }, [pushQuery, situacionTodos, situacionFallbackOptions]);
 
   // Búsqueda en los combos
   useEffect(() => {
@@ -678,10 +697,12 @@ const DenunciasHandler = () => {
 
   // Calcular DerivadoAId según selección
   const filtroDerivadoATipoValue = derivadoATipoSelect.selected?.value || null;
+  const filtroDelegacionValue = delegacionSelect.selected?.value || null;
+  const filtroSeccionalValue = seccionalSelect.selected?.value || null;
   const filtroDerivadoAIdValue = filtroDerivadoATipoValue === 'Delegacion'
-    ? (delegacionSelect.selected?.value || null)
+    ? filtroDelegacionValue
     : filtroDerivadoATipoValue === 'Seccional'
-      ? (seccionalSelect.selected?.value || null)
+      ? filtroSeccionalValue
       : null;
 
   // Bloqueo por ámbito del usuario
@@ -692,8 +713,39 @@ const DenunciasHandler = () => {
 
   // Estados de disabled para aplicar opacidad visual
   const disabledDerivadoA = bloquearDerivadoA;
-  const disabledDelegacion = bloquearDelegacion || (filtroDerivadoATipoValue !== 'Delegacion' && filtroDerivadoATipoValue !== 'Seccional');
-  const disabledSeccional = bloquearSeccional || (filtroDerivadoATipoValue !== 'Seccional');
+  const disabledDelegacion = bloquearDelegacion;
+  const disabledSeccional = bloquearSeccional;
+
+  const handleDelegacionChange = useCallback((selected = delegacionTodos) => {
+    setDelegacionSelect((o) => ({ ...o, selected }));
+
+    if (selected?.value) {
+      const derivadoDelegacion = derivadoATipoSelect.data.find((r) => r.value === "Delegacion") || derivadoATipoTodos;
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoDelegacion }));
+      setSeccionalSelect((o) => ({ ...o, selected: seccionalTodos }));
+    } else if (derivadoATipoSelect.selected?.value === "Delegacion") {
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
+    }
+  }, [delegacionTodos, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
+
+  const handleSeccionalChange = useCallback((selected = seccionalTodos) => {
+    setSeccionalSelect((o) => ({ ...o, selected }));
+
+    if (selected?.value) {
+      const derivadoSeccional = derivadoATipoSelect.data.find((r) => r.value === "Seccional") || derivadoATipoTodos;
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoSeccional }));
+
+      const delegacionId = Number(selected.record?.refDelegacionId);
+      if (delegacionId) {
+        const delegacionRelacionada = delegacionSelect.data.find((r) => Number(r.value) === delegacionId);
+        if (delegacionRelacionada) {
+          setDelegacionSelect((o) => ({ ...o, selected: delegacionRelacionada }));
+        }
+      }
+    } else if (derivadoATipoSelect.selected?.value === "Seccional") {
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
+    }
+  }, [delegacionSelect.data, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
 
   const {
     render: denunciaRender,
@@ -915,7 +967,7 @@ const DenunciasHandler = () => {
             error={!!delegacionSelect.error}
             helperText={delegacionSelect.error || undefined}
             value={delegacionSelect.selected}
-            onChange={(selected = delegacionTodos) => setDelegacionSelect(o => ({ ...o, selected }))}
+            onChange={handleDelegacionChange}
             options={delegacionSelect.options}
             onTextChange={(buscar) => setDelegacionSelect(o => ({ ...o, buscar }))}
             disabled={disabledDelegacion}
@@ -926,7 +978,7 @@ const DenunciasHandler = () => {
             error={!!seccionalSelect.error}
             helperText={seccionalSelect.error || undefined}
             value={seccionalSelect.selected}
-            onChange={(selected = seccionalTodos) => setSeccionalSelect(o => ({ ...o, selected }))}
+            onChange={handleSeccionalChange}
             options={seccionalSelect.options}
             onTextChange={(buscar) => setSeccionalSelect(o => ({ ...o, buscar }))}
             disabled={disabledSeccional}
@@ -961,11 +1013,15 @@ const DenunciasHandler = () => {
           <Button
             className="botonAzul"
             onClick={() => {
-              const derivadoTipo = derivadoATipoSelect.selected?.value || null;
-              const derivadoId = derivadoTipo === 'Delegacion'
-                ? (delegacionSelect.selected?.value || null)
-                : derivadoTipo === 'Seccional'
-                  ? (seccionalSelect.selected?.value || null)
+              const derivadoTipo = filtroSeccionalValue
+                ? "Seccional"
+                : filtroDelegacionValue
+                  ? "Delegacion"
+                  : derivadoATipoSelect.selected?.value || null;
+              const derivadoId = filtroSeccionalValue
+                ? filtroSeccionalValue
+                : filtroDelegacionValue
+                  ? filtroDelegacionValue
                   : null;
 
               setAppliedFilters({
@@ -997,7 +1053,9 @@ const DenunciasHandler = () => {
               !tipoIngresoSelect.selected?.value &&
               !situacionSelect.selected?.value &&
               !filtroDerivadoATipoValue &&
-              !filtroDerivadoAIdValue
+              !filtroDerivadoAIdValue &&
+              !filtroDelegacionValue &&
+              !filtroSeccionalValue
             }
             onClick={() => {
               let nextDerivadoTipo = null;
