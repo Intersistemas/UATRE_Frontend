@@ -193,8 +193,53 @@ const ExportModal = ({
 		}
 	}, [usuario, ambitoInfoGlobal, tareasManager]);
 
+	// Estado para el catálogo de situaciones (declarado aquí para usarlo en columns)
+	const situacionSelectTodos = useMemo(() => ({ value: null, label: "Todas las situaciones" }), []);
+	const situacionAltaOptions = useMemo(() => ([
+		{ value: 1, label: "Consultas Salariales" },
+		{ value: 2, label: "Reclamos/Diferencias Salariales" },
+		{ value: 3, label: "Trabajo NO Registrado" },
+		{ value: 4, label: "Maltrato laboral" },
+		{ value: 5, label: "Condiciones laborales inaceptables" },
+		{ value: 6, label: "Falta de Ropa de Trabajo" },
+		{ value: 7, label: "Otras" },
+		{ value: 8, label: "Seguridad, higiene y salud en el trabajo." },
+		{ value: 9, label: "Condiciones de vivienda, alimentación y traslado." },
+		{ value: 10, label: "Indicios de explotación laboral." },
+		{ value: 11, label: "Trabajo infantil y adolescente." },
+	]), []);
+	const situacionInicialId = currentFilters.denunciaSituacionId || null;
+	const [situacionSelect, setSituacionSelect] = useState({
+		loading: "Cargando...",
+		buscar: "",
+		data: [],
+		error: null,
+		options: [],
+		selected: { value: null, label: "Todas las situaciones" },
+		loaded: false,
+	});
+
 	// Columnas dinámicas según permisos
 	const columns = useMemo(() => {
+		const situacionCatalog = situacionSelect.data.length > 0
+			? situacionSelect.data
+			: situacionAltaOptions;
+
+		const situacionColumn = {
+			dataField: "denunciaSituacionId",
+			text: "Situación",
+			headerTitle: true,
+			headerStyle: { width: "9em", textAlign: "center" },
+			formatter: (v) => {
+				if (!v) return "";
+				return situacionCatalog.find(s => Number(s.id ?? s.value) === Number(v))?.descripcion || situacionCatalog.find(s => Number(s.id ?? s.value) === Number(v))?.label || String(v);
+			},
+			csvFormat: (v) => {
+				if (!v) return "";
+				return situacionCatalog.find(s => Number(s.id ?? s.value) === Number(v))?.descripcion || situacionCatalog.find(s => Number(s.id ?? s.value) === Number(v))?.label || String(v);
+			},
+			style: { textAlign: "left" },
+		};
 		const idColumn = {
 			dataField: "id",
 			text: "Nro. Denuncia",
@@ -212,12 +257,12 @@ const ExportModal = ({
 			style: { textAlign: "center" },
 		};
 		if (puedeVerTodosLosDatos) {
-			return [idColumn, numeroSeguimientoColumn, ...baseColumns];
+			return [idColumn, numeroSeguimientoColumn, ...baseColumns, situacionColumn];
 		}
-		return baseColumns.filter((c) =>
-			["fecha", "telefono", "localidad", "estado"].includes(c.dataField)
-		);
-	}, [puedeVerTodosLosDatos]);
+		return baseColumns
+			.filter((c) => ["fecha", "telefono", "localidad", "estado"].includes(c.dataField))
+			.concat(situacionColumn);
+	}, [puedeVerTodosLosDatos, situacionSelect.data, situacionAltaOptions]);
 
 	// Verificar permisos para mostrar el modal de exportación
 	const tienePermisoExportar = useMemo(() => {
@@ -263,6 +308,15 @@ const ExportModal = ({
 					},
 				};
 			}
+			case "GetDenunciaSituacion": {
+				return {
+					config: {
+						baseURL: "App",
+						endpoint: `/DenunciaSituacion`,
+						method: "GET",
+					},
+				};
+			}
 			default:
 				return null;
 		}
@@ -296,6 +350,39 @@ const ExportModal = ({
 	}, [estadoSelect.buscar, estadoSelect.data]);
 
 	//#endregion filtro estados
+
+	//#region filtro situacion
+	useEffect(() => {
+		if (situacionSelect.loaded) return;
+		pushQuery({
+			action: "GetDenunciaSituacion",
+			params: {},
+			onOk: (data) => {
+				const arr = Array.isArray(data) ? data : [];
+				const merged = [
+					...arr,
+					...situacionAltaOptions
+						.filter((opt) => !arr.some((r) => Number(r.id) === Number(opt.value)))
+						.map((opt) => ({ id: opt.value, descripcion: opt.label })),
+				];
+				const options = [situacionSelectTodos, ...merged.map(r => ({ value: r.id, label: r.descripcion }))];
+				const selected = situacionInicialId
+					? (options.find(o => Number(o.value) === Number(situacionInicialId)) || situacionSelectTodos)
+					: situacionSelectTodos;
+				setSituacionSelect(s => ({ ...s, loading: null, data: merged, options, selected, loaded: true }));
+			},
+			onError: (error) => {
+				setSituacionSelect(s => ({
+					...s,
+					loading: null,
+					error: error?.toString(),
+					options: [situacionSelectTodos, ...situacionAltaOptions.map(r => ({ value: r.value, label: r.label }))],
+					loaded: true,
+				}));
+			},
+		});
+	}, [pushQuery, situacionSelect.loaded, situacionInicialId, situacionSelectTodos, situacionAltaOptions]);
+	//#endregion filtro situacion
 
 	//#region filtro fechas
 	const [fechaDesde, setFechaDesde] = useState(currentFilters.fechaDesde || null);
@@ -474,13 +561,17 @@ const ExportModal = ({
 			data = data.filter((d) => d.estado === estadoSelect.selected.value);
 		}
 
+		if (situacionSelect.selected?.value != null) {
+			data = data.filter((d) => Number(d.denunciaSituacionId) === Number(situacionSelect.selected.value));
+		}
+
 		data = aplicarFiltroFechas(data);
 
 		data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
 		setList((prev) => ({ ...prev, data }));
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialData, estadoSelect.selected, aplicarFiltroFechas]);
+	}, [initialData, estadoSelect.selected, situacionSelect.selected, aplicarFiltroFechas]);
 
 	useEffect(() => {
 		if (!list.reload) return;
@@ -815,6 +906,9 @@ const ExportModal = ({
 				item["Código Seccional"] = denuncia.seccionalCodigo || "";
 				item["Seccional"] = denuncia.seccional || "";
 				item["Estado"] = denuncia.estado || "Sin estado";
+				item["Situación"] = denuncia.denunciaSituacionId
+					? (situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.descripcion || situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.label || String(denuncia.denunciaSituacionId))
+					: "";
 				item["Fecha Ultima Novedad"] = fechaUltimaNovedadFormatted;
 				item["Ultima Novedad"] = denuncia.ultimaNovedad || "Sin novedad";
 				item["Empresa"] = denuncia.empleadorNombre || "";
@@ -902,6 +996,9 @@ const ExportModal = ({
 									if (selected?.value) {
 										data = data.filter((d) => d.estado === selected.value);
 									}
+									if (situacionSelect.selected?.value != null) {
+										data = data.filter((d) => Number(d.denunciaSituacionId) === Number(situacionSelect.selected.value));
+									}
 									data = aplicarFiltroFechas(data);
 									data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 									setList((o) => ({ ...o, data, selected: [] }));
@@ -918,6 +1015,44 @@ const ExportModal = ({
 							options={estadoSelect.options}
 							onTextChange={(buscar) =>
 								setEstadoSelect((o) => ({ ...o, buscar }))
+							}
+						/>
+						<SearchSelectMaterial
+							id="situacionSelect"
+							label="Filtro por Situación"
+							error={!!situacionSelect.error}
+							helperText={situacionSelect.loading ?? situacionSelect?.error}
+							value={situacionSelect.selected}
+							onChange={(selected) => {
+								setSituacionSelect((o) => ({ ...o, selected: selected || situacionSelectTodos }));
+								if (initialData) {
+									let data = [...initialData];
+									if (estadoSelect.selected?.value) {
+										data = data.filter((d) => d.estado === estadoSelect.selected.value);
+									}
+									if (selected?.value != null) {
+										data = data.filter((d) => Number(d.denunciaSituacionId) === Number(selected.value));
+									}
+									data = aplicarFiltroFechas(data);
+									data = data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+									setList((o) => ({ ...o, data, selected: [] }));
+								} else {
+									setList((o) => ({
+										...o,
+										reload: true,
+										data: [],
+										selected: [],
+										pagination: { ...o.pagination, index: 1 },
+										params: {
+											...o.params,
+											denunciaSituacionId: selected?.value ? Number(selected.value) : undefined,
+										},
+									}));
+								}
+							}}
+							options={situacionSelect.options}
+							onTextChange={(buscar) =>
+								setSituacionSelect((o) => ({ ...o, buscar }))
 							}
 						/>
 					</Grid>

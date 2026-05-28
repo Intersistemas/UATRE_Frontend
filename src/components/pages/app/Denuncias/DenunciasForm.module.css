@@ -1,61 +1,61 @@
-/* Bloque principal de carga de datos */
 .group {
-  padding: 5px;
-  color: #186090;
-  text-align: left;
-  border: 1px solid;
-  border-radius: 20px;
+	padding: 5px;
+	color: #186090;
+	text-align: left;
+	border: solid 1px;
+	border-radius: 20px;
 }
 
 .titulo {
-  font-weight: bold;
-  text-align: left;
-  border-bottom: 1px dashed;
+	font-weight: bold;
+	text-align: left;
+	border-bottom: dashed 1px;
 }
 
-/* Campos de solo lectura (antes roStyle) */
-.readOnly {
-  opacity: 0.6;
+.tabsContent {
+	margin-top: 10px;
 }
 
-/* Panel de detalle de Novedades (abajo de todo) */
-.novedadesDetailPanel {
-  margin-top: 10px;
-  border: 1px solid #186090;
-  border-radius: 8px;
-  padding: 10px 14px;
-  background: #f9fcff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.novedadDetalle {
+	margin-top: 10px;
+	border: 1px solid #186090;
+	border-radius: 8px;
+	padding: 10px 14px;
+	background: #f9fcff;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.novedadesDetailTitle {
-  font-weight: bold;
-  color: #186090;
+.novedadTitulo {
+	font-weight: bold;
+	color: #186090;
 }
 
-.novedadesDetailLayout {
-  align-items: stretch;
+.novedadGrid {
+	align-items: stretch;
 }
 
-.novedadesObservacionesTitle,
-.novedadesDocumentoTitle {
-  font-weight: bold;
+.fieldLabel {
+	font-weight: bold;
 }
 
-.novedadesObservacionesBody {
-  height: 200px;
-  overflow: auto;
-  white-space: pre-wrap;
-  font-size: 13px;
+.observacionesContenido {
+	height: 200px;
+	overflow: auto;
+	white-space: pre-wrap;
+	font-size: 13px;
 }
 
-.novedadesDocumentoBody {
-  height: 200px;
-  overflow: auto;
-  font-size: 13px;
+.documentoContenido {
+	height: 200px;
+	overflow: auto;
+	font-size: 13px;
 }
 
-.novedadesDocsList {
-  margin: 0;
-  padding-left: 18px;
+.documentoLista {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.documentoItem {
+	margin-bottom: 4px;
 }
