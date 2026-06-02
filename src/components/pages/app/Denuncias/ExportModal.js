@@ -20,6 +20,112 @@ import dayjs from "dayjs";
 
 const onCloseDef = () => {};
 
+// Concatena código y nombre, omitiendo vacíos
+const formatCodigoNombre = (codigo, nombre) =>
+	[codigo, nombre].map(v => String(v || "").trim()).filter(Boolean).join(" - ");
+
+const normalizeText = (value) =>
+	String(value ?? "")
+		.toLowerCase()
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.trim();
+
+const formatSeccionalRow = (seccional = {}) =>
+	formatCodigoNombre(
+		seccional.codigo ?? seccional.codigoSeccional ?? seccional.codSeccional ?? "",
+		seccional.descripcion ?? seccional.nombre ?? seccional.label ?? ""
+	);
+
+const resolveSeccionalExport = (denuncia, seccionalesData = []) => {
+	const seccionalId = Number(denuncia.seccionalId || denuncia.seccional_id || 0) || 0;
+	const source = [
+		denuncia.seccionalCabecera,
+		denuncia.seccional,
+		denuncia.seccionalDescripcion,
+		denuncia.seccionalCodigo && denuncia.seccionalDescripcion
+			? formatCodigoNombre(denuncia.seccionalCodigo, denuncia.seccionalDescripcion)
+			: "",
+	].find((value) => normalizeText(value));
+
+	let sec = seccionalId
+		? seccionalesData.find((s) => Number(s.id) === seccionalId)
+		: null;
+
+	if (!sec && source) {
+		const target = normalizeText(source);
+		sec = seccionalesData.find((s) => {
+			const codeName = normalizeText(formatSeccionalRow(s));
+			const nameOnly = normalizeText(s.descripcion ?? s.nombre ?? "");
+			return codeName === target || nameOnly === target;
+		});
+	}
+
+	if (sec) {
+		return formatSeccionalRow(sec);
+	}
+
+	if (source) {
+		const sourceText = String(source).trim();
+		if (sourceText.includes(" - ")) return sourceText;
+		if (denuncia.seccionalCodigo || denuncia.seccionalDescripcion) {
+			return formatCodigoNombre(denuncia.seccionalCodigo, denuncia.seccionalDescripcion || sourceText);
+		}
+		return sourceText;
+	}
+
+	return formatSeccionalRow(denuncia) || "";
+};
+
+const resolveDerivacionExport = (denuncia, seccionalesData = [], delegacionesData = []) => {
+	const tipoDerivacion = (denuncia.derivadoATipo || denuncia.derivadoA_Tipo || "")
+		.toLowerCase()
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.trim();
+	const idDerivacion = Number(denuncia.derivadoAId || denuncia.derivadoA_Id || 0) || 0;
+
+	if (tipoDerivacion === "seccional") {
+		const fallback = denuncia.derivadoSeccional || "";
+		let sec = idDerivacion
+			? seccionalesData.find((s) => Number(s.id) === idDerivacion)
+			: null;
+
+		if (!sec && fallback) {
+			const target = normalizeText(fallback);
+			sec = seccionalesData.find((s) => normalizeText(formatSeccionalRow(s)) === target);
+		}
+
+		if (sec) return formatSeccionalRow(sec);
+		if (fallback && String(fallback).includes(" - ")) return String(fallback).trim();
+		return fallback ? String(fallback).trim() : "";
+	}
+
+	if (tipoDerivacion === "delegacion") {
+		const fallback = denuncia.derivadoDelegacion || "";
+		let deleg = idDerivacion
+			? delegacionesData.find((d) => Number(d.id) === idDerivacion)
+			: null;
+
+		if (!deleg && fallback) {
+			const target = normalizeText(fallback);
+			deleg = delegacionesData.find((d) => {
+				const codeName = normalizeText(formatCodigoNombre(d.codigoDelegacion || d.codigo, d.nombre));
+				const nameOnly = normalizeText(d.nombre ?? "");
+				return codeName === target || nameOnly === target;
+			});
+		}
+
+		if (deleg) {
+			return formatCodigoNombre(deleg.codigoDelegacion || deleg.codigo, deleg.nombre);
+		}
+		if (fallback && String(fallback).includes(" - ")) return String(fallback).trim();
+		return fallback ? String(fallback).trim() : "";
+	}
+
+	return "";
+};
+
 // Columnas base para la tabla de denuncias
 const baseColumns = [
 	{
@@ -308,6 +414,15 @@ const ExportModal = ({
 					},
 				};
 			}
+			case "GetDelegaciones": {
+				return {
+					config: {
+						baseURL: "Comunes",
+						endpoint: `/RefDelegacion/GetAll`,
+						method: "GET",
+					},
+				};
+			}
 			case "GetDenunciaSituacion": {
 				return {
 					config: {
@@ -493,7 +608,7 @@ const ExportModal = ({
 		if (seccionales.loaded) return;
 		pushQuery({
 			action: "GetSeccionales",
-			params: {},
+			params: { soloActivos: false },
 			onOk: (data) => {
 				const arr = Array.isArray(data) ? data : data?.data || [];
 				setSeccionales({ loaded: true, data: arr });
@@ -503,42 +618,93 @@ const ExportModal = ({
 	}, [pushQuery, seccionales.loaded]);
 	//#endregion seccionales
 
-	// Enriquece un registro con info de seccional y nombres de derivación
+	//#region delegaciones
+	const [delegaciones, setDelegaciones] = useState({ loaded: false, data: [] });
+
+	useEffect(() => {
+		if (delegaciones.loaded) return;
+		pushQuery({
+			action: "GetDelegaciones",
+			params: { soloActivos: false },
+			onOk: (data) => {
+				const arr = Array.isArray(data) ? data : data?.data || [];
+				setDelegaciones({ loaded: true, data: arr });
+			},
+			onError: () => setDelegaciones({ loaded: true, data: [] }),
+		});
+	}, [pushQuery, delegaciones.loaded]);
+	//#endregion delegaciones
+
+	// Enriquece un registro con info de seccional y derivaciones
 	const enrichWithSeccional = useCallback((denuncia) => {
 		const enriched = { ...denuncia };
 
-		if ((!enriched.seccional || !enriched.seccionalCodigo) && seccionales.data.length > 0) {
+		// --- Seccional de la denuncia (localización) ---
+		if (seccionales.data.length > 0) {
+			// Intento 1: por seccionalId si existe
 			const seccionalId = denuncia.seccionalId || denuncia.seccional_id;
-			if (seccionalId) {
-				const sec = seccionales.data.find((s) => String(s.id) === String(seccionalId));
-				if (sec) {
-					enriched.seccional = enriched.seccional || sec.descripcion || "";
-					enriched.seccionalCodigo = enriched.seccionalCodigo || sec.codigo || "";
-				}
+			let sec = seccionalId
+				? seccionales.data.find(s => String(s.id) === String(seccionalId))
+				: null;
+			// Intento 2: por nombre si hay nombre pero no código
+			if (!sec && enriched.seccional && !enriched.seccionalCodigo) {
+				const nombreNorm = String(enriched.seccional).toLowerCase().trim();
+				sec = seccionales.data.find(s =>
+					String(s.descripcion || "").toLowerCase().trim() === nombreNorm
+				);
+			}
+			if (sec) {
+				enriched.seccional = enriched.seccional || sec.descripcion || "";
+				enriched.seccionalCodigo = enriched.seccionalCodigo || sec.codigo || "";
 			}
 		}
 
+		// --- Campos de derivación ---
 		const tipo = (denuncia.derivadoATipo || denuncia.derivadoA_Tipo || "")
-			.toLowerCase()
-			.normalize("NFD")
-			.replace(/[̀-ͯ]/g, "")
-			.trim();
+			.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 		const idDerivacion = denuncia.derivadoAId || denuncia.derivadoA_Id;
 
-		if (tipo === "seccional" && idDerivacion) {
-			const sec = seccionales.data.find((s) => String(s.id) === String(idDerivacion));
-			enriched.derivadoSeccional = sec ? (sec.descripcion || sec.codigo || String(idDerivacion)) : String(idDerivacion);
-			enriched.derivadoDelegacion = "";
-		} else if (tipo === "delegacion" && idDerivacion) {
-			enriched.derivadoDelegacion = String(idDerivacion);
-			enriched.derivadoSeccional = "";
+		if (tipo === "seccional") {
+			let val = "";
+			if (idDerivacion) {
+				const sec = seccionales.data.find(s => String(s.id) === String(idDerivacion));
+				if (sec) val = formatCodigoNombre(sec.codigo, sec.descripcion);
+			}
+			if (!val && enriched.derivadoSeccional) {
+				const nomSec = String(enriched.derivadoSeccional).toLowerCase().trim();
+				const sec = seccionales.data.find(s =>
+					String(s.descripcion || "").toLowerCase().trim() === nomSec
+				);
+				val = sec
+					? formatCodigoNombre(sec.codigo, sec.descripcion)
+					: enriched.derivadoSeccional;
+			}
+			enriched.derivadoSeccional = val || enriched.derivadoSeccional || "";
+			enriched.derivadoDelegacion = enriched.derivadoDelegacion || "";
+		} else if (tipo === "delegacion") {
+			let val = "";
+			if (idDerivacion) {
+				const deleg = delegaciones.data.find(d => String(d.id) === String(idDerivacion));
+				if (deleg) val = formatCodigoNombre(deleg.codigoDelegacion || deleg.codigo, deleg.nombre);
+			}
+			if (!val && enriched.derivadoDelegacion) {
+				const nomDeleg = String(enriched.derivadoDelegacion).toLowerCase().trim();
+				const deleg = delegaciones.data.find(d =>
+					String(d.nombre || "").toLowerCase().trim() === nomDeleg
+				);
+				val = deleg
+					? formatCodigoNombre(deleg.codigoDelegacion || deleg.codigo, deleg.nombre)
+					: enriched.derivadoDelegacion;
+			}
+			enriched.derivadoDelegacion = val || enriched.derivadoDelegacion || "";
+			enriched.derivadoSeccional = enriched.derivadoSeccional || "";
 		} else {
 			enriched.derivadoDelegacion = enriched.derivadoDelegacion || "";
 			enriched.derivadoSeccional = enriched.derivadoSeccional || "";
 		}
 
 		return enriched;
-	}, [seccionales.data]);
+	}, [seccionales.data, delegaciones.data]);
 
 	//#region list denuncias
 	const [list, setList] = useState({
@@ -576,8 +742,8 @@ const ExportModal = ({
 	useEffect(() => {
 		if (!list.reload) return;
 
-		// Esperar a que se carguen los estados y las seccionales antes de cargar las denuncias
-		if (!estadosDenuncias.loaded || !seccionales.loaded) {
+		// Esperar a que se carguen los catálogos antes de cargar las denuncias
+		if (!estadosDenuncias.loaded || !seccionales.loaded || !delegaciones.loaded) {
 			return;
 		}
 		
@@ -697,7 +863,7 @@ const ExportModal = ({
 			onFinally: async () =>
 				setList((o) => ({ ...o, ...changes, loading: null })),
 		});
-	}, [list, pushQuery, usuarioAmbito, applyAmbitoFilter, estadoSelect.selected, estadosDenuncias.data, estadosDenuncias.loaded, aplicarFiltroFechas, seccionales.loaded, enrichWithSeccional]);
+	}, [list, pushQuery, usuarioAmbito, applyAmbitoFilter, estadoSelect.selected, estadosDenuncias.data, estadosDenuncias.loaded, aplicarFiltroFechas, seccionales.loaded, delegaciones.loaded, enrichWithSeccional]);
 
 	// Enriquecer denuncias existentes cuando se cargan los estados por primera vez
 	useEffect(() => {
@@ -889,10 +1055,89 @@ const ExportModal = ({
 		setLoadingNovedades(`Procesando ${list.selected.length} denuncias...`);
 
 		try {
-			// Preparar datos para exportar usando los datos ya enriquecidos de la tabla
 			const exportData = list.selected.map((denuncia) => {
 				const fechaUltimaNovedadFormatted = denuncia.fechaUltimaNovedad ? FormatearFecha(denuncia.fechaUltimaNovedad) : "Sin fecha";
+				const seccionalStrResolved = resolveSeccionalExport(denuncia, seccionales.data);
+				const derivadoDelegacionStr = resolveDerivacionExport(
+					{ ...denuncia, derivadoATipo: "Delegacion", derivadoDelegacion: denuncia.derivadoDelegacion || "" },
+					seccionales.data,
+					delegaciones.data
+				);
+				const derivadoSeccionalStr = resolveDerivacionExport(
+					{ ...denuncia, derivadoATipo: "Seccional", derivadoSeccional: denuncia.derivadoSeccional || "" },
+					seccionales.data,
+					delegaciones.data
+				);
 
+				// ── Seccional (localización de la denuncia) ──────────────────────────────
+				let seccionalStr = "";
+				if (seccionales.data.length > 0) {
+					const seccionalId = Number(denuncia.seccionalId || denuncia.seccional_id || 0) || 0;
+					let sec = seccionalId
+						? seccionales.data.find(s => Number(s.id) === seccionalId)
+						: null;
+					// Fallback: buscar por nombre si no hay ID
+					if (!sec && denuncia.seccional) {
+						const nameLower = String(denuncia.seccional).toLowerCase().trim();
+						sec = seccionales.data.find(s =>
+							String(s.descripcion || "").toLowerCase().trim() === nameLower
+						);
+					}
+					seccionalStr = sec
+						? formatCodigoNombre(sec.codigo, sec.descripcion)
+						: (denuncia.seccional || "");
+				} else {
+					seccionalStr = denuncia.seccional || "";
+				}
+
+				// ── Derivación ───────────────────────────────────────────────────────────
+				const tipoDerivacion = (denuncia.derivadoATipo || denuncia.derivadoA_Tipo || "")
+					.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+				const idDerivacion = Number(denuncia.derivadoAId || denuncia.derivadoA_Id || 0) || 0;
+
+				let derivadoDelegacion = "";
+				let derivadoSeccional = "";
+
+				if (tipoDerivacion === "seccional") {
+					// Intento 1: por ID
+					if (idDerivacion) {
+						const sec = seccionales.data.find(s => Number(s.id) === idDerivacion);
+						if (sec) derivadoSeccional = formatCodigoNombre(sec.codigo, sec.descripcion);
+					}
+					// Intento 2: por nombre si el ID no encontró nada
+					if (!derivadoSeccional && denuncia.derivadoSeccional) {
+						const nomSec = String(denuncia.derivadoSeccional).toLowerCase().trim();
+						const sec = seccionales.data.find(s =>
+							String(s.descripcion || "").toLowerCase().trim() === nomSec
+						);
+						derivadoSeccional = sec
+							? formatCodigoNombre(sec.codigo, sec.descripcion)
+							: (denuncia.derivadoSeccional || "");
+					}
+					derivadoDelegacion = denuncia.derivadoDelegacion || "";
+				} else if (tipoDerivacion === "delegacion") {
+					// Intento 1: por ID
+					if (idDerivacion) {
+						const deleg = delegaciones.data.find(d => Number(d.id) === idDerivacion);
+						if (deleg) derivadoDelegacion = formatCodigoNombre(deleg.codigoDelegacion || deleg.codigo, deleg.nombre);
+					}
+					// Intento 2: por nombre si el ID no encontró nada
+					if (!derivadoDelegacion && denuncia.derivadoDelegacion) {
+						const nomDeleg = String(denuncia.derivadoDelegacion).toLowerCase().trim();
+						const deleg = delegaciones.data.find(d =>
+							String(d.nombre || "").toLowerCase().trim() === nomDeleg
+						);
+						derivadoDelegacion = deleg
+							? formatCodigoNombre(deleg.codigoDelegacion || deleg.codigo, deleg.nombre)
+							: (denuncia.derivadoDelegacion || "");
+					}
+					derivadoSeccional = denuncia.derivadoSeccional || "";
+				} else {
+					derivadoDelegacion = denuncia.derivadoDelegacion || "";
+					derivadoSeccional = denuncia.derivadoSeccional || "";
+				}
+
+				// ── Armar fila ───────────────────────────────────────────────────────────
 				const item = {};
 				if (puedeVerTodosLosDatos) item["Nro. Denuncia"] = denuncia.id;
 				item["Nro. Seguimiento"] = denuncia.numeroSeguimiento || "";
@@ -903,18 +1148,19 @@ const ExportModal = ({
 				item["Teléfono"] = denuncia.telefono || denuncia.telefonoContacto || "";
 				item["Provincia"] = denuncia.provincia || "";
 				item["Localidad"] = denuncia.localidad || "";
-				item["Código Seccional"] = denuncia.seccionalCodigo || "";
-				item["Seccional"] = denuncia.seccional || "";
+				item["Seccional"] = seccionalStrResolved;
 				item["Estado"] = denuncia.estado || "Sin estado";
 				item["Situación"] = denuncia.denunciaSituacionId
-					? (situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.descripcion || situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.label || String(denuncia.denunciaSituacionId))
+					? (situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.descripcion
+						|| situacionSelect.data.find(s => Number(s.id) === Number(denuncia.denunciaSituacionId))?.label
+						|| String(denuncia.denunciaSituacionId))
 					: "";
 				item["Fecha Ultima Novedad"] = fechaUltimaNovedadFormatted;
 				item["Ultima Novedad"] = denuncia.ultimaNovedad || "Sin novedad";
 				item["Empresa"] = denuncia.empleadorNombre || "";
 				item["CUIT"] = denuncia.empleadorCUIT ? Formato.Cuit(denuncia.empleadorCUIT) : "";
-				item["Derivado a Delegación"] = denuncia.derivadoDelegacion || "";
-				item["Derivado a Seccional"] = denuncia.derivadoSeccional || "";
+				item["Derivado a Delegación"] = derivadoDelegacionStr;
+				item["Derivado a Seccional"] = derivadoSeccionalStr;
 				item["Ubicación"] = denuncia.ubicacion || "";
 				item["Detalle de la Denuncia"] = denuncia.texto || "";
 				return item;
