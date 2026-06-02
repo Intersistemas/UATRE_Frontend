@@ -1,5 +1,3 @@
-
-
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
@@ -621,11 +619,16 @@ const DenunciasHandler = () => {
     let base = seccionalSelect.data;
     const delegId = delegacionSelect.selected?.value;
     if (delegId) base = base.filter(opt => Number(opt.record?.refDelegacionId) === Number(delegId));
-    const options = [seccionalTodos, ...base.filter(opt => includeSearch(opt, seccionalSelect.buscar))];
-    // Mantener selección si todavía existe; si no, reset a Todos
-    const stillExists = options.find(o => o.value === seccionalSelect.selected?.value);
-    setSeccionalSelect(o => ({ ...o, options, selected: stillExists ? o.selected : seccionalTodos }));
-  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalSelect.selected?.value, seccionalTodos]);
+    const filtered = base.filter(opt => includeSearch(opt, seccionalSelect.buscar));
+    const options = [seccionalTodos, ...filtered];
+    // La lógica de reset se hace dentro del setter para leer el estado actual en el momento del update
+    setSeccionalSelect(o => {
+      const currentValue = o.selected?.value;
+      // Solo resetear si hay una selección concreta que ya no existe en las opciones filtradas
+      const stillExists = currentValue != null && options.some(opt => opt.value === currentValue);
+      return { ...o, options, selected: stillExists ? o.selected : seccionalTodos };
+    });
+  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalTodos]);
 
 
   // ==============================
@@ -896,17 +899,13 @@ const DenunciasHandler = () => {
             error={!!estadoSelect.error}
             helperText={estadoSelect.error || undefined}
             value={estadoSelect.selected}
-            onChange={(selected = {}) => {
-              setEstadoSelect((o) => ({
-                ...o,
-                selected,
-                origen: "option",
-              }));
+            onChange={(selected = estadoTodos) => {
+              setEstadoSelect((o) => ({ ...o, selected, origen: "option" }));
             }}
             options={estadoSelect.options}
-            onTextChange={(buscar) =>
-              setEstadoSelect((o) => ({ ...o, buscar, origen: "text" }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
 
           <SearchSelectMaterial
@@ -918,9 +917,9 @@ const DenunciasHandler = () => {
               setTipoIngresoSelect((o) => ({ ...o, selected }));
             }}
             options={tipoIngresoSelect.options}
-            onTextChange={(buscar) =>
-              setTipoIngresoSelect((o) => ({ ...o, buscar }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
           <SearchSelectMaterial
             label="Situación"
@@ -931,9 +930,9 @@ const DenunciasHandler = () => {
               setSituacionSelect((o) => ({ ...o, selected }));
             }}
             options={situacionSelect.options}
-            onTextChange={(buscar) =>
-              setSituacionSelect((o) => ({ ...o, buscar }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
 
         </Grid>
@@ -948,17 +947,17 @@ const DenunciasHandler = () => {
             value={derivadoATipoSelect.selected}
             onChange={(selected = derivadoATipoTodos) => {
               setDerivadoATipoSelect((o) => ({ ...o, selected }));
-
               if (selected?.value !== 'Delegacion' && selected?.value !== 'Seccional') {
                 setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
               }
-
               if (selected?.value !== 'Seccional') {
                 setSeccionalSelect(o => ({ ...o, selected: seccionalTodos }));
               }
             }}
             options={derivadoATipoSelect.options}
-            onTextChange={(buscar) => setDerivadoATipoSelect((o) => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledDerivadoA}
             style={{ opacity: disabledDerivadoA ? 0.6 : 1 }}
           />
@@ -969,7 +968,9 @@ const DenunciasHandler = () => {
             value={delegacionSelect.selected}
             onChange={handleDelegacionChange}
             options={delegacionSelect.options}
-            onTextChange={(buscar) => setDelegacionSelect(o => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledDelegacion}
             style={{ opacity: disabledDelegacion ? 0.6 : 1 }}
           />
@@ -980,7 +981,9 @@ const DenunciasHandler = () => {
             value={seccionalSelect.selected}
             onChange={handleSeccionalChange}
             options={seccionalSelect.options}
-            onTextChange={(buscar) => setSeccionalSelect(o => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledSeccional}
             style={{ opacity: disabledSeccional ? 0.6 : 1 }}
           />
