@@ -1,5 +1,3 @@
-
-
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { handleModuloSeleccionar } from "redux/actions";
@@ -60,19 +58,20 @@ const DenunciasHandler = () => {
     return null; // Sin filtro por defecto
   }, [usuario]);
 
-  // IDs de delegación/seccional del usuario (si aplica)
-  // IDs de delegación/seccional del usuario (si aplica) - ahora usando hook `useAmbitos`.
   const ambitosManager = useAmbitosUsuario();
-  const ambitoInfo = ambitosManager?.ambitoUser ? ambitosManager.ambitoUser() : { tipo: null, ids: [] };
+  const ambitoInfo = useMemo(() => ambitosManager.ambitoUser(), [ambitosManager]);
 
+  // IDs de delegación/seccional del usuario (si aplica)
   const usuarioDelegacionId = useMemo(() => {
-    return ambitoInfo?.tipo === "Delegaciones" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+    if (ambitoInfo?.tipo !== "Delegaciones") return null;
+    return Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
       ? Number(ambitoInfo.ids[0])
       : null;
   }, [ambitoInfo]);
 
   const usuarioSeccionalId = useMemo(() => {
-    return ambitoInfo?.tipo === "Seccionales" && Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
+    if (ambitoInfo?.tipo !== "Seccionales") return null;
+    return Array.isArray(ambitoInfo.ids) && ambitoInfo.ids.length > 0
       ? Number(ambitoInfo.ids[0])
       : null;
   }, [ambitoInfo]);
@@ -232,25 +231,29 @@ const DenunciasHandler = () => {
     if ((mode === "M" || mode === "C") && record?.id) {
       const mapApiToForm = (r = {}) => ({
         id: r.id,
-        fecha: r.fecha || "",
-        fechaIngreso: r.fechaIngreso ? `${r.fechaIngreso}`.slice(0, 10) : "",
-        numeroSeguimiento: r.numeroSeguimiento ?? "",
+        numeroSeguimiento: r.numeroSeguimiento || "",
+        fechaIngreso: r.fechaIngreso || "",
         provinciaNombre: r.provincia || "",
         provinciaId: r.provinciaId || 0,
         refLocalidadIdAfiliado: r.localidadId || 0,
         nombreLocalidadAfiliado: r.localidad || "",
         delegacion: r.delegacion || "",
         seccional: r.seccional || "",
-        nombre: r.nombre || "",
-        telefono: r.telefonoContacto || r.telefono || "",
-        correo: r.correo || "",
+        nombreDenunciante: r.nombreDenunciante || r.nombre || "",
+        nombre: r.nombre || r.nombreDenunciante || "",
+        telefonoContacto: r.telefonoContacto || r.telefono || "",
+        telefono: r.telefono || r.telefonoContacto || "",
+        correoElectronico: r.correoElectronico || r.correo || "",
+        correo: r.correo || r.correoElectronico || "",
         denunciaTipoIngresoId: r.denunciaTipoIngresoId || 0,
-        denunciaSituacionId: r.denunciaSituacionId || 0,
+        denunciaSituacionId: r.denunciaSituacionId || r.situacionId || 0,
+        situacionDescripcion: r.situacionDescripcion || r.denunciaSituacionDescripcion || "",
         cuitEmpresa: r.empleadorCUIT ? String(r.empleadorCUIT) : "",
         razonSocial: r.empleadorNombre || "",
-        texto: r.texto || "",
+        detalleDenuncia: r.detalleDenuncia || r.texto || "",
+        texto: r.texto || r.detalleDenuncia || "",
         ubicacion: r.ubicacion || "",
-        derivadoATipo: r.derivadoATipo || r.derivadaA || "Sin derivacion",
+        derivadoATipo: r.derivadoATipo || r.derivadoA_Tipo || "",
         derivadoDelegacion: r.derivadoDelegacion || "",
         derivadoSeccional: r.derivadoSeccional || "",
 
@@ -302,6 +305,20 @@ const DenunciasHandler = () => {
     () => ({ value: null, label: "Todas las situaciones" }),
     []
   );
+
+  const situacionFallbackOptions = useMemo(() => [
+    { value: 1,  label: "Consultas Salariales" },
+    { value: 2,  label: "Reclamos/Diferencias Salariales" },
+    { value: 3,  label: "Trabajo NO Registrado" },
+    { value: 4,  label: "Maltrato laboral" },
+    { value: 5,  label: "Condiciones laborales inaceptables" },
+    { value: 6,  label: "Falta de Ropa de Trabajo" },
+    { value: 7,  label: "Otras" },
+    { value: 8,  label: "Seguridad, higiene y salud en el trabajo." },
+    { value: 9,  label: "Condiciones de vivienda, alimentación y traslado." },
+    { value: 10, label: "Indicios de explotación laboral." },
+    { value: 11, label: "Trabajo infantil y adolescente." },
+  ], []);
 
   const derivadoATipoTodos = useMemo(
     () => ({ value: null, label: "Todas las derivaciones" }),
@@ -437,11 +454,11 @@ const DenunciasHandler = () => {
           ...o,
           loading: null,
           error: error?.toString() || "Error al cargar situaciones",
-          options: [situacionTodos],
+          options: [situacionTodos, ...situacionFallbackOptions],
         }));
       },
     });
-  }, [pushQuery, situacionTodos]);
+  }, [pushQuery, situacionTodos, situacionFallbackOptions]);
 
   // Búsqueda en los combos
   useEffect(() => {
@@ -602,11 +619,16 @@ const DenunciasHandler = () => {
     let base = seccionalSelect.data;
     const delegId = delegacionSelect.selected?.value;
     if (delegId) base = base.filter(opt => Number(opt.record?.refDelegacionId) === Number(delegId));
-    const options = [seccionalTodos, ...base.filter(opt => includeSearch(opt, seccionalSelect.buscar))];
-    // Mantener selección si todavía existe; si no, reset a Todos
-    const stillExists = options.find(o => o.value === seccionalSelect.selected?.value);
-    setSeccionalSelect(o => ({ ...o, options, selected: stillExists ? o.selected : seccionalTodos }));
-  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalSelect.selected?.value, seccionalTodos]);
+    const filtered = base.filter(opt => includeSearch(opt, seccionalSelect.buscar));
+    const options = [seccionalTodos, ...filtered];
+    // La lógica de reset se hace dentro del setter para leer el estado actual en el momento del update
+    setSeccionalSelect(o => {
+      const currentValue = o.selected?.value;
+      // Solo resetear si hay una selección concreta que ya no existe en las opciones filtradas
+      const stillExists = currentValue != null && options.some(opt => opt.value === currentValue);
+      return { ...o, options, selected: stillExists ? o.selected : seccionalTodos };
+    });
+  }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalTodos]);
 
 
   // ==============================
@@ -619,26 +641,18 @@ const DenunciasHandler = () => {
   // Verificar permisos del usuario para determinar qué columnas exportar
   const puedeVerTodosLosDatos = useMemo(() => {
     if (!usuario) return false;
-
-    // Considerar ambito 'Todos' como equivalente a administrador
-    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
-    const esAdministrador = usuario.roles?.includes("Administrador") || ambitoEsTodos;
+    const esAdministrador = usuario.roles?.includes("Administrador");
     const tieneTareaDenunciasDatos = tareasManager.hasTarea("Denuncias_Datos");
-
-    // Si el usuario tiene ámbito de Delegación o Seccional, aplicamos restricción adicional:
-    // solo podrá ver todos los datos si es administrador (o ambito Todos) o tiene la tarea Denuncias_Datos.
-    const ambitoReducido = ambitoInfo?.tipo === 'Delegaciones' || ambitoInfo?.tipo === 'Seccionales' || !!usuarioSeccionalId || !!usuarioDelegacionId;
-
-    return esAdministrador || tieneTareaDenunciasDatos;
-  }, [usuario, tareasManager, usuarioSeccionalId, usuarioDelegacionId]);
+    const ambitoEsTodos = ambitoInfo?.tipo === "Todos";
+    return esAdministrador || tieneTareaDenunciasDatos || ambitoEsTodos;
+  }, [usuario, tareasManager, ambitoInfo]);
 
   // Verificar permisos para exportar
   const puedeExportar = useMemo(() => {
-    // Usuarios con ambito 'Todos' o rol Administrador pueden exportar sin tareas.
-    const ambitoEsTodos = ambitoInfo?.tipo === 'Todos';
-    const esAdministrador = usuario?.roles?.includes("Administrador") || ambitoEsTodos;
+    const esAdministrador = usuario?.roles?.includes("Administrador") || false;
     const tieneTareaExcel = tareasManager.hasTarea("Excel_Denuncias");
-    return !!(esAdministrador || tieneTareaExcel);
+    const ambitoEsTodos = ambitoInfo?.tipo === "Todos";
+    return esAdministrador || tieneTareaExcel || ambitoEsTodos;
   }, [usuario, tareasManager, ambitoInfo]);
 
   const exportarAExcel = useCallback(() => {
@@ -656,62 +670,17 @@ const DenunciasHandler = () => {
 
     setExportLoading(true);
 
-        try {
-      // Los datos ya vienen formateados desde el modal con la "Ultima Novedad"
-      // Solo necesitamos procesarlos según los permisos del usuario
-      const datosExcel = selectedData.map((row) => {
-        if (puedeVerTodosLosDatos) {
-          // USUARIOS CON PERMISOS COMPLETOS - Todas las columnas
-          return {
-            "Nro. Denuncia": row["Nro. Denuncia"],
-            "Nro. Seguimiento": row["numeroSeguimiento"],
-            "Fecha de carga": row["Fecha de carga"],
-            "Fecha de ingreso": row["Fecha de ingreso"],
-            "Denunciante": row["Denunciante"],
-            "Correo": row["Correo"],
-            "Teléfono": row["Teléfono"],
-            "Provincia": row["Provincia"],
-              "Localidad": row["Localidad"],
-              "Código Seccional": row["Código Seccional"],
-              "Seccional": row["Seccional"],
-            "Estado": row["Estado"],
-            "Empresa": row["Empresa"],
-            "CUIT": row["CUIT"],
-            "Ubicación": row["Ubicación"],
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
-            "Derivado A Tipo": row["Derivado A Tipo"],
-            "Derivado a Delegación": row["Derivado a Delegación"],
-            "Derivado a Seccional": row["Derivado a Seccional"],
-            "Ultima Novedad": row["Ultima Novedad"]
-          };
-        } else {
-          //  USUARIOS CON PERMISOS LIMITADOS - Solo columnas básicas + Ultima Novedad
-          return {
-            "Fecha": row["Fecha"],
-            "Teléfono": row["Teléfono"],
-            "Localidad": row["Localidad"],
-            "Seccional": row["Seccional"],
-            "Estado": row["Estado"],
-            "Detalle de la Denuncia": row["Detalle de la Denuncia"],
-            "Empresa": row["Empresa"],
-            "CUIT": row["CUIT"],
-            "Ubicación": row["Ubicación"],
-            "Ultima Novedad": row["Ultima Novedad"]
-          };
-        }
-      });
-
-      //  Generar el archivo Excel
+    try {
+      // Los datos ya vienen formateados y con todas las columnas desde ExportModal.
+      // No re-mapear: cualquier re-mapeo descartaría los campos nuevos.
       const estadoFiltro = estadoSeleccionado?.value ? `_${estadoSeleccionado.value}` : "";
-      const nombreArchivo = `Denuncias_${puedeVerTodosLosDatos ? 'Completo' : 'Limitado'}${estadoFiltro}_con_Novedades`;
-      await exportToExcel([
-        {
-          sheetName: "Denuncias",
-          data: datosExcel
-        }
-      ], nombreArchivo);
+      const nombreArchivo = `Denuncias_${puedeVerTodosLosDatos ? "Completo" : "Limitado"}${estadoFiltro}_con_Novedades`;
+      await exportToExcel(
+        [{ sheetName: "Denuncias", data: selectedData }],
+        nombreArchivo
+      );
 
-      setExportModalOpen(false); // Cerrar el modal
+      setExportModalOpen(false);
     } catch (error) {
       console.error("Error en exportación a Excel:", error);
       alert(`Error al generar Excel: ${error?.message || error}`);
@@ -722,7 +691,7 @@ const DenunciasHandler = () => {
     puedeVerTodosLosDatos,
     exportToExcel,
     setExportModalOpen,
-    setExportLoading
+    setExportLoading,
   ]);
 
   // ==============================
@@ -731,10 +700,12 @@ const DenunciasHandler = () => {
 
   // Calcular DerivadoAId según selección
   const filtroDerivadoATipoValue = derivadoATipoSelect.selected?.value || null;
+  const filtroDelegacionValue = delegacionSelect.selected?.value || null;
+  const filtroSeccionalValue = seccionalSelect.selected?.value || null;
   const filtroDerivadoAIdValue = filtroDerivadoATipoValue === 'Delegacion'
-    ? (delegacionSelect.selected?.value || null)
+    ? filtroDelegacionValue
     : filtroDerivadoATipoValue === 'Seccional'
-      ? (seccionalSelect.selected?.value || null)
+      ? filtroSeccionalValue
       : null;
 
   // Bloqueo por ámbito del usuario
@@ -745,8 +716,39 @@ const DenunciasHandler = () => {
 
   // Estados de disabled para aplicar opacidad visual
   const disabledDerivadoA = bloquearDerivadoA;
-  const disabledDelegacion = bloquearDelegacion || (filtroDerivadoATipoValue !== 'Delegacion' && filtroDerivadoATipoValue !== 'Seccional');
-  const disabledSeccional = bloquearSeccional || (filtroDerivadoATipoValue !== 'Seccional');
+  const disabledDelegacion = bloquearDelegacion;
+  const disabledSeccional = bloquearSeccional;
+
+  const handleDelegacionChange = useCallback((selected = delegacionTodos) => {
+    setDelegacionSelect((o) => ({ ...o, selected }));
+
+    if (selected?.value) {
+      const derivadoDelegacion = derivadoATipoSelect.data.find((r) => r.value === "Delegacion") || derivadoATipoTodos;
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoDelegacion }));
+      setSeccionalSelect((o) => ({ ...o, selected: seccionalTodos }));
+    } else if (derivadoATipoSelect.selected?.value === "Delegacion") {
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
+    }
+  }, [delegacionTodos, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
+
+  const handleSeccionalChange = useCallback((selected = seccionalTodos) => {
+    setSeccionalSelect((o) => ({ ...o, selected }));
+
+    if (selected?.value) {
+      const derivadoSeccional = derivadoATipoSelect.data.find((r) => r.value === "Seccional") || derivadoATipoTodos;
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoSeccional }));
+
+      const delegacionId = Number(selected.record?.refDelegacionId);
+      if (delegacionId) {
+        const delegacionRelacionada = delegacionSelect.data.find((r) => Number(r.value) === delegacionId);
+        if (delegacionRelacionada) {
+          setDelegacionSelect((o) => ({ ...o, selected: delegacionRelacionada }));
+        }
+      }
+    } else if (derivadoATipoSelect.selected?.value === "Seccional") {
+      setDerivadoATipoSelect((o) => ({ ...o, selected: derivadoATipoTodos }));
+    }
+  }, [delegacionSelect.data, derivadoATipoSelect.data, derivadoATipoSelect.selected?.value, derivadoATipoTodos, seccionalTodos]);
 
   const {
     render: denunciaRender,
@@ -897,17 +899,13 @@ const DenunciasHandler = () => {
             error={!!estadoSelect.error}
             helperText={estadoSelect.error || undefined}
             value={estadoSelect.selected}
-            onChange={(selected = {}) => {
-              setEstadoSelect((o) => ({
-                ...o,
-                selected,
-                origen: "option",
-              }));
+            onChange={(selected = estadoTodos) => {
+              setEstadoSelect((o) => ({ ...o, selected, origen: "option" }));
             }}
             options={estadoSelect.options}
-            onTextChange={(buscar) =>
-              setEstadoSelect((o) => ({ ...o, buscar, origen: "text" }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
 
           <SearchSelectMaterial
@@ -919,9 +917,9 @@ const DenunciasHandler = () => {
               setTipoIngresoSelect((o) => ({ ...o, selected }));
             }}
             options={tipoIngresoSelect.options}
-            onTextChange={(buscar) =>
-              setTipoIngresoSelect((o) => ({ ...o, buscar }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
           <SearchSelectMaterial
             label="Situación"
@@ -932,9 +930,9 @@ const DenunciasHandler = () => {
               setSituacionSelect((o) => ({ ...o, selected }));
             }}
             options={situacionSelect.options}
-            onTextChange={(buscar) =>
-              setSituacionSelect((o) => ({ ...o, buscar }))
-            }
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
           />
 
         </Grid>
@@ -949,17 +947,17 @@ const DenunciasHandler = () => {
             value={derivadoATipoSelect.selected}
             onChange={(selected = derivadoATipoTodos) => {
               setDerivadoATipoSelect((o) => ({ ...o, selected }));
-
               if (selected?.value !== 'Delegacion' && selected?.value !== 'Seccional') {
                 setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
               }
-
               if (selected?.value !== 'Seccional') {
                 setSeccionalSelect(o => ({ ...o, selected: seccionalTodos }));
               }
             }}
             options={derivadoATipoSelect.options}
-            onTextChange={(buscar) => setDerivadoATipoSelect((o) => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledDerivadoA}
             style={{ opacity: disabledDerivadoA ? 0.6 : 1 }}
           />
@@ -968,9 +966,11 @@ const DenunciasHandler = () => {
             error={!!delegacionSelect.error}
             helperText={delegacionSelect.error || undefined}
             value={delegacionSelect.selected}
-            onChange={(selected = delegacionTodos) => setDelegacionSelect(o => ({ ...o, selected }))}
+            onChange={handleDelegacionChange}
             options={delegacionSelect.options}
-            onTextChange={(buscar) => setDelegacionSelect(o => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledDelegacion}
             style={{ opacity: disabledDelegacion ? 0.6 : 1 }}
           />
@@ -979,9 +979,11 @@ const DenunciasHandler = () => {
             error={!!seccionalSelect.error}
             helperText={seccionalSelect.error || undefined}
             value={seccionalSelect.selected}
-            onChange={(selected = seccionalTodos) => setSeccionalSelect(o => ({ ...o, selected }))}
+            onChange={handleSeccionalChange}
             options={seccionalSelect.options}
-            onTextChange={(buscar) => setSeccionalSelect(o => ({ ...o, buscar }))}
+            onTextChange={() => {}}
+            freeSolo={false}
+            inputReadOnly={true}
             disabled={disabledSeccional}
             style={{ opacity: disabledSeccional ? 0.6 : 1 }}
           />
@@ -1014,11 +1016,15 @@ const DenunciasHandler = () => {
           <Button
             className="botonAzul"
             onClick={() => {
-              const derivadoTipo = derivadoATipoSelect.selected?.value || null;
-              const derivadoId = derivadoTipo === 'Delegacion'
-                ? (delegacionSelect.selected?.value || null)
-                : derivadoTipo === 'Seccional'
-                  ? (seccionalSelect.selected?.value || null)
+              const derivadoTipo = filtroSeccionalValue
+                ? "Seccional"
+                : filtroDelegacionValue
+                  ? "Delegacion"
+                  : derivadoATipoSelect.selected?.value || null;
+              const derivadoId = filtroSeccionalValue
+                ? filtroSeccionalValue
+                : filtroDelegacionValue
+                  ? filtroDelegacionValue
                   : null;
 
               setAppliedFilters({
@@ -1050,7 +1056,9 @@ const DenunciasHandler = () => {
               !tipoIngresoSelect.selected?.value &&
               !situacionSelect.selected?.value &&
               !filtroDerivadoATipoValue &&
-              !filtroDerivadoAIdValue
+              !filtroDerivadoAIdValue &&
+              !filtroDelegacionValue &&
+              !filtroSeccionalValue
             }
             onClick={() => {
               let nextDerivadoTipo = null;
@@ -1239,7 +1247,6 @@ const DenunciasHandler = () => {
               handleExportFromModal(exportData, estadoSeleccionado);
             }
           }}
-          initialData={denunciasData}
           currentFilters={{
             ...(appliedFilters.estado && { estado: appliedFilters.estado }),
             ...(appliedFilters.fechaDesde && { fechaDesde: appliedFilters.fechaDesde }),
@@ -1254,6 +1261,7 @@ const DenunciasHandler = () => {
           }}
           usuarioAmbito={usuarioAmbito}
           applyAmbitoFilter={applyAmbitoFilter}
+          initialData={denunciasData}
         />
       )}
     </Grid>
