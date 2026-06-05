@@ -410,9 +410,7 @@ const useDenuncias = ({
     );
   };
 
-  return { render, request, selected: list.selection.record, data: list.data, loading: list.loading };
+  return { render, request, selected: list.selection.record, data: list.data };
 };
-
-export const useDenunciasData = (opts) => useDenuncias(opts);
 
 export default useDenuncias;
