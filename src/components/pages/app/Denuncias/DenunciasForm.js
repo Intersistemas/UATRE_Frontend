@@ -22,7 +22,7 @@ import Table from "components/ui/Table/Table";
 import DateTimePicker from "components/ui/DateTimePicker/DateTimePicker";
 
 import { Tabs, Tab } from "@mui/material";
-import Documentacion from "components/Documentacion/Documentacion";
+import Documentacion from "components/documentacion/Documentacion";
 import useTareasUsuario from "components/hooks/useTareasUsuario";
 
 

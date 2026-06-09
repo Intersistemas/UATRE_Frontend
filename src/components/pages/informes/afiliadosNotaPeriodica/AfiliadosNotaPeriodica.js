@@ -119,7 +119,7 @@ const columns = [
 	},
 ];
 
-const filtrosDef = { nroAfiliado: 1, nroAfiliadoHasta: 2147483647 };
+const filtrosDef = { nroAfiliado: 1, nroAfiliadoHasta: 2147483647, ignorarEstadoSeccional: true };
 
 //#region delegacionSelectOptions
 const delegacionSelectTodos = { value: 0, label: "Todas" };
