@@ -1935,11 +1935,7 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
 
 
-		const ESTADO_KEY = state.form?.estado || "Registrada";
-		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
-
-
-		const isRegistrada = String((state.form?.estado || "")).trim() === "Registrada";
+		const isRegistrada = estadoPersistido === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
 		const derivadaOptionsFor = (tipo) => {
 			if (tipo === "Asesoria Letrada") return ["Asesoria Letrada"];
@@ -2747,37 +2743,6 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 
 		const _derivadoATipoRaw = body.derivadaADescripcion || body.derivadaA || state.form?.derivadaADescripcion || state.form?.derivadaA || "";
 		const derivadoATipoValue = _derivadoATipoRaw === "Sin derivacion" ? "Sin datos" : _derivadoATipoRaw;
-		const delegacionNombreDerivada = String(
-			delegacionSelect.selected?.record?.nombre ||
-			delegacionSelect.selected?.label ||
-			data?.derivadoDelegacion ||
-			""
-		).trim();
-		const seccionalNombreDerivada = String(
-			seccionalSelect.selected?.record?.descripcion ||
-			(seccionalSelect.selected?.label || "").split(" - ").slice(1).join(" - ") ||
-			data?.derivadoSeccional ||
-			""
-		).trim();
-		const seccionalSource = String(body.seccionalCabecera || data?.seccional || "").trim();
-		const seccionalNombre = seccionalSource.includes(" - ")
-			? seccionalSource.split(" - ").slice(1).join(" - ").trim()
-			: seccionalSource;
-
-		const delegacionNombreDerivada = String(
-			delegacionSelect.selected?.record?.nombre ||
-			delegacionSelect.selected?.label ||
-			data?.derivadoDelegacion || ""
-		).trim();
-		const seccionalNombreDerivada = String(
-			seccionalSelect.selected?.record?.descripcion ||
-			(seccionalSelect.selected?.label || "").split(" - ").slice(1).join(" - ") ||
-			data?.derivadoSeccional || ""
-		).trim();
-		const seccionalSource = String(body.seccionalCabecera || data?.seccional || "").trim();
-		const seccionalNombre = seccionalSource.includes(" - ")
-			? seccionalSource.split(" - ").slice(1).join(" - ").trim()
-			: seccionalSource;
 
 		const delegacionNombreDerivada = String(
 			delegacionSelect.selected?.record?.nombre ||
