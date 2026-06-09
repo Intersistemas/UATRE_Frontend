@@ -1935,6 +1935,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
 
 
+		const ESTADO_KEY = state.form?.estado || "Registrada";
+		const ESTADO_VALUE = estadoOptions.find(o => o.value === ESTADO_KEY) || null;
+
+
 		const isRegistrada = String((state.form?.estado || "")).trim() === "Registrada";
 		const derivadaPersistida = (serverDerivadoATipo || "Sin datos").trim();
 		const derivadaOptionsFor = (tipo) => {
@@ -2754,6 +2758,21 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			(seccionalSelect.selected?.label || "").split(" - ").slice(1).join(" - ") ||
 			data?.derivadoSeccional ||
 			""
+		).trim();
+		const seccionalSource = String(body.seccionalCabecera || data?.seccional || "").trim();
+		const seccionalNombre = seccionalSource.includes(" - ")
+			? seccionalSource.split(" - ").slice(1).join(" - ").trim()
+			: seccionalSource;
+
+		const delegacionNombreDerivada = String(
+			delegacionSelect.selected?.record?.nombre ||
+			delegacionSelect.selected?.label ||
+			data?.derivadoDelegacion || ""
+		).trim();
+		const seccionalNombreDerivada = String(
+			seccionalSelect.selected?.record?.descripcion ||
+			(seccionalSelect.selected?.label || "").split(" - ").slice(1).join(" - ") ||
+			data?.derivadoSeccional || ""
 		).trim();
 		const seccionalSource = String(body.seccionalCabecera || data?.seccional || "").trim();
 		const seccionalNombre = seccionalSource.includes(" - ")
