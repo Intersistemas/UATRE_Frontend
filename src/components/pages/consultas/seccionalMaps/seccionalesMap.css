@@ -35,3 +35,50 @@
   font-size: 1.5rem;
   width: 100%;
 }
+
+.map-container {
+  width: 70vw;
+  height: 70vh;
+}
+
+.info-window {
+  padding: 12px 18px 18px 18px;
+}
+
+.info-window-title {
+  color: #1a1a1a;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.info-window-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 12px 14px;
+}
+
+.info-window-label {
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.info-window-value {
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.info-window-btn-action {
+  white-space: nowrap;
+  width: 100%;
+}
+
+.info-window-btn-close {
+  width: 100%;
+  margin-top: 16px;
+  white-space: nowrap;
+}

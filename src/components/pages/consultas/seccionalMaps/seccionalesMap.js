@@ -13,10 +13,6 @@ import "./seccionalesMap.css";
 import SeccionalesMapSearcher from './seccionalesMapSearcher';
 
 const libraries = ['places'];
-const mapContainerStyle = {
-  width: '70vw',
-  height: '70vh',
-};
 const center = {
   lat: -34.60048,
   lng: -58.37274,
@@ -149,7 +145,7 @@ const SeccionalesMap = () => {
         </FormControl>
       </div>
       <GoogleMap
-        mapContainerStyle={mapContainerStyle}
+        mapContainerClassName="map-container"
         zoom={pan ? 10 : 6}
         center={pan ? pan : center}
         options={{
@@ -185,31 +181,29 @@ const SeccionalesMap = () => {
             options={{ pixelOffset: new window.google.maps.Size(0, -40) }}
             onCloseClick={() => setSelectedMarker("")}
           >
-            <div style={{ padding: '12px 18px 18px 18px' }}>
-              <h2 style={{ color: '#1a1a1a', fontSize: '24px', fontWeight: 'bold', margin: '0 0 16px 0', lineHeight: '1.4' }}>
+            <div className="info-window">
+              <h2 className="info-window-title">
                 {selectedMarker.nombre}{esDomicilioValido(selectedMarker.domicilio) ? ` - ${selectedMarker.domicilio}` : ''}
               </h2>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'auto auto auto', alignItems: 'center', gap: '12px 14px' }}>
+              <div className="info-window-grid">
 
                 {selectedMarker.celular && <>
-                  <strong style={{ fontSize: '20px', color: '#111', whiteSpace: 'nowrap' }}>Teléfono:</strong>
-                  <span style={{ fontSize: '20px', color: '#111', whiteSpace: 'nowrap' }}>{selectedMarker.celular}</span>
+                  <strong className="info-window-label">Teléfono:</strong>
+                  <span className="info-window-value">{selectedMarker.celular}</span>
                   <Button
                     size="lg"
-                    className="botonAzul"
-                    style={{ whiteSpace: 'nowrap', width: '100%' }}
+                    className="botonAzul info-window-btn-action"
                     onClick={() => { window.location.href = `tel:${selectedMarker.celular}`; }}
                   >Llamar</Button>
                 </>}
 
                 {esEmailValido(selectedMarker.email) && <>
-                  <strong style={{ fontSize: '20px', color: '#111', whiteSpace: 'nowrap' }}>Mail:</strong>
-                  <span style={{ fontSize: '20px', color: '#111', whiteSpace: 'nowrap' }}>{selectedMarker.email}</span>
+                  <strong className="info-window-label">Mail:</strong>
+                  <span className="info-window-value">{selectedMarker.email}</span>
                   <Button
                     size="lg"
-                    className="botonAzul"
-                    style={{ whiteSpace: 'nowrap', width: '100%' }}
+                    className="botonAzul info-window-btn-action"
                     onClick={() => { window.location.href = `mailto:${selectedMarker.email}`; }}
                   >Enviar Mail</Button>
                 </>}
@@ -218,8 +212,7 @@ const SeccionalesMap = () => {
 
               <Button
                 size="lg"
-                className="botonAmarillo"
-                style={{ width: '100%', marginTop: '16px', whiteSpace: 'nowrap' }}
+                className="botonAmarillo info-window-btn-close"
                 onClick={() => setSelectedMarker("")}
               >Cierra</Button>
 
