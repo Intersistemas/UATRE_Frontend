@@ -1,0 +1,22 @@
+.searcher-wrapper {
+  flex: 1;
+  min-width: 220px;
+  max-width: 700px;
+}
+
+/* Reserva espacio a la derecha para los botones (clear + popup) del Autocomplete */
+.searcher-wrapper .MuiOutlinedInput-root {
+  padding-right: 70px !important;
+}
+
+/* Corta el texto con "..." antes de llegar a los botones */
+.searcher-wrapper .MuiAutocomplete-input {
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .searcher-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+}

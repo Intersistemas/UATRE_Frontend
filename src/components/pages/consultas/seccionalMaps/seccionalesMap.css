@@ -1,8 +1,18 @@
-.gm-style .gm-style-iw-d::-webkit-scrollbar-track, 
+.gm-style .gm-style-iw-d::-webkit-scrollbar-track,
 .gm-style .gm-style-iw-d::-webkit-scrollbar-track-piece,
 .gm-style .gm-style-iw-c,
-.gm-style .gm-style-iw-t::after { 
+.gm-style .gm-style-iw-t::after {
   background: rgba(233,233,233,0.5);
+}
+
+/* El InfoWindow se ajusta al contenido sin restricción de ancho mínimo */
+.gm-style .gm-style-iw-c {
+  max-width: 600px !important;
+  padding: 4px 4px 0 4px !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
 }
 
 
@@ -24,4 +34,51 @@
   padding: 0.5rem;
   font-size: 1.5rem;
   width: 100%;
+}
+
+.map-container {
+  width: 70vw;
+  height: 70vh;
+}
+
+.info-window {
+  padding: 12px 18px 18px 18px;
+}
+
+.info-window-title {
+  color: #1a1a1a;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.info-window-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 12px 14px;
+}
+
+.info-window-label {
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.info-window-value {
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.info-window-btn-action {
+  white-space: nowrap;
+  width: 100%;
+}
+
+.info-window-btn-close {
+  width: 100%;
+  margin-top: 16px;
+  white-space: nowrap;
 }
