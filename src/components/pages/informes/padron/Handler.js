@@ -459,7 +459,7 @@ const Handler = ({ onClose = () => {} }) => {
     reload: false, loading: null,
     pagination: { index: 1, size: 10, count: 0 }, // count = total de registros (para Table)
     filtros: {},
-    sort: "seccionalId,nombre",
+    sort: "nombre",
     data: [],
     error: null,
   });

@@ -1,7 +1,7 @@
 import React from 'react';
 import usePlacesAutocomplete, {getGeocode, getLatLng} from "use-places-autocomplete";
 import { Autocomplete, TextField } from '@mui/material';
-import "./seccionalesMap.css";
+import "./seccionalesMapSearcher.css";
 
 
 const SeccionalesMapSearcher = (props) => {
@@ -26,11 +26,11 @@ const SeccionalesMapSearcher = (props) => {
         }
 
   return (
-    <div >
+    <div className="searcher-wrapper">
 
         <Autocomplete
             id="google-map-demo"
-            sx={{ width: 300 }}
+            sx={{ width: '100%' }}
             getOptionLabel={(option) =>
                 typeof option === 'string' ? option : option.description
             }
@@ -42,9 +42,8 @@ const SeccionalesMapSearcher = (props) => {
             value={value}
             noOptionsText="Sin Localidades"
             onChange={(event, value) => {
-                colocaPinYCentraliza(value.description);
-            }                
-            }
+                if (value) colocaPinYCentraliza(value.description);
+            }}
             onInputChange={(event, newInputValue) => {
                 setValue(newInputValue);
             }}
