@@ -50,6 +50,8 @@ const useDenuncias = ({
   filtroSituacionId = null,
   filtroDerivadoATipo = null,
   filtroDerivadoAId = null,
+  filtroDelegacionId = null,
+  bloqueado = false,
 } = {}) => {
 
 
@@ -97,6 +99,7 @@ const useDenuncias = ({
 
   useEffect(() => {
     if (!list.loading) return;
+    if (bloqueado) return; // esperar a que los filtros de ámbito estén listos
     const changes = { loading: null, error: null };
 
     if (!list.remote) {
@@ -140,13 +143,12 @@ const useDenuncias = ({
           if (response && typeof response === "object") {
             data = response.data || [];
             const totalCount = response.count || response.totalCount || response.total || 0;
-            
-            
+            const totalPages = response.pages || response.totalPages || Math.ceil(totalCount / list.pagination.size);
             paginationInfo = {
-              index: list.pagination.index, //  Mantener nuestro índice
-              size: list.pagination.size,   //  Mantener nuestro tamaño (3)
-              count: totalFilteredCount || totalCount,
-              pages: Math.ceil((totalFilteredCount || totalCount) / list.pagination.size)
+              index: list.pagination.index,
+              size: list.pagination.size,
+              count: totalCount,
+              pages: totalPages,
             };
           } else if (Array.isArray(response)) {
             data = response;
@@ -194,10 +196,7 @@ const useDenuncias = ({
                 });
                 
                 // Cargar estados después del filtro por ámbito
-                cargarEstadosParaDenuncias(filteredData, {
-                  ...paginationInfo,
-                  count: filteredData.length // Actualizar count con datos filtrados
-                });
+                cargarEstadosParaDenuncias(filteredData, paginationInfo);
               }).catch(error => {
                 console.error(" Error aplicando filtro de ámbito:", error);
                 // Cargar estados sin filtro por ámbito
@@ -267,8 +266,15 @@ const useDenuncias = ({
    if (filtroFechaHasta) queryParams.fechaHasta = filtroFechaHasta;
    if (filtroTipoIngresoId) queryParams.denunciaTipoIngresoId = filtroTipoIngresoId;
    if (filtroSituacionId) queryParams.denunciaSituacionId = filtroSituacionId;
-   if (filtroDerivadoATipo) queryParams.derivadoATipo = filtroDerivadoATipo;
-   if (filtroDerivadoAId) queryParams.derivadoAId = filtroDerivadoAId;
+   if (filtroDelegacionId && !filtroDerivadoATipo) {
+     queryParams.DelegacionId = filtroDelegacionId;
+   } else {
+     if (filtroDerivadoATipo) queryParams.derivadoATipo = filtroDerivadoATipo;
+     if (filtroDerivadoAId) queryParams.derivadoAId = filtroDerivadoAId;
+     if (filtroDerivadoATipo === 'Seccional' && !filtroDerivadoAId && filtroDelegacionId) {
+       queryParams.DelegacionId = filtroDelegacionId;
+     }
+   }
 
    cargarDenunciasConParametros(queryParams, null);
    return;
@@ -277,6 +283,7 @@ const useDenuncias = ({
     }, [
     pushQuery,
     list.loading,
+    bloqueado,
     filtroEstado,
     filtroFechaDesde,
     filtroFechaHasta,
@@ -286,6 +293,7 @@ const useDenuncias = ({
     filtroSituacionId,
     filtroDerivadoATipo,
     filtroDerivadoAId,
+    filtroDelegacionId,
   ]);
 
   //  ACTIVAR LOADING CUANDO CAMBIEN LOS FILTROS
@@ -305,6 +313,7 @@ const useDenuncias = ({
     filtroSituacionId,
     filtroDerivadoATipo,
     filtroDerivadoAId,
+    filtroDelegacionId,
   ]);
 
   const request = useCallback((type, payload = {}) => {
@@ -410,7 +419,7 @@ const useDenuncias = ({
     );
   };
 
-  return { render, request, selected: list.selection.record, data: list.data };
+  return { render, request, selected: list.selection.record, data: list.data, loading: !!list.loading };
 };
 
 export default useDenuncias;
