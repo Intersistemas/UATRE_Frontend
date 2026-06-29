@@ -94,7 +94,7 @@ const DenunciasHandler = () => {
   // ==============================
   // QUERIES API
   // ==============================
-  const pushQuery = useQueryQueue((action) => {
+  const pushQuery = useQueryQueue((action, params) => {
     if (action === "GetDenuncia") {
       // Mantengo este recurso porque ya lo tenías (sirve para combos/auxiliares)
       return {
@@ -146,6 +146,16 @@ const DenunciasHandler = () => {
       };
     }
 
+    if (action === "GetDelegacionById") {
+      return {
+        config: {
+          baseURL: "Comunes",
+          method: "GET",
+          endpoint: "/RefDelegacion/GetById",
+        },
+      };
+    }
+
     if (action === "GetSeccionales") {
       return {
         config: {
@@ -153,6 +163,17 @@ const DenunciasHandler = () => {
           method: "GET",
           endpoint: "/Seccional",
         },
+      };
+    }
+
+    if (action === "GetSeccionalById") {
+      return {
+        config: {
+          baseURL: "Afiliaciones",
+          method: "GET",
+          endpoint: `/Seccional/${params?.id ?? ""}`,
+        },
+        params: {},
       };
     }
 
@@ -517,6 +538,12 @@ const DenunciasHandler = () => {
   const [fechaDesde, setFechaDesde] = useState(null);
   const [fechaHasta, setFechaHasta] = useState(null);
 
+  const ambitoFiltrosIniciales = useMemo(() => {
+    if (usuarioSeccionalId) return { derivadoATipo: 'Seccional', derivadoAId: usuarioSeccionalId };
+    if (usuarioDelegacionId) return { derivadoATipo: 'Delegacion', derivadoAId: usuarioDelegacionId };
+    return { derivadoATipo: null, derivadoAId: null };
+  }, [usuarioSeccionalId, usuarioDelegacionId]);
+
   // Estado con los filtros actualmente aplicados (no se actualiza automáticamente)
   const [appliedFilters, setAppliedFilters] = useState(() => ({
     estado: null,
@@ -526,6 +553,7 @@ const DenunciasHandler = () => {
     situacionId: null,
     derivadoATipo: null,
     derivadoAId: null,
+    delegacionId: null,
   }));
 
   const delegacionTodos = useMemo(() => ({ value: null, label: "Todas las delegaciones" }), []);
@@ -548,65 +576,90 @@ const DenunciasHandler = () => {
     selected: seccionalTodos,
   });
 
-  // Autocompletar filtros según ámbito del usuario y bloquear cambios
-  useEffect(() => {
+  const [ambitoFiltroAplicado, setAmbitoFiltroAplicado] = useState(false);
 
-    const delegacionesListas = delegacionSelect.loading === null || delegacionSelect.loading === undefined;
-    const seccionalesListas = seccionalSelect.loading === null || seccionalSelect.loading === undefined;
-    if (!delegacionesListas || !seccionalesListas) return;
-
-
-    if (usuarioSeccionalId) {
-      const secOption = seccionalSelect.data.find(o => Number(o.value) === Number(usuarioSeccionalId));
-      if (secOption) {
-        setSeccionalSelect(o => ({ ...o, selected: secOption }));
-        const delegId = Number(secOption.record?.refDelegacionId);
-        const delOption = delegacionSelect.data.find(o => Number(o.value) === Number(delegId));
-        if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption }));
-      }
-      const derivSec = derivadoATipoSelect.data.find(o => o.value === 'Seccional');
-      if (derivSec) setDerivadoATipoSelect(o => ({ ...o, selected: derivSec }));
-      return; // Seccional tiene prioridad
-    }
-
-
-    if (usuarioDelegacionId) {
-      const delOption = delegacionSelect.data.find(o => Number(o.value) === Number(usuarioDelegacionId));
-      if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption }));
-
-    }
-  }, [usuarioSeccionalId, usuarioDelegacionId, delegacionSelect.loading, seccionalSelect.loading, delegacionSelect.data, seccionalSelect.data, derivadoATipoSelect.data, setSeccionalSelect, setDelegacionSelect, setDerivadoATipoSelect]);
+  // carga uno o todos según si hay un id de ámbito específico
+  const cargarSelect = useCallback((
+    { loading, skip, actionSingle, actionAll, paramsSingle, paramsAll, mapFn, todosOption, setFn }
+  ) => {
+    if (loading !== "Cargando...") return;
+    if (skip) { setFn(o => ({ ...o, loading: null })); return; }
+    const normalizar = (resp) => Array.isArray(resp) ? resp : resp?.data || [];
+    const onOk = (resp) => {
+      const arr = actionSingle
+        ? (() => { const raw = Array.isArray(resp) ? resp[0] : resp; return raw ? [raw] : []; })()
+        : normalizar(resp);
+      const mapped = arr.map(mapFn);
+      setFn(o => ({ ...o, loading: null, data: mapped, options: [todosOption, ...mapped] }));
+    };
+    const onError = (err) => setFn(o => ({ ...o, loading: null, error: err?.toString(), options: [todosOption] }));
+    pushQuery({ action: actionSingle ?? actionAll, params: actionSingle ? paramsSingle : paramsAll, onOk, onError });
+  }, [pushQuery]);
 
   // Cargar delegaciones
   useEffect(() => {
-    if (delegacionSelect.loading !== "Cargando...") return;
-    pushQuery({
-      action: "GetDelegaciones",
-      params: { soloActivos: true },
-      onOk: (resp) => {
-        const arr = Array.isArray(resp) ? resp : resp?.data || [];
-        const mapped = arr.map(r => ({ value: r.id, label: r.nombre, record: r }));
-        setDelegacionSelect(o => ({ ...o, loading: null, data: mapped, options: [delegacionTodos, ...mapped] }));
-      },
-      onError: (err) => setDelegacionSelect(o => ({ ...o, loading: null, error: err?.toString(), options: [delegacionTodos] })),
+    cargarSelect({
+      loading: delegacionSelect.loading,
+      // Para ámbito Seccional la delegación se resuelve desde el record de la seccional
+      skip: !!usuarioSeccionalId,
+      actionSingle: usuarioDelegacionId ? "GetDelegacionById" : null,
+      paramsSingle: { Id: Number(usuarioDelegacionId) },
+      actionAll: "GetDelegaciones",
+      paramsAll: { soloActivos: true },
+      mapFn: (r) => ({ value: r.id, label: r.nombre, record: r }),
+      todosOption: delegacionTodos,
+      setFn: setDelegacionSelect,
     });
-  }, [pushQuery, delegacionSelect.loading, delegacionTodos]);
+  }, [cargarSelect, delegacionSelect.loading, delegacionTodos, usuarioDelegacionId, usuarioSeccionalId]);
 
   // Cargar seccionales
   useEffect(() => {
-    if (seccionalSelect.loading !== "Cargando...") return;
-    pushQuery({
-      action: "GetSeccionales",
-      params: { soloActivos: true },
-      onOk: (resp) => {
-        const arr = Array.isArray(resp) ? resp : resp?.data || [];
-        // Guardamos crudo en data para poder filtrar luego por delegación
-        const mapped = arr.map(r => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r }));
-        setSeccionalSelect(o => ({ ...o, loading: null, data: mapped, options: [seccionalTodos, ...mapped] }));
-      },
-      onError: (err) => setSeccionalSelect(o => ({ ...o, loading: null, error: err?.toString(), options: [seccionalTodos] })),
+    const mapSeccional = (r) => ({ value: r.id, label: [r.codigo, r.descripcion].join(" - "), record: r });
+    cargarSelect({
+      loading: seccionalSelect.loading,
+      skip: false,
+      actionSingle: usuarioSeccionalId ? "GetSeccionalById" : null,
+      paramsSingle: { id: Number(usuarioSeccionalId) },
+      actionAll: "GetSeccionales",
+      // Si es ámbito delegación, filtrar seccionales solo de esa delegación
+      paramsAll: usuarioDelegacionId ? { soloActivos: true, delegacionId: usuarioDelegacionId } : { soloActivos: true },
+      mapFn: mapSeccional,
+      todosOption: seccionalTodos,
+      setFn: setSeccionalSelect,
     });
-  }, [pushQuery, seccionalSelect.loading, seccionalTodos]);
+  }, [cargarSelect, seccionalSelect.loading, seccionalTodos, usuarioSeccionalId, usuarioDelegacionId]);
+
+  // Autocompletar selects según ámbito del usuario (una sola vez al cargar los datos)
+  useEffect(() => {
+    if (ambitoFiltroAplicado) return;
+    if (!seccionalSelect.data.length && !delegacionSelect.data.length) return;
+
+    if (usuarioSeccionalId) {
+      const secOption = seccionalSelect.data.find(o => Number(o.value) === Number(usuarioSeccionalId));
+      if (!secOption) return;
+      const delegId = Number(secOption.record?.refDelegacionId ?? 0);
+      const delegNombre = secOption.record?.refDelegacionDescripcion || secOption.record?.delegacionNombre || "";
+      const delOption = delegId
+        ? (delegacionSelect.data.find(o => Number(o.value) === Number(delegId))
+          || (delegNombre ? { value: delegId, label: delegNombre, record: { id: delegId, nombre: delegNombre } } : null))
+        : null;
+      const derivSec = derivadoATipoSelect.data.find(o => o.value === 'Seccional');
+      setSeccionalSelect(o => ({ ...o, selected: secOption }));
+      if (delOption) setDelegacionSelect(o => ({ ...o, selected: delOption, data: o.data.length ? o.data : [delOption], options: [delegacionTodos, delOption] }));
+      if (derivSec) setDerivadoATipoSelect(o => ({ ...o, selected: derivSec }));
+      setAmbitoFiltroAplicado(true);
+      setAppliedFilters(prev => ({ ...prev, derivadoATipo: 'Seccional', derivadoAId: Number(usuarioSeccionalId) }));
+      return;
+    }
+
+    if (usuarioDelegacionId) {
+      const delOption = delegacionSelect.data.find(o => Number(o.value) === Number(usuarioDelegacionId));
+      if (!delOption) return;
+      setDelegacionSelect(o => ({ ...o, selected: delOption }));
+      setAmbitoFiltroAplicado(true);
+      // Para delegación NO se setea derivadoATipo en appliedFilters: se usa DelegacionId directo en la query
+    }
+  }, [ambitoFiltroAplicado, usuarioSeccionalId, usuarioDelegacionId, delegacionSelect.data, seccionalSelect.data, derivadoATipoSelect.data, delegacionTodos]);
 
   // Búsqueda delegaciones
   useEffect(() => {
@@ -755,16 +808,25 @@ const DenunciasHandler = () => {
     request: denunciaRequest,
     selected: denunciasSelected,
     data: denunciasData,
+    loading: denunciasLoading,
   } = useDenuncias({
     filtroEstado: appliedFilters.estado || null,
     filtroFechaDesde: appliedFilters.fechaDesde || null,
     filtroFechaHasta: appliedFilters.fechaHasta || null,
     filtroTipoIngresoId: appliedFilters.tipoIngresoId || null,
     filtroSituacionId: appliedFilters.situacionId || null,
-    filtroDerivadoATipo: appliedFilters.derivadoATipo || null,
-    filtroDerivadoAId: appliedFilters.derivadoAId || null,
-    usuarioAmbito: usuarioAmbito, //  filtrado por ámbito del usuario
+    filtroDerivadoATipo: appliedFilters.derivadoATipo || (usuarioSeccionalId ? ambitoFiltrosIniciales.derivadoATipo : null),
+    filtroDerivadoAId: appliedFilters.derivadoAId || (usuarioSeccionalId ? ambitoFiltrosIniciales.derivadoAId : null),
+    filtroDelegacionId: (() => {
+      if (usuarioDelegacionId && !appliedFilters.derivadoATipo) return usuarioDelegacionId;
+      if (appliedFilters.derivadoATipo === 'Seccional' && !appliedFilters.derivadoAId) {
+        return usuarioDelegacionId || appliedFilters.delegacionId || null;
+      }
+      return null;
+    })(),
+    usuarioAmbito: usuarioAmbito,
     applyAmbitoFilter: applyAmbitoFilter, //  función de filtrado por ámbito
+    bloqueado: false,
   });
 
   // Acciones con atajos de teclado
@@ -833,6 +895,7 @@ const DenunciasHandler = () => {
   // ==============================
   // Inicialización de la lista de denuncias
   useEffect(() => {
+    if (usuarioSeccionalId || usuarioDelegacionId) return;
     const params = { sortBy: "+fecha" };
 
     denunciaRequest("list", {
@@ -840,7 +903,7 @@ const DenunciasHandler = () => {
       pagination: { index: 1, size: 10 },
       onLoadSelect: onLoadSelectKeepOrFirst,
     });
-  }, [denunciaRequest]);
+  }, [denunciaRequest, usuarioSeccionalId, usuarioDelegacionId]);
 
   // ==============================
   // Tabs
@@ -948,7 +1011,10 @@ const DenunciasHandler = () => {
             onChange={(selected = derivadoATipoTodos) => {
               setDerivadoATipoSelect((o) => ({ ...o, selected }));
               if (selected?.value !== 'Delegacion' && selected?.value !== 'Seccional') {
-                setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
+                // No resetear delegación si el usuario tiene ámbito fijo de delegación
+                if (!usuarioDelegacionId) {
+                  setDelegacionSelect(o => ({ ...o, selected: delegacionTodos }));
+                }
               }
               if (selected?.value !== 'Seccional') {
                 setSeccionalSelect(o => ({ ...o, selected: seccionalTodos }));
@@ -1015,17 +1081,17 @@ const DenunciasHandler = () => {
 
           <Button
             className="botonAzul"
+            disabled={denunciasLoading}
             onClick={() => {
+              const derivadoTipoSeleccionado = derivadoATipoSelect.selected?.value || null;
               const derivadoTipo = filtroSeccionalValue
                 ? "Seccional"
-                : filtroDelegacionValue
-                  ? "Delegacion"
-                  : derivadoATipoSelect.selected?.value || null;
+                : (usuarioDelegacionId && !derivadoTipoSeleccionado)
+                  ? null
+                  : derivadoTipoSeleccionado;
               const derivadoId = filtroSeccionalValue
                 ? filtroSeccionalValue
-                : filtroDelegacionValue
-                  ? filtroDelegacionValue
-                  : null;
+                : (derivadoTipo === 'Delegacion' ? filtroDelegacionValue : null);
 
               setAppliedFilters({
                 estado: estadoSelect.selected?.value || null,
@@ -1039,6 +1105,7 @@ const DenunciasHandler = () => {
                   : null,
                 derivadoATipo: derivadoTipo,
                 derivadoAId: derivadoId ? Number(derivadoId) : null,
+                delegacionId: filtroDelegacionValue ? Number(filtroDelegacionValue) : null,
               });
             }}
            >
@@ -1050,7 +1117,8 @@ const DenunciasHandler = () => {
           <Button
             className="botonAzul"
             disabled={
-              !estadoSelect.selected?.value &&
+              denunciasLoading ||
+              (!estadoSelect.selected?.value &&
               !fechaDesde &&
               !fechaHasta &&
               !tipoIngresoSelect.selected?.value &&
@@ -1058,7 +1126,7 @@ const DenunciasHandler = () => {
               !filtroDerivadoATipoValue &&
               !filtroDerivadoAIdValue &&
               !filtroDelegacionValue &&
-              !filtroSeccionalValue
+              !filtroSeccionalValue)
             }
             onClick={() => {
               let nextDerivadoTipo = null;
