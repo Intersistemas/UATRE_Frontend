@@ -1892,6 +1892,8 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 
 
 
+
+
 	let content = null;
 	{
 		const GRUPO_MEDIO = [
