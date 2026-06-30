@@ -53,10 +53,10 @@ const TrabajadorDetails = (props) => {
 							
 								<Grid width>
 									
-									<InputMaterial label="Registrado"  value={validar(data.registrado === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Categorizado"  value={validar(data.bienCategorizado === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Equipamiento"  value={validar(data.equipamiento === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Indumentaria"  value={validar(data.indumentariaTrab === "S" ? "SI" : "NO")}/> 
+									<InputMaterial label="Registrado"  value={validar(String(data.registrado ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Categorizado"  value={validar(String(data.bienCategorizado ?? "").toUpperCase() === "B" ? "BUENA" : String(data.bienCategorizado ?? "").toUpperCase() === "M" ? "MALA" : "NO")}/>
+									<InputMaterial label="Equipamiento"  value={validar(String(data.equipamiento ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Indumentaria"  value={validar(String(data.indumentariaTrab ?? "").toUpperCase() === "S" ? "SI" : "NO")}/> 
 									{/* <InputMaterial label="Fecha de carga" width="8rem" value={validar(data.createdDate)}/> */}
 									<InputMaterial label="Jornada Horario"  value={validar(data.jornadaHorarioDescripcion)}/>
 									<InputMaterial label="Observaciones"   value={validar(!data.observacionCondicionLaboral ? "-" : data.observacionCondicionLaboral)}/>
@@ -73,12 +73,12 @@ const TrabajadorDetails = (props) => {
 							{/* Primera fila */}
 							<Grid className={styles.contenido} gap="1rem"> 
 								<Grid width> 
-									<InputMaterial label="EstadoVivienda"  value={validar(data.estadoVivienda === "B" ? "BUENA" : data.estadoVivienda === "M" ? "MALA" : "ACEPTABLE")}/>
-									<InputMaterial label="CantidadIntegrantes"  value={validar(data.cantidadIntegrantesVivienda === "S" ? "SI" : "NO" === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Electricidad"  value={validar(data.serviciosElectricidad === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Gas"  value={validar(data.serviciosGas === "S" ? "SI" : "NO")}/> 
-									<InputMaterial label="Agua Potable"  value={validar(data.serviciosAguaPotable === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Internet"   value={validar(data.serviciosInternet === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="EstadoVivienda"  value={validar(String(data.estadoVivienda ?? "").toUpperCase() === "B" ? "BUENA" : String(data.estadoVivienda ?? "").toUpperCase() === "M" ? "MALA" : "ACEPTABLE")}/>
+									<InputMaterial label="CantidadIntegrantes"  value={validar(data.cantidadIntegrantesVivienda)}/>
+									<InputMaterial label="Electricidad"  value={validar(String(data.serviciosElectricidad ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Gas"  value={validar(String(data.serviciosGas ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Agua Potable"  value={validar(String(data.serviciosAguaPotable ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
+									<InputMaterial label="Internet"   value={validar(String(data.serviciosInternet ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
 								</Grid>
 							</Grid>
 
@@ -89,8 +89,8 @@ const TrabajadorDetails = (props) => {
 								label="Pareja" 
 								value={
 									(() => {
-										if (data.pareja === "s") {
-											if (data.parejaTrabaja === "s") {
+										if (String(data.pareja ?? "").toUpperCase() === "S") {
+											if (String(data.parejaTrabaja ?? "").toUpperCase() === "S") {
 												return validar("SI - Trabaja (SI) - Permite(Si)");
 											} else {
 												return validar("SI - Trabaja (NO)");
@@ -100,7 +100,7 @@ const TrabajadorDetails = (props) => {
 										}
 									})()
 								}
-								title={`${data.pareja === "s" ? "SI" : "NO"} - ${data.pareja === "s" ? (data.parejaTrabaja === "s" ? "Trabaja (SI) - Permite la opción de ir a identificar y condición laboral de pareja" : "Trabaja (NO)") : ""}`}
+								title={`${String(data.pareja ?? "").toUpperCase() === "S" ? "SI" : "NO"} - ${String(data.pareja ?? "").toUpperCase() === "S" ? (String(data.parejaTrabaja ?? "").toUpperCase() === "S" ? "Trabaja (SI) - Permite la opción de ir a identificar y condición laboral de pareja" : "Trabaja (NO)") : ""}`}
 							/>
 									<InputMaterial 
 										label="Hijos" 
@@ -108,22 +108,22 @@ const TrabajadorDetails = (props) => {
 											(() => {
 												let texto = "";
 												
-												if (data.hijos === "s") {
+												if (String(data.hijos ?? "").toUpperCase() === "S") {
 													texto = "SI - Mayores (";
-													
+
 													// Verificar HijosMayores
-													if (data.hijosMayores === "s") {
+													if (String(data.hijosMayores ?? "").toUpperCase() === "S") {
 														texto += "SI) - Trabajan (";
-														
+
 												// Verificar HijosMayoresTrabajan
-												if (data.hijosMayoresTrabajan === "s") {
+												if (String(data.hijosMayoresTrabajan ?? "").toUpperCase() === "S") {
 													texto += "SI) - Permite(Si)";
 												} else {
 													texto += "NO)";
 												}
-											} else if (data.hijosMayores === "n") {
+											} else if (String(data.hijosMayores ?? "").toUpperCase() === "N") {
 											texto += "NO) - Escolarizados (";														// Verificar HijosMenoresEscolarizados
-													if (data.hijosMenoresEscolarizados === "s") {
+													if (String(data.hijosMenoresEscolarizados ?? "").toUpperCase() === "S") {
 														texto += "SI)";
 													} else {
 														texto += "NO)";
@@ -140,21 +140,21 @@ const TrabajadorDetails = (props) => {
 											(() => {
 												let texto = "";
 												
-												if (data.hijos === "s") {
+												if (String(data.hijos ?? "").toUpperCase() === "S") {
 													texto = "SI - Mayores (";
-													
-												if (data.hijosMayores === "s") {
+
+												if (String(data.hijosMayores ?? "").toUpperCase() === "S") {
 													texto += "SI) - Trabajan (";
-													
-													if (data.hijosMayoresTrabajan === "s") {
+
+													if (String(data.hijosMayoresTrabajan ?? "").toUpperCase() === "S") {
 														texto += "SI) - Permite la opción de ir a identificar y condición laboral de los hijos";
 													} else {
 														texto += "NO)";
 													}
-												} else if (data.hijosMayores === "n") {
+												} else if (String(data.hijosMayores ?? "").toUpperCase() === "N") {
 													texto += "NO) - Escolarizados (";
-													
-													if (data.hijosMenoresEscolarizados === "s") {
+
+													if (String(data.hijosMenoresEscolarizados ?? "").toUpperCase() === "S") {
 														texto += "SI)";
 													} else {
 														texto += "NO)";
