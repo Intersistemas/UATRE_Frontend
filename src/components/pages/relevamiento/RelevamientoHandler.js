@@ -520,7 +520,11 @@ const RelevamientoHandler = () => {
       </Grid>
 
       <Grid className="tabs">
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+        <Tabs value={tab} onChange={(_, v) => {
+          setTab(v);
+          setDelegacionSelect((o) => ({ ...o, buscar: "", options: o.optionsSrc }));
+          setSeccionalSelect((o) => ({ ...o, buscar: "", options: o.optionsSrc }));
+        }}>
           {tabs.map((r) => r.header())}
         </Tabs>
       </Grid>
@@ -535,7 +539,7 @@ const RelevamientoHandler = () => {
             helperText={delegacionSelect.loading ?? delegacionSelect?.error}
             value={delegacionSelect.selected}
             onChange={(selected) => setDelegacionSelect((o) => ({ ...o, selected, buscar: "", options: o.optionsSrc }))}
-            options={delegacionSelect.options}
+            options={delegacionSelect.optionsSrc}
             onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
           />
 
@@ -547,7 +551,7 @@ const RelevamientoHandler = () => {
             helperText={seccionalSelect.loading ?? seccionalSelect?.error}
             value={seccionalSelect.selected}
             onChange={(selected) => setSeccionalSelect((o) => ({ ...o, selected }))}
-            options={seccionalSelect.options}
+            options={seccionalSelect.optionsSrc}
             onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
           />
 
