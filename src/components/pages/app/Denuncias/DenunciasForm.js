@@ -1791,13 +1791,15 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 	//#endregion inicializaciones
 
 	const prevDerivadaARef = useRef(state.form.derivadaA);
+	const delegacionSelectRef = useRef(delegacionSelect);
+	delegacionSelectRef.current = delegacionSelect;
+	const seccionalSelectRef = useRef(seccionalSelect);
+	seccionalSelectRef.current = seccionalSelect;
 
 	// Habilitar/limpiar Delegacion/Seccional según "Derivada a"
 	useEffect(() => {
 		const derivada = state.form.derivadaA;
 		const prevDerivada = prevDerivadaARef.current;
-		setSeccionalSelect(o => ({ ...o, error: null, loading: null }));
-		setDelegacionSelect(o => ({ ...o, error: null, loading: null }));
 
 		let lockDeleg = false;
 		let lockSecc = false;
@@ -1843,7 +1845,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 		// Derivada a Seccional:
 		if (derivada === "Seccional") {
 			if (derivadaCambio && prevDerivada !== "Seccional" && !lockDeleg) {
-				const tieneDelegSeleccionada = !!(delegacionSelect && delegacionSelect.selected && delegacionSelect.selected.value);
+				// Leer el estado actual de delegación via ref para no crear dependencia cíclica
+				const currentDelegacion = delegacionSelectRef.current;
+				const tieneDelegSeleccionada = !!(currentDelegacion && currentDelegacion.selected && currentDelegacion.selected.value);
 				if (!tieneDelegSeleccionada) {
 					setDelegacionSelect((o) => ({ ...o, selected: {}, buscar: "" }));
 					setState((o) => ({ ...o, form: { ...o.form, delegacionDerivada: "" } }));
@@ -1852,7 +1856,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 			setLockedDelegacion(lockDeleg);
 			setLockedSeccional(lockSecc);
 			if (!lockSecc) {
-				if (!Array.isArray(seccionalSelect.data) || seccionalSelect.data.length === 0) {
+				// Leer seccionales via ref para no crear dependencia cíclica
+				const currentSeccional = seccionalSelectRef.current;
+				if (!Array.isArray(currentSeccional.data) || currentSeccional.data.length === 0) {
 					setSeccionalSelect(o => ({ ...o, error: null, loading: "Cargando..." }));
 					setSeccionalesQuery((o) => ({
 						...o,
@@ -1861,10 +1867,9 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 							setSeccionalSelect((s) => ({ ...s, loading: null, data, error: error?.toString() }));
 						},
 					}));
-				} else {
-					setSeccionalSelect(o => ({ ...o, error: null, loading: null }));
 				}
 			}
+			prevDerivadaARef.current = derivada;
 			return;
 		}
 
@@ -1882,7 +1887,10 @@ const DenunciasForm = ({ data = {}, readOnly = false, onClose = () => { }, onCha
 		setLockedDelegacion(lockDeleg);
 		setLockedSeccional(lockSecc);
 		prevDerivadaARef.current = derivada;
-	}, [state.form.derivadaA, serverDerivadoATipo, seccionalSelect.data, setSeccionalesQuery, delegacionSelect]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.form.derivadaA, serverDerivadoATipo, setSeccionalesQuery]);
+
+
 
 
 
