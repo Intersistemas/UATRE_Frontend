@@ -50,7 +50,7 @@ const useRelevamiento = ({
   error,
   multi: multiInit = false,
   params: paramsInit = {
-    sort: "-id",
+    sort: "-fecha",
     soloActivos: false,
   },
   onLoadSelect: onLoadSelectInit = onLoadSelectFirst,
@@ -66,8 +66,7 @@ const useRelevamiento = ({
 } = {}) => {
   const Usuario = useContext(AuthContext).usuario;
 
-  const pushQuery = useQueryQueue((action, params) => {
-    const { id, ...otherParams } = params;
+  const pushQuery = useQueryQueue((action) => {
     switch (action) {
       case "GetList": {
         return {
@@ -78,23 +77,15 @@ const useRelevamiento = ({
           },
         };
       }
-      case "GetListSeccionales": {
-        return {
-          config: {
-            baseURL: "Afiliaciones",
-            endpoint: `/Seccional`,
-            method: "GET",
-          },
-          params: otherParams,
-        };
-      }
       default:
         return null;
     }
   });
 
+  const fetchingRef = React.useRef(false);
+
   const [list, setList] = useState({
-    loading: null,
+    loading: "Cargando...",
     remote: remoteInit,
     loadingOverride: loading,
     params: { ...paramsInit, filtro: "" },
@@ -105,7 +96,7 @@ const useRelevamiento = ({
       ambitoSeccionales: Usuario.ambitoSeccionales,
     },
     delegaciones: [],
-    pagination: { index: 1, size: 15 },
+    pagination: { index: 1, size: 10 },
     data: [...AsArray(dataInit, true)],
     error,
     selection: {
@@ -119,14 +110,11 @@ const useRelevamiento = ({
     onEditComplete: onEditCompleteInit ?? onEditCompleteDef,
   });
 
-  const [seccionales, setSeccionales] = useState({
-    loading: false,
-    data: [],
-    error: null,
-  });
 
   useEffect(() => {
     if (!list.loading) return;
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
     const changes = { loading: null, error: null };
 
     if (!list.remote) {
@@ -151,13 +139,11 @@ const useRelevamiento = ({
     changes.data = [];
     pushQuery({
       action: "GetList",
-      config: {
-        params: {
-          ...list.paramsDef,
-          ...list.params,
-          pageIndex: list.pagination.index,
-          pageSize: list.pagination.size,
-        },
+      params: {
+        ...list.paramsDef,
+        ...list.params,
+        pageIndex: list.pagination.index,
+        pageSize: list.pagination.size,
       },
       onOk: async ({ data, total, ...pagination }) => {
         if (!Array.isArray(data))
@@ -181,55 +167,23 @@ const useRelevamiento = ({
         changes.error = error;
         changes.selection = { ...list.selection, ...selectionDef };
       },
-      onFinally: async () => setList((o) => ({ ...o, ...changes })),
+      onFinally: async () => {
+        fetchingRef.current = false;
+        setList((o) => ({ ...o, ...changes }));
+      },
     });
   }, [pushQuery, list]);
-
-  const cargarSeccionales = useCallback(() => {
-    setSeccionales((prev) => ({
-      ...prev,
-      loading: true,
-      error: null,
-    }));
-
-    pushQuery({
-      action: "GetListSeccionales",
-      params: {},
-      onOk: (data) => {
-        let seccionalesData = [];
-        if (Array.isArray(data)) seccionalesData = data;
-        else if (data && Array.isArray(data.data)) seccionalesData = data.data;
-        else if (data && Array.isArray(data.seccionales)) seccionalesData = data.seccionales;
-        else if (data && typeof data === "object") seccionalesData = [data];
-        setSeccionales({
-          loading: false,
-          data: seccionalesData,
-          error: null,
-        });
-      },
-      onError: (error) => {
-        setSeccionales({
-          loading: false,
-          data: [],
-          error: error,
-        });
-      },
-    });
-  }, [pushQuery]);
-
-  useEffect(() => {
-    cargarSeccionales();
-  }, [cargarSeccionales]);
 
   // ====== Datos visibles en la tabla ======
   const visibleData = React.useMemo(() => {
     const base = filtroEstado ? filtroEstado([...list.data]) : [...list.data];
-    return base.sort((a, b) => b.id - a.id).slice(0, 15); // tu vista actual
+    return base.slice(0, 15);
   }, [list.data, filtroEstado]);
 
   // ====== Asegurar que el PRIMER visible quede seleccionado ======
   useEffect(() => {
-    if (list.selection.multi) return; // solo para selección simple
+    if (list.loading) return; // no tocar mientras está cargando
+    if (list.selection.multi) return;
     const currentId = list.selection.record?.id;
     const isCurrentVisible = currentId && visibleData.some((r) => r.id === currentId);
     const first = visibleData[0] ?? null;
@@ -246,7 +200,7 @@ const useRelevamiento = ({
         },
       }));
     }
-  }, [visibleData, list.selection.multi, list.selection.record?.id]);
+  }, [visibleData, list.loading, list.selection.multi, list.selection.record?.id]);
 
   // ================= RENDER =================
   // (igual que antes, pero usando visibleData para no recalcular)
@@ -443,9 +397,6 @@ const useRelevamiento = ({
           remote={list.remote}
           data={visibleData}
           loading={!!list.loading}
-          seccionales={seccionales.data}
-          seccionalesLoading={seccionales.loading}
-          seccionalesError={seccionales.error}
           noDataIndication={
             list.loading ?? list.loadingOverride ?? list.error?.message ?? "No existen datos para mostrar"
           }
@@ -586,10 +537,6 @@ const useRelevamiento = ({
     render,
     request,
     selected: list.selection.record,
-    seccionales: seccionales.data,
-    seccionalesLoading: seccionales.loading,
-    seccionalesError: seccionales.error,
-    cargarSeccionales,
     list,
   };
 };
