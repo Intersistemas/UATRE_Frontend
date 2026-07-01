@@ -25,7 +25,7 @@ const norm = (v) =>
     .replace(/\p{Diacritic}/gu, "")
     .trim();
 
-const delegacionSelectDef = { label: "Elige..." };
+const delegacionSelectDef = { label: "Todas" };
 const delegacionesSelectOptions = ({ data = [], ...x }) =>
   mapOptions({
     data,
@@ -62,7 +62,7 @@ const RelevamientoHandler = () => {
 
   /* ---------- Selects: Delegación / Seccional ---------- */
   const [delegacionSelect, setDelegacionSelect] = useState({
-    reload: true,
+    reload: false,
     loading: "Cargando...",
     buscar: "",
     data: [],
@@ -92,11 +92,7 @@ const RelevamientoHandler = () => {
 
   // Empleador
   const [empleadorUI, setEmpleadorUI] = useState("");
-  const [empleadorAplicado, setEmpleadorAplicado] = useState("");
 
-  // IDs aplicados (para filtrar client-side exacto)
-  const [delegacionIdAplicado, setDelegacionIdAplicado] = useState(null);
-  const [seccionalIdAplicado, setSeccionalIdAplicado] = useState(null);
 
   // Filtro de fecha
   const [fechaDesde, setFechaDesde] = useState(null);
@@ -169,6 +165,7 @@ const RelevamientoHandler = () => {
         if (Array.isArray(ok)) data = ok;
 
         setDelegacionSelect((old) => {
+          if (old.data.length > 0) return old; // ya cargado, no resetear
           const n = {
             ...old,
             loading: null,
@@ -277,73 +274,13 @@ const RelevamientoHandler = () => {
     }));
   }, [delegacionSelect.loading, delegacionSelect.selected]);
 
-  /* ---------- Hook Relevamiento + filtro client-side exacto ---------- */
-  // Filtro client-side: aplica EXACTO por seccional y/o delegación y por empleador
-  const filtroClient = React.useCallback(
-    (rows) => {
-      let data = rows;
-
-      // Empleador exacto 
-      const emp = norm(empleadorAplicado);
-      if (emp) {
-        data = data.filter((r) => norm(r.establecimientoRazonSocial) === emp);
-      }
-
-      // Seccional exacta por ID 
-      if (seccionalIdAplicado) {
-        const seccIdStr = String(seccionalIdAplicado);
-        data = data.filter((r) => String(r.seccionalId ?? "") === seccIdStr);
-        return data; // si hay seccional, la delegación ya está implícita
-      }
-
-      // Delegación exacta: dejo pasar solo relevamientos cuya seccional pertenezca a esa delegación
-      if (delegacionIdAplicado) {
-        // seccionalSelect.data son las seccionales de la delegación seleccionada
-        const idsSeccionales = new Set(
-          (seccionalSelect.data || []).map((s) => String(s.id))
-        );
-        data = data.filter((r) => idsSeccionales.has(String(r.seccionalId ?? "")));
-      }
-
-      // Filtro por rango de fechas
-      if (fechaDesde || fechaHasta) {
-        data = data.filter((r) => {
-          if (!r.fecha) return false;
-          
-          const fechaRegistro = new Date(r.fecha);
-          
-          if (fechaDesde && fechaHasta) {
-            const desde = new Date(fechaDesde);
-            const hasta = new Date(fechaHasta);
-            return fechaRegistro >= desde && fechaRegistro <= hasta;
-          } else if (fechaDesde) {
-            const desde = new Date(fechaDesde);
-            return fechaRegistro >= desde;
-          } else if (fechaHasta) {
-            const hasta = new Date(fechaHasta);
-            return fechaRegistro <= hasta;
-          }
-          
-          return true;
-        });
-      }
-
-      return data;
-    },
-    [empleadorAplicado, seccionalIdAplicado, delegacionIdAplicado, seccionalSelect.data, fechaDesde, fechaHasta]
-  );
 
   const {
     render: relevamientoTab,
     request: relevamientoChanger,
     selected: relevamientoSelected,
-    seccionales: seccionalesDatos,
-    seccionalesLoading,
-    seccionalesError,
-    cargarSeccionales,
     list: relevamientoList,
   } = useRelevamiento({
-    filtroEstado: filtroClient,
     onEditComplete: ({ request, response }) => {
       if (request === "A" && response?.id) {
         relevamientoChanger("list", {
@@ -374,12 +311,15 @@ const RelevamientoHandler = () => {
     ),
   });
 
-  // Carga seccionales del hook si hiciera falta (independiente de los selects)
+  // Activa la carga de delegaciones solo la primera vez que Fiscalizaciones termina
+  const delegacionesLoadedRef = React.useRef(false);
   useEffect(() => {
-    if (!seccionalesLoading && !(seccionalesDatos?.length > 0)) {
-      cargarSeccionales?.();
-    }
-  }, [seccionalesLoading, seccionalesDatos, cargarSeccionales]);
+    if (relevamientoList.loading !== null) return;
+    if (delegacionesLoadedRef.current) return;
+    delegacionesLoadedRef.current = true;
+    setDelegacionSelect((o) => ({ ...o, reload: true }));
+  }, [relevamientoList.loading]);
+
 
   /* ---------- PDF ---------- */
   const [pdf, setPdf] = useState({
@@ -390,36 +330,16 @@ const RelevamientoHandler = () => {
     despliega: false,
   });
 
-  // Cargar datos para PDF aplicando los mismos filtros
+  // Cargar datos para PDF con los datos ya filtrados por el backend
   useEffect(() => {
     if (!pdf.reload) return;
-
-    const changes = { reload: false, loading: "Cargando datos para PDF...", data: [], error: null, despliega: false };
-
-    // Usar los datos ya filtrados del relevamientoList
-    const datosCompletos = relevamientoList?.data || [];
-    
-    console.log("Datos disponibles en relevamientoList:", datosCompletos);
-    console.log("Cantidad de registros:", datosCompletos.length);
-    
-    // Aplicar el mismo filtro client-side
-    const datosFiltrados = filtroClient(datosCompletos);
-
-    console.log("Datos después del filtro:", datosFiltrados);
-    console.log("Cantidad después del filtro:", datosFiltrados.length);
-
-    if (datosFiltrados.length === 0) {
-      changes.loading = null;
-      changes.error = "No hay datos para generar el PDF";
-      setPdf((o) => ({ ...o, ...changes }));
+    const datos = relevamientoList?.data || [];
+    if (datos.length === 0) {
+      setPdf((o) => ({ ...o, reload: false, loading: null, error: "No hay datos para generar el PDF", despliega: false }));
       return;
     }
-
-    changes.data = datosFiltrados;
-    changes.loading = null;
-    changes.despliega = true;
-    setPdf((o) => ({ ...o, ...changes }));
-  }, [pdf.reload, relevamientoList?.data, filtroClient]);
+    setPdf((o) => ({ ...o, reload: false, loading: null, data: datos, despliega: true, error: null }));
+  }, [pdf.reload, relevamientoList?.data]);
 
   const onCargaPDF = useCallback(() => {
     console.log("=== onCargaPDF INICIADO ===");
@@ -463,15 +383,6 @@ const RelevamientoHandler = () => {
     actions: encuestaActions,
   });
 
-  // Primer load sin filtros
-  useEffect(() => {
-    relevamientoChanger("list", {
-      params: {},
-      pagination: { index: 1, size: 10 },
-      onLoadSelect: onLoadSelectKeepOrFirst,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   /* ---------- ESTABLECIMIENTO ---------- */
   const [establecimientoTab, establecimientoChanger, establecimientoSelected] =
@@ -550,18 +461,14 @@ const RelevamientoHandler = () => {
     const delegSel = delegacionSelect.selected;
     const seccSel = seccionalSelect.selected;
 
-    // IDs aplicados para filtrado client-side exacto
     const delegId = delegSel && delegSel !== delegacionSelectDef ? Number(delegSel.value) : null;
     const seccId = seccSel && seccSel !== seccionalSelectDef ? Number(seccSel.value) : null;
 
-    setDelegacionIdAplicado(delegId);
-    setSeccionalIdAplicado(seccId);
-    setEmpleadorAplicado(empleadorUI);
-
-    // También envío por params (por si el backend los soporta en el futuro)
-    if (delegId != null) params.ambitoDelegaciones = { ids: [delegId] };
-    if (seccId != null) params.ambitoSeccionales = { ids: [seccId] };
-    if (empleadorUI?.trim()) params.filtroTexto = empleadorUI.trim();
+    if (delegId != null) params.delegacionId = delegId;
+    if (seccId != null) params.seccionalId = seccId;
+    if (empleadorUI?.trim()) params.EstablecimientoRazonSocial = empleadorUI.trim();
+    if (fechaDesde) params.FechaDesde = fechaDesde;
+    if (fechaHasta) params.FechaHasta = fechaHasta;
 
     relevamientoChanger("list", {
       params,
@@ -581,9 +488,6 @@ const RelevamientoHandler = () => {
       data: [],
     }));
     setEmpleadorUI("");
-    setEmpleadorAplicado("");
-    setDelegacionIdAplicado(null);
-    setSeccionalIdAplicado(null);
     setFechaDesde(null);
     setFechaHasta(null);
 
@@ -601,7 +505,7 @@ const RelevamientoHandler = () => {
       filtros={{
         delegacion: delegacionSelect.selected?.label,
         seccional: seccionalSelect.selected?.label,
-        empleador: empleadorAplicado,
+        empleador: empleadorUI,
         fechaDesde,
         fechaHasta,
       }}
@@ -616,7 +520,11 @@ const RelevamientoHandler = () => {
       </Grid>
 
       <Grid className="tabs">
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+        <Tabs value={tab} onChange={(_, v) => {
+          setTab(v);
+          setDelegacionSelect((o) => ({ ...o, buscar: "", options: o.optionsSrc }));
+          setSeccionalSelect((o) => ({ ...o, buscar: "", options: o.optionsSrc }));
+        }}>
           {tabs.map((r) => r.header())}
         </Tabs>
       </Grid>
@@ -630,8 +538,8 @@ const RelevamientoHandler = () => {
             error={!!delegacionSelect.error}
             helperText={delegacionSelect.loading ?? delegacionSelect?.error}
             value={delegacionSelect.selected}
-            onChange={(selected) => setDelegacionSelect((o) => ({ ...o, selected }))}
-            options={delegacionSelect.options}
+            onChange={(selected) => setDelegacionSelect((o) => ({ ...o, selected, buscar: "", options: o.optionsSrc }))}
+            options={delegacionSelect.optionsSrc}
             onTextChange={(buscar) => setDelegacionSelect((o) => ({ ...o, buscar }))}
           />
 
@@ -643,7 +551,7 @@ const RelevamientoHandler = () => {
             helperText={seccionalSelect.loading ?? seccionalSelect?.error}
             value={seccionalSelect.selected}
             onChange={(selected) => setSeccionalSelect((o) => ({ ...o, selected }))}
-            options={seccionalSelect.options}
+            options={seccionalSelect.optionsSrc}
             onTextChange={(buscar) => setSeccionalSelect((o) => ({ ...o, buscar }))}
           />
 
