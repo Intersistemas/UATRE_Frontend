@@ -54,7 +54,7 @@ const TrabajadorDetails = (props) => {
 								<Grid width>
 									
 									<InputMaterial label="Registrado"  value={validar(String(data.registrado ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
-									<InputMaterial label="Categorizado"  value={validar(String(data.bienCategorizado ?? "").toUpperCase() === "B" ? "BUENA" : String(data.bienCategorizado ?? "").toUpperCase() === "M" ? "MALA" : "NO")}/>
+									<InputMaterial label="Categorizado"  value={validar(String(data.bienCategorizado ?? "").toUpperCase() === "B" ? "BIEN" : String(data.bienCategorizado ?? "").toUpperCase() === "M" ? "MAL" : "NO")}/>
 									<InputMaterial label="Equipamiento"  value={validar(String(data.equipamiento ?? "").toUpperCase() === "S" ? "SI" : "NO")}/>
 									<InputMaterial label="Indumentaria"  value={validar(String(data.indumentariaTrab ?? "").toUpperCase() === "S" ? "SI" : "NO")}/> 
 									{/* <InputMaterial label="Fecha de carga" width="8rem" value={validar(data.createdDate)}/> */}
