@@ -125,9 +125,8 @@ const useDenuncias = ({
       //  Cargar todas las denuncias sin paginación del servidor
       const paramsFiltered = {
         ...queryParams,
-        Page: list.pagination.index,
-        PageSize: list.pagination.size,
-        Sort: "-Fecha",
+        // Sin Page/PageSize para cargar TODOS los datos sin paginación del servidor
+        // La paginación se hace client-side en DenunciasTable
       };
       
 
@@ -142,21 +141,19 @@ const useDenuncias = ({
 
           if (response && typeof response === "object") {
             data = response.data || [];
-            const totalCount = response.count || response.totalCount || response.total || 0;
-            const totalPages = response.pages || response.totalPages || Math.ceil(totalCount / list.pagination.size);
+            // Para exportación: usamos el conteo total de lo que retorna el servidor
+            const totalCount = response.count || response.totalCount || response.total || data.length;
             paginationInfo = {
               index: list.pagination.index,
               size: list.pagination.size,
               count: totalCount,
-              pages: totalPages,
+              pages: Math.ceil(totalCount / list.pagination.size)
             };
           } else if (Array.isArray(response)) {
             data = response;
-            
-            
             paginationInfo = {
               index: list.pagination.index,
-              size: list.pagination.size, //  Mantener nuestro tamaño (3)
+              size: list.pagination.size,
               count: totalFilteredCount || response.length
             };
           } else {
@@ -368,7 +365,7 @@ const useDenuncias = ({
     return (
       <>
         <DenunciasTable
-          remote={true}
+          remote={false}
           data={list.data}
           loading={!!list.loading}
           noDataIndication={
