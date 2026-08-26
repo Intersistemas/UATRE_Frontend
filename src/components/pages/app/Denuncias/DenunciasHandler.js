@@ -503,6 +503,8 @@ const DenunciasHandler = () => {
     situacionId: null,
     derivadoATipo: null,
     derivadoAId: null,
+    delegacionOrigenId: null,
+    seccionalOrigenId: null,
   }));
 
   const delegacionTodos = useMemo(() => ({ value: null, label: "Todas las delegaciones" }), []);
@@ -601,6 +603,60 @@ const DenunciasHandler = () => {
     const stillExists = options.find(o => o.value === seccionalSelect.selected?.value);
     setSeccionalSelect(o => ({ ...o, options, selected: stillExists ? o.selected : seccionalTodos }));
   }, [seccionalSelect.buscar, seccionalSelect.data, delegacionSelect.selected, seccionalSelect.selected?.value, seccionalTodos]);
+
+  // ==============================
+  // REQ-1118: filtros "Delegación de Denuncia" / "Seccional de Denuncia" (origen)
+  // Distintos del filtro "Delegación"/"Seccional" de arriba, que es por derivación.
+  // ==============================
+  const delegacionOrigenTodos = useMemo(() => ({ value: null, label: "Todas las Delegaciones" }), []);
+  const seccionalOrigenTodos = useMemo(() => ({ value: null, label: "Todas las Seccionales" }), []);
+
+  const [delegacionOrigenSelect, setDelegacionOrigenSelect] = useState({
+    buscar: "",
+    options: [],
+    selected: delegacionOrigenTodos,
+  });
+  const [seccionalOrigenSelect, setSeccionalOrigenSelect] = useState({
+    buscar: "",
+    options: [],
+    selected: seccionalOrigenTodos,
+  });
+
+  // Mapa localidadId -> {delegacionId, seccionalId} de origen, resuelto en cliente.
+  // El catálogo /Afiliaciones/Seccional (seccionalSelect.data, ya cargado para el
+  // filtro de derivación) trae por cada seccional un array anidado "seccionalLocalidad"
+  // con refLocalidadId/seccionalId/refDelegacionId: alcanza con invertirlo, sin pedir
+  // nada nuevo al backend.
+  const localidadOrigenMap = useMemo(() => {
+    const map = new Map();
+    for (const opt of seccionalSelect.data) {
+      const seccionalId = Number(opt.value);
+      const delegacionId = Number(opt.record?.refDelegacionId) || null;
+      const localidades = Array.isArray(opt.record?.seccionalLocalidad) ? opt.record.seccionalLocalidad : [];
+      for (const loc of localidades) {
+        const localidadId = Number(loc.refLocalidadId ?? loc.RefLocalidadId ?? loc.id);
+        if (!localidadId) continue;
+        map.set(localidadId, { seccionalId, delegacionId });
+      }
+    }
+    return map;
+  }, [seccionalSelect.data]);
+
+  // Búsqueda delegación de origen (mismo catálogo ya cargado, sin pedir de nuevo)
+  useEffect(() => {
+    const options = [delegacionOrigenTodos, ...delegacionSelect.data.filter(opt => includeSearch(opt, delegacionOrigenSelect.buscar))];
+    setDelegacionOrigenSelect(o => ({ ...o, options }));
+  }, [delegacionOrigenSelect.buscar, delegacionSelect.data, delegacionOrigenTodos]);
+
+  // Búsqueda y filtrado seccional de origen por delegación de origen
+  useEffect(() => {
+    let base = seccionalSelect.data;
+    const delegId = delegacionOrigenSelect.selected?.value;
+    if (delegId) base = base.filter(opt => Number(opt.record?.refDelegacionId) === Number(delegId));
+    const options = [seccionalOrigenTodos, ...base.filter(opt => includeSearch(opt, seccionalOrigenSelect.buscar))];
+    const stillExists = options.find(o => o.value === seccionalOrigenSelect.selected?.value);
+    setSeccionalOrigenSelect(o => ({ ...o, options, selected: stillExists ? o.selected : seccionalOrigenTodos }));
+  }, [seccionalOrigenSelect.buscar, seccionalSelect.data, delegacionOrigenSelect.selected, seccionalOrigenSelect.selected?.value, seccionalOrigenTodos]);
 
 
   // ==============================
@@ -748,6 +804,9 @@ const DenunciasHandler = () => {
     filtroSituacionId: appliedFilters.situacionId || null,
     filtroDerivadoATipo: appliedFilters.derivadoATipo || null,
     filtroDerivadoAId: appliedFilters.derivadoAId || null,
+    filtroDelegacionOrigenId: appliedFilters.delegacionOrigenId || null,
+    filtroSeccionalOrigenId: appliedFilters.seccionalOrigenId || null,
+    localidadOrigenMap: localidadOrigenMap,
     usuarioAmbito: usuarioAmbito, //  filtrado por ámbito del usuario
     applyAmbitoFilter: applyAmbitoFilter, //  función de filtrado por ámbito
   });
@@ -973,8 +1032,20 @@ const DenunciasHandler = () => {
             style={{ opacity: disabledSeccional ? 0.6 : 1 }}
           />
 
-
-
+          <SearchSelectMaterial
+            label="Delegación de Denuncia"
+            value={delegacionOrigenSelect.selected}
+            onChange={(selected = delegacionOrigenTodos) => setDelegacionOrigenSelect(o => ({ ...o, selected }))}
+            options={delegacionOrigenSelect.options}
+            onTextChange={(buscar) => setDelegacionOrigenSelect(o => ({ ...o, buscar }))}
+          />
+          <SearchSelectMaterial
+            label="Seccional de Denuncia"
+            value={seccionalOrigenSelect.selected}
+            onChange={(selected = seccionalOrigenTodos) => setSeccionalOrigenSelect(o => ({ ...o, selected }))}
+            options={seccionalOrigenSelect.options}
+            onTextChange={(buscar) => setSeccionalOrigenSelect(o => ({ ...o, buscar }))}
+          />
 
 
           <DateTimePicker
@@ -1020,6 +1091,12 @@ const DenunciasHandler = () => {
                   : null,
                 derivadoATipo: derivadoTipo,
                 derivadoAId: derivadoId ? Number(derivadoId) : null,
+                delegacionOrigenId: delegacionOrigenSelect.selected?.value
+                  ? Number(delegacionOrigenSelect.selected.value)
+                  : null,
+                seccionalOrigenId: seccionalOrigenSelect.selected?.value
+                  ? Number(seccionalOrigenSelect.selected.value)
+                  : null,
               });
             }}
            >
@@ -1037,7 +1114,9 @@ const DenunciasHandler = () => {
               !tipoIngresoSelect.selected?.value &&
               !situacionSelect.selected?.value &&
               !filtroDerivadoATipoValue &&
-              !filtroDerivadoAIdValue
+              !filtroDerivadoAIdValue &&
+              !delegacionOrigenSelect.selected?.value &&
+              !seccionalOrigenSelect.selected?.value
             }
             onClick={() => {
               let nextDerivadoTipo = null;
@@ -1085,6 +1164,9 @@ const DenunciasHandler = () => {
                 setSeccionalSelect((o) => ({ ...o, selected: seccionalTodos, buscar: "" }));
               }
 
+              setDelegacionOrigenSelect((o) => ({ ...o, selected: delegacionOrigenTodos, buscar: "" }));
+              setSeccionalOrigenSelect((o) => ({ ...o, selected: seccionalOrigenTodos, buscar: "" }));
+
               setAppliedFilters({
                 estado: null,
                 fechaDesde: null,
@@ -1093,6 +1175,8 @@ const DenunciasHandler = () => {
                 situacionId: null,
                 derivadoATipo: nextDerivadoTipo,
                 derivadoAId: nextDerivadoId,
+                delegacionOrigenId: null,
+                seccionalOrigenId: null,
               });
 
             }}
